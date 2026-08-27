@@ -15,35 +15,16 @@ const COMPRAS_SHEET_NAME = 'Compras';
 const FILMES_SHEET_NAME = 'Filmes';
 const PRODUTOS_SHEET_NAME = 'Produtos';
 const GEMINI_MODEL = 'gemini-3.6-flash';
-const LOCAL_LOGIN_EMAIL = teste-dev@gmail.com;
-const LOCAL_LOGIN_PASSWORD = senha123;
-
-  const usuarioLocal = {
-    email: emailConfigurado,
-    perfil: 'ADMIN'
-  };
-
-  const token = criarSessao(usuarioLocal);
-
-  return {
-    success: true,
-    usuario: usuarioLocal.email,
-    perfil: usuarioLocal.perfil,
-    sessionToken: token,
-    sessiontoken: token
-  };
 
 const EMAILS_AUTORIZADOS = [
   'familiar1@exemplo.com',
   'familiar2@exemplo.com',
   'parceira@exemplo.com',
   'contato@exemplo.com'
-  'titular@exemplo.com'
 ];
 
 const EMAILS_ADMIN = [
   'contato@exemplo.com'
-  'titular@exemplo.com'
 ];
 
 const CATEGORIAS = [
@@ -294,47 +275,22 @@ function criarSessao_(usuario) {
   return token;
 }
 
-function validarSessao(token) {
-  const propriedades =
-    PropertiesService.getScriptProperties();
-
-  const chave = chaveSessao(token);
+function validarSessao_(token) {
+  const propriedades = PropertiesService.getScriptProperties();
+  const chave = chaveSessao_(token);
   const valor = propriedades.getProperty(chave);
-
-  if (!valor) {
-    return null;
-  }
+  if (!valor) return null;
 
   try {
     const sessao = JSON.parse(valor);
-
-    const email = String(sessao.email || '')
-      .trim()
-      .toLowerCase();
-
-    const emailLocal =
-      String(
-        propriedades.getProperty('LOCAL_LOGIN_EMAIL') || ''
-      )
-        .trim()
-        .toLowerCase();
-
-    if (
-      Number(sessao.exp) < Date.now() ||
-      (
-        !EMAILSAUTORIZADOS.includes(email) &&
-        email !== emailLocal
-      )
-    ) {
+    const email = String(sessao.email || '').trim().toLowerCase();
+    if (Number(sessao.exp) <= Date.now() || !EMAILS_AUTORIZADOS.includes(email)) {
       propriedades.deleteProperty(chave);
       return null;
     }
-
     return {
       email: email,
-      perfil: EMAILSADMIN.includes(email)
-        ? 'ADMIN'
-        : 'USUARIA'
+      perfil: EMAILS_ADMIN.includes(email) ? 'ADMIN' : 'USUARIA'
     };
   } catch (erro) {
     propriedades.deleteProperty(chave);
