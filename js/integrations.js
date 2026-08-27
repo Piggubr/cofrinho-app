@@ -71,7 +71,7 @@ async function atualizarCotacaoCambio() {
       return;
     }
 
-    const alvo = document.querySelector('.info-row .info-item:nth-child(3)');
+    const alvo = document.querySelector('.info-row .info-item');
 
     if (!alvo) {
       return;
