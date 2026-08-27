@@ -1,0 +1,16 @@
+:root {
+  --pink-bg: #fae2e9;
+  --site-bg: #fbf1f4;
+  --surface: #FFFFFF;
+  --ink: #2B1E32;
+  --ink-soft: #5C4C58;
+  --muted: #8B7480;
+  --border: #F0CFDB;
+  --rose: #B85C7D;
+  --rose-deep: #6D1541;
+  --evento: #5C4270;
+  --ok: #7FA06B;
+  --over: #E0399B;
+  --font-display: 'enra-semi-variable', sans-serif;
+  --font-body: 'enra-semi-variable', sans-serif;
+}

@@ -1,0 +1,89 @@
+.prize-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prize-head p {
+  margin: 0;
+}
+
+.prize-admin {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--rose-deep);
+  border-radius: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.prize-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.prize-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.prize-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.prize-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.prize-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.prize-price {
+  color: var(--rose-deep);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prize-buttons {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.prize-buttons button {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--rose-deep);
+  border-radius: 9px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.prize-buttons .redeem {
+  background: var(--rose-deep);
+  color: #fff;
+  border-color: var(--rose-deep);
+}
+
+.prize-buttons .redeem:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.prize-inactive {
+  opacity: .55;
+}

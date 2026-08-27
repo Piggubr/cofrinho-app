@@ -1,0 +1,15 @@
+.movie-tools {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+}
+
+.movie-tools select {
+  grid-column: 1 / 2;
+}
+
+.movie-tools .primary {
+  width: auto;
+  margin: 0;
+  padding: 11px 15px;
+}
