@@ -231,10 +231,27 @@ function terminarSplash() {
   }, 800);
 }
 
+function modoTesteLocal() {
+  try {
+    if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) return true;
+    if (location.protocol === 'file:') return true;
+    return new URLSearchParams(location.search).has('semlogin');
+  } catch (erro) {
+    return false;
+  }
+}
+
 async function iniciarAplicacao() {
   const sessaoRestaurada = await restaurarSessaoSalva();
 
   if (sessaoRestaurada) {
+    return;
+  }
+
+  if (modoTesteLocal()) {
+    console.warn('Modo de teste local: pulando o login do Google. Sem sessão, ações que chamam o Apps Script (salvar, carregar dados etc.) vão falhar até você logar de verdade.');
+    mostrarConteudo();
+    atualizarTudo();
     return;
   }
 
