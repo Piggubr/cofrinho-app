@@ -20,11 +20,13 @@ const EMAILS_AUTORIZADOS = [
   'ahcabral10@gmail.com',
   'ahcabraloffice@gmail.com',
   'beatrizvieirasouzadias@gmail.com',
-  'cofrinhodosfofos@gmail.com'
+  'cofrinhodosfofos@gmail.com',
+  'eduardosouzapagel@gmail.com'
 ];
 
 const EMAILS_ADMIN = [
-  'cofrinhodosfofos@gmail.com'
+  'cofrinhodosfofos@gmail.com',
+  'eduardosouzapagel@gmail.com'
 ];
 
 const CATEGORIAS = [
