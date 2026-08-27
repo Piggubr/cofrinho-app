@@ -20,31 +20,32 @@ function render() {
   document.getElementById('mFixos').textContent = fmt(totalFixos);
 
   renderMeta(total);
+
+  if (typeof renderLista === 'function') renderLista();
 }
 
-function renderMeta(totalDisponivel) {
-  // Implementação simplificada; ajustar conforme sua lógica original de meta
+function renderMeta(totalGasto) {
   const metaEl = document.getElementById('metaValor');
   const barraEl = document.getElementById('metaBarra');
   const statusEl = document.getElementById('metaStatus');
 
   if (!metaEl || !barraEl || !statusEl) return;
 
-  const metaValor = Number(metas[mesKeyDe(viewDate)]) || 0;
-  const metaDefinida = metaValor > 0;
-  metaEl.textContent = metaDefinida ? fmt(metaValor) : 'Ainda não definida';
+  const limite = Number(metas[mesKeyDe(viewDate)]) || 0;
+  const saldo = limite - totalGasto;
 
-  if (metaDefinida && totalDisponivel > 0) {
-    const pct = Math.min(100, (totalDisponivel / metaValor) * 100);
-    barraEl.style.width = pct + '%';
-    barraEl.classList.toggle('over', totalDisponivel > metaValor);
-    statusEl.textContent = totalDisponivel > metaValor
-      ? 'Você ultrapassou o orçamento do mês.'
-      : 'Defina quanto está disponível para este mês.';
+  metaEl.textContent = limite ? fmt(saldo) : 'Ainda não definida';
+
+  const percentualRestante = limite ? (saldo / limite) * 100 : 0;
+  barraEl.style.width = Math.max(0, Math.min(percentualRestante, 100)) + '%';
+  barraEl.classList.toggle('over', limite > 0 && totalGasto > limite);
+
+  if (!limite) {
+    statusEl.textContent = 'Clique em Editar para definir quanto está disponível.';
+  } else if (saldo >= 0) {
+    statusEl.textContent = `${fmt(totalGasto)} gastos · saldo positivo de ${fmt(saldo)}`;
   } else {
-    barraEl.style.width = '0%';
-    barraEl.classList.remove('over');
-    statusEl.textContent = 'Defina quanto está disponível para este mês.';
+    statusEl.textContent = `${fmt(totalGasto)} gastos · saldo negativo de ${fmt(Math.abs(saldo))}`;
   }
 }
 
@@ -116,6 +117,20 @@ function renderInsightCofrinho(totalDepositado, totalGasto) {
     ? `Guardado até agora: ${fmt(saldo)}.`
     : `Os gastos já passaram os depósitos em ${fmt(Math.abs(saldo))}.`;
 }
+
+document.getElementById('btnEditarMeta')?.addEventListener('click', async () => {
+  const mes = mesKeyDe(viewDate);
+  const atual = Number(metas[mes]) || '';
+  const digitado = prompt('Quanto está disponível para gastar em ' + nomeMes(viewDate) + '?', atual);
+  if (digitado === null) return;
+  const limite = Number(String(digitado).replace(',', '.'));
+  if (!Number.isFinite(limite) || limite <= 0) { alert('Digite um valor válido.'); return; }
+  try {
+    const resposta = await chamarAppsScript({ action: 'setMonthlyGoal', mes, limite });
+    metas[mes] = resposta.limite;
+    render();
+  } catch (erro) { alert(erro.message); }
+});
 
 document.getElementById('btnCofrinho')?.addEventListener('click', () => {
   const card = document.getElementById('cofrinhoCard');

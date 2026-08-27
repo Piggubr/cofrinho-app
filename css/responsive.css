@@ -371,6 +371,7 @@ body::before {
   gap: 7px;
   margin-top: 6px;
   color: var(--rose-deep);
+  font-family: 'deuterium-variable', var(--font-body);
   font-size: 15px;
   font-variation-settings: 'wght' 400;
   font-weight: 400;
@@ -623,7 +624,7 @@ body::before {
   }
 
   .tab-panel {
-    margin-top: 16px;
+    margin-top: 34px;
   }
 
   .nav-panel .tabs {
