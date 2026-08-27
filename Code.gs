@@ -20,11 +20,13 @@ const EMAILS_AUTORIZADOS = [
   'familiar1@exemplo.com',
   'familiar2@exemplo.com',
   'parceira@exemplo.com',
-  'contato@exemplo.com'
+  'contato@exemplo.com',
+  'titular@exemplo.com'
 ];
 
 const EMAILS_ADMIN = [
-  'contato@exemplo.com'
+  'contato@exemplo.com',
+  'titular@exemplo.com'
 ];
 
 const CATEGORIAS = [
