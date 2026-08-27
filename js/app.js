@@ -367,7 +367,85 @@ function iniciarRelogios() {
   setInterval(atualizarRelogios, 30000);
 }
 
+let valoresOcultos = false;
+try {
+  valoresOcultos = localStorage.getItem('cofrinho_ocultar_valores') === '1';
+} catch (erro) {
+  console.warn('Não foi possível ler a preferência de privacidade.', erro);
+}
+
+const seletorValoresPessoais = [
+  '#mTotal', '#mMedia', '#mFixos', '.goal-value', '.goal-status',
+  '.coins-value', '#topCoinsSaldo', '#topCoinsSaldoV2', '.cofrinho-num',
+  '.budget-values', '.budget-over', '.row-value', '#insightTexto',
+  '.valor-privado', '.product-memory-price'
+].join(',');
+
+const textosValoresReais = new Map();
+let mascaraAgendada = false;
+
+function mascararElemento(elemento) {
+  const walker = document.createTreeWalker(elemento, NodeFilter.SHOW_TEXT);
+  let texto;
+  while ((texto = walker.nextNode())) {
+    if (textosValoresReais.has(texto) || !/\d/.test(texto.nodeValue)) continue;
+    textosValoresReais.set(texto, texto.nodeValue);
+    texto.nodeValue = texto.nodeValue.replace(/\d+(?:[.,]\d+)*/g, '****');
+  }
+}
+
+function mascararValoresPessoais() {
+  if (!valoresOcultos) return;
+  document.querySelectorAll(seletorValoresPessoais).forEach(mascararElemento);
+}
+
+function restaurarValoresPessoais() {
+  textosValoresReais.forEach((original, texto) => {
+    if (texto.isConnected) texto.nodeValue = original;
+  });
+  textosValoresReais.clear();
+}
+
+new MutationObserver(() => {
+  if (!valoresOcultos || mascaraAgendada) return;
+  mascaraAgendada = true;
+  queueMicrotask(() => {
+    mascaraAgendada = false;
+    mascararValoresPessoais();
+  });
+}).observe(document.body, { subtree: true, childList: true, characterData: true });
+
+function aplicarPrivacidade() {
+  const botao = document.getElementById('btnPrivacidade');
+  const icone = document.getElementById('iconePrivacidade');
+  const botaoV2 = document.getElementById('btnPrivacidadeV2');
+  const iconeV2 = document.getElementById('iconePrivacidadeV2');
+  const rotulo = valoresOcultos ? 'Mostrar valores' : 'Ocultar valores';
+  const src = valoresOcultos ? 'assets/icons/olho-fechado.svg' : 'assets/icons/olho.svg';
+
+  if (botao) {
+    botao.setAttribute('aria-pressed', String(valoresOcultos));
+    botao.setAttribute('aria-label', rotulo);
+  }
+  if (icone) icone.src = src;
+  if (botaoV2) botaoV2.setAttribute('aria-label', rotulo);
+  if (iconeV2) iconeV2.src = src;
+
+  if (valoresOcultos) mascararValoresPessoais();
+  else restaurarValoresPessoais();
+}
+
 function configurarEventosBasicos() {
+  document.getElementById('btnPrivacidade')?.addEventListener('click', () => {
+    valoresOcultos = !valoresOcultos;
+    try {
+      localStorage.setItem('cofrinho_ocultar_valores', valoresOcultos ? '1' : '0');
+    } catch (erro) {
+      console.warn('Não foi possível salvar a preferência de privacidade.', erro);
+    }
+    aplicarPrivacidade();
+  });
+
   document.getElementById('modalFechar')?.addEventListener('click', () => {
     document.getElementById('modalOverlay')?.classList.remove('show');
   });
@@ -469,6 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   configurarEventosBasicos();
+  aplicarPrivacidade();
   iniciarRelogios();
 
   // Mantém a duração do splash que existia no projeto original.

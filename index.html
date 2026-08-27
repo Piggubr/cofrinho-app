@@ -8,8 +8,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Cofrinho dos Fofos">
-  <title>Cofrinho dos Fofos</title>
+  <meta name="apple-mobile-web-app-title" content="Piggu">
+  <title>Piggu</title>
 
   <link rel="icon" type="image/jpeg" href="assets/illustrations/favicon.jpg">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/logos/apple-touch-icon.png">
@@ -428,59 +428,72 @@
 
     <!-- TAB: FILMES (LAZER) -->
     <div class="tab-panel" id="tab-filmes">
-      <div class="movie-search-card">
+      <div class="card movie-search-card">
         <div class="movie-section-head">
-          <p class="section-label">O que vamos assistir?</p>
+          <p class="section-label" style="margin:0;">O que vamos assistir?</p>
         </div>
         <div class="movie-tools">
-          <select id="filmeTipoSurpresa">
-            <option value="filme">Filme</option>
-            <option value="serie">Série</option>
+          <select id="filmeGenero">
+            <option value="">Qualquer gênero</option>
+            <option value="28">Ação</option>
+            <option value="16">Animação</option>
+            <option value="35">Comédia</option>
+            <option value="18">Drama</option>
+            <option value="10749">Romance</option>
+            <option value="53">Suspense</option>
           </select>
-          <button class="primary" id="btnSurpresa">Escolhe por nós</button>
+          <button class="primary" id="btnSortearFilme">Sortear</button>
+          <input id="filmeBusca" placeholder="Buscar pelo nome do filme">
+          <button class="primary" id="btnBuscarFilme">Buscar</button>
         </div>
-        <div id="surpriseResult" class="surprise-result" style="margin-top:16px;"></div>
       </div>
 
-      <details class="watched-group">
-        <summary>
-          <span class="watched-title">Quero assistir</span>
-        </summary>
-        <!-- Lista de filmes -->
-      </details>
+      <div id="filmeResultado"></div>
 
-      <p style="font-size:11px;color:var(--muted);margin-top:8px;">Dados de filmes fornecidos pelo TMDB.</p>
+      <p class="section-label">Quero assistir</p>
+      <div id="filmesLista"></div>
+
+      <p class="hint" style="text-align:center;">Dados de filmes fornecidos pelo TMDB.</p>
     </div>
 
     <!-- TAB: COMPRAS -->
     <div class="tab-panel" id="tab-compras">
-      <p class="section-label" style="margin-top:0;">Buscar produto</p>
-      <div class="market-search">
-        <input type="text" id="marketQuery" placeholder="Nome, marca, embalagem...">
-        <button class="primary" id="btnBuscarProduto">Buscar</button>
-      </div>
-      <div class="market-suggestions" id="marketSuggestions"></div>
-      <div class="market-results" id="marketResults"></div>
-
-      <p class="section-label" style="margin-top:1.5rem;">Adicionar à lista de compras</p>
-      <div class="shopping-form">
-        <input type="text" id="shoppingItem" placeholder="Produto">
-        <input type="number" id="shoppingQtd" placeholder="Qtd" min="1" value="1">
-        <select id="shoppingSetor">
-          <option>Hortifruti</option>
-          <option>Frios</option>
-          <option>Açougue</option>
-          <option>Mercearia</option>
-          <option>Bebidas</option>
-          <option>Limpeza</option>
-          <option>Higiene</option>
-          <option>Outros</option>
-        </select>
-        <button class="primary" id="btnAdicionarLista">Adicionar</button>
+      <div class="card">
+        <p class="section-label" style="margin-top:0;">Buscar produto</p>
+        <div class="market-categories" id="categoriasMercado"></div>
+        <div class="market-suggestions" id="sugestoesMercado"></div>
+        <div class="quick-products" id="produtosFrequentes"></div>
+        <div class="market-search">
+          <input id="buscaProduto" placeholder="Ex.: pão, leite, arroz">
+          <button class="primary" id="btnBuscarProduto" type="button">Buscar</button>
+        </div>
+        <div class="market-results" id="resultadosProdutos"></div>
+        <p class="hint">Toque em um produto para adicionar. A busca mostra nome, marca, embalagem e imagem quando disponíveis.</p>
       </div>
 
-      <p class="section-label" style="margin-top:1.5rem;">Lista do mercado</p>
-      <div class="card list-card" id="listaMercado"></div>
+      <div class="card">
+        <p class="section-label" style="margin-top:0;">Adicionar à lista de compras</p>
+        <div class="shopping-form">
+          <input id="compraItem" placeholder="O que está faltando?">
+          <input id="compraQuantidade" placeholder="Qtd.">
+          <select id="compraLista">
+            <option value="Compras">Compras</option>
+            <option value="Desejos">Desejos</option>
+          </select>
+          <button class="primary" id="btnAdicionarCompra">Adicionar</button>
+        </div>
+      </div>
+
+      <p class="section-label">Lista do mercado</p>
+      <div class="card list-card" id="listaCompras"></div>
+
+      <p class="section-label">Girls List</p>
+      <div class="card list-card" id="listaDesejos"></div>
+
+      <details class="card product-memory">
+        <summary>Produtos e histórico de preços</summary>
+        <div class="product-memory-list" id="produtosMemoria"></div>
+      </details>
     </div>
 
     <!-- TAB: PRÊMIOS -->
