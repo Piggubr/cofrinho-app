@@ -382,6 +382,15 @@ function iniciarRelogios() {
 
   atualizarRelogios();
   setInterval(atualizarRelogios, 30000);
+
+  // Atualiza a cotação do euro periodicamente.
+  // A função já possui throttle interno de 30 min, então chamadas a cada
+  // 10 min garantem frescor sem gerar requisições desnecessárias à API.
+  setInterval(() => {
+    if (typeof atualizarCotacaoCambio === 'function') {
+      atualizarCotacaoCambio();
+    }
+  }, 10 * 60 * 1000);
 }
 
 let valoresOcultos = false;
