@@ -1,9 +1,9 @@
 function atualizarSaudacaoV2() {
-  const hora = new Date().getHours();
   const saudacaoEl = document.getElementById('saudacaoV2');
-  if (saudacaoEl) {
-    saudacaoEl.textContent = 'Bem-vinda de volta';
-  }
+  const nomeEl = document.getElementById('nomePerfilV2');
+  const primeiroNome = String(nomeAtual || 'você').trim().split(/\s+/)[0];
+  if (saudacaoEl) saudacaoEl.textContent = `Olá, ${primeiroNome}!`;
+  if (nomeEl) nomeEl.textContent = nomeAtual || 'Cofrinho dos Fofos';
 }
 
 function atualizarRelogios() {

@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="css/prizes.css">
   <link rel="stylesheet" href="css/modals.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/familia.css">
 </head>
 <body>
 
@@ -68,6 +69,32 @@
     </div>
   </div>
 
+  <main class="familiar-wrap" id="painelFamiliar" style="display:none;">
+    <header class="familiar-header">
+      <img src="assets/logos/cofrinho-logo.svg" alt="Cofrinho dos Fofos">
+      <p id="saudacaoFamiliar">Olá!</p>
+      <h1>Cofrinho da Beatriz</h1>
+      <strong id="saldoFamiliar">€ 0,00</strong>
+    </header>
+    <section class="card familiar-card">
+      <h2>Adicionar dinheiro</h2>
+      <div class="familiar-inline"><input id="depositoFamiliarValor" type="number" min="0.01" step="0.01" placeholder="Valor em €"><button class="primary" id="btnDepositoFamiliar" type="button">Adicionar</button></div>
+      <p class="familiar-feedback" id="depositoFamiliarFeedback"></p>
+    </section>
+    <section class="card familiar-card">
+      <h2>Enviar cartinha</h2>
+      <label class="cartinha-foto-label" for="cartinhaFoto">Escolher foto</label>
+      <input id="cartinhaFoto" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+      <img id="cartinhaPreview" class="cartinha-preview" alt="Prévia da foto" hidden>
+      <textarea id="cartinhaTexto" rows="5" maxlength="2000" placeholder="Escreva sua mensagem..."></textarea>
+      <input id="cartinhaAssinatura" maxlength="120" placeholder="Assinatura">
+      <button class="primary" id="btnEnviarCartinha" type="button">Enviar cartinha</button>
+      <p class="familiar-feedback" id="cartinhaFeedback"></p>
+    </section>
+    <section class="card familiar-card"><h2>Minhas cartinhas enviadas</h2><div id="cartinhasEnviadas"></div></section>
+    <section class="card familiar-card"><h2>Meus depósitos</h2><div id="depositosFamiliar"></div></section>
+  </main>
+
   <div class="wrap" id="conteudoPrincipal" style="display:none;">
 
     <header class="v2-header">
@@ -76,7 +103,7 @@
         <img class="v2-profile" src="assets/illustrations/porquinho-perfil.svg" alt="Porquinho do perfil">
         <div class="v2-copy">
           <p class="v2-greeting" id="saudacaoV2">Bem-vinda de volta</p>
-          <h1 class="v2-name">Beatriz Vieira</h1>
+          <h1 class="v2-name" id="nomePerfilV2">Beatriz Vieira</h1>
         </div>
         <div class="v2-coins">
           <img src="assets/icons/coin.svg" alt="">
@@ -165,6 +192,7 @@
         <button class="tab-btn" data-tab="listas">Lugares</button>
         <button class="tab-btn" data-tab="filmes">Lazer</button>
         <button class="tab-btn" data-tab="compras">Compras</button>
+        <button class="tab-btn" data-tab="cartinhas">Cartinhas <span id="cartinhasBadge" class="cartinhas-badge" hidden></span></button>
       </div>
     </div>
 
@@ -484,6 +512,12 @@
     </div>
 
     <!-- TAB: PRÊMIOS -->
+    <div class="tab-panel" id="tab-cartinhas">
+      <p class="section-label">Cartinhas recebidas</p>
+      <div class="cartinhas-grid" id="cartinhasRecebidas"></div>
+    </div>
+
+    <!-- TAB: PRÊMIOS -->
     <div class="tab-panel" id="tab-premios">
       <div class="prize-head">
         <div>
@@ -527,6 +561,8 @@
   <script src="js/places.js"></script>
   <script src="js/prizes.js"></script>
   <script src="js/fofocoins.js"></script>
+  <script src="js/familia.js"></script>
+  <script src="js/cartinhas.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
