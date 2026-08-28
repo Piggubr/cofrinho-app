@@ -31,7 +31,8 @@ let produtos = [];
 let perfilAtual = 'USUARIA';
 let usuarioAtual = '';
 
-let viewDate = new Date(2026, 7, 1);
+const _hoje = new Date();
+let viewDate = new Date(_hoje.getFullYear(), _hoje.getMonth(), 1);
 
 const CATEGORIAS = {
   'Alimentação': '#FF6B6B',
