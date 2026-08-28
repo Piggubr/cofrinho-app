@@ -83,10 +83,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-document.getElementById('btnTirarFotoFatura')?.addEventListener('click', () => {
-  document.getElementById('fotoCameraInput')?.click();
-});
-
 document.getElementById('btnAbrirListinha')?.addEventListener('click', () => {
   abrirAba('compras');
 });
