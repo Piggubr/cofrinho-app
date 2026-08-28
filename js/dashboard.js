@@ -20,9 +20,50 @@ function render() {
   document.getElementById('mFixos').textContent = fmt(totalFixos);
 
   renderMeta(total);
+  renderOrcamentoCategorias(porCategoria);
 
   if (typeof renderLista === 'function') renderLista();
 }
+
+function renderOrcamentoCategorias(porCategoria) {
+  const lista = document.getElementById('orcamentoLista');
+  if (!lista) return;
+
+  const nomes = Object.keys(CATEGORIAS);
+  const maiorValor = Math.max(1, ...nomes.map(nome => porCategoria[nome] || 0));
+
+  const ordenados = [...nomes].sort((a, b) => (porCategoria[b] || 0) - (porCategoria[a] || 0));
+
+  lista.innerHTML = ordenados.map(nome => {
+    const valor = porCategoria[nome] || 0;
+    const cor = CATEGORIAS[nome] || CATEGORIAS.Outros;
+    const percentual = Math.round((valor / maiorValor) * 100);
+
+    return `
+      <div class="budget-row">
+        <div class="budget-row-top">
+          <span class="budget-cat">${esc(nome)}</span>
+          <span class="budget-values">${fmt(valor)}</span>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" style="width:${percentual}%;background:${cor};"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('btnAdicionarCategoria')?.addEventListener('click', async () => {
+  const nome = prompt('Nome da nova categoria:');
+  if (!nome || !nome.trim()) return;
+
+  try {
+    await chamarAppsScript({ action: 'addCategory', nome: nome.trim() });
+    await carregarDados();
+  } catch (erro) {
+    alert(erro.message);
+  }
+});
 
 function renderMeta(totalGasto) {
   const metaEl = document.getElementById('metaValor');

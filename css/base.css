@@ -267,6 +267,10 @@ body {
   padding: 0.9rem 0.9rem;
   margin-bottom: 0;
   animation-delay: 0.05s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 64px;
 }
 
 .metric-label {
@@ -284,6 +288,9 @@ body {
   font-weight: 500;
   margin: 0;
   color: var(--rose-deep);
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.15;
 }
 
 .row-value,

@@ -119,7 +119,7 @@ function renderCalendar() {
     }
 
     cells.push(`
-      <div class="${classes.join(' ')}">
+      <div class="${classes.join(' ')}" data-date="${dataIso}">
         <span class="cal-daynum">${dia}</span>
         <div class="cal-dots">${dots.join('')}</div>
       </div>
@@ -127,6 +127,92 @@ function renderCalendar() {
   }
 
   grid.innerHTML = cells.join('');
+}
+
+document.getElementById('calGrid')?.addEventListener('click', evento => {
+  const celula = evento.target.closest('.cal-cell[data-date]');
+  if (celula) abrirDetalhesDia(celula.dataset.date);
+});
+
+function abrirDetalhesDia(dataIso) {
+  const dia = Number(dataIso.slice(8, 10));
+  const conta = contas.find(c => c.dia === dia);
+  const evento = eventos.find(e => e.data === dataIso);
+  const contaPagaKey = `${dataIso}-conta`;
+
+  let html = '';
+
+  if (conta) {
+    html += `
+      <div class="row" style="padding:10px 0;">
+        <div class="row-left">
+          <p class="row-item">${esc(conta.nome)}</p>
+          <p class="row-date">Conta fixa • ${fmt(conta.valor)}</p>
+        </div>
+        <div class="row-right">
+          <button class="icon-btn" id="btnTogglePagoConta" type="button">
+            ${pagamentos.has(contaPagaKey) ? 'Marcar pendente' : 'Marcar pago'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (evento) {
+    html += `
+      <div class="row" style="padding:10px 0;">
+        <div class="row-left">
+          <p class="row-item">${esc(evento.nome)}</p>
+          <p class="row-date">${evento.valor ? fmt(evento.valor) + ' • ' : ''}${esc(evento.categoria || '')}</p>
+        </div>
+        <div class="row-right">
+          <button class="icon-btn" id="btnTogglePagoEvento" type="button">
+            ${evento.pago ? 'Marcar pendente' : 'Marcar feito'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (!conta && !evento) {
+    html += '<p class="empty">Nada marcado nesse dia ainda.</p>';
+  }
+
+  html += `<button class="primary" id="btnNovaNotaNesseDia" type="button" style="margin-top:12px;">+ Criar nota/lembrete nesse dia</button>`;
+
+  const [ano, mes, diaNum] = dataIso.split('-').map(Number);
+  const titulo = new Date(ano, mes - 1, diaNum).toLocaleDateString('pt-BR', {
+    day: '2-digit', month: 'long'
+  });
+
+  abrirModal(titulo, html);
+
+  document.getElementById('btnTogglePagoConta')?.addEventListener('click', () => {
+    if (pagamentos.has(contaPagaKey)) pagamentos.delete(contaPagaKey);
+    else pagamentos.add(contaPagaKey);
+    salvarEstado();
+    renderCalendar();
+    fecharModal();
+  });
+
+  document.getElementById('btnTogglePagoEvento')?.addEventListener('click', () => {
+    evento.pago = !evento.pago;
+    salvarEstado();
+    renderCalendar();
+    fecharModal();
+  });
+
+  document.getElementById('btnNovaNotaNesseDia')?.addEventListener('click', () => {
+    fecharModal();
+    document.getElementById('btnAbrirNovaNota')?.click();
+
+    const checkboxLembrete = document.getElementById('notaEhLembrete');
+    checkboxLembrete.checked = true;
+    checkboxLembrete.dispatchEvent(new Event('change'));
+
+    document.getElementById('notaData').value = dataIso;
+    document.getElementById('notaTitulo').focus();
+  });
 }
 
 function sincronizarLembretesNotas() {
