@@ -23,10 +23,13 @@ function renderFeed() {
 
   grid.innerHTML = fotos.map(f => {
     return `
-      <button class="feed-item" data-id="${f.id}">
-        <img src="${esc(f.url)}" alt="${esc(f.legenda || '')}">
-        ${f.legenda ? `<div class="feed-legenda">${esc(f.legenda)}</div>` : ''}
-      </button>
+      <div class="feed-item" data-id="${f.id}">
+        <button type="button" class="feed-thumb">
+          <img src="${esc(f.url)}" alt="${esc(f.legenda || '')}">
+          ${f.legenda ? `<div class="feed-legenda">${esc(f.legenda)}</div>` : ''}
+        </button>
+        <button type="button" class="feed-remove" aria-label="Excluir foto">×</button>
+      </div>
     `;
   }).join('') + `
     <button class="feed-item feed-add" id="btnAddFoto">
@@ -38,9 +41,25 @@ function renderFeed() {
     document.getElementById('feedInput').click();
   });
 
-  grid.querySelectorAll('.feed-item:not(.feed-add)').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = Number(btn.dataset.id);
+  const excluirFoto = id => {
+    if (!confirm('Excluir essa foto?')) return;
+    chamarAppsScript({ action: 'deleteFeed', id })
+      .then(() => {
+        fotos = fotos.filter(f => f.id !== id);
+        renderFeed();
+      })
+      .catch(erro => alert(erro.message));
+  };
+
+  grid.querySelectorAll('.feed-item:not(.feed-add)').forEach(item => {
+    const id = Number(item.dataset.id);
+
+    item.querySelector('.feed-remove')?.addEventListener('click', evento => {
+      evento.stopPropagation();
+      excluirFoto(id);
+    });
+
+    item.querySelector('.feed-thumb')?.addEventListener('click', () => {
       const foto = fotos.find(f => f.id === id);
       if (!foto) return;
 
@@ -62,14 +81,8 @@ function renderFeed() {
       };
 
       document.getElementById('btnExcluirFoto').onclick = () => {
-        if (!confirm('Excluir essa foto?')) return;
-        chamarAppsScript({ action: 'deleteFeed', id: foto.id })
-          .then(() => {
-            fotos = fotos.filter(f => f.id !== foto.id);
-            fecharModal();
-            renderFeed();
-          })
-          .catch(erro => alert(erro.message));
+        fecharModal();
+        excluirFoto(foto.id);
       };
     });
   });

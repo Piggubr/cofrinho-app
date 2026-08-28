@@ -1,6 +1,9 @@
 let splashTerminou = false;
+let splashIniciadoEm = 0;
 let loginGoogleIniciado = false;
 let restauracaoSessaoEmCurso = null;
+
+const SPLASH_DURACAO_MINIMA = 3100;
 
 function limparSessaoLocal() {
   try {
@@ -44,6 +47,8 @@ function mostrarConteudo() {
   if (conteudo) {
     conteudo.style.display = 'block';
   }
+
+  esconderSplash();
 }
 
 function mostrarLogin() {
@@ -57,6 +62,8 @@ function mostrarLogin() {
   if (gate) {
     gate.style.display = 'flex';
   }
+
+  esconderSplash();
 }
 
 async function restaurarSessaoSalva() {
@@ -213,22 +220,32 @@ function aguardarGoogle(tentativas = 0) {
   }, 100);
 }
 
-function terminarSplash() {
+// Só esconde o splash depois que o conteúdo real (login ou dashboard) já
+// está montado por trás dele, e nunca antes da duração mínima da animação —
+// evita o flash de fundo vazio entre o splash sumir e o conteúdo aparecer.
+function esconderSplash() {
+  if (splashTerminou) {
+    return;
+  }
+
   const splash = document.getElementById('splash');
 
   if (!splash) {
     splashTerminou = true;
-    iniciarAplicacao();
     return;
   }
 
-  splash.style.opacity = '0';
+  const decorrido = Date.now() - splashIniciadoEm;
+  const espera = Math.max(0, SPLASH_DURACAO_MINIMA - decorrido);
 
   setTimeout(() => {
-    splash.remove();
-    splashTerminou = true;
-    iniciarAplicacao();
-  }, 800);
+    splash.style.opacity = '0';
+
+    setTimeout(() => {
+      splash.remove();
+      splashTerminou = true;
+    }, 800);
+  }, espera);
 }
 
 function modoTesteLocal() {
@@ -567,6 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
   aplicarPrivacidade();
   iniciarRelogios();
 
-  // Mantém a duração do splash que existia no projeto original.
-  setTimeout(terminarSplash, 2600);
+  // A aplicação carrega em paralelo com a animação do splash; o splash só
+  // some quando o login/dashboard já está pronto por trás dele (ver
+  // esconderSplash), então não existe mais uma tela vazia entre os dois.
+  splashIniciadoEm = Date.now();
+  iniciarAplicacao();
 });

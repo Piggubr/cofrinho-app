@@ -709,6 +709,34 @@
   display: block;
 }
 
+.feed-thumb {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+}
+
+.feed-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(43, 30, 50, .55);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .feed-add {
   display: flex;
   align-items: center;
@@ -1023,6 +1051,28 @@
   font-size: 12px;
   cursor: pointer;
   padding: 5px;
+}
+
+.create-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 1px dashed var(--rose);
+  background: transparent;
+  color: var(--rose-deep);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-variation-settings: 'wght' 500;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: .75rem;
+}
+
+.create-toggle:active {
+  opacity: .7;
 }
 
 .surprise-kind {

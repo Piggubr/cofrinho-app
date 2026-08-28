@@ -1259,15 +1259,9 @@ body::before {
     display: none;
   }
 
-  #tab-calendario .card:not(.cal-card):not(#notasLista) {
+  #tab-calendario > .section-label {
     grid-column: 2;
     grid-row: 2;
-    margin: 0;
-  }
-
-  #tab-calendario .section-label:not(:first-child) {
-    grid-column: 2;
-    grid-row: 3;
     margin: 0;
     color: var(--rose-deep);
     font-variation-settings: 'wght' 380;
@@ -1281,12 +1275,24 @@ body::before {
 
   #tab-calendario #notasLista {
     grid-column: 2;
-    grid-row: 4;
+    grid-row: 3;
     min-height: 180px;
     margin: 0;
     border-top: 0;
     border-radius: 0 0 12px 12px;
     padding-top: 4px;
+  }
+
+  #tab-calendario #btnAbrirNovaNota {
+    grid-column: 2;
+    grid-row: 4;
+    margin: 10px 0 0;
+  }
+
+  #tab-calendario #notaFormCard {
+    grid-column: 2;
+    grid-row: 5;
+    margin: 10px 0 0;
   }
 
   #tab-calendario .card:not(.cal-card) .section-label {

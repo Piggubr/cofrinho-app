@@ -1,5 +1,14 @@
 let lugares = [];
 
+function abrirFormularioLugar() {
+  const form = document.getElementById('lugarFormCard');
+  const toggle = document.getElementById('btnAbrirNovoLugar');
+  if (form) form.style.display = 'block';
+  if (toggle) toggle.style.display = 'none';
+}
+
+document.getElementById('btnAbrirNovoLugar')?.addEventListener('click', abrirFormularioLugar);
+
 function renderLugares() {
   const lista = document.getElementById('lugaresLista');
   if (!lista) return;
@@ -67,6 +76,8 @@ let lugarFotoSelecionada = null;
 function editarLugar(id) {
   const lugar = lugares.find(l => String(l.id) === String(id));
   if (!lugar) return;
+
+  abrirFormularioLugar();
 
   document.getElementById('lugarNome').value = lugar.nome || '';
   document.getElementById('lugarCategoria').value = lugar.categoria || 'Restaurante';
