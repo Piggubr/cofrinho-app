@@ -114,7 +114,18 @@ async function processarFotoRecibo(arquivo) {
   const hint = document.getElementById('fotoHint');
   const formManual = document.getElementById('formManual');
 
-  const { dataUrl, base64 } = await converterArquivoParaBase64(arquivo);
+  const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+  if (!tiposPermitidos.includes(String(arquivo.type || '').toLowerCase())) {
+    alert('Escolha uma foto em JPEG, PNG, WebP ou HEIC.');
+    return;
+  }
+
+  if (arquivo.size > 15 * 1024 * 1024) {
+    alert('A foto é grande demais. Escolha uma imagem de até 15 MB.');
+    return;
+  }
+
+  const { dataUrl, mime, base64 } = await converterArquivoParaBase64(arquivo);
 
   if (preview) {
     preview.src = dataUrl;
@@ -124,7 +135,11 @@ async function processarFotoRecibo(arquivo) {
   if (formManual) formManual.style.display = 'none';
 
   try {
-    const resposta = await chamarAppsScript({ action: 'parse', image_base64: base64 });
+    const resposta = await chamarAppsScript({
+      action: 'parse',
+      image_base64: base64,
+      mime_type: mime
+    });
     reciboAtual = resposta;
 
     if (!resposta.itens || !resposta.itens.length) {
