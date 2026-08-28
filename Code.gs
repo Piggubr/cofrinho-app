@@ -14,6 +14,8 @@ const COFRINHO_SHEET_NAME = 'Cofrinho';
 const COMPRAS_SHEET_NAME = 'Compras';
 const FILMES_SHEET_NAME = 'Filmes';
 const PRODUTOS_SHEET_NAME = 'Produtos';
+const USUARIOS_SHEET_NAME = 'Usuarios';
+const EMAIL_BEATRIZ = 'beatrizvieirasouzadias@gmail.com';
 const GEMINI_MODEL = 'gemini-3.6-flash';
 
 const EMAILS_AUTORIZADOS = [
@@ -46,6 +48,7 @@ function doPost(e) {
 
     const body = JSON.parse(e.postData.contents);
     const usuario = validarUsuario_(body.id_token, body.session_token);
+    autorizarAcao_(usuario, body.action);
     let resultado;
 
     if (body.action === 'auth') {
@@ -53,10 +56,11 @@ function doPost(e) {
         success: true,
         usuario: usuario.email,
         perfil: usuario.perfil,
+        usuario_detalhes: usuarioPublico_(usuario),
         session_token: criarSessao_(usuario)
       };
     } else if (body.action === 'getData') {
-      resultado = carregarDados_(usuario.email, usuario.perfil);
+      resultado = carregarDados_(usuario);
     } else if (body.action === 'getExchangeRate') {
       resultado = carregarCotacaoReferencia_();
     } else if (body.action === 'searchProducts') {
@@ -226,8 +230,8 @@ function validarUsuario_(idToken, sessionToken) {
   const cache = CacheService.getScriptCache();
   const usuarioEmCache = cache.get(chaveToken);
   if (usuarioEmCache) {
-    const usuario = JSON.parse(usuarioEmCache);
-    if (EMAILS_AUTORIZADOS.includes(usuario.email)) return usuario;
+    const usuarioEmCacheAtualizado = obterUsuarioPorEmail_(JSON.parse(usuarioEmCache).email);
+    if (usuarioEmCacheAtualizado && usuarioEmCacheAtualizado.ativo) return usuarioEmCacheAtualizado;
   }
 
   const clientId = propriedadeObrigatoria_('GOOGLE_CLIENT_ID');
@@ -251,15 +255,9 @@ function validarUsuario_(idToken, sessionToken) {
   if (String(dados.email_verified) !== 'true') {
     throw new Error('O e-mail Google não está verificado.');
   }
-  if (!EMAILS_AUTORIZADOS.includes(email)) {
-    throw new Error('Este e-mail não está autorizado.');
-  }
-
-  const usuario = {
-    email: email,
-    sub: dados.sub,
-    perfil: EMAILS_ADMIN.includes(email) ? 'ADMIN' : 'USUARIA'
-  };
+  const usuario = obterOuCriarUsuario_(email, dados);
+  if (!usuario || !usuario.ativo) throw new Error('Este e-mail não está autorizado.');
+  usuario.sub = dados.sub;
   const segundosRestantes = Math.max(1, Number(dados.exp) - agora);
   cache.put(chaveToken, JSON.stringify(usuario), Math.min(300, segundosRestantes));
   return usuario;
@@ -286,14 +284,16 @@ function validarSessao_(token) {
   try {
     const sessao = JSON.parse(valor);
     const email = String(sessao.email || '').trim().toLowerCase();
-    if (Number(sessao.exp) <= Date.now() || !EMAILS_AUTORIZADOS.includes(email)) {
+    if (Number(sessao.exp) <= Date.now()) {
       propriedades.deleteProperty(chave);
       return null;
     }
-    return {
-      email: email,
-      perfil: EMAILS_ADMIN.includes(email) ? 'ADMIN' : 'USUARIA'
-    };
+    const usuario = obterUsuarioPorEmail_(email);
+    if (!usuario || !usuario.ativo) {
+      propriedades.deleteProperty(chave);
+      return null;
+    }
+    return usuario;
   } catch (erro) {
     propriedades.deleteProperty(chave);
     return null;
@@ -322,8 +322,131 @@ function limparSessoesExpiradas_() {
   });
 }
 
+function roleInicial_(email) {
+  const emailNormalizado = String(email || '').trim().toLowerCase();
+  if (emailNormalizado === EMAIL_BEATRIZ) return 'BEATRIZ';
+  if (EMAILS_ADMIN.includes(emailNormalizado)) return 'ADMIN';
+  return 'FAMILIAR';
+}
+
+function normalizarRole_(role, email) {
+  const valor = String(role || '').trim().toUpperCase();
+  return ['BEATRIZ', 'FAMILIAR', 'ADMIN'].includes(valor) ? valor : roleInicial_(email);
+}
+
+function obterAbaUsuarios_() {
+  const planilha = SpreadsheetApp.openById(SHEET_ID);
+  let aba = planilha.getSheetByName(USUARIOS_SHEET_NAME);
+  if (!aba) aba = planilha.insertSheet(USUARIOS_SHEET_NAME);
+  const cabecalhosAnteriores = aba.getLastColumn() > 0
+    ? aba.getRange(1, 1, 1, aba.getLastColumn()).getDisplayValues()[0]
+    : [];
+  const migrandoTentativaAnterior = !cabecalhosAnteriores.includes('Ativo');
+  const cabecalhos = [
+    'Email', 'Role', 'Apelido', 'Nome_Google', 'Foto_Google',
+    'Atualizado_em', 'Primeiro_Nome', 'Ativo', 'Permissoes'
+  ];
+  aba.getRange(1, 1, 1, cabecalhos.length).setValues([cabecalhos]);
+  aba.setFrozenRows(1);
+
+  const existentes = {};
+  if (aba.getLastRow() > 1) {
+    aba.getRange(2, 1, aba.getLastRow() - 1, 1).getValues().forEach(function(linha) {
+      existentes[String(linha[0] || '').trim().toLowerCase()] = true;
+    });
+  }
+  EMAILS_AUTORIZADOS.forEach(function(email) {
+    if (!existentes[email]) {
+      aba.appendRow([email, roleInicial_(email), '', '', '', new Date(), '', true, '']);
+    } else if (migrandoTentativaAnterior) {
+      const linha = localizarUsuario_(aba, email);
+      if (linha) aba.getRange(linha, 2).setValue(roleInicial_(email));
+    }
+  });
+  return aba;
+}
+
+function localizarUsuario_(aba, email) {
+  if (!aba || aba.getLastRow() <= 1) return 0;
+  const emailNormalizado = String(email || '').trim().toLowerCase();
+  const valores = aba.getRange(2, 1, aba.getLastRow() - 1, 1).getDisplayValues();
+  for (let indice = 0; indice < valores.length; indice++) {
+    if (String(valores[indice][0] || '').trim().toLowerCase() === emailNormalizado) return indice + 2;
+  }
+  return 0;
+}
+
+function mapearUsuario_(valores) {
+  const email = String(valores[0] || '').trim().toLowerCase();
+  if (!email) return null;
+  const role = normalizarRole_(valores[1], email);
+  const apelido = String(valores[2] || '').trim();
+  const nomeGoogle = String(valores[3] || '').trim();
+  const foto = String(valores[4] || '').trim();
+  const primeiroNomeSalvo = String(valores[6] || '').trim();
+  const primeiroNome = primeiroNomeSalvo || nomeGoogle.split(/\s+/)[0] || email.split('@')[0];
+  const valorAtivo = valores[7];
+  const ativo = valorAtivo === '' || valorAtivo === true || String(valorAtivo).toLowerCase() === 'true' || String(valorAtivo).toLowerCase() === 'sim';
+  return {
+    email: email,
+    role: role,
+    perfil: role,
+    apelido: apelido,
+    nome: apelido || nomeGoogle || primeiroNome,
+    primeiro_nome: apelido || primeiroNome,
+    foto: foto,
+    ativo: ativo,
+    permissoes: parseJsonSeguro_(valores[8], {})
+  };
+}
+
+function obterUsuarioPorEmail_(email) {
+  const aba = obterAbaUsuarios_();
+  const linha = localizarUsuario_(aba, email);
+  if (!linha) return null;
+  return mapearUsuario_(aba.getRange(linha, 1, 1, 9).getValues()[0]);
+}
+
+function obterOuCriarUsuario_(email, dadosGoogle) {
+  const emailNormalizado = String(email || '').trim().toLowerCase();
+  const aba = obterAbaUsuarios_();
+  let linha = localizarUsuario_(aba, emailNormalizado);
+  if (!linha) {
+    if (!EMAILS_AUTORIZADOS.includes(emailNormalizado)) return null;
+    aba.appendRow([emailNormalizado, roleInicial_(emailNormalizado), '', '', '', new Date(), '', true, '']);
+    linha = aba.getLastRow();
+  }
+
+  const nomeGoogle = String(dadosGoogle.name || '').trim().slice(0, 120);
+  const primeiroNome = String(dadosGoogle.given_name || nomeGoogle.split(/\s+/)[0] || '').trim().slice(0, 80);
+  const fotoGoogle = String(dadosGoogle.picture || '').trim().slice(0, 1000);
+  aba.getRange(linha, 4, 1, 4).setValues([[nomeGoogle, fotoGoogle, new Date(), primeiroNome]]);
+  return mapearUsuario_(aba.getRange(linha, 1, 1, 9).getValues()[0]);
+}
+
+function usuarioPublico_(usuario) {
+  return {
+    email: usuario.email,
+    nome: usuario.nome,
+    primeiro_nome: usuario.primeiro_nome,
+    apelido: usuario.apelido,
+    foto: usuario.foto,
+    role: usuario.role,
+    permissoes: usuario.permissoes || {}
+  };
+}
+
+function autorizarAcao_(usuario, acao) {
+  if (!usuario || !usuario.ativo) throw new Error('Este usuário não está autorizado.');
+  if (usuario.role !== 'FAMILIAR') return;
+  const permitidas = ['auth', 'getData', 'getExchangeRate', 'addDeposit'];
+  if (!permitidas.includes(String(acao || ''))) {
+    throw new Error('Esta ação não está disponível para o perfil familiar.');
+  }
+}
+
 function exigirAdmin_(usuario) {
-  if (!usuario || usuario.perfil !== 'ADMIN') {
+  if (!usuario || usuario.role !== 'ADMIN') {
     throw new Error('Esta ação é exclusiva do administrador.');
   }
 }
@@ -469,11 +592,15 @@ function configurarPlanilha() {
   obterAbaCompras_();
   obterAbaFilmes_();
   obterAbaProdutos_();
+  obterAbaUsuarios_();
   obterPastaFeedRaiz_();
 }
 
-function carregarDados_(emailUsuario, perfilUsuario) {
-  const chaveCache = 'dados_' + Utilities.base64EncodeWebSafe(emailUsuario).slice(0, 80);
+function carregarDados_(usuario) {
+  const emailUsuario = usuario.email;
+  const perfilUsuario = usuario.role;
+  if (perfilUsuario === 'FAMILIAR') return carregarDadosFamiliar_(usuario);
+  const chaveCache = 'dados_v2_' + Utilities.base64EncodeWebSafe(emailUsuario).slice(0, 80);
   const cache = CacheService.getScriptCache();
   try {
     const salvo = cache.get(chaveCache);
@@ -528,10 +655,42 @@ function carregarDados_(emailUsuario, perfilUsuario) {
     produtos: carregarProdutos_(),
     configuracoes: carregarConfiguracoes_(),
     usuario: emailUsuario,
-    perfil: perfilUsuario || 'USUARIA'
+    perfil: perfilUsuario,
+    usuario_detalhes: usuarioPublico_(usuario)
   };
   try { cache.put(chaveCache, JSON.stringify(resultado), 300); } catch (erro) { console.warn(erro); }
   return resultado;
+}
+
+function carregarDadosFamiliar_(usuario) {
+  const aba = obterAbaCofrinho_();
+  const depositos = [];
+  if (aba.getLastRow() > 1) {
+    aba.getRange(2, 1, aba.getLastRow() - 1, 5).getValues().forEach(function(linha) {
+      if (String(linha[3] || '').trim().toLowerCase() !== usuario.email) return;
+      const data = linha[1] instanceof Date
+        ? Utilities.formatDate(linha[1], Session.getScriptTimeZone(), 'yyyy-MM-dd')
+        : String(linha[1] || '').slice(0, 10);
+      depositos.push({
+        id: String(linha[0]),
+        data: data,
+        valor: Number(linha[2]) || 0,
+        registrado_em: linha[4] instanceof Date ? linha[4].toISOString() : String(linha[4] || '')
+      });
+    });
+  }
+  const totalProprio = depositos.reduce(function(total, deposito) { return total + deposito.valor; }, 0);
+  return {
+    success: true,
+    gastos: [], fotos: [], metas: {},
+    fofocoins: { saldo: 0, historico: [] },
+    premios: [], lugares: [], notas: [], compras: [], filmes: [], produtos: [],
+    configuracoes: { categorias: [], marcadoresLugar: [] },
+    cofrinho: { depositos: depositos, total_depositos: totalProprio, total_gastos: 0, saldo: totalProprio },
+    usuario: usuario.email,
+    perfil: usuario.role,
+    usuario_detalhes: usuarioPublico_(usuario)
+  };
 }
 
 function obterAbaCofrinho_() {
@@ -769,8 +928,9 @@ function excluirFilme_(id) {
 function limparCacheDados_() {
   const cache = CacheService.getScriptCache();
   EMAILS_AUTORIZADOS.forEach(function(email) {
-    const chave = 'dados_' + Utilities.base64EncodeWebSafe(email).slice(0, 80);
-    cache.remove(chave);
+    const sufixo = Utilities.base64EncodeWebSafe(email).slice(0, 80);
+    cache.remove('dados_' + sufixo);
+    cache.remove('dados_v2_' + sufixo);
   });
 }
 

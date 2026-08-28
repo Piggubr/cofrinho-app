@@ -36,6 +36,23 @@ function esconderErroLogin() {
   erro.style.display = 'none';
 }
 
+function aplicarUsuarioNaInterface(detalhes) {
+  if (!detalhes) return;
+  usuarioDetalhes = detalhes;
+  const primeiroNome = String(detalhes.apelido || detalhes.primeiro_nome || detalhes.nome || '').trim().split(/\s+/)[0];
+  const nomeExibicao = String(detalhes.apelido || detalhes.nome || primeiroNome || detalhes.email || '').trim();
+  const saudacao = document.getElementById('saudacaoV2');
+  const nome = document.getElementById('nomePerfilV2');
+  const foto = document.getElementById('fotoPerfilV2');
+  if (saudacao) saudacao.textContent = primeiroNome ? `Que bom ter você de volta, ${primeiroNome}!` : 'Que bom ter você de volta!';
+  if (nome) nome.textContent = nomeExibicao;
+  if (foto && detalhes.foto) {
+    foto.src = detalhes.foto;
+    foto.referrerPolicy = 'no-referrer';
+  }
+  document.body.dataset.perfil = String(detalhes.role || perfilAtual || '').toLowerCase();
+}
+
 function mostrarConteudo() {
   const gate = document.getElementById('gateGoogle');
   const conteudo = document.getElementById('conteudoPrincipal');
@@ -344,6 +361,10 @@ async function carregarDados() {
 
     if (dados.usuario) {
       usuarioAtual = dados.usuario;
+    }
+
+    if (dados.usuario_detalhes) {
+      aplicarUsuarioNaInterface(dados.usuario_detalhes);
     }
 
     sincronizarLembretesNotas();
