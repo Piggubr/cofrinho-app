@@ -5,6 +5,79 @@ document.getElementById('btnAbrirNovaNota')?.addEventListener('click', () => {
   if (toggle) toggle.style.display = 'none';
 });
 
+function fecharFormularioNota() {
+  const form = document.getElementById('notaFormCard');
+  const toggle = document.getElementById('btnAbrirNovaNota');
+
+  document.getElementById('notaTitulo').value = '';
+  document.getElementById('notaTexto').value = '';
+  document.getElementById('notaEhLembrete').checked = false;
+  document.getElementById('notaTemGasto').checked = false;
+  document.getElementById('notaData').value = '';
+  document.getElementById('notaValor').value = '';
+  document.getElementById('notaLembreteOpcoes').style.display = 'none';
+  document.getElementById('notaGastoOpcoes').style.display = 'none';
+
+  if (form) form.style.display = 'none';
+  if (toggle) toggle.style.display = '';
+}
+
+document.getElementById('notaEhLembrete')?.addEventListener('change', evento => {
+  const opcoes = document.getElementById('notaLembreteOpcoes');
+  if (opcoes) opcoes.style.display = evento.target.checked ? 'block' : 'none';
+
+  if (!evento.target.checked) {
+    document.getElementById('notaTemGasto').checked = false;
+    document.getElementById('notaGastoOpcoes').style.display = 'none';
+  }
+});
+
+document.getElementById('notaTemGasto')?.addEventListener('change', evento => {
+  const opcoes = document.getElementById('notaGastoOpcoes');
+  if (opcoes) opcoes.style.display = evento.target.checked ? 'grid' : 'none';
+});
+
+document.getElementById('btnNovaNota')?.addEventListener('click', async () => {
+  const titulo = document.getElementById('notaTitulo').value.trim();
+  const texto = document.getElementById('notaTexto').value.trim();
+  const ehLembrete = document.getElementById('notaEhLembrete').checked;
+  const temGasto = document.getElementById('notaTemGasto').checked;
+  const data = ehLembrete ? document.getElementById('notaData').value : '';
+  const valor = temGasto ? Number(document.getElementById('notaValor').value || 0) : 0;
+  const categoria = document.getElementById('notaCategoria').value;
+
+  if (!titulo) {
+    alert('Digite o título da nota.');
+    return;
+  }
+
+  if (ehLembrete && !data) {
+    alert('Escolha a data do lembrete.');
+    return;
+  }
+
+  if (temGasto && valor <= 0) {
+    alert('Digite quanto esse evento vai custar.');
+    return;
+  }
+
+  try {
+    await chamarAppsScript({
+      action: 'saveNote',
+      titulo,
+      texto,
+      data,
+      valor,
+      categoria
+    });
+
+    fecharFormularioNota();
+    await carregarDados();
+  } catch (erro) {
+    alert(erro.message);
+  }
+});
+
 function renderCalendar() {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
@@ -81,6 +154,21 @@ function renderNotas() {
         <p class="row-item">${esc(nota.titulo)}</p>
         <p class="row-date">${nota.data ? esc(fmtData(nota.data)) : 'Nota'}${nota.texto ? ' • ' + esc(nota.texto) : ''}</p>
       </div>
+      <div class="row-right">
+        <button class="icon-btn" data-del-nota="${esc(nota.id)}" type="button">Excluir</button>
+      </div>
     </div>
   `).join('') : '<p class="empty">Nenhuma nota ainda.</p>';
+
+  lista.querySelectorAll('[data-del-nota]').forEach(botao => {
+    botao.addEventListener('click', async () => {
+      if (!confirm('Excluir esta nota?')) return;
+      try {
+        await chamarAppsScript({ action: 'deleteNote', id: botao.dataset.delNota });
+        await carregarDados();
+      } catch (erro) {
+        alert(erro.message);
+      }
+    });
+  });
 }
