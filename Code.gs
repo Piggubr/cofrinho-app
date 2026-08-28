@@ -64,7 +64,7 @@ function doPost(e) {
     } else if (body.action === 'getFeedPhoto') {
       resultado = carregarFotoFeed_(body.id);
     } else if (body.action === 'parse') {
-      resultado = parseRecibo_(body.image_base64);
+      resultado = parseRecibo_(body.image_base64, body.mime_type);
     } else if (body.action === 'save') {
       resultado = salvarGastos_(body, usuario.email);
     } else if (body.action === 'updateExpense') {
@@ -328,8 +328,12 @@ function exigirAdmin_(usuario) {
   }
 }
 
-function parseRecibo_(imageBase64) {
+function parseRecibo_(imageBase64, mimeType) {
   if (!imageBase64) throw new Error('A foto do recibo não chegou.');
+  const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+  const tipoImagem = tiposPermitidos.includes(String(mimeType || '').toLowerCase())
+    ? String(mimeType).toLowerCase()
+    : 'image/jpeg';
   const apiKey = propriedadeObrigatoria_('GEMINI_API_KEY');
   const hoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
   const memoriaProdutos = carregarProdutos_().slice(0, 80).map(function(p) {
@@ -358,23 +362,29 @@ function parseRecibo_(imageBase64) {
   const payload = {
     contents:[{ parts:[
       { text:prompt },
-      { inline_data:{ mime_type:'image/jpeg', data:imageBase64 } }
+      { inline_data:{ mime_type:tipoImagem, data:imageBase64 } }
     ] }],
-    generationConfig:{ responseMimeType:'application/json', responseSchema:esquema, temperature:0.1 }
+    generationConfig:{ responseMimeType:'application/json', responseSchema:esquema }
   };
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(apiKey);
   const resposta = UrlFetchApp.fetch(url, {
     method:'post', contentType:'application/json', payload:JSON.stringify(payload), muteHttpExceptions:true
   });
-  if (resposta.getResponseCode() < 200 || resposta.getResponseCode() >= 300) {
-    if (resposta.getResponseCode() === 400) throw new Error('O Gemini recusou o formato da imagem ou do pedido.');
-    if (resposta.getResponseCode() === 403) throw new Error('A chave do Gemini foi recusada. Confira GEMINI_API_KEY.');
-    if (resposta.getResponseCode() === 404) throw new Error('O modelo do Gemini não está disponível para esta chave.');
-    if (resposta.getResponseCode() === 429) throw new Error('A cota gratuita do Gemini acabou por enquanto. Tente novamente mais tarde.');
-    throw new Error('O Gemini não conseguiu ler o recibo agora (erro ' + resposta.getResponseCode() + ').');
+  const codigoResposta = resposta.getResponseCode();
+  const corpoResposta = resposta.getContentText();
+  if (codigoResposta < 200 || codigoResposta >= 300) {
+    console.error('Falha Gemini (' + codigoResposta + '): ' + corpoResposta.slice(0, 1500));
+    if (codigoResposta === 400) throw new Error('O Gemini recusou o formato da imagem ou do pedido.');
+    if (codigoResposta === 403) throw new Error('A chave do Gemini foi recusada. Confira GEMINI_API_KEY.');
+    if (codigoResposta === 404) throw new Error('O modelo do Gemini não está disponível para esta chave.');
+    if (codigoResposta === 429) throw new Error('A cota do Gemini acabou por enquanto. Tente novamente mais tarde.');
+    throw new Error('O Gemini não conseguiu ler o recibo agora (erro ' + codigoResposta + ').');
   }
-  const dados = JSON.parse(resposta.getContentText());
-  const texto = dados.candidates && dados.candidates[0] && dados.candidates[0].content.parts[0].text;
+  const dados = JSON.parse(corpoResposta);
+  const partes = dados.candidates && dados.candidates[0] && dados.candidates[0].content && dados.candidates[0].content.parts;
+  const texto = Array.isArray(partes)
+    ? partes.filter(function(parte) { return parte.text && !parte.thought; }).map(function(parte) { return parte.text; }).join('')
+    : '';
   if (!texto) throw new Error('A IA não encontrou itens no recibo.');
   const lido = JSON.parse(texto);
   const itens = validarItens_(lido.itens);
