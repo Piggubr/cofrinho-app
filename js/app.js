@@ -250,8 +250,6 @@ function esconderSplash() {
 
 function modoTesteLocal() {
   try {
-    if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) return true;
-    if (location.protocol === 'file:') return true;
     return new URLSearchParams(location.search).has('semlogin');
   } catch (erro) {
     return false;
