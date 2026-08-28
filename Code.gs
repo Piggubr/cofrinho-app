@@ -14,6 +14,9 @@ const COFRINHO_SHEET_NAME = 'Cofrinho';
 const COMPRAS_SHEET_NAME = 'Compras';
 const FILMES_SHEET_NAME = 'Filmes';
 const PRODUTOS_SHEET_NAME = 'Produtos';
+const USUARIOS_SHEET_NAME = 'Usuarios';
+const CARTINHAS_SHEET_NAME = 'Cartinhas';
+const EMAIL_BEATRIZ = 'beatrizvieirasouzadias@gmail.com';
 const GEMINI_MODEL = 'gemini-3.6-flash';
 
 const EMAILS_AUTORIZADOS = [
@@ -25,6 +28,8 @@ const EMAILS_AUTORIZADOS = [
 ];
 
 const EMAILS_ADMIN = [
+  'ahcabral10@gmail.com',
+  'ahcabraloffice@gmail.com',
   'cofrinhodosfofos@gmail.com',
   'eduardosouzapagel@gmail.com'
 ];
@@ -48,15 +53,25 @@ function doPost(e) {
     const usuario = validarUsuario_(body.id_token, body.session_token);
     let resultado;
 
+    if (usuario.role === 'FAMILIAR' && ![
+      'auth', 'getData', 'getExchangeRate', 'addDeposit', 'saveCartinha', 'getCartinhaFoto'
+    ].includes(body.action)) {
+      throw new Error('Ação não permitida pra este perfil.');
+    }
+
     if (body.action === 'auth') {
       resultado = {
         success: true,
         usuario: usuario.email,
-        perfil: usuario.perfil,
+        perfil: usuario.role,
+        role: usuario.role,
+        nome: usuario.nome,
+        apelido: usuario.apelido,
+        foto: usuario.foto,
         session_token: criarSessao_(usuario)
       };
     } else if (body.action === 'getData') {
-      resultado = carregarDados_(usuario.email, usuario.perfil);
+      resultado = carregarDados_(usuario);
     } else if (body.action === 'getExchangeRate') {
       resultado = carregarCotacaoReferencia_();
     } else if (body.action === 'searchProducts') {
@@ -68,8 +83,10 @@ function doPost(e) {
     } else if (body.action === 'save') {
       resultado = salvarGastos_(body, usuario.email);
     } else if (body.action === 'updateExpense') {
+      exigirNaoFamiliar_(usuario);
       resultado = atualizarGasto_(body);
     } else if (body.action === 'deleteExpense') {
+      exigirNaoFamiliar_(usuario);
       resultado = excluirGasto_(body.id);
     } else if (body.action === 'saveFeed') {
       resultado = salvarFotoFeed_(body, usuario.email);
@@ -93,6 +110,8 @@ function doPost(e) {
       resultado = excluirLugar_(body.id, usuario);
     } else if (body.action === 'getPlacePhoto') {
       resultado = carregarFotoLugar_(body.id);
+    } else if (body.action === 'getCartinhaFoto') {
+      resultado = carregarFotoCartinha_(body.id, usuario);
     } else if (body.action === 'addCategory') {
       resultado = adicionarConfiguracao_('CATEGORIA', body.nome, usuario.email);
     } else if (body.action === 'addPlaceTag') {
@@ -104,7 +123,13 @@ function doPost(e) {
     } else if (body.action === 'addDeposit') {
       resultado = adicionarDeposito_(body, usuario.email);
     } else if (body.action === 'deleteDeposit') {
+      exigirNaoFamiliar_(usuario);
       resultado = excluirDeposito_(body.id);
+    } else if (body.action === 'saveCartinha') {
+      exigirFamiliarOuAdmin_(usuario);
+      resultado = salvarCartinha_(body, usuario.email);
+    } else if (body.action === 'markCartinhaLida') {
+      resultado = marcarCartinhaLida_(body.id, usuario);
     } else if (body.action === 'saveShoppingItem') {
       resultado = salvarItemCompra_(body, usuario.email);
     } else if (body.action === 'toggleShoppingItem') {
@@ -127,7 +152,7 @@ function doPost(e) {
       throw new Error('Ação desconhecida.');
     }
 
-    if (!['auth', 'getData', 'getExchangeRate', 'searchProducts', 'getFeedPhoto', 'getPlacePhoto', 'parse'].includes(body.action)) {
+    if (!['auth', 'getData', 'getExchangeRate', 'searchProducts', 'getFeedPhoto', 'getPlacePhoto', 'getCartinhaFoto', 'parse'].includes(body.action)) {
       limparCacheDados_();
     }
 
@@ -227,7 +252,11 @@ function validarUsuario_(idToken, sessionToken) {
   const usuarioEmCache = cache.get(chaveToken);
   if (usuarioEmCache) {
     const usuario = JSON.parse(usuarioEmCache);
-    if (EMAILS_AUTORIZADOS.includes(usuario.email)) return usuario;
+    if (EMAILS_AUTORIZADOS.includes(usuario.email)) {
+      usuario.role = normalizarRole_(usuario.role || usuario.perfil || roleInicial_(usuario.email));
+      usuario.perfil = usuario.role;
+      return usuario;
+    }
   }
 
   const clientId = propriedadeObrigatoria_('GOOGLE_CLIENT_ID');
@@ -255,11 +284,8 @@ function validarUsuario_(idToken, sessionToken) {
     throw new Error('Este e-mail não está autorizado.');
   }
 
-  const usuario = {
-    email: email,
-    sub: dados.sub,
-    perfil: EMAILS_ADMIN.includes(email) ? 'ADMIN' : 'USUARIA'
-  };
+  const usuario = obterOuCriarUsuario_(email, dados);
+  usuario.sub = dados.sub;
   const segundosRestantes = Math.max(1, Number(dados.exp) - agora);
   cache.put(chaveToken, JSON.stringify(usuario), Math.min(300, segundosRestantes));
   return usuario;
@@ -272,6 +298,10 @@ function criarSessao_(usuario) {
   const expiraEm = Date.now() + (30 * 24 * 60 * 60 * 1000);
   PropertiesService.getScriptProperties().setProperty(chave, JSON.stringify({
     email: usuario.email,
+    role: usuario.role,
+    nome: usuario.nome,
+    apelido: usuario.apelido,
+    foto: usuario.foto,
     exp: expiraEm
   }));
   return token;
@@ -290,9 +320,19 @@ function validarSessao_(token) {
       propriedades.deleteProperty(chave);
       return null;
     }
+    // Sessões criadas antes do sistema de papéis não carregam os dados necessários.
+    // Invalidá-las força um novo login e evita manter um papel antigo em cache.
+    if (!sessao.role) {
+      propriedades.deleteProperty(chave);
+      return null;
+    }
     return {
       email: email,
-      perfil: EMAILS_ADMIN.includes(email) ? 'ADMIN' : 'USUARIA'
+      role: normalizarRole_(sessao.role),
+      perfil: normalizarRole_(sessao.role),
+      nome: String(sessao.nome || ''),
+      apelido: String(sessao.apelido || ''),
+      foto: String(sessao.foto || '')
     };
   } catch (erro) {
     propriedades.deleteProperty(chave);
@@ -322,9 +362,85 @@ function limparSessoesExpiradas_() {
   });
 }
 
+function roleInicial_(email) {
+  email = String(email || '').trim().toLowerCase();
+  if (email === EMAIL_BEATRIZ) return 'BEATRIZ';
+  if (EMAILS_ADMIN.includes(email)) return 'ADMIN';
+  return 'FAMILIAR';
+}
+
+function normalizarRole_(role) {
+  role = String(role || '').trim().toUpperCase();
+  return ['BEATRIZ', 'FAMILIAR', 'ADMIN'].includes(role) ? role : 'FAMILIAR';
+}
+
+function obterAbaUsuarios_() {
+  const planilha = SpreadsheetApp.openById(SHEET_ID);
+  let aba = planilha.getSheetByName(USUARIOS_SHEET_NAME);
+  if (!aba) {
+    aba = planilha.insertSheet(USUARIOS_SHEET_NAME);
+    aba.appendRow(['Email', 'Role', 'Apelido', 'Nome_Google', 'Foto_Google', 'Atualizado_em']);
+    aba.setFrozenRows(1);
+  }
+  const existentes = {};
+  if (aba.getLastRow() > 1) {
+    aba.getRange(2, 1, aba.getLastRow() - 1, 1).getValues().forEach(function(linha) {
+      existentes[String(linha[0] || '').trim().toLowerCase()] = true;
+    });
+  }
+  EMAILS_AUTORIZADOS.forEach(function(email) {
+    if (!existentes[email]) aba.appendRow([email, roleInicial_(email), '', '', '', new Date()]);
+  });
+  return aba;
+}
+
+function obterOuCriarUsuario_(email, dadosGoogle) {
+  const aba = obterAbaUsuarios_();
+  const emailNormalizado = String(email || '').trim().toLowerCase();
+  let linha = 0;
+  if (aba.getLastRow() > 1) {
+    aba.getRange(2, 1, aba.getLastRow() - 1, 1).getValues().some(function(valor, indice) {
+      if (String(valor[0] || '').trim().toLowerCase() !== emailNormalizado) return false;
+      linha = indice + 2;
+      return true;
+    });
+  }
+  const nomeGoogle = String(dadosGoogle.name || dadosGoogle.given_name || '').trim().slice(0, 120);
+  const nomeExibicao = String(dadosGoogle.given_name || dadosGoogle.name || '').trim().slice(0, 120);
+  const fotoGoogle = String(dadosGoogle.picture || '').trim().slice(0, 1000);
+  if (!linha) {
+    aba.appendRow([emailNormalizado, 'FAMILIAR', '', nomeGoogle, fotoGoogle, new Date()]);
+    linha = aba.getLastRow();
+  } else {
+    aba.getRange(linha, 4, 1, 3).setValues([[nomeGoogle, fotoGoogle, new Date()]]);
+  }
+  const valores = aba.getRange(linha, 1, 1, 6).getValues()[0];
+  const apelido = String(valores[2] || '').trim();
+  const nomeSalvo = String(valores[3] || '').trim();
+  const role = normalizarRole_(valores[1]);
+  return {
+    email: emailNormalizado,
+    role: role,
+    perfil: role,
+    apelido: apelido,
+    nome: apelido || nomeExibicao || nomeSalvo || emailNormalizado.split('@')[0],
+    foto: fotoGoogle || String(valores[4] || '')
+  };
+}
+
 function exigirAdmin_(usuario) {
-  if (!usuario || usuario.perfil !== 'ADMIN') {
+  if (!usuario || usuario.role !== 'ADMIN') {
     throw new Error('Esta ação é exclusiva do administrador.');
+  }
+}
+
+function exigirNaoFamiliar_(usuario) {
+  if (!usuario || usuario.role === 'FAMILIAR') throw new Error('Ação não permitida pra este perfil.');
+}
+
+function exigirFamiliarOuAdmin_(usuario) {
+  if (!usuario || (usuario.role !== 'FAMILIAR' && usuario.role !== 'ADMIN')) {
+    throw new Error('Ação exclusiva de familiares.');
   }
 }
 
@@ -459,16 +575,38 @@ function configurarPlanilha() {
   obterAbaCompras_();
   obterAbaFilmes_();
   obterAbaProdutos_();
+  obterAbaUsuarios_();
+  obterAbaCartinhas_();
   obterPastaFeedRaiz_();
+  obterPastaCartinhas_();
 }
 
-function carregarDados_(emailUsuario, perfilUsuario) {
-  const chaveCache = 'dados_' + Utilities.base64EncodeWebSafe(emailUsuario).slice(0, 80);
+function carregarDados_(usuario) {
+  const emailUsuario = usuario.email;
+  const perfilUsuario = usuario.role;
+  const chaveCache = 'dados_' + Utilities.base64EncodeWebSafe(emailUsuario + '|' + perfilUsuario).slice(0, 100);
   const cache = CacheService.getScriptCache();
   try {
     const salvo = cache.get(chaveCache);
     if (salvo) return JSON.parse(salvo);
   } catch (erro) { console.warn(erro); }
+
+  if (perfilUsuario === 'FAMILIAR') {
+    const resultadoFamiliar = {
+      success: true,
+      usuario: emailUsuario,
+      nome: usuario.nome,
+      apelido: usuario.apelido,
+      foto: usuario.foto,
+      role: 'FAMILIAR',
+      perfil: 'FAMILIAR',
+      cofrinhoResumo: { saldo: carregarSaldoCofrinho_() },
+      meusDepositos: carregarDepositosDe_(emailUsuario),
+      minhasCartinhas: carregarCartinhasDe_(emailUsuario)
+    };
+    try { cache.put(chaveCache, JSON.stringify(resultadoFamiliar), 300); } catch (erro) { console.warn(erro); }
+    return resultadoFamiliar;
+  }
 
   const aba = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
   const gastos = [];
@@ -518,7 +656,12 @@ function carregarDados_(emailUsuario, perfilUsuario) {
     produtos: carregarProdutos_(),
     configuracoes: carregarConfiguracoes_(),
     usuario: emailUsuario,
-    perfil: perfilUsuario || 'USUARIA'
+    perfil: perfilUsuario,
+    role: perfilUsuario,
+    nome: usuario.nome,
+    apelido: usuario.apelido,
+    foto: usuario.foto,
+    minhasCartinhas: carregarCartinhasPara_(perfilUsuario === 'ADMIN' ? EMAIL_BEATRIZ : emailUsuario)
   };
   try { cache.put(chaveCache, JSON.stringify(resultado), 300); } catch (erro) { console.warn(erro); }
   return resultado;
@@ -560,6 +703,124 @@ function carregarCofrinho_(gastos) {
     return item.registrado_em && item.registrado_em >= inicio;
   }).reduce(function(total, item) { return total + (Number(item.valor) || 0); }, 0) : 0;
   return { depositos: depositos, total_depositos: totalDepositado, total_gastos: totalGasto, saldo: totalDepositado - totalGasto };
+}
+
+function carregarDepositosDe_(email) {
+  const aba = obterAbaCofrinho_();
+  if (aba.getLastRow() <= 1) return [];
+  const alvo = String(email || '').trim().toLowerCase();
+  return aba.getRange(2, 1, aba.getLastRow() - 1, 5).getValues().filter(function(linha) {
+    return String(linha[3] || '').trim().toLowerCase() === alvo;
+  }).map(function(linha) {
+    return {
+      id: String(linha[0]),
+      data: linha[1] instanceof Date ? Utilities.formatDate(linha[1], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(linha[1] || '').slice(0, 10),
+      valor: Number(linha[2]) || 0,
+      registrado_em: linha[4] instanceof Date ? linha[4].toISOString() : String(linha[4] || '')
+    };
+  }).reverse();
+}
+
+function carregarSaldoCofrinho_() {
+  const abaCofrinho = obterAbaCofrinho_();
+  if (abaCofrinho.getLastRow() <= 1) return 0;
+  const depositos = abaCofrinho.getRange(2, 1, abaCofrinho.getLastRow() - 1, 5).getValues();
+  const totalDepositado = depositos.reduce(function(total, linha) { return total + (Number(linha[2]) || 0); }, 0);
+  const datas = depositos.map(function(linha) {
+    return linha[4] instanceof Date ? linha[4].getTime() : new Date(linha[4]).getTime();
+  }).filter(function(valor) { return Number.isFinite(valor); });
+  if (!datas.length) return totalDepositado;
+  const inicio = Math.min.apply(null, datas);
+  const abaGastos = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  let totalGasto = 0;
+  if (abaGastos && abaGastos.getLastRow() > 1) {
+    abaGastos.getRange(2, 6, abaGastos.getLastRow() - 1, 5).getValues().forEach(function(linha) {
+      const registrado = linha[4] instanceof Date ? linha[4].getTime() : new Date(linha[4]).getTime();
+      if (Number.isFinite(registrado) && registrado >= inicio) totalGasto += Number(linha[0]) || 0;
+    });
+  }
+  return totalDepositado - totalGasto;
+}
+
+function obterAbaCartinhas_() {
+  const planilha = SpreadsheetApp.openById(SHEET_ID);
+  let aba = planilha.getSheetByName(CARTINHAS_SHEET_NAME);
+  if (!aba) {
+    aba = planilha.insertSheet(CARTINHAS_SHEET_NAME);
+    aba.appendRow(['ID', 'Remetente', 'Destinatario', 'Texto', 'Assinatura', 'Data', 'Template', 'Foto_Drive_ID', 'Lida', 'Criado_em']);
+    aba.setFrozenRows(1);
+    aba.getRange('F:F').setNumberFormat('yyyy-mm-dd');
+  }
+  return aba;
+}
+
+function obterPastaCartinhas_() {
+  const props = PropertiesService.getScriptProperties();
+  const idSalvo = props.getProperty('CARTINHAS_FOLDER_ID');
+  if (idSalvo) { try { return DriveApp.getFolderById(idSalvo); } catch (erro) { console.warn(erro); } }
+  const pasta = DriveApp.createFolder('Cofrinho dos Fofos - Cartinhas');
+  props.setProperty('CARTINHAS_FOLDER_ID', pasta.getId());
+  return pasta;
+}
+
+function salvarCartinha_(body, emailRemetente) {
+  const texto = String(body.texto || '').trim().slice(0, 2000);
+  const assinatura = String(body.assinatura || '').trim().slice(0, 120);
+  if (!texto) throw new Error('Escreva uma mensagem para a cartinha.');
+  if (!body.image_base64) throw new Error('Escolha uma foto para a cartinha.');
+  const bytes = Utilities.base64Decode(body.image_base64);
+  if (bytes.length > 5 * 1024 * 1024) throw new Error('A foto é grande demais.');
+  const mime = /^image\/(jpeg|png|webp)$/.test(body.mime_type) ? body.mime_type : 'image/jpeg';
+  const id = Utilities.getUuid();
+  const arquivo = obterPastaCartinhas_().createFile(Utilities.newBlob(bytes, mime, id + '.jpg'));
+  const data = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  obterAbaCartinhas_().appendRow([id, emailRemetente, EMAIL_BEATRIZ, texto, assinatura, data, String(body.template || 'classico').slice(0, 40), arquivo.getId(), false, new Date()]);
+  return { success:true, cartinha:{ id:id, destinatario:EMAIL_BEATRIZ, texto:texto, assinatura:assinatura, data:data, template:String(body.template || 'classico'), lida:false } };
+}
+
+function mapearCartinha_(linha) {
+  return {
+    id:String(linha[0]), remetente:String(linha[1]), destinatario:String(linha[2]),
+    texto:String(linha[3] || ''), assinatura:String(linha[4] || ''),
+    data:linha[5] instanceof Date ? Utilities.formatDate(linha[5], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(linha[5] || '').slice(0, 10),
+    template:String(linha[6] || 'classico'), tem_foto:Boolean(linha[7]), lida:linha[8] === true,
+    criado_em:linha[9] instanceof Date ? linha[9].toISOString() : String(linha[9] || '')
+  };
+}
+
+function carregarCartinhasFiltradas_(coluna, email) {
+  const aba = obterAbaCartinhas_();
+  if (aba.getLastRow() <= 1) return [];
+  const alvo = String(email || '').trim().toLowerCase();
+  return aba.getRange(2, 1, aba.getLastRow() - 1, 10).getValues().filter(function(linha) {
+    return String(linha[coluna] || '').trim().toLowerCase() === alvo;
+  }).map(mapearCartinha_).reverse();
+}
+
+function carregarCartinhasPara_(email) { return carregarCartinhasFiltradas_(2, email); }
+function carregarCartinhasDe_(email) { return carregarCartinhasFiltradas_(1, email); }
+
+function carregarFotoCartinha_(id, usuario) {
+  const aba = obterAbaCartinhas_();
+  const linha = localizarLinhaPorId_(aba, id, 1);
+  if (!linha) throw new Error('Cartinha não encontrada.');
+  const remetente = String(aba.getRange(linha, 2).getValue()).toLowerCase();
+  const destinatario = String(aba.getRange(linha, 3).getValue()).toLowerCase();
+  if (usuario.role !== 'ADMIN' && usuario.email !== remetente && usuario.email !== destinatario) throw new Error('Você não pode abrir esta cartinha.');
+  const arquivoId = String(aba.getRange(linha, 8).getValue());
+  if (!arquivoId) return { success:true, id:String(id), url:'' };
+  const blob = DriveApp.getFileById(arquivoId).getBlob();
+  return { success:true, id:String(id), url:'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes()) };
+}
+
+function marcarCartinhaLida_(id, usuario) {
+  const aba = obterAbaCartinhas_();
+  const linha = localizarLinhaPorId_(aba, id, 1);
+  if (!linha) throw new Error('Cartinha não encontrada.');
+  const destinatario = String(aba.getRange(linha, 3).getValue()).trim().toLowerCase();
+  if (usuario.email !== destinatario) throw new Error('Só a destinatária pode marcar esta cartinha como lida.');
+  aba.getRange(linha, 9).setValue(true);
+  return { success:true };
 }
 
 function adicionarDeposito_(body, emailUsuario) {
@@ -759,8 +1020,9 @@ function excluirFilme_(id) {
 function limparCacheDados_() {
   const cache = CacheService.getScriptCache();
   EMAILS_AUTORIZADOS.forEach(function(email) {
-    const chave = 'dados_' + Utilities.base64EncodeWebSafe(email).slice(0, 80);
-    cache.remove(chave);
+    ['BEATRIZ', 'FAMILIAR', 'ADMIN'].forEach(function(role) {
+      cache.remove('dados_' + Utilities.base64EncodeWebSafe(email + '|' + role).slice(0, 100));
+    });
   });
 }
 

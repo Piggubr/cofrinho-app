@@ -41,18 +41,42 @@ function mostrarConteudo() {
     gate.style.display = 'none';
   }
 
-  if (conteudo) {
-    conteudo.style.display = 'block';
-  }
+  mostrarConteudoPorPerfil();
 }
 
+function mostrarConteudoPorPerfil() {
+  const conteudo = document.getElementById('conteudoPrincipal');
+  const familiar = document.getElementById('painelFamiliar');
+  const ehFamiliar = perfilAtual === 'FAMILIAR';
+  if (conteudo) conteudo.style.display = ehFamiliar ? 'none' : 'block';
+  if (familiar) familiar.style.display = ehFamiliar ? 'block' : 'none';
+}
+
+function limparDadosPrivadosLocais() {
+  gastos = [];
+  fotos = [];
+  metas = {};
+  fofocoins = { saldo: 0, historico: [] };
+  fofocoinsSaldo = 0;
+  premios = [];
+  lugares = [];
+  notas = [];
+  compras = [];
+  listaMercado = [];
+  filmes = [];
+  produtos = [];
+  cofrinhoMovimentos = [];
+  atualizarTudo();
+}
 function mostrarLogin() {
   const gate = document.getElementById('gateGoogle');
   const conteudo = document.getElementById('conteudoPrincipal');
+  const familiar = document.getElementById('painelFamiliar');
 
   if (conteudo) {
     conteudo.style.display = 'none';
   }
+  if (familiar) familiar.style.display = 'none';
 
   if (gate) {
     gate.style.display = 'flex';
@@ -314,6 +338,21 @@ async function carregarDados() {
       usuarioAtual = dados.usuario;
     }
 
+    nomeAtual = String(dados.nome || '');
+    apelidoAtual = String(dados.apelido || '');
+    fotoAtual = String(dados.foto || '');
+    minhasCartinhas = Array.isArray(dados.minhasCartinhas) ? dados.minhasCartinhas : [];
+    meusDepositos = Array.isArray(dados.meusDepositos) ? dados.meusDepositos : [];
+    cofrinhoResumo = dados.cofrinhoResumo || { saldo: Number(dados.cofrinho?.saldo) || 0 };
+    atualizarSaudacaoV2();
+    mostrarConteudoPorPerfil();
+
+    if (perfilAtual === 'FAMILIAR') {
+      limparDadosPrivadosLocais();
+      renderPainelFamiliar();
+      return dados;
+    }
+
     sincronizarLembretesNotas();
 
     if (typeof nextId !== 'undefined') {
@@ -321,6 +360,7 @@ async function carregarDados() {
     }
 
     atualizarTudo();
+    renderCartinhas();
     atualizarCotacaoCambio();
 
     if (window.matchMedia('(min-width: 900px)').matches) {

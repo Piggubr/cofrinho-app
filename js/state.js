@@ -28,8 +28,14 @@ let fofocoins = { saldo: 0, historico: [] };
 let compras = [];
 let filmes = [];
 let produtos = [];
-let perfilAtual = 'USUARIA';
+let perfilAtual = '';
 let usuarioAtual = '';
+let nomeAtual = '';
+let apelidoAtual = '';
+let fotoAtual = '';
+let minhasCartinhas = [];
+let meusDepositos = [];
+let cofrinhoResumo = { saldo: 0 };
 
 let viewDate = new Date(2026, 7, 1);
 
