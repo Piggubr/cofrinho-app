@@ -30,6 +30,7 @@ let filmes = [];
 let produtos = [];
 let perfilAtual = 'USUARIA';
 let usuarioAtual = '';
+let usuarioDetalhes = null;
 
 const _hoje = new Date();
 let viewDate = new Date(_hoje.getFullYear(), _hoje.getMonth(), 1);
