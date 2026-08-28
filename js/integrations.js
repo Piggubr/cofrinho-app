@@ -1,5 +1,5 @@
 const APPSSCRIPTURL =
-  'https://script.google.com/macros/s/AKfycbwVY42_eUQ40lIHG9_B2Be9tOBA2eqWQBJ8mphxpg7sR84t0TLzuXrv-kJjQNWIiNxUag/exec';
+  'https://script.google.com/macros/s/AKfycbyH4pGiJCAX2av9XusKO6evisJdMENCFYsM69SwNLmXIKtyK9vhAMZpQPS4q0xfVcKsmQ/exec';
 
 const GOOGLECLIENTID =
   '831217793955-psvub19f0qhbeuphteig7bkmom80s0ik.apps.googleusercontent.com';
