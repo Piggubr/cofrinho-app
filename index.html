@@ -49,8 +49,8 @@
 
   <!-- Splash screen -->
   <div id="splash" style="position:fixed;inset:0;background:var(--pink-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity 0.8s ease;">
-    <div id="splashPig" style="width:300px;height:300px;display:flex;align-items:center;justify-content:center;">
-      <img src="assets/illustrations/piggu-abertura.webp" alt="Piggu correndo" fetchpriority="high" decoding="async" style="width:280px;height:287px;object-fit:contain;">
+    <div id="splashPig" style="width:276px;height:276px;display:flex;align-items:center;justify-content:center;">
+      <img src="assets/illustrations/piggu-intro.png" alt="Piggu" fetchpriority="high" decoding="async" style="width:253px;height:253px;object-fit:contain;">
     </div>
   </div>
 
@@ -205,7 +205,7 @@
           <div class="cofrinho-valor-row">
             <p class="section-label" style="margin:0;">Entradas e saídas</p>
             <div class="piggu-stage" id="pigguStage">
-              <img class="cofrinho-pig" id="cofrinhoPorco" src="assets/logos/porquinho-deitado.svg" alt="Piggu deitado">
+              <img class="cofrinho-pig" id="cofrinhoPorco" src="assets/logos/piggu-sono.svg" alt="Piggu deitado">
               <img class="piggu-love" src="assets/logos/piggu-love.svg" alt="">
             </div>
           </div>
@@ -320,9 +320,14 @@
 
       <div class="desktop-agenda" id="desktopAgenda"></div>
 
-      <p class="section-label calendar-hint" style="margin-top:1rem;">Toque em qualquer dia pra ver, marcar como pago ou adicionar algo novo.</p>
+      <p class="calendar-hint">Toque num dia pra marcar como pago.</p>
 
-      <div class="card" style="margin-top:1rem;">
+      <p class="section-label" style="margin-top:1.5rem;">Suas notas</p>
+      <div class="card list-card" id="notasLista"></div>
+
+      <button type="button" class="create-toggle" id="btnAbrirNovaNota">+ Criar outro</button>
+
+      <div class="card" id="notaFormCard" style="margin-top:.75rem;display:none;">
         <p class="section-label" style="margin-top:0;">Criar nota ou lembrete</p>
         <input type="text" id="notaTitulo" placeholder="Título">
         <textarea id="notaTexto" placeholder="Escreve aqui..." rows="3" style="margin-top:8px;"></textarea>
@@ -343,9 +348,6 @@
         </div>
         <button class="primary" id="btnNovaNota" style="margin-top:10px;">Salvar nota</button>
       </div>
-
-      <p class="section-label">Suas notas</p>
-      <div class="card list-card" id="notasLista"></div>
     </div>
 
     <!-- TAB: DUMP (FOTOS DO MÊS) -->
@@ -355,7 +357,6 @@
         <input type="file" id="feedInput" accept="image/*" multiple style="display:none;">
         <div class="feed-grid" id="feedGrid"></div>
       </div>
-      <p class="section-label" style="margin-top:1rem;">Guarda os momentos do mês pra rever depois — toca numa foto pra ver maior, legendar ou apagar. Formato 1080×1440, tipo um mini feed. Por enquanto fica salvo só nessa sessão do navegador; quando conectarmos a planilha isso passa a ficar de verdade.</p>
     </div>
 
     <!-- TAB: CATEGORIAS -->
@@ -366,8 +367,13 @@
 
     <!-- TAB: LISTAS (LUGARES) -->
     <div class="tab-panel" id="tab-listas">
-      <p class="section-label" style="margin-top:0;">Novo lugar</p>
-      <div class="place-form">
+      <p class="section-label" style="margin-top:0;">Lugares</p>
+      <div class="place-list" id="lugaresLista"></div>
+
+      <button type="button" class="create-toggle" id="btnAbrirNovoLugar">+ Novo lugar</button>
+
+      <div class="place-form" id="lugarFormCard" style="display:none;margin-top:.75rem;">
+        <p class="section-label" style="margin-top:0;">Novo lugar</p>
         <input id="lugarNome" placeholder="Nome do lugar">
         <div class="place-row">
           <select id="lugarCategoria">
@@ -400,9 +406,6 @@
         <button class="small-add" id="btnAdicionarMarcador" type="button">+ Criar caixinha</button>
         <button class="primary" id="btnSalvarLugar">Salvar lugar</button>
       </div>
-
-      <p class="section-label" style="margin-top:1.5rem;">Lugares</p>
-      <div class="place-list" id="lugaresLista"></div>
     </div>
 
     <!-- TAB: FILMES (LAZER) -->

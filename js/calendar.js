@@ -1,3 +1,10 @@
+document.getElementById('btnAbrirNovaNota')?.addEventListener('click', () => {
+  const form = document.getElementById('notaFormCard');
+  const toggle = document.getElementById('btnAbrirNovaNota');
+  if (form) form.style.display = 'block';
+  if (toggle) toggle.style.display = 'none';
+});
+
 function renderCalendar() {
   const grid = document.getElementById('calGrid');
   if (!grid) return;
