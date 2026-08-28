@@ -52,7 +52,7 @@ function renderFeed() {
   };
 
   grid.querySelectorAll('.feed-item:not(.feed-add)').forEach(item => {
-    const id = Number(item.dataset.id);
+    const id = item.dataset.id;
 
     item.querySelector('.feed-remove')?.addEventListener('click', evento => {
       evento.stopPropagation();
@@ -88,25 +88,42 @@ function renderFeed() {
   });
 }
 
-document.getElementById('feedInput')?.addEventListener('change', e => {
-  const arquivos = e.target.files;
-  if (!arquivos || !arquivos.length) return;
-
-  Array.from(arquivos).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const url = reader.result;
-      fotos.push({
-        id: nextFotoId++,
-        url,
-        legenda: '',
-        mes: mesKeyDe(viewDate)
-      });
-      renderFeed();
-      salvarEstado();
-    };
-    reader.readAsDataURL(file);
-  });
+document.getElementById('feedInput')?.addEventListener('change', async e => {
+  const arquivos = Array.from(e.target.files || []);
+  if (!arquivos.length) return;
 
   e.target.value = '';
+
+  const mesKey = mesKeyDe(viewDate);
+
+  await Promise.all(arquivos.map(arquivo => new Promise(resolve => {
+    const leitor = new FileReader();
+    leitor.onload = async () => {
+      const dataUrl = String(leitor.result || '');
+      const [, mime, base64] = dataUrl.match(/^data:(.+?);base64,(.*)$/) || [];
+
+      try {
+        const resposta = await chamarAppsScript({
+          action: 'saveFeed',
+          mesKey,
+          image_base64: base64,
+          mime_type: mime || arquivo.type || 'image/jpeg'
+        });
+
+        fotos.push({
+          id: resposta.id,
+          mesKey: resposta.mesKey || mesKey,
+          legenda: '',
+          url: resposta.url
+        });
+      } catch (erro) {
+        alert(erro.message);
+      }
+
+      resolve();
+    };
+    leitor.readAsDataURL(arquivo);
+  })));
+
+  renderFeed();
 });
