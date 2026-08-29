@@ -36,6 +36,106 @@ function esconderErroLogin() {
   erro.style.display = 'none';
 }
 
+const CORES_PERFIL = [
+  { borda: '#85124c', fundo: '#fae2e9' },
+  { borda: '#6f5a9e', fundo: '#eee9fa' },
+  { borda: '#3f7f72', fundo: '#e3f3ef' },
+  { borda: '#b66b35', fundo: '#faeadf' },
+  { borda: '#47749d', fundo: '#e4eef7' },
+  { borda: '#8b6d24', fundo: '#f8f0d4' }
+];
+
+function chaveFotoPerfil(email) {
+  return `cofrinho_foto_perfil_${String(email || '').trim().toLowerCase()}`;
+}
+
+function aplicarCorPerfil(email, foto) {
+  if (!foto) return;
+  const texto = String(email || 'visitante').trim().toLowerCase();
+  let codigo = 0;
+  for (let i = 0; i < texto.length; i += 1) {
+    codigo = ((codigo << 5) - codigo + texto.charCodeAt(i)) | 0;
+  }
+  const cor = CORES_PERFIL[Math.abs(codigo) % CORES_PERFIL.length];
+  foto.style.setProperty('--profile-color', cor.borda);
+  foto.style.setProperty('--profile-bg', cor.fundo);
+}
+
+function obterFotoPerfilSalva(email) {
+  if (!email) return '';
+  try {
+    return localStorage.getItem(chaveFotoPerfil(email)) || '';
+  } catch (erro) {
+    console.warn('Não foi possível ler a foto do perfil.', erro);
+    return '';
+  }
+}
+
+function configurarEscolhaFotoPerfil() {
+  const foto = document.getElementById('fotoPerfilV2');
+  const input = document.getElementById('fotoPerfilInput');
+  if (!foto || !input) return;
+
+  const abrirSeletor = () => input.click();
+  foto.addEventListener('click', abrirSeletor);
+  foto.addEventListener('keydown', evento => {
+    if (evento.key === 'Enter' || evento.key === ' ') {
+      evento.preventDefault();
+      abrirSeletor();
+    }
+  });
+
+  input.addEventListener('change', () => {
+    const arquivo = input.files?.[0];
+    input.value = '';
+    if (!arquivo) return;
+    if (!arquivo.type.startsWith('image/')) {
+      alert('Escolha um arquivo de imagem.');
+      return;
+    }
+    if (arquivo.size > 10 * 1024 * 1024) {
+      alert('Escolha uma foto com no máximo 10 MB.');
+      return;
+    }
+
+    const email = usuarioDetalhes?.email || usuarioAtual;
+    if (!email) {
+      alert('Entre com Google antes de escolher sua foto.');
+      return;
+    }
+
+    const imagem = new Image();
+    const urlTemporaria = URL.createObjectURL(arquivo);
+    imagem.onload = () => {
+      const tamanhoOrigem = Math.min(imagem.naturalWidth, imagem.naturalHeight);
+      const origemX = (imagem.naturalWidth - tamanhoOrigem) / 2;
+      const origemY = (imagem.naturalHeight - tamanhoOrigem) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      canvas.getContext('2d').drawImage(
+        imagem,
+        origemX, origemY, tamanhoOrigem, tamanhoOrigem,
+        0, 0, canvas.width, canvas.height
+      );
+      const fotoReduzida = canvas.toDataURL('image/jpeg', 0.86);
+      try {
+        localStorage.setItem(chaveFotoPerfil(email), fotoReduzida);
+        foto.src = fotoReduzida;
+      } catch (erro) {
+        alert('Não foi possível guardar essa foto neste aparelho. Tente uma imagem menor.');
+      } finally {
+        URL.revokeObjectURL(urlTemporaria);
+      }
+    };
+    imagem.onerror = () => {
+      URL.revokeObjectURL(urlTemporaria);
+      alert('Não foi possível abrir essa imagem. Tente outra foto.');
+    };
+    imagem.src = urlTemporaria;
+  });
+}
+
 function aplicarUsuarioNaInterface(detalhes) {
   if (!detalhes) return;
   usuarioDetalhes = detalhes;
@@ -46,14 +146,16 @@ function aplicarUsuarioNaInterface(detalhes) {
   if (saudacao) saudacao.textContent = 'Bem-vindo(a) de volta!';
   if (nome) nome.textContent = primeiroNome || 'Visitante';
   if (foto) {
+    aplicarCorPerfil(detalhes.email, foto);
     foto.referrerPolicy = 'no-referrer';
     foto.onload = () => foto.classList.add('tem-foto');
     foto.onerror = () => {
       foto.classList.remove('tem-foto');
       foto.removeAttribute('src');
     };
-    if (detalhes.foto) {
-      foto.src = detalhes.foto;
+    const fotoSalva = obterFotoPerfilSalva(detalhes.email);
+    if (fotoSalva || detalhes.foto) {
+      foto.src = fotoSalva || detalhes.foto;
     } else {
       foto.classList.remove('tem-foto');
       foto.removeAttribute('src');
@@ -597,6 +699,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof atualizarSaudacaoV2 === 'function') {
     atualizarSaudacaoV2();
   }
+
+  configurarEscolhaFotoPerfil();
 
   if (typeof posicionarInformacoesCabecalho === 'function') {
     posicionarInformacoesCabecalho();
