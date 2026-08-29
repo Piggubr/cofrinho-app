@@ -40,15 +40,24 @@ function aplicarUsuarioNaInterface(detalhes) {
   if (!detalhes) return;
   usuarioDetalhes = detalhes;
   const primeiroNome = String(detalhes.apelido || detalhes.primeiro_nome || detalhes.nome || '').trim().split(/\s+/)[0];
-  const nomeExibicao = String(detalhes.apelido || detalhes.nome || primeiroNome || detalhes.email || '').trim();
   const saudacao = document.getElementById('saudacaoV2');
   const nome = document.getElementById('nomePerfilV2');
   const foto = document.getElementById('fotoPerfilV2');
-  if (saudacao) saudacao.textContent = primeiroNome ? `Que bom ter você de volta, ${primeiroNome}!` : 'Que bom ter você de volta!';
-  if (nome) nome.textContent = nomeExibicao;
-  if (foto && detalhes.foto) {
-    foto.src = detalhes.foto;
+  if (saudacao) saudacao.textContent = 'Bem-vindo(a) de volta!';
+  if (nome) nome.textContent = primeiroNome || 'Visitante';
+  if (foto) {
     foto.referrerPolicy = 'no-referrer';
+    foto.onload = () => foto.classList.add('tem-foto');
+    foto.onerror = () => {
+      foto.classList.remove('tem-foto');
+      foto.removeAttribute('src');
+    };
+    if (detalhes.foto) {
+      foto.src = detalhes.foto;
+    } else {
+      foto.classList.remove('tem-foto');
+      foto.removeAttribute('src');
+    }
   }
   document.body.dataset.perfil = String(detalhes.role || perfilAtual || '').toLowerCase();
 }
