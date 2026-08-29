@@ -1,8 +1,7 @@
 function atualizarSaudacaoV2() {
-  const hora = new Date().getHours();
   const saudacaoEl = document.getElementById('saudacaoV2');
   if (saudacaoEl) {
-    saudacaoEl.textContent = 'Bem-vinda de volta';
+    saudacaoEl.textContent = 'Bem-vindo(a) de volta!';
   }
 }
 
