@@ -75,7 +75,7 @@ body::before {
   width: 118px;
   height: 118px;
   box-sizing: border-box;
-  border: 5px solid #5b1a39;
+  border: 4px solid #5b1a39;
   border-radius: 50%;
   background: var(--profile-bg, #fff);
   object-fit: cover;
@@ -472,7 +472,7 @@ body::before {
     grid-row: 1 / 3;
     width: var(--v2-pig-size);
     height: var(--v2-pig-size);
-    border: 4px solid #5b1a39;
+    border: 3px solid #5b1a39;
     border-radius: 50%;
     background: var(--profile-bg, #fff);
     object-fit: cover;
