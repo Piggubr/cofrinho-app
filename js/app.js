@@ -37,12 +37,12 @@ function esconderErroLogin() {
 }
 
 const CORES_PERFIL = [
-  { borda: '#85124c', fundo: '#fae2e9' },
-  { borda: '#6f5a9e', fundo: '#eee9fa' },
-  { borda: '#3f7f72', fundo: '#e3f3ef' },
-  { borda: '#b66b35', fundo: '#faeadf' },
-  { borda: '#47749d', fundo: '#e4eef7' },
-  { borda: '#8b6d24', fundo: '#f8f0d4' }
+  '#fae2e9',
+  '#eee9fa',
+  '#e3f3ef',
+  '#faeadf',
+  '#e4eef7',
+  '#f8f0d4'
 ];
 
 function chaveFotoPerfil(email) {
@@ -56,9 +56,8 @@ function aplicarCorPerfil(email, foto) {
   for (let i = 0; i < texto.length; i += 1) {
     codigo = ((codigo << 5) - codigo + texto.charCodeAt(i)) | 0;
   }
-  const cor = CORES_PERFIL[Math.abs(codigo) % CORES_PERFIL.length];
-  foto.style.setProperty('--profile-color', cor.borda);
-  foto.style.setProperty('--profile-bg', cor.fundo);
+  const corDeFundo = CORES_PERFIL[Math.abs(codigo) % CORES_PERFIL.length];
+  foto.style.setProperty('--profile-bg', corDeFundo);
 }
 
 function obterFotoPerfilSalva(email) {
