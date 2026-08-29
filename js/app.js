@@ -92,8 +92,8 @@ function configurarEscolhaFotoPerfil() {
       alert('Escolha um arquivo de imagem.');
       return;
     }
-    if (arquivo.size > 10 * 1024 * 1024) {
-      alert('Escolha uma foto com no máximo 10 MB.');
+    if (arquivo.size > 40 * 1024 * 1024) {
+      alert('Essa foto é muito grande. Escolha uma imagem com no máximo 40 MB.');
       return;
     }
 
