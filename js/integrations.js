@@ -2,7 +2,7 @@ const APPSSCRIPTURL =
   'https://script.google.com/macros/s/AKfycbyH4pGiJCAX2av9XusKO6evisJdMENCFYsM69SwNLmXIKtyK9vhAMZpQPS4q0xfVcKsmQ/exec';
 
 const GOOGLECLIENTID =
-  '831217793955-psvub19f0qhbeuphteig7bkmom80s0ik.apps.googleusercontent.com';
+  '831217793955-c1vk4lm3ootilobv5ssv9tjokmgf3fak.apps.googleusercontent.com';
 
 let googleIdToken = null;
 let sessionToken = null;
