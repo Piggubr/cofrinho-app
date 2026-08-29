@@ -234,7 +234,16 @@ function validarUsuario_(idToken, sessionToken) {
     if (usuarioEmCacheAtualizado && usuarioEmCacheAtualizado.ativo) return usuarioEmCacheAtualizado;
   }
 
-  const clientId = propriedadeObrigatoria_('GOOGLE_CLIENT_ID');
+  // A implantação de testes usa um cliente OAuth separado. A propriedade
+  // original continua válida para não interferir no site oficial.
+  const propriedades = PropertiesService.getScriptProperties();
+  const clientIdsPermitidos = [
+    propriedades.getProperty('GOOGLE_CLIENT_ID'),
+    propriedades.getProperty('GOOGLE_CLIENT_ID_TEST')
+  ].filter(Boolean).map(function(valor) { return valor.trim(); });
+  if (!clientIdsPermitidos.length) {
+    throw new Error('Falta configurar GOOGLE_CLIENT_ID nas Propriedades do script.');
+  }
   const resposta = UrlFetchApp.fetch(
     'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken),
     { muteHttpExceptions: true }
@@ -249,7 +258,7 @@ function validarUsuario_(idToken, sessionToken) {
   const emissorValido = dados.iss === 'accounts.google.com' || dados.iss === 'https://accounts.google.com';
   const email = String(dados.email || '').trim().toLowerCase();
 
-  if (dados.aud !== clientId || !emissorValido || Number(dados.exp) <= agora) {
+  if (clientIdsPermitidos.indexOf(dados.aud) === -1 || !emissorValido || Number(dados.exp) <= agora) {
     throw new Error('Login Google inválido para este site.');
   }
   if (String(dados.email_verified) !== 'true') {
