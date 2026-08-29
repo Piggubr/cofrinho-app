@@ -80,7 +80,9 @@ body::before {
   background: #fff;
   object-fit: cover;
   object-position: center;
-  cursor: pointer;
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
   transform-origin: 50% 75%;
 }
 
