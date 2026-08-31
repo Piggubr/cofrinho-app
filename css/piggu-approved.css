@@ -149,7 +149,7 @@ body[data-theme="blue"] { --site-bg:#eef7fd; --pink-bg:#d4eafa; --surface:#fff; 
 body[data-theme="rose"], body:not([data-theme]) {
   --theme-header-start:#f3abc7; --theme-header-end:#f9d7e3; --theme-faint:#fff0f6;
   --theme-selected:#f6bfd5; --theme-strong:#6d1541; --theme-soft:#f9d7e3;
-  --site-bg:#fff8fa; --pink-bg:#fbe7ee; --surface:#fff; --field-bg:#fff4f7;
+  --site-bg:#fffbfc; --pink-bg:#fbe7ee; --surface:#fff; --field-bg:#fff4f7;
   --button-bg:#f6bfd5; --border:#efc5d5; --rose-deep:#6d1541; --rose:#b85c7d;
   --ink:#2b1e32; --ink-soft:#5c4c58; --muted:#715c67; --track:#f3d9e2;
   --border-wine:rgba(109,21,65,.16); --shadow-card:0 18px 45px rgba(109,21,65,.10);
@@ -158,7 +158,7 @@ body[data-theme="rose"], body:not([data-theme]) {
 body[data-theme="mint"] {
   --theme-header-start:#8dddc4; --theme-header-end:#d3f4e8; --theme-faint:#e8faf4;
   --theme-selected:#afe9d5; --theme-strong:#174f43; --theme-soft:#d3f4e8;
-  --site-bg:#effbf7; --pink-bg:#d3f4e8; --surface:#fff; --field-bg:#e8faf4;
+  --site-bg:#f8fcfa; --pink-bg:#d3f4e8; --surface:#fff; --field-bg:#e8faf4;
   --button-bg:#afe9d5; --border:#bce8d9; --rose-deep:#174f43; --rose:#438f7c;
   --ink:#173d35; --ink-soft:#3d625a; --muted:#59756e; --track:#d4ece4;
   --border-wine:rgba(23,79,67,.16); --shadow-card:0 18px 45px rgba(23,79,67,.10);
@@ -167,7 +167,7 @@ body[data-theme="mint"] {
 body[data-theme="lilac"] {
   --theme-header-start:#c59bea; --theme-header-end:#eadcfb; --theme-faint:#f2e9fd;
   --theme-selected:#d7baf7; --theme-strong:#4e2a70; --theme-soft:#eadcfb;
-  --site-bg:#f6f0fd; --pink-bg:#eadcfb; --surface:#fff; --field-bg:#f2e9fd;
+  --site-bg:#fbf9fd; --pink-bg:#eadcfb; --surface:#fff; --field-bg:#f2e9fd;
   --button-bg:#d7baf7; --border:#dbc8f3; --rose-deep:#4e2a70; --rose:#8257aa;
   --ink:#352441; --ink-soft:#5f4c6d; --muted:#746382; --track:#e7dcf3;
   --border-wine:rgba(78,42,112,.16); --shadow-card:0 18px 45px rgba(78,42,112,.10);
@@ -176,7 +176,7 @@ body[data-theme="lilac"] {
 body[data-theme="blue"] {
   --theme-header-start:#8fc9ee; --theme-header-end:#d4eafa; --theme-faint:#e8f4fc;
   --theme-selected:#b8ddf7; --theme-strong:#174a70; --theme-soft:#d4eafa;
-  --site-bg:#eef7fd; --pink-bg:#d4eafa; --surface:#fff; --field-bg:#e8f4fc;
+  --site-bg:#f8fbfd; --pink-bg:#d4eafa; --surface:#fff; --field-bg:#e8f4fc;
   --button-bg:#b8ddf7; --border:#bfdff1; --rose-deep:#174a70; --rose:#4784ad;
   --ink:#19384f; --ink-soft:#3d6079; --muted:#587187; --track:#d5e6f2;
   --border-wine:rgba(23,74,112,.16); --shadow-card:0 18px 45px rgba(23,74,112,.10);
@@ -235,7 +235,9 @@ input, select, textarea, .field { background:var(--field-bg) !important; border-
 .shopping-item-ativa { grid-template-columns:24px 56px 32px minmax(0,1fr); }
 .shopping-checkbox-placeholder { width:20px; height:20px; border:1px solid var(--border); border-radius:6px; background:var(--field-bg); }
 .shopping-check { width:20px; height:20px; accent-color:var(--theme-strong); }
+.shopping-quantity-control { display:flex; align-items:center; gap:4px; min-width:0; }
 .shopping-quantity { color:var(--muted); font:500 12px/16px var(--font-body); white-space:nowrap; }
+.shopping-quantity-add { display:inline-grid; place-items:center; width:24px; height:24px; flex:0 0 24px; padding:0; border:1px solid var(--border); border-radius:999px; background:var(--field-bg); color:var(--theme-strong); font:600 16px/1 var(--font-body); }
 .shopping-emoji { font-size:20px; line-height:24px; text-align:center; }
 .shopping-copy { min-width:0; }
 .shopping-name { margin:0; overflow-wrap:anywhere; font:500 14px/20px var(--font-body); }
@@ -592,6 +594,15 @@ input::placeholder,textarea::placeholder{
   border-color:var(--border)!important;
 }
 .place-badge{color:var(--theme-strong)!important}
+
+/* Vidro quase imperceptível apenas no resumo financeiro. */
+.finance-card{
+  background:color-mix(in srgb,var(--surface) 84%,transparent)!important;
+  border-color:color-mix(in srgb,var(--border) 72%,#fff)!important;
+  box-shadow:0 10px 30px rgba(58,58,60,.055)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(108%);
+  backdrop-filter:blur(10px) saturate(108%);
+}
 input[type="checkbox"]::after{
   content:"";
   position:absolute;

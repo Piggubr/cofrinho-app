@@ -15,10 +15,14 @@ const CATEGORIAS_MERCADO = {
 };
 
 const EMOJIS_PRODUTOS = {
-  pao:'🥖', leite:'🥛', ovos:'🥚', ovo:'🥚', arroz:'🍚', massa:'🍝', macarrao:'🍝', cafe:'☕',
-  cereais:'🥣', iogurte:'🥣', manteiga:'🧈', queijo:'🧀', banana:'🍌', tomate:'🍅', alface:'🥬',
-  batata:'🥔', frango:'🍗', carne:'🥩', peixe:'🐟', agua:'💧', sumo:'🧃', suco:'🧃', cha:'🍵',
-  detergente:'🧴', esponja:'🧽', sabonete:'🧼', champo:'🧴', papel:'🧻', pasta:'🪥'
+  pao:'🥖', leite:'🥛', ovos:'🥚', ovo:'🥚', arroz:'🍚', feijao:'🫘', massa:'🍝', macarrao:'🍝',
+  farinha:'🌾', acucar:'🍬', sal:'🧂', azeite:'🫒', cafe:'☕', cereais:'🥣', aveia:'🌾',
+  iogurte:'🥣', manteiga:'🧈', queijo:'🧀', geleia:'🍓', biscoito:'🍪', banana:'🍌', maca:'🍎',
+  laranja:'🍊', uva:'🍇', tomate:'🍅', alface:'🥬', batata:'🥔', cenoura:'🥕', cebola:'🧅', alho:'🧄',
+  frango:'🍗', carne:'🥩', peixe:'🐟', atum:'🐟', presunto:'🥓', tofu:'🍱', agua:'💧', sumo:'🧃',
+  suco:'🧃', cha:'🍵', refrigerante:'🥤', detergente:'🧴', esponja:'🧽', sabonete:'🧼',
+  champo:'🧴', xampu:'🧴', condicionador:'🧴', desodorante:'🧴', desinfetante:'🧴',
+  lava_roupas:'🧺', saco:'🗑️', papel:'🧻', pasta:'🪥'
 };
 
 function estadoComprasVazio() { return { carrinho:[], ativa:null, historico:[], desejos:[] }; }
@@ -42,8 +46,9 @@ function salvarComprasLocais() {
 function normalizarProduto(valor) { return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 function emojiProduto(nome) {
   const normalizado = normalizarProduto(nome);
-  return Object.entries(EMOJIS_PRODUTOS).find(([termo]) => normalizado.includes(termo))?.[1] || '🛒';
+  return Object.entries(EMOJIS_PRODUTOS).find(([termo]) => normalizado.includes(termo.replace('_',' ')))?.[1] || '🛍️';
 }
+function emojiExibicao(item) { return item?.emoji && item.emoji !== '🛒' ? item.emoji : emojiProduto(item?.item); }
 function categoriaProduto(nome) {
   const normalizado = normalizarProduto(nome);
   return Object.entries(CATEGORIAS_MERCADO).find(([, itens]) => itens.some(item => normalizado.includes(normalizarProduto(item))))?.[0] || 'Outros';
@@ -54,7 +59,8 @@ function novoItemCompra(nome, quantidade, unidade, extras = {}) {
 function textoQuantidade(item) { return [item.quantidade || '1', item.unidade || 'un'].join(' '); }
 function linhaCompra(item, modo) {
   const checkbox = modo === 'ativa' ? `<input class="shopping-check" type="checkbox" data-check-local="${esc(item.id)}" ${item.comprado ? 'checked' : ''} aria-label="Marcar ${esc(item.item)}">` : '<span class="shopping-checkbox-placeholder" aria-hidden="true"></span>';
-  return `<div class="shopping-item shopping-item-${modo}${item.comprado ? ' done' : ''}">${checkbox}<span class="shopping-quantity">${esc(textoQuantidade(item))}</span><span class="shopping-emoji" aria-hidden="true">${esc(item.emoji || emojiProduto(item.item))}</span><div class="shopping-copy"><p class="shopping-name">${esc(item.item)}</p><p class="shopping-meta">${esc(item.categoria || categoriaProduto(item.item))}${item.marca ? ` · ${esc(item.marca)}` : ''}</p></div>${modo === 'rascunho' ? `<button class="icon-btn" data-edit-local="${esc(item.id)}" aria-label="Editar ${esc(item.item)}">Editar</button><button class="icon-btn" data-remove-local="${esc(item.id)}" aria-label="Remover ${esc(item.item)}">×</button>` : ''}</div>`;
+  const quantidade = modo === 'rascunho' ? `<div class="shopping-quantity-control"><span class="shopping-quantity">${esc(textoQuantidade(item))}</span><button class="shopping-quantity-add" type="button" data-increase-local="${esc(item.id)}" aria-label="Aumentar quantidade de ${esc(item.item)}">+</button></div>` : `<span class="shopping-quantity">${esc(textoQuantidade(item))}</span>`;
+  return `<div class="shopping-item shopping-item-${modo}${item.comprado ? ' done' : ''}">${checkbox}${quantidade}<span class="shopping-emoji" aria-hidden="true">${esc(emojiExibicao(item))}</span><div class="shopping-copy"><p class="shopping-name">${esc(item.item)}</p><p class="shopping-meta">${esc(item.categoria || categoriaProduto(item.item))}${item.marca ? ` · ${esc(item.marca)}` : ''}</p></div>${modo === 'rascunho' ? `<button class="icon-btn" data-edit-local="${esc(item.id)}" aria-label="Editar ${esc(item.item)}">Editar</button><button class="icon-btn" data-remove-local="${esc(item.id)}" aria-label="Remover ${esc(item.item)}">×</button>` : ''}</div>`;
 }
 
 function renderCarrinho() {
@@ -64,6 +70,11 @@ function renderCarrinho() {
   alvo.innerHTML = itens.length ? itens.map(item => linhaCompra(item, 'rascunho')).join('') : '<p class="empty">Seu carrinho ainda está vazio.</p>';
   if (finalizar) finalizar.disabled = !itens.length || Boolean(shoppingLocal.ativa);
   alvo.querySelectorAll('[data-remove-local]').forEach(botao => botao.addEventListener('click', () => { shoppingLocal.carrinho = itens.filter(item => item.id !== botao.dataset.removeLocal); salvarComprasLocais(); renderCompras(); }));
+  alvo.querySelectorAll('[data-increase-local]').forEach(botao => botao.addEventListener('click', () => {
+    const item = itens.find(produto => produto.id === botao.dataset.increaseLocal); if (!item) return;
+    const atual = Number(String(item.quantidade || '1').replace(',', '.'));
+    item.quantidade = String((Number.isFinite(atual) ? atual : 1) + 1); salvarComprasLocais(); renderCompras();
+  }));
   alvo.querySelectorAll('[data-edit-local]').forEach(botao => botao.addEventListener('click', () => {
     const item = itens.find(produto => produto.id === botao.dataset.editLocal); if (!item) return;
     const nome = prompt('Nome do item', item.item); if (!nome?.trim()) return;
@@ -116,7 +127,7 @@ function renderListaMercadoDashboard() {
   const itens = itensDashboard(); contagem.textContent = `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`;
   if (!itens.length) { alvo.innerHTML = '<p class="empty">A listinha está vazia.</p>'; return; }
   const grupos = {}; itens.forEach(item => { const categoria = item.categoria || categoriaProduto(item.item); (grupos[categoria] ||= []).push(item); });
-  alvo.innerHTML = Object.entries(grupos).map(([categoria, produtos]) => `<section class="market-sector"><p class="market-sector-title">${esc(categoria)} · ${produtos.length}</p>${produtos.map(item => `<div class="market-sector-item"><span class="shopping-emoji">${esc(item.emoji || emojiProduto(item.item))}</span><span>${esc(item.item)} · ${esc(textoQuantidade(item))}</span></div>`).join('')}</section>`).join('');
+  alvo.innerHTML = Object.entries(grupos).map(([categoria, produtos]) => `<section class="market-sector"><p class="market-sector-title">${esc(categoria)} · ${produtos.length}</p>${produtos.map(item => `<div class="market-sector-item"><span class="shopping-emoji">${esc(emojiExibicao(item))}</span><span>${esc(item.item)} · ${esc(textoQuantidade(item))}</span></div>`).join('')}</section>`).join('');
 }
 
 function adicionarAoCarrinho(nome, quantidade = '1', unidade = 'un', extras = {}) { garantirComprasLocais(); shoppingLocal.carrinho.push(novoItemCompra(nome, quantidade, unidade, extras)); salvarComprasLocais(); renderCompras(); }
