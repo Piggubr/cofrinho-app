@@ -696,23 +696,6 @@ function configurarEventosBasicos() {
     abrirAba('filmes');
   });
 
-  document.getElementById('mesPrev')?.addEventListener('click', async () => {
-    viewDate.setMonth(viewDate.getMonth() - 1);
-    atualizarTudo();
-
-    if (typeof feedEstaAberto === 'function' && feedEstaAberto()) {
-      await carregarFotosDoMes();
-    }
-  });
-
-  document.getElementById('mesNext')?.addEventListener('click', async () => {
-    viewDate.setMonth(viewDate.getMonth() + 1);
-    atualizarTudo();
-
-    if (typeof feedEstaAberto === 'function' && feedEstaAberto()) {
-      await carregarFotosDoMes();
-    }
-  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
