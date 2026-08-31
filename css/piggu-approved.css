@@ -210,7 +210,6 @@ input, select, textarea, .field { background:var(--field-bg) !important; border-
 .active-shopping-list.has-active-list .shopping-active-badge { display:inline-flex; }
 .shopping-form { grid-template-columns:minmax(0,1fr) minmax(64px,88px) minmax(64px,88px); gap:8px; margin-top:16px; }
 .shopping-form #compraItem { grid-column:1/-1; }
-.shopping-form #compraLista { grid-column:1/3; }
 .shopping-form .primary { grid-column:3; }
 .shopping-draft, .shopping-ready { margin-top:16px; border-top:1px solid var(--border); }
 .shopping-finish { margin-top:16px; }
@@ -242,7 +241,7 @@ input, select, textarea, .field { background:var(--field-bg) !important; border-
 @media (max-width:430px) {
   .shopping-form { grid-template-columns:minmax(0,1fr) minmax(60px,72px); }
   .shopping-form #compraItem { grid-column:1/-1; }.shopping-form #compraQuantidade { grid-column:1; }.shopping-form #compraUnidade { grid-column:2; }
-  .shopping-form #compraLista, .shopping-form .primary { grid-column:1/-1; }
+  .shopping-form .primary { grid-column:1/-1; }
   .shopping-item { grid-template-columns:20px 48px 28px minmax(0,1fr) 40px; }
   .shopping-item-rascunho { grid-template-columns:20px 48px 28px minmax(0,1fr) 40px; }
   .shopping-item-rascunho [data-edit-local] { grid-column:2/5; width:100%; }
@@ -313,3 +312,83 @@ input, select, textarea, .field { background:var(--field-bg) !important; border-
   #tab-gastos .dashboard-shell{gap:24px;padding-top:16px;background:transparent;box-shadow:none}
 }
 @media(max-width:430px){#metaCard .goal-top{grid-template-columns:minmax(0,1fr) auto}#metaCard .goal-heading{grid-template-columns:48px minmax(0,1fr);gap:8px}#metaCard .goal-trophy{width:48px;height:auto}.place-form .place-row{grid-template-columns:1fr}.cal-card{padding:16px}.cal-weekdays{font-size:10px}.cal-grid{gap:2px}.cal-cell{border-radius:8px}.cal-daynum{width:20px;height:20px;font-size:11px}}
+
+/* Refinamento móvel: seletor centralizado e módulos em uma faixa compacta. */
+@media(max-width:899px){
+  .nav-panel .title-row{
+    box-sizing:border-box;
+    width:100%;
+    min-height:52px;
+    margin:0 auto 12px;
+    padding:4px 12px;
+  }
+  .nav-panel .month-nav{
+    display:grid;
+    width:100%;
+    grid-template-columns:40px minmax(0,1fr) 40px;
+    align-items:center;
+  }
+  .nav-panel .month-nav h1{
+    min-width:0;
+    margin:0;
+    transform:none;
+    text-align:center;
+    font:600 20px/28px var(--font-display);
+  }
+  .nav-panel .month-nav button{
+    width:40px;
+    height:40px;
+    padding:0;
+    justify-self:center;
+  }
+  .nav-panel .tabs{
+    display:flex;
+    width:100%;
+    min-height:40px;
+    gap:8px;
+    margin:0;
+    padding:0 28px 4px 4px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    border:0;
+    -webkit-overflow-scrolling:touch;
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
+    mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
+  }
+  .nav-panel .tabs::-webkit-scrollbar{display:none}
+  .nav-panel .tab-btn,
+  .nav-panel .tab-btn:not(.active),
+  .nav-panel .tab-btn.tab-dump{
+    flex:0 0 auto;
+    width:auto;
+    min-width:max-content;
+    min-height:36px;
+    height:36px;
+    padding:8px 12px;
+    scroll-snap-align:start;
+    white-space:nowrap;
+    border:1px solid transparent;
+    border-radius:18px;
+    background:transparent!important;
+    color:var(--muted)!important;
+    font:500 12px/16px var(--font-body);
+    opacity:.72;
+  }
+  .nav-panel .tab-btn.active,
+  .nav-panel .tab-btn.tab-dump.active{
+    background:var(--button-bg)!important;
+    border-color:var(--theme-mid)!important;
+    color:var(--theme-strong)!important;
+    opacity:1;
+    box-shadow:0 2px 6px rgba(0,0,0,.14);
+  }
+  .tab-panel{margin-top:24px}
+  #tab-gastos .dashboard-shell{padding-top:0}
+  body::before{
+    box-shadow:0 12px 20px rgba(0,0,0,.10);
+  }
+  .v2-profile{transform:translateY(-4px)}
+  .finance-card{box-sizing:border-box;width:100%;max-width:100%;margin-inline:0}
+}

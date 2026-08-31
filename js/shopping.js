@@ -126,7 +126,7 @@ document.getElementById('btnAbrirComprasDashboard')?.addEventListener('click', (
 document.getElementById('btnAdicionarCompra')?.addEventListener('click', () => {
   garantirComprasLocais(); const campo = document.getElementById('compraItem'); const nome = campo?.value.trim(); if (!nome) return;
   const quantidade = document.getElementById('compraQuantidade')?.value.trim() || '1'; const unidade = document.getElementById('compraUnidade')?.value || 'un';
-  if (document.getElementById('compraLista')?.value === 'Desejos') { shoppingLocal.desejos.push(novoItemCompra(nome, quantidade, unidade)); salvarComprasLocais(); renderCompras(); } else adicionarAoCarrinho(nome, quantidade, unidade);
+  adicionarAoCarrinho(nome, quantidade, unidade);
   campo.value = ''; document.getElementById('compraQuantidade').value = '';
 });
 document.getElementById('btnFinalizarCarrinho')?.addEventListener('click', () => { if (!shoppingLocal.carrinho.length || shoppingLocal.ativa) return; shoppingLocal.ativa = { id:`lista-${Date.now()}`, criadaEm:new Date().toISOString(), itens:shoppingLocal.carrinho.map(item => ({ ...item, comprado:false })) }; shoppingLocal.carrinho = []; salvarComprasLocais(); renderCompras(); });
