@@ -13,10 +13,11 @@ const fmtData = iso => {
 const mesKeyDe = d =>
   d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
 
-const nomeMes = d => [
-  'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
-  'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
-][d.getMonth()];
+const nomeMes = d => {
+  const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return meses[d.getMonth()] + ' ' + d.getFullYear();
+};
 
 const esc = valor =>
   String(valor ?? '')

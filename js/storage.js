@@ -1,32 +1,38 @@
 function salvarEstado() {
+  if (window.PIGGU_DEMO_MODE) return;
   try {
-    localStorage.setItem('cofrinho_contas', JSON.stringify(contas));
-    localStorage.setItem('cofrinho_eventos', JSON.stringify(eventos));
-    localStorage.setItem('cofrinho_pagamentos', JSON.stringify([...pagamentos]));
-    localStorage.setItem('cofrinho_fotos', JSON.stringify(fotos));
-    localStorage.setItem('cofrinho_notas', JSON.stringify(notas));
-    localStorage.setItem('cofrinho_cofrinhoMovimentos', JSON.stringify(cofrinhoMovimentos));
-    localStorage.setItem('cofrinho_nextContaId', String(nextContaId));
-    localStorage.setItem('cofrinho_nextEventoId', String(nextEventoId));
-    localStorage.setItem('cofrinho_nextFotoId', String(nextFotoId));
-    localStorage.setItem('cofrinho_nextNotaId', String(nextNotaId));
+    const prefixo = prefixoEstadoLocal();
+    if (!prefixo) return;
+    localStorage.setItem(prefixo + 'contas', JSON.stringify(contas));
+    localStorage.setItem(prefixo + 'eventos', JSON.stringify(eventos));
+    localStorage.setItem(prefixo + 'pagamentos', JSON.stringify([...pagamentos]));
+    localStorage.setItem(prefixo + 'fotos', JSON.stringify(fotos));
+    localStorage.setItem(prefixo + 'notas', JSON.stringify(notas));
+    localStorage.setItem(prefixo + 'cofrinhoMovimentos', JSON.stringify(cofrinhoMovimentos));
+    localStorage.setItem(prefixo + 'nextContaId', String(nextContaId));
+    localStorage.setItem(prefixo + 'nextEventoId', String(nextEventoId));
+    localStorage.setItem(prefixo + 'nextFotoId', String(nextFotoId));
+    localStorage.setItem(prefixo + 'nextNotaId', String(nextNotaId));
   } catch (e) {
     console.warn('Não foi possível salvar estado local:', e);
   }
 }
 
 function carregarEstado() {
+  if (window.PIGGU_DEMO_MODE) return;
   try {
-    const c = localStorage.getItem('cofrinho_contas');
-    const e = localStorage.getItem('cofrinho_eventos');
-    const p = localStorage.getItem('cofrinho_pagamentos');
-    const f = localStorage.getItem('cofrinho_fotos');
-    const n = localStorage.getItem('cofrinho_notas');
-    const m = localStorage.getItem('cofrinho_cofrinhoMovimentos');
-    const nci = localStorage.getItem('cofrinho_nextContaId');
-    const nei = localStorage.getItem('cofrinho_nextEventoId');
-    const nfi = localStorage.getItem('cofrinho_nextFotoId');
-    const nni = localStorage.getItem('cofrinho_nextNotaId');
+    const prefixo = prefixoEstadoLocal();
+    if (!prefixo) return;
+    const c = localStorage.getItem(prefixo + 'contas');
+    const e = localStorage.getItem(prefixo + 'eventos');
+    const p = localStorage.getItem(prefixo + 'pagamentos');
+    const f = localStorage.getItem(prefixo + 'fotos');
+    const n = localStorage.getItem(prefixo + 'notas');
+    const m = localStorage.getItem(prefixo + 'cofrinhoMovimentos');
+    const nci = localStorage.getItem(prefixo + 'nextContaId');
+    const nei = localStorage.getItem(prefixo + 'nextEventoId');
+    const nfi = localStorage.getItem(prefixo + 'nextFotoId');
+    const nni = localStorage.getItem(prefixo + 'nextNotaId');
 
     if (c) contas = JSON.parse(c);
     if (e) eventos = JSON.parse(e);
@@ -41,4 +47,10 @@ function carregarEstado() {
   } catch (e) {
     console.warn('Não foi possível carregar estado local:', e);
   }
+}
+
+function prefixoEstadoLocal() {
+  const email = String(usuarioDetalhes?.email || usuarioAtual || '').trim().toLowerCase();
+  if (!email) return '';
+  return `cofrinho_${email.replace(/[^a-z0-9@._-]/g, '_')}_`;
 }

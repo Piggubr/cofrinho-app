@@ -786,7 +786,7 @@
 }
 
 .cofrinho-euro {
-  font-family: 'deuterium-variable', var(--font-body);
+  font-family: var(--font-display);
   font-variation-settings: "wght" 550;
   font-weight: 550;
   font-size: 26px;
@@ -795,7 +795,7 @@
 }
 
 .cofrinho-num {
-  font-family: 'deuterium-variable', var(--font-body);
+  font-family: var(--font-display);
   font-variation-settings: "wght" 550;
   font-weight: 550;
   font-size: 38px;

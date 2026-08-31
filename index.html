@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://accounts.google.com">
   <link rel="preconnect" href="https://script.google.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Sora:wght@400;500;600;700&display=swap">
 
-  <link rel="stylesheet" href="https://use.typekit.net/ovg5ohp.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <link rel="stylesheet" href="css/variables.css">
@@ -34,8 +34,70 @@
   <link rel="stylesheet" href="css/prizes.css">
   <link rel="stylesheet" href="css/modals.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/piggu-approved.css?v=20260831-9">
 </head>
 <body>
+
+  <section class="onboarding" id="pigguOnboarding" hidden aria-labelledby="onboardingTitle">
+    <div class="onboarding-card">
+      <img class="onboarding-logo" src="assets/logos/logo-v2.svg" alt="Piggu — Life Planner">
+      <p class="onboarding-step" id="onboardingStep">PRIMEIRO ACESSO · 1 DE 4</p>
+
+      <div class="onboarding-page active" data-step="1">
+        <h1 id="onboardingTitle">Seu Piggu começa com você.</h1>
+        <p class="onboarding-lead">Monte seu espaço pessoal. Você pode mudar essas escolhas depois.</p>
+        <div class="onboarding-photo">
+          <img id="onboardingPhoto" src="assets/illustrations/porquinho-perfil.svg" alt="Foto do perfil">
+          <button class="button-secondary" id="onboardingPhotoButton" type="button">Escolher minha foto</button>
+        </div>
+        <label class="field-label" for="onboardingName">Como quer ser chamado?</label>
+        <input id="onboardingName" type="text" maxlength="40" placeholder="Seu nome" autocomplete="given-name">
+        <p class="field-help">Sua conta Google identifica seu perfil. A foto é opcional.</p>
+      </div>
+
+      <div class="onboarding-page" data-step="2">
+        <h1>Deixe o Piggu com a sua cara.</h1>
+        <p class="onboarding-lead">Escolha um dos três temas. Você poderá trocar depois.</p>
+        <div class="theme-grid" role="radiogroup" aria-label="Tema do Piggu">
+          <button class="theme-option selected" type="button" data-theme-choice="rose" role="radio" aria-checked="true"><span class="theme-swatch rose"></span><strong>Rosa Piggu</strong><small>Delicado e acolhedor</small></button>
+          <button class="theme-option" type="button" data-theme-choice="mint" role="radio" aria-checked="false"><span class="theme-swatch mint"></span><strong>Menta</strong><small>Leve e tranquilo</small></button>
+          <button class="theme-option" type="button" data-theme-choice="lilac" role="radio" aria-checked="false"><span class="theme-swatch lilac"></span><strong>Lilás</strong><small>Calmo e criativo</small></button>
+        </div>
+      </div>
+
+      <div class="onboarding-page" data-step="3">
+        <h1>O que vai no seu Piggu?</h1>
+        <p class="onboarding-lead">Escolha as áreas que quer ver. Metas fica sempre disponível.</p>
+        <div class="onboarding-tabs" id="onboardingTabs">
+          <label><input type="checkbox" value="gastos" checked> Finanças</label>
+          <label><input type="checkbox" value="calendario" checked> Calendário</label>
+          <label><input type="checkbox" value="categorias" checked> Categorias</label>
+          <label><input type="checkbox" value="dump" checked> Fotos</label>
+          <label><input type="checkbox" value="listas" checked> Lugares</label>
+          <label><input type="checkbox" value="filmes" checked> Lazer</label>
+          <label><input type="checkbox" value="compras" checked> Compras</label>
+          <label><input type="checkbox" value="academia" checked> Academia</label>
+          <label><input type="checkbox" value="premios" checked> Prêmios</label>
+        </div>
+      </div>
+
+      <div class="onboarding-page" data-step="4">
+        <h1>Seu espaço está pronto.</h1>
+        <p class="onboarding-lead">O cadastro fica salvo neste aparelho. Seus dados financeiros continuam protegidos pela sua conta Google.</p>
+        <div class="onboarding-summary">
+          <img id="onboardingSummaryPhoto" src="assets/illustrations/porquinho-perfil.svg" alt="">
+          <div><span>Bem-vinda de volta!</span><strong id="onboardingSummaryName">Você</strong><small id="onboardingSummaryTheme">Tema Rosa Piggu</small></div>
+        </div>
+        <p class="local-notice">Perfil e tema ainda não são sincronizados com o servidor.</p>
+      </div>
+
+      <div class="onboarding-actions">
+        <button class="button-secondary" id="onboardingBack" type="button" hidden>Voltar</button>
+        <button class="button-primary" id="onboardingNext" type="button">Continuar</button>
+      </div>
+      <p class="field-help">Rascunho salvo ao avançar.</p>
+    </div>
+  </section>
 
   <!-- SVG inline (porquinho e ícones) -->
   <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -47,31 +109,26 @@
     </defs>
   </svg>
 
-  <!-- Splash screen -->
-  <div id="splash" style="position:fixed;inset:0;background:var(--pink-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity 0.8s ease;">
-    <div id="splashPig" style="width:276px;height:276px;display:flex;align-items:center;justify-content:center;">
-      <img src="assets/illustrations/piggu-intro.png" alt="Piggu" fetchpriority="high" decoding="async" style="width:253px;height:253px;object-fit:contain;">
-    </div>
-  </div>
-
   <!-- Gate Google (login) -->
-  <div id="gateGoogle" style="position:fixed;inset:0;background:var(--pink-bg);display:none;align-items:center;justify-content:center;z-index:99;padding:20px;">
-    <div class="card" style="max-width:300px;width:100%;text-align:center;">
-      <p style="font-family:'deuterium-variable',var(--font-body);font-variation-settings:'wght' 500;font-weight:800;font-style:normal;font-size:22px;color:var(--rose-deep);margin:0 0 6px;">Controle financeiro</p>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;">Entre com uma das contas Google autorizadas.</p>
+  <div id="gateGoogle" class="login-gate">
+    <div class="login-stage" aria-hidden="true"><img src="assets/illustrations/piggu-abertura.webp" alt=""></div>
+    <section class="login-panel" aria-labelledby="loginTitle">
+      <h1 id="loginTitle">Bem-vindo ao Piggu</h1>
+      <p>Acesse com sua conta Google autorizada para continuar.</p>
       <div id="googleButton" style="display:flex;justify-content:center;"></div>
-      <label style="display:flex;align-items:center;justify-content:center;gap:7px;margin:11px 0 0;color:var(--ink-soft);font-size:12px;cursor:pointer;">
-        <input id="lembrarAcesso" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--rose-deep);">
+      <label class="login-remember">
+        <input id="lembrarAcesso" type="checkbox" checked>
         Manter acesso neste aparelho
       </label>
-      <p id="loginErro" style="font-size:12px;color:var(--over);margin:8px 0 0;display:none;"></p>
-    </div>
+      <p id="loginErro" class="login-error"></p>
+      <img class="login-logo" src="assets/logos/logo-v2.svg" alt="Piggu">
+    </section>
   </div>
 
   <div class="wrap" id="conteudoPrincipal" style="display:none;">
 
     <header class="v2-header">
-      <img class="v2-logo" src="assets/logos/cofrinho-logo.svg" alt="Cofrinho dos Fofos">
+      <img class="v2-logo" src="assets/logos/logo-v2.svg" alt="Piggu">
       <div class="v2-welcome">
         <img class="v2-profile" id="fotoPerfilV2" alt="Foto do perfil" draggable="false" role="button" tabindex="0" title="Escolher minha foto">
         <input type="file" id="fotoPerfilInput" accept="image/*" hidden>
@@ -79,19 +136,11 @@
           <p class="v2-greeting" id="saudacaoV2">Bem-vindo(a) de volta!</p>
           <h1 class="v2-name" id="nomePerfilV2">Beatriz</h1>
         </div>
-        <div class="v2-coins">
-          <img src="assets/icons/coin.svg" alt="">
-          <strong id="topCoinsSaldoV2">0</strong>
-          <span class="v2-coins-limit">/ 1000</span>
-        </div>
       </div>
       <div class="v2-meta" id="v2Meta">
         <div class="v2-actions">
           <button class="v2-action v2-eye" id="btnPrivacidadeV2" type="button" aria-label="Ocultar valores">
-            <img id="iconePrivacidadeV2" src="assets/icons/olho.svg" alt="">
-          </button>
-          <button class="v2-action v2-prize" id="btnPremiosV2" type="button" aria-label="Ver prêmios">
-            <img src="assets/illustrations/trofeu-v2.svg" alt="">
+            <img id="iconePrivacidadeV2" src="assets/figma/eye-outline.svg" alt="">
           </button>
           <button class="v2-action v2-menu" id="btnMenuV2" type="button" aria-label="Abrir menu" aria-expanded="false">
             <img src="assets/icons/menu.svg" alt="">
@@ -118,33 +167,20 @@
           </svg>
           <span class="v2-wise-line">
             <img src="assets/logos/wise.svg" alt="Wise">
-            <strong>&nbsp;- R$ <span id="cotacaoEuro">6,15</span></strong>
+            <strong>€ 1 = R$ <span id="cotacaoEuro">6,15</span> · referência</strong>
           </span>
         </span>
       </div>
 
-      <div class="top-coins" aria-label="Saldo rápido de Fofocoins">
-        <div class="top-coins-main">
-          <img src="assets/icons/coin.svg" alt="">
-          <span>Fofocoins</span>
-          <strong id="topCoinsSaldo">0</strong>
-        </div>
-        <div class="top-coins-actions">
-          <button class="privacy-toggle" id="btnPrivacidade" type="button" aria-label="Ocultar valores" aria-pressed="false">
-            <img id="iconePrivacidade" src="assets/icons/olho.svg" alt="">
-          </button>
-          <button id="btnTopResgatar">Ver prêmios</button>
-        </div>
-      </div>
-
       <div class="tabs">
-        <button class="tab-btn active" data-tab="gastos">Dashboard</button>
+        <button class="tab-btn active" data-tab="gastos">Início</button>
         <button class="tab-btn" data-tab="calendario">Calendário</button>
         <button class="tab-btn" data-tab="categorias">Categorias</button>
         <button class="tab-btn tab-dump" data-tab="dump">Dump</button>
         <button class="tab-btn" data-tab="listas">Lugares</button>
         <button class="tab-btn" data-tab="filmes">Lazer</button>
         <button class="tab-btn" data-tab="compras">Compras</button>
+        <button class="tab-btn" data-tab="academia">Academia</button>
       </div>
     </div>
 
@@ -162,16 +198,27 @@
     <!-- TAB: GASTOS / DASHBOARD -->
     <div class="tab-panel active" id="tab-gastos">
       <section class="dashboard-shell">
-        <div class="balance-hero">
-          <div>
+        <section class="finance-card" id="financeCard">
+          <div class="finance-summary">
+            <div>
             <p class="balance-label">Saldo geral</p>
             <p class="balance-value">
               <span class="cofrinho-euro">€</span>
               <span class="cofrinho-num" id="cofrinhoTotal">0</span>
             </p>
+            </div>
           </div>
-          <img class="balance-pig" src="assets/illustrations/porquinho-gastos.svg" alt="Porquinho do saldo">
-        </div>
+          <div class="finance-actions"><button id="financeAddIncome" type="button">＋ Adicionar entrada</button><button id="financeAddExpense" type="button">↑ Registrar saída</button></div>
+          <div class="finance-divider" aria-hidden="true"></div>
+          <button class="finance-toggle" id="btnCofrinho" aria-expanded="false" aria-controls="cofrinhoCard"><span>Visão geral</span><span aria-hidden="true">⌄</span></button>
+          <div class="finance-details" id="cofrinhoCard" hidden>
+            <div class="finance-stats"><div><span>Entradas</span><strong id="financeIncome">€ 0</strong></div><div><span>Despesas do mês</span><strong id="financeExpenses">€ 0</strong></div></div>
+            <div class="finance-category"><span>Maior categoria</span><strong id="financeTopCategory">Sem gastos</strong></div>
+            <div class="cofrinho-add-row"><input type="number" id="cofrinhoNovoValor" placeholder="Valor da entrada" step="0.01"><button id="btnCofrinhoAdd" aria-label="Adicionar entrada">✓</button></div>
+            <p class="hint">Entradas são depósitos. Saídas são os gastos confirmados existentes.</p>
+            <div id="cofrinhoHistorico"></div><p class="insight" id="insightTexto"></p>
+          </div>
+        </section>
 
         <div class="card" id="metaCard">
           <div class="goal-top">
@@ -201,71 +248,21 @@
           <button class="dashboard-market-open" id="btnAbrirComprasDashboard" type="button">Abrir lista completa →</button>
         </div>
 
-        <button class="cofrinho-cta" id="btnCofrinho" aria-expanded="false">Ver movimentações do cofrinho</button>
-        <div class="card" id="cofrinhoCard" style="display:none;">
-          <div class="cofrinho-valor-row">
-            <p class="section-label" style="margin:0;">Entradas e saídas</p>
-            <div class="piggu-stage" id="pigguStage">
-              <img class="cofrinho-pig" id="cofrinhoPorco" src="assets/logos/piggu-sono.svg" alt="Piggu deitado">
-              <img class="piggu-love" src="assets/logos/piggu-love.svg" alt="">
-            </div>
-          </div>
-          <div class="cofrinho-add-row">
-            <input type="number" id="cofrinhoNovoValor" placeholder="Valor" step="0.01">
-            <button id="btnCofrinhoAdd" aria-label="Adicionar">✓</button>
-          </div>
-          <p class="hint">Adicione somente entradas. Os gastos confirmados são descontados automaticamente.</p>
-          <div id="cofrinhoHistorico"></div>
-          <p class="insight" id="insightTexto"></p>
+        <div class="recent-head">
+          <p class="section-label">Últimos lançamentos</p>
+          <button class="recent-toggle" id="btnTodosLancamentos" type="button">Ver todos</button>
         </div>
 
-        <div class="card coins-card" id="fofocoinsCard">
-          <div class="coins-main">
-            <img class="coins-icon" id="coinGrande" src="assets/icons/coin.svg" alt="FofaCoin">
-            <div>
-              <p class="metric-label">Saldo de Fofocoins</p>
-              <p class="coins-value" id="fofocoinsSaldo">0</p>
-            </div>
-          </div>
-          <div class="coins-actions">
-            <button id="btnHistoricoCoins">Histórico</button>
-            <button id="btnAjustarCoins" style="display:none;">Ajustar</button>
-          </div>
+        <div class="card list-card">
+          <div id="lista"></div>
         </div>
+      </section>
+    </div>
 
-        <div class="cofrinho-overview">
-          <div class="month-total-highlight">
-            <p class="metric-label">Total do mês</p>
-            <p class="metric-value" id="mTotal">€ 0</p>
-          </div>
-        </div>
-
-        <section>
-          <div class="metrics">
-            <div class="card">
-              <p class="metric-label">Maior categoria</p>
-              <p class="metric-value" id="mCategoria" style="font-size:16px;">—</p>
-            </div>
-            <div class="card">
-              <p class="metric-label">Média diária</p>
-              <p class="metric-value" id="mMedia">€ 0</p>
-            </div>
-            <div class="card">
-              <p class="metric-label">Gastos fixos</p>
-              <p class="metric-value" id="mFixos">€ 0</p>
-            </div>
-          </div>
-
-          <div class="card budget-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-              <p class="section-label" style="margin:0;">Orçamento por categoria</p>
-              <button class="small-add" id="btnAdicionarCategoria">+ Categoria</button>
-            </div>
-            <div id="orcamentoLista"></div>
-          </div>
-
+    <div class="tab-panel" id="tab-adicionar">
+      <section class="feature-shell" aria-labelledby="addExpenseTitle">
           <div class="card add-card">
-            <p class="section-label" style="margin-top:0;">Adicionar gasto</p>
+            <h2 id="addExpenseTitle">Adicionar gasto</h2>
             <div class="photo-row">
               <div class="receipt-photo-actions">
                 <label class="photo-btn" for="fotoCameraInput">📸 Tirar foto</label>
@@ -292,16 +289,6 @@
               <button class="primary" id="btnAdicionar">Adicionar</button>
             </div>
           </div>
-        </section>
-
-        <div class="recent-head">
-          <p class="section-label">Últimos lançamentos</p>
-          <button class="recent-toggle" id="btnTodosLancamentos" type="button">Ver todos</button>
-        </div>
-
-        <div class="card list-card">
-          <div id="lista"></div>
-        </div>
       </section>
     </div>
 
@@ -364,6 +351,13 @@
     <div class="tab-panel" id="tab-categorias">
       <p class="section-label" style="margin-top:0;">Gastos por categoria — toca pra ver os lançamentos</p>
       <div class="card list-card" id="categoriasLista"></div>
+      <div class="card budget-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <p class="section-label" style="margin:0;">Orçamento por categoria</p>
+          <button class="small-add" id="btnAdicionarCategoria">+ Categoria</button>
+        </div>
+        <div id="orcamentoLista"></div>
+      </div>
     </div>
 
     <!-- TAB: LISTAS (LUGARES) -->
@@ -441,8 +435,14 @@
 
     <!-- TAB: COMPRAS -->
     <div class="tab-panel" id="tab-compras">
-      <div class="card">
-        <p class="section-label" style="margin-top:0;">Buscar produto</p>
+      <header class="section-intro">
+        <h2>Compras</h2>
+        <p>Monte uma lista prática para levar ao mercado.</p>
+      </header>
+
+      <details class="card shopping-search-card">
+        <summary>Categoria</summary>
+        <div class="shopping-search-content">
         <div class="market-categories" id="categoriasMercado"></div>
         <div class="market-suggestions" id="sugestoesMercado"></div>
         <div class="quick-products" id="produtosFrequentes"></div>
@@ -451,27 +451,57 @@
           <button class="primary" id="btnBuscarProduto" type="button">Buscar</button>
         </div>
         <div class="market-results" id="resultadosProdutos"></div>
-        <p class="hint">Toque em um produto para adicionar. A busca mostra nome, marca, embalagem e imagem quando disponíveis.</p>
-      </div>
+        <p class="hint">Use o catálogo local mesmo sem integração externa. Emojis complementam os nomes dos produtos.</p>
+        </div>
+      </details>
 
-      <div class="card">
-        <p class="section-label" style="margin-top:0;">Adicionar à lista de compras</p>
+      <div class="card shopping-builder">
+        <div class="section-heading-row">
+          <div>
+            <p class="section-label">Montar carrinho</p>
+            <p class="section-description">Adicione os itens antes de preparar a lista do mercado.</p>
+          </div>
+          <span class="shopping-count" id="carrinhoContagem">0 itens</span>
+        </div>
         <div class="shopping-form">
           <input id="compraItem" placeholder="O que está faltando?">
-          <input id="compraQuantidade" placeholder="Qtd.">
+          <input id="compraQuantidade" inputmode="decimal" placeholder="Qtd.">
+          <select id="compraUnidade" aria-label="Unidade">
+            <option value="un">un</option><option value="kg">kg</option><option value="g">g</option>
+            <option value="L">L</option><option value="ml">ml</option><option value="pct">pct</option>
+          </select>
           <select id="compraLista">
             <option value="Compras">Compras</option>
             <option value="Desejos">Desejos</option>
           </select>
           <button class="primary" id="btnAdicionarCompra">Adicionar</button>
         </div>
+        <div class="shopping-draft" id="listaCarrinho"></div>
+        <button class="primary shopping-finish" id="btnFinalizarCarrinho" type="button">Finalizar carrinho</button>
       </div>
 
-      <p class="section-label">Lista do mercado</p>
-      <div class="card list-card" id="listaCompras"></div>
+      <section class="card active-shopping-list" id="listaAtivaCard">
+        <div class="section-heading-row">
+          <div>
+            <p class="section-label">Lista pronta para o mercado</p>
+            <p class="section-description" id="listaAtivaResumo">Nenhuma lista ativa.</p>
+          </div>
+          <span class="shopping-active-badge">Lista ativa</span>
+        </div>
+        <div class="shopping-ready" id="listaCompras"></div>
+        <button class="primary" id="btnConcluirCompra" type="button">Concluir compra</button>
+      </section>
 
-      <p class="section-label">Girls List</p>
-      <div class="card list-card" id="listaDesejos"></div>
+      <details class="card shopping-history">
+        <summary>Histórico de listas</summary>
+        <div id="historicoCompras"></div>
+      </details>
+
+      <details class="card shopping-history">
+        <summary>Itens anteriores</summary>
+        <p class="local-storage-note">Itens já existentes continuam preservados. As novas listas ficam somente neste dispositivo.</p>
+        <div id="listaComprasLegada"></div>
+      </details>
 
       <details class="card product-memory">
         <summary>Produtos e histórico de preços</summary>
@@ -481,6 +511,13 @@
 
     <!-- TAB: PRÊMIOS -->
     <div class="tab-panel" id="tab-premios">
+      <div class="card coins-card" id="fofocoinsCard">
+        <div class="coins-main">
+          <img class="coins-icon" id="coinGrande" src="assets/icons/coin.svg" alt="FofaCoin">
+          <div><p class="metric-label">Saldo de Fofocoins</p><p class="coins-value" id="fofocoinsSaldo">0</p></div>
+        </div>
+        <div class="coins-actions"><button id="btnHistoricoCoins">Histórico</button><button id="btnAjustarCoins" style="display:none;">Ajustar</button></div>
+      </div>
       <div class="prize-head">
         <div>
           <p class="section-label" style="margin:0;">Fofoprêmios</p>
@@ -491,8 +528,55 @@
       <div class="prize-grid" id="premiosLista"></div>
     </div>
 
+    <!-- TAB: METAS -->
+    <div class="tab-panel" id="tab-metas">
+      <section class="feature-shell" aria-labelledby="goalsTitle">
+        <p class="section-label">SEU PLANO DO MÊS</p>
+        <h2 id="goalsTitle">Minhas metas</h2>
+        <p class="feature-lead" id="goalsMonth"></p>
+        <div class="goal-summary" id="goalsSummary"></div>
+        <div class="feature-list" id="goalsList"></div>
+        <div class="feature-actions"><button class="button-primary" id="goalAddButton" type="button">+ Criar meta</button><button class="button-secondary" id="goalShareButton" type="button">Compartilhar</button></div>
+        <p class="field-help">As metas pessoais ficam salvas somente neste dispositivo.</p>
+      </section>
+    </div>
+
+    <!-- TAB: ACADEMIA -->
+    <div class="tab-panel" id="tab-academia">
+      <section class="academy-shell" aria-labelledby="academyTitle">
+        <h2 id="academyTitle">Academia</h2>
+        <p class="academy-lead">Um lugar para organizar seus treinos e acompanhar sua constância.</p>
+        <div class="academy-goal">
+          <h3>Sua semana</h3>
+          <p id="academyGoalText">Defina sua frequência de treino</p>
+          <button class="button-secondary" id="academyGoalButton" type="button">Configurar meta semanal</button>
+        </div>
+        <div class="academy-week" aria-label="Dias da semana"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+        <div class="academy-card">
+          <h3>Meus treinos</h3>
+          <div id="academyWorkoutList"><p>Nenhum treino cadastrado.</p></div>
+        </div>
+        <button class="button-primary" id="academyAddButton" type="button">+ Criar treino</button>
+        <div class="academy-card">
+          <h3>Histórico</h3>
+          <div id="academyHistory"><p>Os treinos concluídos aparecerão aqui.</p></div>
+        </div>
+        <p class="field-help">Seus treinos e seu histórico ficam salvos somente neste dispositivo.</p>
+      </section>
+    </div>
+
+    <nav class="piggu-bottom-nav" id="pigguBottomNav" aria-label="Navegação principal">
+      <button data-bottom-tab="gastos" class="active"><span><i class="figma-nav-icon icon-home" aria-hidden="true"></i></span>Início</button>
+      <button data-bottom-tab="metas"><span><i class="figma-nav-icon icon-goals" aria-hidden="true"></i></span>Metas</button>
+      <button id="pigguQuickAdd" class="bottom-add" type="button"><span><i class="figma-nav-icon icon-add" aria-hidden="true"></i></span>Adicionar</button>
+      <button data-bottom-tab="premios"><span><i class="figma-nav-icon icon-prizes" aria-hidden="true"></i></span>Prêmios</button>
+      <button id="pigguBottomMenu" type="button"><span><i class="figma-nav-icon icon-menu" aria-hidden="true"></i></span>Menu</button>
+    </nav>
+
+    <div class="piggu-sheet" id="pigguSheet" hidden><button class="sheet-backdrop" data-close-sheet aria-label="Fechar"></button><section role="dialog" aria-modal="true" aria-labelledby="sheetTitle"><header><h2 id="sheetTitle">Menu</h2><button data-close-sheet aria-label="Fechar">×</button></header><div id="pigguSheetContent"></div></section></div>
+
     <footer class="brand-footer" aria-label="Cofrinho dos Fofos">
-      <img src="assets/logos/cofrinho-logo.svg" alt="Cofrinho dos Fofos • Dois Fofos, um planejamento.">
+      <img src="assets/logos/logo-v2.svg" alt="Piggu • Controle financeiro inteligente.">
     </footer>
   </div>
 
@@ -523,6 +607,10 @@
   <script src="js/places.js"></script>
   <script src="js/prizes.js"></script>
   <script src="js/fofocoins.js"></script>
+  <script src="js/data-access.js"></script>
+  <script src="js/brand.js"></script>
+  <script src="js/piggu-profile-academy.js"></script>
+  <script src="js/piggu-features.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

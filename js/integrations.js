@@ -18,6 +18,10 @@ try {
 }
 
 async function chamarAppsScript(dados) {
+  if (window.PIGGU_DEMO_MODE) {
+    throw new Error('O modo sem login não acessa nem altera dados privados.');
+  }
+
   if (!googleIdToken && !sessionToken) {
     throw new Error('Faça login com Google.');
   }
