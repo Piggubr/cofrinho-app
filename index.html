@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="css/prizes.css">
   <link rel="stylesheet" href="css/modals.css">
   <link rel="stylesheet" href="css/responsive.css">
-  <link rel="stylesheet" href="css/piggu-approved.css?v=20260831-9">
+  <link rel="stylesheet" href="css/piggu-approved.css?v=20260831-13">
 </head>
 <body>
 
@@ -294,6 +294,10 @@
 
     <!-- TAB: CALENDÁRIO -->
     <div class="tab-panel" id="tab-calendario">
+      <header class="section-intro">
+        <h2>Calendário</h2>
+        <p>Organize suas contas, eventos e lembretes do mês.</p>
+      </header>
       <div class="card cal-card">
         <p class="section-label" style="margin-top:0;">Contas e eventos</p>
         <div class="cal-weekdays">
@@ -340,8 +344,11 @@
 
     <!-- TAB: DUMP (FOTOS DO MÊS) -->
     <div class="tab-panel" id="tab-dump">
+      <header class="section-intro">
+        <h2>Fotos do mês</h2>
+        <p>Guarde os momentos que fizeram parte do seu mês.</p>
+      </header>
       <div class="card feed-card">
-        <p class="section-label" style="margin-top:0;">Fotos do mês</p>
         <input type="file" id="feedInput" accept="image/*" multiple style="display:none;">
         <div class="feed-grid" id="feedGrid"></div>
       </div>
@@ -349,7 +356,11 @@
 
     <!-- TAB: CATEGORIAS -->
     <div class="tab-panel" id="tab-categorias">
-      <p class="section-label" style="margin-top:0;">Gastos por categoria — toca pra ver os lançamentos</p>
+      <header class="section-intro">
+        <h2>Categorias</h2>
+        <p>Acompanhe seus gastos e organize limites por categoria.</p>
+      </header>
+      <p class="section-label" style="margin-top:0;">Gastos por categoria</p>
       <div class="card list-card" id="categoriasLista"></div>
       <div class="card budget-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -362,7 +373,10 @@
 
     <!-- TAB: LISTAS (LUGARES) -->
     <div class="tab-panel" id="tab-listas">
-      <p class="section-label" style="margin-top:0;">Lugares</p>
+      <header class="section-intro">
+        <h2>Lugares</h2>
+        <p>Salve lugares visitados, avaliações e lembranças.</p>
+      </header>
       <div class="place-list" id="lugaresLista"></div>
 
       <button type="button" class="create-toggle" id="btnAbrirNovoLugar">+ Novo lugar</button>
@@ -405,10 +419,11 @@
 
     <!-- TAB: FILMES (LAZER) -->
     <div class="tab-panel" id="tab-filmes">
+      <header class="section-intro">
+        <h2>O que vamos assistir?</h2>
+        <p>Encontre novas opções e guarde o que você quer ver.</p>
+      </header>
       <div class="card movie-search-card">
-        <div class="movie-section-head">
-          <p class="section-label" style="margin:0;">O que vamos assistir?</p>
-        </div>
         <div class="movie-tools">
           <select id="filmeGenero">
             <option value="">Qualquer gênero</option>
@@ -469,10 +484,6 @@
           <select id="compraUnidade" aria-label="Unidade">
             <option value="un">un</option><option value="kg">kg</option><option value="g">g</option>
             <option value="L">L</option><option value="ml">ml</option><option value="pct">pct</option>
-          </select>
-          <select id="compraLista">
-            <option value="Compras">Compras</option>
-            <option value="Desejos">Desejos</option>
           </select>
           <button class="primary" id="btnAdicionarCompra">Adicionar</button>
         </div>
