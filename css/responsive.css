@@ -37,9 +37,10 @@ body::before {
   position: absolute;
   z-index: -1;
   inset: 0 0 auto;
-  height: 285px;
-  background: #fae2e9;
+  height: clamp(260px, 35vw, 285px);
+  background: linear-gradient(180deg, #fae2e9 0%, #fae2e9 85%, #fbf1f4 100%);
   border-radius: 0 0 50% 50% / 0 0 18px 18px;
+  width: 100%;
 }
 
 .wrap {
@@ -50,7 +51,7 @@ body::before {
 .v2-header {
   position: relative;
   min-height: 235px;
-  padding: 8px 0 24px;
+  padding: clamp(10px, 2vh, 16px) 0 clamp(18px, 3vh, 28px);
 }
 
 .v2-logo {
@@ -122,7 +123,7 @@ body::before {
 .v2-name {
   margin: 0;
   color: var(--rose-deep);
-  font-family: 'deuterium-variable', var(--font-body);
+  font-family: var(--font-display);
   font-variation-settings: 'wght' 500;
   font-size: 34px;
   line-height: 1.02;
@@ -208,6 +209,7 @@ body::before {
 
 .nav-panel .month-nav h1 {
   font-size: 29px;
+  text-transform: none;
 }
 
 .nav-panel .top-coins {
@@ -217,8 +219,8 @@ body::before {
 .nav-panel .tabs {
   margin: 5px 0 4px;
   border-bottom: 0;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 5px;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
 }
 
 .nav-panel .tab-btn {
@@ -238,11 +240,11 @@ body::before {
 }
 
 .dashboard-shell {
-  background: #fff;
-  border-radius: 24px;
-  padding: 22px 18px 6px;
-  box-shadow: 0 18px 42px rgba(109,21,65,.08);
-  margin-bottom: 18px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 0;
 }
 
 .balance-hero {
@@ -266,7 +268,7 @@ body::before {
 .balance-value {
   margin: 0;
   color: var(--rose-deep);
-  font-family: 'deuterium-variable', var(--font-body);
+  font-family: var(--font-display);
   font-variation-settings: 'wght' 550;
   font-size: 40px;
   line-height: 1;
@@ -352,13 +354,15 @@ body::before {
 
 .brand-footer img {
   content: url('../assets/logos/logo-v2.svg');
-  width: 205px;
+  width: min(176px, 100%);
+  height: auto;
 }
 
 @media (max-width: 390px) {
   .dashboard-shell {
-    padding: 18px 13px 3px;
-    border-radius: 21px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .balance-hero {
@@ -382,7 +386,7 @@ body::before {
   gap: 7px;
   margin-top: 6px;
   color: var(--rose-deep);
-  font-family: 'deuterium-variable', var(--font-body);
+  font-family: var(--font-display);
   font-size: 15px;
   font-variation-settings: 'wght' 400;
   font-weight: 400;
@@ -433,14 +437,14 @@ body::before {
   }
 
   body::before {
-    height: 260px;
-    background: #fae2e9;
-    border-radius: 0;
+    height: clamp(240px, 30vh, 280px);
+    background: linear-gradient(180deg, #fae2e9 0%, #fae2e9 80%, #fbf1f4 100%);
+    border-radius: 0 0 45% 45% / 0 0 16px 16px;
   }
 
   .v2-header {
     min-height: 0;
-    padding: 10px 0 22px;
+    padding: 10px 0 clamp(18px, 2.5vh, 24px);
     display: flex;
     flex-direction: row;
     align-items: flex-start;
@@ -686,7 +690,7 @@ body::before {
     border-radius: 10px;
     box-shadow: none;
     transform: none;
-    font-family: deuterium-variable, sans-serif;
+    font-family: var(--font-display);
     font-size: 12px;
     font-variation-settings: 'wght' 420;
     font-weight: 420;
@@ -810,7 +814,7 @@ body::before {
   .valor-privado,
   .product-memory-price,
   .prize-price {
-    font-family: enra-semi-variable, sans-serif;
+    font-family: var(--font-display);
     font-weight: 660;
     font-variation-settings: 'wght' 660;
   }
@@ -962,6 +966,11 @@ body::before {
 }
 
 @media (max-width: 390px) {
+  body::before {
+    height: clamp(240px, 32vh, 280px);
+    border-radius: 0 0 48% 48% / 0 0 16px 16px;
+  }
+
   .v2-welcome {
     grid-template-columns: 56px minmax(0,1fr);
   }
@@ -983,6 +992,14 @@ body::before {
     width: 30px;
     height: 30px;
     padding: 6px;
+  }
+
+  .v2-eye {
+    background: #f8b8d3;
+  }
+
+  .v2-prize {
+    background: #fffcef;
   }
 }
 
@@ -1357,7 +1374,7 @@ body::before {
     display: block;
     margin: 22px 0 18px;
     color: var(--rose-deep);
-    font-family: deuterium-variable, var(--font-body);
+    font-family: var(--font-display);
     font-size: 30px;
     font-variation-settings: 'wght' 520;
     font-weight: 520;

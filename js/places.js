@@ -3,7 +3,7 @@ let lugares = [];
 function abrirFormularioLugar() {
   const form = document.getElementById('lugarFormCard');
   const toggle = document.getElementById('btnAbrirNovoLugar');
-  if (form) form.style.display = 'block';
+  if (form) form.style.display = 'grid';
   if (toggle) toggle.style.display = 'none';
 }
 

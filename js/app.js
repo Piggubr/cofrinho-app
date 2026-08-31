@@ -45,6 +45,8 @@ const CORES_PERFIL = [
   '#f8f0d4'
 ];
 
+const FOTO_PERFIL_PADRAO = 'assets/illustrations/porquinho-perfil.svg';
+
 function chaveFotoPerfil(email) {
   return `cofrinho_foto_perfil_${String(email || '').trim().toLowerCase()}`;
 }
@@ -138,6 +140,7 @@ function configurarEscolhaFotoPerfil() {
 function aplicarUsuarioNaInterface(detalhes) {
   if (!detalhes) return;
   usuarioDetalhes = detalhes;
+  window.pigguSetLocalUser?.(detalhes.email);
   const primeiroNome = String(detalhes.apelido || detalhes.primeiro_nome || detalhes.nome || '').trim().split(/\s+/)[0];
   const saudacao = document.getElementById('saudacaoV2');
   const nome = document.getElementById('nomePerfilV2');
@@ -150,17 +153,18 @@ function aplicarUsuarioNaInterface(detalhes) {
     foto.onload = () => foto.classList.add('tem-foto');
     foto.onerror = () => {
       foto.classList.remove('tem-foto');
-      foto.removeAttribute('src');
+      if (!foto.src.endsWith(FOTO_PERFIL_PADRAO)) foto.src = FOTO_PERFIL_PADRAO;
     };
     const fotoSalva = obterFotoPerfilSalva(detalhes.email);
     if (fotoSalva || detalhes.foto) {
       foto.src = fotoSalva || detalhes.foto;
     } else {
       foto.classList.remove('tem-foto');
-      foto.removeAttribute('src');
+      foto.src = FOTO_PERFIL_PADRAO;
     }
   }
   document.body.dataset.perfil = String(detalhes.role || perfilAtual || '').toLowerCase();
+  window.pigguApplyLocalProfile?.();
 }
 
 function mostrarConteudo() {
@@ -176,6 +180,8 @@ function mostrarConteudo() {
   }
 
   esconderSplash();
+  window.pigguApplyLocalProfile?.();
+  window.pigguOpenOnboarding?.(false);
 }
 
 function mostrarLogin() {
@@ -216,9 +222,7 @@ async function restaurarSessaoSalva() {
 
       limparSessaoLocal();
 
-      if (splashTerminou) {
-        mostrarLogin();
-      }
+      mostrarLogin();
 
       return false;
     } finally {
@@ -384,16 +388,37 @@ function modoTesteLocal() {
 }
 
 async function iniciarAplicacao() {
-  const sessaoRestaurada = await restaurarSessaoSalva();
-
-  if (sessaoRestaurada) {
+  if (modoTesteLocal()) {
+    window.PIGGU_DEMO_MODE = true;
+    window.pigguSetLocalUser?.('demo');
+    usuarioAtual = '';
+    usuarioDetalhes = null;
+    gastos = [];
+    fotos = [];
+    notas = [];
+    cofrinhoMovimentos = [];
+    metas = {};
+    fofocoins = { saldo: 0, historico: [] };
+    fofocoinsSaldo = 0;
+    compras = [];
+    filmes = [];
+    produtos = [];
+    contas = [];
+    eventos = [];
+    pagamentos = new Set();
+    const nomeDemo = document.getElementById('nomePerfilV2');
+    const fotoDemo = document.getElementById('fotoPerfilV2');
+    if (nomeDemo) nomeDemo.textContent = 'Visitante';
+    if (fotoDemo) fotoDemo.src = FOTO_PERFIL_PADRAO;
+    console.warn('Modo de demonstração local: sessão e dados privados estão bloqueados.');
+    mostrarConteudo();
+    atualizarTudo();
     return;
   }
 
-  if (modoTesteLocal()) {
-    console.warn('Modo de teste local: pulando o login do Google. Sem sessão, ações que chamam o Apps Script (salvar, carregar dados etc.) vão falhar até você logar de verdade.');
-    mostrarConteudo();
-    atualizarTudo();
+  const sessaoRestaurada = await restaurarSessaoSalva();
+
+  if (sessaoRestaurada) {
     return;
   }
 
@@ -505,8 +530,9 @@ function atualizarTudo() {
   const tituloMes = document.getElementById('mesTitulo');
 
   if (tituloMes) {
-    tituloMes.textContent = nomeMes(viewDate);
+    tituloMes.textContent = nomeMes(viewDate).replace(/\s+\d{4}$/, '');
   }
+  requestAnimationFrame(() => window.atualizarLimiteFundoCabecalho?.());
 
   render();
   renderCofrinho();
@@ -547,8 +573,8 @@ try {
 }
 
 const seletorValoresPessoais = [
-  '#mTotal', '#mMedia', '#mFixos', '.goal-value', '.goal-status',
-  '.coins-value', '#topCoinsSaldo', '#topCoinsSaldoV2', '.cofrinho-num',
+  '#mMedia', '#mFixos', '.goal-value', '.goal-status',
+  '.coins-value', '.cofrinho-num', '#financeIncome', '#financeExpenses',
   '.budget-values', '.budget-over', '.row-value', '#insightTexto',
   '.valor-privado', '.product-memory-price'
 ].join(',');
@@ -641,7 +667,13 @@ function configurarEventosBasicos() {
   });
 
   document.getElementById('btnPrivacidadeV2')?.addEventListener('click', () => {
-    document.getElementById('btnPrivacidade')?.click();
+    valoresOcultos = !valoresOcultos;
+    try {
+      localStorage.setItem('cofrinho_ocultar_valores', valoresOcultos ? '1' : '0');
+    } catch (erro) {
+      console.warn('Não foi possível salvar a preferência de privacidade.', erro);
+    }
+    aplicarPrivacidade();
   });
 
   document.getElementById('btnPremiosV2')?.addEventListener('click', () => {
@@ -724,9 +756,8 @@ document.addEventListener('DOMContentLoaded', () => {
   aplicarPrivacidade();
   iniciarRelogios();
 
-  // A aplicação carrega em paralelo com a animação do splash; o splash só
-  // some quando o login/dashboard já está pronto por trás dele (ver
-  // esconderSplash), então não existe mais uma tela vazia entre os dois.
+  // A inicialização continua independente da tela de entrada. Sem splash,
+  // uma sessão válida abre o app e uma sessão pendente permanece no login.
   splashIniciadoEm = Date.now();
   iniciarAplicacao();
 });

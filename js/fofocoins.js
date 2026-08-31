@@ -2,18 +2,18 @@ let fofocoinsSaldo = 0;
 
 function renderFofocoins() {
   const el = document.getElementById('fofocoinsSaldo');
-  const elV2 = document.getElementById('topCoinsSaldoV2');
-  const elTop = document.getElementById('topCoinsSaldo');
 
   if (el) el.textContent = fofocoinsSaldo;
-  if (elV2) elV2.textContent = fofocoinsSaldo;
-  if (elTop) elTop.textContent = fofocoinsSaldo;
 }
 
 document.getElementById('btnHistoricoCoins')?.addEventListener('click', () => {
-  abrirModal('Histórico de Fofocoins', `
-    <p class="empty">Histórico será implementado aqui.</p>
-  `);
+  const historico = Array.isArray(fofocoins?.historico) ? fofocoins.historico : [];
+  abrirModal('Histórico de Fofocoins', historico.length ? historico.map(item => `
+    <div class="row">
+      <div class="row-left"><p class="row-item">${esc(item.motivo || 'Movimentação')}</p><p class="row-date">${esc(item.data || '')}</p></div>
+      <div class="row-right"><span class="row-value">${Number(item.valor) > 0 ? '+' : ''}${Number(item.valor) || 0}</span></div>
+    </div>
+  `).join('') : '<p class="empty">Nenhuma movimentação de Fofocoins.</p>');
 });
 
 document.getElementById('btnAjustarCoins')?.addEventListener('click', () => {

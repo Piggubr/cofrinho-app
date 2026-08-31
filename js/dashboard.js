@@ -2,8 +2,11 @@ function render() {
   const mesKey = mesKeyDe(viewDate);
   const gastosDoMes = gastos.filter(g => g.data.startsWith(mesKey));
   const total = gastosDoMes.reduce((s, g) => s + g.valor, 0);
+  const despesasFinanceiras = document.getElementById('financeExpenses');
+  if (despesasFinanceiras) despesasFinanceiras.textContent = fmt(total);
 
-  document.getElementById('mTotal').textContent = fmt(total);
+  const totalMesOculto = document.getElementById('mTotal');
+  if (totalMesOculto) totalMesOculto.textContent = fmt(total);
 
   const porCategoria = {};
   gastosDoMes.forEach(g => {
@@ -11,13 +14,18 @@ function render() {
   });
 
   const entradas = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]);
-  document.getElementById('mCategoria').textContent = entradas.length ? entradas[0][0] : '—';
+  const categoriaLegada = document.getElementById('mCategoria');
+  if (categoriaLegada) categoriaLegada.textContent = entradas.length ? entradas[0][0] : '—';
+  const categoriaFinanceira = document.getElementById('financeTopCategory');
+  if (categoriaFinanceira) categoriaFinanceira.textContent = entradas.length ? entradas[0][0] : 'Sem gastos';
 
   const dias = new Set(gastosDoMes.map(g => g.data));
-  document.getElementById('mMedia').textContent = fmt(total / (dias.size || 1));
+  const mediaLegada = document.getElementById('mMedia');
+  if (mediaLegada) mediaLegada.textContent = fmt(total / (dias.size || 1));
 
   const totalFixos = gastosDoMes.filter(g => g.tipo === 'Fixo').reduce((s, g) => s + g.valor, 0);
-  document.getElementById('mFixos').textContent = fmt(totalFixos);
+  const fixosLegado = document.getElementById('mFixos');
+  if (fixosLegado) fixosLegado.textContent = fmt(totalFixos);
 
   renderMeta(total);
   renderOrcamentoCategorias(porCategoria);
@@ -29,7 +37,11 @@ function renderOrcamentoCategorias(porCategoria) {
   const lista = document.getElementById('orcamentoLista');
   if (!lista) return;
 
-  const nomes = Object.keys(CATEGORIAS);
+  const nomes = Object.keys(porCategoria).filter(nome => Number(porCategoria[nome]) > 0);
+  if (!nomes.length) {
+    lista.innerHTML = '<p class="empty budget-empty">Nenhum gasto neste mês.</p>';
+    return;
+  }
   const maiorValor = Math.max(1, ...nomes.map(nome => porCategoria[nome] || 0));
 
   const ordenados = [...nomes].sort((a, b) => (porCategoria[b] || 0) - (porCategoria[a] || 0));
@@ -53,16 +65,56 @@ function renderOrcamentoCategorias(porCategoria) {
   }).join('');
 }
 
-document.getElementById('btnAdicionarCategoria')?.addEventListener('click', async () => {
-  const nome = prompt('Nome da nova categoria:');
-  if (!nome || !nome.trim()) return;
+document.getElementById('btnAdicionarCategoria')?.addEventListener('click', () => {
+  abrirModal('Criar categoria', `
+    <form id="formNovaCategoria" class="category-form">
+      <label for="nomeNovaCategoria">Nome da categoria</label>
+      <input id="nomeNovaCategoria" name="nome" maxlength="60" autocomplete="off" required>
+      <p class="field-help" id="categoriaFeedback">A categoria será usada nos próximos lançamentos.</p>
+      <div class="category-form-actions">
+        <button class="button-secondary" id="cancelarNovaCategoria" type="button">Cancelar</button>
+        <button class="button-primary" type="submit">Salvar categoria</button>
+      </div>
+    </form>
+  `);
 
-  try {
-    await chamarAppsScript({ action: 'addCategory', nome: nome.trim() });
-    await carregarDados();
-  } catch (erro) {
-    alert(erro.message);
-  }
+  const form = document.getElementById('formNovaCategoria');
+  const feedback = document.getElementById('categoriaFeedback');
+  document.getElementById('cancelarNovaCategoria')?.addEventListener('click', fecharModal);
+  document.getElementById('nomeNovaCategoria')?.focus();
+
+  form?.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    const nome = String(new FormData(form).get('nome') || '').trim();
+    if (!nome) {
+      feedback.textContent = 'Digite um nome para a categoria.';
+      document.getElementById('nomeNovaCategoria')?.focus();
+      return;
+    }
+
+    if (window.PIGGU_DEMO_MODE) {
+      feedback.textContent = `Teste concluído: “${nome}” não foi salva no modo demonstração.`;
+      form.querySelector('button[type="submit"]').disabled = true;
+      return;
+    }
+
+    if (!sessionToken) {
+      feedback.textContent = 'Entre na sua conta para salvar uma categoria.';
+      return;
+    }
+
+    const salvar = form.querySelector('button[type="submit"]');
+    salvar.disabled = true;
+    feedback.textContent = 'Salvando categoria…';
+    try {
+      await chamarAppsScript({ action: 'addCategory', nome });
+      await carregarDados();
+      fecharModal();
+    } catch (erro) {
+      feedback.textContent = erro.message || 'Não foi possível salvar a categoria.';
+      salvar.disabled = false;
+    }
+  });
 });
 
 function renderMeta(totalGasto) {
@@ -107,6 +159,8 @@ function renderCofrinho() {
 
   const alvoTotal = document.getElementById('cofrinhoTotal');
   if (alvoTotal) alvoTotal.textContent = (saldo < 0 ? '-' : '') + Math.abs(saldo).toFixed(2).replace('.', ',');
+  const entradasEl = document.getElementById('financeIncome');
+  if (entradasEl) entradasEl.textContent = fmt(totalDepositado);
 
   const historico = document.getElementById('cofrinhoHistorico');
   if (!historico) return;
@@ -178,9 +232,22 @@ document.getElementById('btnCofrinho')?.addEventListener('click', () => {
   const botao = document.getElementById('btnCofrinho');
   if (!card || !botao) return;
 
-  const vaiAbrir = card.style.display === 'none';
-  card.style.display = vaiAbrir ? 'block' : 'none';
+  const vaiAbrir = card.hidden;
+  card.hidden = !vaiAbrir;
   botao.setAttribute('aria-expanded', String(vaiAbrir));
+  botao.querySelector('[aria-hidden]')?.replaceChildren(document.createTextNode(vaiAbrir ? '⌃' : '⌄'));
+});
+
+document.getElementById('financeAddIncome')?.addEventListener('click', () => {
+  const card = document.getElementById('cofrinhoCard');
+  if (card?.hidden) document.getElementById('btnCofrinho')?.click();
+  card?.classList.add('show-income-form');
+  document.getElementById('cofrinhoNovoValor')?.focus();
+});
+document.getElementById('financeAddExpense')?.addEventListener('click', () => {
+  abrirAba('adicionar');
+  window.scrollTo({ top: 0, behavior:'smooth' });
+  setTimeout(() => document.getElementById('novoItem')?.focus(), 250);
 });
 
 document.getElementById('btnCofrinhoAdd')?.addEventListener('click', async () => {

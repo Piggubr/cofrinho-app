@@ -24,18 +24,31 @@ function atualizarRelogios() {
 
 function posicionarInformacoesCabecalho() {
   const meta = document.getElementById('v2Meta');
+  const cabecalho = document.querySelector('.v2-header');
   const painel = document.getElementById('navPanelV2');
   const informacoes = document.querySelector('.info-row');
   if (!meta || !painel || !informacoes) return;
 
   if (window.matchMedia('(max-width: 899px)').matches) {
-    if (informacoes.parentElement !== meta) meta.prepend(informacoes);
+    if (cabecalho && informacoes.parentElement !== cabecalho) cabecalho.prepend(informacoes);
   } else {
     const moedas = painel.querySelector('.top-coins');
     if (informacoes.parentElement !== painel) painel.insertBefore(informacoes, moedas);
     painel.classList.remove('open');
   }
 }
+
+function atualizarLimiteFundoCabecalho() {
+  const seletor = document.querySelector('.nav-panel .title-row');
+  if (!seletor || !window.matchMedia('(max-width: 899px)').matches) {
+    document.documentElement.style.removeProperty('--header-cut');
+    return;
+  }
+  const caixa = seletor.getBoundingClientRect();
+  document.documentElement.style.setProperty('--header-cut', Math.round(window.scrollY + caixa.top + caixa.height / 2) + 'px');
+}
+window.addEventListener('resize', atualizarLimiteFundoCabecalho);
+window.addEventListener('load', atualizarLimiteFundoCabecalho);
 
 function feedEstaAberto() {
   return document.getElementById('tab-dump')?.classList.contains('active');
