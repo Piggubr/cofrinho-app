@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="css/prizes.css">
   <link rel="stylesheet" href="css/modals.css">
   <link rel="stylesheet" href="css/responsive.css">
-  <link rel="stylesheet" href="css/piggu-approved.css?v=20260831-22">
+  <link rel="stylesheet" href="css/piggu-approved.css?v=20260831-27">
 </head>
 <body>
 
@@ -221,7 +221,11 @@
           </div>
         </section>
 
-        <div class="card" id="metaCard">
+        <section class="dashboard-organizer" aria-labelledby="dashboardOrganizerTitle">
+          <div class="dashboard-organizer-head"><p id="dashboardOrganizerTitle">Organize seu Início</p><span>Segure e arraste</span></div>
+          <div class="dashboard-widget-stack" id="dashboardWidgetStack">
+        <div class="card dashboard-widget" id="metaCard" data-dashboard-widget="economy">
+          <button class="dashboard-drag-handle" type="button" aria-label="Arrastar Economia do mês">•••</button>
           <div class="goal-top">
             <div class="goal-heading">
               <img class="goal-trophy" id="metaTrofeu" src="assets/illustrations/trofeu-v2.svg" alt="Troféu da economia">
@@ -238,7 +242,23 @@
           <p class="goal-status" id="metaStatus">Defina quanto está disponível para este mês.</p>
         </div>
 
-        <div class="dashboard-market" id="listaMercadoDashboard">
+        <article class="goals-orbit goals-orbit-home dashboard-widget" data-dashboard-widget="goals" data-goals-orbit aria-labelledby="homeGoalsOrbitTitle">
+          <button class="dashboard-drag-handle" type="button" aria-label="Arrastar Metas">•••</button>
+          <div class="goals-orbit-visual" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso das metas do mês">
+            <div class="goals-orbit-ring" aria-hidden="true"></div>
+            <img class="goals-orbit-pig" src="assets/logos/piggu-love.svg" alt="" aria-hidden="true">
+            <div class="goals-orbit-center"><strong class="goals-orbit-percent">0%</strong><span>concluído</span></div>
+          </div>
+          <div class="goals-orbit-copy">
+            <p class="section-label">SEU RITMO</p>
+            <h3 id="homeGoalsOrbitTitle">Metas para alcançar neste mês</h3>
+            <p class="goals-orbit-message">Crie sua primeira meta para começar a jornada.</p>
+            <button class="goals-orbit-open" id="homeGoalsOrbitOpen" type="button">Ver metas</button>
+          </div>
+        </article>
+
+        <div class="dashboard-market dashboard-widget" id="listaMercadoDashboard" data-dashboard-widget="market">
+          <button class="dashboard-drag-handle" type="button" aria-label="Arrastar Lista do mercado">•••</button>
           <div class="dashboard-market-head">
             <p class="section-label">Lista do mercado</p>
             <span class="dashboard-market-count" id="listaMercadoContagem">0 itens</span>
@@ -248,6 +268,8 @@
           </div>
           <button class="dashboard-market-open" id="btnAbrirComprasDashboard" type="button">Abrir lista completa →</button>
         </div>
+          </div>
+        </section>
 
         <div class="recent-head">
           <p class="section-label">Últimos lançamentos</p>
@@ -546,6 +568,21 @@
         <p class="section-label">SEU PLANO DO MÊS</p>
         <h2 id="goalsTitle">Minhas metas</h2>
         <p class="feature-lead" id="goalsMonth"></p>
+        <article class="goals-orbit goals-orbit-main" id="goalsOrbit" data-goals-orbit aria-labelledby="goalsOrbitTitle">
+          <div class="goals-orbit-visual" id="goalsOrbitMeter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso das metas do mês">
+            <div class="goals-orbit-ring" aria-hidden="true"></div>
+            <img class="goals-orbit-pig" src="assets/logos/piggu-love.svg" alt="" aria-hidden="true">
+            <div class="goals-orbit-center">
+              <strong class="goals-orbit-percent" id="goalsOrbitPercent">0%</strong>
+              <span>concluído</span>
+            </div>
+          </div>
+          <div class="goals-orbit-copy">
+            <p class="section-label">SEU RITMO</p>
+            <h3 id="goalsOrbitTitle">Metas para alcançar neste mês</h3>
+            <p class="goals-orbit-message" id="goalsOrbitMessage">Crie sua primeira meta para começar a jornada.</p>
+          </div>
+        </article>
         <div class="goal-summary" id="goalsSummary"></div>
         <div class="feature-list" id="goalsList"></div>
         <div class="feature-actions"><button class="button-primary" id="goalAddButton" type="button">+ Criar meta</button><button class="button-secondary" id="goalShareButton" type="button">Compartilhar</button></div>
