@@ -21,15 +21,13 @@ const GEMINI_MODEL = 'gemini-3.6-flash';
 const EMAILS_AUTORIZADOS = [
   'admin@exemplo.com',
   'familiar1@exemplo.com',
-  'familiar2@exemplo.com',
   'parceira@exemplo.com',
-  'contato@exemplo.com',
-  'titular@exemplo.com'
+  'titular@exemplo.com',
+  'familiar3@exemplo.com'
 ];
 
 const EMAILS_ADMIN = [
   'admin@exemplo.com',
-  'contato@exemplo.com',
   'titular@exemplo.com'
 ];
 
