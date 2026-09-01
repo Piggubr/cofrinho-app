@@ -61,13 +61,17 @@ function aplicarConfiguracoes(configuracoes = {}) {
   const marcadoresExtras = Array.isArray(configuracoes.marcadoresLugar)
     ? configuracoes.marcadoresLugar
     : [];
+  let marcadoresLocais = [];
+  try { marcadoresLocais = JSON.parse(localStorage.getItem('piggu_place_tags_local') || '[]'); }
+  catch (_) { marcadoresLocais = []; }
 
   marcadoresLugarConfigurados = [
     'Favorito',
     'Melhor custo-beneficio',
     'Voltaria',
     'Nao voltaria',
-    ...marcadoresExtras.map(item => String(item || '').trim()).filter(Boolean)
+    ...marcadoresExtras.map(item => String(item || '').trim()).filter(Boolean),
+    ...marcadoresLocais.map(item => String(item || '').trim()).filter(Boolean)
   ].filter((item, indice, lista) => lista.indexOf(item) === indice);
 
   popularSelectCategorias(document.getElementById('novaCategoria'));

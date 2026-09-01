@@ -87,7 +87,10 @@ function abrirAba(nomeAba) {
 
   if (panel) panel.classList.add('active');
   if (btn) btn.classList.add('active');
+  document.body.classList.toggle('home-active', nomeAba === 'gastos');
 }
+
+document.body.classList.toggle('home-active', document.getElementById('tab-gastos')?.classList.contains('active'));
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {

@@ -204,25 +204,48 @@ document.getElementById('btnSalvarLugar')?.addEventListener('click', async () =>
   }
 });
 
-document.getElementById('btnAdicionarMarcador')?.addEventListener('click', async () => {
-  const nome = prompt('Nome da nova caixinha (marcador):');
-  if (!nome || !nome.trim()) return;
+document.getElementById('btnAdicionarMarcador')?.addEventListener('click', () => {
+  const criador = document.getElementById('placeTagCreator');
+  if (!criador) return;
+  criador.hidden = !criador.hidden;
+  if (!criador.hidden) document.getElementById('novoMarcadorLugar')?.focus();
+});
 
+document.getElementById('btnSalvarMarcador')?.addEventListener('click', async () => {
+  const campo = document.getElementById('novoMarcadorLugar');
+  const nome = campo?.value.trim();
+  if (!nome) return;
   const marcadosAntes = Array.from(
     document.querySelectorAll('#lugarMarcadores input[type="checkbox"]:checked')
   ).map(caixa => caixa.value);
+  const novoMarcador = nome.trim();
+  if (!marcadoresLugarConfigurados.includes(novoMarcador)) {
+    marcadoresLugarConfigurados.push(novoMarcador);
+    try { localStorage.setItem('piggu_place_tags_local', JSON.stringify(marcadoresLugarConfigurados.slice(4))); } catch (_) {}
+    renderMarcadoresLugar();
+  }
+  [...marcadosAntes, novoMarcador].forEach(valor => {
+    const caixa = document.querySelector(`#lugarMarcadores input[value="${CSS.escape(valor)}"]`);
+    if (caixa) caixa.checked = true;
+  });
+  campo.value = '';
+  document.getElementById('placeTagCreator').hidden = true;
 
   try {
-    await chamarAppsScript({ action: 'addPlaceTag', nome: nome.trim() });
+    await chamarAppsScript({ action: 'addPlaceTag', nome: novoMarcador });
     await carregarDados();
 
-    marcadosAntes.forEach(valor => {
+    [...marcadosAntes, novoMarcador].forEach(valor => {
       const caixa = document.querySelector(`#lugarMarcadores input[value="${CSS.escape(valor)}"]`);
       if (caixa) caixa.checked = true;
     });
   } catch (erro) {
-    alert(erro.message);
+    if (!window.PIGGU_DEMO_MODE) console.warn('A caixinha ficou salva neste dispositivo e será sincronizada depois.', erro);
   }
+});
+
+document.getElementById('novoMarcadorLugar')?.addEventListener('keydown', evento => {
+  if (evento.key === 'Enter') document.getElementById('btnSalvarMarcador')?.click();
 });
 
 async function carregarFotosLugares() {
