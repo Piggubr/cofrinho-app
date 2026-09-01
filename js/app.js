@@ -397,7 +397,8 @@ async function iniciarAplicacao() {
     fotos = [];
     notas = [];
     cofrinhoMovimentos = [];
-    metas = {};
+    try { metas = JSON.parse(localStorage.getItem('piggu_monthly_goals_demo')) || {}; }
+    catch (_) { metas = {}; }
     fofocoins = { saldo: 0, historico: [] };
     fofocoinsSaldo = 0;
     compras = [];

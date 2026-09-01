@@ -777,6 +777,36 @@ body:has(#tab-gastos.active) .piggu-bottom-nav{border:0!important;box-shadow:0 1
 #tab-gastos .finance-summary .cofrinho-num{font-weight:700}
 #tab-gastos .finance-summary .cofrinho-euro{font-size:.58em;font-weight:650;letter-spacing:0}
 
+/* Metas incrementais com leitura rápida e conclusão por check. */
+#goalsList{gap:12px}
+#goalsList .goal-card{display:grid;grid-template-columns:46px minmax(0,1fr) 40px;align-items:center;gap:12px;padding:14px;border:0;border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--theme-soft) 72%,#fff),color-mix(in srgb,var(--button-bg) 58%,#fff));box-shadow:inset 0 1px 0 rgba(255,255,255,.86),0 7px 20px color-mix(in srgb,var(--theme-strong) 7%,transparent)}
+.goal-card-emoji{display:grid;width:46px;height:46px;place-items:center;border-radius:50%;background:rgba(255,255,255,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:23px}
+#goalsList .goal-card-main{display:flex;min-width:0;flex-direction:column;align-items:stretch;gap:3px;padding:2px 0;border:0;background:transparent;color:var(--theme-strong);text-align:left}
+#goalsList .goal-card-main strong{overflow-wrap:anywhere;font:600 15px/20px var(--font-display)}
+#goalsList .goal-card-main>span{font:400 11px/16px var(--font-body)}
+.goal-card-track{display:block!important;height:5px;margin-top:4px;overflow:hidden;border-radius:3px;background:rgba(255,255,255,.66)}
+.goal-card-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--theme-selected),var(--theme-strong));transition:width 260ms var(--motion-ease)}
+#goalsList .goal-card-check{display:grid;width:40px;height:40px;min-height:40px;place-items:center;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.7);color:var(--theme-strong);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 4px 12px color-mix(in srgb,var(--theme-strong) 8%,transparent);font-size:17px}
+#goalsList .goal-card-check:active:not(:disabled){transform:scale(.91)}
+#goalsList .goal-card.is-complete{opacity:.92}
+#goalsList .goal-card-check:disabled{color:var(--theme-strong);background:color-mix(in srgb,var(--button-bg) 76%,#fff);cursor:default}
+
+/* Um pouco mais de respiro nos shapes dos ícones da toolbar. */
+@media(max-width:899px){.piggu-bottom-nav button:not(.bottom-add) span{width:52px;height:36px;border-radius:18px}}
+
+/* Progresso mais claro e contínuo, inclusive quando chega a 100%. */
+@property --goal-progress{syntax:"<percentage>";inherits:false;initial-value:0%}
+.goals-orbit-visual{transition:--goal-progress 720ms cubic-bezier(.22,.72,.22,1)}
+.goals-orbit-ring{background:conic-gradient(from -90deg,color-mix(in srgb,var(--theme-selected) 52%,#fff) 0 var(--goal-progress),color-mix(in srgb,var(--track) 76%,#fff) var(--goal-progress) 100%)}
+.goal-card-track{background:rgba(255,255,255,.92)!important;box-shadow:inset 0 1px 2px rgba(60,60,67,.08)}
+.goal-card-track i{background:linear-gradient(90deg,color-mix(in srgb,var(--theme-selected) 48%,#fff),color-mix(in srgb,var(--button-bg) 66%,#fff))!important;transition:width 620ms cubic-bezier(.22,.72,.22,1)}
+.goal-delete{align-self:center;margin-top:4px;padding:8px 12px;border:0;background:transparent!important;color:#b4233f!important;font:500 13px/18px var(--font-body)}
+
+/* Evita o contorno escuro persistente depois de tocar nas abas. */
+.nav-panel .tab-btn{outline:0!important;-webkit-tap-highlight-color:transparent}
+.nav-panel .tab-btn:focus{outline:0!important}
+.nav-panel .tab-btn:focus-visible{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--theme-strong) 18%,transparent)!important}
+
 /* Visão geral expandida sem caixas pesadas. */
 #tab-gastos .finance-card .finance-stats>div{background:rgba(255,255,255,.42)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.82)!important}
 #tab-gastos .finance-card .finance-stats span{color:var(--muted)!important}
