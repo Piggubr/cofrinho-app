@@ -1,8 +1,8 @@
 const APPSSCRIPTURL =
-  'https://script.google.com/macros/s/AKfycbyH4pGiJCAX2av9XusKO6evisJdMENCFYsM69SwNLmXIKtyK9vhAMZpQPS4q0xfVcKsmQ/exec';
+  'https://script.google.com/macros/s/AKfycbxmyeqNTBPiuF597BFj7bHhZKwDehaC6bLVKoHGbPmLtA74eeznWxZDMQXfPgeMrtVx/exec';
 
 const GOOGLECLIENTID =
-  '831217793955-c1vk4lm3ootilobv5ssv9tjokmgf3fak.apps.googleusercontent.com';
+  '532290439779-olhgd7m1hssj4o30gjs3ngrcs7ga48aa.apps.googleusercontent.com';
 
 let googleIdToken = null;
 let sessionToken = null;

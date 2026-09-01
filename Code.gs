@@ -21,15 +21,13 @@ const GEMINI_MODEL = 'gemini-3.6-flash';
 const EMAILS_AUTORIZADOS = [
   'pigguadm@gmail.com',
   'ahcabral10@gmail.com',
-  'ahcabraloffice@gmail.com',
   'beatrizvieirasouzadias@gmail.com',
-  'cofrinhodosfofos@gmail.com',
-  'eduardosouzapagel@gmail.com'
+  'eduardosouzapagel@gmail.com',
+  'theomadeira83@gmail.com'
 ];
 
 const EMAILS_ADMIN = [
   'pigguadm@gmail.com',
-  'cofrinhodosfofos@gmail.com',
   'eduardosouzapagel@gmail.com'
 ];
 
