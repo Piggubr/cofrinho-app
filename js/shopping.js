@@ -5,13 +5,17 @@ let shoppingLocal = estadoComprasVazio();
 let shoppingLocalKey = '';
 
 const CATEGORIAS_MERCADO = {
-  'Essenciais': ['Pão', 'Leite', 'Ovos', 'Arroz', 'Feijão', 'Massa', 'Farinha', 'Açúcar', 'Sal', 'Azeite'],
-  'Pequeno-almoço': ['Café', 'Cereais', 'Aveia', 'Iogurte', 'Manteiga', 'Queijo', 'Geleia', 'Biscoitos'],
-  'Frutas e verduras': ['Banana', 'Maçã', 'Laranja', 'Uva', 'Tomate', 'Alface', 'Batata', 'Cenoura', 'Cebola', 'Alho'],
-  'Carnes e proteínas': ['Frango', 'Carne bovina', 'Peixe', 'Atum', 'Presunto', 'Tofu'],
-  'Bebidas': ['Água', 'Suco', 'Leite', 'Chá', 'Água com gás', 'Refrigerante'],
-  'Limpeza': ['Detergente', 'Esponja', 'Papel de cozinha', 'Sacos do lixo', 'Lava-roupas', 'Desinfetante'],
-  'Higiene': ['Papel higiênico', 'Xampu', 'Condicionador', 'Sabonete', 'Pasta de dentes', 'Desodorante']
+  'Essenciais': ['Pão', 'Leite', 'Ovos', 'Arroz', 'Feijão', 'Massa', 'Farinha', 'Açúcar', 'Sal', 'Azeite', 'Óleo', 'Molho de tomate'],
+  'Pequeno-almoço': ['Café', 'Cereais', 'Aveia', 'Granola', 'Iogurte', 'Manteiga', 'Queijo', 'Geleia', 'Biscoitos', 'Mel', 'Torradas'],
+  'Frutas e verduras': ['Banana', 'Maçã', 'Laranja', 'Uva', 'Morango', 'Limão', 'Abacate', 'Manga', 'Tomate', 'Alface', 'Batata', 'Cenoura', 'Cebola', 'Alho', 'Brócolis', 'Pepino'],
+  'Carnes e proteínas': ['Frango', 'Carne bovina', 'Carne moída', 'Peixe', 'Atum', 'Presunto', 'Tofu', 'Linguiça', 'Bacon', 'Grão-de-bico', 'Lentilha'],
+  'Padaria e lanches': ['Pão de forma', 'Croissant', 'Pão de queijo', 'Bolo', 'Bolacha', 'Chocolate', 'Pipoca', 'Amendoim', 'Batata chips'],
+  'Bebidas': ['Água', 'Suco', 'Leite', 'Chá', 'Água com gás', 'Refrigerante', 'Cerveja', 'Vinho', 'Água de coco', 'Energético'],
+  'Congelados': ['Pizza congelada', 'Legumes congelados', 'Batata congelada', 'Sorvete', 'Hambúrguer', 'Pão de queijo congelado'],
+  'Limpeza': ['Detergente', 'Esponja', 'Papel de cozinha', 'Sacos do lixo', 'Lava-roupas', 'Amaciante', 'Desinfetante', 'Água sanitária', 'Limpa-vidros', 'Pano de limpeza'],
+  'Higiene': ['Papel higiênico', 'Xampu', 'Condicionador', 'Sabonete', 'Pasta de dentes', 'Escova de dentes', 'Desodorante', 'Fio dental', 'Absorvente', 'Algodão'],
+  'Casa e pets': ['Papel-alumínio', 'Filme plástico', 'Guardanapos', 'Filtro de café', 'Pilhas', 'Ração para gato', 'Ração para cachorro', 'Areia para gato'],
+  'Bebê': ['Fraldas', 'Lenços umedecidos', 'Papinha', 'Fórmula infantil', 'Pomada para assadura']
 };
 
 const EMOJIS_PRODUTOS = {
@@ -19,10 +23,16 @@ const EMOJIS_PRODUTOS = {
   farinha:'🌾', acucar:'🍬', sal:'🧂', azeite:'🫒', cafe:'☕', cereais:'🥣', aveia:'🌾',
   iogurte:'🥣', manteiga:'🧈', queijo:'🧀', geleia:'🍓', biscoito:'🍪', banana:'🍌', maca:'🍎',
   laranja:'🍊', uva:'🍇', tomate:'🍅', alface:'🥬', batata:'🥔', cenoura:'🥕', cebola:'🧅', alho:'🧄',
-  frango:'🍗', carne:'🥩', peixe:'🐟', atum:'🐟', presunto:'🥓', tofu:'🍱', agua:'💧', sumo:'🧃',
+  morango:'🍓', limao:'🍋', abacate:'🥑', manga:'🥭', brocolis:'🥦', pepino:'🥒', mel:'🍯',
+  granola:'🥣', torrada:'🍞', croissant:'🥐', bolo:'🍰', bolacha:'🍪', chocolate:'🍫', pipoca:'🍿',
+  amendoim:'🥜', chips:'🥔', frango:'🍗', carne:'🥩', peixe:'🐟', atum:'🐟', presunto:'🥓',
+  linguica:'🌭', bacon:'🥓', tofu:'🍱', grao:'🫘', lentilha:'🫘', pizza:'🍕', sorvete:'🍨', hamburguer:'🍔', agua:'💧', sumo:'🧃',
   suco:'🧃', cha:'🍵', refrigerante:'🥤', detergente:'🧴', esponja:'🧽', sabonete:'🧼',
   champo:'🧴', xampu:'🧴', condicionador:'🧴', desodorante:'🧴', desinfetante:'🧴',
-  lava_roupas:'🧺', saco:'🗑️', papel:'🧻', pasta:'🪥'
+  cerveja:'🍺', vinho:'🍷', coco:'🥥', energetico:'🥤', lava_roupas:'🧺', amaciante:'🧴', saco:'🗑️',
+  aluminio:'🧻', guardanapo:'🧻', filtro:'☕', pilha:'🔋', racao:'🐾', areia:'🐈', fralda:'👶',
+  lenco:'🧻', papinha:'🍼', formula:'🍼', pomada:'🧴', papel:'🧻', escova:'🪥', fio:'🦷',
+  absorvente:'🩹', algodao:'☁️', pasta:'🪥'
 };
 
 function estadoComprasVazio() { return { carrinho:[], ativa:null, historico:[], desejos:[] }; }
@@ -84,10 +94,12 @@ function renderCarrinho() {
 }
 
 function renderListaAtiva() {
-  const alvo = document.getElementById('listaCompras'); const card = document.getElementById('listaAtivaCard'); const resumo = document.getElementById('listaAtivaResumo'); const concluir = document.getElementById('btnConcluirCompra'); if (!alvo || !card) return;
+  const alvo = document.getElementById('listaCompras'); const card = document.getElementById('listaAtivaCard'); const resumo = document.getElementById('listaAtivaResumo'); const concluir = document.getElementById('btnConcluirCompra'); const ring = document.getElementById('shoppingProgressRing'); const valor = document.getElementById('shoppingProgressValue'); if (!alvo || !card) return;
   const ativa = shoppingLocal.ativa; card.classList.toggle('has-active-list', Boolean(ativa));
-  if (!ativa) { alvo.innerHTML = '<p class="empty">Finalize o carrinho para criar uma lista.</p>'; if (resumo) resumo.textContent = 'Nenhuma lista ativa.'; if (concluir) concluir.hidden = true; return; }
+  if (!ativa) { alvo.innerHTML = ''; if (resumo) resumo.textContent = 'Finalize o carrinho para começar.'; if (ring) ring.style.setProperty('--shopping-progress','0%'); if (valor) valor.textContent='0%'; if (concluir) concluir.hidden = true; return; }
   const marcados = ativa.itens.filter(item => item.comprado).length;
+  const progresso = ativa.itens.length ? Math.round(marcados / ativa.itens.length * 100) : 0;
+  if (ring) ring.style.setProperty('--shopping-progress',`${progresso}%`); if (valor) valor.textContent=`${progresso}%`;
   if (resumo) resumo.textContent = `${marcados} de ${ativa.itens.length} marcados`;
   alvo.innerHTML = ativa.itens.map(item => linhaCompra(item, 'ativa')).join(''); if (concluir) concluir.hidden = false;
   alvo.querySelectorAll('[data-check-local]').forEach(check => check.addEventListener('change', () => { const item = ativa.itens.find(produto => produto.id === check.dataset.checkLocal); if (!item) return; item.comprado = check.checked; salvarComprasLocais(); renderCompras(); }));
@@ -131,7 +143,8 @@ function renderListaMercadoDashboard() {
 }
 
 function adicionarAoCarrinho(nome, quantidade = '1', unidade = 'un', extras = {}) { garantirComprasLocais(); shoppingLocal.carrinho.push(novoItemCompra(nome, quantidade, unidade, extras)); salvarComprasLocais(); renderCompras(); }
-function renderCompras() { garantirComprasLocais(); renderCarrinho(); renderListaAtiva(); renderDesejos(); renderHistoricoCompras(); renderLegado(); renderListaMercadoDashboard(); renderProdutos(); }
+function renderQuickAdd(){const alvo=document.getElementById('shoppingQuickAdd'),lista=document.getElementById('shoppingCatalog');const todos=[...new Set(Object.values(CATEGORIAS_MERCADO).flat())];if(lista)lista.innerHTML=todos.map(nome=>`<option value="${esc(nome)}"></option>`).join('');if(!alvo)return;const atuais=new Set((shoppingLocal.carrinho||[]).map(x=>normalizarProduto(x.item)));const rapidos=['Pão','Leite','Ovos','Banana','Arroz','Café','Papel higiênico','Detergente'].filter(nome=>!atuais.has(normalizarProduto(nome)));alvo.innerHTML=`<p>Adicionar rápido</p><div>${rapidos.map(nome=>`<button type="button" data-quick-add="${esc(nome)}"><span aria-hidden="true">${emojiProduto(nome)}</span>${esc(nome)}<b aria-hidden="true">＋</b></button>`).join('')}</div>`;alvo.querySelectorAll('[data-quick-add]').forEach(botao=>botao.addEventListener('click',()=>adicionarAoCarrinho(botao.dataset.quickAdd)))}
+function renderCompras() { garantirComprasLocais(); renderCarrinho(); renderListaAtiva(); renderDesejos(); renderHistoricoCompras(); renderLegado(); renderListaMercadoDashboard(); renderProdutos(); renderQuickAdd(); }
 
 document.getElementById('btnAbrirComprasDashboard')?.addEventListener('click', () => abrirAba('compras'));
 document.getElementById('btnAdicionarCompra')?.addEventListener('click', () => {
@@ -147,14 +160,24 @@ function renderSugestoesMercado() {
   const categorias = document.getElementById('categoriasMercado'); const sugestoes = document.getElementById('sugestoesMercado'); if (!categorias || !sugestoes) return;
   categorias.innerHTML = Object.keys(CATEGORIAS_MERCADO).map(nome => `<button class="market-category ${nome === categoriaMercadoAtiva ? 'active' : ''}" type="button" data-categoria-mercado="${esc(nome)}">${esc(nome)}</button>`).join('');
   sugestoes.innerHTML = CATEGORIAS_MERCADO[categoriaMercadoAtiva].map(nome => {
-    const selecionado = shoppingLocal.carrinho.some(item => normalizarProduto(item.item) === normalizarProduto(nome));
-    return `<label class="catalog-product-row"><input type="checkbox" data-sugestao-mercado="${esc(nome)}" ${selecionado ? 'checked' : ''}><span class="shopping-quantity">1 un</span><span class="shopping-emoji" aria-hidden="true">${emojiProduto(nome)}</span><strong>${esc(nome)}</strong></label>`;
+    const item = shoppingLocal.carrinho.find(item => normalizarProduto(item.item) === normalizarProduto(nome));
+    const quantidade = item?.quantidade || '1';
+    return `<div class="catalog-product-row"><input type="checkbox" data-sugestao-mercado="${esc(nome)}" aria-label="Adicionar ${esc(nome)}" ${item ? 'checked' : ''}><div class="catalog-quantity" aria-label="Quantidade de ${esc(nome)}"><button type="button" data-catalog-decrease="${esc(nome)}" aria-label="Diminuir quantidade de ${esc(nome)}">−</button><span>${esc(quantidade)} un</span><button type="button" data-catalog-increase="${esc(nome)}" aria-label="Aumentar quantidade de ${esc(nome)}">＋</button></div><span class="shopping-emoji" aria-hidden="true">${emojiProduto(nome)}</span><strong>${esc(nome)}</strong></div>`;
   }).join('');
   categorias.querySelectorAll('[data-categoria-mercado]').forEach(botao => botao.addEventListener('click', () => { categoriaMercadoAtiva = botao.dataset.categoriaMercado; renderSugestoesMercado(); }));
   sugestoes.querySelectorAll('[data-sugestao-mercado]').forEach(campo => campo.addEventListener('change', () => {
     const nome = campo.dataset.sugestaoMercado;
     if (campo.checked) adicionarAoCarrinho(nome);
     else { shoppingLocal.carrinho = shoppingLocal.carrinho.filter(item => normalizarProduto(item.item) !== normalizarProduto(nome)); salvarComprasLocais(); renderCompras(); }
+  }));
+  sugestoes.querySelectorAll('[data-catalog-increase]').forEach(botao => botao.addEventListener('click', () => {
+    const nome = botao.dataset.catalogIncrease; const item = shoppingLocal.carrinho.find(produto => normalizarProduto(produto.item) === normalizarProduto(nome));
+    if (!item) return adicionarAoCarrinho(nome, '2');
+    const atual = Number(String(item.quantidade || '1').replace(',', '.')); item.quantidade = String((Number.isFinite(atual) ? atual : 1) + 1); salvarComprasLocais(); renderCompras();
+  }));
+  sugestoes.querySelectorAll('[data-catalog-decrease]').forEach(botao => botao.addEventListener('click', () => {
+    const nome = botao.dataset.catalogDecrease; const item = shoppingLocal.carrinho.find(produto => normalizarProduto(produto.item) === normalizarProduto(nome)); if (!item) return;
+    const atual = Number(String(item.quantidade || '1').replace(',', '.')); if (!Number.isFinite(atual) || atual <= 1) shoppingLocal.carrinho = shoppingLocal.carrinho.filter(produto => produto !== item); else item.quantidade = String(atual - 1); salvarComprasLocais(); renderCompras();
   }));
 }
 function renderResultadosMercado() {
