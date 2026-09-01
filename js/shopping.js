@@ -44,12 +44,12 @@ function garantirComprasLocais() {
   const chave = chaveComprasLocal();
   if (chave === shoppingLocalKey) return;
   shoppingLocalKey = chave; shoppingLocal = estadoComprasVazio();
-  if (window.PIGGU_DEMO_MODE || chave.endsWith('_pending')) return;
+  if (chave.endsWith('_pending')) return;
   try { const salvo = JSON.parse(localStorage.getItem(chave)); if (salvo && typeof salvo === 'object') shoppingLocal = { ...estadoComprasVazio(), ...salvo }; }
   catch (erro) { console.warn('Não foi possível abrir as listas locais.', erro); }
 }
 function salvarComprasLocais() {
-  if (window.PIGGU_DEMO_MODE || shoppingLocalKey.endsWith('_pending')) return;
+  if (shoppingLocalKey.endsWith('_pending')) return;
   try { localStorage.setItem(shoppingLocalKey, JSON.stringify(shoppingLocal)); }
   catch (_) { alert('Não foi possível salvar a lista neste dispositivo.'); }
 }

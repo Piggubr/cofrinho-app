@@ -216,15 +216,40 @@ function renderInsightCofrinho(totalDepositado, totalGasto) {
 document.getElementById('btnEditarMeta')?.addEventListener('click', async () => {
   const mes = mesKeyDe(viewDate);
   const atual = Number(metas[mes]) || '';
+  const salvarLimite = async limite => {
+    if (window.PIGGU_DEMO_MODE) {
+      metas[mes] = limite;
+      try { localStorage.setItem('piggu_monthly_goals_demo', JSON.stringify(metas)); } catch (_) {}
+      render();
+      return;
+    }
+    const resposta = await chamarAppsScript({ action: 'setMonthlyGoal', mes, limite });
+    metas[mes] = resposta.limite;
+    render();
+  };
+
+  if (typeof window.pigguOpenSheet === 'function') {
+    window.pigguOpenSheet('Economia do mês', `<form id="monthlyEconomyForm"><label>Quanto está disponível em ${nomeMes(viewDate)}?<input name="limit" type="number" min="0.01" step="0.01" inputmode="decimal" value="${atual}" placeholder="0,00" required></label><p class="field-help">Usaremos esse valor para mostrar quanto ainda pode ser gasto no mês.</p><div class="feature-actions"><button class="button-secondary" data-close-sheet type="button">Cancelar</button><button class="button-primary" type="submit">Salvar</button></div><p class="field-help" id="monthlyEconomyFeedback" aria-live="polite"></p></form>`);
+    const form = document.getElementById('monthlyEconomyForm');
+    form.onsubmit = async evento => {
+      evento.preventDefault();
+      const limite = Number(String(new FormData(form).get('limit')).replace(',', '.'));
+      const feedback = document.getElementById('monthlyEconomyFeedback');
+      if (!Number.isFinite(limite) || limite <= 0) { feedback.textContent = 'Digite um valor válido.'; return; }
+      const button = form.querySelector('[type="submit"]');
+      button.disabled = true;
+      try { await salvarLimite(limite); window.pigguCloseSheet(); }
+      catch (erro) { feedback.textContent = erro.message || 'Não foi possível salvar.'; button.disabled = false; }
+    };
+    setTimeout(() => form.querySelector('input')?.focus(), 80);
+    return;
+  }
+
   const digitado = prompt('Quanto está disponível para gastar em ' + nomeMes(viewDate) + '?', atual);
   if (digitado === null) return;
   const limite = Number(String(digitado).replace(',', '.'));
   if (!Number.isFinite(limite) || limite <= 0) { alert('Digite um valor válido.'); return; }
-  try {
-    const resposta = await chamarAppsScript({ action: 'setMonthlyGoal', mes, limite });
-    metas[mes] = resposta.limite;
-    render();
-  } catch (erro) { alert(erro.message); }
+  try { await salvarLimite(limite); } catch (erro) { alert(erro.message); }
 });
 
 document.getElementById('btnCofrinho')?.addEventListener('click', () => {

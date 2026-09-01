@@ -1,7 +1,7 @@
 // CONTROLE FINANCEIRO DO CASAL — Google Apps Script
 // Preencha somente SHEET_ID. As outras chaves ficam nas Propriedades do script.
 
-const SHEET_ID = '1RXWT5TFArwWVaxBPV1LbHrETRDKut4Awl2XV8P-OcHo';
+const SHEET_ID = '1Hk1JYEbZzlsZErV7CErt-0Op-rlhLPG2UNSKKK-ORA0';
 const SHEET_NAME = 'Gastos';
 const METAS_SHEET_NAME = 'Metas';
 const FOFOCOINS_SHEET_NAME = 'Fofocoins';
@@ -19,6 +19,7 @@ const EMAIL_BEATRIZ = 'beatrizvieirasouzadias@gmail.com';
 const GEMINI_MODEL = 'gemini-3.6-flash';
 
 const EMAILS_AUTORIZADOS = [
+  'pigguadm@gmail.com',
   'ahcabral10@gmail.com',
   'ahcabraloffice@gmail.com',
   'beatrizvieirasouzadias@gmail.com',
@@ -27,6 +28,7 @@ const EMAILS_AUTORIZADOS = [
 ];
 
 const EMAILS_ADMIN = [
+  'pigguadm@gmail.com',
   'cofrinhodosfofos@gmail.com',
   'eduardosouzapagel@gmail.com'
 ];
