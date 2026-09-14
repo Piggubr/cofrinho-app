@@ -1,0 +1,325 @@
+/* Design system do Piggu.
+ *
+ * Os tokens vieram de css/variables.css do app original, para que a identidade
+ * visual continue a mesma. Ficam como custom properties no :root porque o app
+ * antigo ja trocava de tema redefinindo essas mesmas variaveis. */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --pink-bg: #fae2e9;
+  --site-bg: #fbf1f4;
+  --surface: #ffffff;
+  --ink: #2b1e32;
+  --ink-soft: #5c4c58;
+  --muted: #8b7480;
+  --border: #f0cfdb;
+  --rose: #b85c7d;
+  --rose-deep: #6d1541;
+  --evento: #5c4270;
+  --ok: #7fa06b;
+  --over: #e0399b;
+  --field-bg: #fff1f6;
+  --button-bg: #f5cadb;
+  --track: #f3d9e2;
+  --shadow-card: 0 18px 45px rgba(109, 21, 65, 0.1);
+  --raio: 18px;
+  --raio-pequeno: 12px;
+  --font-body: 'Sora', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--site-bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.2rem; }
+h3 { font-size: 1rem; }
+
+p { margin: 0 0 0.75rem; }
+
+a {
+  color: var(--rose-deep);
+}
+
+/* ---------- Cartoes ---------- */
+
+.cartao {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+  box-shadow: var(--shadow-card);
+  padding: 1.15rem;
+}
+
+.cartao + .cartao {
+  margin-top: 1rem;
+}
+
+.cartao-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.cartao-titulo h2,
+.cartao-titulo h3 {
+  margin: 0;
+}
+
+/* ---------- Formularios ---------- */
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 0.3rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--rose);
+  outline-offset: 1px;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.campo + .campo {
+  margin-top: 0.75rem;
+}
+
+.linha-de-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.erro-do-campo {
+  color: var(--over);
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+
+/* ---------- Botoes ---------- */
+
+button {
+  font-family: inherit;
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--rose-deep);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.botao:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.botao.secundario {
+  background: var(--button-bg);
+  color: var(--rose-deep);
+}
+
+.botao.contorno {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--rose-deep);
+}
+
+.botao.perigo {
+  background: transparent;
+  border-color: transparent;
+  color: var(--over);
+  padding: 0.35rem 0.5rem;
+}
+
+.botao.pequeno {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+/* ---------- Listas ---------- */
+
+.linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.linha:last-child {
+  border-bottom: none;
+}
+
+.linha-titulo {
+  margin: 0;
+  font-weight: 500;
+}
+
+.linha-detalhe {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.linha-valor {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vazio {
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  margin: 0;
+}
+
+/* ---------- Etiquetas e avisos ---------- */
+
+.etiqueta {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--pink-bg);
+  color: var(--rose-deep);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.aviso {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--raio-pequeno);
+  font-size: 0.85rem;
+  margin-bottom: 0.9rem;
+}
+
+.aviso.erro {
+  background: #fdeaf3;
+  color: #8c1745;
+}
+
+.aviso.sucesso {
+  background: #e9f3e3;
+  color: #3f5a30;
+}
+
+.aviso.informacao {
+  background: var(--pink-bg);
+  color: var(--rose-deep);
+}
+
+/* ---------- Barra de progresso ---------- */
+
+.progresso {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.progresso > span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transition: width 0.3s ease;
+}
+
+.progresso.estourado > span {
+  background: var(--over);
+}
+
+/* ---------- Grades ---------- */
+
+.grade {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.centralizado {
+  text-align: center;
+}
+
+.carregando {
+  color: var(--muted);
+  font-size: 0.88rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .cartao {
+    padding: 0.95rem;
+  }
+}

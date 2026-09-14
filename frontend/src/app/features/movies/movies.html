@@ -1,0 +1,144 @@
+<h1>Filmes</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>O que vamos assistir?</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="genero">Gênero</label>
+      <select id="genero" [ngModel]="generoEscolhido()" (ngModelChange)="generoEscolhido.set($event)">
+        @for (genero of generos; track genero.id) {
+          <option [value]="genero.id">{{ genero.nome }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo alinhado">
+      <button type="button" class="botao" (click)="sortear()" [disabled]="sorteando()">
+        {{ sorteando() ? 'Sorteando...' : 'Sortear filme' }}
+      </button>
+    </div>
+  </div>
+
+  @if (sorteado(); as filme) {
+    <article class="destaque">
+      @if (filme.poster) {
+        <img [src]="filme.poster" [alt]="filme.titulo" />
+      }
+      <div>
+        <h3>{{ filme.titulo }} <small>{{ filme.ano }}</small></h3>
+        <p class="linha-detalhe">Nota TMDB: {{ filme.nota }}</p>
+        <p class="sinopse">{{ filme.sinopse }}</p>
+        <button type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar à lista</button>
+      </div>
+    </article>
+  }
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="buscaFilme">Buscar filme</label>
+      <input id="buscaFilme" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscar()" placeholder="Nome do filme" />
+    </div>
+    <div class="campo alinhado">
+      <button type="button" class="botao secundario" (click)="buscar()" [disabled]="buscando()">
+        {{ buscando() ? 'Buscando...' : 'Buscar' }}
+      </button>
+    </div>
+  </div>
+
+  @if (resultados().length) {
+    <div class="grade">
+      @for (filme of resultados(); track filme.tmdbId) {
+        <article class="cartao-filme">
+          @if (filme.poster) {
+            <img [src]="filme.poster" [alt]="filme.titulo" loading="lazy" />
+          }
+          <h3>{{ filme.titulo }}</h3>
+          <p class="linha-detalhe">{{ filme.ano }} · {{ filme.nota }}</p>
+          <button type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar</button>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Para assistir</h2>
+    <span class="etiqueta">{{ paraVer().length }}</span>
+  </div>
+
+  @if (carregando()) {
+    <p class="carregando">Carregando...</p>
+  } @else if (paraVer().length) {
+    <div class="grade">
+      @for (filme of paraVer(); track filme.id) {
+        <article class="cartao-filme">
+          @if (filme.poster) {
+            <img [src]="filme.poster" [alt]="filme.titulo" loading="lazy" />
+          }
+          <h3>{{ filme.titulo }}</h3>
+          <p class="linha-detalhe">{{ filme.ano }}</p>
+          <div class="acoes">
+            <button type="button" class="botao pequeno" (click)="alternarAssistido(filme)">Já assistimos</button>
+            <button type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="vazio">Nenhum filme na fila.</p>
+  }
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Já assistidos</h2>
+    <span class="etiqueta">{{ assistidos().length }}</span>
+  </div>
+
+  @if (assistidos().length) {
+    <div class="grade">
+      @for (filme of assistidos(); track filme.id) {
+        <article class="cartao-filme">
+          @if (filme.poster) {
+            <img [src]="filme.poster" [alt]="filme.titulo" loading="lazy" />
+          }
+          <h3>{{ filme.titulo }}</h3>
+
+          <div class="estrelas" role="group" aria-label="Sua nota">
+            @for (nota of notasPossiveis; track nota) {
+              <button
+                type="button"
+                class="estrela"
+                [class.marcada]="minhaNota(filme) >= nota"
+                (click)="avaliar(filme, nota)"
+                [attr.aria-label]="'Dar nota ' + nota"
+              >
+                ★
+              </button>
+            }
+          </div>
+
+          @for (outra of outrasNotas(filme); track outra.email) {
+            <p class="linha-detalhe">{{ outra.email }}: {{ outra.nota }} ★</p>
+          }
+
+          <div class="acoes">
+            <button type="button" class="botao contorno pequeno" (click)="alternarAssistido(filme)">
+              Voltar para a fila
+            </button>
+            <button type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="vazio">Nenhum filme assistido ainda.</p>
+  }
+</section>

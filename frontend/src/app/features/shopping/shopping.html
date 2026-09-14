@@ -1,0 +1,108 @@
+<h1>Compras</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<div class="abas">
+  <button type="button" class="aba" [class.ativa]="listaAtiva() === 'Compras'" (click)="trocarLista('Compras')">
+    Compras
+  </button>
+  <button type="button" class="aba" [class.ativa]="listaAtiva() === 'Desejos'" (click)="trocarLista('Desejos')">
+    Desejos
+  </button>
+</div>
+
+<section class="cartao">
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="novoItem">Item</label>
+      <input id="novoItem" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Ovos" />
+    </div>
+    <div class="campo">
+      <label for="quantidade">Quantidade</label>
+      <input id="quantidade" type="text" [ngModel]="novaQuantidade()" (ngModelChange)="novaQuantidade.set($event)" placeholder="Ex.: 12" />
+    </div>
+    <div class="campo alinhado">
+      <button type="button" class="botao" (click)="adicionar()">Adicionar</button>
+    </div>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="busca">Buscar no catálogo</label>
+      <input id="busca" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscarNoCatalogo()" placeholder="Nome do produto" />
+    </div>
+    <div class="campo alinhado">
+      <button type="button" class="botao secundario" (click)="buscarNoCatalogo()" [disabled]="buscando()">
+        {{ buscando() ? 'Buscando...' : 'Buscar' }}
+      </button>
+    </div>
+  </div>
+
+  @if (resultados().length) {
+    <div class="resultados">
+      @for (produto of resultados(); track produto.codigo) {
+        <button type="button" class="resultado" (click)="adicionarDoCatalogo(produto)">
+          @if (produto.imagem) {
+            <img [src]="produto.imagem" [alt]="produto.nome" loading="lazy" />
+          }
+          <span class="resultado-texto">
+            <strong>{{ produto.nome }}</strong>
+            <small>{{ produto.marca }} {{ produto.quantidade }}</small>
+          </span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>A comprar</h2>
+    <span class="etiqueta">{{ pendentes().length }}</span>
+  </div>
+
+  @if (carregando()) {
+    <p class="carregando">Carregando...</p>
+  } @else if (pendentes().length) {
+    @for (item of pendentes(); track item.id) {
+      <div class="linha">
+        <label class="item">
+          <input type="checkbox" [checked]="item.comprado" (change)="alternarComprado(item)" />
+          @if (item.imagem) {
+            <img [src]="item.imagem" [alt]="item.item" class="miniatura" loading="lazy" />
+          }
+          <span>
+            <span class="linha-titulo">{{ item.item }}</span>
+            @if (item.quantidade || item.marca) {
+              <span class="linha-detalhe">{{ item.marca }} {{ item.quantidade }}</span>
+            }
+          </span>
+        </label>
+        <button type="button" class="botao perigo" (click)="excluir(item)">Apagar</button>
+      </div>
+    }
+  } @else {
+    <p class="vazio">Lista vazia.</p>
+  }
+</section>
+
+@if (comprados().length) {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2>Já no carrinho</h2>
+      <span class="etiqueta">{{ comprados().length }}</span>
+    </div>
+
+    @for (item of comprados(); track item.id) {
+      <div class="linha">
+        <label class="item riscado">
+          <input type="checkbox" [checked]="item.comprado" (change)="alternarComprado(item)" />
+          <span class="linha-titulo">{{ item.item }}</span>
+        </label>
+        <button type="button" class="botao perigo" (click)="excluir(item)">Apagar</button>
+      </div>
+    }
+  </section>
+}

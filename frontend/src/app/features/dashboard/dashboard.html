@@ -1,0 +1,134 @@
+<h1>Olá, {{ auth.usuario()?.primeiroNome }}</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+@if (carregando()) {
+  <p class="carregando">Carregando seus dados...</p>
+} @else {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2>Cofrinho</h2>
+      <span class="etiqueta">{{ cofrinho()?.saldo | euro }}</span>
+    </div>
+
+    <div class="resumo-cofrinho">
+      <div>
+        <p class="linha-detalhe">Depositado</p>
+        <p class="numero">{{ cofrinho()?.totalDepositos | euro }}</p>
+      </div>
+      @if (!auth.ehFamiliar()) {
+        <div>
+          <p class="linha-detalhe">Gasto desde o início</p>
+          <p class="numero">{{ cofrinho()?.totalGastos | euro }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="linha-de-campos deposito">
+      <div class="campo">
+        <label for="valorDeposito">Novo depósito (€)</label>
+        <input
+          id="valorDeposito"
+          type="number"
+          min="0.01"
+          step="0.01"
+          inputmode="decimal"
+          [ngModel]="novoDeposito()"
+          (ngModelChange)="novoDeposito.set($event)"
+          placeholder="0,00"
+        />
+      </div>
+      <div class="campo alinhado">
+        <button type="button" class="botao" (click)="depositar()" [disabled]="salvandoDeposito()">
+          {{ salvandoDeposito() ? 'Guardando...' : 'Depositar' }}
+        </button>
+      </div>
+    </div>
+
+    @if (cofrinho()?.depositos?.length) {
+      <div class="lista-de-depositos">
+        @for (deposito of cofrinho()!.depositos; track deposito.id) {
+          <div class="linha">
+            <div>
+              <p class="linha-titulo">{{ deposito.valor | euro }}</p>
+              <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario }}</p>
+            </div>
+            <button type="button" class="botao perigo" (click)="excluirDeposito(deposito.id)">
+              Apagar
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="vazio">Nenhum depósito ainda.</p>
+    }
+  </section>
+
+  @if (!auth.ehFamiliar()) {
+    <section class="cartao">
+      <div class="cartao-titulo">
+        <h2>{{ rotuloDoMes() }}</h2>
+        <div class="navegacao-de-mes">
+          <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
+          <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+        </div>
+      </div>
+
+      <div class="resumo-cofrinho">
+        <div>
+          <p class="linha-detalhe">Gasto no mês</p>
+          <p class="numero">{{ totalGastoNoMes() | euro }}</p>
+        </div>
+        <div>
+          <p class="linha-detalhe">Meta do mês</p>
+          <p class="numero">
+            {{ metaDoMes() > 0 ? (metaDoMes() | euro) : '—' }}
+          </p>
+        </div>
+      </div>
+
+      @if (metaDoMes() > 0) {
+        <div class="progresso" [class.estourado]="estourouAMeta()">
+          <span [style.width.%]="progressoDaMeta()"></span>
+        </div>
+        <p class="linha-detalhe progresso-texto">
+          {{ progressoDaMeta() }}% da meta
+          @if (estourouAMeta()) {
+            <strong> · meta ultrapassada</strong>
+          }
+        </p>
+      } @else {
+        <p class="vazio">Sem meta definida para este mês.</p>
+      }
+
+      <div class="acoes">
+        <a class="botao secundario" routerLink="/metas">Definir meta</a>
+        <a class="botao contorno" routerLink="/gastos">Ver gastos</a>
+      </div>
+    </section>
+
+    <section class="cartao">
+      <div class="cartao-titulo">
+        <h2>Por categoria</h2>
+      </div>
+
+      @if (porCategoria().length) {
+        @for (item of porCategoria(); track item.categoria) {
+          <div class="categoria">
+            <div class="linha sem-borda">
+              <p class="linha-titulo">{{ item.categoria }}</p>
+              <span class="linha-valor">{{ item.total | euro }}</span>
+            </div>
+            <div class="progresso">
+              <span [style.width.%]="item.fatia"></span>
+            </div>
+          </div>
+        }
+      } @else {
+        <p class="vazio">Nenhum gasto lançado neste mês.</p>
+      }
+    </section>
+  }
+}

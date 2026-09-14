@@ -1,0 +1,51 @@
+.resumo-cofrinho {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.numero {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--rose-deep);
+}
+
+.deposito {
+  align-items: end;
+  margin-bottom: 0.5rem;
+}
+
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}
+
+.lista-de-depositos {
+  margin-top: 0.5rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.navegacao-de-mes {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.progresso-texto {
+  margin-top: 0.4rem;
+}
+
+.categoria + .categoria {
+  margin-top: 0.6rem;
+}
+
+.linha.sem-borda {
+  border-bottom: none;
+  padding-bottom: 0.25rem;
+}

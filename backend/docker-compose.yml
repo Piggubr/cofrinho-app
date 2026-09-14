@@ -1,0 +1,140 @@
+# Sobe a plataforma inteira com: docker compose up --build
+#
+# Sao seis processos. O gateway e a unica porta publicada para o navegador;
+# os servicos conversam pela rede interna do Compose.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: piggu
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-piggu}
+      POSTGRES_DB: postgres
+    volumes:
+      - piggu-dados:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U piggu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  identity:
+    build:
+      context: .
+      args:
+        MODULO: piggu-identity
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_identity
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
+      JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  finance:
+    build:
+      context: .
+      args:
+        MODULO: piggu-finance
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_finance
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  rewards:
+    build:
+      context: .
+      args:
+        MODULO: piggu-rewards
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_rewards
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  lifestyle:
+    build:
+      context: .
+      args:
+        MODULO: piggu-lifestyle
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_lifestyle
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      MEDIA_URL: http://media:8085
+      TMDB_READ_TOKEN: ${TMDB_READ_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  media:
+    build:
+      context: .
+      args:
+        MODULO: piggu-media
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_media
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      DRIVE_CREDENTIALS: ${DRIVE_CREDENTIALS:-}
+      DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
+      STORAGE_LOCAL_PATH: /dados/fotos
+    volumes:
+      - piggu-fotos:/dados/fotos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: .
+      args:
+        MODULO: piggu-gateway
+    environment:
+      IDENTITY_URL: http://identity:8081
+      FINANCE_URL: http://finance:8082
+      REWARDS_URL: http://rewards:8083
+      LIFESTYLE_URL: http://lifestyle:8084
+      MEDIA_URL: http://media:8085
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - identity
+      - finance
+      - rewards
+      - lifestyle
+      - media
+
+volumes:
+  piggu-dados:
+  piggu-fotos:

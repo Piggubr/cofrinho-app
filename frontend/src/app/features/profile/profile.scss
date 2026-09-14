@@ -1,0 +1,35 @@
+.identidade {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar-grande {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}
+
+.linha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.linha-acoes select {
+  width: auto;
+  min-width: 120px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+}

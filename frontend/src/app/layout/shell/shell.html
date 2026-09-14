@@ -1,0 +1,58 @@
+<div class="moldura">
+  <header class="cabecalho">
+    <button
+      type="button"
+      class="menu-botao"
+      (click)="alternarMenu()"
+      [attr.aria-expanded]="menuAberto()"
+      aria-label="Abrir menu"
+    >
+      ☰
+    </button>
+
+    <div class="marca">
+      <strong>Piggu</strong>
+      @if (taxaFormatada(); as taxa) {
+        <span
+          class="cotacao"
+          [title]="cotacao()?.desatualizada ? 'Última cotação conhecida' : 'Referência de bancos centrais'"
+        >
+          EUR → {{ taxa }}
+        </span>
+      }
+    </div>
+
+    <div class="usuario">
+      @if (auth.usuario(); as pessoa) {
+        <a routerLink="/perfil" class="usuario-link" (click)="fecharMenu()">
+          @if (pessoa.foto) {
+            <img [src]="pessoa.foto" [alt]="pessoa.nome" class="avatar" referrerpolicy="no-referrer" />
+          }
+          <span class="usuario-nome">{{ pessoa.primeiroNome }}</span>
+        </a>
+      }
+    </div>
+  </header>
+
+  <nav class="menu" [class.aberto]="menuAberto()">
+    @for (item of itensVisiveis(); track item.rota) {
+      <a
+        [routerLink]="item.rota"
+        routerLinkActive="ativo"
+        class="menu-item"
+        (click)="fecharMenu()"
+      >
+        <span class="menu-icone" aria-hidden="true">{{ item.icone }}</span>
+        <span>{{ item.rotulo }}</span>
+      </a>
+    }
+    <button type="button" class="menu-item sair" (click)="sair()">
+      <span class="menu-icone" aria-hidden="true">🚪</span>
+      <span>Sair</span>
+    </button>
+  </nav>
+
+  <main class="conteudo">
+    <router-outlet />
+  </main>
+</div>

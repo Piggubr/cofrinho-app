@@ -1,152 +1,53 @@
-# Cofrinho dos Fofos — Estrutura Refatorada
+# Piggu — O cofrinho dos fofos
 
-Este repositório contém a versão refatorada do monolito HTML/CSS/JS do **Cofrinho dos Fofos**, separando o código em arquivos organizados por responsabilidade para facilitar manutenção e evolução.
+Aplicação de controle financeiro doméstico, migrada de um Google Apps Script com
+planilha como banco de dados para uma plataforma em Java e Angular.
 
-## Estrutura de pastas
+## O que tem aqui
 
-```text
-/
-├── index.html
-├── manifest.webmanifest
-├── favicon.jpg
-├── apple-touch-icon.png
-│
-├── css/
-│   ├── variables.css
-│   ├── base.css
-│   ├── layout.css
-│   ├── forms.css
-│   ├── calendar.css
-│   ├── shopping.css
-│   ├── movies.css
-│   ├── places.css
-│   ├── prizes.css
-│   ├── modals.css
-│   └── responsive.css
-│
-├── js/
-│   ├── utils.js
-│   ├── state.js
-│   ├── storage.js
-│   ├── integrations.js
-│   ├── modals.js
-│   ├── navigation.js
-│   ├── dashboard.js
-│   ├── transactions.js
-│   ├── calendar.js
-│   ├── shopping.js
-│   ├── photos.js
-│   ├── movies.js
-│   ├── places.js
-│   ├── prizes.js
-│   ├── fofocoins.js
-│   └── app.js
-│
-└── assets/
-    ├── icons/
-    ├── illustrations/
-    ├── logos/
-    ├── movies/
-    ├── places/
-    └── photos/
-```
+| Pasta | O que é |
+|---|---|
+| [`backend/`](backend/) | Seis microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
+| [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
+| [`postman/`](postman/) | Collection com os 66 endpoints da API |
+| `Code.gs` | Backend original em Apps Script, mantido como referência |
+| `index.html`, `css/`, `js/` | Front original, mantido como referência |
 
-## Como rodar localmente
-
-### Opção 1: Abrir direto no navegador
-
-1. Clone ou baixe este repositório.
-2. Navegue até a pasta raiz.
-3. Abra o arquivo `index.html` diretamente no seu navegador (duplo clique ou `Open With`).
-
-O app deve carregar normalmente em modo local, usando `localStorage` para persistir os dados.
-
-### Opção 2: Usar um servidor estático simples (recomendado)
-
-Algumas funcionalidades (como certos tipos de requisição e PWA) podem se comportar melhor com um servidor HTTP local.
-
-#### Com Python 3
-
-Na raiz do projeto:
+## Subindo tudo
 
 ```bash
-python -m http.server 8000
+# 1. Backend (Postgres + os seis serviços)
+cd backend
+cp .env.example .env        # preencha GOOGLE_CLIENT_ID
+docker compose up --build
+
+# 2. Frontend, em outro terminal
+cd frontend
+npm install
+npm start                   # http://localhost:4200
 ```
 
-Depois acesse:
+A API fica em `http://localhost:8080`; o front usa proxy para ela em
+desenvolvimento.
 
-```text
-http://localhost:8000
-```
+## De onde veio
 
-#### Com Node.js (http-server)
+O sistema era um arquivo `Code.gs` de 1542 linhas, sem classes, com um `doPost`
+que despachava 32 ações numa cadeia de `else if`, e uma planilha Google com 14
+abas fazendo as vezes de banco. O front eram 21 arquivos JS compartilhando
+variáveis globais e manipulando o DOM diretamente.
 
-Se tiver Node instalado:
+As regras de negócio foram preservadas, inclusive as menos óbvias — o saldo do
+cofrinho que só desconta gastos posteriores ao primeiro depósito, a normalização
+do nome de produto que junta "Leite Mimosa 1L" e "leite mimosa 1 l" no mesmo
+histórico de preço, e a nota com valor que cria um gasto vinculado.
+
+Os detalhes de cada parte estão nos READMEs de [`backend/`](backend/README.md),
+[`frontend/`](frontend/README.md) e [`postman/`](postman/README.md).
+
+## Testes
 
 ```bash
-npx http-server -p 8000
+cd backend && mvn test      # 151 testes (precisa de Docker)
+cd frontend && npm test     # 28 testes
 ```
-
-E acesse:
-
-```text
-http://localhost:8000
-```
-
-## Imagens e assets
-
-A estrutura espera que as imagens estejam organizadas assim:
-
-```text
-assets/
-├── icons/
-│   ├── olho.svg
-│   ├── olho-fechado.svg
-│   ├── menu.svg
-│   ├── trofeu.svg
-│   ├── assets/icons/coin.svg
-│   ├── estrela.svg
-│   ├── icone-scan.svg
-│   └── icone-carrinho.svg
-│
-├── illustrations/
-│   ├── piggu-abertura.webp
-│   ├── porquinho-perfil.svg
-│   ├── porquinho-gastos.svg
-│   ├── trofeu-v2.svg
-│   └── new-profile.svg
-│
-├── logos/
-│   ├── logo-v2.svg
-│   ├── cofrinho-logo.svg
-│   ├── favicon.jpg
-│   └── apple-touch-icon.png
-│
-├── movies/
-│   └── posters/
-│
-├── places/
-│   └── photos/
-│
-└── photos/
-    └── monthly/
-```
-
-No `index.html` os caminhos estão relativos à raiz, por exemplo:
-
-```html
-<img src="assets/illustrations/piggu-abertura.webp" alt="...">
-```
-
-Se preferir manter as imagens na raiz como no original, basta ajustar os `src` no HTML.
-
-## Integração com Google Sheets / Apps Script
-
-O arquivo `js/integrations.js` contém as constantes:
-
-```js
-const APPSSCRIPTURL = 'https://script.google.com/.../exec';
-const GOOGLECLIENTID = '....apps.googleusercontent.com';
-```
-
-Substitua pelos valores do seu projeto do Google Apps Script conforme o guia que você já tem. Enquanto essas URLs não forem configuradas, o app

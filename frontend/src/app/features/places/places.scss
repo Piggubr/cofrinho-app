@@ -1,0 +1,82 @@
+.topo {
+  margin-bottom: 1rem;
+}
+
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.arquivo {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.previa {
+  display: block;
+  max-width: 220px;
+  margin-top: 0.6rem;
+  border-radius: var(--raio-pequeno);
+  border: 1px solid var(--border);
+}
+
+.estrelas {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.estrela {
+  border: none;
+  background: transparent;
+  color: var(--track);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.estrela.marcada {
+  color: #e8b923;
+}
+
+.marcadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.marcador {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.marcador.ativo {
+  background: var(--button-bg);
+  color: var(--rose-deep);
+  font-weight: 500;
+}
+
+.lugar .foto {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--raio-pequeno);
+  margin-bottom: 0.6rem;
+}
+
+.lugar .nota {
+  color: #e8b923;
+  margin: 0.25rem 0;
+  letter-spacing: 0.1em;
+}
+
+.comentario {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}

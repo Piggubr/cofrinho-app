@@ -1,0 +1,34 @@
+.arquivo {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.navegacao-de-mes {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.foto-do-feed {
+  margin: 0;
+  padding: 0.6rem;
+}
+
+.foto-do-feed img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--raio-pequeno);
+  display: block;
+}
+
+.foto-do-feed figcaption {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.foto-do-feed input {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.55rem;
+}
