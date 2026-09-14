@@ -1,0 +1,27 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <h1>Piggu</h1>
+    <p class="subtitulo">O cofrinho dos fofos.</p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    @if (entrando()) {
+      <p class="aviso informacao">Confirmando seu acesso...</p>
+    }
+
+    <div #botaoGoogle class="area-do-botao"></div>
+
+    <label class="lembrar">
+      <input
+        type="checkbox"
+        [checked]="lembrar()"
+        (change)="alternarLembrar($any($event.target).checked)"
+      />
+      <span>Continuar conectado neste aparelho</span>
+    </label>
+
+    <p class="nota">O acesso é restrito às contas autorizadas.</p>
+  </section>
+</div>

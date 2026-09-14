@@ -1,0 +1,86 @@
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}
+
+.destaque {
+  display: flex;
+  gap: 1rem;
+  padding: 0.9rem;
+  margin: 0.9rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--field-bg);
+}
+
+.destaque img {
+  width: 110px;
+  border-radius: var(--raio-pequeno);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.destaque h3 small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.sinopse {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.cartao-filme {
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  padding: 0.75rem;
+  background: var(--surface);
+}
+
+.cartao-filme img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--raio-pequeno);
+  margin-bottom: 0.5rem;
+}
+
+.cartao-filme h3 {
+  font-size: 0.92rem;
+  margin-bottom: 0.2rem;
+}
+
+.estrelas {
+  display: flex;
+  gap: 0.1rem;
+  margin: 0.35rem 0;
+}
+
+.estrela {
+  border: none;
+  background: transparent;
+  color: var(--track);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.estrela.marcada {
+  color: #e8b923;
+}
+
+@media (max-width: 640px) {
+  .destaque {
+    flex-direction: column;
+  }
+
+  .destaque img {
+    width: 100%;
+    max-width: 160px;
+  }
+}

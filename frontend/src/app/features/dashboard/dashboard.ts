@@ -1,0 +1,166 @@
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { FinanceService } from '../../core/api/finance.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { Cofrinho, Gasto } from '../../core/api/models';
+import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { DataBrPipe } from '../../core/ui/data.pipe';
+import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+
+interface TotalPorCategoria {
+  readonly categoria: string;
+  readonly total: number;
+  readonly fatia: number;
+}
+
+/**
+ * Painel inicial.
+ *
+ * <p>E a unica tela que o perfil familiar alcanca, e para ele o backend devolve
+ * apenas os proprios depositos, com o restante zerado. Por isso os blocos de gastos
+ * e meta ficam escondidos nesse caso, em vez de mostrarem zeros sem sentido.</p>
+ */
+@Component({
+  selector: 'app-dashboard',
+  imports: [FormsModule, RouterLink, EuroPipe, DataBrPipe],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss',
+})
+export class Dashboard {
+  private readonly finance = inject(FinanceService);
+  protected readonly auth = inject(AuthService);
+
+  protected readonly carregando = signal(true);
+  protected readonly erro = signal('');
+  protected readonly cofrinho = signal<Cofrinho | null>(null);
+  protected readonly gastos = signal<Gasto[]>([]);
+  protected readonly metas = signal<Record<string, number>>({});
+  protected readonly mesAtual = signal(mesKey(new Date()));
+
+  protected readonly novoDeposito = signal<number | null>(null);
+  protected readonly salvandoDeposito = signal(false);
+
+  protected readonly rotuloDoMes = computed(() => mesPorExtenso(this.mesAtual()));
+  protected readonly totalGastoNoMes = computed(() =>
+    this.gastos().reduce((soma, gasto) => soma + gasto.valor, 0),
+  );
+  protected readonly metaDoMes = computed(() => this.metas()[this.mesAtual()] ?? 0);
+
+  protected readonly progressoDaMeta = computed(() => {
+    const meta = this.metaDoMes();
+    if (meta <= 0) {
+      return 0;
+    }
+    return Math.min(100, Math.round((this.totalGastoNoMes() / meta) * 100));
+  });
+
+  protected readonly estourouAMeta = computed(
+    () => this.metaDoMes() > 0 && this.totalGastoNoMes() > this.metaDoMes(),
+  );
+
+  protected readonly porCategoria = computed<TotalPorCategoria[]>(() => {
+    const total = this.totalGastoNoMes();
+    const acumulado = new Map<string, number>();
+    for (const gasto of this.gastos()) {
+      acumulado.set(gasto.categoria, (acumulado.get(gasto.categoria) ?? 0) + gasto.valor);
+    }
+    return [...acumulado.entries()]
+      .map(([categoria, valor]) => ({
+        categoria,
+        total: valor,
+        fatia: total > 0 ? Math.round((valor / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+  });
+
+  constructor() {
+    this.carregar();
+  }
+
+  protected trocarMes(passo: number): void {
+    const [ano, mes] = this.mesAtual().split('-').map(Number);
+    this.mesAtual.set(mesKey(somarMeses(new Date(ano, mes - 1, 1), passo)));
+    this.carregar();
+  }
+
+  protected depositar(): void {
+    const valor = this.novoDeposito();
+    if (!valor || valor <= 0) {
+      this.erro.set('Digite um valor de depósito válido.');
+      return;
+    }
+
+    this.salvandoDeposito.set(true);
+    this.erro.set('');
+    this.finance.depositar(valor, hojeIso()).subscribe({
+      next: () => {
+        this.novoDeposito.set(null);
+        this.salvandoDeposito.set(false);
+        this.recarregarCofrinho();
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.salvandoDeposito.set(false);
+      },
+    });
+  }
+
+  protected excluirDeposito(id: string): void {
+    if (!confirm('Apagar este depósito?')) {
+      return;
+    }
+    this.finance.excluirDeposito(id).subscribe({
+      next: () => this.recarregarCofrinho(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  private recarregarCofrinho(): void {
+    this.finance.consultarCofrinho().subscribe({
+      next: (cofrinho) => this.cofrinho.set(cofrinho),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  private carregar(): void {
+    this.carregando.set(true);
+    this.erro.set('');
+
+    if (this.auth.ehFamiliar()) {
+      this.finance.consultarCofrinho().subscribe({
+        next: (cofrinho) => {
+          this.cofrinho.set(cofrinho);
+          this.carregando.set(false);
+        },
+        error: (falha) => {
+          this.erro.set(mensagemDeErro(falha));
+          this.carregando.set(false);
+        },
+      });
+      return;
+    }
+
+    // Tres chamadas independentes em paralelo. O backend antigo devolvia tudo de
+    // uma vez em getData; agora cada recurso e um endpoint proprio e o navegador
+    // dispara os tres ao mesmo tempo.
+    forkJoin({
+      cofrinho: this.finance.consultarCofrinho(),
+      gastos: this.finance.listarGastos(this.mesAtual()),
+      metas: this.finance.listarMetas(),
+    }).subscribe({
+      next: ({ cofrinho, gastos, metas }) => {
+        this.cofrinho.set(cofrinho);
+        this.gastos.set(gastos);
+        this.metas.set(metas);
+        this.carregando.set(false);
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.carregando.set(false);
+      },
+    });
+  }
+}

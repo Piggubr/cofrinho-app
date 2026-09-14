@@ -1,0 +1,161 @@
+<h1>Calendário</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>{{ rotuloDoMes() }}</h2>
+    <div class="navegacao-de-mes">
+      <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
+      <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+    </div>
+  </div>
+
+  <div class="grade-do-mes">
+    @for (nomeDoDia of diasDaSemana; track nomeDoDia) {
+      <span class="cabecalho-dia">{{ nomeDoDia }}</span>
+    }
+
+    @for (dia of grade(); track $index) {
+      @if (dia.dia === null) {
+        <span class="celula vazia"></span>
+      } @else {
+        <button
+          type="button"
+          class="celula"
+          [class.hoje]="dia.hoje"
+          [class.selecionado]="diaSelecionado() === dia.iso"
+          [class.com-gasto]="dia.totalGasto > 0"
+          (click)="selecionarDia(dia)"
+        >
+          <span class="numero-do-dia">{{ dia.dia }}</span>
+          @if (dia.totalGasto > 0) {
+            <span class="marca-gasto">{{ dia.totalGasto | euro }}</span>
+          }
+          @if (dia.notas > 0) {
+            <span class="marca-nota" aria-label="Tem lembrete">•</span>
+          }
+        </button>
+      }
+    }
+  </div>
+</section>
+
+@if (diaSelecionado(); as dia) {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2>{{ dia | dataBr }}</h2>
+    </div>
+
+    @if (gastosDoDia().length) {
+      <h3>Gastos</h3>
+      @for (gasto of gastosDoDia(); track gasto.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ gasto.item }}</p>
+            <p class="linha-detalhe">{{ gasto.categoria }}</p>
+          </div>
+          <span class="linha-valor">{{ gasto.valor | euro }}</span>
+        </div>
+      }
+    }
+
+    @if (notasDoDia().length) {
+      <h3>Lembretes</h3>
+      @for (nota of notasDoDia(); track nota.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ nota.titulo }}</p>
+            @if (nota.texto) {
+              <p class="linha-detalhe">{{ nota.texto }}</p>
+            }
+          </div>
+          <div class="linha-acoes">
+            @if (nota.valor > 0) {
+              <span class="linha-valor">{{ nota.valor | euro }}</span>
+            }
+            <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+          </div>
+        </div>
+      }
+    }
+
+    @if (!gastosDoDia().length && !notasDoDia().length) {
+      <p class="vazio">Nada registrado neste dia.</p>
+    }
+  </section>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Nova nota</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="tituloNota">Título</label>
+      <input id="tituloNota" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
+    </div>
+    <div class="campo">
+      <label for="dataNota">Data</label>
+      <input id="dataNota" type="date" [ngModel]="dataDaNota()" (ngModelChange)="dataDaNota.set($event)" />
+    </div>
+    <div class="campo">
+      <label for="valorNota">Valor do evento (€)</label>
+      <input id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
+    </div>
+    @if (viraGasto()) {
+      <div class="campo">
+        <label for="categoriaNota">Categoria</label>
+        <select id="categoriaNota" [ngModel]="categoriaDaNota()" (ngModelChange)="categoriaDaNota.set($event)">
+          @for (categoria of categorias(); track categoria) {
+            <option [value]="categoria">{{ categoria }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="textoNota">Detalhes</label>
+    <textarea id="textoNota" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
+  </div>
+
+  @if (viraGasto()) {
+    <p class="aviso informacao">
+      Com valor preenchido, esta nota também lança um gasto. Apagar a nota apaga o gasto junto.
+    </p>
+  }
+
+  <div class="acoes">
+    <button type="button" class="botao" (click)="criarNota()" [disabled]="salvando()">
+      {{ salvando() ? 'Guardando...' : 'Criar nota' }}
+    </button>
+  </div>
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Sem data</h2>
+  </div>
+
+  @if (carregando()) {
+    <p class="carregando">Carregando...</p>
+  } @else if (notasSemData().length) {
+    @for (nota of notasSemData(); track nota.id) {
+      <div class="linha">
+        <div>
+          <p class="linha-titulo">{{ nota.titulo }}</p>
+          @if (nota.texto) {
+            <p class="linha-detalhe">{{ nota.texto }}</p>
+          }
+        </div>
+        <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+      </div>
+    }
+  } @else {
+    <p class="vazio">Nenhuma nota solta.</p>
+  }
+</section>

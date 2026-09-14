@@ -1,0 +1,26 @@
+# Perfil de teste: banco vem do Testcontainers, integracoes externas desligadas.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/.well-known/jwks.json
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.piggu: WARN
+
+piggu:
+  google:
+    client-ids:
+      - client-de-teste.apps.googleusercontent.com
+  jwt:
+    issuer: https://piggu.test
+    private-key: classpath:keys/piggu-dev-private.pem
+    public-key: classpath:keys/piggu-dev-public.pem
+    access-ttl: PT30M
+    refresh-ttl: P30D

@@ -1,0 +1,61 @@
+server:
+  port: ${PORT:8084}
+
+spring:
+  application:
+    name: piggu-lifestyle
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/piggu_lifestyle}
+    username: ${DB_USER:piggu}
+    password: ${DB_PASSWORD:piggu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Chave publica do piggu-identity. Baixada uma vez e mantida em cache.
+          jwk-set-uri: ${JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}
+
+piggu:
+  servicos:
+    # Onde o lifestyle encontra o servico de fotos, para as imagens dos lugares.
+    media-url: ${MEDIA_URL:http://localhost:8085}
+  integracoes:
+    tmdb:
+      # Vazio desliga busca e sorteio de filmes, com aviso claro na tela.
+      token: ${TMDB_READ_TOKEN:}
+      idioma: pt-BR
+      regiao: PT
+    catalogo:
+      user-agent: ${CATALOGO_USER_AGENT:Piggu/1.0 (contato@piggu.app)}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      media:
+        slidingWindowSize: 10
+        failureRateThreshold: 60
+        waitDurationInOpenState: 20s

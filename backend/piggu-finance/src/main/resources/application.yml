@@ -1,0 +1,52 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: piggu-finance
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/piggu_finance}
+    username: ${DB_USER:piggu}
+    password: ${DB_PASSWORD:piggu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Chave publica do piggu-identity. Baixada uma vez e mantida em cache.
+          jwk-set-uri: ${JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+
+piggu:
+  integracoes:
+    gemini:
+      # Vazio desliga a leitura de recibos por foto, com aviso claro na tela.
+      api-key: ${GEMINI_API_KEY:}
+      modelo: ${GEMINI_MODEL:gemini-3.6-flash}
+      timeout: PT45S
+    cambio:
+      url: https://api.frankfurter.dev/v2/rate/EUR/BRL
+      timeout: PT10S
+      padrao: "6.15"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}

@@ -1,0 +1,100 @@
+.abas {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.aba {
+  flex: 1;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.aba.ativa {
+  background: var(--button-bg);
+  color: var(--rose-deep);
+  font-weight: 500;
+}
+
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}
+
+.resultados {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.resultado {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--field-bg);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.resultado img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.resultado-texto {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultado-texto small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  cursor: pointer;
+  font-size: inherit;
+  color: inherit;
+  font-weight: 400;
+}
+
+.item input {
+  width: auto;
+  margin: 0;
+}
+
+.item .linha-titulo,
+.item .linha-detalhe {
+  display: block;
+}
+
+.riscado .linha-titulo {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.miniatura {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 6px;
+}

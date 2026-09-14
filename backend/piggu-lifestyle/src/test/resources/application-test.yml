@@ -1,0 +1,22 @@
+# Perfil de teste: banco vem do Testcontainers, integracoes externas desligadas.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/.well-known/jwks.json
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.piggu: WARN
+
+piggu:
+  servicos:
+    media-url: http://localhost:0
+  integracoes:
+    tmdb:
+      token: ""

@@ -1,0 +1,72 @@
+<h1>Metas</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Meta deste mês</h2>
+  </div>
+
+  @if (metaDoMesAtual() > 0) {
+    <p class="resumo">
+      {{ totalDoMesAtual() | euro }} de {{ metaDoMesAtual() | euro }}
+    </p>
+    <div class="progresso" [class.estourado]="estourou()">
+      <span [style.width.%]="progresso()"></span>
+    </div>
+    <p class="linha-detalhe">
+      {{ progresso() }}% usado
+      @if (estourou()) {
+        <strong> · meta ultrapassada</strong>
+      }
+    </p>
+  } @else {
+    <p class="vazio">Nenhuma meta definida para este mês ainda.</p>
+  }
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Definir meta</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="mes">Mês</label>
+      <input id="mes" type="month" [ngModel]="mesEscolhido()" (ngModelChange)="aoTrocarMes($event)" />
+    </div>
+    <div class="campo">
+      <label for="limite">Limite (€)</label>
+      <input id="limite" type="number" min="0.01" step="0.01" inputmode="decimal" [ngModel]="limite()" (ngModelChange)="limite.set($event)" placeholder="0,00" />
+    </div>
+    <div class="campo alinhado">
+      <button type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
+        {{ salvando() ? 'Guardando...' : 'Salvar meta' }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>Histórico</h2>
+  </div>
+
+  @if (carregando()) {
+    <p class="carregando">Carregando...</p>
+  } @else if (lista().length) {
+    @for (meta of lista(); track meta.mes) {
+      <div class="linha">
+        <p class="linha-titulo">{{ meta.rotulo }}</p>
+        <div class="linha-acoes">
+          <span class="linha-valor">{{ meta.limite | euro }}</span>
+          <button type="button" class="botao contorno pequeno" (click)="editar(meta)">Editar</button>
+        </div>
+      </div>
+    }
+  } @else {
+    <p class="vazio">Nenhuma meta cadastrada.</p>
+  }
+</section>

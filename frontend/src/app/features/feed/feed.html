@@ -1,0 +1,44 @@
+<h1>Fotos do mês</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2>{{ rotuloDoMes() }}</h2>
+    <div class="navegacao-de-mes">
+      <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
+      <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+    </div>
+  </div>
+
+  <label class="botao secundario arquivo">
+    {{ enviando() ? 'Enviando...' : 'Adicionar foto' }}
+    <input type="file" accept="image/*" (change)="enviar($event)" [disabled]="enviando()" hidden />
+  </label>
+</section>
+
+@if (carregando()) {
+  <p class="carregando">Carregando...</p>
+} @else if (fotos().length) {
+  <div class="grade">
+    @for (foto of fotos(); track foto.id) {
+      <figure class="cartao foto-do-feed">
+        <img [src]="urlDaFoto(foto)" [alt]="foto.legenda || 'Foto do mês'" loading="lazy" />
+        <figcaption>
+          <input
+            type="text"
+            [value]="foto.legenda"
+            (change)="legendar(foto, $any($event.target).value)"
+            placeholder="Escreva uma legenda"
+            aria-label="Legenda da foto"
+          />
+          <button type="button" class="botao perigo" (click)="excluir(foto)">Apagar</button>
+        </figcaption>
+      </figure>
+    }
+  </div>
+} @else {
+  <p class="vazio">Nenhuma foto neste mês ainda.</p>
+}

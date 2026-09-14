@@ -1,0 +1,55 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: piggu-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              # Origens do site. Em producao troque pela lista real de dominios:
+              # curinga com credenciais nao e aceito pelos navegadores.
+              '[/**]':
+                allowedOrigins: ${CORS_ORIGINS:http://localhost:4200}
+                allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+                allowedHeaders: '*'
+                allowCredentials: true
+                maxAge: 3600
+          routes:
+            - id: identity
+              uri: ${IDENTITY_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/auth/**,/api/users/**,/.well-known/**
+
+            - id: finance
+              uri: ${FINANCE_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/expenses/**,/api/monthly-goals/**,/api/piggy-bank/**,/api/notes/**,/api/products/**,/api/categories/**,/api/receipts/**,/api/exchange-rate/**
+
+            - id: rewards
+              uri: ${REWARDS_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/coins/**,/api/prizes/**
+
+            - id: lifestyle
+              uri: ${LIFESTYLE_URL:http://localhost:8084}
+              predicates:
+                - Path=/api/places/**,/api/movies/**,/api/shopping/**
+
+            - id: media
+              uri: ${MEDIA_URL:http://localhost:8085}
+              predicates:
+                - Path=/api/assets/**,/api/feed/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+logging:
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}

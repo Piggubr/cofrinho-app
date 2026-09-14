@@ -1,0 +1,52 @@
+.tela-de-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: var(--site-bg);
+}
+
+.caixa {
+  width: min(420px, 100%);
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+h1 {
+  color: var(--rose-deep);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.subtitulo {
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.area-do-botao {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  margin-bottom: 1rem;
+}
+
+.lembrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+}
+
+.lembrar input {
+  width: auto;
+  margin: 0;
+}
+
+.nota {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 0;
+}

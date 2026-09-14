@@ -1,0 +1,25 @@
+# Perfil de teste: banco vem do Testcontainers, integracoes externas ficam desligadas.
+spring:
+  jpa:
+    hibernate:
+      # Mantido em validate de proposito: e assim que o teste de migrations
+      # percebe divergencia entre o SQL do Flyway e o mapeamento das entidades.
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/.well-known/jwks.json
+
+piggu:
+  integracoes:
+    gemini:
+      api-key: ""
+    cambio:
+      url: http://localhost:0/cambio
+      padrao: "6.15"
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.piggu: WARN

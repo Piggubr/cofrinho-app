@@ -1,0 +1,16 @@
+# Backend Java
+backend/.env
+backend/*/target/
+backend/dados-fotos/
+
+# Arquivos compactados de apoio
+*.rar
+*.zip
+
+# Sistema
+.DS_Store
+
+# Frontend Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/

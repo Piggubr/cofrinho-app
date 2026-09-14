@@ -1,0 +1,96 @@
+<h1>Perfil</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso">{{ aviso() }}</p>
+}
+
+@if (auth.usuario(); as pessoa) {
+  <section class="cartao">
+    <div class="identidade">
+      @if (pessoa.foto) {
+        <img [src]="pessoa.foto" [alt]="pessoa.nome" class="avatar-grande" referrerpolicy="no-referrer" />
+      }
+      <div>
+        <h2>{{ pessoa.nome }}</h2>
+        <p class="linha-detalhe">{{ pessoa.email }}</p>
+        <span class="etiqueta">{{ pessoa.role }}</span>
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button type="button" class="botao contorno" (click)="sair()">Sair da conta</button>
+    </div>
+  </section>
+}
+
+@if (auth.ehAdmin()) {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2>Quem pode entrar</h2>
+    </div>
+
+    <div class="linha-de-campos">
+      <div class="campo">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" [ngModel]="novoEmail()" (ngModelChange)="novoEmail.set($event)" placeholder="pessoa@gmail.com" />
+      </div>
+      <div class="campo">
+        <label for="perfil">Perfil</label>
+        <select id="perfil" [ngModel]="novoPerfil()" (ngModelChange)="novoPerfil.set($event)">
+          @for (perfil of perfis; track perfil) {
+            <option [value]="perfil">{{ perfil }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo alinhado">
+        <button type="button" class="botao" (click)="autorizar()">Autorizar</button>
+      </div>
+    </div>
+
+    @for (item of autorizados(); track item.email) {
+      <div class="linha">
+        <div>
+          <p class="linha-titulo">{{ item.email }}</p>
+          <p class="linha-detalhe">{{ item.role }}</p>
+        </div>
+        <button type="button" class="botao perigo" (click)="revogar(item.email)">Remover</button>
+      </div>
+    } @empty {
+      <p class="vazio">Nenhum e-mail liberado.</p>
+    }
+  </section>
+
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2>Contas</h2>
+    </div>
+
+    @if (carregandoAdmin()) {
+      <p class="carregando">Carregando...</p>
+    } @else {
+      @for (conta of contas(); track conta.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ conta.nome }}</p>
+            <p class="linha-detalhe">{{ conta.email }}</p>
+          </div>
+          <div class="linha-acoes">
+            <select [ngModel]="conta.role" (ngModelChange)="alterarPerfil(conta, $event)" aria-label="Perfil">
+              @for (perfil of perfis; track perfil) {
+                <option [value]="perfil">{{ perfil }}</option>
+              }
+            </select>
+            <button type="button" class="botao contorno pequeno" (click)="alternarAtivo(conta)">
+              {{ conta.ativo ? 'Desativar' : 'Ativar' }}
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <p class="vazio">Nenhuma conta criada ainda.</p>
+      }
+    }
+  </section>
+}
