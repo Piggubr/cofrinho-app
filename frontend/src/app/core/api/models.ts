@@ -105,6 +105,10 @@ export interface ReciboLido {
   estabelecimento: string;
   data: string;
   itens: { item: string; categoria: string; valor: number }[];
+  /** OCR: leitor proprio, a foto nao saiu do servidor. GEMINI: leitura por IA. */
+  origem: 'OCR' | 'GEMINI';
+  /** O que conferir com mais cuidado; nulo quando a soma bateu com o total do cupom. */
+  aviso: string | null;
 }
 
 export interface Deposito {

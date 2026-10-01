@@ -4,7 +4,7 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
-import com.piggu.finance.integration.GeminiReceiptReader;
+import com.piggu.finance.integration.LeitorDeRecibos;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
 public class ReceiptController {
 
-    private final GeminiReceiptReader leitor;
+    private final LeitorDeRecibos leitor;
 
-    public ReceiptController(GeminiReceiptReader leitor) {
+    public ReceiptController(LeitorDeRecibos leitor) {
         this.leitor = leitor;
     }
 
