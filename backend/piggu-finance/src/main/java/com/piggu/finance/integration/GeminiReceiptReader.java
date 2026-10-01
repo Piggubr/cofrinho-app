@@ -85,7 +85,10 @@ public class GeminiReceiptReader {
         String caminho = "/v1beta/models/" + propriedades.modelo() + ":generateContent";
         try {
             JsonNode resposta = cliente.post()
-                    .uri(uri -> uri.path(caminho).queryParam("key", propriedades.apiKey()).build())
+                    // Chave no cabecalho, nunca na URL: a URL entra nas mensagens de erro
+                    // de E/S, que vao para o log.
+                    .uri(caminho)
+                    .header("x-goog-api-key", propriedades.apiKey())
                     .header("Content-Type", "application/json")
                     .body(montarCorpo(pedido, hoje))
                     .retrieve()
@@ -181,7 +184,8 @@ public class GeminiReceiptReader {
         try {
             return json.readTree(texto);
         } catch (Exception erro) {
-            log.error("Resposta do Gemini fora do formato esperado: {}", texto, erro);
+            // O texto e o recibo da pessoa: so o tamanho vai para o log.
+            log.error("Resposta do Gemini fora do formato esperado ({} caracteres)", texto.length(), erro);
             throw new UpstreamException("A IA devolveu uma resposta que nao consegui entender.");
         }
     }

@@ -53,7 +53,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        # Sem "gateway": esse endpoint lista as rotas internas e aceita POST para
+        # criar rotas novas, sem autenticacao, na unica porta publicada.
+        include: health,info
 
 logging:
   level:
