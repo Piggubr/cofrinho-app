@@ -9,9 +9,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 |---|---|
 | [`backend/`](backend/) | Seis microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
-| [`postman/`](postman/) | Collection com os 66 endpoints da API |
-| `Code.gs` | Backend original em Apps Script, mantido como referência |
-| `index.html`, `css/`, `js/` | Front original, mantido como referência |
+| `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
+| `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
 
 ## Subindo tudo
 
@@ -19,6 +18,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 # 1. Backend (Postgres + os seis serviços)
 cd backend
 cp .env.example .env        # preencha GOOGLE_CLIENT_ID
+./scripts/gerar-chaves-dev.sh   # par RSA local para assinar os tokens
 docker compose up --build
 
 # 2. Frontend, em outro terminal
@@ -42,8 +42,8 @@ cofrinho que só desconta gastos posteriores ao primeiro depósito, a normaliza�
 do nome de produto que junta "Leite Mimosa 1L" e "leite mimosa 1 l" no mesmo
 histórico de preço, e a nota com valor que cria um gasto vinculado.
 
-Os detalhes de cada parte estão nos READMEs de [`backend/`](backend/README.md),
-[`frontend/`](frontend/README.md) e [`postman/`](postman/README.md).
+Os detalhes de cada parte estão nos READMEs de [`backend/`](backend/README.md)
+e [`frontend/`](frontend/README.md).
 
 ## Testes
 
