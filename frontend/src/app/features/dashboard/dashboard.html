@@ -114,9 +114,7 @@
         <div class="cartao-titulo">
           <h2 id="titulo-bancos">Contas bancárias</h2>
           @for (total of saldoPorMoeda(); track total.moeda) {
-            <span class="etiqueta">{{
-              total.total | currency: total.moeda : 'symbol' : '1.2-2' : 'pt'
-            }}</span>
+            <span class="etiqueta">{{ total.total | moeda: total.moeda }}</span>
           }
         </div>
 
@@ -137,7 +135,7 @@
                 </p>
               </div>
               <span class="linha-valor">
-                {{ conta.saldo | currency: conta.moeda : 'symbol' : '1.2-2' : 'pt' }}
+                {{ conta.saldo | moeda: conta.moeda }}
               </span>
             </div>
           }

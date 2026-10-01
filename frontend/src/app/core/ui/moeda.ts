@@ -45,7 +45,8 @@ export class MoedaService {
 export class MoedaPipe implements PipeTransform {
   private readonly moeda = inject(MoedaService);
 
-  transform(valor: number | null | undefined): string {
-    return this.moeda.formatar(valor);
+  /** @param codigo moeda fixa do valor (ex.: saldo de banco em BRL); sem ela, a da pessoa */
+  transform(valor: number | null | undefined, codigo?: string): string {
+    return codigo ? formatadorDe(codigo).format(Number(valor ?? 0)) : this.moeda.formatar(valor);
   }
 }

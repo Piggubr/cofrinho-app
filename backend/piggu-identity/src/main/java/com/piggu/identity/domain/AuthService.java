@@ -112,12 +112,11 @@ public class AuthService {
 
     @Transactional
     public UserResponse salvarPreferencias(java.util.UUID usuarioId, PreferencesRequest pedido) {
+        String moeda = Moedas.validar(pedido.moeda());
+        String conversao = Moedas.validar(pedido.moedaConversao());
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
-        conta.alterarPreferencias(
-                Moedas.validar(pedido.moeda()),
-                Moedas.validar(pedido.moedaConversao()),
-                pedido.mostrarCotacao());
+        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao());
         return UserResponse.de(conta);
     }
 
