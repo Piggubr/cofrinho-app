@@ -244,7 +244,7 @@ mvn test          # a suíte inteira
 mvn -pl piggu-finance test
 ```
 
-São 169 testes. Os que precisam de banco sobem um PostgreSQL de verdade via
+São 204 testes. Os que precisam de banco sobem um PostgreSQL de verdade via
 Testcontainers e deixam o Flyway aplicar as migrations reais — então **é preciso
 ter Docker rodando**. Não usamos H2: as migrations dependem de `jsonb`, arrays de
 texto, índice GIN e `gen_random_uuid`, e um banco em memória fingindo ser Postgres
@@ -257,13 +257,14 @@ primeira paga os ~10s de startup, as demais rodam em milissegundos.
 
 | Onde | Testes | Regra que não pode quebrar |
 |---|---|---|
-| `piggu-common` | 22 | Erro de negócio chega ao usuário; falha interna nunca vaza detalhe |
-| `piggu-identity` | 18 | Rotação de refresh, revogação ao desativar conta, claims do token, recusa subir sem chave |
-| `piggu-finance` | 58 | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API |
-| `piggu-rewards` | 13 | Saldo nunca negativo, resgate atômico, sem gasto duplo |
-| `piggu-lifestyle` | 27 | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
-| `piggu-media` | 16 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão |
-| `piggu-banking` | 15 | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, familiar sem acesso |
+| `piggu-common` | 27 | Erro de negócio chega ao usuário; falha interna nunca vaza detalhe |
+| `piggu-identity` | 24 | Rotação de refresh, revogação ao desativar conta, claims do token, recusa subir sem chave, preferências de moeda, perfis na API |
+| `piggu-finance` | 68 | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API, câmbio de qualquer par, chave do Gemini fora da URL |
+| `piggu-rewards` | 16 | Saldo nunca negativo, resgate atômico, sem gasto duplo |
+| `piggu-lifestyle` | 30 | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
+| `piggu-media` | 19 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, foto só para ADMIN/BEATRIZ |
+| `piggu-banking` | 16 | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, familiar sem acesso |
+| `piggu-gateway` | 4 | Toda rota existe, atuador de rotas fechado, X-Request-Id validado |
 
 ### Três testes que merecem atenção
 
@@ -303,9 +304,5 @@ anterior à 1.40, recusada por daemons recentes. O POM pai fixa `1.43` em
 
 ## O que ainda falta
 
-- **Cobertura de controllers.** Só o `piggu-finance` tem teste de API; nos outros
-  serviços as regras de perfil estão cobertas apenas na camada de serviço.
-- **Gateway sem teste.** O roteamento foi verificado à mão, com os sete processos
-  no ar, mas não há teste automatizado das rotas.
 - **Importação dos dados da planilha.** O banco sobe vazio. O histórico que já
   existe na planilha precisa de um importador.

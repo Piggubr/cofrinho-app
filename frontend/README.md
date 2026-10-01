@@ -16,7 +16,7 @@ então **o backend precisa estar no ar** (`cd ../backend && docker compose up`).
 
 ```bash
 npm run build      # build de produção
-npm test           # 30 testes
+npm test           # 41 testes
 ```
 
 ## Telas
@@ -134,7 +134,7 @@ forneça outro `APP_CONFIG` em `app.config.ts` (produção).
 npm test
 ```
 
-30 testes em Vitest, sem precisar de backend:
+41 testes em Vitest, sem precisar de backend:
 
 | Arquivo | O que protege |
 |---|---|
@@ -144,11 +144,14 @@ npm test
 | `mensagem-de-erro.spec.ts` | Mostra a mensagem do backend, nunca um objeto cru |
 | `moeda.spec.ts` | Valores na moeda escolhida pela pessoa, trocando sem recarregar |
 | `pluggy-connect.service.spec.ts` | Widget da Pluggy abre com o token do backend; item conectado é registrado; fechar não registra |
+| `shell.spec.ts` | Cotação do topo segue as moedas escolhidas e some quando desligada |
+| `dashboard.spec.ts` | Card de bancos só aparece com Open Finance ligado; fora do ar não quebra o painel |
+| `profile.spec.ts` | Preferências de moeda vão ao backend e atualizam a sessão; erro aparece na tela |
 
 ## O que ainda falta
 
-- **Testes de componente.** A cobertura está no núcleo (interceptor, storage,
-  utilitários). As telas em si não têm teste.
+- **Testes de componente.** Painel, perfil e cabeçalho têm teste; as demais telas
+  (gastos, calendário, lugares, filmes, compras, feed, prêmios, metas) ainda não.
 - **PWA.** O app antigo tinha `manifest.webmanifest` e era instalável no iPhone.
   Isso não foi portado ainda.
 - **Academia e metas pessoais.** Duas funcionalidades do app antigo viviam só no

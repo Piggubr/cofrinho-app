@@ -1,5 +1,4 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -28,7 +27,7 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, CurrencyPipe],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

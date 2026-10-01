@@ -48,6 +48,6 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # 169 testes (precisa de Docker)
-cd frontend && npm test     # 30 testes
+cd backend && mvn verify    # 204 testes (precisa de Docker)
+cd frontend && npm test     # 41 testes
 ```
