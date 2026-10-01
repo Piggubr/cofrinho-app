@@ -58,6 +58,14 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("sem credenciais da Pluggy o status diz desligado")
+    void statusDesligadoSemCredenciais() throws Exception {
+        mockMvc.perform(get("/api/banking/status").with(TokensDeTeste.beatriz()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.habilitado").value(false));
+    }
+
+    @Test
     @DisplayName("id de item com caractere estranho e recusado antes de ir a Pluggy")
     void itemInvalido() throws Exception {
         mockMvc.perform(post("/api/banking/items")

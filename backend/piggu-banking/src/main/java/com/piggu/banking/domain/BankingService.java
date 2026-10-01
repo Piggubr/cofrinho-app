@@ -40,6 +40,10 @@ public class BankingService {
         this.contas = contas;
     }
 
+    public boolean habilitado() {
+        return propriedades.habilitado();
+    }
+
     public ConnectTokenResponse gerarConnectToken(CurrentUser usuario) {
         return new ConnectTokenResponse(pluggy.criarConnectToken(usuario.id().toString()), propriedades.sandbox());
     }

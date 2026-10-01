@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
 @RestController
@@ -28,6 +29,12 @@ public class BankingController {
 
     public BankingController(BankingService servico) {
         this.servico = servico;
+    }
+
+    /** Open Finance e opcional: o front so mostra o card quando isto diz que esta ligado. */
+    @GetMapping("/status")
+    public Map<String, Boolean> status() {
+        return Map.of("habilitado", servico.habilitado());
     }
 
     @PostMapping("/connect-token")

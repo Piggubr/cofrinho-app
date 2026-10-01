@@ -158,6 +158,11 @@ As quatro primeiras foram portadas do Apps Script. Todas degradam com aviso clar
 
 ### Open Finance (Pluggy)
 
+**É opcional e vem desligado.** O serviço só sobe com `docker compose --profile open-finance up`,
+e `GET /api/banking/status` só responde `habilitado: true` com `PLUGGY_CLIENT_ID` e
+`PLUGGY_CLIENT_SECRET` preenchidos. O painel consulta esse status e esconde o card de
+bancos quando está desligado ou quando o serviço nem está no ar.
+
 O usuário conecta o banco no widget Pluggy Connect; a senha vai direto para a
 Pluggy e nunca passa pelo Piggu. O fluxo:
 
