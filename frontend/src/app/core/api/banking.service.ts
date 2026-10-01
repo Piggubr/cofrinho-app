@@ -6,6 +6,11 @@ import { ConnectToken, ContaBancaria } from './models';
 /** Bancos conectados por Open Finance (Pluggy). */
 @Injectable({ providedIn: 'root' })
 export class BankingService extends ApiBase {
+  /** Open Finance e opcional; desligado (ou servico fora do ar) esconde o card. */
+  status(): Observable<{ habilitado: boolean }> {
+    return this.http.get<{ habilitado: boolean }>(this.url('/banking/status'));
+  }
+
   /** Token de 30 minutos que abre o widget Pluggy Connect. */
   gerarConnectToken(): Observable<ConnectToken> {
     return this.http.post<ConnectToken>(this.url('/banking/connect-token'), {});

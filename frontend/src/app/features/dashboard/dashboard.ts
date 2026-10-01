@@ -48,6 +48,7 @@ export class Dashboard {
   protected readonly novoDeposito = signal<number | null>(null);
   protected readonly salvandoDeposito = signal(false);
 
+  protected readonly openFinance = signal(false);
   protected readonly contas = signal<ContaBancaria[]>([]);
   protected readonly ocupadoComBancos = signal(false);
   protected readonly erroBancos = signal('');
@@ -134,12 +135,21 @@ export class Dashboard {
     });
   }
 
-  // Fora do forkJoin de proposito: banco desconectado ou Pluggy fora do ar nao pode
-  // derrubar o painel inteiro.
+  // Fora do forkJoin de proposito: Open Finance e opcional, e desligado ou fora do
+  // ar nao pode derrubar o painel inteiro. Qualquer falha no status esconde o card.
   private carregarContas(): void {
-    this.banking.listarContas().subscribe({
-      next: (contas) => this.contas.set(contas),
-      error: (falha) => this.erroBancos.set(mensagemDeErro(falha)),
+    this.banking.status().subscribe({
+      next: ({ habilitado }) => {
+        this.openFinance.set(habilitado);
+        if (!habilitado) {
+          return;
+        }
+        this.banking.listarContas().subscribe({
+          next: (contas) => this.contas.set(contas),
+          error: (falha) => this.erroBancos.set(mensagemDeErro(falha)),
+        });
+      },
+      error: () => this.openFinance.set(false),
     });
   }
 

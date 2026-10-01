@@ -120,7 +120,10 @@ services:
       identity:
         condition: service_healthy
 
+  # Opcional: so sobe com  docker compose --profile open-finance up
+  # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
   banking:
+    profiles: ["open-finance"]
     build:
       context: .
       args:
@@ -160,7 +163,6 @@ services:
       - rewards
       - lifestyle
       - media
-      - banking
 
 volumes:
   piggu-dados:
