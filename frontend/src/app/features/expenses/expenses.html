@@ -91,8 +91,13 @@
     </div>
 
     <p class="linha-detalhe">
-      {{ lido.estabelecimento || 'Estabelecimento não identificado' }} · {{ lido.data | dataBr }}
+      {{ lido.estabelecimento || 'Estabelecimento não identificado' }} · {{ lido.data | dataBr }} ·
+      {{ lido.origem === 'OCR' ? 'lido pelo Piggu' : 'lido pelo Gemini' }}
     </p>
+
+    @if (lido.aviso) {
+      <p class="aviso" role="status">{{ lido.aviso }}</p>
+    }
 
     @if (previaDoRecibo()) {
       <img [src]="previaDoRecibo()" alt="Foto do recibo" class="previa" />

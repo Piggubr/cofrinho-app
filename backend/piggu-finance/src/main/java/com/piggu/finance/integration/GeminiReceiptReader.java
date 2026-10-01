@@ -63,6 +63,10 @@ public class GeminiReceiptReader {
         this.json = json;
     }
 
+    public boolean habilitado() {
+        return propriedades.habilitado();
+    }
+
     public ReceiptParseResponse ler(ReceiptParseRequest pedido) {
         if (!propriedades.habilitado()) {
             throw new BusinessException(
@@ -77,7 +81,9 @@ public class GeminiReceiptReader {
                 UUID.randomUUID(),
                 Texto.limitar(lido.path("estabelecimento").asText(""), 200),
                 dataOuHoje(lido.path("data").asText(""), hoje),
-                extrairItens(lido.path("itens"))
+                extrairItens(lido.path("itens")),
+                "GEMINI",
+                null
         );
     }
 

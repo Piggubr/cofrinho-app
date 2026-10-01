@@ -25,6 +25,11 @@ WORKDIR /app
 ARG MODULO
 COPY --from=build /app/${MODULO}/target/*.jar app.jar
 
+# OCR dos recibos: so o finance precisa do Tesseract (portugues e ingles).
+RUN if [ "$MODULO" = "piggu-finance" ]; then \
+        apk add --no-cache tesseract-ocr tesseract-ocr-data-por tesseract-ocr-data-eng; \
+    fi
+
 # Usuario sem privilegios: um processo comprometido nao vira root no container.
 RUN addgroup -S piggu && adduser -S piggu -G piggu
 USER piggu
