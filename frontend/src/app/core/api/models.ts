@@ -18,6 +18,30 @@ export interface Usuario {
   ativo: boolean;
   permissoes: Record<string, unknown>;
   preferencias: Preferencias;
+  plano: Plano;
+  /** Ate quando o Premium vale; nulo no gratuito. */
+  premiumAte: string | null;
+}
+
+export type Plano = 'GRATUITO' | 'PREMIUM';
+export type Periodo = 'MENSAL' | 'ANUAL';
+
+/** Precos em reais, ja formatados ("19,90"). */
+export interface Precos {
+  mensal: string;
+  anual: string;
+}
+
+/** Tela de planos: o que vale agora e o que cada plano inclui. */
+export interface InfoDoPlano {
+  plano: Plano;
+  premiumAte: string | null;
+  origem: 'WEB' | 'APP_STORE' | 'PLAY_STORE' | null;
+  assinaturaDisponivel: boolean;
+  site: Precos;
+  app: Precos;
+  gratuito: string[];
+  premium: string[];
 }
 
 /** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */

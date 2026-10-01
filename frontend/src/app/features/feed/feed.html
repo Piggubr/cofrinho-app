@@ -13,10 +13,20 @@
     </div>
   </div>
 
-  <label class="botao secundario arquivo">
-    {{ enviando() ? 'Enviando...' : 'Adicionar foto' }}
-    <input type="file" accept="image/*" (change)="enviar($event)" [disabled]="enviando()" hidden />
-  </label>
+  @if (auth.ehPremium()) {
+    <label class="botao secundario arquivo">
+      {{ enviando() ? 'Enviando...' : 'Adicionar foto' }}
+      <input
+        type="file"
+        accept="image/*"
+        (change)="enviar($event)"
+        [disabled]="enviando()"
+        hidden
+      />
+    </label>
+  } @else {
+    <a routerLink="/plano" class="botao contorno">Adicionar fotos ⭐ Premium</a>
+  }
 </section>
 
 @if (carregando()) {

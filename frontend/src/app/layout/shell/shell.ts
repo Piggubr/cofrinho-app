@@ -44,6 +44,7 @@ export class Shell {
     { rota: '/feed', rotulo: 'Fotos', icone: '📸', somenteCompleto: true },
     { rota: '/premios', rotulo: 'Prêmios', icone: '🏆', somenteCompleto: true },
     { rota: '/metas', rotulo: 'Metas', icone: '🎯', somenteCompleto: true },
+    { rota: '/plano', rotulo: 'Premium', icone: '⭐', somenteCompleto: true },
   ];
 
   constructor() {

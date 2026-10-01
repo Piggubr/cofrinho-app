@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 import { MediaService } from '../../core/api/media.service';
 import { FotoDoFeed } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -15,11 +17,12 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
  */
 @Component({
   selector: 'app-feed',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './feed.html',
   styleUrl: './feed.scss',
 })
 export class Feed {
+  protected readonly auth = inject(AuthService);
   private readonly media = inject(MediaService);
 
   protected readonly carregando = signal(true);

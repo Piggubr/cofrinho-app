@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto, ItemDeGasto, ReciboLido } from '../../core/api/models';
@@ -25,12 +27,13 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [FormsModule, MoedaPipe, DataBrPipe],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
 export class Expenses {
   protected readonly moeda = inject(MoedaService);
+  protected readonly auth = inject(AuthService);
   private readonly finance = inject(FinanceService);
 
   protected readonly carregando = signal(true);

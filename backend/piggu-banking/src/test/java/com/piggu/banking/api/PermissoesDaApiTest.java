@@ -74,4 +74,16 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                         .content("{\"itemId\":\"../auth\"}"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("no gratuito conectar e sincronizar pedem Premium, mas as contas ja salvas seguem visiveis")
+    void gratuitoNaoConecta() throws Exception {
+        mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.beatrizGratuita()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("PLANO_PREMIUM"));
+        mockMvc.perform(post("/api/banking/sync").with(TokensDeTeste.beatrizGratuita()))
+                .andExpect(status().isUnprocessableEntity());
+        mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.beatrizGratuita()))
+                .andExpect(status().isOk());
+    }
 }

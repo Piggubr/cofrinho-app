@@ -1,5 +1,7 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.security.AuthUser;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.integration.GeminiReceiptReader;
@@ -27,7 +29,9 @@ public class ReceiptController {
     }
 
     @PostMapping("/parse")
-    public ReceiptParseResponse ler(@Valid @RequestBody ReceiptParseRequest pedido) {
+    public ReceiptParseResponse ler(@Valid @RequestBody ReceiptParseRequest pedido,
+                                    @AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("Ler a nota fiscal pela foto");
         return leitor.ler(pedido);
     }
 }

@@ -1,0 +1,58 @@
+package com.piggu.identity.api.dto;
+
+import com.piggu.common.security.Plano;
+import com.piggu.identity.domain.UserAccount;
+
+import java.time.Instant;
+import java.util.List;
+
+/**
+ * O plano da conta e o que cada plano inclui, para a tela de planos.
+ *
+ * @param plano                o que vale agora (um Premium vencido ja aparece GRATUITO)
+ * @param premiumAte           ate quando o Premium vale; nulo no gratuito
+ * @param origem               onde foi assinado: WEB, APP_STORE ou PLAY_STORE
+ * @param assinaturaDisponivel falso enquanto o provedor de pagamento do site nao estiver configurado
+ * @param site                 precos no site (Stripe)
+ * @param app                  precos dentro do app iOS/Android: +15% pela taxa das lojas
+ */
+public record PlanoResponse(
+        Plano plano,
+        Instant premiumAte,
+        String origem,
+        boolean assinaturaDisponivel,
+        Precos site,
+        Precos app,
+        List<String> gratuito,
+        List<String> premium
+) {
+
+    /** Em reais. */
+    public record Precos(String mensal, String anual) {
+    }
+
+    public static final Precos PRECOS_SITE = new Precos("19,90", "199,00");
+    public static final Precos PRECOS_APP = new Precos("22,89", "228,85");
+
+    private static final List<String> GRATUITO = List.of(
+            "Gastos, categorias, meta do mês e calendário",
+            "Cofrinho com depósitos da família",
+            "Lista de compras, lugares e filmes",
+            "Prêmios e Fofocoins",
+            "Moeda e cotação à sua escolha",
+            "Tudo o que você guardou continua visível se o Premium acabar"
+    );
+
+    private static final List<String> PREMIUM = List.of(
+            "Tudo do gratuito",
+            "Contas bancárias pelo Open Finance, com saldo atualizado",
+            "Leitura da nota fiscal pela foto",
+            "Mural de fotos"
+    );
+
+    public static PlanoResponse de(UserAccount conta, boolean assinaturaDisponivel) {
+        Plano vigente = conta.planoVigente();
+        return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? conta.getPremiumUntil() : null,
+                conta.getPlanSource(), assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+    }
+}

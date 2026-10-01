@@ -36,6 +36,14 @@ piggu:
     access-ttl: PT30M
     refresh-ttl: P30D
 
+  stripe:
+    # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    price-mensal: ${STRIPE_PRICE_MENSAL:}
+    price-anual: ${STRIPE_PRICE_ANUAL:}
+    site-url: ${SITE_URL:http://localhost:4200}
+
 management:
   endpoints:
     web:

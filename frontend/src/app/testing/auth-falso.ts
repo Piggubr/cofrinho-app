@@ -1,4 +1,5 @@
 import { computed, signal } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import { Preferencias, Usuario } from '../core/api/models';
 
 /** Usuario de teste com as preferencias padrao de uma conta nova. */
@@ -14,6 +15,8 @@ export function usuarioDeTeste(mudancas: Partial<Usuario> = {}): Usuario {
     ativo: true,
     permissoes: {},
     preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
+    plano: 'PREMIUM',
+    premiumAte: '2026-12-31T00:00:00Z',
     ...mudancas,
   };
 }
@@ -26,6 +29,15 @@ export class AuthFalso {
   readonly usuario = signal<Usuario | null>(usuarioDeTeste());
   readonly ehFamiliar = computed(() => this.usuario()?.role === 'FAMILIAR');
   readonly ehAdmin = computed(() => this.usuario()?.role === 'ADMIN');
+  readonly ehPremium = computed(
+    () => this.usuario()?.role === 'ADMIN' || this.usuario()?.plano === 'PREMIUM',
+  );
+  readonly renovacoes = signal(0);
+
+  renovar(): Observable<unknown> {
+    this.renovacoes.update((n) => n + 1);
+    return of({});
+  }
 
   atualizarUsuario(usuario: Usuario): void {
     this.usuario.set(usuario);

@@ -37,6 +37,11 @@ services:
       # scripts/gerar-chaves-dev.sh; em producao defina as duas no .env.
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-file:/app/keys/piggu-dev-private.pem}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-file:/app/keys/piggu-dev-public.pem}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_MENSAL: ${STRIPE_PRICE_MENSAL:-}
+      STRIPE_PRICE_ANUAL: ${STRIPE_PRICE_ANUAL:-}
+      SITE_URL: ${SITE_URL:-http://localhost:4200}
     volumes:
       - ./keys:/app/keys:ro
     depends_on:

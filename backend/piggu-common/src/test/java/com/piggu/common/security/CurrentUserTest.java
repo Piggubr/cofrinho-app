@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Regra de quem pode mexer no que.
@@ -54,5 +55,17 @@ class CurrentUserTest {
 
         CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
         assertThat(admin.podeGerenciar(null)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Premium barra o gratuito com codigo proprio e deixa passar o pago e o admin")
+    void exigirPremium() {
+        CurrentUser gratuita = new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ);
+        assertThatThrownBy(() -> gratuita.exigirPremium("Conectar bancos"))
+                .isInstanceOfSatisfying(com.piggu.common.error.BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo(Plano.CODIGO_PREMIUM));
+
+        new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ, Plano.PREMIUM).exigirPremium("Conectar bancos");
+        new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN).exigirPremium("Conectar bancos");
     }
 }

@@ -30,6 +30,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
       {
+        path: 'plano',
+        canActivate: [perfilGuard('ADMIN', 'BEATRIZ')],
+        loadComponent: () => import('./features/plan/plan').then((m) => m.Plan),
+      },
+      {
         path: 'gastos',
         canActivate: [perfilGuard('ADMIN', 'BEATRIZ')],
         loadComponent: () => import('./features/expenses/expenses').then((m) => m.Expenses),

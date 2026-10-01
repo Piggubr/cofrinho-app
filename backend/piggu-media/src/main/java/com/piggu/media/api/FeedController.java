@@ -46,6 +46,7 @@ public class FeedController {
     @ResponseStatus(HttpStatus.CREATED)
     public FeedPhotoResponse publicar(@Valid @RequestBody FeedPhotoRequest pedido,
                                       @AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("O mural de fotos");
         return servico.publicar(pedido, usuario.email());
     }
 

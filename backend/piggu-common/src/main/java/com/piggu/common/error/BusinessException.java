@@ -13,17 +13,28 @@ import org.springframework.http.HttpStatus;
 public class BusinessException extends RuntimeException {
 
     private final HttpStatus status;
+    private final String codigo;
 
     public BusinessException(String message) {
         this(message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     public BusinessException(String message, HttpStatus status) {
+        this(message, status, null);
+    }
+
+    /** @param codigo identificador estavel para o front; nulo usa o nome da classe */
+    public BusinessException(String message, HttpStatus status, String codigo) {
         super(message);
         this.status = status;
+        this.codigo = codigo;
     }
 
     public HttpStatus getStatus() {
         return status;
+    }
+
+    public String getCodigo() {
+        return codigo == null ? getClass().getSimpleName() : codigo;
     }
 }

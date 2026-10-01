@@ -19,6 +19,8 @@ const usuario: Usuario = {
   ativo: true,
   permissoes: {},
   preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
+  plano: 'GRATUITO',
+  premiumAte: null,
 };
 
 function par(sufixo: string): ParDeTokens {

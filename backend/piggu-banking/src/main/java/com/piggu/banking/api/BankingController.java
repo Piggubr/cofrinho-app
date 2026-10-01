@@ -39,6 +39,7 @@ public class BankingController {
 
     @PostMapping("/connect-token")
     public ConnectTokenResponse connectToken(@AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("Conectar bancos pelo Open Finance");
         return servico.gerarConnectToken(usuario);
     }
 
@@ -46,6 +47,7 @@ public class BankingController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<BankAccountResponse> registrar(@Valid @RequestBody RegisterItemRequest pedido,
                                                @AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("Conectar bancos pelo Open Finance");
         return servico.registrar(pedido.itemId(), usuario);
     }
 
@@ -56,6 +58,7 @@ public class BankingController {
 
     @PostMapping("/sync")
     public List<BankAccountResponse> sincronizar(@AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("Atualizar os saldos dos bancos");
         return servico.sincronizarTudo(usuario);
     }
 }
