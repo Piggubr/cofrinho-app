@@ -23,7 +23,7 @@ function renderLista() {
     const cor = CATEGORIAS[g.categoria] || CATEGORIAS.Outros;
 
     return `
-      <div class="row">
+      <div class="row row-editable" role="button" tabindex="0" data-gasto-id="${esc(g.id)}" aria-label="Editar ${esc(g.item)}, ${fmt(g.valor)}">
         <div class="row-left">
           <p class="row-item">${esc(g.item)}</p>
           <p class="row-date">${fmtData(g.data)}</p>
@@ -36,7 +36,106 @@ function renderLista() {
     `;
   }).join('');
 
+  el.querySelectorAll('[data-gasto-id]').forEach(linha => {
+    linha.addEventListener('click', () => abrirEdicaoGasto(linha.dataset.gastoId));
+    linha.addEventListener('keydown', evento => {
+      if (evento.key !== 'Enter' && evento.key !== ' ') return;
+      evento.preventDefault();
+      abrirEdicaoGasto(linha.dataset.gastoId);
+    });
+  });
+
   atualizarBotaoTodosLancamentos(ordenado.length, LIMITE_COMPACTO);
+}
+
+function abrirEdicaoGasto(id) {
+  const gasto = gastos.find(g => String(g.id) === String(id));
+  if (!gasto) return;
+
+  abrirModal('Editar gasto', `
+    <form id="formEditarGasto" class="category-form expense-edit-form">
+      <label for="editarGastoItem">O que foi?</label>
+      <input id="editarGastoItem" name="item" maxlength="200" autocomplete="off" required value="${esc(gasto.item)}">
+      <label for="editarGastoValor">Valor (€)</label>
+      <input id="editarGastoValor" name="valor" type="number" inputmode="decimal" step="0.01" min="0" required value="${esc(gasto.valor)}">
+      <label for="editarGastoCategoria">Categoria</label>
+      <select id="editarGastoCategoria" name="categoria"></select>
+      <p class="field-help" id="editarGastoFeedback">${esc(fmtData(gasto.data))}${gasto.estabelecimento ? ' • ' + esc(gasto.estabelecimento) : ''}</p>
+      <div class="category-form-actions">
+        <button class="button-secondary" id="cancelarEdicaoGasto" type="button">Cancelar</button>
+        <button class="button-primary" type="submit">Salvar</button>
+      </div>
+      <button class="expense-delete" id="excluirGasto" type="button">Excluir gasto</button>
+    </form>
+  `);
+
+  const form = document.getElementById('formEditarGasto');
+  const feedback = document.getElementById('editarGastoFeedback');
+  const selectCategoria = document.getElementById('editarGastoCategoria');
+  const botaoSalvar = form.querySelector('button[type="submit"]');
+  const botaoExcluir = document.getElementById('excluirGasto');
+  let confirmandoExclusao = false;
+
+  popularSelectCategorias(selectCategoria);
+  if (!Object.prototype.hasOwnProperty.call(CATEGORIAS, gasto.categoria)) {
+    selectCategoria.insertAdjacentHTML('beforeend', `<option value="${esc(gasto.categoria)}">${esc(gasto.categoria)}</option>`);
+  }
+  selectCategoria.value = gasto.categoria;
+
+  document.getElementById('cancelarEdicaoGasto')?.addEventListener('click', fecharModal);
+
+  const travar = travado => {
+    botaoSalvar.disabled = travado;
+    botaoExcluir.disabled = travado;
+  };
+
+  form.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    const dados = new FormData(form);
+    const item = String(dados.get('item') || '').trim();
+    const valor = Number(dados.get('valor') || 0);
+    const categoria = String(dados.get('categoria') || 'Outros');
+
+    if (!item) {
+      feedback.textContent = 'Digite o que foi gasto.';
+      return;
+    }
+    if (!(valor > 0)) {
+      feedback.textContent = 'Digite um valor válido.';
+      return;
+    }
+
+    travar(true);
+    feedback.textContent = 'Salvando…';
+    try {
+      await chamarAppsScript({ action: 'updateExpense', id: gasto.id, item, valor, categoria });
+      await carregarDados();
+      fecharModal();
+    } catch (erro) {
+      feedback.textContent = erro.message || 'Não foi possível salvar o gasto.';
+      travar(false);
+    }
+  });
+
+  botaoExcluir.addEventListener('click', async () => {
+    if (!confirmandoExclusao) {
+      confirmandoExclusao = true;
+      botaoExcluir.textContent = 'Toque de novo para excluir';
+      feedback.textContent = 'O gasto será apagado da planilha.';
+      return;
+    }
+
+    travar(true);
+    feedback.textContent = 'Excluindo…';
+    try {
+      await chamarAppsScript({ action: 'deleteExpense', id: gasto.id });
+      await carregarDados();
+      fecharModal();
+    } catch (erro) {
+      feedback.textContent = erro.message || 'Não foi possível excluir o gasto.';
+      travar(false);
+    }
+  });
 }
 
 function atualizarBotaoTodosLancamentos(total, limite) {

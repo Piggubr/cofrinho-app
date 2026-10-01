@@ -978,3 +978,5 @@ input[type="checkbox"]:active{transform:scale(.9)}
 #tab-gastos .finance-card .finance-stats>div{background:rgba(255,255,255,.44)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.84)!important}
 #tab-gastos .finance-card .finance-stats span{color:var(--muted)!important}
 #tab-gastos .finance-card .finance-stats strong{color:var(--theme-strong)!important}
+.row-editable{cursor:pointer;border-radius:12px;transition:background-color .15s ease}.row-editable:hover,.row-editable:focus-visible{background:var(--surface)}.row-editable:focus-visible{outline:2px solid var(--rose-deep);outline-offset:-2px}
+.expense-edit-form input,.expense-edit-form select{width:100%}.expense-delete{background:transparent;border:none;color:#C0392B;font:500 14px/20px var(--font-body);padding:8px;cursor:pointer}.expense-delete:disabled,.expense-edit-form button:disabled{opacity:.6;cursor:default}
