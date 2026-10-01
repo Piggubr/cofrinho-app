@@ -7,6 +7,8 @@ import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.AuthorizedEmailRequest;
 import com.piggu.identity.api.dto.UpdateUserRequest;
 import com.piggu.identity.api.dto.UserResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import java.util.UUID;
 
 @Service
 public class UserAdminService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserAdminService.class);
 
     private final UserAccountRepository usuarios;
     private final AuthorizedEmailRepository autorizados;
@@ -54,6 +58,7 @@ public class UserAdminService {
             }
         }
 
+        log.info("Conta alterada pelo admin: id={} perfil={} ativa={}", id, conta.getRole(), conta.isActive());
         return UserResponse.de(usuarios.save(conta));
     }
 
@@ -74,6 +79,8 @@ public class UserAdminService {
                 .ifPresentOrElse(
                         existente -> existente.setRole(pedido.role()),
                         () -> autorizados.save(new AuthorizedEmail(email, pedido.role())));
+        // O e-mail fica fora do log: e o proprio dado pessoal sendo cadastrado.
+        log.info("E-mail liberado para entrar: perfil={}", pedido.role());
     }
 
     @Transactional
@@ -86,6 +93,7 @@ public class UserAdminService {
             conta.setActive(false);
             usuarios.save(conta);
             sessoes.apagarPorUsuario(conta.getId());
+            log.info("Acesso revogado: conta={}", conta.getId());
         });
     }
 
