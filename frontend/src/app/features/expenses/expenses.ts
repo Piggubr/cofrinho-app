@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto, ItemDeGasto, ReciboLido } from '../../core/api/models';
-import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
@@ -25,11 +25,12 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [FormsModule, EuroPipe, DataBrPipe],
+  imports: [FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
 export class Expenses {
+  protected readonly moeda = inject(MoedaService);
   private readonly finance = inject(FinanceService);
 
   protected readonly carregando = signal(true);

@@ -180,7 +180,9 @@ A Pluggy atualiza os dados com o banco uma vez por dia. Forçar a ida ao banco n
 hora (`PATCH /items/{id}` + webhook) ficou de fora. `PLUGGY_SANDBOX=true` mostra
 os bancos de teste da Pluggy no widget, para desenvolver sem conta real.
 
-A cotação mantém a escada de três degraus do original: cache de uma hora, depois
+A cotação aceita qualquer par de moedas ISO 4217 que a Frankfurter cubra; a
+moeda de exibição e a de conversão são preferências de cada conta, gravadas no
+identity (`PUT /api/auth/me/preferences`). A cotação mantém a escada de três degraus do original: cache de uma hora, depois
 o último valor guardado marcado como desatualizado, depois um valor fixo de
 emergência. A tela nunca fica sem um número.
 
@@ -201,7 +203,7 @@ Cada ação do `Code.gs` e onde ela foi parar:
 | `saveNote` / `deleteNote` | `POST` / `DELETE /api/notes` |
 | `addCategory` | `POST /api/categories` |
 | `parse` | `POST /api/receipts/parse` |
-| `getExchangeRate` | `GET /api/exchange-rate` |
+| `getExchangeRate` | `GET /api/exchange-rate?de=EUR&para=BRL` (qualquer par) e `GET /api/exchange-rate/currencies` |
 | `adjustCoins` | `POST /api/coins/adjustments` |
 | `savePrize` | `POST` / `PUT /api/prizes` |
 | `redeemPrize` | `POST /api/prizes/{id}/redemptions` |

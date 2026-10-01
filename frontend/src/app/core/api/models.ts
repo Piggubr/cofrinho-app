@@ -17,6 +17,19 @@ export interface Usuario {
   role: PigguRole;
   ativo: boolean;
   permissoes: Record<string, unknown>;
+  preferencias: Preferencias;
+}
+
+/** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */
+export interface Preferencias {
+  moeda: string;
+  moedaConversao: string;
+  mostrarCotacao: boolean;
+}
+
+export interface MoedaDisponivel {
+  codigo: string;
+  nome: string;
 }
 
 export interface ParDeTokens {
@@ -111,6 +124,8 @@ export interface Produto {
 }
 
 export interface Cotacao {
+  de: string;
+  para: string;
   taxa: number;
   data: string;
   fonte: string;

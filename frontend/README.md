@@ -57,6 +57,15 @@ chamadas que vencem juntas compartilham **a mesma** renovação, via `shareRepla
 o backend rotaciona o refresh a cada uso, então duas renovações em paralelo
 invalidariam uma à outra e derrubariam a sessão. Esse caso tem teste.
 
+### Moeda de cada pessoa
+
+O app nasceu em euro, com o símbolo escrito à mão. Agora cada conta escolhe, no
+perfil, a moeda em que vê os valores (qualquer ISO 4217 que a fonte de câmbio
+conheça), a moeda para a qual a cotação do topo converte, e se essa cotação aparece.
+A escolha fica no backend (`PUT /api/auth/me/preferences`) e chega junto com o
+usuário no login. O pipe `moeda` e o `MoedaService` leem dali; trocar a moeda muda
+só a exibição, os valores lançados não são convertidos.
+
 ### Bancos conectados (Open Finance)
 
 O card "Contas bancárias" do painel usa o widget Pluggy Connect. O script da
@@ -133,7 +142,7 @@ npm test
 | `token-storage.spec.ts` | Lembrar usa localStorage, não lembrar usa sessionStorage |
 | `datas.spec.ts` | Chave de mês, data ISO sem fuso, grade do calendário |
 | `mensagem-de-erro.spec.ts` | Mostra a mensagem do backend, nunca um objeto cru |
-| `moeda.pipe.spec.ts` | Formatação em euro |
+| `moeda.spec.ts` | Valores na moeda escolhida pela pessoa, trocando sem recarregar |
 | `pluggy-connect.service.spec.ts` | Widget da Pluggy abre com o token do backend; item conectado é registrado; fechar não registra |
 
 ## O que ainda falta

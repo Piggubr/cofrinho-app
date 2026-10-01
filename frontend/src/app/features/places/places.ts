@@ -4,7 +4,7 @@ import { forkJoin } from 'rxjs';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { MediaService } from '../../core/api/media.service';
 import { Lugar, NovoLugar } from '../../core/api/models';
-import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso } from '../../core/ui/datas';
@@ -19,11 +19,12 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
  */
 @Component({
   selector: 'app-places',
-  imports: [FormsModule, EuroPipe, DataBrPipe],
+  imports: [FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })
 export class Places {
+  protected readonly moeda = inject(MoedaService);
   private readonly lifestyle = inject(LifestyleService);
   private readonly media = inject(MediaService);
 

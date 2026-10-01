@@ -4,6 +4,7 @@ import { ApiBase } from './api-base';
 import {
   Cofrinho,
   Cotacao,
+  MoedaDisponivel,
   Deposito,
   Gasto,
   ItemDeGasto,
@@ -92,7 +93,14 @@ export class FinanceService extends ApiBase {
     return this.http.post<ReciboLido>(this.url('/receipts/parse'), { imageBase64, mimeType });
   }
 
-  consultarCotacao(): Observable<Cotacao> {
-    return this.http.get<Cotacao>(this.url('/exchange-rate'));
+  consultarCotacao(de: string, para: string): Observable<Cotacao> {
+    return this.http.get<Cotacao>(this.url('/exchange-rate'), {
+      params: this.params({ de, para }),
+    });
+  }
+
+  /** Moedas que a fonte de cambio conhece, para a escolha nas preferencias. */
+  listarMoedas(): Observable<MoedaDisponivel[]> {
+    return this.http.get<MoedaDisponivel[]>(this.url('/exchange-rate/currencies'));
   }
 }

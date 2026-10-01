@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto } from '../../core/api/models';
-import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 
@@ -21,11 +21,12 @@ interface MetaNaTela {
  */
 @Component({
   selector: 'app-goals',
-  imports: [FormsModule, EuroPipe],
+  imports: [FormsModule, MoedaPipe],
   templateUrl: './goals.html',
   styleUrl: './goals.scss',
 })
 export class Goals {
+  protected readonly moeda = inject(MoedaService);
   private readonly finance = inject(FinanceService);
 
   protected readonly carregando = signal(true);

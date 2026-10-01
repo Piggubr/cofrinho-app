@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
+import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
-import { PigguRole, Usuario } from '../../core/api/models';
+import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
 /**
@@ -32,10 +33,48 @@ export class Profile {
 
   protected readonly perfis: PigguRole[] = ['ADMIN', 'BEATRIZ', 'FAMILIAR'];
 
+  private readonly finance = inject(FinanceService);
+  protected readonly moedas = signal<MoedaDisponivel[]>([]);
+  protected readonly moeda = signal(this.auth.usuario()?.preferencias?.moeda ?? 'EUR');
+  protected readonly moedaConversao = signal(
+    this.auth.usuario()?.preferencias?.moedaConversao ?? 'BRL',
+  );
+  protected readonly mostrarCotacao = signal(
+    this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
+  );
+  protected readonly salvandoPreferencias = signal(false);
+
   constructor() {
+    this.finance.listarMoedas().subscribe({
+      next: (moedas) => this.moedas.set(moedas),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
     if (this.auth.ehAdmin()) {
       this.carregarAdmin();
     }
+  }
+
+  protected salvarPreferencias(): void {
+    this.salvandoPreferencias.set(true);
+    this.erro.set('');
+    this.aviso.set('');
+    this.users
+      .salvarPreferencias({
+        moeda: this.moeda(),
+        moedaConversao: this.moedaConversao(),
+        mostrarCotacao: this.mostrarCotacao(),
+      })
+      .subscribe({
+        next: (usuario) => {
+          this.auth.atualizarUsuario(usuario);
+          this.aviso.set('Preferências salvas.');
+          this.salvandoPreferencias.set(false);
+        },
+        error: (falha) => {
+          this.erro.set(mensagemDeErro(falha));
+          this.salvandoPreferencias.set(false);
+        },
+      });
   }
 
   protected sair(): void {

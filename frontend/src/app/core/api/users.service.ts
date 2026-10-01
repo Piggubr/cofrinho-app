@@ -1,13 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import { PigguRole, Usuario } from './models';
+import { PigguRole, Preferencias, Usuario } from './models';
 
 /** Administracao de contas e da lista de e-mails liberados. */
 @Injectable({ providedIn: 'root' })
 export class UsersService extends ApiBase {
   meuPerfil(): Observable<Usuario> {
     return this.http.get<Usuario>(this.url('/auth/me'));
+  }
+
+  /** Qualquer perfil grava as proprias preferencias de moeda. */
+  salvarPreferencias(preferencias: Preferencias): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/auth/me/preferences'), preferencias);
   }
 
   listar(): Observable<Usuario[]> {
@@ -32,6 +37,8 @@ export class UsersService extends ApiBase {
   }
 
   revogar(email: string): Observable<void> {
-    return this.http.delete<void>(this.url(`/users/authorized-emails/${encodeURIComponent(email)}`));
+    return this.http.delete<void>(
+      this.url(`/users/authorized-emails/${encodeURIComponent(email)}`),
+    );
   }
 }

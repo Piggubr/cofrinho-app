@@ -1,13 +1,18 @@
 package com.piggu.finance.api;
 
+import com.piggu.finance.api.dto.CurrencyResponse;
 import com.piggu.finance.api.dto.ExchangeRateResponse;
 import com.piggu.finance.integration.ExchangeRateService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
- * Cotacao EUR para BRL. Substitui a acao getExchangeRate.
+ * Cotacao entre duas moedas. Substitui a acao getExchangeRate, que so fazia EUR
+ * para BRL; sem parametros continua sendo esse o par.
  * Aberto a todos os perfis, inclusive FAMILIAR.
  */
 @RestController
@@ -21,7 +26,13 @@ public class ExchangeRateController {
     }
 
     @GetMapping
-    public ExchangeRateResponse consultar() {
-        return servico.consultar();
+    public ExchangeRateResponse consultar(@RequestParam(defaultValue = "EUR") String de,
+                                          @RequestParam(defaultValue = "BRL") String para) {
+        return servico.consultar(de, para);
+    }
+
+    @GetMapping("/currencies")
+    public List<CurrencyResponse> moedas() {
+        return servico.moedas();
     }
 }

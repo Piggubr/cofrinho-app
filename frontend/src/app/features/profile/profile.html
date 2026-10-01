@@ -26,6 +26,54 @@
   </section>
 }
 
+<section class="cartao" aria-labelledby="titulo-moeda">
+  <div class="cartao-titulo">
+    <h2 id="titulo-moeda">Moeda</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label for="moeda">Mostrar valores em</label>
+      <select id="moeda" [ngModel]="moeda()" (ngModelChange)="moeda.set($event)">
+        @for (opcao of moedas(); track opcao.codigo) {
+          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="moedaConversao">Converter cotação para</label>
+      <select
+        id="moedaConversao"
+        [ngModel]="moedaConversao()"
+        (ngModelChange)="moedaConversao.set($event)"
+      >
+        @for (opcao of moedas(); track opcao.codigo) {
+          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <label class="caixa">
+    <input type="checkbox" [ngModel]="mostrarCotacao()" (ngModelChange)="mostrarCotacao.set($event)" />
+    Mostrar a cotação no topo do app
+  </label>
+  <p class="linha-detalhe">
+    Trocar a moeda muda só como os valores aparecem; os valores já lançados não são convertidos.
+  </p>
+
+  <div class="acoes">
+    <button
+      type="button"
+      class="botao"
+      (click)="salvarPreferencias()"
+      [disabled]="salvandoPreferencias() || !moedas().length"
+    >
+      {{ salvandoPreferencias() ? 'Salvando...' : 'Salvar preferências' }}
+    </button>
+  </div>
+</section>
+
 @if (auth.ehAdmin()) {
   <section class="cartao">
     <div class="cartao-titulo">

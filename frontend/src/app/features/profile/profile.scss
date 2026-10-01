@@ -33,3 +33,15 @@
   padding: 0.35rem 0.5rem;
   font-size: 0.82rem;
 }
+
+.caixa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.caixa input {
+  width: auto;
+  margin: 0;
+}
