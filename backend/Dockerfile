@@ -1,5 +1,5 @@
-# Build unico para os cinco servicos: o modulo desejado entra por ARG.
-# Um Dockerfile so evita cinco arquivos quase identicos saindo de sincronia.
+# Build unico para todos os servicos: o modulo desejado entra por ARG.
+# Um Dockerfile so evita varios arquivos quase identicos saindo de sincronia.
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
@@ -13,6 +13,7 @@ COPY piggu-finance/pom.xml piggu-finance/
 COPY piggu-rewards/pom.xml piggu-rewards/
 COPY piggu-lifestyle/pom.xml piggu-lifestyle/
 COPY piggu-media/pom.xml piggu-media/
+COPY piggu-banking/pom.xml piggu-banking/
 RUN mvn -B -q dependency:go-offline -DskipTests || true
 
 COPY . .

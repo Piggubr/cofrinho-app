@@ -1,6 +1,6 @@
 # Sobe a plataforma inteira com: docker compose up --build
 #
-# Sao seis processos. O gateway e a unica porta publicada para o navegador;
+# Sao sete processos. O gateway e a unica porta publicada para o navegador;
 # os servicos conversam pela rede interna do Compose.
 
 services:
@@ -120,6 +120,25 @@ services:
       identity:
         condition: service_healthy
 
+  banking:
+    build:
+      context: .
+      args:
+        MODULO: piggu-banking
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_banking
+      DB_USER: piggu
+      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
+      PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
+      PLUGGY_SANDBOX: ${PLUGGY_SANDBOX:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
   gateway:
     build:
       context: .
@@ -131,6 +150,7 @@ services:
       REWARDS_URL: http://rewards:8083
       LIFESTYLE_URL: http://lifestyle:8084
       MEDIA_URL: http://media:8085
+      BANKING_URL: http://banking:8086
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
     ports:
       - "8080:8080"
@@ -140,6 +160,7 @@ services:
       - rewards
       - lifestyle
       - media
+      - banking
 
 volumes:
   piggu-dados:

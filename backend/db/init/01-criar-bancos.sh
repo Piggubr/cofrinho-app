@@ -4,7 +4,7 @@
 # conjunto de microservicos virar um monolito distribuido sem ninguem perceber.
 set -e
 
-for banco in piggu_identity piggu_finance piggu_rewards piggu_lifestyle piggu_media; do
+for banco in piggu_identity piggu_finance piggu_rewards piggu_lifestyle piggu_media piggu_banking; do
   echo "Criando banco $banco"
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-SQL
     CREATE DATABASE $banco;

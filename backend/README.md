@@ -4,7 +4,7 @@ Migração do backend do Piggu, que era um único arquivo Google Apps Script
 (`Code.gs`, 1542 linhas) usando uma planilha Google como banco de dados, para
 uma plataforma de microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL.
 
-## Os seis serviços
+## Os sete serviços
 
 | Serviço | Porta | Banco | Responsabilidade |
 |---|---|---|---|
@@ -14,6 +14,7 @@ uma plataforma de microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL.
 | `piggu-rewards` | 8083 | `piggu_rewards` | Fofocoins, prêmios, resgates |
 | `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras |
 | `piggu-media` | 8085 | `piggu_media` | Fotos do feed e imagens dos lugares |
+| `piggu-banking` | 8086 | `piggu_banking` | Open Finance via Pluggy: bancos conectados, contas e saldos |
 
 Mais o módulo `piggu-common`, uma biblioteca (não um serviço) com o tratamento
 de erros, os tipos de segurança e os utilitários de texto que todos compartilham.
@@ -27,8 +28,8 @@ cp .env.example .env     # preencha GOOGLE_CLIENT_ID
 docker compose up --build
 ```
 
-A API fica em `http://localhost:8080`. O Compose cria o Postgres, os cinco
-bancos e sobe os seis processos na ordem certa.
+A API fica em `http://localhost:8080`. O Compose cria o Postgres, os seis
+bancos e sobe os sete processos na ordem certa.
 
 Para rodar um serviço isolado durante o desenvolvimento:
 
@@ -145,7 +146,7 @@ real fica só no log. O corpo de erro é sempre o mesmo:
 
 ## Integrações externas
 
-As quatro foram portadas. Todas degradam com aviso claro em vez de quebrar:
+As quatro primeiras foram portadas do Apps Script. Todas degradam com aviso claro em vez de quebrar:
 
 | Integração | Variável | Sem ela |
 |---|---|---|
@@ -153,6 +154,26 @@ As quatro foram portadas. Todas degradam com aviso claro em vez de quebrar:
 | TMDB (filmes) | `TMDB_READ_TOKEN` | Avisa que a busca não está configurada |
 | OpenFoodFacts (produtos) | — | Funciona sem credencial |
 | Frankfurter (câmbio) | — | Cai para a última cotação conhecida |
+| Pluggy (Open Finance) | `PLUGGY_CLIENT_ID`, `PLUGGY_CLIENT_SECRET` | Avisa que a conexão com bancos não está configurada |
+
+### Open Finance (Pluggy)
+
+O usuário conecta o banco no widget Pluggy Connect; a senha vai direto para a
+Pluggy e nunca passa pelo Piggu. O fluxo:
+
+1. `POST /api/banking/connect-token` — o backend troca `clientId`/`clientSecret`
+   por uma apiKey (guardada por quase duas horas) e pede um connect token com o
+   id do usuário como `clientUserId`.
+2. O widget conecta o banco e devolve o id do item.
+3. `POST /api/banking/items` — o backend busca o item na Pluggy e **confere que o
+   `clientUserId` é do usuário logado** antes de gravar: o id vem do navegador e
+   não prova nada sozinho. Em seguida grava as contas com saldo.
+4. `GET /api/banking/accounts` lista do banco local; `POST /api/banking/sync`
+   relê item e contas na Pluggy e remove as contas que sumiram.
+
+A Pluggy atualiza os dados com o banco uma vez por dia. Forçar a ida ao banco na
+hora (`PATCH /items/{id}` + webhook) ficou de fora. `PLUGGY_SANDBOX=true` mostra
+os bancos de teste da Pluggy no widget, para desenvolver sem conta real.
 
 A cotação mantém a escada de três degraus do original: cache de uma hora, depois
 o último valor guardado marcado como desatualizado, depois um valor fixo de
@@ -209,7 +230,7 @@ mvn test          # a suíte inteira
 mvn -pl piggu-finance test
 ```
 
-São 151 testes. Os que precisam de banco sobem um PostgreSQL de verdade via
+São 169 testes. Os que precisam de banco sobem um PostgreSQL de verdade via
 Testcontainers e deixam o Flyway aplicar as migrations reais — então **é preciso
 ter Docker rodando**. Não usamos H2: as migrations dependem de `jsonb`, arrays de
 texto, índice GIN e `gen_random_uuid`, e um banco em memória fingindo ser Postgres
@@ -223,11 +244,12 @@ primeira paga os ~10s de startup, as demais rodam em milissegundos.
 | Onde | Testes | Regra que não pode quebrar |
 |---|---|---|
 | `piggu-common` | 22 | Erro de negócio chega ao usuário; falha interna nunca vaza detalhe |
-| `piggu-identity` | 15 | Rotação de refresh, revogação ao desativar conta, claims do token |
+| `piggu-identity` | 18 | Rotação de refresh, revogação ao desativar conta, claims do token, recusa subir sem chave |
 | `piggu-finance` | 58 | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API |
 | `piggu-rewards` | 13 | Saldo nunca negativo, resgate atômico, sem gasto duplo |
 | `piggu-lifestyle` | 27 | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
 | `piggu-media` | 16 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão |
+| `piggu-banking` | 15 | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, familiar sem acesso |
 
 ### Três testes que merecem atenção
 
@@ -269,7 +291,7 @@ anterior à 1.40, recusada por daemons recentes. O POM pai fixa `1.43` em
 
 - **Cobertura de controllers.** Só o `piggu-finance` tem teste de API; nos outros
   serviços as regras de perfil estão cobertas apenas na camada de serviço.
-- **Gateway sem teste.** O roteamento foi verificado à mão, com os seis processos
+- **Gateway sem teste.** O roteamento foi verificado à mão, com os sete processos
   no ar, mas não há teste automatizado das rotas.
 - **Importação dos dados da planilha.** O banco sobe vazio. O histórico que já
   existe na planilha precisa de um importador.

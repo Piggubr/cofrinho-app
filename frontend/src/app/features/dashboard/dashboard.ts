@@ -1,10 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { Cofrinho, Gasto } from '../../core/api/models';
+import { BankingService } from '../../core/api/banking.service';
+import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
+import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { EuroPipe } from '../../core/ui/moeda.pipe';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -25,13 +28,15 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, RouterLink, EuroPipe, DataBrPipe],
+  imports: [FormsModule, RouterLink, EuroPipe, DataBrPipe, CurrencyPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   private readonly finance = inject(FinanceService);
   protected readonly auth = inject(AuthService);
+  private readonly banking = inject(BankingService);
+  private readonly pluggy = inject(PluggyConnectService);
 
   protected readonly carregando = signal(true);
   protected readonly erro = signal('');
@@ -42,6 +47,19 @@ export class Dashboard {
 
   protected readonly novoDeposito = signal<number | null>(null);
   protected readonly salvandoDeposito = signal(false);
+
+  protected readonly contas = signal<ContaBancaria[]>([]);
+  protected readonly ocupadoComBancos = signal(false);
+  protected readonly erroBancos = signal('');
+
+  /** Soma por moeda: somar real com euro daria um numero sem sentido. */
+  protected readonly saldoPorMoeda = computed(() => {
+    const totais = new Map<string, number>();
+    for (const conta of this.contas()) {
+      totais.set(conta.moeda, (totais.get(conta.moeda) ?? 0) + conta.saldo);
+    }
+    return [...totais.entries()].map(([moeda, total]) => ({ moeda, total }));
+  });
 
   protected readonly rotuloDoMes = computed(() => mesPorExtenso(this.mesAtual()));
   protected readonly totalGastoNoMes = computed(() =>
@@ -78,6 +96,51 @@ export class Dashboard {
 
   constructor() {
     this.carregar();
+    if (!this.auth.ehFamiliar()) {
+      this.carregarContas();
+    }
+  }
+
+  protected async conectarBanco(): Promise<void> {
+    this.ocupadoComBancos.set(true);
+    this.erroBancos.set('');
+    try {
+      const contas = await this.pluggy.conectar();
+      if (contas) {
+        this.contas.set(contas);
+      }
+    } catch (falha) {
+      // Erro do widget chega como Error com texto proprio; erro da API, como resposta HTTP.
+      this.erroBancos.set(
+        mensagemDeErro(falha, falha instanceof Error ? falha.message : undefined),
+      );
+    } finally {
+      this.ocupadoComBancos.set(false);
+    }
+  }
+
+  protected sincronizarBancos(): void {
+    this.ocupadoComBancos.set(true);
+    this.erroBancos.set('');
+    this.banking.sincronizar().subscribe({
+      next: (contas) => {
+        this.contas.set(contas);
+        this.ocupadoComBancos.set(false);
+      },
+      error: (falha) => {
+        this.erroBancos.set(mensagemDeErro(falha));
+        this.ocupadoComBancos.set(false);
+      },
+    });
+  }
+
+  // Fora do forkJoin de proposito: banco desconectado ou Pluggy fora do ar nao pode
+  // derrubar o painel inteiro.
+  private carregarContas(): void {
+    this.banking.listarContas().subscribe({
+      next: (contas) => this.contas.set(contas),
+      error: (falha) => this.erroBancos.set(mensagemDeErro(falha)),
+    });
   }
 
   protected trocarMes(passo: number): void {

@@ -7,7 +7,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 
 | Pasta | O que é |
 |---|---|
-| [`backend/`](backend/) | Seis microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
+| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
@@ -15,7 +15,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 ## Subindo tudo
 
 ```bash
-# 1. Backend (Postgres + os seis serviços)
+# 1. Backend (Postgres + os sete serviços)
 cd backend
 cp .env.example .env        # preencha GOOGLE_CLIENT_ID
 ./scripts/gerar-chaves-dev.sh   # par RSA local para assinar os tokens
@@ -48,6 +48,6 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn test      # 151 testes (precisa de Docker)
-cd frontend && npm test     # 28 testes
+cd backend && mvn verify    # 169 testes (precisa de Docker)
+cd frontend && npm test     # 30 testes
 ```

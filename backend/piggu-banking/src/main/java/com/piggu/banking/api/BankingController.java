@@ -1,0 +1,54 @@
+package com.piggu.banking.api;
+
+import com.piggu.banking.api.dto.BankAccountResponse;
+import com.piggu.banking.api.dto.ConnectTokenResponse;
+import com.piggu.banking.api.dto.RegisterItemRequest;
+import com.piggu.banking.domain.BankingService;
+import com.piggu.common.security.AuthUser;
+import com.piggu.common.security.CurrentUser;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+/** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
+@RestController
+@RequestMapping("/api/banking")
+@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+public class BankingController {
+
+    private final BankingService servico;
+
+    public BankingController(BankingService servico) {
+        this.servico = servico;
+    }
+
+    @PostMapping("/connect-token")
+    public ConnectTokenResponse connectToken(@AuthUser CurrentUser usuario) {
+        return servico.gerarConnectToken(usuario);
+    }
+
+    @PostMapping("/items")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<BankAccountResponse> registrar(@Valid @RequestBody RegisterItemRequest pedido,
+                                               @AuthUser CurrentUser usuario) {
+        return servico.registrar(pedido.itemId(), usuario);
+    }
+
+    @GetMapping("/accounts")
+    public List<BankAccountResponse> contas(@AuthUser CurrentUser usuario) {
+        return servico.listar(usuario);
+    }
+
+    @PostMapping("/sync")
+    public List<BankAccountResponse> sincronizar(@AuthUser CurrentUser usuario) {
+        return servico.sincronizarTudo(usuario);
+    }
+}

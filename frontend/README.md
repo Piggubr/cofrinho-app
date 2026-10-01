@@ -16,7 +16,7 @@ então **o backend precisa estar no ar** (`cd ../backend && docker compose up`).
 
 ```bash
 npm run build      # build de produção
-npm test           # 28 testes
+npm test           # 30 testes
 ```
 
 ## Telas
@@ -28,7 +28,7 @@ onze mesmo abrindo só uma.
 | Rota | O que faz | Perfis |
 |---|---|---|
 | `/entrar` | Login com Google | — |
-| `/painel` | Cofrinho, meta do mês e gastos por categoria | todos |
+| `/painel` | Cofrinho, meta do mês, gastos por categoria e saldo dos bancos conectados | todos |
 | `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, BEATRIZ |
 | `/calendario` | Grade do mês com gastos e lembretes | ADMIN, BEATRIZ |
 | `/compras` | Listas de compras e desejos, busca no catálogo | ADMIN, BEATRIZ |
@@ -56,6 +56,16 @@ O interceptor anexa o token, e num 401 renova e repete a chamada uma vez. Duas
 chamadas que vencem juntas compartilham **a mesma** renovação, via `shareReplay`:
 o backend rotaciona o refresh a cada uso, então duas renovações em paralelo
 invalidariam uma à outra e derrubariam a sessão. Esse caso tem teste.
+
+### Bancos conectados (Open Finance)
+
+O card "Contas bancárias" do painel usa o widget Pluggy Connect. O script da
+Pluggy só é baixado quando o usuário clica em "Conectar banco", com versão fixa e
+hash de integridade (`pluggy-connect.service.ts`): é ele que recebe a senha do
+banco, então o navegador recusa qualquer versão diferente da conferida. A senha
+vai direto do widget para a Pluggy; o Piggu só recebe o id da conexão. O card
+carrega fora do `forkJoin` do painel, para que a Pluggy fora do ar não derrube o
+resto. O perfil `FAMILIAR` não vê o card.
 
 ### Imagens por URL, não em base64
 
@@ -115,7 +125,7 @@ forneça outro `APP_CONFIG` em `app.config.ts` (produção).
 npm test
 ```
 
-28 testes em Vitest, sem precisar de backend:
+30 testes em Vitest, sem precisar de backend:
 
 | Arquivo | O que protege |
 |---|---|
@@ -124,6 +134,7 @@ npm test
 | `datas.spec.ts` | Chave de mês, data ISO sem fuso, grade do calendário |
 | `mensagem-de-erro.spec.ts` | Mostra a mensagem do backend, nunca um objeto cru |
 | `moeda.pipe.spec.ts` | Formatação em euro |
+| `pluggy-connect.service.spec.ts` | Widget da Pluggy abre com o token do backend; item conectado é registrado; fechar não registra |
 
 ## O que ainda falta
 
