@@ -2,6 +2,8 @@
 backend/.env
 backend/*/target/
 backend/dados-fotos/
+# Chaves de assinatura geradas por backend/scripts/gerar-chaves-dev.sh
+backend/keys/
 
 # Arquivos compactados de apoio
 *.rar

@@ -23,6 +23,7 @@ de erros, os tipos de segurança e os utilitários de texto que todos compartilh
 ```bash
 cd backend
 cp .env.example .env     # preencha GOOGLE_CLIENT_ID
+./scripts/gerar-chaves-dev.sh   # par RSA local, em backend/keys/ (fora do Git)
 docker compose up --build
 ```
 
@@ -33,7 +34,7 @@ Para rodar um serviço isolado durante o desenvolvimento:
 
 ```bash
 mvn install -DskipTests
-java -jar piggu-identity/target/piggu-identity-1.0.0-SNAPSHOT.jar
+SPRING_PROFILES_ACTIVE=dev java -jar piggu-identity/target/piggu-identity-1.0.0-SNAPSHOT.jar
 ```
 
 ## Decisões que valem explicação
@@ -76,6 +77,22 @@ acontece no caminho de uma requisição comum.
 O ID token do Google também passou a ser conferido localmente, contra o JWKS
 público do Google, em vez de uma chamada HTTP ao endpoint `tokeninfo` a cada
 login.
+
+### Chaves de assinatura
+
+O identity **recusa subir** sem `JWT_PRIVATE_KEY` e `JWT_PUBLIC_KEY` (PEM inteiro
+ou caminho `file:`). Não existe valor padrão no `application.yml`: esquecer a
+variável num deploy derruba a subida em vez de assinar tokens com uma chave
+conhecida. O `TokenConfigTest` quebra se alguém reintroduzir um padrão.
+
+No ambiente local, `./scripts/gerar-chaves-dev.sh` cria um par em `backend/keys/`
+(ignorado pelo Git). O Compose monta essa pasta e o perfil `dev` aponta para ela.
+Os testes usam um par próprio em `src/test/resources/keys/`, que nunca sai do
+classpath de teste.
+
+> A chave privada que ficou versionada em `src/main/resources/keys/` até esta
+> mudança continua no histórico do Git e deve ser tratada como **vazada**: nunca a
+> use em nenhum ambiente real. Gere o par de produção fora do repositório.
 
 ### Perfis de acesso
 
@@ -256,8 +273,5 @@ anterior à 1.40, recusada por daemons recentes. O POM pai fixa `1.43` em
   no ar, mas não há teste automatizado das rotas.
 - **Importação dos dados da planilha.** O banco sobe vazio. O histórico que já
   existe na planilha precisa de um importador.
-- **Chaves RSA de produção.** As chaves em `piggu-identity/src/main/resources/keys/`
-  são de desenvolvimento e estão no repositório de propósito. Em produção,
-  passe o PEM por `JWT_PRIVATE_KEY` e `JWT_PUBLIC_KEY`.
 - **O front.** Continua o HTML/CSS/JS que falava com o Apps Script, e ainda não
   conversa com esta API. É o próximo passo da migração.

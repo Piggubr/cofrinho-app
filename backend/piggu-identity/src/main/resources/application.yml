@@ -28,9 +28,11 @@ piggu:
       - ${GOOGLE_CLIENT_ID:532290439779-olhgd7m1hssj4o30gjs3ngrcs7ga48aa.apps.googleusercontent.com}
   jwt:
     issuer: ${JWT_ISSUER:https://piggu.app}
-    # Em producao passe o PEM inteiro pelas variaveis de ambiente.
-    private-key: ${JWT_PRIVATE_KEY:classpath:keys/piggu-dev-private.pem}
-    public-key: ${JWT_PUBLIC_KEY:classpath:keys/piggu-dev-public.pem}
+    # Sem valor padrao de proposito: sem JWT_PRIVATE_KEY e JWT_PUBLIC_KEY o servico
+    # recusa subir. Aceita o PEM inteiro ou um caminho file:. So o perfil dev
+    # (application-dev.yml) aponta para chaves locais geradas por scripts/gerar-chaves-dev.sh.
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
     access-ttl: PT30M
     refresh-ttl: P30D
 

@@ -20,7 +20,7 @@ piggu:
       - client-de-teste.apps.googleusercontent.com
   jwt:
     issuer: https://piggu.test
-    private-key: classpath:keys/piggu-dev-private.pem
-    public-key: classpath:keys/piggu-dev-public.pem
+    private-key: classpath:keys/piggu-test-private.pem
+    public-key: classpath:keys/piggu-test-public.pem
     access-ttl: PT30M
     refresh-ttl: P30D
