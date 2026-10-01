@@ -75,7 +75,7 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
 
 ### 5. Dado pessoal em log — Alta (LGPD art. 6º, III e VII)
 - **Onde:**
-  - `backend/piggu-identity/src/main/java/com/piggu/identity/domain/AuthService.java:147` — gravava o e-mail ao criar conta.
+  - `backend/piggu-identity/src/main/java/com/piggu/identity/domain/AuthService.java:153` — gravava o e-mail ao criar conta.
   - `backend/piggu-finance/src/main/java/com/piggu/finance/integration/GeminiReceiptReader.java:188` — gravava a resposta inteira do Gemini (itens, valores e loja do recibo).
   - `backend/piggu-finance/src/main/java/com/piggu/finance/domain/ProductMemoryService.java:57` — gravava o nome do item comprado.
 - **Problema:** log é cópia do dado pessoal fora do banco, sem controle de acesso, sem
@@ -95,7 +95,7 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
 ## Recomendações
 
 ### 7. Direitos do titular: exportar e apagar — Alta (LGPD art. 18, II, V e VI)
-- **Onde:** não existe endpoint. `UserAdminService.revogar` (`backend/piggu-identity/.../UserAdminService.java:80`)
+- **Onde:** não existe endpoint. `UserAdminService.revogar` (`backend/piggu-identity/.../UserAdminService.java:87`)
   só desativa a conta; gastos, notas, fotos, lugares, Fofocoins e contas bancárias continuam
   apontando para o e-mail.
 - **Problema:** a pessoa não consegue obter uma cópia nem pedir a eliminação dos próprios dados.
@@ -147,7 +147,7 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
   e passar a semear via variável (`PIGGU_ADMIN_EMAILS`) na subida, só onde for preciso.
 
 ### 13. Sem política de retenção — Média (LGPD art. 15 e 16)
-- **Onde:** contas desativadas (`UserAdminService.java:86`), `refresh_sessions.user_agent`
+- **Onde:** contas desativadas (`UserAdminService.java:93`), `refresh_sessions.user_agent`
   (`V1__esquema_inicial.sql:39`), fotos no Drive, `bank_accounts.balance`.
 - **Problema:** nada é apagado por tempo; conta revogada guarda tudo indefinidamente.
 - **Correção:** definir prazos (ex.: conta desativada há 12 meses → anonimizar; banco
