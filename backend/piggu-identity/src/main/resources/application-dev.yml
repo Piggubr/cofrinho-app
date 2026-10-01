@@ -1,0 +1,9 @@
+# Perfil de desenvolvimento: ative com SPRING_PROFILES_ACTIVE=dev.
+#
+# Usa o par de chaves gerado na maquina por scripts/gerar-chaves-dev.sh. O caminho
+# e relativo a pasta backend/, de onde se roda o java -jar no ambiente local.
+# Nenhuma chave fica no repositorio: a que ficou no historico do Git e publica.
+piggu:
+  jwt:
+    private-key: ${JWT_PRIVATE_KEY:file:keys/piggu-dev-private.pem}
+    public-key: ${JWT_PUBLIC_KEY:file:keys/piggu-dev-public.pem}

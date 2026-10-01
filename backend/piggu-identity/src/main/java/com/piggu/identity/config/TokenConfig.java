@@ -82,13 +82,16 @@ public class TokenConfig {
 
     private InputStream abrir(String valor, String propriedade) throws IOException {
         if (valor == null || valor.isBlank()) {
-            throw new IllegalStateException("Falta configurar " + propriedade + ".");
+            throw new IllegalStateException("Falta configurar " + propriedade
+                    + ". Defina JWT_PRIVATE_KEY e JWT_PUBLIC_KEY, ou suba com o perfil dev"
+                    + " depois de rodar scripts/gerar-chaves-dev.sh.");
         }
         String limpo = valor.trim();
         if (limpo.startsWith("classpath:") || limpo.startsWith("file:")) {
             Resource recurso = carregador.getResource(limpo);
             if (!recurso.exists()) {
-                throw new IllegalStateException("Arquivo de chave nao encontrado em " + limpo);
+                throw new IllegalStateException("Arquivo de chave nao encontrado em " + limpo
+                        + ". No ambiente local, gere com scripts/gerar-chaves-dev.sh.");
             }
             return recurso.getInputStream();
         }
