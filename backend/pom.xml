@@ -27,6 +27,7 @@
     <module>piggu-rewards</module>
     <module>piggu-lifestyle</module>
     <module>piggu-media</module>
+    <module>piggu-banking</module>
   </modules>
 
   <properties>

@@ -245,3 +245,21 @@ export interface Arquivo {
   contexto: string;
   criadoEm: string;
 }
+
+/** Conta de um banco conectado por Open Finance, com o saldo da ultima sincronizacao. */
+export interface ContaBancaria {
+  id: string;
+  instituicao: string;
+  nome: string;
+  tipo: string;
+  numero: string;
+  saldo: number;
+  moeda: string;
+  status: string;
+  atualizadoEm: string | null;
+}
+
+export interface ConnectToken {
+  accessToken: string;
+  sandbox: boolean;
+}

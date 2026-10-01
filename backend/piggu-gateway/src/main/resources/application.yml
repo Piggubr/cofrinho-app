@@ -44,6 +44,11 @@ spring:
               predicates:
                 - Path=/api/assets/**,/api/feed/**
 
+            - id: banking
+              uri: ${BANKING_URL:http://localhost:8086}
+              predicates:
+                - Path=/api/banking/**
+
 management:
   endpoints:
     web:

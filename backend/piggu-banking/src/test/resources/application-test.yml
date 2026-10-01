@@ -1,0 +1,21 @@
+# Perfil de teste: banco vem do Testcontainers; a Pluggy e sempre um mock.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/.well-known/jwks.json
+
+piggu:
+  pluggy:
+    base-url: http://localhost:0
+    client-id: ""
+    client-secret: ""
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.piggu: WARN

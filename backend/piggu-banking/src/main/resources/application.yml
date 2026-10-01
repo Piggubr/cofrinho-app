@@ -1,0 +1,53 @@
+server:
+  port: ${PORT:8086}
+
+spring:
+  application:
+    name: piggu-banking
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/piggu_banking}
+    username: ${DB_USER:piggu}
+    password: ${DB_PASSWORD:piggu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Chave publica do piggu-identity. Baixada uma vez e mantida em cache.
+          jwk-set-uri: ${JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+  http:
+    client:
+      # Vale para o RestClient da Pluggy: uma instituicao lenta nao segura a thread.
+      connect-timeout: 5s
+      read-timeout: 30s
+
+piggu:
+  pluggy:
+    # So por variavel de ambiente. Vazio desliga as rotas de banco com aviso claro.
+    client-id: ${PLUGGY_CLIENT_ID:}
+    client-secret: ${PLUGGY_CLIENT_SECRET:}
+    # true mostra os bancos de teste da Pluggy no widget. Nunca em producao.
+    sandbox: ${PLUGGY_SANDBOX:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}

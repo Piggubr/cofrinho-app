@@ -109,6 +109,63 @@
       </div>
     </section>
 
+    <section class="cartao" aria-labelledby="titulo-bancos">
+      <div class="cartao-titulo">
+        <h2 id="titulo-bancos">Contas bancárias</h2>
+        @for (total of saldoPorMoeda(); track total.moeda) {
+          <span class="etiqueta">{{
+            total.total | currency: total.moeda : 'symbol' : '1.2-2' : 'pt'
+          }}</span>
+        }
+      </div>
+
+      @if (erroBancos()) {
+        <p class="aviso erro" role="alert">{{ erroBancos() }}</p>
+      }
+
+      @if (contas().length) {
+        @for (conta of contas(); track conta.id) {
+          <div class="linha">
+            <div>
+              <p class="linha-titulo">{{ conta.nome }}</p>
+              <p class="linha-detalhe">
+                {{ conta.instituicao }}
+                @if (conta.numero) {
+                  · {{ conta.numero }}
+                }
+              </p>
+            </div>
+            <span class="linha-valor">
+              {{ conta.saldo | currency: conta.moeda : 'symbol' : '1.2-2' : 'pt' }}
+            </span>
+          </div>
+        }
+      } @else {
+        <p class="vazio">Nenhum banco conectado.</p>
+      }
+
+      <div class="acoes" aria-live="polite">
+        <button
+          type="button"
+          class="botao secundario"
+          (click)="conectarBanco()"
+          [disabled]="ocupadoComBancos()"
+        >
+          {{ ocupadoComBancos() ? 'Aguarde...' : 'Conectar banco' }}
+        </button>
+        @if (contas().length) {
+          <button
+            type="button"
+            class="botao contorno"
+            (click)="sincronizarBancos()"
+            [disabled]="ocupadoComBancos()"
+          >
+            Atualizar saldos
+          </button>
+        }
+      </div>
+    </section>
+
     <section class="cartao">
       <div class="cartao-titulo">
         <h2>Por categoria</h2>
