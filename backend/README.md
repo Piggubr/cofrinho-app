@@ -273,5 +273,3 @@ anterior à 1.40, recusada por daemons recentes. O POM pai fixa `1.43` em
   no ar, mas não há teste automatizado das rotas.
 - **Importação dos dados da planilha.** O banco sobe vazio. O histórico que já
   existe na planilha precisa de um importador.
-- **O front.** Continua o HTML/CSS/JS que falava com o Apps Script, e ainda não
-  conversa com esta API. É o próximo passo da migração.
