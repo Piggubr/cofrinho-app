@@ -219,3 +219,17 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
 - Open Finance: senha do banco nunca passa pelo Piggu; o dono do item é conferido pelo
   `clientUserId`; widget com versão fixa e SRI; desligado por padrão.
 - Identity recusa subir sem chave JWT própria; segredos só por variável de ambiente.
+
+## Logs e correlação
+
+- O gateway gera ou repassa `X-Request-Id` (até 64 caracteres `[A-Za-z0-9-]`; qualquer outra
+  coisa é trocada, para ninguém injetar linha falsa no log) e o devolve na resposta.
+- Cada serviço põe `requestId` e o id do usuário (`userId`, UUID) no MDC; o padrão de log
+  mostra os dois em toda linha. Nunca e-mail, nome ou token. O lifestyle repassa o mesmo id
+  ao chamar o media.
+- Log de acesso por requisição com o **padrão** da rota (`/api/expenses/{id}`), não o caminho
+  concreto, status e duração.
+- Logs de negócio novos, só com ids e quantidades: login e login recusado, conta criada,
+  alterada e revogada, e-mail liberado (sem o e-mail), gastos lançados/editados/apagados,
+  depósito, meta, Fofocoins, resgate, prêmio desativado, banco sincronizado e item Pluggy de
+  outra conta recusado. Falhas de integração externa já eram registradas.

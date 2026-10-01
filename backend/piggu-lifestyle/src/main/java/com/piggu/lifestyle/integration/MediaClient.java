@@ -5,6 +5,8 @@ import com.piggu.common.error.UpstreamException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import com.piggu.common.web.CorrelacaoFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -34,7 +36,16 @@ public class MediaClient {
     private final RestClient cliente;
 
     public MediaClient(RestClient.Builder builder, @Value("${piggu.servicos.media-url}") String baseUrl) {
-        this.cliente = builder.baseUrl(baseUrl).build();
+        this.cliente = builder.baseUrl(baseUrl)
+                // Mesma requisicao nos logs dos dois servicos.
+                .requestInterceptor((pedido, corpo, execucao) -> {
+                    String id = MDC.get(CorrelacaoFilter.MDC_REQUISICAO);
+                    if (id != null) {
+                        pedido.getHeaders().set(CorrelacaoFilter.CABECALHO, id);
+                    }
+                    return execucao.execute(pedido, corpo);
+                })
+                .build();
     }
 
     /**

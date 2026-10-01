@@ -6,6 +6,8 @@ import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.api.dto.SaveExpensesRequest;
 import com.piggu.finance.api.dto.UpdateExpenseRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ public class ExpenseService {
 
     private static final String TIPO_PADRAO = "Variavel";
     private static final String ORIGEM_PADRAO = "Manual";
+
+    private static final Logger log = LoggerFactory.getLogger(ExpenseService.class);
 
     private final ExpenseRepository repositorio;
     private final CategoryService categorias;
@@ -72,6 +76,7 @@ public class ExpenseService {
 
         List<Expense> salvos = repositorio.saveAll(gastos);
         memoriaDeProdutos.registrar(salvos);
+        log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
     }
@@ -84,12 +89,14 @@ public class ExpenseService {
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
+        log.info("Gasto editado: id={}", id);
         return ExpenseResponse.de(repositorio.save(gasto));
     }
 
     @Transactional
     public void excluir(UUID id) {
         repositorio.delete(buscar(id));
+        log.info("Gasto apagado: id={}", id);
     }
 
     /** Remocao silenciosa, usada quando uma nota vinculada e apagada. */

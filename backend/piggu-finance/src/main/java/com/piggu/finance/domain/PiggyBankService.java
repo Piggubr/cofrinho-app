@@ -7,6 +7,8 @@ import com.piggu.common.security.PigguRole;
 import com.piggu.finance.api.dto.DepositRequest;
 import com.piggu.finance.api.dto.DepositResponse;
 import com.piggu.finance.api.dto.PiggyBankResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ import java.util.UUID;
  */
 @Service
 public class PiggyBankService {
+
+    private static final Logger log = LoggerFactory.getLogger(PiggyBankService.class);
 
     private final PiggyDepositRepository depositos;
     private final ExpenseRepository gastos;
@@ -65,8 +69,9 @@ public class PiggyBankService {
     @Transactional
     public DepositResponse depositar(DepositRequest pedido, String emailUsuario) {
         LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
-        PiggyDeposit deposito = new PiggyDeposit(data, pedido.valor(), emailUsuario);
-        return DepositResponse.de(depositos.save(deposito));
+        PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), emailUsuario));
+        log.info("Deposito no cofrinho: id={} data={}", deposito.getId(), data);
+        return DepositResponse.de(deposito);
     }
 
     @Transactional
@@ -75,9 +80,11 @@ public class PiggyBankService {
                 .orElseThrow(() -> new NotFoundException("Deposito nao encontrado."));
 
         if (!usuario.podeGerenciar(deposito.getUserEmail())) {
+            log.warn("Tentativa de apagar deposito alheio recusada: id={}", id);
             throw new ForbiddenException("Voce nao pode apagar este deposito.");
         }
         depositos.delete(deposito);
+        log.info("Deposito apagado: id={}", id);
     }
 
     private PiggyBankResponse consultarComoFamiliar(String email) {

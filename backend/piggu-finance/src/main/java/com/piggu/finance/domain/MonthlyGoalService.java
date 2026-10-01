@@ -1,5 +1,7 @@
 package com.piggu.finance.domain;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,8 @@ import java.util.Map;
  */
 @Service
 public class MonthlyGoalService {
+
+    private static final Logger log = LoggerFactory.getLogger(MonthlyGoalService.class);
 
     private final MonthlyGoalRepository repositorio;
 
@@ -32,6 +36,7 @@ public class MonthlyGoalService {
     /** Cria ou substitui a meta do mes. */
     @Transactional
     public MonthlyGoal definir(String mes, BigDecimal limite, String emailUsuario) {
+        log.info("Meta do mes definida: mes={}", mes);
         return repositorio.findById(mes)
                 .map(existente -> {
                     existente.atualizar(limite, emailUsuario);

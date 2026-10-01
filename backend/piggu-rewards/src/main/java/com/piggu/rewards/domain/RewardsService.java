@@ -8,6 +8,8 @@ import com.piggu.rewards.api.dto.CoinBalanceResponse;
 import com.piggu.rewards.api.dto.PrizeRequest;
 import com.piggu.rewards.api.dto.PrizeResponse;
 import com.piggu.rewards.api.dto.RedemptionResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -31,6 +33,8 @@ import java.util.UUID;
 public class RewardsService {
 
     private static final int HISTORICO_EXIBIDO = 100;
+
+    private static final Logger log = LoggerFactory.getLogger(RewardsService.class);
 
     private final CoinEntryRepository lancamentos;
     private final PrizeRepository premios;
@@ -72,6 +76,7 @@ public class RewardsService {
         }
 
         lancamentos.save(new CoinEntry(valor, Texto.limitar(pedido.motivo(), 200), emailResponsavel));
+        log.info("Fofocoins ajustados: valor={} saldoAnterior={}", valor, atual);
         return saldo();
     }
 
@@ -117,6 +122,7 @@ public class RewardsService {
         // desativar preserva o historico e some da lista de resgate do mesmo jeito.
         premio.atualizar(premio.getName(), premio.getDescription(), premio.getPrice(), false, "SISTEMA");
         premios.save(premio);
+        log.info("Premio desativado: id={}", id);
     }
 
     /**
@@ -146,6 +152,7 @@ public class RewardsService {
         ));
 
         Redemption resgate = resgates.save(new Redemption(premio, emailUsuario, debito.getId()));
+        log.info("Premio resgatado: premio={} preco={} resgate={}", premioId, premio.getPrice(), resgate.getId());
         return RedemptionResponse.de(resgate, saldoAtual - premio.getPrice());
     }
 

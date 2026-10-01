@@ -6,6 +6,8 @@ import com.piggu.banking.config.PluggyProperties;
 import com.piggu.banking.integration.PluggyClient;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.security.CurrentUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,8 @@ import java.util.Map;
  */
 @Service
 public class BankingService {
+
+    private static final Logger log = LoggerFactory.getLogger(BankingService.class);
 
     private final PluggyClient pluggy;
     private final PluggyProperties propriedades;
@@ -52,6 +56,7 @@ public class BankingService {
     public List<BankAccountResponse> registrar(String itemId, CurrentUser usuario) {
         PluggyClient.Item item = pluggy.buscarItem(itemId);
         if (!usuario.id().toString().equals(item.clientUserId())) {
+            log.warn("Registro de item Pluggy de outra conta recusado: item={}", item.id());
             throw new ForbiddenException("Esta conexao bancaria nao foi feita pela sua conta.");
         }
 
@@ -92,5 +97,7 @@ public class BankingService {
         }
         // Conta encerrada no banco some da Pluggy; aqui tambem.
         contas.deleteAll(existentes.values());
+        log.info("Banco sincronizado: conexao={} status={} contasRemovidas={}",
+                conexao.getId(), item.status(), existentes.size());
     }
 }

@@ -134,6 +134,13 @@ As imagens são entregues como bytes, com `Content-Type` e cache de 30 dias, em
 vez da data URL em base64 dentro do JSON que o Apps Script devolvia. Base64
 inflava cada foto em um terço e impedia o navegador de guardar em cache.
 
+### Logs
+
+O gateway dá a cada chamada um `X-Request-Id`, repassado aos serviços e devolvido ao
+front. Toda linha de log traz `req=` e `user=` (o UUID da conta, nunca o e-mail). Há uma
+linha de acesso por requisição com o padrão da rota, e logs de negócio só com ids.
+Detalhes e o porquê em [`docs/relatorio-lgpd-seguranca.md`](../docs/relatorio-lgpd-seguranca.md).
+
 ### Erros
 
 `BusinessException` carrega texto escrito para o usuário e vai inteiro para a

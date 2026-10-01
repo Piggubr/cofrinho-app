@@ -61,11 +61,13 @@ public class AuthService {
         UserAccount conta = obterOuCriar(perfil);
 
         if (!conta.isActive()) {
+            log.warn("Login recusado: conta desativada id={}", conta.getId());
             throw new ForbiddenException("Este e-mail nao esta autorizado.");
         }
 
         conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
         usuarios.save(conta);
+        log.info("Login: conta={}", conta.getId());
 
         return emitirPar(conta, userAgent);
     }
@@ -87,6 +89,7 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
 
         if (!conta.isActive()) {
+            log.warn("Renovacao recusada: conta desativada id={}", conta.getId());
             revogador.revogarTodasDe(conta.getId());
             throw new ForbiddenException("Este e-mail nao esta autorizado.");
         }
@@ -141,7 +144,11 @@ public class AuthService {
         return usuarios.findByEmail(perfil.email()).orElseGet(() -> {
             PigguRole role = autorizados.findByEmail(perfil.email())
                     .map(AuthorizedEmail::getRole)
-                    .orElseThrow(() -> new ForbiddenException("Este e-mail nao esta autorizado."));
+                    .orElseThrow(() -> {
+                        // Sem o e-mail: quem nao foi liberado nao autorizou guardar nada.
+                        log.warn("Login recusado: e-mail fora da lista de liberados");
+                        return new ForbiddenException("Este e-mail nao esta autorizado.");
+                    });
             UserAccount nova = usuarios.save(new UserAccount(perfil.email(), role));
             // Id, nunca o e-mail: log e copia de dado pessoal que ninguem apaga.
             log.info("Conta criada id={} perfil={}", nova.getId(), role);
