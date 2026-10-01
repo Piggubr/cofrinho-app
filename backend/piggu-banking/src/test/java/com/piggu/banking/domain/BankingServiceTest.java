@@ -3,6 +3,8 @@ package com.piggu.banking.domain;
 import com.piggu.banking.api.dto.BankAccountResponse;
 import com.piggu.banking.integration.PluggyClient;
 import com.piggu.common.error.ForbiddenException;
+import com.piggu.common.error.NotFoundException;
+import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -18,6 +20,10 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -118,6 +124,48 @@ class BankingServiceTest extends PostgresIntegrationTest {
         when(pluggy.criarConnectToken(beatriz.id().toString())).thenReturn("token-do-widget");
 
         assertThat(servico.gerarConnectToken(beatriz).accessToken()).isEqualTo("token-do-widget");
+    }
+
+    @Test
+    @DisplayName("desconectar apaga o item na Pluggy e as contas guardadas")
+    void desconecta() {
+        item("item-7", beatriz, "Nubank");
+        when(pluggy.listarContas("item-7")).thenReturn(List.of(conta("c8", "Conta", "5.00")));
+        UUID conexao = servico.registrar("item-7", beatriz).get(0).conexaoId();
+
+        assertThat(servico.desconectar(conexao, beatriz)).isEmpty();
+
+        verify(pluggy).apagarItem("item-7");
+        assertThat(conexoes.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("banco de outra pessoa nao e desconectado nem confirmado que existe")
+    void naoDesconectaAlheio() {
+        item("item-8", admin, "Itau");
+        when(pluggy.listarContas("item-8")).thenReturn(List.of(conta("c9", "Dele", "1.00")));
+        UUID conexao = servico.registrar("item-8", admin).get(0).conexaoId();
+
+        assertThatThrownBy(() -> servico.desconectar(conexao, beatriz)).isInstanceOf(NotFoundException.class);
+
+        verify(pluggy, never()).apagarItem(anyString());
+        assertThat(conexoes.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("item que a Pluggy ja apagou conta como desconectado; Pluggy fora do ar nao apaga nada aqui")
+    void pluggyJaApagouOuForaDoAr() {
+        item("item-9", beatriz, "Inter");
+        when(pluggy.listarContas("item-9")).thenReturn(List.of(conta("c10", "Conta", "1.00")));
+        UUID conexao = servico.registrar("item-9", beatriz).get(0).conexaoId();
+
+        doThrow(new UpstreamException("fora")).when(pluggy).apagarItem("item-9");
+        assertThatThrownBy(() -> servico.desconectar(conexao, beatriz)).isInstanceOf(UpstreamException.class);
+        assertThat(conexoes.count()).isEqualTo(1);
+
+        doThrow(new NotFoundException("sumiu")).when(pluggy).apagarItem("item-9");
+        servico.desconectar(conexao, beatriz);
+        assertThat(conexoes.count()).isZero();
     }
 
     private void item(String id, CurrentUser dono, String instituicao) {

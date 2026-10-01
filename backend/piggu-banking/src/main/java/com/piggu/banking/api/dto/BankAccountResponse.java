@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record BankAccountResponse(
         UUID id,
+        UUID conexaoId,
         String instituicao,
         String nome,
         String tipo,
@@ -21,6 +22,7 @@ public record BankAccountResponse(
     public static BankAccountResponse de(BankAccount conta) {
         return new BankAccountResponse(
                 conta.getId(),
+                conta.getConnection().getId(),
                 conta.getConnection().getInstitution(),
                 conta.getName(),
                 conta.getType(),

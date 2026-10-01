@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
-import { AuthFalso } from '../../testing/auth-falso';
+import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Dashboard } from './dashboard';
 
 /**
@@ -14,7 +14,10 @@ import { Dashboard } from './dashboard';
 describe('Dashboard', () => {
   let http: HttpTestingController;
 
+  let auth: AuthFalso;
+
   beforeEach(() => {
+    auth = new AuthFalso();
     TestBed.configureTestingModule({
       imports: [Dashboard],
       providers: [
@@ -22,7 +25,7 @@ describe('Dashboard', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
-        { provide: AuthService, useValue: new AuthFalso() },
+        { provide: AuthService, useValue: auth },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -66,21 +69,20 @@ describe('Dashboard', () => {
   it('Open Finance ligado: mostra as contas com o saldo na moeda da conta', () => {
     const tela = abrir();
     http.expectOne('/api/banking/status').flush({ habilitado: true });
-    http
-      .expectOne('/api/banking/accounts')
-      .flush([
-        {
-          id: 'c1',
-          instituicao: 'Nubank',
-          nome: 'NuConta',
-          tipo: 'CHECKING_ACCOUNT',
-          numero: '',
-          saldo: 1520.35,
-          moeda: 'BRL',
-          status: 'UPDATED',
-          atualizadoEm: null,
-        },
-      ]);
+    http.expectOne('/api/banking/accounts').flush([
+      {
+        id: 'c1',
+        conexaoId: 'x1',
+        instituicao: 'Nubank',
+        nome: 'NuConta',
+        tipo: 'CHECKING_ACCOUNT',
+        numero: '',
+        saldo: 1520.35,
+        moeda: 'BRL',
+        status: 'UPDATED',
+        atualizadoEm: null,
+      },
+    ]);
     tela.detectChanges();
 
     expect(cardDeBancos(tela)).not.toBeNull();
@@ -96,5 +98,39 @@ describe('Dashboard', () => {
     tela.detectChanges();
 
     expect(tela.nativeElement.textContent).toContain('€');
+  });
+
+  it('no gratuito o banco ja conectado ainda pode ser desconectado', () => {
+    auth.usuario.set(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const tela = abrir();
+    http.expectOne('/api/banking/status').flush({ habilitado: true });
+    http
+      .expectOne('/api/banking/accounts')
+      .flush([
+        {
+          id: 'c1',
+          conexaoId: 'x1',
+          instituicao: 'Nubank',
+          nome: 'NuConta',
+          tipo: '',
+          numero: '',
+          saldo: 1,
+          moeda: 'BRL',
+          status: 'UPDATED',
+          atualizadoEm: null,
+        },
+      ]);
+    tela.detectChanges();
+
+    [...tela.nativeElement.querySelectorAll('button')]
+      .find((b: HTMLButtonElement) => b.textContent?.includes('Desconectar'))!
+      .click();
+    const pedido = http.expectOne('/api/banking/connections/x1');
+    expect(pedido.request.method).toBe('DELETE');
+    pedido.flush([]);
+    tela.detectChanges();
+
+    expect(tela.nativeElement.textContent).toContain('Nenhum banco conectado');
   });
 });

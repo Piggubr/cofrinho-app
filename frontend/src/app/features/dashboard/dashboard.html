@@ -143,6 +143,20 @@
           <p class="vazio">Nenhum banco conectado.</p>
         }
 
+        @for (banco of bancos(); track banco.conexaoId) {
+          <div class="linha sem-borda">
+            <p class="linha-detalhe">{{ banco.instituicao }} conectado</p>
+            <button
+              type="button"
+              class="botao contorno pequeno"
+              (click)="desconectarBanco(banco.conexaoId, banco.instituicao)"
+              [disabled]="ocupadoComBancos()"
+            >
+              Desconectar
+            </button>
+          </div>
+        }
+
         <div class="acoes" aria-live="polite">
           @if (!auth.ehPremium()) {
             <a routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
