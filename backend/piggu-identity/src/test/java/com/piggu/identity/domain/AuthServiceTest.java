@@ -3,7 +3,10 @@ package com.piggu.identity.domain;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.error.BusinessException;
+import com.piggu.identity.api.dto.PreferencesRequest;
 import com.piggu.identity.api.dto.TokenResponse;
+import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -146,6 +149,40 @@ class AuthServiceTest extends PostgresIntegrationTest {
                 .as("procurar pelo token puro nao pode achar nada")
                 .isEmpty();
         assertThat(sessoes.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("conta nova comeca em euro, convertendo para real, com a cotacao visivel")
+    void preferenciasPadrao() {
+        responderGoogleCom(AUTORIZADA);
+
+        TokenResponse acesso = auth.entrarComGoogle("token-google", null);
+
+        assertThat(acesso.usuario().preferencias())
+                .isEqualTo(new UserResponse.Preferencias("EUR", "BRL", true));
+    }
+
+    @Test
+    @DisplayName("preferencias de moeda sao gravadas e normalizadas em maiusculas")
+    void salvaPreferencias() {
+        responderGoogleCom(AUTORIZADA);
+        java.util.UUID id = auth.entrarComGoogle("token-google", null).usuario().id();
+
+        auth.salvarPreferencias(id, new PreferencesRequest("usd", "jpy", false));
+
+        assertThat(auth.perfil(id).preferencias())
+                .isEqualTo(new UserResponse.Preferencias("USD", "JPY", false));
+    }
+
+    @Test
+    @DisplayName("moeda que nao existe na ISO 4217 e recusada sem gravar nada")
+    void recusaMoedaInexistente() {
+        responderGoogleCom(AUTORIZADA);
+        java.util.UUID id = auth.entrarComGoogle("token-google", null).usuario().id();
+
+        assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("XYZ", "BRL", true)))
+                .isInstanceOf(BusinessException.class);
+        assertThat(auth.perfil(id).preferencias().moeda()).isEqualTo("EUR");
     }
 
     private void responderGoogleCom(String email) {

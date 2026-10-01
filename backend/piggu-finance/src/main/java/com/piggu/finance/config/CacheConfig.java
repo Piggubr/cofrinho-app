@@ -24,7 +24,7 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager gerenciador = new CaffeineCacheManager("cotacao");
+        CaffeineCacheManager gerenciador = new CaffeineCacheManager("cotacao", "moedas");
         gerenciador.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(Duration.ofHours(1))
                 .maximumSize(50));

@@ -16,7 +16,7 @@ piggu:
     gemini:
       api-key: ""
     cambio:
-      url: http://localhost:0/cambio
+      base-url: http://localhost:0/cambio
       padrao: "6.15"
 
 logging:

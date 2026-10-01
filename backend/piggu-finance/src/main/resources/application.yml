@@ -33,7 +33,7 @@ piggu:
       modelo: ${GEMINI_MODEL:gemini-3.6-flash}
       timeout: PT45S
     cambio:
-      url: https://api.frankfurter.dev/v2/rate/EUR/BRL
+      base-url: https://api.frankfurter.dev/v2
       timeout: PT10S
       padrao: "6.15"
 

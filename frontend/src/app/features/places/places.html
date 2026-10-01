@@ -32,7 +32,7 @@
         <input id="dataVisita" type="date" [ngModel]="data()" (ngModelChange)="data.set($event)" />
       </div>
       <div class="campo">
-        <label for="valorLugar">Quanto gastamos (€)</label>
+        <label for="valorLugar">Quanto gastamos ({{ moeda.simbolo() }})</label>
         <input id="valorLugar" type="number" min="0" step="0.01" [ngModel]="valor()" (ngModelChange)="valor.set($event)" />
       </div>
     </div>
@@ -126,7 +126,7 @@
           <p class="comentario">{{ lugar.comentario }}</p>
         }
         @if (lugar.valor > 0) {
-          <p class="linha-valor">{{ lugar.valor | euro }}</p>
+          <p class="linha-valor">{{ lugar.valor | moeda }}</p>
         }
         @if (lugar.marcacoes.length) {
           <div class="marcadores">

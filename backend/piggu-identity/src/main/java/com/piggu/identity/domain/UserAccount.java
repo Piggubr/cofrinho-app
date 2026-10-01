@@ -61,6 +61,15 @@ public class UserAccount {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    @Column(nullable = false, length = 3)
+    private String currency = "EUR";
+
+    @Column(name = "conversion_currency", nullable = false, length = 3)
+    private String conversionCurrency = "BRL";
+
+    @Column(name = "show_exchange_rate", nullable = false)
+    private boolean showExchangeRate = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -169,5 +178,24 @@ public class UserAccount {
 
     public Instant getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    /** Os codigos chegam ja validados como ISO 4217. */
+    public void alterarPreferencias(String currency, String conversionCurrency, boolean showExchangeRate) {
+        this.currency = currency;
+        this.conversionCurrency = conversionCurrency;
+        this.showExchangeRate = showExchangeRate;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getConversionCurrency() {
+        return conversionCurrency;
+    }
+
+    public boolean isShowExchangeRate() {
+        return showExchangeRate;
     }
 }

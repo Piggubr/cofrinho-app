@@ -12,6 +12,7 @@ const usuario: Usuario = {
   role: 'BEATRIZ',
   ativo: true,
   permissoes: {},
+  preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
 };
 
 const tokens: ParDeTokens = {

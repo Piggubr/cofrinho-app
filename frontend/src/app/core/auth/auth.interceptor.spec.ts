@@ -18,6 +18,7 @@ const usuario: Usuario = {
   role: 'BEATRIZ',
   ativo: true,
   permissoes: {},
+  preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
 };
 
 function par(sufixo: string): ParDeTokens {

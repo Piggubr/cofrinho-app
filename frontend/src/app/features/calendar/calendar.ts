@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto, Nota } from '../../core/api/models';
-import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { dataIso, gradeDoMes, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
@@ -26,11 +26,12 @@ interface DiaDoMes {
  */
 @Component({
   selector: 'app-calendar',
-  imports: [FormsModule, EuroPipe, DataBrPipe],
+  imports: [FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })
 export class Calendar {
+  protected readonly moeda = inject(MoedaService);
   private readonly finance = inject(FinanceService);
 
   protected readonly diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];

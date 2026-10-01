@@ -19,8 +19,13 @@ public record UserResponse(
         String foto,
         PigguRole role,
         boolean ativo,
-        Map<String, Object> permissoes
+        Map<String, Object> permissoes,
+        Preferencias preferencias
 ) {
+
+    /** Moeda dos valores, moeda da cotacao e se a cotacao aparece no topo. */
+    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
+    }
 
     public static UserResponse de(UserAccount conta) {
         return new UserResponse(
@@ -32,7 +37,8 @@ public record UserResponse(
                 conta.getGooglePicture(),
                 conta.getRole(),
                 conta.isActive(),
-                conta.getPermissions()
+                conta.getPermissions(),
+                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate())
         );
     }
 }

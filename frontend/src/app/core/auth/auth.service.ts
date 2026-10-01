@@ -96,6 +96,11 @@ export class AuthService {
     return this.renovacaoEmCurso;
   }
 
+  /** Reflete na sessao uma mudanca no proprio perfil, como as preferencias de moeda. */
+  atualizarUsuario(usuario: Usuario): void {
+    this.usuarioAtual.set(usuario);
+  }
+
   async sair(): Promise<void> {
     const refreshToken = this.storage.refreshToken;
     if (refreshToken) {

@@ -11,7 +11,7 @@
 
   @if (metaDoMesAtual() > 0) {
     <p class="resumo">
-      {{ totalDoMesAtual() | euro }} de {{ metaDoMesAtual() | euro }}
+      {{ totalDoMesAtual() | moeda }} de {{ metaDoMesAtual() | moeda }}
     </p>
     <div class="progresso" [class.estourado]="estourou()">
       <span [style.width.%]="progresso()"></span>
@@ -38,7 +38,7 @@
       <input id="mes" type="month" [ngModel]="mesEscolhido()" (ngModelChange)="aoTrocarMes($event)" />
     </div>
     <div class="campo">
-      <label for="limite">Limite (€)</label>
+      <label for="limite">Limite ({{ moeda.simbolo() }})</label>
       <input id="limite" type="number" min="0.01" step="0.01" inputmode="decimal" [ngModel]="limite()" (ngModelChange)="limite.set($event)" placeholder="0,00" />
     </div>
     <div class="campo alinhado">
@@ -61,7 +61,7 @@
       <div class="linha">
         <p class="linha-titulo">{{ meta.rotulo }}</p>
         <div class="linha-acoes">
-          <span class="linha-valor">{{ meta.limite | euro }}</span>
+          <span class="linha-valor">{{ meta.limite | moeda }}</span>
           <button type="button" class="botao contorno pequeno" (click)="editar(meta)">Editar</button>
         </div>
       </div>

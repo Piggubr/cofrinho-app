@@ -10,25 +10,25 @@
   <section class="cartao">
     <div class="cartao-titulo">
       <h2>Cofrinho</h2>
-      <span class="etiqueta">{{ cofrinho()?.saldo | euro }}</span>
+      <span class="etiqueta">{{ cofrinho()?.saldo | moeda }}</span>
     </div>
 
     <div class="resumo-cofrinho">
       <div>
         <p class="linha-detalhe">Depositado</p>
-        <p class="numero">{{ cofrinho()?.totalDepositos | euro }}</p>
+        <p class="numero">{{ cofrinho()?.totalDepositos | moeda }}</p>
       </div>
       @if (!auth.ehFamiliar()) {
         <div>
           <p class="linha-detalhe">Gasto desde o início</p>
-          <p class="numero">{{ cofrinho()?.totalGastos | euro }}</p>
+          <p class="numero">{{ cofrinho()?.totalGastos | moeda }}</p>
         </div>
       }
     </div>
 
     <div class="linha-de-campos deposito">
       <div class="campo">
-        <label for="valorDeposito">Novo depósito (€)</label>
+        <label for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
         <input
           id="valorDeposito"
           type="number"
@@ -52,7 +52,7 @@
         @for (deposito of cofrinho()!.depositos; track deposito.id) {
           <div class="linha">
             <div>
-              <p class="linha-titulo">{{ deposito.valor | euro }}</p>
+              <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
               <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario }}</p>
             </div>
             <button type="button" class="botao perigo" (click)="excluirDeposito(deposito.id)">
@@ -79,12 +79,12 @@
       <div class="resumo-cofrinho">
         <div>
           <p class="linha-detalhe">Gasto no mês</p>
-          <p class="numero">{{ totalGastoNoMes() | euro }}</p>
+          <p class="numero">{{ totalGastoNoMes() | moeda }}</p>
         </div>
         <div>
           <p class="linha-detalhe">Meta do mês</p>
           <p class="numero">
-            {{ metaDoMes() > 0 ? (metaDoMes() | euro) : '—' }}
+            {{ metaDoMes() > 0 ? (metaDoMes() | moeda) : '—' }}
           </p>
         </div>
       </div>
@@ -178,7 +178,7 @@
           <div class="categoria">
             <div class="linha sem-borda">
               <p class="linha-titulo">{{ item.categoria }}</p>
-              <span class="linha-valor">{{ item.total | euro }}</span>
+              <span class="linha-valor">{{ item.total | moeda }}</span>
             </div>
             <div class="progresso">
               <span [style.width.%]="item.fatia"></span>

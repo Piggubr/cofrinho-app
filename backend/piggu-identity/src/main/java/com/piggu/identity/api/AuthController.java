@@ -3,6 +3,7 @@ package com.piggu.identity.api;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.GoogleLoginRequest;
+import com.piggu.identity.api.dto.PreferencesRequest;
 import com.piggu.identity.api.dto.RefreshRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,5 +57,12 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponse eu(@AuthUser CurrentUser usuario) {
         return servico.perfil(usuario.id());
+    }
+
+    /** Qualquer perfil escolhe a propria moeda; nao ha como mexer na de outra pessoa. */
+    @PutMapping("/me/preferences")
+    public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
+                                     @AuthUser CurrentUser usuario) {
+        return servico.salvarPreferencias(usuario.id(), pedido);
     }
 }

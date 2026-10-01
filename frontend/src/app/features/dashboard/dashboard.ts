@@ -8,7 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { BankingService } from '../../core/api/banking.service';
 import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
 import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
-import { EuroPipe } from '../../core/ui/moeda.pipe';
+import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
@@ -28,11 +28,12 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, RouterLink, EuroPipe, DataBrPipe, CurrencyPipe],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, CurrencyPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
+  protected readonly moeda = inject(MoedaService);
   private readonly finance = inject(FinanceService);
   protected readonly auth = inject(AuthService);
   private readonly banking = inject(BankingService);

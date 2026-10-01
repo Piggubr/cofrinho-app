@@ -18,7 +18,7 @@
       <input id="item" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Leite" />
     </div>
     <div class="campo">
-      <label for="valor">Valor (€)</label>
+      <label for="valor">Valor ({{ moeda.simbolo() }})</label>
       <input id="valor" type="number" min="0" step="0.01" inputmode="decimal" [ngModel]="novoValor()" (ngModelChange)="novoValor.set($event)" placeholder="0,00" />
     </div>
     <div class="campo">
@@ -58,7 +58,7 @@
   <section class="cartao">
     <div class="cartao-titulo">
       <h2>Conferir recibo</h2>
-      <span class="etiqueta">{{ totalEmConferencia() | euro }}</span>
+      <span class="etiqueta">{{ totalEmConferencia() | moeda }}</span>
     </div>
 
     <p class="linha-detalhe">
@@ -84,7 +84,7 @@
           </select>
         </div>
         <div class="campo">
-          <label [for]="'confValor' + $index">Valor (€)</label>
+          <label [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
           <input [id]="'confValor' + $index" type="number" min="0" step="0.01" [value]="item.valor" (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)" />
         </div>
         <div class="campo alinhado">
@@ -106,7 +106,7 @@
   <div class="cartao-titulo">
     <h2>{{ rotuloDoMes() }}</h2>
     <div class="cabecalho-mes">
-      <span class="etiqueta">{{ totalDoMes() | euro }}</span>
+      <span class="etiqueta">{{ totalDoMes() | moeda }}</span>
       <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
       <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
     </div>
@@ -131,7 +131,7 @@
             </select>
           </div>
           <div class="campo">
-            <label [for]="'edVal' + gasto.id">Valor (€)</label>
+            <label [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input [id]="'edVal' + gasto.id" type="number" min="0" step="0.01" [ngModel]="valorEditado()" (ngModelChange)="valorEditado.set($event)" />
           </div>
           <div class="campo alinhado acoes-edicao">
@@ -154,7 +154,7 @@
             </p>
           </div>
           <div class="linha-acoes">
-            <span class="linha-valor">{{ gasto.valor | euro }}</span>
+            <span class="linha-valor">{{ gasto.valor | moeda }}</span>
             <button type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">Editar</button>
             <button type="button" class="botao perigo" (click)="excluir(gasto)">Apagar</button>
           </div>

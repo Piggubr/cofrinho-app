@@ -1,5 +1,8 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.web.Moedas;
+import com.piggu.identity.api.dto.PreferencesRequest;
+
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
@@ -102,6 +105,17 @@ public class AuthService {
         return usuarios.findById(usuarioId)
                 .map(UserResponse::de)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+    }
+
+    @Transactional
+    public UserResponse salvarPreferencias(java.util.UUID usuarioId, PreferencesRequest pedido) {
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        conta.alterarPreferencias(
+                Moedas.validar(pedido.moeda()),
+                Moedas.validar(pedido.moedaConversao()),
+                pedido.mostrarCotacao());
+        return UserResponse.de(conta);
     }
 
     private TokenResponse emitirPar(UserAccount conta, String userAgent) {

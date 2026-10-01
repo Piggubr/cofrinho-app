@@ -32,7 +32,7 @@
         >
           <span class="numero-do-dia">{{ dia.dia }}</span>
           @if (dia.totalGasto > 0) {
-            <span class="marca-gasto">{{ dia.totalGasto | euro }}</span>
+            <span class="marca-gasto">{{ dia.totalGasto | moeda }}</span>
           }
           @if (dia.notas > 0) {
             <span class="marca-nota" aria-label="Tem lembrete">•</span>
@@ -57,7 +57,7 @@
             <p class="linha-titulo">{{ gasto.item }}</p>
             <p class="linha-detalhe">{{ gasto.categoria }}</p>
           </div>
-          <span class="linha-valor">{{ gasto.valor | euro }}</span>
+          <span class="linha-valor">{{ gasto.valor | moeda }}</span>
         </div>
       }
     }
@@ -74,7 +74,7 @@
           </div>
           <div class="linha-acoes">
             @if (nota.valor > 0) {
-              <span class="linha-valor">{{ nota.valor | euro }}</span>
+              <span class="linha-valor">{{ nota.valor | moeda }}</span>
             }
             <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
           </div>
@@ -103,7 +103,7 @@
       <input id="dataNota" type="date" [ngModel]="dataDaNota()" (ngModelChange)="dataDaNota.set($event)" />
     </div>
     <div class="campo">
-      <label for="valorNota">Valor do evento (€)</label>
+      <label for="valorNota">Valor do evento ({{ moeda.simbolo() }})</label>
       <input id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
     </div>
     @if (viraGasto()) {

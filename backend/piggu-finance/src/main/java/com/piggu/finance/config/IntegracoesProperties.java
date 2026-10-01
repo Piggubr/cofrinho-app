@@ -32,13 +32,13 @@ public record IntegracoesProperties(Gemini gemini, Cambio cambio) {
     }
 
     /**
-     * @param url     endpoint da cotacao de referencia EUR para BRL
-     * @param padrao  valor usado enquanto nao houver nenhuma cotacao conhecida
+     * @param baseUrl raiz da API Frankfurter (cotacoes de referencia de bancos centrais)
+     * @param padrao  valor EUR/BRL usado enquanto nao houver nenhuma cotacao conhecida
      */
-    public record Cambio(String url, Duration timeout, String padrao) {
+    public record Cambio(String baseUrl, Duration timeout, String padrao) {
 
         public Cambio {
-            url = vazio(url) ? "https://api.frankfurter.dev/v2/rate/EUR/BRL" : url;
+            baseUrl = vazio(baseUrl) ? "https://api.frankfurter.dev/v2" : baseUrl;
             timeout = timeout == null ? Duration.ofSeconds(10) : timeout;
             padrao = vazio(padrao) ? "6.15" : padrao;
         }

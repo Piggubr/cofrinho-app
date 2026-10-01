@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao } from '../../core/api/models';
+import { formatadorDe } from '../../core/ui/moeda';
 
 interface ItemDeMenu {
   readonly rota: string;
@@ -46,10 +47,21 @@ export class Shell {
   ];
 
   constructor() {
-    this.finance.consultarCotacao().subscribe({
-      next: (cotacao) => this.cotacao.set(cotacao),
-      // A cotacao e informativa: sem ela o app segue normalmente.
-      error: () => this.cotacao.set(null),
+    // Refaz a consulta quando a pessoa troca as moedas ou liga a cotacao no perfil.
+    effect((onCleanup) => {
+      const preferencias = this.auth.usuario()?.preferencias;
+      if (!preferencias?.mostrarCotacao || preferencias.moeda === preferencias.moedaConversao) {
+        this.cotacao.set(null);
+        return;
+      }
+      const pedido = this.finance
+        .consultarCotacao(preferencias.moeda, preferencias.moedaConversao)
+        .subscribe({
+          next: (cotacao) => this.cotacao.set(cotacao),
+          // A cotacao e informativa: sem ela o app segue normalmente.
+          error: () => this.cotacao.set(null),
+        });
+      onCleanup(() => pedido.unsubscribe());
     });
   }
 
@@ -69,8 +81,11 @@ export class Shell {
     await this.auth.sair();
   }
 
+  /** "EUR → R$ 6,15": uma unidade da moeda da pessoa na moeda de conversao. */
   protected taxaFormatada(): string {
-    const taxa = this.cotacao()?.taxa;
-    return taxa ? `R$ ${taxa.toFixed(2).replace('.', ',')}` : '';
+    const cotacao = this.cotacao();
+    return cotacao?.taxa
+      ? `${cotacao.de} → ${formatadorDe(cotacao.para).format(cotacao.taxa)}`
+      : '';
   }
 }
