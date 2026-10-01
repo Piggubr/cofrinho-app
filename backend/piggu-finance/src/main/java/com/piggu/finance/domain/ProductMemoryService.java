@@ -54,7 +54,7 @@ public class ProductMemoryService {
             try {
                 registrarUm(gasto);
             } catch (RuntimeException erro) {
-                log.warn("Nao foi possivel atualizar a memoria do produto {}", gasto.getItem(), erro);
+                log.warn("Nao foi possivel atualizar a memoria de precos do gasto {}", gasto.getId(), erro);
             }
         }
     }

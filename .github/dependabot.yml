@@ -1,0 +1,18 @@
+# Avisa quando sair correcao de seguranca nas dependencias do backend, do front e do CI.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      angular:
+        patterns: ["@angular/*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -142,8 +142,10 @@ public class AuthService {
             PigguRole role = autorizados.findByEmail(perfil.email())
                     .map(AuthorizedEmail::getRole)
                     .orElseThrow(() -> new ForbiddenException("Este e-mail nao esta autorizado."));
-            log.info("Criando conta para {} com perfil {}", perfil.email(), role);
-            return usuarios.save(new UserAccount(perfil.email(), role));
+            UserAccount nova = usuarios.save(new UserAccount(perfil.email(), role));
+            // Id, nunca o e-mail: log e copia de dado pessoal que ninguem apaga.
+            log.info("Conta criada id={} perfil={}", nova.getId(), role);
+            return nova;
         });
     }
 
