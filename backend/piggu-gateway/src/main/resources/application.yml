@@ -22,7 +22,7 @@ spring:
             - id: identity
               uri: ${IDENTITY_URL:http://localhost:8081}
               predicates:
-                - Path=/api/auth/**,/api/users/**,/.well-known/**
+                - Path=/api/auth/**,/api/users/**,/api/billing/**,/.well-known/**
 
             - id: finance
               uri: ${FINANCE_URL:http://localhost:8082}

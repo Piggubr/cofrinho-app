@@ -26,8 +26,14 @@ public final class TokensDeTeste {
         return como(EMAIL_ADMIN, PigguRole.ADMIN);
     }
 
+    /** Beatriz com Premium: o caso comum dos testes de permissao. */
     public static RequestPostProcessor beatriz() {
-        return como(EMAIL_BEATRIZ, PigguRole.BEATRIZ);
+        return como(EMAIL_BEATRIZ, PigguRole.BEATRIZ, UUID.nameUUIDFromBytes(EMAIL_BEATRIZ.getBytes()), "PREMIUM");
+    }
+
+    /** Beatriz no plano gratuito, para conferir o que o Premium barra. */
+    public static RequestPostProcessor beatrizGratuita() {
+        return como(EMAIL_BEATRIZ, PigguRole.BEATRIZ, UUID.nameUUIDFromBytes(EMAIL_BEATRIZ.getBytes()), "GRATUITO");
     }
 
     public static RequestPostProcessor familiar() {
@@ -40,11 +46,16 @@ public final class TokensDeTeste {
 
     /** Permite fixar o id, para testes que comparam dono de registro. */
     public static RequestPostProcessor como(String email, PigguRole role, UUID id) {
+        return como(email, role, id, "GRATUITO");
+    }
+
+    public static RequestPostProcessor como(String email, PigguRole role, UUID id, String plano) {
         return SecurityMockMvcRequestPostProcessors.jwt()
                 .jwt(token -> token
                         .subject(id.toString())
                         .claim("email", email)
                         .claim("role", role.name())
+                        .claim("plano", plano)
                         .claim("nome", email.split("@")[0]))
                 .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(role.authority()));
     }

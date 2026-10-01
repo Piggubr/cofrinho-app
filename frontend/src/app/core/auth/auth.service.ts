@@ -28,6 +28,10 @@ export class AuthService {
   readonly usuario = this.usuarioAtual.asReadonly();
   readonly autenticado = computed(() => this.usuarioAtual() !== null);
   readonly ehAdmin = computed(() => this.usuarioAtual()?.role === 'ADMIN');
+  /** Espelha o backend: o ADMIN opera a instalacao e usa tudo. Quem barra e o backend. */
+  readonly ehPremium = computed(
+    () => this.usuarioAtual()?.role === 'ADMIN' || this.usuarioAtual()?.plano === 'PREMIUM',
+  );
   /** O perfil familiar so alcanca o painel e o cofrinho. */
   readonly ehFamiliar = computed(() => this.usuarioAtual()?.role === 'FAMILIAR');
 

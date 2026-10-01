@@ -38,7 +38,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiError> tratarNegocio(BusinessException erro) {
         return ResponseEntity.status(erro.getStatus())
-                .body(ApiError.de(erro.getMessage(), erro.getClass().getSimpleName()));
+                .body(ApiError.de(erro.getMessage(), erro.getCodigo()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

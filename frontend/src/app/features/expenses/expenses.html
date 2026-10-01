@@ -15,15 +15,34 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label for="item">Item</label>
-      <input id="item" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Leite" />
+      <input
+        id="item"
+        type="text"
+        [ngModel]="novoItem()"
+        (ngModelChange)="novoItem.set($event)"
+        placeholder="Ex.: Leite"
+      />
     </div>
     <div class="campo">
       <label for="valor">Valor ({{ moeda.simbolo() }})</label>
-      <input id="valor" type="number" min="0" step="0.01" inputmode="decimal" [ngModel]="novoValor()" (ngModelChange)="novoValor.set($event)" placeholder="0,00" />
+      <input
+        id="valor"
+        type="number"
+        min="0"
+        step="0.01"
+        inputmode="decimal"
+        [ngModel]="novoValor()"
+        (ngModelChange)="novoValor.set($event)"
+        placeholder="0,00"
+      />
     </div>
     <div class="campo">
       <label for="categoria">Categoria</label>
-      <select id="categoria" [ngModel]="novaCategoria()" (ngModelChange)="novaCategoria.set($event)">
+      <select
+        id="categoria"
+        [ngModel]="novaCategoria()"
+        (ngModelChange)="novaCategoria.set($event)"
+      >
         @for (categoria of categorias(); track categoria) {
           <option [value]="categoria">{{ categoria }}</option>
         }
@@ -47,10 +66,20 @@
       {{ salvando() ? 'Guardando...' : 'Lançar' }}
     </button>
 
-    <label class="botao secundario arquivo">
-      {{ lendoRecibo() ? 'Lendo recibo...' : 'Ler recibo por foto' }}
-      <input type="file" accept="image/*" (change)="escolherFoto($event)" [disabled]="lendoRecibo()" hidden />
-    </label>
+    @if (auth.ehPremium()) {
+      <label class="botao secundario arquivo">
+        {{ lendoRecibo() ? 'Lendo recibo...' : 'Ler recibo por foto' }}
+        <input
+          type="file"
+          accept="image/*"
+          (change)="escolherFoto($event)"
+          [disabled]="lendoRecibo()"
+          hidden
+        />
+      </label>
+    } @else {
+      <a routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
+    }
   </div>
 </section>
 
@@ -73,11 +102,20 @@
       <div class="linha-de-campos item-conferido">
         <div class="campo">
           <label [for]="'confItem' + $index">Item</label>
-          <input [id]="'confItem' + $index" type="text" [value]="item.item" (input)="atualizarItemDoRecibo($index, 'item', $any($event.target).value)" />
+          <input
+            [id]="'confItem' + $index"
+            type="text"
+            [value]="item.item"
+            (input)="atualizarItemDoRecibo($index, 'item', $any($event.target).value)"
+          />
         </div>
         <div class="campo">
           <label [for]="'confCat' + $index">Categoria</label>
-          <select [id]="'confCat' + $index" [value]="item.categoria" (change)="atualizarItemDoRecibo($index, 'categoria', $any($event.target).value)">
+          <select
+            [id]="'confCat' + $index"
+            [value]="item.categoria"
+            (change)="atualizarItemDoRecibo($index, 'categoria', $any($event.target).value)"
+          >
             @for (categoria of categorias(); track categoria) {
               <option [value]="categoria">{{ categoria }}</option>
             }
@@ -85,10 +123,19 @@
         </div>
         <div class="campo">
           <label [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
-          <input [id]="'confValor' + $index" type="number" min="0" step="0.01" [value]="item.valor" (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)" />
+          <input
+            [id]="'confValor' + $index"
+            type="number"
+            min="0"
+            step="0.01"
+            [value]="item.valor"
+            (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)"
+          />
         </div>
         <div class="campo alinhado">
-          <button type="button" class="botao perigo" (click)="removerItemDoRecibo($index)">Remover</button>
+          <button type="button" class="botao perigo" (click)="removerItemDoRecibo($index)">
+            Remover
+          </button>
         </div>
       </div>
     }
@@ -120,11 +167,20 @@
         <div class="linha-de-campos item-conferido">
           <div class="campo">
             <label [for]="'ed' + gasto.id">Item</label>
-            <input [id]="'ed' + gasto.id" type="text" [ngModel]="itemEditado()" (ngModelChange)="itemEditado.set($event)" />
+            <input
+              [id]="'ed' + gasto.id"
+              type="text"
+              [ngModel]="itemEditado()"
+              (ngModelChange)="itemEditado.set($event)"
+            />
           </div>
           <div class="campo">
             <label [for]="'edCat' + gasto.id">Categoria</label>
-            <select [id]="'edCat' + gasto.id" [ngModel]="categoriaEditada()" (ngModelChange)="categoriaEditada.set($event)">
+            <select
+              [id]="'edCat' + gasto.id"
+              [ngModel]="categoriaEditada()"
+              (ngModelChange)="categoriaEditada.set($event)"
+            >
               @for (categoria of categorias(); track categoria) {
                 <option [value]="categoria">{{ categoria }}</option>
               }
@@ -132,11 +188,22 @@
           </div>
           <div class="campo">
             <label [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
-            <input [id]="'edVal' + gasto.id" type="number" min="0" step="0.01" [ngModel]="valorEditado()" (ngModelChange)="valorEditado.set($event)" />
+            <input
+              [id]="'edVal' + gasto.id"
+              type="number"
+              min="0"
+              step="0.01"
+              [ngModel]="valorEditado()"
+              (ngModelChange)="valorEditado.set($event)"
+            />
           </div>
           <div class="campo alinhado acoes-edicao">
-            <button type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">Salvar</button>
-            <button type="button" class="botao contorno pequeno" (click)="cancelarEdicao()">Cancelar</button>
+            <button type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">
+              Salvar
+            </button>
+            <button type="button" class="botao contorno pequeno" (click)="cancelarEdicao()">
+              Cancelar
+            </button>
           </div>
         </div>
       } @else {
@@ -155,7 +222,9 @@
           </div>
           <div class="linha-acoes">
             <span class="linha-valor">{{ gasto.valor | moeda }}</span>
-            <button type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">Editar</button>
+            <button type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">
+              Editar
+            </button>
             <button type="button" class="botao perigo" (click)="excluir(gasto)">Apagar</button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.security.Plano;
 import com.piggu.common.security.PigguRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -69,6 +70,18 @@ public class UserAccount {
 
     @Column(name = "show_exchange_rate", nullable = false)
     private boolean showExchangeRate = true;
+
+    @Column(name = "premium_until")
+    private Instant premiumUntil;
+
+    @Column(name = "plan_source", length = 20)
+    private String planSource;
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
+
+    @Column(name = "billing_event_at")
+    private Instant billingEventAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -197,5 +210,42 @@ public class UserAccount {
 
     public boolean isShowExchangeRate() {
         return showExchangeRate;
+    }
+
+    /** Premium enquanto a data paga nao passou. */
+    public Plano planoVigente() {
+        return premiumUntil != null && premiumUntil.isAfter(Instant.now()) ? Plano.PREMIUM : Plano.GRATUITO;
+    }
+
+    /**
+     * Aplica o que o provedor de pagamento disse sobre a assinatura.
+     *
+     * @param ate     ate quando o Premium vale; no passado ou nulo encerra
+     * @param momento quando o provedor gerou o evento
+     * @return falso quando o evento e mais antigo que o ultimo aplicado (chegou fora de ordem)
+     */
+    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, String clienteNoProvedor) {
+        if (billingEventAt != null && momento.isBefore(billingEventAt)) {
+            return false;
+        }
+        this.premiumUntil = ate;
+        this.planSource = origem;
+        this.billingEventAt = momento;
+        if (clienteNoProvedor != null) {
+            this.stripeCustomerId = clienteNoProvedor;
+        }
+        return true;
+    }
+
+    public Instant getPremiumUntil() {
+        return premiumUntil;
+    }
+
+    public String getPlanSource() {
+        return planSource;
+    }
+
+    public String getStripeCustomerId() {
+        return stripeCustomerId;
     }
 }

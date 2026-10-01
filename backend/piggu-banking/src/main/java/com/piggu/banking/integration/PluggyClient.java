@@ -7,6 +7,7 @@ import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UpstreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ public class PluggyClient {
     private String apiKey;
     private Instant chaveVenceEm = Instant.MIN;
 
+    @Autowired
     public PluggyClient(RestClient.Builder builder, PluggyProperties propriedades) {
         this(builder, propriedades, Clock.systemUTC());
     }

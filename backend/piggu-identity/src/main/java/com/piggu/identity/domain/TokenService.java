@@ -46,6 +46,9 @@ public class TokenService {
                 .claim("email", conta.getEmail())
                 .claim("role", conta.getRole().name())
                 .claim("nome", conta.nomeExibicao())
+                // Plano no token: os outros servicos barram o Premium sem consultar o
+                // identity. Mudou o plano? Vale na proxima renovacao (ate 30 min).
+                .claim("plano", conta.planoVigente().name())
                 .build();
 
         JwsHeader cabecalho = JwsHeader.with(SignatureAlgorithm.RS256).keyId("piggu-signing-key").build();

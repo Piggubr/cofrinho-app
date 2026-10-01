@@ -37,6 +37,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
         assertThat(token.getSubject()).isEqualTo(conta.getId().toString());
         assertThat(token.getClaimAsString("email")).isEqualTo("beatriz@piggu.test");
         assertThat(token.getClaimAsString("role")).isEqualTo("BEATRIZ");
+        assertThat(token.getClaimAsString("plano")).isEqualTo("GRATUITO");
         assertThat(token.getIssuer()).hasToString("https://piggu.test");
     }
 

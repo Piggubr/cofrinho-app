@@ -1,0 +1,98 @@
+<h1>Piggu Premium</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+@if (info(); as plano) {
+  @if (voltouDoPagamento && plano.plano === 'GRATUITO') {
+    <p class="aviso">
+      Pagamento enviado. O Premium aparece assim que o pagamento for confirmado, o que leva alguns
+      segundos.
+      <button type="button" class="botao contorno pequeno" (click)="carregar()">Atualizar</button>
+    </p>
+  }
+
+  @if (plano.plano === 'PREMIUM') {
+    <section class="cartao">
+      <div class="cartao-titulo">
+        <h2>Você é Premium ⭐</h2>
+        @if (plano.premiumAte) {
+          <span class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
+        }
+      </div>
+      @if (plano.origem === 'WEB') {
+        <p class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
+        <div class="acoes">
+          <button type="button" class="botao contorno" (click)="gerenciar()" [disabled]="ocupado()">
+            Gerenciar assinatura
+          </button>
+        </div>
+      } @else if (plano.origem) {
+        <p class="linha-detalhe">
+          Assinado pelo app. Para cancelar, use as assinaturas da
+          {{ plano.origem === 'APP_STORE' ? 'App Store' : 'Google Play' }}.
+        </p>
+      }
+    </section>
+  } @else if (auth.ehPremium()) {
+    <p class="aviso">Como administrador, você já usa tudo do Premium.</p>
+  }
+
+  <div class="planos">
+    <section class="cartao" aria-labelledby="titulo-gratuito">
+      <div class="cartao-titulo">
+        <h2 id="titulo-gratuito">Gratuito</h2>
+        <span class="etiqueta">R$ 0</span>
+      </div>
+      <ul class="itens">
+        @for (item of plano.gratuito; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+
+    <section class="cartao destaque" aria-labelledby="titulo-premium">
+      <div class="cartao-titulo">
+        <h2 id="titulo-premium">Premium</h2>
+      </div>
+      <p class="preco">
+        R$ {{ plano.site.mensal }}<small>/mês</small>
+        <span class="ou">ou R$ {{ plano.site.anual }}/ano (2 meses grátis)</span>
+      </p>
+      <ul class="itens">
+        @for (item of plano.premium; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+
+      @if (plano.plano === 'GRATUITO' && !auth.ehAdmin()) {
+        @if (plano.assinaturaDisponivel) {
+          <div class="acoes">
+            <button type="button" class="botao" (click)="assinar('MENSAL')" [disabled]="ocupado()">
+              Assinar mensal
+            </button>
+            <button
+              type="button"
+              class="botao secundario"
+              (click)="assinar('ANUAL')"
+              [disabled]="ocupado()"
+            >
+              Assinar anual
+            </button>
+          </div>
+        } @else {
+          <p class="vazio">A assinatura abre em breve.</p>
+        }
+      }
+    </section>
+  </div>
+
+  <p class="linha-detalhe letras-miudas">
+    O pagamento é feito na página segura da Stripe; o Piggu não vê nem guarda dados do cartão.
+    Cancele quando quiser, sem multa. Se desistir em até 7 dias da assinatura, devolvemos o valor
+    integral. Se o Premium acabar, nada do que você guardou some: tudo continua visível.
+  </p>
+} @else if (!erro()) {
+  <p class="vazio">Carregando...</p>
+}

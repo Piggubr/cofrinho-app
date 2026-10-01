@@ -144,23 +144,27 @@
         }
 
         <div class="acoes" aria-live="polite">
-          <button
-            type="button"
-            class="botao secundario"
-            (click)="conectarBanco()"
-            [disabled]="ocupadoComBancos()"
-          >
-            {{ ocupadoComBancos() ? 'Aguarde...' : 'Conectar banco' }}
-          </button>
-          @if (contas().length) {
+          @if (!auth.ehPremium()) {
+            <a routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
+          } @else {
             <button
               type="button"
-              class="botao contorno"
-              (click)="sincronizarBancos()"
+              class="botao secundario"
+              (click)="conectarBanco()"
               [disabled]="ocupadoComBancos()"
             >
-              Atualizar saldos
+              {{ ocupadoComBancos() ? 'Aguarde...' : 'Conectar banco' }}
             </button>
+            @if (contas().length) {
+              <button
+                type="button"
+                class="botao contorno"
+                (click)="sincronizarBancos()"
+                [disabled]="ocupadoComBancos()"
+              >
+                Atualizar saldos
+              </button>
+            }
           }
         </div>
       </section>

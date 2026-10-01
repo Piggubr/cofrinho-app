@@ -24,6 +24,8 @@ public class IdentitySecurityConfig {
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
                         .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/refresh", "/api/auth/logout").permitAll()
+                        // A Stripe nao manda token: o aviso e conferido pela assinatura HMAC.
+                        .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
                         .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
                         .anyRequest().authenticated())

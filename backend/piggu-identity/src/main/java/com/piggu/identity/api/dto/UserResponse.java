@@ -1,8 +1,10 @@
 package com.piggu.identity.api.dto;
 
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.security.Plano;
 import com.piggu.identity.domain.UserAccount;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,7 +22,9 @@ public record UserResponse(
         PigguRole role,
         boolean ativo,
         Map<String, Object> permissoes,
-        Preferencias preferencias
+        Preferencias preferencias,
+        Plano plano,
+        Instant premiumAte
 ) {
 
     /** Moeda dos valores, moeda da cotacao e se a cotacao aparece no topo. */
@@ -38,7 +42,9 @@ public record UserResponse(
                 conta.getRole(),
                 conta.isActive(),
                 conta.getPermissions(),
-                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate())
+                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate()),
+                conta.planoVigente(),
+                conta.planoVigente() == Plano.PREMIUM ? conta.getPremiumUntil() : null
         );
     }
 }
