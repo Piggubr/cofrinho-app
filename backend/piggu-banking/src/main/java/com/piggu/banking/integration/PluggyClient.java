@@ -91,6 +91,15 @@ public class PluggyClient {
         );
     }
 
+    /**
+     * Apaga o item na Pluggy: ela para de sincronizar e descarta as credenciais e os
+     * dados daquele banco. E a revogacao do consentimento (art. 15 da RC 1/2020).
+     */
+    public void apagarItem(String itemId) {
+        chamar(() -> cliente.delete().uri("/items/{id}", itemId)
+                .header("X-API-KEY", apiKey()));
+    }
+
     // ponytail: le so a primeira pagina (20 contas por item); paginar se aparecer item com mais.
     public List<Conta> listarContas(String itemId) {
         JsonNode resposta = chamar(() -> cliente.get().uri("/accounts?itemId={id}", itemId)

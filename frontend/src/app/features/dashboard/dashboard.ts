@@ -120,6 +120,37 @@ export class Dashboard {
     }
   }
 
+  /** Um banco por conexao, para o botao de desconectar nao repetir por conta. */
+  protected readonly bancos = computed(() => {
+    const unicos = new Map<string, string>();
+    for (const conta of this.contas()) {
+      unicos.set(conta.conexaoId, conta.instituicao);
+    }
+    return [...unicos].map(([conexaoId, instituicao]) => ({ conexaoId, instituicao }));
+  });
+
+  protected desconectarBanco(conexaoId: string, instituicao: string): void {
+    if (
+      !confirm(
+        `Desconectar ${instituicao}? O Piggu para de ler este banco e apaga os saldos guardados.`,
+      )
+    ) {
+      return;
+    }
+    this.ocupadoComBancos.set(true);
+    this.erroBancos.set('');
+    this.banking.desconectar(conexaoId).subscribe({
+      next: (contas) => {
+        this.contas.set(contas);
+        this.ocupadoComBancos.set(false);
+      },
+      error: (falha) => {
+        this.erroBancos.set(mensagemDeErro(falha));
+        this.ocupadoComBancos.set(false);
+      },
+    });
+  }
+
   protected sincronizarBancos(): void {
     this.ocupadoComBancos.set(true);
     this.erroBancos.set('');

@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,5 +86,9 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                 .andExpect(status().isUnprocessableEntity());
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.beatrizGratuita()))
                 .andExpect(status().isOk());
+        // Desconectar nunca pede Premium: aqui so nao acha o banco.
+        mockMvc.perform(delete("/api/banking/connections/" + java.util.UUID.randomUUID())
+                        .with(TokensDeTeste.beatrizGratuita()))
+                .andExpect(status().isNotFound());
     }
 }

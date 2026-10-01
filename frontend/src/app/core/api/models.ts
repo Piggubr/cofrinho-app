@@ -288,6 +288,8 @@ export interface Arquivo {
 /** Conta de um banco conectado por Open Finance, com o saldo da ultima sincronizacao. */
 export interface ContaBancaria {
   id: string;
+  /** Banco conectado ao qual a conta pertence; e ele que se desconecta. */
+  conexaoId: string;
   instituicao: string;
   nome: string;
   tipo: string;

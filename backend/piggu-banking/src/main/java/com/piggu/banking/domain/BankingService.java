@@ -5,6 +5,7 @@ import com.piggu.banking.api.dto.ConnectTokenResponse;
 import com.piggu.banking.config.PluggyProperties;
 import com.piggu.banking.integration.PluggyClient;
 import com.piggu.common.error.ForbiddenException;
+import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Bancos conectados via Pluggy.
@@ -69,6 +71,29 @@ public class BankingService {
     @Transactional(readOnly = true)
     public List<BankAccountResponse> listar(CurrentUser usuario) {
         return contas.listarDoUsuario(usuario.email()).stream().map(BankAccountResponse::de).toList();
+    }
+
+    /**
+     * Desconecta um banco: apaga o item na Pluggy e as contas guardadas aqui.
+     *
+     * <p>Nunca e Premium: revogar o consentimento tem de ser gratis e a qualquer momento.
+     * Se a Pluggy falhar, nada e apagado aqui, para nao sobrar um item vivo la sem
+     * registro do lado de ca; a pessoa tenta de novo. Item que a Pluggy ja nao conhece
+     * (404) conta como desconectado.</p>
+     */
+    @Transactional
+    public List<BankAccountResponse> desconectar(UUID conexaoId, CurrentUser usuario) {
+        BankConnection conexao = conexoes.findById(conexaoId)
+                .filter(encontrada -> encontrada.getUserEmail().equalsIgnoreCase(usuario.email()))
+                .orElseThrow(() -> new NotFoundException("Banco conectado nao encontrado."));
+        try {
+            pluggy.apagarItem(conexao.getPluggyItemId());
+        } catch (NotFoundException jaApagado) {
+            log.info("Item ja nao existia na Pluggy: conexao={}", conexao.getId());
+        }
+        conexoes.delete(conexao);
+        log.info("Banco desconectado: conexao={}", conexao.getId());
+        return listar(usuario);
     }
 
     // ponytail: le o que a Pluggy ja tem (ela atualiza sozinha todo dia). Forcar ida ao

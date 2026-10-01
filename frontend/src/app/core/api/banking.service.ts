@@ -25,6 +25,11 @@ export class BankingService extends ApiBase {
     return this.http.get<ContaBancaria[]>(this.url('/banking/accounts'));
   }
 
+  /** Apaga a conexao na Pluggy e as contas dela. Sempre gratis. */
+  desconectar(conexaoId: string): Observable<ContaBancaria[]> {
+    return this.http.delete<ContaBancaria[]>(this.url(`/banking/connections/${conexaoId}`));
+  }
+
   sincronizar(): Observable<ContaBancaria[]> {
     return this.http.post<ContaBancaria[]>(this.url('/banking/sync'), {});
   }

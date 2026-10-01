@@ -70,8 +70,8 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 1. **Stripe:** criar a conta, um produto com dois preços recorrentes em BRL, o webhook
    (`/api/billing/webhooks/stripe`, eventos `customer.subscription.*`) e o Portal do
    Cliente com cancelamento liberado. Preencher as variáveis `STRIPE_*` do `.env`.
-2. **Desconectar banco** (apagar o item na Pluggy e as contas salvas). É exigência do
-   art. 15 e ainda não existe.
+2. ~~Desconectar banco~~: feito. `DELETE /api/banking/connections/{id}` apaga o item na
+   Pluggy e as contas salvas; nunca pede Premium.
 3. **Premium vencido:** hoje as contas salvas seguem visíveis (certo), mas o item
    continua sincronizando na Pluggy (custo e tratamento sem finalidade). Sugestão:
    desconectar sozinho 30 dias depois do vencimento, com aviso.

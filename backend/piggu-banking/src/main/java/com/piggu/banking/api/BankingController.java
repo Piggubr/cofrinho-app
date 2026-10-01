@@ -9,7 +9,9 @@ import com.piggu.common.security.CurrentUser;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
 @RestController
@@ -54,6 +57,12 @@ public class BankingController {
     @GetMapping("/accounts")
     public List<BankAccountResponse> contas(@AuthUser CurrentUser usuario) {
         return servico.listar(usuario);
+    }
+
+    /** Sempre gratis, inclusive depois que o Premium vence. */
+    @DeleteMapping("/connections/{id}")
+    public List<BankAccountResponse> desconectar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        return servico.desconectar(id, usuario);
     }
 
     @PostMapping("/sync")
