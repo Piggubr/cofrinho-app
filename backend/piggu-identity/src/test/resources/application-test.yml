@@ -15,6 +15,7 @@ logging:
     com.piggu: WARN
 
 piggu:
+  admin-emails: operador@exemplo.test, Outra.Operadora@Exemplo.test
   google:
     client-ids:
       - client-de-teste.apps.googleusercontent.com

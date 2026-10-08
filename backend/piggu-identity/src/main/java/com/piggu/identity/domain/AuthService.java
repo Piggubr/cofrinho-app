@@ -2,6 +2,7 @@ package com.piggu.identity.domain;
 
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
+import com.piggu.common.security.PigguRole;
 import com.piggu.common.web.Moedas;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.PreferencesRequest;
@@ -11,10 +12,14 @@ import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Entrada, renovacao e saida da conta.
@@ -34,19 +39,23 @@ public class AuthService {
     private final RefreshSessionRepository sessoes;
     private final SessionRevoker revogador;
     private final TokenService tokens;
+    private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
                        UserAccountRepository usuarios,
                        FamiliaService familias,
                        RefreshSessionRepository sessoes,
                        SessionRevoker revogador,
-                       TokenService tokens) {
+                       TokenService tokens,
+                       @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.usuarios = usuarios;
         this.familias = familias;
         this.sessoes = sessoes;
         this.revogador = revogador;
         this.tokens = tokens;
+        this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -65,6 +74,11 @@ public class AuthService {
         }
 
         conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
+        // Promove, nunca rebaixa: tirar alguem da lista nao derruba um ADMIN por engano.
+        if (emailsDeAdmin.contains(conta.getEmail()) && conta.getRole() != PigguRole.ADMIN) {
+            conta.setRole(PigguRole.ADMIN);
+            log.info("Conta promovida a ADMIN pela PIGGU_ADMIN_EMAILS: conta={}", conta.getId());
+        }
         usuarios.save(conta);
         log.info("Login: conta={}", conta.getId());
 

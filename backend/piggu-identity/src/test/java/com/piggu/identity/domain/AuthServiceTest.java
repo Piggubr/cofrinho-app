@@ -93,6 +93,18 @@ class AuthServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("e-mail da PIGGU_ADMIN_EMAILS vira ADMIN ao entrar; os outros nao")
+    void adminPelaVariavel() {
+        responderGoogleCom("outra.operadora@exemplo.test");
+        assertThat(auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null).usuario().role())
+                .isEqualTo(PigguRole.ADMIN);
+
+        responderGoogleCom(AUTORIZADA);
+        assertThat(auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null).usuario().role())
+                .isEqualTo(PigguRole.TITULAR);
+    }
+
+    @Test
     @DisplayName("duas pessoas sem convite ficam em familias diferentes")
     void semConviteFamiliasSeparadas() {
         responderGoogleCom(AUTORIZADA);
