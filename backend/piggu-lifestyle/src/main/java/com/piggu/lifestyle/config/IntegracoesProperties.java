@@ -14,8 +14,9 @@ import java.time.Duration;
 public record IntegracoesProperties(Tmdb tmdb, Catalogo catalogo) {
 
     /**
-     * @param token credencial do TMDB; aceita tanto a chave curta v3 quanto o token
-     *              longo v4, porque o Apps Script ja lidava com as duas formas
+     * @param token token de leitura v4 do TMDB (um JWT, "eyJ..."), que vai no cabecalho
+     *              Authorization. A chave curta v3 iria na URL, e URL vai para log em erro
+     *              de rede: com ela a busca fica desligada.
      */
     public record Tmdb(String baseUrl, String token, String idioma, String regiao, Duration timeout) {
 
@@ -27,7 +28,12 @@ public record IntegracoesProperties(Tmdb tmdb, Catalogo catalogo) {
         }
 
         public boolean habilitado() {
-            return !vazio(token);
+            return ehTokenV4(token);
+        }
+
+        /** Token v4 e um JWT: tres partes separadas por ponto, a primeira comecando por eyJ. */
+        public static boolean ehTokenV4(String token) {
+            return token != null && token.startsWith("eyJ") && token.split("[.]").length == 3;
         }
     }
 

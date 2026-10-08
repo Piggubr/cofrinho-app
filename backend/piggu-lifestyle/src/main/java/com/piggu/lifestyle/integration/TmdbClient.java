@@ -28,9 +28,8 @@ import java.util.function.Function;
  *
  * <p>Porte de consultarTmdb_, buscarFilmes_, sortearFilme_ e normalizarFilmeTmdb_.</p>
  *
- * <p>O TMDB tem duas formas de credencial: a chave curta da v3, que vai na query, e
- * o token longo da v4, que vai no cabecalho Authorization. O Apps Script distinguia
- * as duas olhando o formato do texto, e essa deteccao foi mantida.</p>
+ * <p>So o token longo da v4, no cabecalho Authorization. A chave curta da v3 iria na
+ * URL, e a URL aparece no log em erro de rede: com ela a busca fica desligada.</p>
  */
 @Component
 public class TmdbClient {
@@ -42,13 +41,15 @@ public class TmdbClient {
 
     private final RestClient cliente;
     private final IntegracoesProperties.Tmdb propriedades;
-    private final boolean tokenLongo;
 
     public TmdbClient(RestClient.Builder builder, IntegracoesProperties propriedades) {
         this.propriedades = propriedades.tmdb();
         this.cliente = builder.baseUrl(this.propriedades.baseUrl()).build();
         String token = this.propriedades.token();
-        this.tokenLongo = token != null && (token.contains(".") || token.startsWith("eyJ"));
+        if (token != null && !token.isBlank() && !this.propriedades.habilitado()) {
+            log.warn("TMDB_READ_TOKEN nao e um token v4 (eyJ...): busca de filmes desligada."
+                    + " A chave curta v3 iria na URL e acabaria no log.");
+        }
     }
 
     public List<TmdbMovie> buscar(String termo) {
@@ -116,19 +117,14 @@ public class TmdbClient {
         Function<UriBuilder, URI> uri = builder -> {
             builder.path(caminho);
             parametros.forEach(builder::queryParam);
-            if (!tokenLongo) {
-                builder.queryParam("api_key", propriedades.token());
-            }
             return builder.build();
         };
 
         try {
-            RestClient.RequestHeadersSpec<?> pedido =
-                    cliente.get().uri(uri).header("accept", "application/json");
-            if (tokenLongo) {
-                pedido = pedido.header("Authorization", "Bearer " + propriedades.token());
-            }
-            return pedido.retrieve()
+            return cliente.get().uri(uri)
+                    .header("accept", "application/json")
+                    .header("Authorization", "Bearer " + propriedades.token())
+                    .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
                         throw traduzirErro(res.getStatusCode().value());
                     })
