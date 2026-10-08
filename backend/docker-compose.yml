@@ -42,6 +42,13 @@ services:
       STRIPE_PRICE_MENSAL: ${STRIPE_PRICE_MENSAL:-}
       STRIPE_PRICE_ANUAL: ${STRIPE_PRICE_ANUAL:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
+      # Exportar e apagar a conta passa por todos os servicos com dado de pessoas.
+      FINANCE_URL: http://finance:8082
+      REWARDS_URL: http://rewards:8083
+      LIFESTYLE_URL: http://lifestyle:8084
+      MEDIA_URL: http://media:8085
+      # Com o Open Finance ligado:  BANKING_URL=http://banking:8086  no .env
+      BANKING_URL: ${BANKING_URL:-}
     volumes:
       - ./keys:/app/keys:ro
     depends_on:

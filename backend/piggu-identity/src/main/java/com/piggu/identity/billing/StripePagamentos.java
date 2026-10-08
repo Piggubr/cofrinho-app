@@ -109,6 +109,28 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     @Override
+    public void encerrarCliente(String clienteNoProvedor) {
+        if (!habilitado()) {
+            throw new UpstreamException(INDISPONIVEL);
+        }
+        try {
+            cliente.delete().uri("/v1/customers/{id}", clienteNoProvedor)
+                    .header("Authorization", "Bearer " + propriedades.secretKey())
+                    .retrieve()
+                    // Cliente que a Stripe ja nao conhece conta como encerrado.
+                    .onStatus(status -> status.isError() && status.value() != 404, (req, res) -> {
+                        throw new UpstreamException(INDISPONIVEL);
+                    })
+                    .toBodilessEntity();
+        } catch (UpstreamException erro) {
+            throw erro;
+        } catch (RuntimeException erro) {
+            log.error("Falha ao encerrar cliente na Stripe", erro);
+            throw new UpstreamException(INDISPONIVEL);
+        }
+    }
+
+    @Override
     public Optional<EventoDeAssinatura> lerWebhook(String corpo, String assinatura) {
         conferirAssinatura(corpo, assinatura);
         JsonNode evento;

@@ -4,6 +4,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UnauthorizedException;
+import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
 import com.piggu.common.web.Texto;
@@ -39,15 +40,21 @@ public class FamiliaService {
     private final HouseholdInviteRepository convites;
     private final UserAccountRepository usuarios;
     private final RefreshSessionRepository sessoes;
+    private final CascataDeDados cascata;
+    private final TokenService tokens;
 
     public FamiliaService(HouseholdRepository familias,
                           HouseholdInviteRepository convites,
                           UserAccountRepository usuarios,
-                          RefreshSessionRepository sessoes) {
+                          RefreshSessionRepository sessoes,
+                          CascataDeDados cascata,
+                          TokenService tokens) {
         this.familias = familias;
         this.convites = convites;
         this.usuarios = usuarios;
         this.sessoes = sessoes;
+        this.cascata = cascata;
+        this.tokens = tokens;
     }
 
     /** Conta nova: entra na familia que convidou, ou ganha uma familia so dela. */
@@ -103,15 +110,11 @@ public class FamiliaService {
         if (email.isEmpty() || !email.contains("@")) {
             throw new BusinessException("Digite um e-mail valido.");
         }
-        Optional<UserAccount> existente = usuarios.findByEmail(email);
-        if (existente.isPresent()) {
-            boolean daCasa = existente.get().getHouseholdId().equals(usuario.familia());
-            // ponytail: quem ja tem conta nao muda de familia por convite ainda; a mudanca
-            // precisa apagar os dados da familia antiga, o que chega com a exclusao de conta.
-            throw new BusinessException(daCasa
-                    ? "Essa pessoa ja faz parte da familia."
-                    : "Essa pessoa ja tem conta no Piggu. Por enquanto so da para convidar quem ainda nao entrou.",
-                    HttpStatus.CONFLICT, "JA_TEM_CONTA");
+        boolean daCasa = usuarios.findByEmail(email)
+                .filter(existente -> existente.getHouseholdId().equals(usuario.familia()))
+                .isPresent();
+        if (daCasa) {
+            throw new BusinessException("Essa pessoa ja faz parte da familia.", HttpStatus.CONFLICT, "JA_E_DA_FAMILIA");
         }
 
         Instant vence = Instant.now().plus(VALIDADE_DO_CONVITE);
@@ -131,6 +134,73 @@ public class FamiliaService {
                 .orElseThrow(() -> new NotFoundException("Convite nao encontrado."));
         convites.delete(convite);
         return ver(usuario);
+    }
+
+    /** Convites para o e-mail de quem ja tem conta, para a tela da familia oferecer. */
+    @Transactional(readOnly = true)
+    public List<FamiliaResponse.Convite> convitesParaMim(CurrentUser usuario) {
+        return convites.findByEmailOrderByCreatedAtDesc(usuario.email()).stream()
+                .filter(HouseholdInvite::valido)
+                .filter(convite -> !convite.getHouseholdId().equals(usuario.familia()))
+                .map(convite -> new FamiliaResponse.Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),
+                        familias.findById(convite.getHouseholdId()).map(Household::getName).orElse("")))
+                .toList();
+    }
+
+    /**
+     * Quem ja tem conta aceita entrar em outra familia. Os dados da familia antiga saem
+     * como numa exclusao de conta: se a pessoa era a ultima de la, tudo sai; senao o que
+     * era compartilhado fica com quem ficou, anonimizado.
+     */
+    @Transactional
+    public void aceitarConvite(CurrentUser usuario, UUID conviteId) {
+        UserAccount conta = conta(usuario);
+        HouseholdInvite convite = convites.findById(conviteId)
+                .filter(encontrado -> encontrado.getEmail().equals(conta.getEmail()) && encontrado.valido())
+                .orElseThrow(() -> new NotFoundException("Convite nao encontrado ou vencido."));
+        if (convite.getHouseholdId().equals(conta.getHouseholdId())) {
+            throw new BusinessException("Voce ja faz parte dessa familia.");
+        }
+
+        Optional<Household> vazia = sairDeOndeEsta(conta);
+        conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
+        usuarios.saveAndFlush(conta);
+        vazia.ifPresent(familias::delete);
+        convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(conta.getEmail()));
+        sessoes.apagarPorUsuario(conta.getId());
+        log.info("Convite aceito: conta={} familia={}", conta.getId(), convite.getHouseholdId());
+    }
+
+    /**
+     * Apaga os dados da pessoa na familia atual (nos outros servicos) e acerta a familia:
+     * se ninguem fica, ela some; se o titular sai, o membro mais antigo assume.
+     *
+     * @return a familia que ficou vazia, para quem chamou apagar depois de tirar a conta
+     *         dela (a conta aponta para a familia); vazio quando outras pessoas ficam
+     */
+    @Transactional
+    public Optional<Household> sairDeOndeEsta(UserAccount conta) {
+        Household familia = daConta(conta);
+        List<UserAccount> outros = usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId()).stream()
+                .filter(outro -> !outro.getId().equals(conta.getId()))
+                .toList();
+        EscopoDeExclusao escopo = outros.isEmpty() ? EscopoDeExclusao.FAMILIA : EscopoDeExclusao.PESSOA;
+
+        cascata.apagar(tokens.gerarTokenDeExclusao(conta, familia, escopo));
+
+        if (escopo == EscopoDeExclusao.FAMILIA) {
+            convites.deleteAll(convites.findByHouseholdIdOrderByCreatedAtDesc(familia.getId()));
+            return Optional.of(familia);
+        }
+        boolean semTitular = outros.stream().noneMatch(outro -> outro.getRole() != PigguRole.MEMBRO);
+        if (semTitular) {
+            UserAccount novoTitular = outros.get(0);
+            novoTitular.setRole(PigguRole.TITULAR);
+            usuarios.save(novoTitular);
+            sessoes.apagarPorUsuario(novoTitular.getId());
+            log.info("Titularidade passada: familia={} novoTitular={}", familia.getId(), novoTitular.getId());
+        }
+        return Optional.empty();
     }
 
     /** O titular tira alguem da familia; o que a pessoa lancou fica com a familia. */

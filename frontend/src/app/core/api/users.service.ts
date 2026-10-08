@@ -15,6 +15,16 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/auth/me/preferences'), preferencias);
   }
 
+  /** Copia de tudo o que o Piggu guarda da pessoa (LGPD art. 18), em um JSON. */
+  exportarMeusDados(): Observable<Blob> {
+    return this.http.get(this.url('/me/export'), { responseType: 'blob' });
+  }
+
+  /** Exclui a conta e os dados; se a pessoa era a ultima da familia, a familia sai junto. */
+  excluirConta(): Observable<void> {
+    return this.http.delete<void>(this.url('/me'));
+  }
+
   listar(): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(this.url('/users'));
   }

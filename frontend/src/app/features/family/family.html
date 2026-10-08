@@ -7,6 +7,16 @@
   <p class="aviso sucesso" role="status">{{ aviso() }}</p>
 }
 
+@for (convite of convitesRecebidos(); track convite.id) {
+  <section class="cartao destaque" aria-label="Convite recebido">
+    <p class="linha-titulo">Convite para entrar na {{ convite.familia }}</p>
+    <p class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
+    <div class="acoes">
+      <button type="button" class="botao" (click)="aceitar(convite)">Entrar nessa família</button>
+    </div>
+  </section>
+}
+
 @if (familia(); as casa) {
   <section class="cartao" aria-labelledby="titulo-familia">
     <div class="cartao-titulo">

@@ -64,12 +64,14 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("convidar quem ja tem conta e recusado, seja da casa ou de fora")
+    @DisplayName("quem ja e da casa nao recebe convite; quem tem conta em outra familia recebe")
     void conviteParaQuemJaTemConta() {
         assertThatThrownBy(() -> familias.convidar(como(titular), "membro@familia.test"))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("ja faz parte");
-        assertThatThrownBy(() -> familias.convidar(como(titular), "vizinho@outra.test"))
-                .isInstanceOf(BusinessException.class).hasMessageContaining("ja tem conta");
+
+        familias.convidar(como(titular), "vizinho@outra.test");
+        assertThat(familias.convitesParaMim(como(vizinho)))
+                .extracting(FamiliaResponse.Convite::familia).containsExactly("Familia de Ana");
     }
 
     @Test

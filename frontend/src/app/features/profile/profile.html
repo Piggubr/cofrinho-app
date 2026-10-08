@@ -75,6 +75,22 @@
   </div>
 </section>
 
+<section class="cartao" aria-labelledby="titulo-dados">
+  <div class="cartao-titulo">
+    <h2 id="titulo-dados">Seus dados</h2>
+  </div>
+  <p class="linha-detalhe">
+    Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são
+    gratuitos em qualquer plano.
+  </p>
+  <div class="acoes">
+    <button type="button" class="botao contorno" (click)="baixarMeusDados()">Baixar meus dados</button>
+    <button type="button" class="botao perigo" (click)="excluirConta()" [disabled]="excluindo()">
+      {{ excluindo() ? 'Excluindo...' : 'Excluir minha conta' }}
+    </button>
+  </div>
+</section>
+
 @if (auth.ehAdmin()) {
   <section class="cartao">
     <div class="cartao-titulo">

@@ -51,4 +51,8 @@ export class AuthFalso {
   }
 
   async sair(): Promise<void> {}
+
+  async encerrarLocalmente(): Promise<void> {
+    this.usuario.set(null);
+  }
 }

@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
-import { Familia, MembroDaFamilia, PigguRole } from '../../core/api/models';
+import { ConviteDaFamilia, Familia, MembroDaFamilia, PigguRole } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -26,6 +26,7 @@ export class Family {
   protected readonly auth = inject(AuthService);
 
   protected readonly familia = signal<Familia | null>(null);
+  protected readonly convitesRecebidos = signal<ConviteDaFamilia[]>([]);
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly email = signal('');
@@ -35,6 +36,25 @@ export class Family {
   constructor() {
     this.familias.ver().subscribe({
       next: (familia) => this.mostrar(familia),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+    this.familias.convitesParaMim().subscribe({
+      next: (convites) => this.convitesRecebidos.set(convites),
+      error: () => this.convitesRecebidos.set([]),
+    });
+  }
+
+  /** Entrar em outra familia apaga o que e so seu na familia de agora. */
+  protected aceitar(convite: ConviteDaFamilia): void {
+    const texto =
+      `Entrar na ${convite.familia}? Você sai da família atual: se for a última pessoa dela, ` +
+      'tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. ' +
+      'Depois disso é preciso entrar de novo.';
+    if (!confirm(texto)) {
+      return;
+    }
+    this.familias.aceitarConvite(convite.id).subscribe({
+      next: () => void this.auth.encerrarLocalmente(),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
   }

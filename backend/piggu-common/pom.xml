@@ -27,6 +27,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
+    <!-- So para exportar e apagar os dados do titular; quem nao tem banco nao carrega. -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- So para o filtro por familia; quem nao usa JPA (gateway) nao carrega. -->
     <dependency>
       <groupId>org.hibernate.orm</groupId>
