@@ -84,9 +84,9 @@ export interface MoedaDisponivel {
   nome: string;
 }
 
+/** O refresh nao vem no corpo: fica num cookie HttpOnly que o JavaScript nao le. */
 export interface ParDeTokens {
   accessToken: string;
-  refreshToken: string;
   expiresIn: number;
   usuario: Usuario;
 }

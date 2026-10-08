@@ -64,6 +64,12 @@ public class AuthService {
      */
     @Transactional
     public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, String userAgent) {
+        return entrarComGoogle(idToken, versaoDosTermos, true, userAgent);
+    }
+
+    /** @param lembrar continuar conectado: o cookie do refresh sobrevive a fechar o navegador */
+    @Transactional
+    public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, boolean lembrar, String userAgent) {
         GoogleProfile perfil = verificador.verificar(idToken);
         UserAccount conta = usuarios.findByEmail(perfil.email())
                 .orElseGet(() -> familias.criarConta(perfil.email(), perfil.givenName(), versaoDosTermos));
@@ -82,7 +88,7 @@ public class AuthService {
         usuarios.save(conta);
         log.info("Login: conta={}", conta.getId());
 
-        return emitirPar(conta, userAgent);
+        return emitirPar(conta, userAgent, lembrar);
     }
 
     /** Renova o acesso e rotaciona a sessao longa: o refresh usado e' descartado. */
@@ -108,7 +114,7 @@ public class AuthService {
         }
 
         sessoes.delete(sessao);
-        return emitirPar(conta, userAgent);
+        return emitirPar(conta, userAgent, sessao.isRemember());
     }
 
     @Transactional
@@ -133,7 +139,7 @@ public class AuthService {
         return UserResponse.de(conta, familias.daConta(conta));
     }
 
-    private TokenResponse emitirPar(UserAccount conta, String userAgent) {
+    private TokenResponse emitirPar(UserAccount conta, String userAgent, boolean lembrar) {
         limparSessoesVencidas();
 
         String refresh = tokens.gerarRefreshToken();
@@ -141,7 +147,8 @@ public class AuthService {
                 conta.getId(),
                 tokens.hash(refresh),
                 Texto.limitar(userAgent, 300),
-                tokens.expiracaoDaSessao()
+                tokens.expiracaoDaSessao(),
+                lembrar
         ));
 
         Household familia = familias.daConta(conta);
@@ -149,7 +156,8 @@ public class AuthService {
                 tokens.gerarAccessToken(conta, familia),
                 refresh,
                 tokens.segundosDeAcesso(),
-                UserResponse.de(conta, familia)
+                UserResponse.de(conta, familia),
+                lembrar
         );
     }
 
