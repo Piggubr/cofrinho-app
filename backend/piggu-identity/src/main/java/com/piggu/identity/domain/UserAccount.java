@@ -54,6 +54,10 @@ public class UserAccount {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** Desde quando a conta esta desativada; a retencao apaga depois de um prazo. */
+    @Column(name = "deactivated_at")
+    private Instant deactivatedAt;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> permissions = new HashMap<>();
@@ -180,6 +184,11 @@ public class UserAccount {
     }
 
     public void setActive(boolean active) {
+        if (this.active && !active) {
+            this.deactivatedAt = Instant.now();
+        } else if (active) {
+            this.deactivatedAt = null;
+        }
         this.active = active;
     }
 
