@@ -4,7 +4,9 @@
  * visual continue a mesma. Ficam como custom properties no :root porque o app
  * antigo ja trocava de tema redefinindo essas mesmas variaveis. */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+/* A fonte Sora vem do proprio app (pacote @fontsource-variable/sora, declarado no
+ * angular.json): carregar do Google entregaria o IP de todo visitante a terceiros antes
+ * de qualquer login ou aviso (LGPD). */
 
 :root {
   --pink-bg: #fae2e9;
@@ -25,7 +27,7 @@
   --shadow-card: 0 18px 45px rgba(109, 21, 65, 0.1);
   --raio: 18px;
   --raio-pequeno: 12px;
-  --font-body: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
 }
 
 * {

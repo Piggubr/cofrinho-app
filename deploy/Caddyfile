@@ -1,0 +1,63 @@
+# Porta publica do Piggu em producao: unico container com porta aberta (80 e 443).
+#
+# O Caddy tira e renova sozinho o certificado HTTPS (Let's Encrypt) do dominio em
+# DOMINIO, e redireciona todo acesso por HTTP para HTTPS (308) sem configuracao extra.
+{
+	email {$EMAIL_DO_CERTIFICADO}
+}
+
+{$DOMINIO} {
+	encode zstd gzip
+
+	# Teto de corpo que vale mesmo sem Content-Length (envio em partes): foto de 5 MB em
+	# base64 cabe. Os servicos ainda conferem o proprio limite.
+	request_body {
+		max_size 10MB
+	}
+
+	header {
+		# HTTPS sempre, inclusive em subdominios, por um ano.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+		# O que a pagina pode carregar e de onde:
+		# - script: o proprio app, o login do Google e o widget da Pluggy (versao fixa);
+		# - style: 'unsafe-inline' porque o Angular injeta o estilo de cada tela em <style>;
+		#   nenhum script inline e permitido (o build tira o script do critical CSS);
+		# - img: o app, fotos de perfil do Google, capas do TMDB e fotos do Open Food Facts;
+		# - frame: so as janelas do Google e da Pluggy; ninguem emoldura o Piggu.
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client https://cdn.pluggy.ai; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: blob: https://lh3.googleusercontent.com https://image.tmdb.org https://images.openfoodfacts.org https://static.openfoodfacts.org; font-src 'self'; connect-src 'self' https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/ https://*.pluggy.ai; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		# O login do Google precisa da origem; o caminho e a busca nunca saem.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
+		# O login do Google abre em janela propria e precisa falar de volta com o app.
+		Cross-Origin-Opener-Policy "same-origin-allow-popups"
+		-Server
+	}
+
+	# So /api vai para o gateway. /.well-known (chave publica do JWT) e o actuator ficam
+	# de fora de proposito: quem usa sao os servicos, pela rede interna.
+	handle /api/* {
+		# Sem trusted_proxies, o Caddy descarta o X-Forwarded-For de quem chamou e escreve
+		# o IP real; o gateway acrescenta o dele. Por isso PIGGU_LIMITE_PROXIESNAFRENTE=2.
+		reverse_proxy gateway:8080
+	}
+
+	handle {
+		root * /srv
+
+		# Arquivos com hash no nome (main-2TAAQM65.js) nunca mudam: cache de um ano.
+		@comHash path_regexp comHash -[A-Za-z0-9_]{8}\.(js|css|woff2)$
+		header @comHash Cache-Control "public, max-age=31536000, immutable"
+
+		# O resto (index.html e as rotas do Angular, que devolvem ele) aponta para os
+		# arquivos com hash: nao pode ficar velho em cache.
+		@semHash not path_regexp -[A-Za-z0-9_]{8}\.(js|css|woff2)$
+		header @semHash Cache-Control "no-cache"
+
+		# Rota do Angular (/painel) nao e arquivo: devolve o index.html.
+		try_files {path} /index.html
+		file_server
+	}
+}
