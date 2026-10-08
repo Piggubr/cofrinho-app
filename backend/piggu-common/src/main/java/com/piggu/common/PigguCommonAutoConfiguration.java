@@ -1,22 +1,27 @@
 package com.piggu.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.MeusDadosController;
 import com.piggu.common.error.ApiExceptionHandler;
 import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.security.ResourceServerSecurityConfig;
 import com.piggu.common.web.CorrelacaoFilter;
+import com.piggu.common.web.LimiteDeRequisicoes;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+
+import java.time.Clock;
 
 /**
  * Liga o tratamento de erros, a seguranca padrao e a correlacao de logs assim que o
@@ -24,6 +29,7 @@ import org.springframework.core.env.Environment;
  * em cada aplicacao.
  */
 @AutoConfiguration
+@EnableConfigurationProperties(LimiteDeRequisicoes.Limites.class)
 @Import({ApiExceptionHandler.class, ResourceServerSecurityConfig.class})
 public class PigguCommonAutoConfiguration {
 
@@ -32,6 +38,26 @@ public class PigguCommonAutoConfiguration {
     public FilterRegistrationBean<CorrelacaoFilter> correlacaoFilter() {
         FilterRegistrationBean<CorrelacaoFilter> registro = new FilterRegistrationBean<>(new CorrelacaoFilter());
         registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
+        return registro;
+    }
+
+    /** Por IP nas rotas abertas, antes de gastar uma verificacao de token por tentativa. */
+    @Bean
+    public FilterRegistrationBean<LimiteDeRequisicoes> limiteAntesDoLogin(LimiteDeRequisicoes.Limites limites,
+                                                                          ObjectMapper json) {
+        FilterRegistrationBean<LimiteDeRequisicoes> registro = new FilterRegistrationBean<>(
+                new LimiteDeRequisicoes(LimiteDeRequisicoes.Etapa.ANTES_DO_LOGIN, limites, json, Clock.systemUTC()));
+        registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER - 1);
+        return registro;
+    }
+
+    /** Por conta, em toda escrita e envio de foto. */
+    @Bean
+    public FilterRegistrationBean<LimiteDeRequisicoes> limiteDepoisDoLogin(LimiteDeRequisicoes.Limites limites,
+                                                                           ObjectMapper json) {
+        FilterRegistrationBean<LimiteDeRequisicoes> registro = new FilterRegistrationBean<>(
+                new LimiteDeRequisicoes(LimiteDeRequisicoes.Etapa.DEPOIS_DO_LOGIN, limites, json, Clock.systemUTC()));
+        registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 2);
         return registro;
     }
 

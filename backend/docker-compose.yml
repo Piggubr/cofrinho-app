@@ -32,6 +32,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
       PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
@@ -73,6 +74,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
@@ -91,6 +93,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
     depends_on:
       postgres:
@@ -108,6 +111,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       MEDIA_URL: http://media:8085
       TMDB_READ_TOKEN: ${TMDB_READ_TOKEN:-}
@@ -127,6 +131,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       DRIVE_CREDENTIALS: ${DRIVE_CREDENTIALS:-}
       DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
@@ -152,6 +157,7 @@ services:
       DB_USER: piggu
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
       PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
