@@ -89,8 +89,14 @@ export class FinanceService extends ApiBase {
   }
 
   /** Le um recibo por foto. Nada e gravado: o usuario confere antes de lancar. */
-  lerRecibo(imageBase64: string, mimeType: string): Observable<ReciboLido> {
-    return this.http.post<ReciboLido>(this.url('/receipts/parse'), { imageBase64, mimeType });
+  /** @param versaoDoAviso so quando a pessoa autorizou, agora, o envio da foto a IA */
+  lerRecibo(imageBase64: string, mimeType: string, versaoDoAviso?: string): Observable<ReciboLido> {
+    return this.http.post<ReciboLido>(this.url('/receipts/parse'), {
+      imageBase64,
+      mimeType,
+      autorizoIa: versaoDoAviso ? true : undefined,
+      versaoDoAviso,
+    });
   }
 
   consultarCotacao(de: string, para: string): Observable<Cotacao> {

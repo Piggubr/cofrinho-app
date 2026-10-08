@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
@@ -62,7 +63,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     void primeiroAcessoCriaConta() {
         responderGoogleCom(AUTORIZADA);
 
-        TokenResponse acesso = auth.entrarComGoogle("token-google", "navegador-de-teste");
+        TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, "navegador-de-teste");
 
         assertThat(acesso.accessToken()).isNotBlank();
         assertThat(acesso.refreshToken()).isNotBlank();
@@ -73,12 +74,31 @@ class AuthServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("conta nova so nasce com o aceite dos termos na versao vigente; quem ja tem conta nao precisa")
+    void termosNoCadastro() {
+        responderGoogleCom(AUTORIZADA);
+        assertThatThrownBy(() -> auth.entrarComGoogle("token-google", null, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("TERMOS_NECESSARIOS"));
+        assertThatThrownBy(() -> auth.entrarComGoogle("token-google", "1999-01-01", null))
+                .isInstanceOf(BusinessException.class);
+        assertThat(usuarios.findByEmail(AUTORIZADA)).isEmpty();
+
+        auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
+        UserAccount criada = usuarios.findByEmail(AUTORIZADA).orElseThrow();
+        assertThat(criada.getTermsVersion()).isEqualTo(Consentimentos.VERSAO_DO_AVISO);
+        assertThat(criada.getTermsAcceptedAt()).isNotNull();
+
+        assertThat(auth.entrarComGoogle("token-google", null, null).accessToken()).isNotBlank();
+    }
+
+    @Test
     @DisplayName("duas pessoas sem convite ficam em familias diferentes")
     void semConviteFamiliasSeparadas() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse primeira = auth.entrarComGoogle("token-google", null);
+        TokenResponse primeira = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
         responderGoogleCom(CONVIDADA);
-        TokenResponse segunda = auth.entrarComGoogle("token-google", null);
+        TokenResponse segunda = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(segunda.usuario().familia()).isNotEqualTo(primeira.usuario().familia());
         assertThat(segunda.usuario().role()).isEqualTo(PigguRole.TITULAR);
@@ -88,11 +108,11 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("quem foi convidado entra como membro da familia que convidou, e o convite e usado")
     void convidadoEntraComoMembro() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse titular = auth.entrarComGoogle("token-google", null);
+        TokenResponse titular = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
         familias.convidar(comoUsuario(titular), "Convidada@Exemplo.test");
 
         responderGoogleCom(CONVIDADA);
-        TokenResponse membro = auth.entrarComGoogle("token-google", null);
+        TokenResponse membro = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(membro.usuario().familia()).isEqualTo(titular.usuario().familia());
         assertThat(membro.usuario().role()).isEqualTo(PigguRole.MEMBRO);
@@ -103,12 +123,12 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("convite vencido nao vale: a pessoa ganha familia propria")
     void conviteVencido() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse titular = auth.entrarComGoogle("token-google", null);
+        TokenResponse titular = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
         convites.save(new HouseholdInvite(titular.usuario().familia(), CONVIDADA, titular.usuario().id(),
                 java.time.Instant.now().minusSeconds(1)));
 
         responderGoogleCom(CONVIDADA);
-        TokenResponse outra = auth.entrarComGoogle("token-google", null);
+        TokenResponse outra = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(outra.usuario().familia()).isNotEqualTo(titular.usuario().familia());
     }
@@ -117,11 +137,11 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("segundo acesso reaproveita a conta e atualiza o perfil do Google")
     void segundoAcessoAtualizaPerfil() {
         responderGoogleCom(AUTORIZADA);
-        auth.entrarComGoogle("token-google", null);
+        auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         given(verificador.verificar(anyString())).willReturn(new GoogleProfile(
                 "sub-1", AUTORIZADA, "Titular Dias", "Titular", "https://foto.test/nova.jpg"));
-        TokenResponse segundo = auth.entrarComGoogle("token-google", null);
+        TokenResponse segundo = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(usuarios.count()).isEqualTo(1);
         assertThat(segundo.usuario().foto()).isEqualTo("https://foto.test/nova.jpg");
@@ -131,7 +151,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("renovar entrega tokens novos e invalida o refresh usado")
     void renovarRotacionaOToken() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse primeiro = auth.entrarComGoogle("token-google", null);
+        TokenResponse primeiro = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         TokenResponse renovado = auth.renovar(primeiro.refreshToken(), null);
 
@@ -153,7 +173,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("sair encerra a sessao daquele refresh")
     void sairEncerraSessao() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse acesso = auth.entrarComGoogle("token-google", null);
+        TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         auth.sair(acesso.refreshToken());
 
@@ -165,7 +185,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("conta desativada nao renova e perde as sessoes abertas")
     void contaDesativadaNaoRenova() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse acesso = auth.entrarComGoogle("token-google", null);
+        TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         UserAccount conta = usuarios.findByEmail(AUTORIZADA).orElseThrow();
         conta.setActive(false);
@@ -180,7 +200,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("o refresh token nunca e gravado em claro")
     void refreshNaoEGravadoEmClaro() {
         responderGoogleCom(AUTORIZADA);
-        TokenResponse acesso = auth.entrarComGoogle("token-google", null);
+        TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(sessoes.findByTokenHash(acesso.refreshToken()))
                 .as("procurar pelo token puro nao pode achar nada")
@@ -193,7 +213,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     void preferenciasPadrao() {
         responderGoogleCom(AUTORIZADA);
 
-        TokenResponse acesso = auth.entrarComGoogle("token-google", null);
+        TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(acesso.usuario().preferencias())
                 .isEqualTo(new UserResponse.Preferencias("EUR", "BRL", true));
@@ -203,7 +223,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("preferencias de moeda sao gravadas e normalizadas em maiusculas")
     void salvaPreferencias() {
         responderGoogleCom(AUTORIZADA);
-        java.util.UUID id = auth.entrarComGoogle("token-google", null).usuario().id();
+        java.util.UUID id = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null).usuario().id();
 
         auth.salvarPreferencias(id, new PreferencesRequest("usd", "jpy", false));
 
@@ -215,7 +235,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @DisplayName("moeda que nao existe na ISO 4217 e recusada sem gravar nada")
     void recusaMoedaInexistente() {
         responderGoogleCom(AUTORIZADA);
-        java.util.UUID id = auth.entrarComGoogle("token-google", null).usuario().id();
+        java.util.UUID id = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null).usuario().id();
 
         assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("XYZ", "BRL", true)))
                 .isInstanceOf(BusinessException.class);

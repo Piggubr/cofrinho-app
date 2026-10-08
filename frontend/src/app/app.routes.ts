@@ -15,6 +15,15 @@ export const routes: Routes = [
     path: 'entrar',
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },
+  // Abertas, sem login: precisam ser lidas antes de criar a conta.
+  {
+    path: 'privacidade',
+    loadComponent: () => import('./features/legal/privacidade').then((m) => m.Privacidade),
+  },
+  {
+    path: 'termos',
+    loadComponent: () => import('./features/legal/termos').then((m) => m.Termos),
+  },
   {
     path: '',
     canActivate: [autenticadoGuard],

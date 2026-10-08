@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
@@ -41,10 +42,10 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         sessoes.deleteAll();
         convites.deleteAll();
         usuarios.deleteAll();
-        titular = familias.criarConta("titular@familia.test", "Ana");
+        titular = familias.criarConta("titular@familia.test", "Ana", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "membro@familia.test");
-        membro = familias.criarConta("membro@familia.test", "Bia");
-        vizinho = familias.criarConta("vizinho@outra.test", "Caio");
+        membro = familias.criarConta("membro@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        vizinho = familias.criarConta("vizinho@outra.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
     }
 
     @Test

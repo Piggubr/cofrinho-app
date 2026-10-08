@@ -83,6 +83,22 @@
   </div>
 </section>
 
+@if (pedidoDeIa(); as pedido) {
+  <section class="cartao" role="alertdialog" aria-labelledby="titulo-ia">
+    <h2 id="titulo-ia">Ler com a IA do Google?</h2>
+    <p>{{ pedido.mensagem }}</p>
+    <p class="linha-detalhe">
+      A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os
+      itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no
+      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+    </p>
+    <div class="acoes">
+      <button type="button" class="botao" (click)="autorizarIa()">Autorizar e ler</button>
+      <button type="button" class="botao contorno" (click)="recusarIa()">Agora não</button>
+    </div>
+  </section>
+}
+
 @if (recibo(); as lido) {
   <section class="cartao">
     <div class="cartao-titulo">

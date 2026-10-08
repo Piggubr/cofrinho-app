@@ -1,7 +1,10 @@
 package com.piggu.finance.integration;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
+import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.PigguRole;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.ProductMemory;
@@ -19,6 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +40,9 @@ class LeitorDeRecibosTest {
     private final TesseractOcr ocr = mock(TesseractOcr.class);
     private final GeminiReceiptReader gemini = mock(GeminiReceiptReader.class);
     private final ProductMemoryRepository memoria = mock(ProductMemoryRepository.class);
-    private final LeitorDeRecibos leitor = new LeitorDeRecibos(ocr, gemini, memoria);
+    private final Consentimentos consentimentos = mock(Consentimentos.class);
+    private static final CurrentUser USUARIO = new CurrentUser(java.util.UUID.randomUUID(), "b@piggu.test", PigguRole.TITULAR);
+    private final LeitorDeRecibos leitor = new LeitorDeRecibos(ocr, gemini, memoria, consentimentos);
 
     @Test
     @DisplayName("leitura propria que fecha nao chama o Gemini e usa nome e categoria da memoria")
@@ -45,7 +53,7 @@ class LeitorDeRecibosTest {
         when(memoria.findByProductKey("leite ninho")).thenReturn(Optional.of(new ProductMemory(
                 "leite ninho", "Leite Ninho 400g", "Alimentação", BigDecimal.ONE, LocalDate.now(), "b@piggu.test")));
 
-        ReceiptParseResponse resposta = leitor.ler(FOTO);
+        ReceiptParseResponse resposta = leitor.ler(FOTO, USUARIO);
 
         assertThat(resposta.origem()).isEqualTo("OCR");
         assertThat(resposta.aviso()).isNull();
@@ -65,7 +73,7 @@ class LeitorDeRecibosTest {
         when(gemini.habilitado()).thenReturn(true);
         when(gemini.ler(FOTO)).thenReturn(doGemini);
 
-        assertThat(leitor.ler(FOTO)).isSameAs(doGemini);
+        assertThat(leitor.ler(FOTO, USUARIO)).isSameAs(doGemini);
     }
 
     @Test
@@ -76,7 +84,7 @@ class LeitorDeRecibosTest {
         when(gemini.habilitado()).thenReturn(true);
         when(gemini.ler(FOTO)).thenThrow(new UpstreamException("cota"));
 
-        ReceiptParseResponse resposta = leitor.ler(FOTO);
+        ReceiptParseResponse resposta = leitor.ler(FOTO, USUARIO);
 
         assertThat(resposta.origem()).isEqualTo("OCR");
         assertThat(resposta.aviso()).contains("15,99").contains("19,49");
@@ -88,7 +96,7 @@ class LeitorDeRecibosTest {
         when(ocr.ler(any())).thenReturn(Optional.empty());
         when(gemini.habilitado()).thenReturn(false);
 
-        assertThatThrownBy(() -> leitor.ler(FOTO)).isInstanceOf(BusinessException.class)
+        assertThatThrownBy(() -> leitor.ler(FOTO, USUARIO)).isInstanceOf(BusinessException.class)
                 .hasMessageContaining("à mão");
     }
 
@@ -96,5 +104,18 @@ class LeitorDeRecibosTest {
     @DisplayName("nome em maiusculas do cupom vira nome legivel")
     void capitaliza() {
         assertThat(LeitorDeRecibos.capitalizar("LEITE NINHO 400G")).isEqualTo("Leite Ninho 400g");
+    }
+
+    @Test
+    @DisplayName("sem autorizacao a foto nao vai ao Gemini: o pedido volta pedindo consentimento")
+    void semConsentimentoNaoChamaOGemini() {
+        when(ocr.ler(any())).thenReturn(Optional.of(NAO_FECHA));
+        when(gemini.habilitado()).thenReturn(true);
+        doThrow(new BusinessException("autorize", org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+                Consentimentos.CODIGO_NECESSARIO))
+                .when(consentimentos).exigir(eq(USUARIO), eq("GEMINI"), anyString(), isNull(), isNull());
+
+        assertThatThrownBy(() -> leitor.ler(FOTO, USUARIO)).isInstanceOf(BusinessException.class);
+        verify(gemini, never()).ler(any());
     }
 }

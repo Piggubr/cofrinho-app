@@ -1,0 +1,124 @@
+<article class="documento">
+  <p><a routerLink="/entrar">← Voltar</a></p>
+  <h1>Aviso de Privacidade do Piggu</h1>
+  <p class="versao">Versão {{ versao }}</p>
+
+  <p>
+    Este aviso explica quais dados pessoais o Piggu usa, para quê, com quem compartilha e
+    como você exerce seus direitos pela Lei Geral de Proteção de Dados (Lei 13.709/2018).
+  </p>
+
+  <h2>Quem cuida dos seus dados</h2>
+  <p>
+    O controlador é o Piggu. Para qualquer assunto de privacidade, inclusive falar com o
+    encarregado, escreva para <a [href]="'mailto:' + contato">{{ contato }}</a>.
+  </p>
+
+  <h2>O que coletamos e por quê</h2>
+  <div class="tabela-rolavel">
+    <table>
+      <thead>
+        <tr><th>Dado</th><th>Para quê</th><th>Base legal</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nome, e-mail e foto da conta Google</td>
+          <td>Criar sua conta, entrar e mostrar quem lançou cada coisa na família</td>
+          <td>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td>Gastos, receitas, metas, notas, compras, lugares, filmes, fotos e prêmios que você lança</td>
+          <td>Funcionar como seu controle financeiro e da sua família</td>
+          <td>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td>Foto da nota fiscal</td>
+          <td>Ler os itens automaticamente. Primeiro tentamos no nosso servidor; só se não der, e com sua autorização, a foto vai para a IA do Google</td>
+          <td>Consentimento (art. 7º, I) para o envio ao Google</td>
+        </tr>
+        <tr>
+          <td>Contas e saldos bancários (Open Finance)</td>
+          <td>Mostrar seus saldos no painel, se você conectar um banco</td>
+          <td>Consentimento (art. 7º, I), pedido a cada banco conectado</td>
+        </tr>
+        <tr>
+          <td>Dados da assinatura Premium (e-mail, situação do pagamento)</td>
+          <td>Cobrar e liberar o Premium</td>
+          <td>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td>Endereço IP, navegador e registros técnicos</td>
+          <td>Segurança, prevenção de abuso e correção de falhas</td>
+          <td>Legítimo interesse (art. 7º, IX) e Marco Civil da Internet</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Não vendemos dados, não usamos para publicidade e não mostramos anúncios.</p>
+
+  <h2>Com quem compartilhamos (operadores)</h2>
+  <div class="tabela-rolavel">
+    <table>
+      <thead>
+        <tr><th>Empresa</th><th>O que recebe</th><th>Quando</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Google (login)</td><td>Confirmação da sua conta Google</td><td>Sempre que você entra</td></tr>
+        <tr><td>Google (Gemini, IA)</td><td>A foto da nota fiscal</td><td>Só quando nosso leitor não consegue e você autoriza</td></tr>
+        <tr><td>Google (Drive), se usado como armazenamento</td><td>As fotos que você envia</td><td>Ao enviar uma foto</td></tr>
+        <tr><td>Pluggy (Open Finance)</td><td>Contas e saldos do banco que você conectar</td><td>Só se você conectar um banco e autorizar</td></tr>
+        <tr><td>Stripe (pagamentos)</td><td>E-mail e dados do pagamento (o cartão fica só na Stripe)</td><td>Ao assinar o Premium pelo site</td></tr>
+        <tr><td>Provedor de hospedagem</td><td>Os dados guardados nos nossos servidores</td><td>Sempre (infraestrutura)</td></tr>
+        <tr><td>TMDB e Open Food Facts</td><td>Só o termo que você pesquisa (nome de filme, código de barras)</td><td>Ao pesquisar</td></tr>
+        <tr><td>Frankfurter (cotação)</td><td>Nenhum dado pessoal</td><td>Ao mostrar a cotação</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Google e Stripe podem tratar dados fora do Brasil. Isso acontece com as garantias que a
+    LGPD exige (art. 33), como cláusulas contratuais e o consentimento específico que pedimos
+    antes de enviar a foto à IA.
+  </p>
+
+  <h2>Por quanto tempo guardamos</h2>
+  <ul>
+    <li>Enquanto sua conta existir, ou até você apagar o registro.</li>
+    <li>Sessões de acesso: apagadas quando vencem (30 dias).</li>
+    <li>Conta sem nenhum acesso por 24 meses: excluída, como se você tivesse pedido.</li>
+    <li>Conta desativada: excluída depois de 12 meses.</li>
+    <li>Banco conectado sem atualização há 90 dias: conexão e saldos apagados.</li>
+    <li>Fotos que não pertencem a mais nada: apagadas no dia seguinte.</li>
+  </ul>
+
+  <h2>Seus direitos</h2>
+  <p>
+    Você pode, a qualquer momento e de graça, em qualquer plano: ver seus dados, baixar uma
+    cópia de tudo em <strong>Perfil → Baixar meus dados</strong>, corrigir o que lançou,
+    desconectar bancos e excluir sua conta em <strong>Perfil → Excluir minha conta</strong>.
+    Pode também retirar um consentimento: desconectar o banco retira o da Pluggy; para o da
+    IA, escreva para {{ contato }}. Se achar que não respondemos bem, pode reclamar à ANPD.
+  </p>
+  <p>
+    Na família, o titular vê o que todos lançam. Se você sair da família ou excluir a conta,
+    o que você lançou e era compartilhado fica com a família, sem o seu nome.
+  </p>
+
+  <h2>Cookies</h2>
+  <p>
+    Usamos um único cookie, essencial, que mantém você conectado. Não usamos cookies de
+    publicidade nem de terceiros, e a fonte do site é servida pelo próprio Piggu.
+  </p>
+
+  <h2>Segurança</h2>
+  <p>
+    Conexão sempre por HTTPS, acesso separado por família, senhas de banco que nunca passam
+    pelo Piggu e registros sem dados pessoais. Se algo der errado, avisamos você e a ANPD
+    como a lei pede.
+  </p>
+
+  <h2>Mudanças</h2>
+  <p>
+    Se este aviso mudar, a versão acima muda e pediremos de novo as autorizações que
+    dependem dele.
+  </p>
+</article>

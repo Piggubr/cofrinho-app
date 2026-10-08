@@ -74,6 +74,12 @@ public class UserAccount {
     @Column(name = "household_id", nullable = false)
     private UUID householdId;
 
+    @Column(name = "terms_version", length = 20)
+    private String termsVersion;
+
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
     /** Cliente no provedor de pagamento de quem assinou, para abrir o portal depois. */
     @Column(name = "stripe_customer_id")
     private String stripeCustomerId;
@@ -220,6 +226,20 @@ public class UserAccount {
     public void mudarDeFamilia(UUID householdId, PigguRole role) {
         this.householdId = householdId;
         this.role = role;
+    }
+
+    /** Aceite dos termos e do aviso de privacidade, com a versao do texto. */
+    public void aceitarTermos(String versao) {
+        this.termsVersion = versao;
+        this.termsAcceptedAt = Instant.now();
+    }
+
+    public String getTermsVersion() {
+        return termsVersion;
+    }
+
+    public Instant getTermsAcceptedAt() {
+        return termsAcceptedAt;
     }
 
     public void lembrarClienteNoProvedor(String clienteNoProvedor) {

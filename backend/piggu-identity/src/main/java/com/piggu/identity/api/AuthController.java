@@ -39,7 +39,7 @@ public class AuthController {
     @PostMapping("/google")
     public TokenResponse entrar(@Valid @RequestBody GoogleLoginRequest pedido,
                                 @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
-        return servico.entrarComGoogle(pedido.idToken(), userAgent);
+        return servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), userAgent);
     }
 
     @PostMapping("/refresh")

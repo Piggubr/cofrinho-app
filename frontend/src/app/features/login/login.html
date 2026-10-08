@@ -11,7 +11,23 @@
       <p class="aviso informacao">Confirmando seu acesso...</p>
     }
 
-    <div #botaoGoogle class="area-do-botao"></div>
+    @if (aguardandoAceite()) {
+      <div class="aceite">
+        <p>Falta pouco para criar sua conta.</p>
+        <label class="lembrar">
+          <input type="checkbox" [checked]="aceitou()" (change)="aceitou.set($any($event.target).checked)" />
+          <span>
+            Li e aceito os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
+            <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+          </span>
+        </label>
+        <button type="button" class="botao" (click)="criarConta()" [disabled]="!aceitou() || entrando()">
+          Criar minha conta
+        </button>
+      </div>
+    }
+
+    <div #botaoGoogle class="area-do-botao" [hidden]="aguardandoAceite()"></div>
 
     <label class="lembrar">
       <input
@@ -22,6 +38,8 @@
       <span>Continuar conectado neste aparelho</span>
     </label>
 
-    <p class="nota">O acesso é restrito às contas autorizadas.</p>
+    <p class="nota">
+      <a routerLink="/termos">Termos de Uso</a> · <a routerLink="/privacidade">Aviso de Privacidade</a>
+    </p>
   </section>
 </div>

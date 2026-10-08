@@ -4,6 +4,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UnauthorizedException;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
@@ -57,21 +58,36 @@ public class FamiliaService {
         this.tokens = tokens;
     }
 
-    /** Conta nova: entra na familia que convidou, ou ganha uma familia so dela. */
+    /**
+     * Conta nova: entra na familia que convidou, ou ganha uma familia so dela. O aceite
+     * dos termos e gravado aqui, no ato de criar a conta, ou a conta nao nasce.
+     */
     @Transactional
-    public UserAccount criarConta(String email, String primeiroNome) {
+    public UserAccount criarConta(String email, String primeiroNome, String versaoDosTermos) {
+        if (versaoDosTermos == null) {
+            throw new BusinessException("Para criar sua conta, leia e aceite os Termos de Uso e o Aviso de Privacidade.",
+                    HttpStatus.UNPROCESSABLE_ENTITY, "TERMOS_NECESSARIOS");
+        }
+        if (!Consentimentos.VERSAO_DO_AVISO.equals(versaoDosTermos)) {
+            throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
+                    HttpStatus.CONFLICT, Consentimentos.CODIGO_AVISO_MUDOU);
+        }
         Optional<HouseholdInvite> convite = convites.findByEmailOrderByCreatedAtDesc(email).stream()
                 .filter(HouseholdInvite::valido)
                 .findFirst();
 
         UserAccount nova;
         if (convite.isPresent()) {
-            nova = usuarios.save(new UserAccount(email, PigguRole.MEMBRO, convite.get().getHouseholdId()));
+            nova = new UserAccount(email, PigguRole.MEMBRO, convite.get().getHouseholdId());
+            nova.aceitarTermos(versaoDosTermos);
+            nova = usuarios.save(nova);
             convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(email));
             log.info("Conta criada por convite id={} familia={}", nova.getId(), nova.getHouseholdId());
         } else {
             Household familia = familias.save(new Household(nomePadrao(primeiroNome)));
-            nova = usuarios.save(new UserAccount(email, PigguRole.TITULAR, familia.getId()));
+            nova = new UserAccount(email, PigguRole.TITULAR, familia.getId());
+            nova.aceitarTermos(versaoDosTermos);
+            nova = usuarios.save(nova);
             log.info("Conta e familia criadas id={} familia={}", nova.getId(), familia.getId());
         }
         return nova;

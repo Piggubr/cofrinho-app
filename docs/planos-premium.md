@@ -78,7 +78,7 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
    desconectar sozinho 30 dias depois do vencimento, com aviso.
 4. **Arrependimento de 7 dias** (CDC art. 49): a tela promete devolução integral; hoje o
    reembolso é manual pelo painel da Stripe.
-5. **Aviso de privacidade:** incluir a Stripe como operadora (recebe e-mail e pagamento).
+5. ~~Aviso de privacidade~~: feito, a Stripe está na lista de operadores em `/privacidade`.
 6. **Teste grátis:** não ligado. O Piggu Kids dá 30 dias; aqui seria `trial_period_days`
    no checkout.
 7. **Apps:** validar recibo pela App Store Server API e pela Google Play Developer API.

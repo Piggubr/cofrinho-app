@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
@@ -66,15 +67,15 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         sessoes.deleteAll();
         convites.deleteAll();
         usuarios.deleteAll();
-        titular = familias.criarConta("ana@familia.test", "Ana");
+        titular = familias.criarConta("ana@familia.test", "Ana", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "bia@familia.test");
-        membro = familias.criarConta("bia@familia.test", "Bia");
+        membro = familias.criarConta("bia@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
     }
 
     @Test
     @DisplayName("ultima pessoa da familia: escopo FAMILIA, conta e familia somem")
     void ultimaPessoa() {
-        UserAccount sozinho = familias.criarConta("caio@sozinho.test", "Caio");
+        UserAccount sozinho = familias.criarConta("caio@sozinho.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
 
         contas.excluir(sozinho.getId());
 
@@ -126,7 +127,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("quem ja tem conta aceita convite: sai da familia antiga e entra como membro")
     void aceitaConvite() {
-        UserAccount vizinho = familias.criarConta("caio@vizinho.test", "Caio");
+        UserAccount vizinho = familias.criarConta("caio@vizinho.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "caio@vizinho.test");
         assertThat(familias.convitesParaMim(como(vizinho))).hasSize(1);
 
@@ -142,7 +143,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("convite de outra pessoa ou vencido nao e aceito")
     void conviteAlheio() {
-        UserAccount vizinho = familias.criarConta("caio@vizinho.test", "Caio");
+        UserAccount vizinho = familias.criarConta("caio@vizinho.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         HouseholdInvite alheio = convites.save(new HouseholdInvite(titular.getHouseholdId(), "outra@x.test",
                 titular.getId(), Instant.now().plusSeconds(60)));
 
