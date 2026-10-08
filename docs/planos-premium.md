@@ -9,7 +9,7 @@ o botão e mostra o convite.
 | Recurso | Plano | Por quê |
 |---|---|---|
 | Gastos, categorias, meta do mês, calendário | Grátis | É o núcleo do app; sem isso ninguém chega a querer o Premium |
-| Cofrinho e depósitos da família (inclui o perfil FAMILIAR) | Grátis | Idem; é o que traz a família para dentro |
+| Cofrinho e depósitos da família (inclui o MEMBRO) | Grátis | Idem; é o que traz a família para dentro |
 | Lista de compras, lugares (com foto), filmes | Grátis | Custo baixo e geram uso diário |
 | Prêmios e Fofocoins | Grátis | Engajamento |
 | Moeda e cotação | Grátis | Custo zero (Frankfurter) |
@@ -18,7 +18,8 @@ o botão e mostra o convite.
 | **Mural de fotos** (feed) | **Premium** | Custo de armazenamento |
 | Ver, apagar e desconectar o que já existe | Sempre grátis | Premium vencido nunca prende dado da pessoa (LGPD) |
 
-O ADMIN usa tudo sem plano (opera a instalação). A FAMILIAR não alcança nenhum
+O Premium é da família: o titular assina e todos da família usam. O ADMIN usa tudo
+sem plano (opera a instalação). O MEMBRO não alcança nenhum
 recurso Premium, então não assina.
 
 ## Posso cobrar pelo Open Finance?

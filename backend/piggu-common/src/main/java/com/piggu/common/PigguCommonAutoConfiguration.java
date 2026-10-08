@@ -1,12 +1,16 @@
 package com.piggu.common;
 
 import com.piggu.common.error.ApiExceptionHandler;
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.security.ResourceServerSecurityConfig;
 import com.piggu.common.web.CorrelacaoFilter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -24,5 +28,16 @@ public class PigguCommonAutoConfiguration {
         FilterRegistrationBean<CorrelacaoFilter> registro = new FilterRegistrationBean<>(new CorrelacaoFilter());
         registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
         return registro;
+    }
+
+    /** Todo servico com JPA ganha o filtro por familia (ver {@link FamiliaAtual}). */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = "org.hibernate.context.spi.CurrentTenantIdentifierResolver")
+    static class FiltroPorFamilia {
+
+        @Bean
+        HibernatePropertiesCustomizer familiaAtualNoHibernate() {
+            return propriedades -> propriedades.put("hibernate.tenant_identifier_resolver", new FamiliaAtual());
+        }
     }
 }

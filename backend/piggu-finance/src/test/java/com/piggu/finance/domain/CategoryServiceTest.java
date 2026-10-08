@@ -38,7 +38,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("categoria criada entra na lista depois das de fabrica")
     void categoriaCriadaEntraNaLista() {
-        categorias.criar("Pets", "beatriz@piggu.test");
+        categorias.criar("Pets", "titular@piggu.test");
 
         assertThat(categorias.listar()).hasSize(Categorias.BASE.size() + 1).endsWith("Pets");
     }
@@ -61,20 +61,20 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("duplicata e recusada mesmo com caixa diferente")
     void duplicataRecusada() {
-        categorias.criar("Pets", "beatriz@piggu.test");
+        categorias.criar("Pets", "titular@piggu.test");
 
-        assertThatThrownBy(() -> categorias.criar("pets", "beatriz@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("pets", "titular@piggu.test"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Essa opcao ja existe.");
 
-        assertThatThrownBy(() -> categorias.criar("Lazer", "beatriz@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("Lazer", "titular@piggu.test"))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
     @DisplayName("nome curto demais e recusado")
     void nomeCurtoRecusado() {
-        assertThatThrownBy(() -> categorias.criar("a", "beatriz@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("a", "titular@piggu.test"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Digite um nome valido.");
     }
@@ -82,7 +82,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("espacos repetidos no nome sao colapsados antes de gravar")
     void colapsaEspacos() {
-        assertThat(categorias.criar("Casa   e   Jardim", "beatriz@piggu.test"))
+        assertThat(categorias.criar("Casa   e   Jardim", "titular@piggu.test"))
                 .isEqualTo("Casa e Jardim");
     }
 }

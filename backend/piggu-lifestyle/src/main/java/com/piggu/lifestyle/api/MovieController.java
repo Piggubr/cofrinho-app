@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/movies")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class MovieController {
 
     private final MovieService servico;

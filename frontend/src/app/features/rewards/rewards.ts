@@ -125,7 +125,7 @@ export class Rewards {
   }
 
   private recarregarPremios(): void {
-    this.rewards.listarPremios(this.auth.ehAdmin()).subscribe({
+    this.rewards.listarPremios(this.auth.ehTitular()).subscribe({
       next: (premios) => this.premios.set(premios),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
@@ -135,7 +135,7 @@ export class Rewards {
     this.carregando.set(true);
     forkJoin({
       saldo: this.rewards.consultarSaldo(),
-      premios: this.rewards.listarPremios(this.auth.ehAdmin()),
+      premios: this.rewards.listarPremios(this.auth.ehTitular()),
       resgates: this.rewards.listarResgates(),
     }).subscribe({
       next: ({ saldo, premios, resgates }) => {

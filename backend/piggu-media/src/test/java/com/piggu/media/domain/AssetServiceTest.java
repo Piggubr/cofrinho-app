@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class AssetServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
 
     @Autowired
     private AssetService assets;
@@ -68,7 +68,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         String base64 = Base64.getEncoder().encodeToString(new byte[]{9, 8, 7});
 
         Asset asset = assets.guardar(
-                "data:image/png;base64," + base64, "image/png", "FEED", null, BEATRIZ.email());
+                "data:image/png;base64," + base64, "image/png", "FEED", null, TITULAR.email());
 
         assertThat(assets.baixar(asset.getId()).conteudo()).containsExactly(9, 8, 7);
     }
@@ -79,7 +79,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         String base64 = Base64.getEncoder().encodeToString(new byte[]{4, 5, 6});
         String comQuebras = base64.substring(0, 2) + "\n" + base64.substring(2);
 
-        Asset asset = assets.guardar(comQuebras, "image/png", "FEED", null, BEATRIZ.email());
+        Asset asset = assets.guardar(comQuebras, "image/png", "FEED", null, TITULAR.email());
 
         assertThat(assets.baixar(asset.getId()).conteudo()).containsExactly(4, 5, 6);
     }
@@ -87,7 +87,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("base64 invalido vira erro de negocio, nao falha interna")
     void base64InvalidoViraErroDeNegocio() {
-        assertThatThrownBy(() -> assets.guardar("nao@@e@@base64", "image/png", "FEED", null, BEATRIZ.email()))
+        assertThatThrownBy(() -> assets.guardar("nao@@e@@base64", "image/png", "FEED", null, TITULAR.email()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("formato que nao consegui ler");
     }
@@ -106,7 +106,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @DisplayName("contexto ausente cai no padrao")
     void contextoPadrao() {
         Asset asset = assets.guardar(
-                Base64.getEncoder().encodeToString(new byte[]{1}), "image/png", null, null, BEATRIZ.email());
+                Base64.getEncoder().encodeToString(new byte[]{1}), "image/png", null, null, TITULAR.email());
 
         assertThat(asset.getContext()).isEqualTo(Asset.CONTEXTO_PADRAO);
     }
@@ -123,7 +123,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @DisplayName("ninguem apaga foto de outra pessoa, mas o admin apaga")
     void exclusaoRespeitaDono() {
         Asset asset = guardar(new byte[]{1}, "image/png");
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "familiar@piggu.test", PigguRole.FAMILIAR);
+        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         assertThatThrownBy(() -> assets.apagar(asset.getId(), outra)).isInstanceOf(ForbiddenException.class);
@@ -134,6 +134,6 @@ class AssetServiceTest extends PostgresIntegrationTest {
 
     private Asset guardar(byte[] conteudo, String tipo) {
         return assets.guardar(
-                Base64.getEncoder().encodeToString(conteudo), tipo, "FEED", null, BEATRIZ.email());
+                Base64.getEncoder().encodeToString(conteudo), tipo, "FEED", null, TITULAR.email());
     }
 }

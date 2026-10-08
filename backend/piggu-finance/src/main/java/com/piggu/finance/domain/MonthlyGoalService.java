@@ -37,7 +37,7 @@ public class MonthlyGoalService {
     @Transactional
     public MonthlyGoal definir(String mes, BigDecimal limite, String emailUsuario) {
         log.info("Meta do mes definida: mes={}", mes);
-        return repositorio.findById(mes)
+        return repositorio.findByReferenceMonth(mes)
                 .map(existente -> {
                     existente.atualizar(limite, emailUsuario);
                     return repositorio.save(existente);

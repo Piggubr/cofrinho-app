@@ -1,20 +1,21 @@
 import { Component, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
 /**
- * Perfil e, para o administrador, a gestao de contas.
+ * Perfil e, para o administrador, as contas da instalacao.
  *
- * <p>A lista de e-mails liberados era constante no codigo do Apps Script e exigia
- * reimplantar o script para mudar. Agora e uma tela.</p>
+ * <p>O cadastro e aberto: quem entra em cada familia e assunto do titular, na tela
+ * Familia.</p>
  */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -25,13 +26,9 @@ export class Profile {
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly contas = signal<Usuario[]>([]);
-  protected readonly autorizados = signal<{ email: string; role: PigguRole }[]>([]);
   protected readonly carregandoAdmin = signal(false);
 
-  protected readonly novoEmail = signal('');
-  protected readonly novoPerfil = signal<PigguRole>('FAMILIAR');
-
-  protected readonly perfis: PigguRole[] = ['ADMIN', 'BEATRIZ', 'FAMILIAR'];
+  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'MEMBRO'];
 
   private readonly finance = inject(FinanceService);
   protected readonly moedas = signal<MoedaDisponivel[]>([]);
@@ -81,33 +78,6 @@ export class Profile {
     void this.auth.sair();
   }
 
-  protected autorizar(): void {
-    const email = this.novoEmail().trim();
-    if (!email) {
-      this.erro.set('Digite um e-mail válido.');
-      return;
-    }
-
-    this.users.autorizar(email, this.novoPerfil()).subscribe({
-      next: () => {
-        this.novoEmail.set('');
-        this.aviso.set('E-mail autorizado.');
-        this.carregarAdmin();
-      },
-      error: (falha) => this.erro.set(mensagemDeErro(falha)),
-    });
-  }
-
-  protected revogar(email: string): void {
-    if (!confirm(`Remover o acesso de ${email}?`)) {
-      return;
-    }
-    this.users.revogar(email).subscribe({
-      next: () => this.carregarAdmin(),
-      error: (falha) => this.erro.set(mensagemDeErro(falha)),
-    });
-  }
-
   protected alterarPerfil(conta: Usuario, role: PigguRole): void {
     this.users.alterar(conta.id, { role }).subscribe({
       next: () => this.carregarAdmin(),
@@ -133,10 +103,6 @@ export class Profile {
         this.erro.set(mensagemDeErro(falha));
         this.carregandoAdmin.set(false);
       },
-    });
-    this.users.listarAutorizados().subscribe({
-      next: (lista) => this.autorizados.set(lista),
-      error: () => this.autorizados.set([]),
     });
   }
 }

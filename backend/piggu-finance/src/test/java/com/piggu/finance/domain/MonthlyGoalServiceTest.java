@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** Limite de gasto por mes. */
 class MonthlyGoalServiceTest extends PostgresIntegrationTest {
 
-    private static final String EMAIL = "beatriz@piggu.test";
+    private static final String EMAIL = "titular@piggu.test";
 
     @Autowired
     private MonthlyGoalService metas;

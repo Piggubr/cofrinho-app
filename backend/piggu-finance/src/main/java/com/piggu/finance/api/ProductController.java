@@ -12,7 +12,7 @@ import java.util.List;
 /** Memoria de precos do mercado, ordenada pelos produtos mais comprados. */
 @RestController
 @RequestMapping("/api/products")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class ProductController {
 
     private final ProductMemoryService servico;

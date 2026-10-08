@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /** Lancamento, edicao e exclusao de gastos. */
 class ExpenseServiceTest extends PostgresIntegrationTest {
 
-    private static final String EMAIL = "beatriz@piggu.test";
+    private static final String EMAIL = "titular@piggu.test";
 
     @Autowired
     private ExpenseService gastos;

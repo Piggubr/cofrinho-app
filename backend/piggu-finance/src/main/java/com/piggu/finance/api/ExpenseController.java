@@ -27,12 +27,12 @@ import java.util.UUID;
 /**
  * Gastos.
  *
- * <p>Substitui as acoes save, updateExpense e deleteExpense. O perfil FAMILIAR nao
+ * <p>Substitui as acoes save, updateExpense e deleteExpense. O perfil MEMBRO nao
  * alcanca nada aqui, como era em autorizarAcao_.</p>
  */
 @RestController
 @RequestMapping("/api/expenses")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class ExpenseController {
 
     private final ExpenseService servico;

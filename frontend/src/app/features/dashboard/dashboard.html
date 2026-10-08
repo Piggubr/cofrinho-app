@@ -18,7 +18,7 @@
         <p class="linha-detalhe">Depositado</p>
         <p class="numero">{{ cofrinho()?.totalDepositos | moeda }}</p>
       </div>
-      @if (!auth.ehFamiliar()) {
+      @if (!auth.ehMembro()) {
         <div>
           <p class="linha-detalhe">Gasto desde o início</p>
           <p class="numero">{{ cofrinho()?.totalGastos | moeda }}</p>
@@ -66,7 +66,7 @@
     }
   </section>
 
-  @if (!auth.ehFamiliar()) {
+  @if (!auth.ehMembro()) {
     <section class="cartao">
       <div class="cartao-titulo">
         <h2>{{ rotuloDoMes() }}</h2>

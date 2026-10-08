@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Lugares, filmes e compras sao so de ADMIN e BEATRIZ, como no Apps Script. */
+/** Lugares, filmes e compras sao so de ADMIN e TITULAR, como no Apps Script. */
 @AutoConfigureMockMvc
 class PermissoesDaApiTest extends PostgresIntegrationTest {
 
@@ -27,18 +27,18 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("familiar nao alcanca lugares, filmes nem compras")
-    void familiarNaoAlcanca() throws Exception {
-        mockMvc.perform(get("/api/places").with(TokensDeTeste.familiar())).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/movies").with(TokensDeTeste.familiar())).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.familiar())).andExpect(status().isForbidden());
+    @DisplayName("membro nao alcanca lugares, filmes nem compras")
+    void membroNaoAlcanca() throws Exception {
+        mockMvc.perform(get("/api/places").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/movies").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("beatriz alcanca as tres listas")
-    void beatrizAlcanca() throws Exception {
-        mockMvc.perform(get("/api/places").with(TokensDeTeste.beatriz())).andExpect(status().isOk());
-        mockMvc.perform(get("/api/movies").with(TokensDeTeste.beatriz())).andExpect(status().isOk());
-        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.beatriz())).andExpect(status().isOk());
+    @DisplayName("titular alcanca as tres listas")
+    void titularAlcanca() throws Exception {
+        mockMvc.perform(get("/api/places").with(TokensDeTeste.titular())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/movies").with(TokensDeTeste.titular())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.titular())).andExpect(status().isOk());
     }
 }

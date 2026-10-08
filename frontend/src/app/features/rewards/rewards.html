@@ -13,7 +13,7 @@
     <span class="saldo">{{ saldo()?.saldo ?? 0 }}</span>
   </div>
 
-  @if (auth.ehAdmin()) {
+  @if (auth.ehTitular()) {
     <div class="linha-de-campos">
       <div class="campo">
         <label for="ajusteValor">Quantidade</label>
@@ -52,7 +52,7 @@
   }
 </section>
 
-@if (auth.ehAdmin()) {
+@if (auth.ehTitular()) {
   <section class="cartao">
     <div class="cartao-titulo">
       <h2>Novo prêmio</h2>
@@ -108,7 +108,7 @@
             } @else {
               <span class="etiqueta">Desativado</span>
             }
-            @if (auth.ehAdmin() && premio.ativo) {
+            @if (auth.ehTitular() && premio.ativo) {
               <button type="button" class="botao perigo" (click)="desativar(premio)">Remover</button>
             }
           </div>

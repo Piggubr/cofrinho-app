@@ -33,7 +33,7 @@ export class Shell {
   protected readonly menuAberto = signal(false);
   protected readonly cotacao = signal<Cotacao | null>(null);
 
-  /** O perfil familiar so enxerga o painel; o resto do menu some para ele. */
+  /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
   protected readonly itens: ItemDeMenu[] = [
     { rota: '/painel', rotulo: 'Painel', icone: '🏠' },
     { rota: '/gastos', rotulo: 'Gastos', icone: '💸', somenteCompleto: true },
@@ -44,6 +44,7 @@ export class Shell {
     { rota: '/feed', rotulo: 'Fotos', icone: '📸', somenteCompleto: true },
     { rota: '/premios', rotulo: 'Prêmios', icone: '🏆', somenteCompleto: true },
     { rota: '/metas', rotulo: 'Metas', icone: '🎯', somenteCompleto: true },
+    { rota: '/familia', rotulo: 'Família', icone: '👪' },
     { rota: '/plano', rotulo: 'Premium', icone: '⭐', somenteCompleto: true },
   ];
 
@@ -67,7 +68,7 @@ export class Shell {
   }
 
   protected itensVisiveis(): ItemDeMenu[] {
-    return this.auth.ehFamiliar() ? this.itens.filter((item) => !item.somenteCompleto) : this.itens;
+    return this.auth.ehMembro() ? this.itens.filter((item) => !item.somenteCompleto) : this.itens;
   }
 
   protected alternarMenu(): void {

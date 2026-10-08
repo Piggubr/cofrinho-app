@@ -1,0 +1,14 @@
+.lista-simples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}

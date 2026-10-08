@@ -21,7 +21,7 @@ interface TotalPorCategoria {
 /**
  * Painel inicial.
  *
- * <p>E a unica tela que o perfil familiar alcanca, e para ele o backend devolve
+ * <p>E a unica tela que o membro da familia alcanca, e para ele o backend devolve
  * apenas os proprios depositos, com o restante zerado. Por isso os blocos de gastos
  * e meta ficam escondidos nesse caso, em vez de mostrarem zeros sem sentido.</p>
  */
@@ -97,7 +97,7 @@ export class Dashboard {
 
   constructor() {
     this.carregar();
-    if (!this.auth.ehFamiliar()) {
+    if (!this.auth.ehMembro()) {
       this.carregarContas();
     }
   }
@@ -233,7 +233,7 @@ export class Dashboard {
     this.carregando.set(true);
     this.erro.set('');
 
-    if (this.auth.ehFamiliar()) {
+    if (this.auth.ehMembro()) {
       this.finance.consultarCofrinho().subscribe({
         next: (cofrinho) => {
           this.cofrinho.set(cofrinho);

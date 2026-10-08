@@ -35,7 +35,7 @@ public class CoinController {
     }
 
     @PostMapping("/adjustments")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public CoinBalanceResponse ajustar(@Valid @RequestBody CoinAdjustRequest pedido,
                                        @AuthUser CurrentUser usuario) {
         return servico.ajustar(pedido, usuario.email());

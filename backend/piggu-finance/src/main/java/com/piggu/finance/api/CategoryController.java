@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Categorias de gasto. Substitui a acao addCategory. */
 @RestController
 @RequestMapping("/api/categories")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class CategoryController {
 
     private final CategoryService servico;

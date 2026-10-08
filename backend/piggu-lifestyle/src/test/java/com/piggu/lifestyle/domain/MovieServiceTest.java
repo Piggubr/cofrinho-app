@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class MovieServiceTest extends PostgresIntegrationTest {
 
-    private static final String BEATRIZ = "beatriz@piggu.test";
+    private static final String TITULAR = "titular@piggu.test";
     private static final String EDUARDO = "eduardo@piggu.test";
 
     @Autowired
@@ -84,10 +84,10 @@ class MovieServiceTest extends PostgresIntegrationTest {
     void notasPorPessoa() {
         MovieResponse filme = adicionar("603", "Matrix");
 
-        filmes.avaliar(filme.id(), 5, BEATRIZ);
+        filmes.avaliar(filme.id(), 5, TITULAR);
         MovieResponse depois = filmes.avaliar(filme.id(), 4, EDUARDO);
 
-        assertThat(depois.avaliacoes()).containsEntry(BEATRIZ, 5).containsEntry(EDUARDO, 4);
+        assertThat(depois.avaliacoes()).containsEntry(TITULAR, 5).containsEntry(EDUARDO, 4);
         assertThat(filmes.listar().get(0).avaliacoes()).hasSize(2);
     }
 
@@ -96,10 +96,10 @@ class MovieServiceTest extends PostgresIntegrationTest {
     void reavaliarSubstitui() {
         MovieResponse filme = adicionar("603", "Matrix");
 
-        filmes.avaliar(filme.id(), 3, BEATRIZ);
-        MovieResponse depois = filmes.avaliar(filme.id(), 5, BEATRIZ);
+        filmes.avaliar(filme.id(), 3, TITULAR);
+        MovieResponse depois = filmes.avaliar(filme.id(), 5, TITULAR);
 
-        assertThat(depois.avaliacoes()).hasSize(1).containsEntry(BEATRIZ, 5);
+        assertThat(depois.avaliacoes()).hasSize(1).containsEntry(TITULAR, 5);
     }
 
     @Test
@@ -112,10 +112,10 @@ class MovieServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("ninguem apaga filme de outra pessoa, mas o admin apaga")
+    @DisplayName("membro nao apaga filme de outra pessoa, mas o titular e o admin apagam")
     void exclusaoRespeitaDono() {
         MovieResponse filme = adicionar("603", "Matrix");
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), EDUARDO, PigguRole.BEATRIZ);
+        CurrentUser outra = new CurrentUser(UUID.randomUUID(), EDUARDO, PigguRole.MEMBRO);
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         assertThatThrownBy(() -> filmes.excluir(filme.id(), outra)).isInstanceOf(ForbiddenException.class);
@@ -127,6 +127,6 @@ class MovieServiceTest extends PostgresIntegrationTest {
     private MovieResponse adicionar(String tmdbId, String titulo) {
         return filmes.adicionar(new TmdbMovie(
                 tmdbId, titulo, "1999", "https://img.test/p.jpg",
-                new BigDecimal("8.7"), "Sinopse"), BEATRIZ);
+                new BigDecimal("8.7"), "Sinopse"), TITULAR);
     }
 }

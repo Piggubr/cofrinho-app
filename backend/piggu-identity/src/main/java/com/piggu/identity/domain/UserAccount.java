@@ -1,6 +1,5 @@
 package com.piggu.identity.domain;
 
-import com.piggu.common.security.Plano;
 import com.piggu.common.security.PigguRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -71,17 +70,13 @@ public class UserAccount {
     @Column(name = "show_exchange_rate", nullable = false)
     private boolean showExchangeRate = true;
 
-    @Column(name = "premium_until")
-    private Instant premiumUntil;
+    /** Familia a que a conta pertence; o plano e os dados de dominio sao dela. */
+    @Column(name = "household_id", nullable = false)
+    private UUID householdId;
 
-    @Column(name = "plan_source", length = 20)
-    private String planSource;
-
+    /** Cliente no provedor de pagamento de quem assinou, para abrir o portal depois. */
     @Column(name = "stripe_customer_id")
     private String stripeCustomerId;
-
-    @Column(name = "billing_event_at")
-    private Instant billingEventAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -92,10 +87,11 @@ public class UserAccount {
     protected UserAccount() {
     }
 
-    public UserAccount(String email, PigguRole role) {
+    public UserAccount(String email, PigguRole role, UUID householdId) {
         this.id = UUID.randomUUID();
         this.email = email;
         this.role = role;
+        this.householdId = householdId;
     }
 
     @PrePersist
@@ -189,6 +185,10 @@ public class UserAccount {
         this.permissions = permissions == null ? new HashMap<>() : permissions;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     public Instant getLastLoginAt() {
         return lastLoginAt;
     }
@@ -212,37 +212,20 @@ public class UserAccount {
         return showExchangeRate;
     }
 
-    /** Premium enquanto a data paga nao passou. */
-    public Plano planoVigente() {
-        return premiumUntil != null && premiumUntil.isAfter(Instant.now()) ? Plano.PREMIUM : Plano.GRATUITO;
+    public UUID getHouseholdId() {
+        return householdId;
     }
 
-    /**
-     * Aplica o que o provedor de pagamento disse sobre a assinatura.
-     *
-     * @param ate     ate quando o Premium vale; no passado ou nulo encerra
-     * @param momento quando o provedor gerou o evento
-     * @return falso quando o evento e mais antigo que o ultimo aplicado (chegou fora de ordem)
-     */
-    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, String clienteNoProvedor) {
-        if (billingEventAt != null && momento.isBefore(billingEventAt)) {
-            return false;
-        }
-        this.premiumUntil = ate;
-        this.planSource = origem;
-        this.billingEventAt = momento;
+    /** Sai de uma familia e entra em outra (convite aceito, membro removido). */
+    public void mudarDeFamilia(UUID householdId, PigguRole role) {
+        this.householdId = householdId;
+        this.role = role;
+    }
+
+    public void lembrarClienteNoProvedor(String clienteNoProvedor) {
         if (clienteNoProvedor != null) {
             this.stripeCustomerId = clienteNoProvedor;
         }
-        return true;
-    }
-
-    public Instant getPremiumUntil() {
-        return premiumUntil;
-    }
-
-    public String getPlanSource() {
-        return planSource;
     }
 
     public String getStripeCustomerId() {

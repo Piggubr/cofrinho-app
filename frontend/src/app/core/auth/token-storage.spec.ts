@@ -4,17 +4,18 @@ import { ParDeTokens, Usuario } from '../api/models';
 
 const usuario: Usuario = {
   id: '11111111-1111-1111-1111-111111111111',
-  email: 'beatriz@piggu.test',
-  nome: 'Beatriz',
-  primeiroNome: 'Beatriz',
+  email: 'titular@piggu.test',
+  nome: 'Titular',
+  primeiroNome: 'Titular',
   apelido: null,
   foto: null,
-  role: 'BEATRIZ',
+  role: 'TITULAR',
   ativo: true,
   permissoes: {},
   preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
   plano: 'GRATUITO',
   premiumAte: null,
+  familia: '22222222-2222-2222-2222-222222222222',
 };
 
 const tokens: ParDeTokens = {

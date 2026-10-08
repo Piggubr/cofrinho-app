@@ -65,7 +65,7 @@ public class ProductMemoryService {
             return;
         }
         LocalDate data = gasto.getExpenseDate();
-        repositorio.findById(chave).ifPresentOrElse(
+        repositorio.findByProductKey(chave).ifPresentOrElse(
                 produto -> {
                     produto.registrarCompra(gasto.getItem(), gasto.getCategory(),
                             gasto.getAmount(), data, gasto.getUserEmail());
