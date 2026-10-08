@@ -29,8 +29,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class NoteServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
 
     @Autowired
     private NoteService notas;
@@ -54,7 +54,7 @@ class NoteServiceTest extends PostgresIntegrationTest {
     @DisplayName("nota sem valor nao cria gasto")
     void notaSemValorNaoCriaGasto() {
         NoteResponse nota = notas.criar(new NoteRequest(
-                "Ligar para o dentista", "Marcar consulta", LocalDate.now(), null, null), BEATRIZ.email());
+                "Ligar para o dentista", "Marcar consulta", LocalDate.now(), null, null), TITULAR.email());
 
         assertThat(nota.gastoId()).isNull();
         assertThat(gastos.listar()).isEmpty();
@@ -65,7 +65,7 @@ class NoteServiceTest extends PostgresIntegrationTest {
     void notaComValorCriaGasto() {
         NoteResponse nota = notas.criar(new NoteRequest(
                 "Jantar de aniversario", "Reservar mesa",
-                LocalDate.of(2026, 9, 20), new BigDecimal("75"), "Lazer"), BEATRIZ.email());
+                LocalDate.of(2026, 9, 20), new BigDecimal("75"), "Lazer"), TITULAR.email());
 
         assertThat(nota.gastoId()).isNotNull();
 
@@ -82,10 +82,10 @@ class NoteServiceTest extends PostgresIntegrationTest {
     @DisplayName("apagar a nota apaga o gasto vinculado")
     void apagarNotaApagaGasto() {
         NoteResponse nota = notas.criar(new NoteRequest(
-                "Cinema", "", LocalDate.now(), new BigDecimal("18"), "Lazer"), BEATRIZ.email());
+                "Cinema", "", LocalDate.now(), new BigDecimal("18"), "Lazer"), TITULAR.email());
         assertThat(gastos.listar()).hasSize(1);
 
-        notas.excluir(nota.id(), BEATRIZ);
+        notas.excluir(nota.id(), TITULAR);
 
         assertThat(gastos.listar()).isEmpty();
         assertThat(notas.listar()).isEmpty();
@@ -96,9 +96,9 @@ class NoteServiceTest extends PostgresIntegrationTest {
     void apagarNotaSemValor() {
         gastos.listar();
         NoteResponse nota = notas.criar(new NoteRequest(
-                "Lembrete solto", "", null, null, null), BEATRIZ.email());
+                "Lembrete solto", "", null, null, null), TITULAR.email());
 
-        notas.excluir(nota.id(), BEATRIZ);
+        notas.excluir(nota.id(), TITULAR);
 
         assertThat(notas.listar()).isEmpty();
     }
@@ -107,7 +107,7 @@ class NoteServiceTest extends PostgresIntegrationTest {
     @DisplayName("evento pago sem data e recusado")
     void eventoPagoExigeData() {
         assertThatThrownBy(() -> notas.criar(new NoteRequest(
-                "Show", "", null, new BigDecimal("40"), "Lazer"), BEATRIZ.email()))
+                "Show", "", null, new BigDecimal("40"), "Lazer"), TITULAR.email()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("data do evento pago");
     }
@@ -116,7 +116,7 @@ class NoteServiceTest extends PostgresIntegrationTest {
     @DisplayName("categoria desconhecida no evento pago cai em Outros")
     void categoriaDesconhecidaCaiEmOutros() {
         NoteResponse nota = notas.criar(new NoteRequest(
-                "Curso", "", LocalDate.now(), new BigDecimal("10"), "CategoriaInventada"), BEATRIZ.email());
+                "Curso", "", LocalDate.now(), new BigDecimal("10"), "CategoriaInventada"), TITULAR.email());
 
         assertThat(nota.categoria()).isEqualTo("Outros");
         assertThat(gastos.listar().get(0).categoria()).isEqualTo("Outros");
@@ -126,8 +126,8 @@ class NoteServiceTest extends PostgresIntegrationTest {
     @DisplayName("ninguem apaga nota de outra pessoa")
     void naoApagaNotaAlheia() {
         NoteResponse nota = notas.criar(new NoteRequest(
-                "Particular", "", null, null, null), BEATRIZ.email());
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "familiar@piggu.test", PigguRole.FAMILIAR);
+                "Particular", "", null, null, null), TITULAR.email());
+        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
 
         assertThatThrownBy(() -> notas.excluir(nota.id(), outra))
                 .isInstanceOf(ForbiddenException.class);

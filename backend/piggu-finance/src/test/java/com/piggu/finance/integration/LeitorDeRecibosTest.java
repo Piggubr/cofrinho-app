@@ -41,8 +41,8 @@ class LeitorDeRecibosTest {
     void proprioBasta() {
         when(ocr.ler(any())).thenReturn(Optional.of(FECHA));
         when(gemini.habilitado()).thenReturn(true);
-        when(memoria.findById(anyString())).thenReturn(Optional.empty());
-        when(memoria.findById("leite ninho")).thenReturn(Optional.of(new ProductMemory(
+        when(memoria.findByProductKey(anyString())).thenReturn(Optional.empty());
+        when(memoria.findByProductKey("leite ninho")).thenReturn(Optional.of(new ProductMemory(
                 "leite ninho", "Leite Ninho 400g", "Alimentação", BigDecimal.ONE, LocalDate.now(), "b@piggu.test")));
 
         ReceiptParseResponse resposta = leitor.ler(FOTO);
@@ -72,7 +72,7 @@ class LeitorDeRecibosTest {
     @DisplayName("com o Gemini fora do ar fica a leitura parcial, com aviso do que conferir")
     void parcialComAviso() {
         when(ocr.ler(any())).thenReturn(Optional.of(NAO_FECHA));
-        when(memoria.findById(anyString())).thenReturn(Optional.empty());
+        when(memoria.findByProductKey(anyString())).thenReturn(Optional.empty());
         when(gemini.habilitado()).thenReturn(true);
         when(gemini.ler(FOTO)).thenThrow(new UpstreamException("cota"));
 

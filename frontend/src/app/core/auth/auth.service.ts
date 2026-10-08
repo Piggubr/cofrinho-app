@@ -32,8 +32,10 @@ export class AuthService {
   readonly ehPremium = computed(
     () => this.usuarioAtual()?.role === 'ADMIN' || this.usuarioAtual()?.plano === 'PREMIUM',
   );
-  /** O perfil familiar so alcanca o painel e o cofrinho. */
-  readonly ehFamiliar = computed(() => this.usuarioAtual()?.role === 'FAMILIAR');
+  /** O membro da familia so alcanca o painel e o cofrinho. */
+  readonly ehMembro = computed(() => this.usuarioAtual()?.role === 'MEMBRO');
+  /** Titular da familia; o ADMIN vale como titular dentro da propria familia. */
+  readonly ehTitular = computed(() => this.usuarioAtual()?.role === 'TITULAR' || this.ehAdmin());
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;

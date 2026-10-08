@@ -20,7 +20,7 @@ import java.util.HexFormat;
  * Emissao dos tokens do Piggu.
  *
  * <p>O access token carrega o que os outros servicos precisam para decidir sozinhos:
- * o id do usuario em {@code sub}, o e-mail e o papel. Nenhum servico de dominio
+ * o id do usuario em {@code sub}, o e-mail, o papel, o plano e a familia. Nenhum servico de dominio
  * precisa consultar o identity para autorizar uma chamada.</p>
  */
 @Service
@@ -36,7 +36,7 @@ public class TokenService {
         this.propriedades = propriedades;
     }
 
-    public String gerarAccessToken(UserAccount conta) {
+    public String gerarAccessToken(UserAccount conta, Household familia) {
         Instant agora = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(propriedades.issuer())
@@ -48,7 +48,9 @@ public class TokenService {
                 .claim("nome", conta.nomeExibicao())
                 // Plano no token: os outros servicos barram o Premium sem consultar o
                 // identity. Mudou o plano? Vale na proxima renovacao (ate 30 min).
-                .claim("plano", conta.planoVigente().name())
+                .claim("plano", familia.planoVigente().name())
+                // Familia no token: cada servico filtra os proprios dados por ela.
+                .claim("familia", familia.getId().toString())
                 .build();
 
         JwsHeader cabecalho = JwsHeader.with(SignatureAlgorithm.RS256).keyId("piggu-signing-key").build();

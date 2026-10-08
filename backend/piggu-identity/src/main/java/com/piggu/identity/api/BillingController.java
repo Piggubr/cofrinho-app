@@ -42,14 +42,14 @@ public class BillingController {
 
     /** Devolve a pagina de pagamento do provedor; o front so redireciona. */
     @PostMapping("/checkout")
-    @PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, String> checkout(@Valid @RequestBody CheckoutRequest pedido, @AuthUser CurrentUser usuario) {
         return Map.of("url", assinaturas.checkout(usuario.id(), pedido.periodo()));
     }
 
     /** Trocar cartao, ver recibos e cancelar, tao facil quanto assinar. */
     @PostMapping("/portal")
-    @PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, String> portal(@AuthUser CurrentUser usuario) {
         return Map.of("url", assinaturas.portal(usuario.id()));
     }
@@ -68,7 +68,7 @@ public class BillingController {
      * que fingir uma validacao de recibo.
      */
     @PostMapping("/stores/{loja}/purchases")
-    @PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public ResponseEntity<Void> compraNaLoja(@PathVariable String loja) {
         throw new BusinessException("A assinatura pelo app chega junto com os apps.",
                 HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");

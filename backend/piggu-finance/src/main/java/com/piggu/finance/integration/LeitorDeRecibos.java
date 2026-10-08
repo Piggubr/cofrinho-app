@@ -80,7 +80,7 @@ public class LeitorDeRecibos {
 
     /** Produto ja comprado antes volta com o nome e a categoria que a pessoa usou. */
     private ReceiptParseResponse.Item comMemoria(LeitorDeCupom.Item item) {
-        return memoria.findById(ChaveProduto.de(item.nome()))
+        return memoria.findByProductKey(ChaveProduto.de(item.nome()))
                 .map(conhecido -> new ReceiptParseResponse.Item(conhecido.getName(), conhecido.getCategory(), item.valor()))
                 .orElseGet(() -> new ReceiptParseResponse.Item(capitalizar(item.nome()), Categorias.PADRAO, item.valor()));
     }

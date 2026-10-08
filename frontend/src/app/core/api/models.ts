@@ -5,7 +5,8 @@
  * dicionario a mais para manter sincronizado toda vez que um campo mudasse.</p>
  */
 
-export type PigguRole = 'ADMIN' | 'BEATRIZ' | 'FAMILIAR';
+/** ADMIN opera a instalacao; TITULAR e o dono da familia; MEMBRO foi convidado. */
+export type PigguRole = 'ADMIN' | 'TITULAR' | 'MEMBRO';
 
 export interface Usuario {
   id: string;
@@ -19,8 +20,33 @@ export interface Usuario {
   permissoes: Record<string, unknown>;
   preferencias: Preferencias;
   plano: Plano;
-  /** Ate quando o Premium vale; nulo no gratuito. */
+  /** Ate quando o Premium (da familia) vale; nulo no gratuito. */
   premiumAte: string | null;
+  /** Familia a que a conta pertence. */
+  familia: string;
+}
+
+/** Familia de quem esta logado; convites so chegam para o titular. */
+export interface Familia {
+  id: string;
+  nome: string;
+  plano: Plano;
+  membros: MembroDaFamilia[];
+  convites: ConviteDaFamilia[];
+}
+
+export interface MembroDaFamilia {
+  id: string;
+  nome: string;
+  email: string;
+  foto: string | null;
+  papel: PigguRole;
+}
+
+export interface ConviteDaFamilia {
+  id: string;
+  email: string;
+  venceEm: string;
 }
 
 export type Plano = 'GRATUITO' | 'PREMIUM';

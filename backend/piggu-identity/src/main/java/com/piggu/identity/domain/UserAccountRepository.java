@@ -11,4 +11,6 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
     Optional<UserAccount> findByEmail(String email);
 
     List<UserAccount> findAllByOrderByEmailAsc();
+
+    List<UserAccount> findByHouseholdIdOrderByCreatedAtAsc(UUID householdId);
 }

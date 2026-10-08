@@ -25,7 +25,7 @@ import java.util.UUID;
 /** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
 @RestController
 @RequestMapping("/api/banking")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class BankingController {
 
     private final BankingService servico;

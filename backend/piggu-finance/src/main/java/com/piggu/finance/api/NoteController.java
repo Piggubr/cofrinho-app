@@ -24,7 +24,7 @@ import java.util.UUID;
 /** Notas e lembretes. Substitui as acoes saveNote e deleteNote. */
 @RestController
 @RequestMapping("/api/notes")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class NoteController {
 
     private final NoteService servico;

@@ -65,7 +65,7 @@ class PlaceTagServiceTest extends PostgresIntegrationTest {
     void marcadorCriadoPassaASerValido() {
         assertThat(marcadores.filtrarValidos(List.of("Pet friendly"))).isEmpty();
 
-        marcadores.criar("Pet friendly", "beatriz@piggu.test");
+        marcadores.criar("Pet friendly", "titular@piggu.test");
 
         assertThat(marcadores.filtrarValidos(List.of("Pet friendly"))).containsExactly("Pet friendly");
     }
@@ -73,7 +73,7 @@ class PlaceTagServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("duplicata e recusada, inclusive contra os de fabrica")
     void duplicataRecusada() {
-        assertThatThrownBy(() -> marcadores.criar("favorito", "beatriz@piggu.test"))
+        assertThatThrownBy(() -> marcadores.criar("favorito", "titular@piggu.test"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Essa opcao ja existe.");
     }
@@ -81,7 +81,7 @@ class PlaceTagServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("nome curto demais e recusado")
     void nomeCurto() {
-        assertThatThrownBy(() -> marcadores.criar("a", "beatriz@piggu.test"))
+        assertThatThrownBy(() -> marcadores.criar("a", "titular@piggu.test"))
                 .isInstanceOf(BusinessException.class);
     }
 }

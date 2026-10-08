@@ -29,7 +29,7 @@ import java.util.UUID;
  * <ol>
  *   <li>O saldo desconta apenas os gastos <em>registrados depois</em> do primeiro
  *       deposito. Gastos anteriores ao cofrinho nao pertencem a ele.</li>
- *   <li>Quem tem perfil FAMILIAR ve somente os proprios depositos, e o saldo dele e
+ *   <li>Quem tem perfil MEMBRO ve somente os proprios depositos, e o saldo dele e
  *       o proprio total, sem desconto de gastos.</li>
  * </ol>
  */
@@ -48,8 +48,8 @@ public class PiggyBankService {
 
     @Transactional(readOnly = true)
     public PiggyBankResponse consultar(CurrentUser usuario) {
-        if (usuario.role() == PigguRole.FAMILIAR) {
-            return consultarComoFamiliar(usuario.email());
+        if (usuario.role() == PigguRole.MEMBRO) {
+            return consultarComoMembro(usuario.email());
         }
 
         List<DepositResponse> lista = depositos.findAllByOrderByDepositDateDesc().stream()
@@ -87,7 +87,7 @@ public class PiggyBankService {
         log.info("Deposito apagado: id={}", id);
     }
 
-    private PiggyBankResponse consultarComoFamiliar(String email) {
+    private PiggyBankResponse consultarComoMembro(String email) {
         List<DepositResponse> proprios = depositos.findByUserEmailOrderByDepositDateDesc(email).stream()
                 .map(DepositResponse::de)
                 .toList();

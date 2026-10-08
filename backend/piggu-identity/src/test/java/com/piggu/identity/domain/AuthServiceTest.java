@@ -1,9 +1,9 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
-import com.piggu.common.error.BusinessException;
 import com.piggu.identity.api.dto.PreferencesRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
@@ -29,8 +29,8 @@ import static org.mockito.BDDMockito.given;
  */
 class AuthServiceTest extends PostgresIntegrationTest {
 
-    private static final String AUTORIZADA = "beatrizvieirasouzadias@gmail.com";
-    private static final String DE_FORA = "estranho@exemplo.test";
+    private static final String AUTORIZADA = "titular@exemplo.test";
+    private static final String CONVIDADA = "convidada@exemplo.test";
 
     @MockitoBean
     private GoogleIdTokenVerifier verificador;
@@ -44,14 +44,21 @@ class AuthServiceTest extends PostgresIntegrationTest {
     @Autowired
     private RefreshSessionRepository sessoes;
 
+    @Autowired
+    private HouseholdInviteRepository convites;
+
+    @Autowired
+    private FamiliaService familias;
+
     @BeforeEach
     void limpar() {
         sessoes.deleteAll();
+        convites.deleteAll();
         usuarios.deleteAll();
     }
 
     @Test
-    @DisplayName("primeiro acesso de e-mail liberado cria a conta com o perfil da lista")
+    @DisplayName("cadastro aberto: primeiro acesso cria a conta como titular de uma familia nova")
     void primeiroAcessoCriaConta() {
         responderGoogleCom(AUTORIZADA);
 
@@ -60,20 +67,50 @@ class AuthServiceTest extends PostgresIntegrationTest {
         assertThat(acesso.accessToken()).isNotBlank();
         assertThat(acesso.refreshToken()).isNotBlank();
         assertThat(acesso.usuario().email()).isEqualTo(AUTORIZADA);
-        assertThat(acesso.usuario().role()).isEqualTo(PigguRole.BEATRIZ);
+        assertThat(acesso.usuario().role()).isEqualTo(PigguRole.TITULAR);
         assertThat(usuarios.findByEmail(AUTORIZADA)).isPresent();
+        assertThat(acesso.usuario().familia()).isNotNull();
     }
 
     @Test
-    @DisplayName("e-mail fora da lista nao entra e nao cria conta")
-    void emailDeForaNaoEntra() {
-        responderGoogleCom(DE_FORA);
+    @DisplayName("duas pessoas sem convite ficam em familias diferentes")
+    void semConviteFamiliasSeparadas() {
+        responderGoogleCom(AUTORIZADA);
+        TokenResponse primeira = auth.entrarComGoogle("token-google", null);
+        responderGoogleCom(CONVIDADA);
+        TokenResponse segunda = auth.entrarComGoogle("token-google", null);
 
-        assertThatThrownBy(() -> auth.entrarComGoogle("token-google", null))
-                .isInstanceOf(ForbiddenException.class)
-                .hasMessage("Este e-mail nao esta autorizado.");
+        assertThat(segunda.usuario().familia()).isNotEqualTo(primeira.usuario().familia());
+        assertThat(segunda.usuario().role()).isEqualTo(PigguRole.TITULAR);
+    }
 
-        assertThat(usuarios.findByEmail(DE_FORA)).isEmpty();
+    @Test
+    @DisplayName("quem foi convidado entra como membro da familia que convidou, e o convite e usado")
+    void convidadoEntraComoMembro() {
+        responderGoogleCom(AUTORIZADA);
+        TokenResponse titular = auth.entrarComGoogle("token-google", null);
+        familias.convidar(comoUsuario(titular), "Convidada@Exemplo.test");
+
+        responderGoogleCom(CONVIDADA);
+        TokenResponse membro = auth.entrarComGoogle("token-google", null);
+
+        assertThat(membro.usuario().familia()).isEqualTo(titular.usuario().familia());
+        assertThat(membro.usuario().role()).isEqualTo(PigguRole.MEMBRO);
+        assertThat(convites.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("convite vencido nao vale: a pessoa ganha familia propria")
+    void conviteVencido() {
+        responderGoogleCom(AUTORIZADA);
+        TokenResponse titular = auth.entrarComGoogle("token-google", null);
+        convites.save(new HouseholdInvite(titular.usuario().familia(), CONVIDADA, titular.usuario().id(),
+                java.time.Instant.now().minusSeconds(1)));
+
+        responderGoogleCom(CONVIDADA);
+        TokenResponse outra = auth.entrarComGoogle("token-google", null);
+
+        assertThat(outra.usuario().familia()).isNotEqualTo(titular.usuario().familia());
     }
 
     @Test
@@ -83,7 +120,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
         auth.entrarComGoogle("token-google", null);
 
         given(verificador.verificar(anyString())).willReturn(new GoogleProfile(
-                "sub-1", AUTORIZADA, "Beatriz Dias", "Beatriz", "https://foto.test/nova.jpg"));
+                "sub-1", AUTORIZADA, "Titular Dias", "Titular", "https://foto.test/nova.jpg"));
         TokenResponse segundo = auth.entrarComGoogle("token-google", null);
 
         assertThat(usuarios.count()).isEqualTo(1);
@@ -183,6 +220,11 @@ class AuthServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("XYZ", "BRL", true)))
                 .isInstanceOf(BusinessException.class);
         assertThat(auth.perfil(id).preferencias().moeda()).isEqualTo("EUR");
+    }
+
+    private static com.piggu.common.security.CurrentUser comoUsuario(TokenResponse acesso) {
+        return new com.piggu.common.security.CurrentUser(acesso.usuario().id(), acesso.usuario().email(),
+                acesso.usuario().role(), null, acesso.usuario().familia());
     }
 
     private void responderGoogleCom(String email) {

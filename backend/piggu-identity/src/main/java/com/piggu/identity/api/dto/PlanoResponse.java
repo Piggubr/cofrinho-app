@@ -1,7 +1,7 @@
 package com.piggu.identity.api.dto;
 
 import com.piggu.common.security.Plano;
-import com.piggu.identity.domain.UserAccount;
+import com.piggu.identity.domain.Household;
 
 import java.time.Instant;
 import java.util.List;
@@ -50,9 +50,9 @@ public record PlanoResponse(
             "Mural de fotos"
     );
 
-    public static PlanoResponse de(UserAccount conta, boolean assinaturaDisponivel) {
-        Plano vigente = conta.planoVigente();
-        return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? conta.getPremiumUntil() : null,
-                conta.getPlanSource(), assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+    public static PlanoResponse de(Household familia, boolean assinaturaDisponivel) {
+        Plano vigente = familia.planoVigente();
+        return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
+                familia.getPlanSource(), assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
     }
 }

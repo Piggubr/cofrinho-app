@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class RewardsServiceTest extends PostgresIntegrationTest {
 
     private static final String ADMIN = "admin@piggu.test";
-    private static final String BEATRIZ = "beatriz@piggu.test";
+    private static final String TITULAR = "titular@piggu.test";
 
     @Autowired
     private RewardsService recompensas;
@@ -107,7 +107,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
         PrizeResponse premio = recompensas.criarPremio(
                 new PrizeRequest("Sessao de cinema", "Filme a escolha", 60, true), ADMIN);
 
-        RedemptionResponse resgate = recompensas.resgatar(premio.id(), BEATRIZ);
+        RedemptionResponse resgate = recompensas.resgatar(premio.id(), TITULAR);
 
         assertThat(resgate.preco()).isEqualTo(60);
         assertThat(resgate.saldo()).isEqualTo(40);
@@ -122,7 +122,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
         recompensas.ajustar(new CoinAdjustRequest(50, "Credito"), ADMIN);
         PrizeResponse premio = recompensas.criarPremio(new PrizeRequest("Caro", "", 60, true), ADMIN);
 
-        assertThatThrownBy(() -> recompensas.resgatar(premio.id(), BEATRIZ))
+        assertThatThrownBy(() -> recompensas.resgatar(premio.id(), TITULAR))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Voce ainda nao possui Fofocoins suficientes.");
 
@@ -136,7 +136,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
         recompensas.ajustar(new CoinAdjustRequest(100, "Credito"), ADMIN);
         PrizeResponse premio = recompensas.criarPremio(new PrizeRequest("Fora do ar", "", 10, false), ADMIN);
 
-        assertThatThrownBy(() -> recompensas.resgatar(premio.id(), BEATRIZ))
+        assertThatThrownBy(() -> recompensas.resgatar(premio.id(), TITULAR))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Este premio nao esta disponivel.");
     }
@@ -144,7 +144,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("premio inexistente da erro claro")
     void premioInexistente() {
-        assertThatThrownBy(() -> recompensas.resgatar(UUID.randomUUID(), BEATRIZ))
+        assertThatThrownBy(() -> recompensas.resgatar(UUID.randomUUID(), TITULAR))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -153,7 +153,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
     void exclusaoDesativa() {
         recompensas.ajustar(new CoinAdjustRequest(100, "Credito"), ADMIN);
         PrizeResponse premio = recompensas.criarPremio(new PrizeRequest("Cinema", "", 10, true), ADMIN);
-        recompensas.resgatar(premio.id(), BEATRIZ);
+        recompensas.resgatar(premio.id(), TITULAR);
 
         recompensas.excluirPremio(premio.id());
 
@@ -167,7 +167,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
     void resgateGuardaValorHistorico() {
         recompensas.ajustar(new CoinAdjustRequest(100, "Credito"), ADMIN);
         PrizeResponse premio = recompensas.criarPremio(new PrizeRequest("Cinema", "", 20, true), ADMIN);
-        recompensas.resgatar(premio.id(), BEATRIZ);
+        recompensas.resgatar(premio.id(), TITULAR);
 
         recompensas.atualizarPremio(premio.id(), new PrizeRequest("Cinema IMAX", "", 90, true), ADMIN);
 

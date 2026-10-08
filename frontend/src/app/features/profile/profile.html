@@ -17,6 +17,7 @@
         <h2>{{ pessoa.nome }}</h2>
         <p class="linha-detalhe">{{ pessoa.email }}</p>
         <span class="etiqueta">{{ pessoa.role }}</span>
+        <p class="linha-detalhe"><a routerLink="/familia">Ver minha família</a></p>
       </div>
     </div>
 
@@ -77,43 +78,7 @@
 @if (auth.ehAdmin()) {
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2>Quem pode entrar</h2>
-    </div>
-
-    <div class="linha-de-campos">
-      <div class="campo">
-        <label for="email">E-mail</label>
-        <input id="email" type="email" [ngModel]="novoEmail()" (ngModelChange)="novoEmail.set($event)" placeholder="pessoa@gmail.com" />
-      </div>
-      <div class="campo">
-        <label for="perfil">Perfil</label>
-        <select id="perfil" [ngModel]="novoPerfil()" (ngModelChange)="novoPerfil.set($event)">
-          @for (perfil of perfis; track perfil) {
-            <option [value]="perfil">{{ perfil }}</option>
-          }
-        </select>
-      </div>
-      <div class="campo alinhado">
-        <button type="button" class="botao" (click)="autorizar()">Autorizar</button>
-      </div>
-    </div>
-
-    @for (item of autorizados(); track item.email) {
-      <div class="linha">
-        <div>
-          <p class="linha-titulo">{{ item.email }}</p>
-          <p class="linha-detalhe">{{ item.role }}</p>
-        </div>
-        <button type="button" class="botao perigo" (click)="revogar(item.email)">Remover</button>
-      </div>
-    } @empty {
-      <p class="vazio">Nenhum e-mail liberado.</p>
-    }
-  </section>
-
-  <section class="cartao">
-    <div class="cartao-titulo">
-      <h2>Contas</h2>
+      <h2>Contas da instalação</h2>
     </div>
 
     @if (carregandoAdmin()) {

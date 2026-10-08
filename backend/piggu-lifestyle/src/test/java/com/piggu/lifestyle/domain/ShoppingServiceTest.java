@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class ShoppingServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
 
     @Autowired
     private ShoppingService compras;
@@ -113,13 +113,13 @@ class ShoppingServiceTest extends PostgresIntegrationTest {
     @DisplayName("ninguem apaga item de outra pessoa")
     void naoApagaItemAlheio() {
         ShoppingItemResponse item = criar(new ShoppingItemRequest("Ovos", null, null, null, null, null));
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "familiar@piggu.test", PigguRole.FAMILIAR);
+        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
 
         assertThatThrownBy(() -> compras.excluir(item.id(), outra))
                 .isInstanceOf(ForbiddenException.class);
     }
 
     private ShoppingItemResponse criar(ShoppingItemRequest pedido) {
-        return compras.criar(pedido, BEATRIZ.email());
+        return compras.criar(pedido, TITULAR.email());
     }
 }

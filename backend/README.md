@@ -95,16 +95,28 @@ classpath de teste.
 > mudança continua no histórico do Git e deve ser tratada como **vazada**: nunca a
 > use em nenhum ambiente real. Gere o par de produção fora do repositório.
 
-### Perfis de acesso
+### Famílias e papéis
 
-Os três perfis do original continuam: `ADMIN`, `BEATRIZ` e `FAMILIAR`.
+Cada pessoa tem conta própria e pertence a uma **família** (`households`). Cadastro
+aberto: o primeiro login Google cria a conta e uma família nova, com a pessoa como
+`TITULAR`. Quem foi convidado pelo titular (`POST /api/family/invites`, vale 7 dias)
+entra na família dele como `MEMBRO`.
 
-O `FAMILIAR` alcança apenas o câmbio e o cofrinho, e no cofrinho vê somente os
-próprios depósitos, com saldo igual ao próprio total. Essa regra vive no
-`PiggyBankService`, não no controller, para valer em qualquer caminho de chamada.
+| Papel | O que faz |
+|---|---|
+| `ADMIN` | Opera a instalação (`/api/users`); dentro da própria família vale como titular |
+| `TITULAR` | Dono da família: convida, remove membros, assina o Premium, gerencia tudo dela |
+| `MEMBRO` | Só o câmbio e o cofrinho; no cofrinho vê os próprios depósitos (`PiggyBankService`) |
 
-A lista de e-mails autorizados, que eram constantes no código e exigiam
-reimplantar o script para mudar, agora é a tabela `authorized_emails`.
+O id da família vai no token (claim `familia`). Toda entidade de domínio tem a coluna
+`household_id` marcada com `@TenantId`: o Hibernate filtra **toda** consulta pela
+família do token e preenche a coluna ao gravar (`FamiliaAtual` no `piggu-common`).
+Sem token, a sessão cai numa família inexistente e não vê nada; job que precisa
+gravar diz para quem com `FamiliaAtual.como(familia, ...)`. Consulta nativa (SQL
+puro) **não** passa pelo filtro. Os testes `IsolamentoEntreFamiliasTest` de cada
+serviço provam que uma família nunca lê nem altera dado de outra.
+
+O Premium é da família (`households.premium_until`): o titular assina e todos usam.
 
 ### Concorrência
 
@@ -262,7 +274,7 @@ primeira paga os ~10s de startup, as demais rodam em milissegundos.
 | `piggu-finance` | 68 | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API, câmbio de qualquer par, chave do Gemini fora da URL |
 | `piggu-rewards` | 16 | Saldo nunca negativo, resgate atômico, sem gasto duplo |
 | `piggu-lifestyle` | 30 | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
-| `piggu-media` | 19 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, foto só para ADMIN/BEATRIZ |
+| `piggu-media` | 19 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, foto só para ADMIN/TITULAR e da própria família |
 | `piggu-banking` | 16 | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, familiar sem acesso |
 | `piggu-gateway` | 4 | Toda rota existe, atuador de rotas fechado, X-Request-Id validado |
 

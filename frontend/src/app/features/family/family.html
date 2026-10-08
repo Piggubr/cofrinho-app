@@ -1,0 +1,111 @@
+<h1>Família</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
+
+@if (familia(); as casa) {
+  <section class="cartao" aria-labelledby="titulo-familia">
+    <div class="cartao-titulo">
+      <h2 id="titulo-familia">{{ casa.nome }}</h2>
+      <span class="etiqueta">{{ casa.plano === 'PREMIUM' ? 'Premium' : 'Gratuito' }}</span>
+    </div>
+
+    @if (auth.ehTitular()) {
+      <div class="linha-de-campos">
+        <div class="campo">
+          <label for="nome-familia">Nome da família</label>
+          <input
+            id="nome-familia"
+            maxlength="120"
+            [ngModel]="nome()"
+            (ngModelChange)="nome.set($event)"
+          />
+        </div>
+        <div class="campo alinhado">
+          <button type="button" class="botao contorno" (click)="renomear()" [disabled]="ocupado()">
+            Salvar nome
+          </button>
+        </div>
+      </div>
+    }
+
+    <ul class="lista-simples">
+      @for (pessoa of casa.membros; track pessoa.id) {
+        <li class="linha">
+          <div>
+            <p class="linha-titulo">{{ pessoa.nome }}</p>
+            <p class="linha-detalhe">{{ pessoa.email }} · {{ papel(pessoa.papel) }}</p>
+          </div>
+          @if (auth.ehTitular() && pessoa.papel === 'MEMBRO') {
+            <button
+              type="button"
+              class="botao perigo pequeno"
+              (click)="remover(pessoa)"
+              [disabled]="ocupado()"
+            >
+              Remover
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  </section>
+
+  @if (auth.ehTitular()) {
+    <section class="cartao" aria-labelledby="titulo-convite">
+      <div class="cartao-titulo">
+        <h2 id="titulo-convite">Convidar alguém</h2>
+      </div>
+      <p class="linha-detalhe">
+        A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
+        convite vale 7 dias.
+      </p>
+      <div class="linha-de-campos">
+        <div class="campo">
+          <label for="email-convite">E-mail</label>
+          <input
+            id="email-convite"
+            type="email"
+            maxlength="320"
+            autocomplete="off"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            placeholder="pessoa@gmail.com"
+          />
+        </div>
+        <div class="campo alinhado">
+          <button type="button" class="botao" (click)="convidar()" [disabled]="ocupado()">
+            Convidar
+          </button>
+        </div>
+      </div>
+
+      @for (convite of casa.convites; track convite.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ convite.email }}</p>
+            <p class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
+          </div>
+          <button type="button" class="botao contorno pequeno" (click)="cancelarConvite(convite.id)">
+            Cancelar
+          </button>
+        </div>
+      } @empty {
+        <p class="vazio">Nenhum convite pendente.</p>
+      }
+    </section>
+  } @else {
+    <section class="cartao">
+      <p class="linha-detalhe">Só o titular convida e remove pessoas.</p>
+      <div class="acoes">
+        <button type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
+      </div>
+    </section>
+  }
+} @else if (!erro()) {
+  <p class="carregando">Carregando...</p>
+}

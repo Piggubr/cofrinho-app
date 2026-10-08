@@ -41,7 +41,7 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Autowired
     private BankConnectionRepository conexoes;
 
-    private final CurrentUser beatriz = new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private final CurrentUser titular = new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
     private final CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
     @BeforeEach
@@ -52,12 +52,12 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("registrar um item do proprio usuario grava as contas com saldo")
     void registraContas() {
-        item("item-1", beatriz, "Nubank");
+        item("item-1", titular, "Nubank");
         when(pluggy.listarContas("item-1")).thenReturn(List.of(
                 conta("c1", "Conta corrente", "1520.35"),
                 conta("c2", "Cartao", "-300.00")));
 
-        List<BankAccountResponse> contas = servico.registrar("item-1", beatriz);
+        List<BankAccountResponse> contas = servico.registrar("item-1", titular);
 
         assertThat(contas).extracting(BankAccountResponse::nome).containsExactlyInAnyOrder("Conta corrente", "Cartao");
         assertThat(contas).extracting(BankAccountResponse::saldo)
@@ -70,18 +70,18 @@ class BankingServiceTest extends PostgresIntegrationTest {
     void recusaItemAlheio() {
         item("item-2", admin, "Itau");
 
-        assertThatThrownBy(() -> servico.registrar("item-2", beatriz)).isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> servico.registrar("item-2", titular)).isInstanceOf(ForbiddenException.class);
         assertThat(conexoes.count()).isZero();
     }
 
     @Test
     @DisplayName("registrar o mesmo item duas vezes nao duplica conexao nem conta")
     void registroIdempotente() {
-        item("item-3", beatriz, "Inter");
+        item("item-3", titular, "Inter");
         when(pluggy.listarContas("item-3")).thenReturn(List.of(conta("c3", "Conta", "10.00")));
 
-        servico.registrar("item-3", beatriz);
-        List<BankAccountResponse> contas = servico.registrar("item-3", beatriz);
+        servico.registrar("item-3", titular);
+        List<BankAccountResponse> contas = servico.registrar("item-3", titular);
 
         assertThat(conexoes.count()).isEqualTo(1);
         assertThat(contas).hasSize(1);
@@ -90,13 +90,13 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("sincronizar atualiza o saldo e tira a conta que sumiu da Pluggy")
     void sincronizaSaldo() {
-        item("item-4", beatriz, "Bradesco");
+        item("item-4", titular, "Bradesco");
         when(pluggy.listarContas("item-4")).thenReturn(List.of(
                 conta("c4", "Corrente", "100.00"), conta("c5", "Poupanca", "50.00")));
-        servico.registrar("item-4", beatriz);
+        servico.registrar("item-4", titular);
 
         when(pluggy.listarContas("item-4")).thenReturn(List.of(conta("c4", "Corrente", "250.00")));
-        List<BankAccountResponse> contas = servico.sincronizarTudo(beatriz);
+        List<BankAccountResponse> contas = servico.sincronizarTudo(titular);
 
         assertThat(contas).singleElement().satisfies(conta -> {
             assertThat(conta.nome()).isEqualTo("Corrente");
@@ -107,33 +107,33 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("cada usuario ve so as contas dos proprios bancos")
     void listaSoDoUsuario() {
-        item("item-5", beatriz, "Nubank");
+        item("item-5", titular, "Nubank");
         when(pluggy.listarContas("item-5")).thenReturn(List.of(conta("c6", "Dela", "1.00")));
         item("item-6", admin, "Itau");
         when(pluggy.listarContas("item-6")).thenReturn(List.of(conta("c7", "Dele", "2.00")));
-        servico.registrar("item-5", beatriz);
+        servico.registrar("item-5", titular);
         servico.registrar("item-6", admin);
 
-        assertThat(servico.listar(beatriz)).extracting(BankAccountResponse::nome).containsExactly("Dela");
+        assertThat(servico.listar(titular)).extracting(BankAccountResponse::nome).containsExactly("Dela");
         assertThat(servico.listar(admin)).extracting(BankAccountResponse::nome).containsExactly("Dele");
     }
 
     @Test
     @DisplayName("o connect token sai com o id do usuario como clientUserId")
     void connectTokenComIdDoUsuario() {
-        when(pluggy.criarConnectToken(beatriz.id().toString())).thenReturn("token-do-widget");
+        when(pluggy.criarConnectToken(titular.id().toString())).thenReturn("token-do-widget");
 
-        assertThat(servico.gerarConnectToken(beatriz).accessToken()).isEqualTo("token-do-widget");
+        assertThat(servico.gerarConnectToken(titular).accessToken()).isEqualTo("token-do-widget");
     }
 
     @Test
     @DisplayName("desconectar apaga o item na Pluggy e as contas guardadas")
     void desconecta() {
-        item("item-7", beatriz, "Nubank");
+        item("item-7", titular, "Nubank");
         when(pluggy.listarContas("item-7")).thenReturn(List.of(conta("c8", "Conta", "5.00")));
-        UUID conexao = servico.registrar("item-7", beatriz).get(0).conexaoId();
+        UUID conexao = servico.registrar("item-7", titular).get(0).conexaoId();
 
-        assertThat(servico.desconectar(conexao, beatriz)).isEmpty();
+        assertThat(servico.desconectar(conexao, titular)).isEmpty();
 
         verify(pluggy).apagarItem("item-7");
         assertThat(conexoes.count()).isZero();
@@ -146,7 +146,7 @@ class BankingServiceTest extends PostgresIntegrationTest {
         when(pluggy.listarContas("item-8")).thenReturn(List.of(conta("c9", "Dele", "1.00")));
         UUID conexao = servico.registrar("item-8", admin).get(0).conexaoId();
 
-        assertThatThrownBy(() -> servico.desconectar(conexao, beatriz)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> servico.desconectar(conexao, titular)).isInstanceOf(NotFoundException.class);
 
         verify(pluggy, never()).apagarItem(anyString());
         assertThat(conexoes.count()).isEqualTo(1);
@@ -155,16 +155,16 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("item que a Pluggy ja apagou conta como desconectado; Pluggy fora do ar nao apaga nada aqui")
     void pluggyJaApagouOuForaDoAr() {
-        item("item-9", beatriz, "Inter");
+        item("item-9", titular, "Inter");
         when(pluggy.listarContas("item-9")).thenReturn(List.of(conta("c10", "Conta", "1.00")));
-        UUID conexao = servico.registrar("item-9", beatriz).get(0).conexaoId();
+        UUID conexao = servico.registrar("item-9", titular).get(0).conexaoId();
 
         doThrow(new UpstreamException("fora")).when(pluggy).apagarItem("item-9");
-        assertThatThrownBy(() -> servico.desconectar(conexao, beatriz)).isInstanceOf(UpstreamException.class);
+        assertThatThrownBy(() -> servico.desconectar(conexao, titular)).isInstanceOf(UpstreamException.class);
         assertThat(conexoes.count()).isEqualTo(1);
 
         doThrow(new NotFoundException("sumiu")).when(pluggy).apagarItem("item-9");
-        servico.desconectar(conexao, beatriz);
+        servico.desconectar(conexao, titular);
         assertThat(conexoes.count()).isZero();
     }
 

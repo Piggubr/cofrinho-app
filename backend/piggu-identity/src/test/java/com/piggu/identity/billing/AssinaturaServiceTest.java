@@ -3,6 +3,8 @@ package com.piggu.identity.billing;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
 import com.piggu.common.security.Plano;
+import com.piggu.identity.domain.Household;
+import com.piggu.identity.domain.HouseholdRepository;
 import com.piggu.identity.domain.UserAccount;
 import com.piggu.identity.domain.UserAccountRepository;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -39,23 +41,34 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     @Autowired
     private UserAccountRepository usuarios;
 
+    @Autowired
+    private HouseholdRepository familias;
+
     private UserAccount conta;
+    private UserAccount membro;
 
     @BeforeEach
     void preparar() {
         usuarios.deleteAll();
-        conta = usuarios.save(new UserAccount("beatriz@piggu.test", PigguRole.BEATRIZ));
+        Household familia = familias.save(new Household("Familia de teste"));
+        conta = usuarios.save(new UserAccount("titular@piggu.test", PigguRole.TITULAR, familia.getId()));
+        membro = usuarios.save(new UserAccount("membro@piggu.test", PigguRole.MEMBRO, familia.getId()));
+    }
+
+    private Plano planoDe(UserAccount quem) {
+        return assinaturas.plano(quem.getId()).plano();
     }
 
     @Test
-    @DisplayName("assinatura ativa vira Premium ate o fim do periodo pago")
+    @DisplayName("assinatura ativa vira Premium da familia ate o fim do periodo pago")
     void ativaViraPremium() {
         Instant fim = Instant.now().plus(Duration.ofDays(30));
 
         receber(evento("customer.subscription.created", "active", fim, Instant.now()));
 
         UserAccount salva = usuarios.findById(conta.getId()).orElseThrow();
-        assertThat(salva.planoVigente()).isEqualTo(Plano.PREMIUM);
+        assertThat(planoDe(conta)).isEqualTo(Plano.PREMIUM);
+        assertThat(planoDe(membro)).as("o Premium e da familia inteira").isEqualTo(Plano.PREMIUM);
         assertThat(salva.getStripeCustomerId()).isEqualTo("cus_123");
         assertThat(assinaturas.plano(conta.getId()).premiumAte()).isEqualTo(Instant.ofEpochSecond(fim.getEpochSecond()));
     }
@@ -69,7 +82,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         receber(evento("customer.subscription.deleted", "canceled", fim, agora));
         receber(evento("customer.subscription.updated", "active", fim, agora.minusSeconds(60)));
 
-        assertThat(usuarios.findById(conta.getId()).orElseThrow().planoVigente()).isEqualTo(Plano.GRATUITO);
+        assertThat(planoDe(conta)).isEqualTo(Plano.GRATUITO);
     }
 
     @Test
@@ -86,7 +99,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> assinaturas.aplicarWebhook(corpo, null))
                 .isInstanceOf(UnauthorizedException.class);
 
-        assertThat(usuarios.findById(conta.getId()).orElseThrow().planoVigente()).isEqualTo(Plano.GRATUITO);
+        assertThat(planoDe(conta)).isEqualTo(Plano.GRATUITO);
     }
 
     @Test
@@ -95,7 +108,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         receber(evento("customer.subscription.created", "active", Instant.now().plusSeconds(3600), Instant.now())
                 .replace(conta.getId().toString(), UUID.randomUUID().toString()));
 
-        assertThat(usuarios.findById(conta.getId()).orElseThrow().planoVigente()).isEqualTo(Plano.GRATUITO);
+        assertThat(planoDe(conta)).isEqualTo(Plano.GRATUITO);
     }
 
     private void receber(String corpo) {
