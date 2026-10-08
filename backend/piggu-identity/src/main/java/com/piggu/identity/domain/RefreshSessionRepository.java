@@ -6,12 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshSessionRepository extends JpaRepository<RefreshSession, UUID> {
 
     Optional<RefreshSession> findByTokenHash(String tokenHash);
+
+    List<RefreshSession> findByUserId(UUID userId);
 
     /**
      * Remove sessoes vencidas. Substitui {@code limparSessoesExpiradas_()}, que lia

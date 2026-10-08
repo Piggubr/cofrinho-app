@@ -47,6 +47,8 @@ export interface ConviteDaFamilia {
   id: string;
   email: string;
   venceEm: string;
+  /** Nome da familia que convidou. */
+  familia: string;
 }
 
 export type Plano = 'GRATUITO' | 'PREMIUM';

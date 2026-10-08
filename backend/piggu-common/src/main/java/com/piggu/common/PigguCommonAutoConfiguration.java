@@ -1,10 +1,13 @@
 package com.piggu.common;
 
+import com.piggu.common.dados.DadosDaFamilia;
+import com.piggu.common.dados.MeusDadosController;
 import com.piggu.common.error.ApiExceptionHandler;
 import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.security.ResourceServerSecurityConfig;
 import com.piggu.common.web.CorrelacaoFilter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -28,6 +31,17 @@ public class PigguCommonAutoConfiguration {
         FilterRegistrationBean<CorrelacaoFilter> registro = new FilterRegistrationBean<>(new CorrelacaoFilter());
         registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
         return registro;
+    }
+
+    /** Servico que declara onde guarda dado de pessoas ganha as rotas de exportar e apagar. */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnBean(DadosDaFamilia.class)
+    static class RotasDosDadosDoTitular {
+
+        @Bean
+        MeusDadosController meusDadosController(DadosDaFamilia dados) {
+            return new MeusDadosController(dados);
+        }
     }
 
     /** Todo servico com JPA ganha o filtro por familia (ver {@link FamiliaAtual}). */

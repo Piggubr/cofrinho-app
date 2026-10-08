@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
+import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
 /**
@@ -40,6 +41,7 @@ export class Profile {
     this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
   );
   protected readonly salvandoPreferencias = signal(false);
+  protected readonly excluindo = signal(false);
 
   constructor() {
     this.finance.listarMoedas().subscribe({
@@ -72,6 +74,33 @@ export class Profile {
           this.salvandoPreferencias.set(false);
         },
       });
+  }
+
+  protected baixarMeusDados(): void {
+    this.erro.set('');
+    this.users.exportarMeusDados().subscribe({
+      next: (arquivo) => baixar(arquivo, 'piggu-meus-dados.json'),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected excluirConta(): void {
+    const texto =
+      'Excluir sua conta apaga o que é só seu. Se você for a última pessoa da família, ' +
+      'tudo da família é apagado. Se outras pessoas ficarem, o que você lançou fica com elas, ' +
+      'sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ' +
+      'Digite EXCLUIR para confirmar.';
+    if (prompt(texto)?.trim().toUpperCase() !== 'EXCLUIR') {
+      return;
+    }
+    this.excluindo.set(true);
+    this.users.excluirConta().subscribe({
+      next: () => void this.auth.encerrarLocalmente(),
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.excluindo.set(false);
+      },
+    });
   }
 
   protected sair(): void {

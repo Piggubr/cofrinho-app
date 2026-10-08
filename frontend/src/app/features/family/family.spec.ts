@@ -15,7 +15,7 @@ const FAMILIA: Familia = {
     { id: 'u1', nome: 'Ana', email: 'ana@piggu.test', foto: null, papel: 'TITULAR' },
     { id: 'u2', nome: 'Bia', email: 'bia@piggu.test', foto: null, papel: 'MEMBRO' },
   ],
-  convites: [{ id: 'c1', email: 'caio@piggu.test', venceEm: '2026-10-15T00:00:00Z' }],
+  convites: [{ id: 'c1', email: 'caio@piggu.test', venceEm: '2026-10-15T00:00:00Z', familia: 'Familia de Ana' }],
 };
 
 /** O titular convida e remove; o membro so ve a familia e pode sair. */
@@ -39,10 +39,11 @@ describe('Family', () => {
 
   afterEach(() => http.verify());
 
-  function abrir(): HTMLElement {
+  function abrir(recebidos: Familia['convites'] = []): HTMLElement {
     const tela = TestBed.createComponent(Family);
     tela.detectChanges();
     http.expectOne('/api/family').flush(FAMILIA);
+    http.expectOne('/api/family/invites/mine').flush(recebidos);
     tela.detectChanges();
     return tela.nativeElement;
   }
@@ -71,6 +72,11 @@ describe('Family', () => {
     [...pagina.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Convidar')!.click();
 
     http.expectNone('/api/family/invites');
+  });
+
+  it('convite recebido de outra familia aparece com o nome dela', () => {
+    const pagina = abrir([{ id: 'c9', email: 'titular@piggu.test', venceEm: '2026-10-15T00:00:00Z', familia: 'Familia Souza' }]);
+    expect(pagina.textContent).toContain('Convite para entrar na Familia Souza');
   });
 
   it('membro nao ve convites nem botao de remover', () => {

@@ -51,6 +51,18 @@ public final class TokensDeTeste {
         return token(email, role, UUID.nameUUIDFromBytes(email.getBytes()), "PREMIUM", familia);
     }
 
+    /** Token de exclusao que so o identity emite, com o escopo PESSOA ou FAMILIA. */
+    public static RequestPostProcessor exclusao(UUID familia, String email, PigguRole role, String escopo) {
+        return SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(token -> token
+                        .subject(UUID.nameUUIDFromBytes(email.getBytes()).toString())
+                        .claim("email", email)
+                        .claim("role", role.name())
+                        .claim("familia", familia.toString())
+                        .claim("exclusao", escopo))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(role.authority()));
+    }
+
     public static RequestPostProcessor como(String email, PigguRole role) {
         return como(email, role, UUID.nameUUIDFromBytes(email.getBytes()));
     }

@@ -22,6 +22,12 @@ public interface ProvedorDePagamento {
     String abrirPortal(UserAccount conta);
 
     /**
+     * Apaga o cliente no provedor, o que cancela na hora qualquer assinatura dele.
+     * Usado quando a conta e excluida: ninguem continua pagando por uma conta que nao existe.
+     */
+    void encerrarCliente(String clienteNoProvedor);
+
+    /**
      * Confere a assinatura do aviso e o traduz.
      *
      * @return vazio quando o aviso e valido mas nao muda a assinatura de ninguem

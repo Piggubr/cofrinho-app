@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import { Familia } from './models';
+import { ConviteDaFamilia, Familia } from './models';
 
 /** A familia de quem esta logado. O backend so deixa o titular convidar e remover. */
 @Injectable({ providedIn: 'root' })
@@ -24,6 +24,15 @@ export class FamilyService extends ApiBase {
 
   removerMembro(id: string): Observable<Familia> {
     return this.http.delete<Familia>(this.url(`/family/members/${id}`));
+  }
+
+  /** Convites de outras familias para o meu e-mail. */
+  convitesParaMim(): Observable<ConviteDaFamilia[]> {
+    return this.http.get<ConviteDaFamilia[]>(this.url('/family/invites/mine'));
+  }
+
+  aceitarConvite(id: string): Observable<void> {
+    return this.http.post<void>(this.url(`/family/invites/${id}/accept`), {});
   }
 
   sair(): Observable<void> {

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 /** A familia de quem esta logado: ver, renomear, convidar, remover e sair. */
@@ -68,6 +69,19 @@ public class FamiliaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse removerMembro(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.removerMembro(usuario, id);
+    }
+
+    /** Convites de outras familias para o e-mail de quem esta logado. */
+    @GetMapping("/invites/mine")
+    public List<FamiliaResponse.Convite> convitesParaMim(@AuthUser CurrentUser usuario) {
+        return servico.convitesParaMim(usuario);
+    }
+
+    /** Entra na familia que convidou; os dados da familia atual saem. Precisa entrar de novo. */
+    @PostMapping("/invites/{id}/accept")
+    public ResponseEntity<Void> aceitar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.aceitarConvite(usuario, id);
+        return ResponseEntity.noContent().build();
     }
 
     /** O membro sai e passa a ter uma familia propria; precisa entrar de novo. */

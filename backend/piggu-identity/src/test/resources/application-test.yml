@@ -24,3 +24,11 @@ piggu:
     public-key: classpath:keys/piggu-test-public.pem
     access-ttl: PT30M
     refresh-ttl: P30D
+  # Sem servicos de dominio nos testes: a cascata e simulada onde importa.
+  dados:
+    servicos:
+      finance: ""
+      rewards: ""
+      lifestyle: ""
+      media: ""
+      banking: ""

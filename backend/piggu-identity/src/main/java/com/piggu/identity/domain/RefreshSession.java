@@ -64,6 +64,14 @@ public class RefreshSession {
         return userId;
     }
 
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     public Instant getExpiresAt() {
         return expiresAt;
     }

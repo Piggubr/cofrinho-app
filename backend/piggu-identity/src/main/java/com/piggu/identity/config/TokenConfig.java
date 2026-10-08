@@ -33,7 +33,7 @@ import java.security.interfaces.RSAPublicKey;
  * caminho {@code classpath:} / {@code file:} — util no ambiente local.</p>
  */
 @Configuration
-@EnableConfigurationProperties({JwtProperties.class, GoogleProperties.class, StripeProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, GoogleProperties.class, StripeProperties.class, DadosProperties.class})
 public class TokenConfig {
 
     private final ResourceLoader carregador;

@@ -19,7 +19,8 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, List<Membro> me
     public record Membro(UUID id, String nome, String email, String foto, PigguRole papel) {
     }
 
-    public record Convite(UUID id, String email, Instant venceEm) {
+    /** @param familia nome da familia que convidou, para quem recebe o convite */
+    public record Convite(UUID id, String email, Instant venceEm, String familia) {
     }
 
     public static FamiliaResponse de(Household familia, List<UserAccount> membros, List<HouseholdInvite> convites) {
@@ -32,7 +33,8 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, List<Membro> me
                                 conta.getGooglePicture(), conta.getRole()))
                         .toList(),
                 convites.stream()
-                        .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt()))
+                        .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),
+                                familia.getName()))
                         .toList());
     }
 }
