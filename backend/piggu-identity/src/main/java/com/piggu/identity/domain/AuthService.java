@@ -54,10 +54,10 @@ public class AuthService {
      * Cria a conta (e a familia, ou entra na que convidou) no primeiro acesso.
      */
     @Transactional
-    public TokenResponse entrarComGoogle(String idToken, String userAgent) {
+    public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, String userAgent) {
         GoogleProfile perfil = verificador.verificar(idToken);
         UserAccount conta = usuarios.findByEmail(perfil.email())
-                .orElseGet(() -> familias.criarConta(perfil.email(), perfil.givenName()));
+                .orElseGet(() -> familias.criarConta(perfil.email(), perfil.givenName(), versaoDosTermos));
 
         if (!conta.isActive()) {
             log.warn("Login recusado: conta desativada id={}", conta.getId());

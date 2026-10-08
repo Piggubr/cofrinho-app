@@ -1,6 +1,7 @@
 package com.piggu.finance.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,7 +28,13 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("piggy_deposits", "user_email"),
                 Tabela.compartilhada("monthly_goals", "user_email"),
                 Tabela.compartilhada("product_memory", "user_email"),
-                Tabela.compartilhada("custom_categories", "created_by")
+                Tabela.compartilhada("custom_categories", "created_by"),
+                Tabela.pessoal("consents", "user_email")
         ), extras.orderedStream().toList());
+    }
+
+    @Bean
+    Consentimentos consentimentos(JdbcTemplate jdbc) {
+        return new Consentimentos(jdbc);
     }
 }

@@ -32,6 +32,6 @@ public class ReceiptController {
     public ReceiptParseResponse ler(@Valid @RequestBody ReceiptParseRequest pedido,
                                     @AuthUser CurrentUser usuario) {
         usuario.exigirPremium("Ler a nota fiscal pela foto");
-        return leitor.ler(pedido);
+        return leitor.ler(pedido, usuario);
     }
 }

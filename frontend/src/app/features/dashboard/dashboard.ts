@@ -9,6 +9,7 @@ import { PluggyConnectService } from '../../core/banking/pluggy-connect.service'
 import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 
@@ -102,11 +103,20 @@ export class Dashboard {
     }
   }
 
-  protected async conectarBanco(): Promise<void> {
+  /** Cada banco e um compartilhamento novo: a autorizacao e pedida toda vez. */
+  protected readonly pedindoAutorizacaoBanco = signal(false);
+
+  protected conectarBanco(): void {
+    this.erroBancos.set('');
+    this.pedindoAutorizacaoBanco.set(true);
+  }
+
+  protected async autorizarBanco(): Promise<void> {
+    this.pedindoAutorizacaoBanco.set(false);
     this.ocupadoComBancos.set(true);
     this.erroBancos.set('');
     try {
-      const contas = await this.pluggy.conectar();
+      const contas = await this.pluggy.conectar(VERSAO_DO_AVISO);
       if (contas) {
         this.contas.set(contas);
       }

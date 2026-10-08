@@ -2,6 +2,7 @@ package com.piggu.banking.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.banking.integration.PluggyClient;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
 import com.piggu.common.dados.EscopoDeExclusao;
@@ -27,8 +28,14 @@ public class DadosDoTitularConfig {
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
                 new Tabela("bank_accounts", null, true),
-                Tabela.pessoal("bank_connections", "user_email")
+                Tabela.pessoal("bank_connections", "user_email"),
+                Tabela.pessoal("consents", "user_email")
         ), extras.orderedStream().toList());
+    }
+
+    @Bean
+    Consentimentos consentimentos(JdbcTemplate jdbc) {
+        return new Consentimentos(jdbc);
     }
 
     /** Falha na Pluggy aborta a exclusao: item vivo la sem registro aqui ninguem mais apaga. */

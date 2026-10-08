@@ -1,0 +1,33 @@
+.documento {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  line-height: 1.6;
+}
+
+.documento h2 {
+  margin-top: 2rem;
+}
+
+.documento table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.documento th,
+.documento td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabela-rolavel {
+  overflow-x: auto;
+}
+
+.versao {
+  color: var(--muted);
+  font-size: 0.85rem;
+}

@@ -1,6 +1,8 @@
 package com.piggu.finance.integration;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.Categorias;
@@ -36,15 +38,23 @@ public class LeitorDeRecibos {
     private final TesseractOcr ocr;
     private final GeminiReceiptReader gemini;
     private final ProductMemoryRepository memoria;
+    private final Consentimentos consentimentos;
 
-    public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria) {
+    public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria,
+                           Consentimentos consentimentos) {
         this.ocr = ocr;
         this.gemini = gemini;
         this.memoria = memoria;
+        this.consentimentos = consentimentos;
     }
 
-    @Transactional(readOnly = true)
-    public ReceiptParseResponse ler(ReceiptParseRequest pedido) {
+    /**
+     * A foto so sai do servidor (para o Gemini) depois que a pessoa autorizou, uma vez
+     * por versao do aviso. Sem autorizacao o front recebe o codigo e pergunta.
+     */
+    // O consentimento gravado fica mesmo que a leitura falhe depois: a pessoa autorizou.
+    @Transactional(noRollbackFor = BusinessException.class)
+    public ReceiptParseResponse ler(ReceiptParseRequest pedido, CurrentUser usuario) {
         LocalDate hoje = LocalDate.now();
         Optional<LeitorDeCupom.Leitura> propria = ocr.ler(imagem(pedido.imageBase64()))
                 .map(texto -> LeitorDeCupom.ler(texto, hoje));
@@ -55,6 +65,9 @@ public class LeitorDeRecibos {
         }
         boolean temItens = propria.isPresent() && !propria.get().itens().isEmpty();
         if (gemini.habilitado()) {
+            consentimentos.exigir(usuario, "GEMINI",
+                    "Não consegui ler esta foto sozinho. Para tentar com a IA do Google (Gemini), autorize o envio da foto.",
+                    pedido.autorizoIa(), pedido.versaoDoAviso());
             try {
                 log.info("Recibo segue para o Gemini: leitura propria {}", temItens ? "nao fechou" : "vazia");
                 return gemini.ler(pedido);

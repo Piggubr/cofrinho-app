@@ -122,6 +122,24 @@
           <p class="aviso erro" role="alert">{{ erroBancos() }}</p>
         }
 
+        @if (pedindoAutorizacaoBanco()) {
+          <div class="aviso" role="alertdialog" aria-label="Autorizar conexão com o banco">
+            <p>
+              Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance.
+              Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e
+              autoriza o compartilhamento das contas e saldos. Você pode desconectar quando
+              quiser, de graça. Detalhes no
+              <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+            </p>
+            <div class="acoes">
+              <button type="button" class="botao" (click)="autorizarBanco()">Autorizo, continuar</button>
+              <button type="button" class="botao contorno" (click)="pedindoAutorizacaoBanco.set(false)">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        }
+
         @if (contas().length) {
           @for (conta of contas(); track conta.id) {
             <div class="linha">

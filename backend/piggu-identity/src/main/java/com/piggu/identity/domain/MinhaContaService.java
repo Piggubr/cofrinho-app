@@ -59,6 +59,9 @@ public class MinhaContaService {
         arquivo.put("geradoEm", Instant.now());
         arquivo.put("conta", UserResponse.de(conta, familia.daConta(conta)));
         arquivo.put("familia", familia.ver(usuario));
+        if (conta.getTermsVersion() != null) {
+            arquivo.put("aceiteDosTermos", Map.of("versao", conta.getTermsVersion(), "em", conta.getTermsAcceptedAt()));
+        }
         arquivo.put("sessoes", sessoes.findByUserId(conta.getId()).stream()
                 .map(sessao -> Map.of("criadaEm", sessao.getCreatedAt(), "venceEm", sessao.getExpiresAt(),
                         "navegador", Optional.ofNullable(sessao.getUserAgent()).orElse("")))

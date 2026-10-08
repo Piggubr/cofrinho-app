@@ -7,6 +7,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { Gasto, ItemDeGasto, ReciboLido } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
@@ -51,6 +52,10 @@ export class Expenses {
   protected readonly novaData = signal(hojeIso());
   protected readonly novoTipo = signal('Variavel');
 
+  /** Foto que so a IA consegue ler, esperando a pessoa autorizar o envio. */
+  protected readonly pedidoDeIa = signal<{ base64: string; mimeType: string; mensagem: string } | null>(
+    null,
+  );
   protected readonly lendoRecibo = signal(false);
   protected readonly recibo = signal<ReciboLido | null>(null);
   protected readonly itensEmConferencia = signal<ItemEmConferencia[]>([]);
@@ -131,22 +136,46 @@ export class Expenses {
       const { base64, mimeType, dataUrl } = await lerImagemComoBase64(arquivo);
       this.previaDoRecibo.set(dataUrl);
 
-      this.finance.lerRecibo(base64, mimeType).subscribe({
-        next: (lido) => {
-          this.recibo.set(lido);
-          this.itensEmConferencia.set(lido.itens.map((item) => ({ ...item })));
-          this.lendoRecibo.set(false);
-        },
-        error: (falha) => {
-          this.erro.set(mensagemDeErro(falha));
-          this.lendoRecibo.set(false);
-          this.previaDoRecibo.set('');
-        },
-      });
+      this.lerRecibo(base64, mimeType);
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha, 'Não consegui ler essa imagem.'));
       this.lendoRecibo.set(false);
     }
+  }
+
+  /** A pessoa leu o aviso e autorizou: a mesma foto vai de novo, agora podendo ir a IA. */
+  protected autorizarIa(): void {
+    const pedido = this.pedidoDeIa();
+    if (!pedido) {
+      return;
+    }
+    this.pedidoDeIa.set(null);
+    this.lendoRecibo.set(true);
+    this.lerRecibo(pedido.base64, pedido.mimeType, VERSAO_DO_AVISO);
+  }
+
+  protected recusarIa(): void {
+    this.pedidoDeIa.set(null);
+    this.previaDoRecibo.set('');
+  }
+
+  private lerRecibo(base64: string, mimeType: string, versaoDoAviso?: string): void {
+    this.finance.lerRecibo(base64, mimeType, versaoDoAviso).subscribe({
+      next: (lido) => {
+        this.recibo.set(lido);
+        this.itensEmConferencia.set(lido.itens.map((item) => ({ ...item })));
+        this.lendoRecibo.set(false);
+      },
+      error: (falha) => {
+        this.lendoRecibo.set(false);
+        if (pedeConsentimento(falha)) {
+          this.pedidoDeIa.set({ base64, mimeType, mensagem: mensagemDeErro(falha) });
+          return;
+        }
+        this.erro.set(mensagemDeErro(falha));
+        this.previaDoRecibo.set('');
+      },
+    });
   }
 
   protected atualizarItemDoRecibo(

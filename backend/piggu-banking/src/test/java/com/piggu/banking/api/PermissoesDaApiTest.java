@@ -1,6 +1,7 @@
 package com.piggu.banking.api;
 
 import com.piggu.banking.integration.PluggyClient;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.testing.PostgresIntegrationTest;
 import com.piggu.testing.TokensDeTeste;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +54,15 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.titular()))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titular()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("CONSENTIMENTO_NECESSARIO"));
+        mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titular())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"autorizo\":true,\"versaoDoAviso\":\"1999-01-01\"}"))
+                .andExpect(status().isConflict());
+        mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titular())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"autorizo\":true,\"versaoDoAviso\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("token-do-widget"))
                 .andExpect(jsonPath("$.sandbox").value(false));

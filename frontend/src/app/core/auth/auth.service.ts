@@ -43,9 +43,10 @@ export class AuthService {
   }
 
   /** Troca o ID token do Google por um par de tokens do Piggu. */
-  async entrarComGoogle(idToken: string, lembrar: boolean): Promise<void> {
+  /** @param versaoDosTermos so para conta nova: o backend pede quando a conta ainda nao existe */
+  async entrarComGoogle(idToken: string, lembrar: boolean, versaoDosTermos?: string): Promise<void> {
     const tokens = await firstValueFrom(
-      this.http.post<ParDeTokens>(`${this.config.apiUrl}/auth/google`, { idToken }),
+      this.http.post<ParDeTokens>(`${this.config.apiUrl}/auth/google`, { idToken, versaoDosTermos }),
     );
     this.storage.guardar(tokens, lembrar);
     this.usuarioAtual.set(tokens.usuario);
