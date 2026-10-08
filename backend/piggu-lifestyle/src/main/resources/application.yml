@@ -43,6 +43,8 @@ logging:
     com.piggu: ${LOG_LEVEL:INFO}
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   servicos:
     # Onde o lifestyle encontra o servico de fotos, para as imagens dos lugares.
     media-url: ${MEDIA_URL:http://localhost:8085}

@@ -43,6 +43,8 @@ logging:
     com.piggu: ${LOG_LEVEL:INFO}
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   drive:
     # Vazio faz o servico gravar em pasta local, util para desenvolvimento.
     credentials-location: ${DRIVE_CREDENTIALS:}

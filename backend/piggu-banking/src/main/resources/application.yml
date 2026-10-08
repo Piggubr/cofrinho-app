@@ -31,6 +31,8 @@ spring:
       read-timeout: 30s
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   pluggy:
     # So por variavel de ambiente. Vazio desliga as rotas de banco com aviso claro.
     client-id: ${PLUGGY_CLIENT_ID:}

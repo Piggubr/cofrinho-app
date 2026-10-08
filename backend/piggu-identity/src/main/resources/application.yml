@@ -21,6 +21,8 @@ spring:
     locations: classpath:db/migration
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   google:
     # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
