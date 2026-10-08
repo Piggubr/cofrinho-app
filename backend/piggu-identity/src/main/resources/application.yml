@@ -36,6 +36,10 @@ piggu:
     access-ttl: PT30M
     refresh-ttl: P30D
 
+  # Quem opera a instalacao: ao entrar, essas contas viram ADMIN. Lista separada por
+  # virgula, so por variavel de ambiente; nenhum e-mail fica no repositorio.
+  admin-emails: ${PIGGU_ADMIN_EMAILS:}
+
   dados:
     # Servicos que guardam dado de pessoas: exportar e apagar a conta passa por todos.
     # Servico novo com dado pessoal entra aqui, senao a exclusao fica incompleta.

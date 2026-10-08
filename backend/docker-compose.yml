@@ -33,6 +33,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-piggu}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
+      PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
       # Sem chave o identity recusa subir. O padrao aponta para o par gerado por
       # scripts/gerar-chaves-dev.sh; em producao defina as duas no .env.
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-file:/app/keys/piggu-dev-private.pem}
