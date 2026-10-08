@@ -57,6 +57,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | Variável | Para quê |
 |---|---|
 | `PIGGU_ADMIN_EMAILS` | e-mails de quem opera a instalação (viram ADMIN ao entrar) |
+| `PIGGU_LIMITE_PROXIESNAFRENTE` | `2` com o Caddy na frente do gateway (limite de chamadas por IP lê o IP certo) |
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
 | `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo) |
 | `GEMINI_API_KEY`, `PLUGGY_*`, `STRIPE_*`, `TMDB_READ_TOKEN`, `DRIVE_*` | integrações; vazias, o recurso fica desligado |

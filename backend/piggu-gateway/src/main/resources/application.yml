@@ -18,6 +18,12 @@ spring:
                 allowedHeaders: '*'
                 allowCredentials: true
                 maxAge: 3600
+          # Teto de corpo na porta de entrada; cada servico ainda confere o proprio limite
+          # (LimiteDeRequisicoes) e o Caddy limita o corpo mesmo sem Content-Length.
+          default-filters:
+            - name: RequestSize
+              args:
+                maxSize: 10MB
           routes:
             - id: identity
               uri: ${IDENTITY_URL:http://localhost:8081}

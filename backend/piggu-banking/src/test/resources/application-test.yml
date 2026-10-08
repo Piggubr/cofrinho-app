@@ -10,6 +10,13 @@ spring:
           jwk-set-uri: http://localhost:0/.well-known/jwks.json
 
 piggu:
+  # Os testes fazem muitas escritas seguidas com a mesma conta; o limite em si tem
+  # teste proprio (LimiteDeRequisicoesTest).
+  limite:
+    login: 100000
+    publico: 100000
+    escrita: 100000
+    envio: 100000
   pluggy:
     base-url: http://localhost:0
     client-id: ""
