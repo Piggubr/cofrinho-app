@@ -9,12 +9,14 @@ import com.piggu.common.web.CorrelacaoFilter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 /**
  * Liga o tratamento de erros, a seguranca padrao e a correlacao de logs assim que o
@@ -31,6 +33,13 @@ public class PigguCommonAutoConfiguration {
         FilterRegistrationBean<CorrelacaoFilter> registro = new FilterRegistrationBean<>(new CorrelacaoFilter());
         registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
         return registro;
+    }
+
+    /** Com PIGGU_AMBIENTE=producao, senha fraca do banco derruba a subida. */
+    @Bean
+    @ConditionalOnProperty(name = "piggu.ambiente", havingValue = "producao")
+    ProtecaoDeProducao protecaoDeProducao(Environment ambiente) {
+        return new ProtecaoDeProducao(ambiente);
     }
 
     /** Servico que declara onde guarda dado de pessoas ganha as rotas de exportar e apagar. */
