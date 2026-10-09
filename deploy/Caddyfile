@@ -33,6 +33,9 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
 		# O login do Google abre em janela propria e precisa falar de volta com o app.
 		Cross-Origin-Opener-Policy "same-origin-allow-popups"
+		# Arquivos do Piggu (scripts, fotos, respostas da API) nao sao embutidos por outro site.
+		Cross-Origin-Resource-Policy "same-origin"
+		X-Permitted-Cross-Domain-Policies "none"
 		-Server
 	}
 
