@@ -1,6 +1,6 @@
 package com.piggu.identity.api;
 
-import com.piggu.common.error.BusinessException;
+import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.PlanoResponse;
@@ -8,7 +8,6 @@ import com.piggu.identity.billing.AssinaturaService;
 import com.piggu.identity.billing.Periodo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,14 +70,19 @@ public class BillingController {
     }
 
     /**
-     * Compra dentro do app (App Store / Google Play), que as lojas exigem para assinatura
-     * digital vendida no app. Ainda sem apps publicados: responder 501 e mais honesto do
-     * que fingir uma validacao de recibo.
+     * Compra dentro do app (App Store / Google Play), avisada pelo intermediario que valida
+     * o recibo com as lojas (RevenueCat). Aberto como o da Stripe: quem prova a origem e o
+     * segredo no cabecalho. Sem o segredo configurado, 501.
      */
     @PostMapping("/stores/{loja}/purchases")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
-    public ResponseEntity<Void> compraNaLoja(@PathVariable String loja) {
-        throw new BusinessException("A assinatura pelo app chega junto com os apps.",
-                HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");
+    public ResponseEntity<Void> compraNaLoja(@PathVariable String loja, @RequestBody String corpo,
+                                             @RequestHeader(value = "Authorization", required = false) String autorizacao) {
+        String origem = switch (loja) {
+            case "app-store" -> "APP_STORE";
+            case "play-store" -> "PLAY_STORE";
+            default -> throw new NotFoundException("Loja desconhecida.");
+        };
+        assinaturas.aplicarAvisoDaLoja(origem, corpo, autorizacao);
+        return ResponseEntity.ok().build();
     }
 }

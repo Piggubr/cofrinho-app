@@ -57,6 +57,11 @@ piggu:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta. 0 desliga.
     dias-de-teste: ${PIGGU_DIAS_DE_TESTE:7}
 
+  revenuecat:
+    # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
+    # Vazio deixa a compra pelos apps em 501.
+    webhook-secret: ${REVENUECAT_WEBHOOK_SECRET:}
+
   stripe:
     # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.
     secret-key: ${STRIPE_SECRET_KEY:}
