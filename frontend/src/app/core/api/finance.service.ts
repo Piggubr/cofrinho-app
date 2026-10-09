@@ -12,6 +12,7 @@ import {
   Fatura,
   Gasto,
   ItemDeGasto,
+  LinhaDoExtrato,
   MoedaDisponivel,
   Nota,
   NovoLancamento,
@@ -149,6 +150,25 @@ export class FinanceService extends ApiBase {
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
   resumoDoMes(mes: string): Observable<ResumoDoMes> {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
+  /** Le o extrato (OFX ou CSV) e devolve a previa; nada e gravado. */
+  previaDoExtrato(conteudo: string): Observable<LinhaDoExtrato[]> {
+    return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview'), { conteudo });
+  }
+
+  importarExtrato(
+    linhas: Omit<LinhaDoExtrato, 'jaImportada'>[],
+    contaId: string | null,
+  ): Observable<{ importados: number; pulados: number }> {
+    return this.http.post<{ importados: number; pulados: number }>(this.url('/expenses/import'), {
+      linhas,
+      contaId,
+    });
+  }
+
+  exportarGastos(mes: string): Observable<Blob> {
+    return this.http.get(this.url('/expenses/export'), { params: { mes }, responseType: 'blob' });
   }
 
   acertoDoMes(mes: string): Observable<AcertoDeDivisao[]> {

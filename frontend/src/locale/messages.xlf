@@ -139,7 +139,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">374,375</context>
+          <context context-type="linenumber">381,382</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feed/feed.html</context>
@@ -1298,6 +1298,10 @@
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
           <context context-type="linenumber">84,85</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">47,48</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="9005517199626616757" datatype="html">
         <source>Dividir com</source>
@@ -1481,70 +1485,70 @@
         <source>Regras de categoria</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">365,366</context>
+          <context context-type="linenumber">372,373</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1846620579210401553" datatype="html">
         <source> Com a categoria em &quot;Automática&quot;, o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">368,370</context>
+          <context context-type="linenumber">375,377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7980729417725298071" datatype="html">
         <source>Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">377,379</context>
+          <context context-type="linenumber">384,386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6486966880720758116" datatype="html">
         <source>Quando tiver</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">381,382</context>
+          <context context-type="linenumber">388,389</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1577142607455405682" datatype="html">
         <source>Usar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">385,386</context>
+          <context context-type="linenumber">392,393</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3319003197393596546" datatype="html">
         <source>Salvar regra</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">394,395</context>
+          <context context-type="linenumber">401,402</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2259293326925965725" datatype="html">
         <source>Gasto lançado. <x id="PH" equiv-text="categoria"/> passou do limite do mês (<x id="PH_1" equiv-text="orcamento.percentual"/>%).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">139</context>
+          <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2790564304463645100" datatype="html">
         <source>Gasto lançado. <x id="PH" equiv-text="categoria"/> já usou <x id="PH_1" equiv-text="orcamento.percentual"/>% do limite do mês.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">141</context>
+          <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1198524321086540103" datatype="html">
         <source>Digite o nome do item.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">160</context>
+          <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1234710637108347282" datatype="html">
         <source>Digite um valor válido.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">165</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/incomes/incomes.ts</context>
@@ -1555,28 +1559,28 @@
         <source>Aguarde a cotação da moeda da compra.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">170</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2802630467848383346" datatype="html">
         <source>Parcelas: de 1 a 48.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="332894942195002344" datatype="html">
         <source>Gasto lançado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">206</context>
+          <context context-type="linenumber">207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9086611529619583679" datatype="html">
         <source>A foto é grande demais. O limite é de 5 MB.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">224</context>
+          <context context-type="linenumber">225</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feed/feed.ts</context>
@@ -1591,7 +1595,7 @@
         <source>Não consegui ler essa imagem.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">236</context>
+          <context context-type="linenumber">237</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feed/feed.ts</context>
@@ -1606,46 +1610,141 @@
         <source>Adicione pelo menos um item válido.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">304</context>
+          <context context-type="linenumber">305</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3346430118122803571" datatype="html">
         <source>Recibo lançado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">320</context>
+          <context context-type="linenumber">321</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4640692390125433887" datatype="html">
         <source>Confira o nome e o valor do gasto.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">345</context>
+          <context context-type="linenumber">346</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6587679254898875170" datatype="html">
         <source>Digite o termo e escolha a categoria.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">408</context>
+          <context context-type="linenumber">409</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8425515850979102419" datatype="html">
         <source>Regra salva: &quot;<x id="PH" equiv-text="regra.termo"/>&quot; vai para <x id="PH_1" equiv-text="regra.categoria"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="705924588507089287" datatype="html">
         <source>Apagar &quot;<x id="PH" equiv-text="gasto.item"/>&quot;?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">434</context>
+          <context context-type="linenumber">435</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/places/places.ts</context>
           <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9108473347436046837" datatype="html">
+        <source>Importar e exportar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">19,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1191233719798367323" datatype="html">
+        <source> Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere antes de gravar, e o que já foi importado fica de fora. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">22,23</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6145557938339893616" datatype="html">
+        <source> Escolher extrato <x id="TAG_INPUT" ctype="x-input" equiv-text="&lt;input type=&quot;file&quot; accept=&quot;.ofx,.csv,.txt,text/csv&quot; (change)=&quot;escolher($event)&quot; hidden /&gt;"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">27,29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="344747166736207282" datatype="html">
+        <source>Exportar CSV do mês</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">30,31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4596477872406124091" datatype="html">
+        <source> <x id="INTERPOLATION" equiv-text="{{ marcadas().length }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ linhas().length }}"/> marcados · <x id="INTERPOLATION_2" equiv-text="{{ totalMarcado() | moeda }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">41,43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1070153455364762561" datatype="html">
+        <source>Conta do extrato</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4836626748994515634" datatype="html">
+        <source>· já importado</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5300678746063520972" datatype="html">
+        <source> Importar marcados </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6402951927316857780" datatype="html">
+        <source>Cancelar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">86,87</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/places/places.html</context>
+          <context context-type="linenumber">102,103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8543447118802599713" datatype="html">
+        <source>Arquivo grande demais (máximo 2 MB).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">132</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4367076263941232410" datatype="html">
+        <source>Nenhum gasto encontrado no extrato.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">140</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6652153268623189833" datatype="html">
+        <source>Importados: <x id="PH" equiv-text="importados"/>. Já estavam no Piggu: <x id="PH_1" equiv-text="pulados"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">172</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="683660363031039084" datatype="html">
+        <source>Importados: <x id="PH" equiv-text="importados"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/importar-extrato.ts</context>
+          <context context-type="linenumber">173</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7330494029236893287" datatype="html">
@@ -3167,13 +3266,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/places/places.html</context>
           <context context-type="linenumber">100,102</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6402951927316857780" datatype="html">
-        <source>Cancelar</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/places/places.html</context>
-          <context context-type="linenumber">102,103</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2228531262060241732" datatype="html">

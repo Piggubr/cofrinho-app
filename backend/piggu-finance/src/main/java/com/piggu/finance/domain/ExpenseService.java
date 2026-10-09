@@ -16,9 +16,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -32,6 +34,7 @@ public class ExpenseService {
 
     private static final String TIPO_PADRAO = "Variavel";
     private static final String ORIGEM_PADRAO = "Manual";
+    private static final String ORIGEM_EXTRATO = "Extrato";
 
     private static final Logger log = LoggerFactory.getLogger(ExpenseService.class);
 
@@ -109,6 +112,93 @@ public class ExpenseService {
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
+    }
+
+    /** Linha do extrato com a categoria que ela vai receber e se ja foi importada antes. */
+    public record LinhaDaPrevia(LocalDate data, String descricao, BigDecimal valor, String idExterno,
+                                String categoria, boolean jaImportada) {
+    }
+
+    /** Le o extrato e mostra o que entraria, sem gravar nada. */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previaDoExtrato(String conteudo) {
+        List<LeitorDeExtrato.Linha> linhas = LeitorDeExtrato.ler(conteudo);
+        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
+                linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList()));
+        List<CategoryRule> regrasDaFamilia = regras.carregar();
+        return linhas.stream().map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
+                categoriaDe(new ExpenseItemRequest(l.descricao(), null, l.valor(), null), "", ORIGEM_EXTRATO,
+                        regrasDaFamilia),
+                jaImportadas.contains(l.idExterno()))).toList();
+    }
+
+    /**
+     * Grava as linhas escolhidas na previa. As ja importadas (pelo id externo) sao puladas.
+     *
+     * @return quantas entraram
+     */
+    @Transactional
+    public int importar(List<LinhaImportada> linhas, UUID contaId, String emailUsuario) {
+        if (contaId != null && !contas.existsById(contaId)) {
+            throw new NotFoundException("Conta ou cartao nao encontrado.");
+        }
+        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
+                linhas.stream().map(LinhaImportada::idExterno).toList()));
+        List<CategoryRule> regrasDaFamilia = regras.carregar();
+        UUID lote = UUID.randomUUID();
+        List<Expense> novos = linhas.stream()
+                .filter(l -> jaImportadas.add(l.idExterno()))
+                .map(l -> {
+                    ExpenseItemRequest item = new ExpenseItemRequest(l.descricao(), l.categoria(), l.valor(), null);
+                    // A categoria escolhida na previa vale como escolha manual.
+                    String origem = Texto.vazio(l.categoria()) ? ORIGEM_EXTRATO : ORIGEM_PADRAO;
+                    Expense gasto = new Expense(l.data(), lote, "", Texto.limitar(l.descricao(), 200),
+                            categoriaDe(item, "", origem, regrasDaFamilia), l.valor(), TIPO_PADRAO, ORIGEM_EXTRATO,
+                            emailUsuario);
+                    gasto.importadoDe(l.idExterno());
+                    gasto.pagarCom(contaId);
+                    return gasto;
+                })
+                .toList();
+        memoriaDeProdutos.registrar(repositorio.saveAll(novos));
+        log.info("Extrato importado: linhas={} novas={}", linhas.size(), novos.size());
+        return novos.size();
+    }
+
+    public record LinhaImportada(LocalDate data, String descricao, BigDecimal valor, String idExterno,
+                                 String categoria) {
+    }
+
+    /** Gastos em CSV (separador ;), do mes ou de tudo; abre no Excel e no Google Planilhas. */
+    @Transactional(readOnly = true)
+    public String exportarCsv(String mes) {
+        List<Expense> gastos = Texto.vazio(mes)
+                ? repositorio.findAllByOrderByExpenseDateDescCreatedAtDesc()
+                : repositorio.findByExpenseDateBetweenOrderByExpenseDateDesc(
+                        YearMonth.parse(mes).atDay(1), YearMonth.parse(mes).atEndOfMonth());
+        StringBuilder csv = new StringBuilder("data;item;categoria;valor;estabelecimento;origem;quem lancou\n");
+        for (Expense g : gastos) {
+            csv.append(g.getExpenseDate()).append(';')
+                    .append(celulaCsv(g.getItem())).append(';')
+                    .append(celulaCsv(g.getCategory())).append(';')
+                    .append(g.getAmount().toPlainString().replace('.', ',')).append(';')
+                    .append(celulaCsv(g.getMerchant())).append(';')
+                    .append(celulaCsv(g.getSource())).append(';')
+                    .append(celulaCsv(g.getUserEmail())).append('\n');
+        }
+        return csv.toString();
+    }
+
+    /**
+     * Celula segura: aspas escapadas e, contra injecao de formula na planilha, um apostrofo
+     * antes de =, +, - e @.
+     */
+    static String celulaCsv(String valor) {
+        String texto = valor == null ? "" : valor;
+        if (!texto.isEmpty() && "=+-@\t\r".indexOf(texto.charAt(0)) >= 0) {
+            texto = "'" + texto;
+        }
+        return "\"" + texto.replace("\"", "\"\"") + "\"";
     }
 
     @Transactional
