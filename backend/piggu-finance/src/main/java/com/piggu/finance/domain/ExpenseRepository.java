@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
@@ -29,4 +31,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e "
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim")
     BigDecimal somarNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    @Query("SELECT e.category, COALESCE(SUM(e.amount), 0) FROM Expense e "
+            + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.category")
+    List<Object[]> totaisPorCategoria(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Total do periodo por categoria, somado pelo banco. */
+    default Map<String, BigDecimal> somarPorCategoria(LocalDate inicio, LocalDate fim) {
+        return totaisPorCategoria(inicio, fim).stream()
+                .collect(Collectors.toMap(linha -> (String) linha[0], linha -> (BigDecimal) linha[1]));
+    }
 }

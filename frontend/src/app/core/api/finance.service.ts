@@ -11,6 +11,7 @@ import {
   MoedaDisponivel,
   Nota,
   NovoLancamento,
+  Orcamento,
   Produto,
   Receita,
   ReciboLido,
@@ -124,6 +125,19 @@ export class FinanceService extends ApiBase {
   /** Lanca o gasto do mes; o mesmo mes duas vezes e recusado. */
   pagarContaFixa(id: string, mes: string): Observable<Gasto> {
     return this.http.post<Gasto>(this.url(`/bills/${id}/pay`), {}, { params: { mes } });
+  }
+
+  orcamentos(mes: string): Observable<Orcamento[]> {
+    return this.http.get<Orcamento[]>(this.url('/budgets'), { params: { mes } });
+  }
+
+  /** Cria ou muda o limite da categoria (Premium). */
+  definirOrcamento(categoria: string, limite: number): Observable<void> {
+    return this.http.put<void>(this.url('/budgets'), { categoria, limite });
+  }
+
+  excluirOrcamento(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/budgets/${id}`));
   }
 
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */

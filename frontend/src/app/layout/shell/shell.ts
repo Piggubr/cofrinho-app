@@ -39,6 +39,7 @@ export class Shell {
     { rota: '/gastos', rotulo: $localize`Gastos`, icone: '💸', somenteCompleto: true },
     { rota: '/receitas', rotulo: $localize`Receitas`, icone: '💰', somenteCompleto: true },
     { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: '🧾', somenteCompleto: true },
+    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: '📊', somenteCompleto: true },
     { rota: '/calendario', rotulo: $localize`Calendário`, icone: '📅', somenteCompleto: true },
     { rota: '/compras', rotulo: $localize`Compras`, icone: '🛒', somenteCompleto: true },
     { rota: '/lugares', rotulo: $localize`Lugares`, icone: '📍', somenteCompleto: true },
