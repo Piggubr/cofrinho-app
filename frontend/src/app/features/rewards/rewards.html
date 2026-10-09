@@ -21,7 +21,7 @@
       </div>
       <div class="campo">
         <label i18n for="ajusteMotivo">Motivo</label>
-        <input i18n-placeholder id="ajusteMotivo" type="text" [ngModel]="ajusteMotivo()" (ngModelChange)="ajusteMotivo.set($event)" placeholder="Ex.: Arrumou a cozinha" />
+        <input i18n-placeholder id="ajusteMotivo" maxlength="200" type="text" [ngModel]="ajusteMotivo()" (ngModelChange)="ajusteMotivo.set($event)" placeholder="Ex.: Arrumou a cozinha" />
       </div>
       <div class="campo alinhado">
         <button i18n type="button" class="botao" (click)="ajustar()">Ajustar</button>
@@ -61,11 +61,11 @@
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="premioNome">Nome</label>
-        <input id="premioNome" type="text" [ngModel]="novoNome()" (ngModelChange)="novoNome.set($event)" />
+        <input id="premioNome" maxlength="100" type="text" [ngModel]="novoNome()" (ngModelChange)="novoNome.set($event)" />
       </div>
       <div class="campo">
         <label i18n for="premioDescricao">Descrição</label>
-        <input id="premioDescricao" type="text" [ngModel]="novaDescricao()" (ngModelChange)="novaDescricao.set($event)" />
+        <input id="premioDescricao" maxlength="300" type="text" [ngModel]="novaDescricao()" (ngModelChange)="novaDescricao.set($event)" />
       </div>
       <div class="campo">
         <label i18n for="premioPreco">Preço em Fofocoins</label>

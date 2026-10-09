@@ -2,6 +2,7 @@ package com.piggu.identity.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -13,8 +14,8 @@ import jakarta.validation.constraints.Size;
  * @param fuso           fuso horario IANA (America/Sao_Paulo); nulo mantem o atual
  */
 public record PreferencesRequest(
-        @NotBlank String moeda,
-        @NotBlank String moedaConversao,
+        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.") String moeda,
+        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.") String moedaConversao,
         @NotNull Boolean mostrarCotacao,
         @Size(max = 50) String fuso
 ) {

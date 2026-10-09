@@ -39,7 +39,7 @@
         <figcaption>
           <input i18n-placeholder i18n-aria-label
             type="text"
-            [value]="foto.legenda"
+            [value]="foto.legenda" maxlength="300"
             (change)="legendar(foto, $any($event.target).value)"
             placeholder="Escreva uma legenda"
             aria-label="Legenda da foto"

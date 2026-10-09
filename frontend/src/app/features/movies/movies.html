@@ -42,7 +42,7 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="buscaFilme">Buscar filme</label>
-      <input i18n-placeholder id="buscaFilme" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscar()" placeholder="Nome do filme" />
+      <input i18n-placeholder id="buscaFilme" maxlength="100" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscar()" placeholder="Nome do filme" />
     </div>
     <div class="campo alinhado">
       <button i18n type="button" class="botao secundario" (click)="buscar()" [disabled]="buscando()">

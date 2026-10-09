@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
  *                        nova precisa, e o backend pede quando falta
  * @param lembrar         continuar conectado; falso deixa o cookie so ate fechar o navegador
  */
-public record GoogleLoginRequest(@NotBlank(message = "Faca login com Google para continuar.") String idToken,
+public record GoogleLoginRequest(@NotBlank(message = "Faca login com Google para continuar.") @Size(max = 4096) String idToken,
                                  @Size(max = 20) String versaoDosTermos,
                                  Boolean lembrar) {
 }

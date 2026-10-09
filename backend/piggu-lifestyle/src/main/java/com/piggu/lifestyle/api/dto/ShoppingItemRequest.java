@@ -1,6 +1,7 @@
 package com.piggu.lifestyle.api.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -14,6 +15,7 @@ public record ShoppingItemRequest(
         @Size(max = 50)
         String quantidade,
 
+        @Pattern(regexp = "Compras|Desejos", message = "Lista invalida.")
         String lista,
 
         @Size(max = 100)

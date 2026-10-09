@@ -17,11 +17,11 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="novoItem">Item</label>
-      <input i18n-placeholder id="novoItem" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Ovos" />
+      <input i18n-placeholder id="novoItem" maxlength="150" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Ovos" />
     </div>
     <div class="campo">
       <label i18n for="quantidade">Quantidade</label>
-      <input i18n-placeholder id="quantidade" type="text" [ngModel]="novaQuantidade()" (ngModelChange)="novaQuantidade.set($event)" placeholder="Ex.: 12" />
+      <input i18n-placeholder id="quantidade" maxlength="50" type="text" [ngModel]="novaQuantidade()" (ngModelChange)="novaQuantidade.set($event)" placeholder="Ex.: 12" />
     </div>
     <div class="campo alinhado">
       <button i18n type="button" class="botao" (click)="adicionar()">Adicionar</button>
@@ -31,7 +31,7 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="busca">Buscar no catálogo</label>
-      <input i18n-placeholder id="busca" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscarNoCatalogo()" placeholder="Nome do produto" />
+      <input i18n-placeholder id="busca" maxlength="100" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscarNoCatalogo()" placeholder="Nome do produto" />
     </div>
     <div class="campo alinhado">
       <button i18n type="button" class="botao secundario" (click)="buscarNoCatalogo()" [disabled]="buscando()">

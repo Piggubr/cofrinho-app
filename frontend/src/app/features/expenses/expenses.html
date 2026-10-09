@@ -23,7 +23,7 @@
     <div class="campo">
       <label i18n for="item">Item</label>
       <input i18n-placeholder
-        id="item"
+        id="item" maxlength="200"
         type="text"
         [ngModel]="novoItem()"
         (ngModelChange)="novoItem.set($event)"
@@ -199,7 +199,7 @@
           <input
             [id]="'confItem' + $index"
             type="text"
-            [value]="item.item"
+            [value]="item.item" maxlength="200"
             (input)="atualizarItemDoRecibo($index, 'item', $any($event.target).value)"
           />
         </div>
@@ -264,7 +264,7 @@
             <input
               [id]="'ed' + gasto.id"
               type="text"
-              [ngModel]="itemEditado()"
+              [ngModel]="itemEditado()" maxlength="200"
               (ngModelChange)="itemEditado.set($event)"
             />
           </div>
