@@ -9,6 +9,7 @@ import com.piggu.finance.api.dto.SaveExpensesRequest;
 import com.piggu.finance.api.dto.UpdateExpenseRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,6 +113,17 @@ public class ExpenseService {
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
+    }
+
+    /** Busca global: ate 20 gastos cujo item ou estabelecimento contem o termo. */
+    @Transactional(readOnly = true)
+    public List<ExpenseResponse> buscar(String termo) {
+        // % e _ sao curingas do LIKE: fora da busca, o termo e procurado como texto.
+        String limpo = termo.trim().toLowerCase(Locale.ROOT).replaceAll("[%_\\\\]", "");
+        if (limpo.length() < 2) {
+            return List.of();
+        }
+        return repositorio.buscar("%" + limpo + "%", Limit.of(20)).stream().map(ExpenseResponse::de).toList();
     }
 
     /** Linha do extrato com a categoria que ela vai receber e se ja foi importada antes. */

@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao } from '../../core/api/models';
 import { formatadorDe } from '../../core/ui/moeda';
+import { BuscaGlobal } from './busca-global';
 
 interface ItemDeMenu {
   readonly rota: string;
@@ -22,7 +23,7 @@ interface ItemDeMenu {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })

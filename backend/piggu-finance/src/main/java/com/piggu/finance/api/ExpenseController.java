@@ -77,6 +77,12 @@ public class ExpenseController {
             @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas) {
     }
 
+    /** Busca global (Ctrl+K): gastos pelo item ou estabelecimento. */
+    @GetMapping("/search")
+    public List<ExpenseResponse> buscar(@RequestParam @Size(max = 100) String q) {
+        return servico.buscar(q);
+    }
+
     /** Le o extrato (OFX ou CSV) e devolve a previa, sem gravar. */
     @PostMapping("/import/preview")
     public List<ExpenseService.LinhaDaPrevia> previa(@Valid @RequestBody ExtratoRequest pedido) {
