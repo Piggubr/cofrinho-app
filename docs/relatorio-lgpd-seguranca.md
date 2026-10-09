@@ -6,8 +6,9 @@ Data: 2026-10-01 · Escopo: `backend/` (7 serviços Spring Boot), `frontend/` (A
 Severidade: **Crítica** (exploração direta, sem login) · **Alta** (vazamento ou acesso
 indevido provável) · **Média** (risco real, exige condição extra) · **Baixa** (endurecimento).
 
-Os itens marcados **Corrigido** foram resolvidos no commit "Corrige achados de segurança e
-LGPD de severidade alta" desta branch. Os demais são recomendações.
+Os itens 1 a 6 foram resolvidos no commit "Corrige achados de segurança e LGPD de
+severidade alta". Os itens 7 a 21 foram resolvidos na segunda rodada (2026-10-08), um
+commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodada" no fim.
 
 ## Resumo
 
@@ -19,21 +20,21 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
 | 4 | Alta | Perfil FAMILIAR lê qualquer foto por id e envia arquivos | Corrigido |
 | 5 | Alta | Dados pessoais em log (e-mail, conteúdo de recibo, nome de item) | Corrigido |
 | 6 | Alta | Dependências com falhas conhecidas (Spring Boot 3.5.3, Angular 22.1) | Corrigido |
-| 7 | Alta | Sem exportação nem exclusão dos dados pelo titular (LGPD art. 18) | Recomendação |
-| 8 | Alta | Sem aviso de privacidade e sem base legal registrada para terceiros (Gemini, Pluggy, Google) | Recomendação |
-| 9 | Média | Chave privada JWT antiga no histórico do Git | Recomendação |
-| 10 | Média | Refresh token de 30 dias em `localStorage` | Recomendação |
-| 11 | Média | Sem limite de tentativas em `/api/auth/google` e `/api/auth/refresh` | Recomendação |
-| 12 | Média | E-mails reais de pessoas na migration versionada | Recomendação |
-| 13 | Média | Sem política de retenção (contas desativadas, sessões, fotos, saldos) | Recomendação |
-| 14 | Média | Fonte do Google carregada no `<head>` envia IP de todo visitante ao Google | Recomendação |
-| 15 | Média | Sem cabeçalhos de segurança do front (CSP, HSTS, frame-ancestors) | Recomendação |
-| 16 | Média | Token v3 do TMDB vai na URL | Recomendação |
-| 17 | Média | Spring Boot 3.5 fora do suporte open source | Recomendação |
-| 18 | Baixa | Tipo da imagem enviada não é conferido pelo conteúdo | Recomendação |
-| 19 | Baixa | CORS com `allowCredentials: true` e `allowedHeaders: '*'` sem necessidade | Recomendação |
-| 20 | Baixa | URI de erro 500 pode conter e-mail | Recomendação |
-| 21 | Baixa | Imagens de lugares por URL externa revelam IP a terceiros | Recomendação |
+| 7 | Alta | Sem exportação nem exclusão dos dados pelo titular (LGPD art. 18) | Corrigido (B1) |
+| 8 | Alta | Sem aviso de privacidade e sem base legal registrada para terceiros (Gemini, Pluggy, Google) | Corrigido (B2) |
+| 9 | Média | Chave privada JWT antiga no histórico do Git | Corrigido (B4) |
+| 10 | Média | Refresh token de 30 dias em `localStorage` | Corrigido (B7) |
+| 11 | Média | Sem limite de tentativas em `/api/auth/google` e `/api/auth/refresh` | Corrigido (B5) |
+| 12 | Média | E-mails reais de pessoas na migration versionada | Corrigido (B3) |
+| 13 | Média | Sem política de retenção (contas desativadas, sessões, fotos, saldos) | Corrigido (B8) |
+| 14 | Média | Fonte do Google carregada no `<head>` envia IP de todo visitante ao Google | Corrigido (B6) |
+| 15 | Média | Sem cabeçalhos de segurança do front (CSP, HSTS, frame-ancestors) | Corrigido (B6) |
+| 16 | Média | Token v3 do TMDB vai na URL | Corrigido (B9) |
+| 17 | Média | Spring Boot 3.5 fora do suporte open source | Ver B10 |
+| 18 | Baixa | Tipo da imagem enviada não é conferido pelo conteúdo | Corrigido (B11) |
+| 19 | Baixa | CORS com `allowCredentials: true` e `allowedHeaders: '*'` sem necessidade | Corrigido (B11) |
+| 20 | Baixa | URI de erro 500 pode conter e-mail | Corrigido (B11) |
+| 21 | Baixa | Imagens de lugares por URL externa revelam IP a terceiros | Corrigido (B11) |
 
 ---
 
@@ -233,3 +234,23 @@ LGPD de severidade alta" desta branch. Os demais são recomendações.
   alterada e revogada, e-mail liberado (sem o e-mail), gastos lançados/editados/apagados,
   depósito, meta, Fofocoins, resgate, prêmio desativado, banco sincronizado e item Pluggy de
   outra conta recusado. Falhas de integração externa já eram registradas.
+
+---
+
+## Segunda rodada (2026-10-08)
+
+| Item | O que foi feito | Commit |
+|---|---|---|
+| 7 | `GET /api/me/export` (um JSON com tudo) e `DELETE /api/me` com cascata pelos serviços; compartilhado da família fica anonimizado | B1 |
+| 8 | `/privacidade` e `/termos` abertos; aceite dos termos no cadastro; consentimento gravado no próprio ato para Gemini e Pluggy, com versão do aviso | B2 |
+| 12 | V6 apaga `authorized_emails` (com os e-mails da V1); ADMIN por `PIGGU_ADMIN_EMAILS` | B3 |
+| 9 + senha | Em produção, recusa subir com senha fraca do banco ou chave JWT de dev; a chave que vazou é recusada sempre; `docs/implantacao-producao.md` | B4 |
+| 11 | Limite por IP (login, webhooks) e por conta (escrita, envio de foto), corpo máximo, 429 com Retry-After | B5 |
+| 14 + 15 | Fonte local; `deploy/Caddyfile` com HSTS, CSP, frame-ancestors, nosniff, Referrer-Policy, Permissions-Policy, COOP | B6 |
+| 10 | Refresh em cookie HttpOnly; Secure; SameSite=Strict; Path=/api/auth; access só em memória | B7 |
+| 13 | Jobs diários: sessões, contas sem acesso (24 meses) ou desativadas (12 meses), fotos órfãs, bancos parados (90 dias) | B8 |
+| 16 | TMDB só com token v4 no cabeçalho | B9 |
+| 18 a 21 | Tipo da imagem pelos bytes; CORS só com os cabeçalhos usados; rota (não URI) no log do 500; URLs externas de imagem só de TMDB e Open Food Facts | B11 |
+| — | `docs/plano-de-incidente.md` e canal privacidade@ no aviso | B12 |
+| 17 | Migração para Spring Boot 4: ver o commit B10 | B10 |
+
