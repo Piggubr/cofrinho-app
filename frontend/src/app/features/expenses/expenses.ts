@@ -21,6 +21,7 @@ import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
+import { ImportarExtrato } from './importar-extrato';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -38,7 +39,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -440,7 +441,7 @@ export class Expenses {
     });
   }
 
-  private carregarGastos(): void {
+  protected carregarGastos(): void {
     this.finance.listarGastos(this.mesAtual()).subscribe({
       next: (gastos) => this.gastos.set(gastos),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),

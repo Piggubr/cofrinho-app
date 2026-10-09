@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +36,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     @Query("SELECT e.category, COALESCE(SUM(e.amount), 0) FROM Expense e "
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.category")
     List<Object[]> totaisPorCategoria(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    @Query("SELECT e.externalId FROM Expense e WHERE e.externalId IN :ids")
+    List<String> idsExternosJaImportados(@Param("ids") Collection<String> ids);
 
     List<Expense> findByAccountIdAndExpenseDateBetweenOrderByExpenseDateAscCreatedAtAsc(
             UUID accountId, LocalDate inicio, LocalDate fim);

@@ -471,3 +471,13 @@ export interface ConferenciaDePreco {
   percentual: number;
   acima: boolean;
 }
+
+/** Linha do extrato na previa da importacao. */
+export interface LinhaDoExtrato {
+  data: string;
+  descricao: string;
+  valor: number;
+  idExterno: string;
+  categoria: string;
+  jaImportada: boolean;
+}

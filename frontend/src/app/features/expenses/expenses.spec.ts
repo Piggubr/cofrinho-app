@@ -47,12 +47,12 @@ describe('Expenses', () => {
   it('com leituras sobrando mostra o botao e quantas restam', () => {
     const pagina = abrir(3);
     expect(pagina.textContent).toContain('Restam 3 leituras');
-    expect(pagina.querySelector('input[type="file"]')).not.toBeNull();
+    expect(pagina.querySelector('input[type="file"][accept="image/*"]')).not.toBeNull();
   });
 
   it('sem leituras no mes troca o botao pelo convite ao Premium', () => {
     const pagina = abrir(0);
-    expect(pagina.querySelector('input[type="file"]')).toBeNull();
+    expect(pagina.querySelector('input[type="file"][accept="image/*"]')).toBeNull();
     expect(pagina.textContent).toContain('leituras grátis deste mês acabaram');
   });
 

@@ -75,6 +75,10 @@ public class Expense {
     @Column(name = "original_amount", precision = 12, scale = 2)
     private BigDecimal originalAmount;
 
+    /** Id do lancamento no extrato importado; evita importar o mesmo duas vezes. */
+    @Column(name = "external_id", length = 120)
+    private String externalId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -122,6 +126,10 @@ public class Expense {
     public void valorOriginal(String moeda, BigDecimal valor) {
         this.originalCurrency = moeda;
         this.originalAmount = valor;
+    }
+
+    public void importadoDe(String externalId) {
+        this.externalId = externalId;
     }
 
     public String getOriginalCurrency() {
