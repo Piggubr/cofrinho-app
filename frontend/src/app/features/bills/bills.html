@@ -1,0 +1,141 @@
+<h1 i18n>Contas fixas</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
+
+<section class="cartao" aria-labelledby="titulo-contas-mes">
+  <div class="cartao-titulo">
+    <button
+      type="button"
+      class="botao contorno pequeno"
+      (click)="trocarMes(-1)"
+      aria-label="Mês anterior"
+      i18n-aria-label
+    >
+      ‹
+    </button>
+    <h2 id="titulo-contas-mes">{{ rotuloDoMes() }}</h2>
+    <button
+      type="button"
+      class="botao contorno pequeno"
+      (click)="trocarMes(1)"
+      aria-label="Próximo mês"
+      i18n-aria-label
+    >
+      ›
+    </button>
+  </div>
+  <p i18n class="linha-detalhe">Em aberto: {{ totalEmAberto() | moeda }}</p>
+
+  @for (conta of contas(); track conta.id) {
+    <div class="linha">
+      <div>
+        <p class="linha-titulo">{{ conta.descricao }}</p>
+        <p class="linha-detalhe">
+          {{ conta.vencimento | dataBr }} · {{ conta.categoria }}
+          @if (conta.automatico) {
+            <span i18n> · lança sozinha</span>
+          }
+        </p>
+      </div>
+      <div class="linha-acoes">
+        <strong>{{ conta.valor | moeda }}</strong>
+        @switch (conta.situacao) {
+          @case ('PAGA') {
+            <span i18n class="etiqueta">Paga</span>
+          }
+          @case ('VENCIDA') {
+            <span i18n class="etiqueta atrasada">Vencida</span>
+          }
+          @default {
+            <span i18n class="etiqueta">A vencer</span>
+          }
+        }
+        @if (conta.situacao !== 'PAGA') {
+          <button
+            i18n
+            type="button"
+            class="botao pequeno"
+            (click)="pagar(conta)"
+            [disabled]="ocupado()"
+          >
+            Marcar como paga
+          </button>
+        }
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          (click)="excluir(conta)"
+          [disabled]="ocupado()"
+        >
+          Apagar
+        </button>
+      </div>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Nenhuma conta fixa ainda.</p>
+  }
+</section>
+
+<section class="cartao" aria-labelledby="titulo-nova-conta">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-nova-conta">Nova conta fixa</h2>
+  </div>
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="descricao-conta">Descrição</label>
+      <input
+        id="descricao-conta"
+        maxlength="200"
+        [ngModel]="descricao()"
+        (ngModelChange)="descricao.set($event)"
+        placeholder="Aluguel"
+        i18n-placeholder
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="categoria-conta">Categoria</label>
+      <select id="categoria-conta" [ngModel]="categoria()" (ngModelChange)="categoria.set($event)">
+        @for (opcao of categorias(); track opcao) {
+          <option [value]="opcao">{{ opcao }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label i18n for="valor-conta">Valor</label>
+      <input
+        id="valor-conta"
+        type="number"
+        min="0.01"
+        step="0.01"
+        [ngModel]="valor()"
+        (ngModelChange)="valor.set($event)"
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="dia-conta">Dia do vencimento</label>
+      <input
+        id="dia-conta"
+        type="number"
+        min="1"
+        max="31"
+        [ngModel]="dia()"
+        (ngModelChange)="dia.set($event)"
+      />
+    </div>
+  </div>
+  <label class="caixa">
+    <input type="checkbox" [ngModel]="automatico()" (ngModelChange)="automatico.set($event)" />
+    <span i18n>Lançar sozinha no dia do vencimento</span>
+  </label>
+  <div class="acoes">
+    <button i18n type="button" class="botao" (click)="criar()" [disabled]="ocupado()">
+      Criar conta fixa
+    </button>
+  </div>
+</section>

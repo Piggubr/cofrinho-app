@@ -374,3 +374,17 @@ export interface ResumoDoMes {
   /** Em porcentagem; nula quando o mes nao tem receita. */
   taxaDePoupanca: number | null;
 }
+
+/** Conta fixa no mes: quando vence e se ja foi lancada. */
+export interface ContaFixa {
+  id: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  /** Dia do vencimento (1 a 31; 31 vira o ultimo dia do mes). */
+  dia: number;
+  /** Lancada sozinha no dia do vencimento. */
+  automatico: boolean;
+  vencimento: string;
+  situacao: 'PAGA' | 'PENDENTE' | 'VENCIDA';
+}

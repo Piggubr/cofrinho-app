@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
 import {
   Cofrinho,
+  ContaFixa,
   Cotacao,
   Deposito,
   Gasto,
@@ -106,6 +107,23 @@ export class FinanceService extends ApiBase {
 
   excluirReceita(id: string): Observable<void> {
     return this.http.delete<void>(this.url(`/incomes/${id}`));
+  }
+
+  contasFixas(mes: string): Observable<ContaFixa[]> {
+    return this.http.get<ContaFixa[]>(this.url('/bills'), { params: { mes } });
+  }
+
+  criarContaFixa(conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>): Observable<void> {
+    return this.http.post<void>(this.url('/bills'), conta);
+  }
+
+  excluirContaFixa(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/bills/${id}`));
+  }
+
+  /** Lanca o gasto do mes; o mesmo mes duas vezes e recusado. */
+  pagarContaFixa(id: string, mes: string): Observable<Gasto> {
+    return this.http.post<Gasto>(this.url(`/bills/${id}/pay`), {}, { params: { mes } });
   }
 
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
