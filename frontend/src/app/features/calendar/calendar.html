@@ -96,7 +96,7 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="tituloNota">Título</label>
-      <input id="tituloNota" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
+      <input id="tituloNota" maxlength="150" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
     </div>
     <div class="campo">
       <label i18n for="dataNota">Data</label>
@@ -120,7 +120,7 @@
 
   <div class="campo">
     <label i18n for="textoNota">Detalhes</label>
-    <textarea id="textoNota" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
+    <textarea id="textoNota" maxlength="1500" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
   </div>
 
   @if (viraGasto()) {

@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Size;
  * @param versaoDoAviso versao do aviso de privacidade que a pessoa viu ao autorizar
  */
 public record ReceiptParseRequest(
-        @NotBlank(message = "A foto do recibo nao chegou.") String imageBase64,
+        @NotBlank(message = "A foto do recibo nao chegou.") @Size(max = 7_000_000, message = "A foto e grande demais. O limite e de 5 MB.") String imageBase64,
         @Size(max = 50) String mimeType,
         Boolean autorizoIa,
         @Size(max = 20) String versaoDoAviso
