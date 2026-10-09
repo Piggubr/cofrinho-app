@@ -1,11 +1,11 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.dados.Consentimentos;
+import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UnauthorizedException;
-import com.piggu.common.dados.Consentimentos;
-import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
 import com.piggu.common.web.Texto;
@@ -66,7 +66,7 @@ public class FamiliaService {
     public UserAccount criarConta(String email, String primeiroNome, String versaoDosTermos) {
         if (versaoDosTermos == null) {
             throw new BusinessException("Para criar sua conta, leia e aceite os Termos de Uso e o Aviso de Privacidade.",
-                    HttpStatus.UNPROCESSABLE_ENTITY, "TERMOS_NECESSARIOS");
+                    HttpStatus.UNPROCESSABLE_CONTENT, "TERMOS_NECESSARIOS");
         }
         if (!Consentimentos.VERSAO_DO_AVISO.equals(versaoDosTermos)) {
             throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",

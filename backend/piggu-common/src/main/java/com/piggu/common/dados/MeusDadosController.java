@@ -1,6 +1,5 @@
 package com.piggu.common.dados;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
 

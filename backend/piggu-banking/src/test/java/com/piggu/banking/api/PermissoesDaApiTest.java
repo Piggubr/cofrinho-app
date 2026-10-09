@@ -7,7 +7,7 @@ import com.piggu.testing.TokensDeTeste;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,7 +54,7 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.titular()))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titular()))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.codigo").value("CONSENTIMENTO_NECESSARIO"));
         mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titular())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -90,10 +90,10 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     @DisplayName("no gratuito conectar e sincronizar pedem Premium, mas as contas ja salvas seguem visiveis")
     void gratuitoNaoConecta() throws Exception {
         mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.titularGratuita()))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.codigo").value("PLANO_PREMIUM"));
         mockMvc.perform(post("/api/banking/sync").with(TokensDeTeste.titularGratuita()))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isUnprocessableContent());
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.titularGratuita()))
                 .andExpect(status().isOk());
         // Desconectar nunca pede Premium: aqui so nao acha o banco.

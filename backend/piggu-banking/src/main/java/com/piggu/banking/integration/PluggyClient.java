@@ -1,6 +1,5 @@
 package com.piggu.banking.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.banking.config.PluggyProperties;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -77,17 +77,17 @@ public class PluggyClient {
                 .header("X-API-KEY", apiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("options", Map.of("clientUserId", clientUserId))));
-        return resposta.path("accessToken").asText();
+        return resposta.path("accessToken").asString();
     }
 
     public Item buscarItem(String itemId) {
         JsonNode item = chamar(() -> cliente.get().uri("/items/{id}", itemId)
                 .header("X-API-KEY", apiKey()));
         return new Item(
-                item.path("id").asText(),
-                item.path("status").asText(""),
-                item.path("clientUserId").asText(""),
-                item.path("connector").path("name").asText("")
+                item.path("id").asString(),
+                item.path("status").asString(""),
+                item.path("clientUserId").asString(""),
+                item.path("connector").path("name").asString("")
         );
     }
 
@@ -106,12 +106,12 @@ public class PluggyClient {
                 .header("X-API-KEY", apiKey()));
         List<Conta> contas = new ArrayList<>();
         resposta.path("results").forEach(conta -> contas.add(new Conta(
-                conta.path("id").asText(),
-                conta.path("marketingName").asText(conta.path("name").asText("")),
-                conta.path("subtype").asText(conta.path("type").asText("")),
-                conta.path("number").asText(""),
+                conta.path("id").asString(),
+                conta.path("marketingName").asString(conta.path("name").asString("")),
+                conta.path("subtype").asString(conta.path("type").asString("")),
+                conta.path("number").asString(""),
                 conta.path("balance").decimalValue(),
-                conta.path("currencyCode").asText("BRL")
+                conta.path("currencyCode").asString("BRL")
         )));
         return contas;
     }
@@ -124,7 +124,7 @@ public class PluggyClient {
         JsonNode resposta = chamar(() -> cliente.post().uri("/auth")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("clientId", propriedades.clientId(), "clientSecret", propriedades.clientSecret())));
-        apiKey = resposta.path("apiKey").asText();
+        apiKey = resposta.path("apiKey").asString();
         chaveVenceEm = agora.plus(VALIDADE_DA_CHAVE);
         return apiKey;
     }

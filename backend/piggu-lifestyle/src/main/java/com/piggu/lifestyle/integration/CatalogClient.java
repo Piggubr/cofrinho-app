@@ -1,6 +1,5 @@
 package com.piggu.lifestyle.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.Texto;
@@ -12,6 +11,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,19 +83,19 @@ public class CatalogClient {
                 return;
             }
             String nome = primeiroNaoVazio(
-                    produto.path("product_name").asText(""),
-                    produto.path("generic_name").asText(""));
+                    produto.path("product_name").asString(""),
+                    produto.path("generic_name").asString(""));
             if (nome.isBlank()) {
                 return;
             }
             produtos.add(new CatalogProduct(
-                    produto.path("code").asText(""),
+                    produto.path("code").asString(""),
                     Texto.limitar(nome, 150),
-                    primeiraMarca(produto.path("brands").asText("")),
-                    Texto.limitar(produto.path("quantity").asText(""), 50),
+                    primeiraMarca(produto.path("brands").asString("")),
+                    Texto.limitar(produto.path("quantity").asString(""), 50),
                     primeiroNaoVazio(
-                            produto.path("image_small_url").asText(""),
-                            produto.path("image_url").asText(""))
+                            produto.path("image_small_url").asString(""),
+                            produto.path("image_url").asString(""))
             ));
         });
         return produtos;

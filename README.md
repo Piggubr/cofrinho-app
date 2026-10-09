@@ -7,7 +7,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 
 | Pasta | O que é |
 |---|---|
-| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
+| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |

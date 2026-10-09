@@ -111,7 +111,7 @@ class LeitorDeRecibosTest {
     void semConsentimentoNaoChamaOGemini() {
         when(ocr.ler(any())).thenReturn(Optional.of(NAO_FECHA));
         when(gemini.habilitado()).thenReturn(true);
-        doThrow(new BusinessException("autorize", org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+        doThrow(new BusinessException("autorize", org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT,
                 Consentimentos.CODIGO_NECESSARIO))
                 .when(consentimentos).exigir(eq(USUARIO), eq("GEMINI"), anyString(), isNull(), isNull());
 

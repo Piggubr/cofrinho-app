@@ -54,14 +54,14 @@ public class Consentimentos {
         if (Boolean.TRUE.equals(autorizo)) {
             gravar(usuario, finalidade, versaoDoAviso);
         } else if (!jaAutorizou(usuario, finalidade)) {
-            throw new BusinessException(descricao, HttpStatus.UNPROCESSABLE_ENTITY, CODIGO_NECESSARIO);
+            throw new BusinessException(descricao, HttpStatus.UNPROCESSABLE_CONTENT, CODIGO_NECESSARIO);
         }
     }
 
     /** Para o que pede autorizacao a cada vez (cada banco conectado e um compartilhamento novo). */
     public void exigirAgora(CurrentUser usuario, String finalidade, String descricao, Boolean autorizo, String versaoDoAviso) {
         if (!Boolean.TRUE.equals(autorizo)) {
-            throw new BusinessException(descricao, HttpStatus.UNPROCESSABLE_ENTITY, CODIGO_NECESSARIO);
+            throw new BusinessException(descricao, HttpStatus.UNPROCESSABLE_CONTENT, CODIGO_NECESSARIO);
         }
         gravar(usuario, finalidade, versaoDoAviso);
     }

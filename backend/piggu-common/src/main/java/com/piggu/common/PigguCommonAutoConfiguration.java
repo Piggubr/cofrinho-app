@@ -1,6 +1,5 @@
 package com.piggu.common;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.MeusDadosController;
 import com.piggu.common.error.ApiExceptionHandler;
@@ -12,14 +11,15 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 
@@ -37,7 +37,7 @@ public class PigguCommonAutoConfiguration {
     @Bean
     public FilterRegistrationBean<CorrelacaoFilter> correlacaoFilter() {
         FilterRegistrationBean<CorrelacaoFilter> registro = new FilterRegistrationBean<>(new CorrelacaoFilter());
-        registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
+        registro.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER + 1);
         return registro;
     }
 
@@ -47,7 +47,7 @@ public class PigguCommonAutoConfiguration {
                                                                           ObjectMapper json) {
         FilterRegistrationBean<LimiteDeRequisicoes> registro = new FilterRegistrationBean<>(
                 new LimiteDeRequisicoes(LimiteDeRequisicoes.Etapa.ANTES_DO_LOGIN, limites, json, Clock.systemUTC()));
-        registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER - 1);
+        registro.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER - 1);
         return registro;
     }
 
@@ -57,7 +57,7 @@ public class PigguCommonAutoConfiguration {
                                                                            ObjectMapper json) {
         FilterRegistrationBean<LimiteDeRequisicoes> registro = new FilterRegistrationBean<>(
                 new LimiteDeRequisicoes(LimiteDeRequisicoes.Etapa.DEPOIS_DO_LOGIN, limites, json, Clock.systemUTC()));
-        registro.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 2);
+        registro.setOrder(SecurityFilterProperties.DEFAULT_FILTER_ORDER + 2);
         return registro;
     }
 

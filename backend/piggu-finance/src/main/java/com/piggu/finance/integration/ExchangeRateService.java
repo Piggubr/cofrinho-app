@@ -1,6 +1,5 @@
 package com.piggu.finance.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.Moedas;
@@ -16,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class ExchangeRateService {
                     .uri("/rate/{de}/{para}", origem, destino)
                     .header("Accept", "application/json")
                     .retrieve()
-                    .onStatus(status -> status.value() == HttpStatus.UNPROCESSABLE_ENTITY.value()
+                    .onStatus(status -> status.value() == HttpStatus.UNPROCESSABLE_CONTENT.value()
                                     || status.value() == HttpStatus.NOT_FOUND.value(),
                             (req, res) -> {
                                 throw new BusinessException(
@@ -78,7 +78,7 @@ public class ExchangeRateService {
                     .body(JsonNode.class);
 
             BigDecimal taxa = extrairTaxa(resposta);
-            String data = resposta.path("date").asText("");
+            String data = resposta.path("date").asString("");
 
             guardarUltimaTaxa(origem, destino, taxa, data);
             return new ExchangeRateResponse(origem, destino, taxa, data, FONTE, true, false);
@@ -108,9 +108,9 @@ public class ExchangeRateService {
             List<CurrencyResponse> moedas = new ArrayList<>();
             if (resposta != null) {
                 resposta.forEach(moeda -> {
-                    String codigo = moeda.path("iso_code").asText("");
+                    String codigo = moeda.path("iso_code").asString("");
                     if (codigo.matches("[A-Z]{3}")) {
-                        moedas.add(new CurrencyResponse(codigo, nome(codigo, moeda.path("name").asText(codigo))));
+                        moedas.add(new CurrencyResponse(codigo, nome(codigo, moeda.path("name").asString(codigo))));
                     }
                 });
             }
