@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
-import { ContaFixa } from '../../core/api/models';
+import { ContaFixa, Orcamento } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { MoedaPipe } from '../../core/ui/moeda';
 
@@ -10,6 +10,23 @@ import { MoedaPipe } from '../../core/ui/moeda';
   selector: 'app-avisos-do-mes',
   imports: [MoedaPipe, DataBrPipe, RouterLink],
   template: `
+    @if (orcamentosEmAlerta().length) {
+      <section class="cartao" aria-labelledby="titulo-orcamentos-alerta">
+        <div class="cartao-titulo">
+          <h2 i18n id="titulo-orcamentos-alerta">Orçamento</h2>
+          <a i18n routerLink="/orcamentos" class="botao contorno pequeno">Ver orçamentos</a>
+        </div>
+        @for (orcamento of orcamentosEmAlerta(); track orcamento.id) {
+          <p class="linha-detalhe" [class.atrasada]="orcamento.alerta === 'ESTOUROU'">
+            @if (orcamento.alerta === 'ESTOUROU') {
+              <span i18n>{{ orcamento.categoria }} passou do limite: {{ orcamento.gasto | moeda }} de {{ orcamento.limite | moeda }}</span>
+            } @else {
+              <span i18n>{{ orcamento.categoria }} já usou {{ orcamento.percentual }}% do limite</span>
+            }
+          </p>
+        }
+      </section>
+    }
     @if (contasEmAberto().length) {
       <section class="cartao" aria-labelledby="titulo-avisos">
         <div class="cartao-titulo">
@@ -46,6 +63,10 @@ export class AvisosDoMes {
   /** Mes no formato AAAA-MM. */
   readonly mes = input.required<string>();
   private readonly contas = signal<ContaFixa[]>([]);
+  private readonly orcamentos = signal<Orcamento[]>([]);
+  protected readonly orcamentosEmAlerta = computed(() =>
+    this.orcamentos().filter((o) => o.alerta !== 'OK'),
+  );
   protected readonly contasEmAberto = computed(() =>
     this.contas().filter((c) => c.situacao !== 'PAGA'),
   );
@@ -57,7 +78,14 @@ export class AvisosDoMes {
         // Lembrete e informativo: sem ele o painel segue.
         error: () => this.contas.set([]),
       });
-      onCleanup(() => pedido.unsubscribe());
+      const alertas = this.finance.orcamentos(this.mes()).subscribe({
+        next: (orcamentos) => this.orcamentos.set(orcamentos),
+        error: () => this.orcamentos.set([]),
+      });
+      onCleanup(() => {
+        pedido.unsubscribe();
+        alertas.unsubscribe();
+      });
     });
   }
 }

@@ -87,6 +87,25 @@ export class Expenses {
     }
   }
 
+  /** Depois de lancar: se a categoria passou de 80% do orcamento do mes, avisa na hora. */
+  private avisarOrcamento(categoria: string | undefined, mes: string): void {
+    if (!categoria) {
+      return;
+    }
+    this.finance.orcamentos(mes).subscribe({
+      next: (orcamentos) => {
+        const orcamento = orcamentos.find((o) => o.categoria === categoria && o.alerta !== 'OK');
+        if (orcamento?.alerta === 'ESTOUROU') {
+          this.aviso.set($localize`Gasto lançado. ${categoria} passou do limite do mês (${orcamento.percentual}%).`);
+        } else if (orcamento) {
+          this.aviso.set($localize`Gasto lançado. ${categoria} já usou ${orcamento.percentual}% do limite do mês.`);
+        }
+      },
+      // O aviso de orcamento e extra: sem ele o lancamento ja deu certo.
+      error: () => undefined,
+    });
+  }
+
   protected trocarMes(passo: number): void {
     const [ano, mes] = this.mesAtual().split('-').map(Number);
     this.mesAtual.set(mesKey(somarMeses(new Date(ano, mes - 1, 1), passo)));
@@ -115,12 +134,13 @@ export class Expenses {
         itens: [{ item, categoria: this.novaCategoria() || null, valor, tipo: this.novoTipo() }],
       })
       .subscribe({
-        next: () => {
+        next: (salvos) => {
           this.novoItem.set('');
           this.novoValor.set(null);
           this.aviso.set($localize`Gasto lançado.`);
           this.salvando.set(false);
           this.carregarGastos();
+          this.avisarOrcamento(salvos[0]?.categoria, this.novaData().slice(0, 7));
         },
         error: (falha) => {
           this.erro.set(mensagemDeErro(falha));

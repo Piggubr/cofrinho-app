@@ -388,3 +388,13 @@ export interface ContaFixa {
   vencimento: string;
   situacao: 'PAGA' | 'PENDENTE' | 'VENCIDA';
 }
+
+/** Orcamento de uma categoria no mes: alerta em 80% (ATENCAO) e 100% (ESTOUROU). */
+export interface Orcamento {
+  id: string;
+  categoria: string;
+  limite: number;
+  gasto: number;
+  percentual: number;
+  alerta: 'OK' | 'ATENCAO' | 'ESTOUROU';
+}
