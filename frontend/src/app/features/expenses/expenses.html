@@ -66,7 +66,9 @@
       {{ salvando() ? 'Guardando...' : 'Lançar' }}
     </button>
 
-    @if (auth.ehPremium()) {
+    @if (leiturasRestantes() === 0) {
+      <a routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
+    } @else {
       <label class="botao secundario arquivo">
         {{ lendoRecibo() ? 'Lendo recibo...' : 'Ler recibo por foto' }}
         <input
@@ -77,10 +79,18 @@
           hidden
         />
       </label>
-    } @else {
-      <a routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
     }
   </div>
+  @if (leiturasRestantes() !== null) {
+    <p class="linha-detalhe">
+      @if (leiturasRestantes() === 0) {
+        As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode
+        lançar os itens à mão.
+      } @else {
+        Restam {{ leiturasRestantes() }} leituras de nota grátis neste mês.
+      }
+    </p>
+  }
 </section>
 
 @if (pedidoDeIa(); as pedido) {

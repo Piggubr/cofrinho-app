@@ -57,6 +57,8 @@ export class Expenses {
     null,
   );
   protected readonly lendoRecibo = signal(false);
+  /** Leituras gratis que sobram no mes; nulo no Premium ou antes de saber. */
+  protected readonly leiturasRestantes = signal<number | null>(null);
   protected readonly recibo = signal<ReciboLido | null>(null);
   protected readonly itensEmConferencia = signal<ItemEmConferencia[]>([]);
   protected readonly previaDoRecibo = signal('');
@@ -76,6 +78,13 @@ export class Expenses {
 
   constructor() {
     this.carregar();
+    if (!this.auth.ehPremium()) {
+      this.finance.usoDeLeituras().subscribe({
+        next: (uso) => this.leiturasRestantes.set(uso.restantes),
+        // O contador so informa: sem ele o botao continua funcionando.
+        error: () => this.leiturasRestantes.set(null),
+      });
+    }
   }
 
   protected trocarMes(passo: number): void {
@@ -162,6 +171,7 @@ export class Expenses {
   private lerRecibo(base64: string, mimeType: string, versaoDoAviso?: string): void {
     this.finance.lerRecibo(base64, mimeType, versaoDoAviso).subscribe({
       next: (lido) => {
+        this.leiturasRestantes.set(lido.leiturasRestantes);
         this.recibo.set(lido);
         this.itensEmConferencia.set(lido.itens.map((item) => ({ ...item })));
         this.lendoRecibo.set(false);

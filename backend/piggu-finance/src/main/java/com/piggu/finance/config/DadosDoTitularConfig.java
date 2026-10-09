@@ -29,7 +29,8 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("monthly_goals", "user_email"),
                 Tabela.compartilhada("product_memory", "user_email"),
                 Tabela.compartilhada("custom_categories", "created_by"),
-                Tabela.pessoal("consents", "user_email")
+                Tabela.pessoal("consents", "user_email"),
+                new Tabela("receipt_usage", null, false)
         ), extras.orderedStream().toList());
     }
 

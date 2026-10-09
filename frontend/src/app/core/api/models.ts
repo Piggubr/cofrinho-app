@@ -141,6 +141,16 @@ export interface ReciboLido {
   origem: 'OCR' | 'GEMINI';
   /** O que conferir com mais cuidado; nulo quando a soma bateu com o total do cupom. */
   aviso: string | null;
+  /** Leituras gratis que sobram no mes; nulo no Premium (sem limite). */
+  leiturasRestantes: number | null;
+}
+
+/** Leituras de nota pela foto no mes da familia. */
+export interface UsoDeLeituras {
+  usadas: number;
+  limite: number;
+  /** Nulo no Premium: sem limite. */
+  restantes: number | null;
 }
 
 export interface Deposito {

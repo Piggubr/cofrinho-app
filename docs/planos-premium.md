@@ -18,7 +18,8 @@ o botão e mostra o convite.
 | **Orçamento por categoria com alerta** (80% e 100%) | **Premium** | Planejamento ativo, o que mais pesa na decisão de pagar |
 | **Relatório do ano com gráficos** | **Premium** | Visão de longo prazo; o relatório do mês continua grátis |
 | **Contas bancárias pelo Open Finance** (conectar e atualizar saldo) | **Premium** | Custo por conexão na Pluggy; é o recurso que mais vale |
-| **Leitura da nota fiscal pela foto** (Gemini) | **Premium** | Custo por chamada de IA |
+| Leitura da nota fiscal pela foto, pelo leitor próprio (OCR) | Grátis até 10 por mês por família | A foto não sai do servidor e custa pouco; o limite segura abuso |
+| **Leitura de nota além de 10 por mês, e a reserva pela IA (Gemini)** | **Premium** | Custo por chamada de IA |
 | **Mural de fotos** (feed) | **Premium** | Custo de armazenamento |
 | Ver, apagar e desconectar o que já existe | Sempre grátis | Premium vencido nunca prende dado da pessoa (LGPD) |
 

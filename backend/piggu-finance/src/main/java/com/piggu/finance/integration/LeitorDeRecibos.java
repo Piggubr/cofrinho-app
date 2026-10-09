@@ -3,13 +3,16 @@ package com.piggu.finance.integration;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.Plano;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.Categorias;
 import com.piggu.finance.domain.ChaveProduto;
+import com.piggu.finance.domain.CotaDeLeituras;
 import com.piggu.finance.domain.ProductMemoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,22 +42,30 @@ public class LeitorDeRecibos {
     private final GeminiReceiptReader gemini;
     private final ProductMemoryRepository memoria;
     private final Consentimentos consentimentos;
+    private final CotaDeLeituras cota;
 
     public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria,
-                           Consentimentos consentimentos) {
+                           Consentimentos consentimentos, CotaDeLeituras cota) {
         this.ocr = ocr;
         this.gemini = gemini;
         this.memoria = memoria;
         this.consentimentos = consentimentos;
+        this.cota = cota;
     }
 
     /**
-     * A foto so sai do servidor (para o Gemini) depois que a pessoa autorizou, uma vez
-     * por versao do aviso. Sem autorizacao o front recebe o codigo e pergunta.
+     * No gratuito, a leitura propria vale ate o limite do mes; a reserva pelo Gemini e
+     * Premium. A foto so sai do servidor (para o Gemini) depois que a pessoa autorizou,
+     * uma vez por versao do aviso. Sem autorizacao o front recebe o codigo e pergunta.
      */
     // O consentimento gravado fica mesmo que a leitura falhe depois: a pessoa autorizou.
     @Transactional(noRollbackFor = BusinessException.class)
     public ReceiptParseResponse ler(ReceiptParseRequest pedido, CurrentUser usuario) {
+        cota.exigirDisponivel(usuario);
+        return lerDentroDaCota(pedido, usuario).comRestantes(cota.registrar(usuario));
+    }
+
+    private ReceiptParseResponse lerDentroDaCota(ReceiptParseRequest pedido, CurrentUser usuario) {
         LocalDate hoje = LocalDate.now();
         Optional<LeitorDeCupom.Leitura> propria = ocr.ler(imagem(pedido.imageBase64()))
                 .map(texto -> LeitorDeCupom.ler(texto, hoje));
@@ -64,6 +75,15 @@ public class LeitorDeRecibos {
             return resposta(propria.get(), null);
         }
         boolean temItens = propria.isPresent() && !propria.get().itens().isEmpty();
+        if (gemini.habilitado() && !usuario.isPremium()) {
+            if (temItens) {
+                return resposta(propria.get(), aviso(propria.get())
+                        + " Com o Premium, a IA do Google tenta ler o que faltou.");
+            }
+            throw new BusinessException("Não consegui ler esta foto sozinho. A leitura pela IA faz parte do "
+                    + "Piggu Premium; ou tente uma foto mais reta e com boa luz.",
+                    HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
+        }
         if (gemini.habilitado()) {
             consentimentos.exigir(usuario, "GEMINI",
                     "Não consegui ler esta foto sozinho. Para tentar com a IA do Google (Gemini), autorize o envio da foto.",
