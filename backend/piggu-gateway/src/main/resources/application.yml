@@ -36,7 +36,7 @@ spring:
             - id: finance
               uri: ${FINANCE_URL:http://localhost:8082}
               predicates:
-                - Path=/api/expenses/**,/api/monthly-goals/**,/api/piggy-bank/**,/api/notes/**,/api/products/**,/api/categories/**,/api/receipts/**,/api/exchange-rate/**,/api/incomes/**,/api/reports/**
+                - Path=/api/expenses/**,/api/monthly-goals/**,/api/piggy-bank/**,/api/notes/**,/api/products/**,/api/categories/**,/api/receipts/**,/api/exchange-rate/**,/api/incomes/**,/api/reports/**,/api/bills/**
 
             - id: rewards
               uri: ${REWARDS_URL:http://localhost:8083}

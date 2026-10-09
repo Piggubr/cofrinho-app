@@ -40,7 +40,9 @@ describe('Incomes', () => {
     const valor = pagina.querySelector<HTMLInputElement>('#valor-receita')!;
     valor.value = '5000';
     valor.dispatchEvent(new Event('input'));
-    [...pagina.querySelectorAll('button')].find((b) => b.textContent?.includes('Lançar receita'))!.click();
+    [...pagina.querySelectorAll('button')]
+      .find((b) => b.textContent?.includes('Lançar receita'))!
+      .click();
 
     const pedido = http.expectOne((r) => r.method === 'POST' && r.url === '/api/incomes');
     expect(pedido.request.body).toEqual(

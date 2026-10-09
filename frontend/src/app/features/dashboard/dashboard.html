@@ -9,6 +9,7 @@
 } @else {
   @if (!auth.ehMembro()) {
     <app-resumo-do-mes [mes]="mesAtual()" />
+    <app-avisos-do-mes [mes]="mesAtual()" />
   }
 
   <section class="cartao">

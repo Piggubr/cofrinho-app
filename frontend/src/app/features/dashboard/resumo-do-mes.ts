@@ -33,7 +33,8 @@ import { MoedaPipe } from '../../core/ui/moeda';
         </div>
         @if (r.receitas === 0) {
           <p i18n class="linha-detalhe">
-            Lance as <a routerLink="/receitas">receitas do mês</a> para ver quanto sobrou e quanto você poupou.
+            Lance as <a routerLink="/receitas">receitas do mês</a> para ver quanto sobrou e quanto
+            você poupou.
           </p>
         }
       </section>

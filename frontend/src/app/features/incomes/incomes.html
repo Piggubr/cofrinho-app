@@ -31,7 +31,11 @@
     </div>
     <div class="campo">
       <label i18n for="categoria-receita">Categoria</label>
-      <select id="categoria-receita" [ngModel]="categoria()" (ngModelChange)="categoria.set($event)">
+      <select
+        id="categoria-receita"
+        [ngModel]="categoria()"
+        (ngModelChange)="categoria.set($event)"
+      >
         @for (opcao of categorias(); track opcao) {
           <option [value]="opcao">{{ opcao }}</option>
         }
@@ -50,15 +54,33 @@
     </div>
   </div>
   <div class="acoes">
-    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">Lançar receita</button>
+    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
+      Lançar receita
+    </button>
   </div>
 </section>
 
 <section class="cartao" aria-labelledby="titulo-receitas-mes">
   <div class="cartao-titulo">
-    <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label>‹</button>
+    <button
+      type="button"
+      class="botao contorno pequeno"
+      (click)="trocarMes(-1)"
+      aria-label="Mês anterior"
+      i18n-aria-label
+    >
+      ‹
+    </button>
     <h2 id="titulo-receitas-mes">{{ rotuloDoMes() }}</h2>
-    <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label>›</button>
+    <button
+      type="button"
+      class="botao contorno pequeno"
+      (click)="trocarMes(1)"
+      aria-label="Próximo mês"
+      i18n-aria-label
+    >
+      ›
+    </button>
   </div>
   <p i18n class="linha-detalhe">Total: {{ total() | moeda }}</p>
   @for (receita of receitas(); track receita.id) {
@@ -69,7 +91,9 @@
       </div>
       <div class="linha-acoes">
         <strong>{{ receita.valor | moeda }}</strong>
-        <button i18n type="button" class="botao contorno pequeno" (click)="excluir(receita)">Apagar</button>
+        <button i18n type="button" class="botao contorno pequeno" (click)="excluir(receita)">
+          Apagar
+        </button>
       </div>
     </div>
   } @empty {
