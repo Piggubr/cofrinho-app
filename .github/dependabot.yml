@@ -1,18 +1,33 @@
-# Avisa quando sair correcao de seguranca nas dependencias do backend, do front e do CI.
+# Atualizacoes de dependencia toda semana, em PRs pequenos e agrupados.
+# Correcao de seguranca chega a qualquer hora (Dependabot alerts), fora deste agendamento.
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /backend
     schedule:
       interval: weekly
+    groups:
+      spring:
+        patterns: ["org.springframework*"]
+    # Boot 4.1 so quando o Spring Cloud dele sair do milestone.
+    ignore:
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+
   - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
     groups:
       angular:
-        patterns: ["@angular/*"]
+        patterns: ["@angular/*", "@angular-devkit/*"]
+
   - package-ecosystem: github-actions
     directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directory: /backend
     schedule:
       interval: monthly
