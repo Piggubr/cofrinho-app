@@ -1,7 +1,9 @@
 # Sobe a plataforma inteira com: docker compose up --build
 #
-# Sao sete processos. O gateway e a unica porta publicada para o navegador;
-# os servicos conversam pela rede interna do Compose.
+# Sao sete processos. Os servicos conversam pela rede interna do Compose.
+# Em desenvolvimento o navegador fala com o gateway (so na propria maquina, porta 8080).
+# Em producao:  docker compose --profile producao up -d --build
+# sobe tambem o Caddy (servico web), unica porta publica: 80 e 443, com HTTPS automatico.
 
 services:
   postgres:
@@ -185,7 +187,8 @@ services:
       BANKING_URL: http://banking:8086
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
     ports:
-      - "8080:8080"
+      # So na propria maquina: de fora, a API chega pelo Caddy (HTTPS).
+      - "127.0.0.1:8080:8080"
     depends_on:
       - identity
       - finance
@@ -193,6 +196,30 @@ services:
       - lifestyle
       - media
 
+  # Porta publica em producao: front + /api para o gateway, HTTPS e cabecalhos de seguranca.
+  # Construa o front antes:  cd frontend && npm ci && npm run build
+  web:
+    profiles: ["producao"]
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no arquivo .env (ex.: piggu.app)}
+      EMAIL_DO_CERTIFICADO: ${EMAIL_DO_CERTIFICADO:?defina EMAIL_DO_CERTIFICADO no arquivo .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      # Certificados do Let's Encrypt: sem volume, cada recriacao pediria outro (e bate no limite).
+      - caddy-dados:/data
+      - caddy-config:/config
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
 volumes:
   piggu-dados:
   piggu-fotos:
+  caddy-dados:
+  caddy-config:

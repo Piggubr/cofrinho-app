@@ -26,6 +26,19 @@ class ProtecaoDeProducaoTest {
         assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()).afterPropertiesSet());
     }
 
+    @Test
+    @DisplayName("endereco do site ou origem do CORS em http derruba a subida em producao")
+    void soHttps() {
+        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+                .withProperty("CORS_ORIGINS", "https://piggu.app,http://piggu.app")).afterPropertiesSet())
+                .hasMessageContaining("CORS_ORIGINS");
+        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+                .withProperty("SITE_URL", "http://piggu.app")).afterPropertiesSet())
+                .hasMessageContaining("SITE_URL");
+        assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+                .withProperty("SITE_URL", "https://piggu.app")).afterPropertiesSet());
+    }
+
     private static ProtecaoDeProducao protecao(String senha) {
         return new ProtecaoDeProducao(new MockEnvironment()
                 .withProperty("spring.datasource.url", "jdbc:postgresql://db/x")

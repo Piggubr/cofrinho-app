@@ -6,7 +6,7 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { InfoDoPlano } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
-import { Plan } from './plan';
+import { Plan, ehDaStripe } from './plan';
 
 const GRATUITO: InfoDoPlano = {
   plano: 'GRATUITO',
@@ -111,5 +111,15 @@ describe('Plan', () => {
 
     expect(auth.renovacoes()).toBe(1);
     expect(tela.nativeElement.textContent).toContain('reembolso aparece');
+  });
+});
+
+describe('ehDaStripe', () => {
+  it('so aceita https na stripe.com', () => {
+    expect(ehDaStripe('https://checkout.stripe.com/c/pay/cs_1')).toBe(true);
+    expect(ehDaStripe('https://billing.stripe.com/p/session/x')).toBe(true);
+    expect(ehDaStripe('http://checkout.stripe.com/c')).toBe(false);
+    expect(ehDaStripe('https://stripe.com.golpe.io/c')).toBe(false);
+    expect(ehDaStripe('javascript:alert(1)')).toBe(false);
   });
 });
