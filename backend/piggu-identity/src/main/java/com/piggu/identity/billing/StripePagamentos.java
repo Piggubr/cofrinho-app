@@ -80,13 +80,16 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     @Override
-    public String abrirCheckout(UserAccount conta, Periodo periodo) {
+    public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("mode", "subscription");
         form.add("line_items[0][price]", periodo == Periodo.ANUAL ? propriedades.priceAnual() : propriedades.priceMensal());
         form.add("line_items[0][quantity]", "1");
         form.add("client_reference_id", conta.getId().toString());
         form.add("subscription_data[metadata][userId]", conta.getId().toString());
+        if (diasDeTeste > 0) {
+            form.add("subscription_data[trial_period_days]", Integer.toString(diasDeTeste));
+        }
         form.add("locale", "pt-BR");
         form.add("success_url", propriedades.siteUrl() + "/plano?assinatura=ok");
         form.add("cancel_url", propriedades.siteUrl() + "/plano");
@@ -190,7 +193,8 @@ public class StripePagamentos implements ProvedorDePagamento {
                 assinaturaStripe.path("customer").asString(null),
                 paga ? fimDoPeriodo(assinaturaStripe) : null,
                 Instant.ofEpochSecond(evento.path("created").asLong()),
-                inicio == 0 ? null : Instant.ofEpochSecond(inicio)));
+                inicio == 0 ? null : Instant.ofEpochSecond(inicio),
+                "trialing".equals(assinaturaStripe.path("status").asString())));
     }
 
     /** Nas versoes novas da API o fim do periodo mora no item, nao na assinatura. */

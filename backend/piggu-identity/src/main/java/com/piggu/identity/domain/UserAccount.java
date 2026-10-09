@@ -84,6 +84,10 @@ public class UserAccount {
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 
+    /** Quando a conta usou o teste gratis; nulo = ainda pode usar. */
+    @Column(name = "trial_used_at")
+    private Instant trialUsedAt;
+
     /** Cliente no provedor de pagamento de quem assinou, para abrir o portal depois. */
     @Column(name = "stripe_customer_id")
     private String stripeCustomerId;
@@ -249,6 +253,16 @@ public class UserAccount {
 
     public Instant getTermsAcceptedAt() {
         return termsAcceptedAt;
+    }
+
+    public boolean usouTesteGratis() {
+        return trialUsedAt != null;
+    }
+
+    public void marcarTesteGratisUsado() {
+        if (trialUsedAt == null) {
+            trialUsedAt = Instant.now();
+        }
     }
 
     public void lembrarClienteNoProvedor(String clienteNoProvedor) {

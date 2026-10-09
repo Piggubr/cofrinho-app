@@ -13,6 +13,7 @@ const GRATUITO: InfoDoPlano = {
   premiumAte: null,
   origem: null,
   reembolsoAte: null,
+  diasDeTeste: 7,
   assinaturaDisponivel: true,
   site: { mensal: '19,90', anual: '199,00' },
   app: { mensal: '22,89', anual: '228,85' },
@@ -61,6 +62,7 @@ describe('Plan', () => {
 
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('R$ 19,90');
+    expect(pagina.textContent).toContain('7 dias grátis');
     expect(pagina.textContent).not.toContain('22,89');
 
     [...pagina.querySelectorAll('button')]
