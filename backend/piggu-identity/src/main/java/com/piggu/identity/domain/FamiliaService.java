@@ -34,6 +34,7 @@ import java.util.UUID;
 public class FamiliaService {
 
     static final Duration VALIDADE_DO_CONVITE = Duration.ofDays(7);
+    static final int MAXIMO_DE_CONVITES = 10;
 
     private static final Logger log = LoggerFactory.getLogger(FamiliaService.class);
 
@@ -133,10 +134,19 @@ public class FamiliaService {
             throw new BusinessException("Essa pessoa ja faz parte da familia.", HttpStatus.CONFLICT, "JA_E_DA_FAMILIA");
         }
 
-        Instant vence = Instant.now().plus(VALIDADE_DO_CONVITE);
+        Instant agora = Instant.now();
+        Instant vence = agora.plus(VALIDADE_DO_CONVITE);
         convites.findByHouseholdIdAndEmail(usuario.familia(), email).ifPresentOrElse(
                 convite -> convite.renovar(vence),
-                () -> convites.save(new HouseholdInvite(usuario.familia(), email, usuario.id(), vence)));
+                () -> {
+                    // Anti-abuso: convite vira linha no banco e aparece para o e-mail convidado.
+                    if (convites.countByHouseholdIdAndExpiresAtAfter(usuario.familia(), agora) >= MAXIMO_DE_CONVITES) {
+                        throw new BusinessException("Ja ha " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
+                                + "Cancele algum para convidar outra pessoa.", HttpStatus.UNPROCESSABLE_CONTENT,
+                                "LIMITE_DE_CONVITES");
+                    }
+                    convites.save(new HouseholdInvite(usuario.familia(), email, usuario.id(), vence));
+                });
         // Sem o e-mail no log: e o dado pessoal de quem ainda nem aceitou nada.
         log.info("Convite para a familia {} criado", usuario.familia());
         return ver(usuario);

@@ -76,6 +76,18 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("no maximo 10 convites esperando resposta; renovar um que ja existe continua valendo")
+    void limiteDeConvites() {
+        for (int i = 0; convites.countByHouseholdIdAndExpiresAtAfter(titular.getHouseholdId(), java.time.Instant.now())
+                < FamiliaService.MAXIMO_DE_CONVITES; i++) {
+            familias.convidar(como(titular), "pessoa" + i + "@familia.test");
+        }
+        assertThatThrownBy(() -> familias.convidar(como(titular), "mais-uma@familia.test"))
+                .hasMessageContaining("convites esperando resposta");
+        familias.convidar(como(titular), "pessoa0@familia.test");
+    }
+
+    @Test
     @DisplayName("membro nao convida nem remove; o titular nao cancela convite de outra familia")
     void permissoes() {
         assertThatThrownBy(() -> familias.convidar(como(membro), "x@familia.test")).isInstanceOf(ForbiddenException.class);
