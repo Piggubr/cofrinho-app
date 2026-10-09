@@ -42,13 +42,16 @@ class ShoppingServiceTest extends PostgresIntegrationTest {
     }
 
     @ParameterizedTest(name = "recusa imagem em {0}")
-    @DisplayName("so aceita imagem servida por HTTPS")
+    @DisplayName("so aceita imagem do catalogo, por HTTPS")
     @ValueSource(strings = {
             "http://exemplo.test/foto.jpg",
             "javascript:alert(1)",
             "data:image/png;base64,AAAA",
             "//exemplo.test/foto.jpg",
-            "ftp://exemplo.test/foto.jpg"
+            "ftp://exemplo.test/foto.jpg",
+            "https://rastreador.test/pixel.gif",
+            "https://images.openfoodfacts.org.rastreador.test/x.jpg",
+            "http://images.openfoodfacts.org/x.jpg"
     })
     void recusaImagemInsegura(String url) {
         ShoppingItemResponse item = criar(new ShoppingItemRequest("Ovos", "12", null, null, url, null));
@@ -57,9 +60,9 @@ class ShoppingServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("imagem HTTPS e preservada")
-    void aceitaImagemHttps() {
-        String url = "https://imagens.test/ovos.jpg";
+    @DisplayName("imagem do Open Food Facts e preservada")
+    void aceitaImagemDoCatalogo() {
+        String url = "https://images.openfoodfacts.org/images/products/789/front_pt.jpg";
         assertThat(criar(new ShoppingItemRequest("Ovos", "12", null, null, url, null)).imagem())
                 .isEqualTo(url);
     }

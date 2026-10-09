@@ -53,6 +53,14 @@ class MovieServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("capa so do TMDB: outro host vira capa vazia")
+    void capaSoDoTmdb() {
+        assertThat(adicionar("603", "Matrix").poster()).startsWith("https://image.tmdb.org/");
+        assertThat(MovieService.posterDoTmdb("https://rastreador.test/pixel.gif")).isEmpty();
+        assertThat(MovieService.posterDoTmdb("https://image.tmdb.org/x.jpg\" onerror=\"x")).isEmpty();
+    }
+
+    @Test
     @DisplayName("o mesmo filme do catalogo nao entra duas vezes")
     void naoDuplicaFilmeDoCatalogo() {
         adicionar("603", "Matrix");
@@ -126,7 +134,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
 
     private MovieResponse adicionar(String tmdbId, String titulo) {
         return filmes.adicionar(new TmdbMovie(
-                tmdbId, titulo, "1999", "https://img.test/p.jpg",
+                tmdbId, titulo, "1999", "https://image.tmdb.org/t/p/w500/matrix.jpg",
                 new BigDecimal("8.7"), "Sinopse"), TITULAR);
     }
 }
