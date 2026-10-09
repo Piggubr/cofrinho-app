@@ -12,6 +12,7 @@ const GRATUITO: InfoDoPlano = {
   plano: 'GRATUITO',
   premiumAte: null,
   origem: null,
+  reembolsoAte: null,
   assinaturaDisponivel: true,
   site: { mensal: '19,90', anual: '199,00' },
   app: { mensal: '22,89', anual: '228,85' },
@@ -80,5 +81,33 @@ describe('Plan', () => {
     http.expectOne('/api/billing/plan').flush(GRATUITO);
 
     expect(auth.renovacoes()).toBe(1);
+  });
+
+  it('nos 7 dias do arrependimento mostra o reembolso e, confirmado, cancela', async () => {
+    const tela = montar();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    tela.detectChanges();
+    const premium: InfoDoPlano = {
+      ...GRATUITO,
+      plano: 'PREMIUM',
+      premiumAte: '2026-11-08T00:00:00Z',
+      origem: 'WEB',
+      reembolsoAte: '2026-10-15T00:00:00Z',
+    };
+    http.expectOne('/api/billing/plan').flush(premium);
+    await tela.whenStable();
+    tela.detectChanges();
+
+    const botao = [...(tela.nativeElement as HTMLElement).querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Cancelar e pedir reembolso'),
+    )!;
+    botao.click();
+    http.expectOne('/api/billing/refund').flush(null);
+    await vi.waitFor(() => http.expectOne('/api/billing/plan').flush({ ...premium, plano: 'GRATUITO', reembolsoAte: null }));
+    await tela.whenStable();
+    tela.detectChanges();
+
+    expect(auth.renovacoes()).toBe(1);
+    expect(tela.nativeElement.textContent).toContain('reembolso aparece');
   });
 });

@@ -14,6 +14,11 @@ export class BillingService extends ApiBase {
     return this.http.post<{ url: string }>(this.url('/billing/checkout'), { periodo });
   }
 
+  /** Desistir nos 7 primeiros dias: cancela na hora e devolve o valor. */
+  reembolso(): Observable<void> {
+    return this.http.post<void>(this.url('/billing/refund'), {});
+  }
+
   /** Trocar cartao, ver recibos e cancelar. */
   portal(): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(this.url('/billing/portal'), {});

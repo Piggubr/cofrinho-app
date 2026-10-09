@@ -2,6 +2,7 @@ package com.piggu.identity.billing;
 
 import com.piggu.identity.domain.UserAccount;
 
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -20,6 +21,14 @@ public interface ProvedorDePagamento {
 
     /** Endereco onde a pessoa troca cartao, ve recibos e cancela. */
     String abrirPortal(UserAccount conta);
+
+    /**
+     * Arrependimento (CDC art. 49): cancela na hora e devolve tudo o que foi cobrado
+     * desde o inicio da assinatura, se ela tem menos de {@code prazo}.
+     *
+     * @throws com.piggu.common.error.BusinessException quando passou do prazo ou nao ha assinatura
+     */
+    void cancelarComReembolso(String clienteNoProvedor, Duration prazo);
 
     /**
      * Apaga o cliente no provedor, o que cancela na hora qualquer assinatura dele.

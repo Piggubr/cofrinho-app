@@ -71,6 +71,8 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         assertThat(planoDe(membro)).as("o Premium e da familia inteira").isEqualTo(Plano.PREMIUM);
         assertThat(salva.getStripeCustomerId()).isEqualTo("cus_123");
         assertThat(assinaturas.plano(conta.getId()).premiumAte()).isEqualTo(Instant.ofEpochSecond(fim.getEpochSecond()));
+        assertThat(assinaturas.plano(conta.getId()).reembolsoAte())
+                .as("assinou agora: dentro dos 7 dias do arrependimento").isNotNull();
     }
 
     @Test
@@ -120,8 +122,8 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     private String evento(String tipo, String status, Instant fim, Instant criado) {
         return """
                 {"id":"evt_1","type":"%s","created":%d,"data":{"object":{
-                  "id":"sub_1","customer":"cus_123","status":"%s","metadata":{"userId":"%s"},
+                  "id":"sub_1","customer":"cus_123","status":"%s","metadata":{"userId":"%s"},"start_date":%d,
                   "items":{"data":[{"current_period_end":%d}]}}}}
-                """.formatted(tipo, criado.getEpochSecond(), status, conta.getId(), fim.getEpochSecond());
+                """.formatted(tipo, criado.getEpochSecond(), status, conta.getId(), criado.getEpochSecond(), fim.getEpochSecond());
     }
 }

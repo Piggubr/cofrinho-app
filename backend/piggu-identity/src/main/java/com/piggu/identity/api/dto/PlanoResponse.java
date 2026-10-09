@@ -1,6 +1,7 @@
 package com.piggu.identity.api.dto;
 
 import com.piggu.common.security.Plano;
+import com.piggu.identity.billing.AssinaturaService;
 import com.piggu.identity.domain.Household;
 
 import java.time.Instant;
@@ -15,11 +16,14 @@ import java.util.List;
  * @param assinaturaDisponivel falso enquanto o provedor de pagamento do site nao estiver configurado
  * @param site                 precos no site (Stripe)
  * @param app                  precos dentro do app iOS/Android: +15% pela taxa das lojas
+ * @param reembolsoAte         ate quando da para desistir com dinheiro de volta (7 dias, CDC
+ *                             art. 49); nulo fora do prazo ou quando nao foi assinado pelo site
  */
 public record PlanoResponse(
         Plano plano,
         Instant premiumAte,
         String origem,
+        Instant reembolsoAte,
         boolean assinaturaDisponivel,
         Precos site,
         Precos app,
@@ -52,7 +56,11 @@ public record PlanoResponse(
 
     public static PlanoResponse de(Household familia, boolean assinaturaDisponivel) {
         Plano vigente = familia.planoVigente();
+        Instant reembolsoAte = vigente == Plano.PREMIUM && "WEB".equals(familia.getPlanSource())
+                && familia.getPremiumSince() != null
+                ? familia.getPremiumSince().plus(AssinaturaService.PRAZO_DE_ARREPENDIMENTO) : null;
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
-                familia.getPlanSource(), assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+                familia.getPlanSource(),
+                reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
     }
 }

@@ -65,6 +65,8 @@ export interface InfoDoPlano {
   plano: Plano;
   premiumAte: string | null;
   origem: 'WEB' | 'APP_STORE' | 'PLAY_STORE' | null;
+  /** Ate quando da para desistir com o dinheiro de volta (7 dias); nulo fora do prazo. */
+  reembolsoAte: string | null;
   assinaturaDisponivel: boolean;
   site: Precos;
   app: Precos;
