@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
 import {
+  AcertoDeDivisao,
   Cofrinho,
+  ConferenciaDePreco,
   ContaFixa,
   ContaOuCartao,
   Cotacao,
@@ -147,6 +149,17 @@ export class FinanceService extends ApiBase {
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
   resumoDoMes(mes: string): Observable<ResumoDoMes> {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
+  acertoDoMes(mes: string): Observable<AcertoDeDivisao[]> {
+    return this.http.get<AcertoDeDivisao[]>(this.url('/expenses/splits'), { params: { mes } });
+  }
+
+  /** Nulo (204) quando o produto ainda nao tem historico de preco. */
+  conferirPreco(item: string, valor: number): Observable<ConferenciaDePreco | null> {
+    return this.http.get<ConferenciaDePreco | null>(this.url('/products/price-check'), {
+      params: { item, valor },
+    });
   }
 
   contas(): Observable<ContaOuCartao[]> {

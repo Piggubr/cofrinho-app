@@ -2,9 +2,11 @@ package com.piggu.finance.api;
 
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.api.dto.SaveExpensesRequest;
 import com.piggu.finance.api.dto.UpdateExpenseRequest;
+import com.piggu.finance.domain.DivisaoDeGastos;
 import com.piggu.finance.domain.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -36,9 +38,17 @@ import java.util.UUID;
 public class ExpenseController {
 
     private final ExpenseService servico;
+    private final DivisaoDeGastos divisao;
 
-    public ExpenseController(ExpenseService servico) {
+    public ExpenseController(ExpenseService servico, DivisaoDeGastos divisao) {
         this.servico = servico;
+        this.divisao = divisao;
+    }
+
+    /** Acerto dos gastos divididos no mes: quanto cada pessoa pagou, a parte dela e o saldo. */
+    @GetMapping("/splits")
+    public List<DivisaoDeGastos.Acerto> acerto(@RequestParam(required = false) String mes) {
+        return divisao.acerto(Meses.ouAtual(mes));
     }
 
     /**
