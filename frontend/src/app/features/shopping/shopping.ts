@@ -51,7 +51,7 @@ export class Shopping {
   protected adicionar(): void {
     const item = this.novoItem().trim();
     if (!item) {
-      this.erro.set('Digite o que deseja adicionar.');
+      this.erro.set($localize`Digite o que deseja adicionar.`);
       return;
     }
 
@@ -95,7 +95,7 @@ export class Shopping {
   protected buscarNoCatalogo(): void {
     const termo = this.busca().trim();
     if (termo.length < 2) {
-      this.erro.set('Digite pelo menos duas letras.');
+      this.erro.set($localize`Digite pelo menos duas letras.`);
       return;
     }
 

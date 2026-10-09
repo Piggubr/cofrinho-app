@@ -85,7 +85,7 @@ export class Goals {
   protected salvar(): void {
     const limite = this.limite();
     if (!limite || limite <= 0) {
-      this.erro.set('Digite um valor válido para a meta.');
+      this.erro.set($localize`Digite um valor válido para a meta.`);
       return;
     }
 

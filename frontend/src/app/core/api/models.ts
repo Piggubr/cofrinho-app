@@ -81,6 +81,10 @@ export interface Preferencias {
   moeda: string;
   moedaConversao: string;
   mostrarCotacao: boolean;
+  /** Fuso IANA da pessoa; conta nova nasce em America/Sao_Paulo. */
+  fuso?: string;
+  /** Idioma da interface; hoje so pt-BR. */
+  idioma?: string;
 }
 
 export interface MoedaDisponivel {

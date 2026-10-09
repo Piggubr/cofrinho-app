@@ -54,7 +54,7 @@ export class Login {
         this.entrar(idToken),
       );
     } catch {
-      this.erro.set('Nao consegui carregar o login do Google. Recarregue a pagina.');
+      this.erro.set($localize`Nao consegui carregar o login do Google. Recarregue a pagina.`);
     }
   }
 
@@ -76,7 +76,7 @@ export class Login {
         this.tokenDoGoogle = idToken;
         this.aguardandoAceite.set(true);
       } else {
-        this.erro.set(mensagemDeErro(falha, 'Nao foi possivel entrar.'));
+        this.erro.set(mensagemDeErro(falha, $localize`Nao foi possivel entrar.`));
       }
     } finally {
       this.entrando.set(false);

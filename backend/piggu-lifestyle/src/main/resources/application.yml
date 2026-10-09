@@ -53,7 +53,8 @@ piggu:
       # Vazio desliga busca e sorteio de filmes, com aviso claro na tela.
       token: ${TMDB_READ_TOKEN:}
       idioma: pt-BR
-      regiao: PT
+      # Brasil primeiro; TMDB_REGIAO troca (ex.: PT).
+      regiao: ${TMDB_REGIAO:BR}
     catalogo:
       user-agent: ${CATALOGO_USER_AGENT:Piggu/1.0 (contato@piggu.app)}
 

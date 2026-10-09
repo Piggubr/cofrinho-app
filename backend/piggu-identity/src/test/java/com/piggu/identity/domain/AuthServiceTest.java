@@ -221,14 +221,14 @@ class AuthServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("conta nova comeca em euro, convertendo para real, com a cotacao visivel")
+    @DisplayName("conta nova comeca em reais, cotacao em dolar, horario de Brasilia e pt-BR")
     void preferenciasPadrao() {
         responderGoogleCom(AUTORIZADA);
 
         TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(acesso.usuario().preferencias())
-                .isEqualTo(new UserResponse.Preferencias("EUR", "BRL", true));
+                .isEqualTo(new UserResponse.Preferencias("BRL", "USD", true, "America/Sao_Paulo", "pt-BR"));
     }
 
     @Test
@@ -237,10 +237,12 @@ class AuthServiceTest extends PostgresIntegrationTest {
         responderGoogleCom(AUTORIZADA);
         java.util.UUID id = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null).usuario().id();
 
-        auth.salvarPreferencias(id, new PreferencesRequest("usd", "jpy", false));
+        auth.salvarPreferencias(id, new PreferencesRequest("usd", "jpy", false, "Europe/Lisbon"));
 
         assertThat(auth.perfil(id).preferencias())
-                .isEqualTo(new UserResponse.Preferencias("USD", "JPY", false));
+                .isEqualTo(new UserResponse.Preferencias("USD", "JPY", false, "Europe/Lisbon", "pt-BR"));
+        assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("BRL", "USD", true, "Marte/Base")))
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
@@ -251,7 +253,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("XYZ", "BRL", true)))
                 .isInstanceOf(BusinessException.class);
-        assertThat(auth.perfil(id).preferencias().moeda()).isEqualTo("EUR");
+        assertThat(auth.perfil(id).preferencias().moeda()).isEqualTo("BRL");
     }
 
     private static com.piggu.common.security.CurrentUser comoUsuario(TokenResponse acesso) {

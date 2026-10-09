@@ -112,11 +112,11 @@ export class Calendar {
   protected criarNota(): void {
     const titulo = this.titulo().trim();
     if (!titulo) {
-      this.erro.set('Digite o título da nota.');
+      this.erro.set($localize`Digite o título da nota.`);
       return;
     }
     if (this.viraGasto() && !this.dataDaNota()) {
-      this.erro.set('Escolha a data do evento pago.');
+      this.erro.set($localize`Escolha a data do evento pago.`);
       return;
     }
 

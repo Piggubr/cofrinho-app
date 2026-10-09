@@ -203,7 +203,7 @@ export class Dashboard {
   protected depositar(): void {
     const valor = this.novoDeposito();
     if (!valor || valor <= 0) {
-      this.erro.set('Digite um valor de depósito válido.');
+      this.erro.set($localize`Digite um valor de depósito válido.`);
       return;
     }
 
@@ -223,7 +223,7 @@ export class Dashboard {
   }
 
   protected excluirDeposito(id: string): void {
-    if (!confirm('Apagar este depósito?')) {
+    if (!confirm($localize`Apagar este depósito?`)) {
       return;
     }
     this.finance.excluirDeposito(id).subscribe({

@@ -1,6 +1,6 @@
 <div class="moldura">
   <header class="cabecalho">
-    <button
+    <button i18n-aria-label
       type="button"
       class="menu-botao"
       (click)="alternarMenu()"
@@ -11,7 +11,7 @@
     </button>
 
     <div class="marca">
-      <strong>Piggu</strong>
+      <strong i18n>Piggu</strong>
       @if (taxaFormatada(); as taxa) {
         <span
           class="cotacao"
@@ -48,7 +48,7 @@
     }
     <button type="button" class="menu-item sair" (click)="sair()">
       <span class="menu-icone" aria-hidden="true">🚪</span>
-      <span>Sair</span>
+      <span i18n>Sair</span>
     </button>
   </nav>
 

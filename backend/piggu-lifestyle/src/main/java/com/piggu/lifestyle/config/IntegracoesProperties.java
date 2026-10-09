@@ -23,7 +23,7 @@ public record IntegracoesProperties(Tmdb tmdb, Catalogo catalogo) {
         public Tmdb {
             baseUrl = vazio(baseUrl) ? "https://api.themoviedb.org/3" : baseUrl;
             idioma = vazio(idioma) ? "pt-BR" : idioma;
-            regiao = vazio(regiao) ? "PT" : regiao;
+            regiao = vazio(regiao) ? "BR" : regiao;
             timeout = timeout == null ? Duration.ofSeconds(15) : timeout;
         }
 

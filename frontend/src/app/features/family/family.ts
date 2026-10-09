@@ -7,7 +7,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
-const PAPEIS: Record<PigguRole, string> = { ADMIN: 'Admin', TITULAR: 'Titular', MEMBRO: 'Membro' };
+const PAPEIS: Record<PigguRole, string> = {
+  ADMIN: $localize`Admin`,
+  TITULAR: $localize`Titular`,
+  MEMBRO: $localize`Membro`,
+};
 
 /**
  * Familia: quem faz parte, convites e saida.
@@ -47,9 +51,9 @@ export class Family {
   /** Entrar em outra familia apaga o que e so seu na familia de agora. */
   protected aceitar(convite: ConviteDaFamilia): void {
     const texto =
-      `Entrar na ${convite.familia}? Você sai da família atual: se for a última pessoa dela, ` +
-      'tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. ' +
-      'Depois disso é preciso entrar de novo.';
+      $localize`Entrar na ${convite.familia}? Você sai da família atual: se for a última pessoa dela, ` +
+      $localize`tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. ` +
+      $localize`Depois disso é preciso entrar de novo.`;
     if (!confirm(texto)) {
       return;
     }
@@ -66,12 +70,12 @@ export class Family {
   protected convidar(): void {
     const email = this.email().trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      this.erro.set('Digite um e-mail válido.');
+      this.erro.set($localize`Digite um e-mail válido.`);
       return;
     }
     this.executar(
       this.familias.convidar(email),
-      'Convite criado. Avise a pessoa para entrar com esse e-mail.',
+      $localize`Convite criado. Avise a pessoa para entrar com esse e-mail.`,
     );
     this.email.set('');
   }
@@ -79,25 +83,25 @@ export class Family {
   protected renomear(): void {
     const nome = this.nome().trim();
     if (!nome) {
-      this.erro.set('Digite o nome da família.');
+      this.erro.set($localize`Digite o nome da família.`);
       return;
     }
-    this.executar(this.familias.renomear(nome), 'Nome salvo.');
+    this.executar(this.familias.renomear(nome), $localize`Nome salvo.`);
   }
 
   protected cancelarConvite(id: string): void {
-    this.executar(this.familias.cancelarConvite(id), 'Convite cancelado.');
+    this.executar(this.familias.cancelarConvite(id), $localize`Convite cancelado.`);
   }
 
   protected remover(membro: MembroDaFamilia): void {
-    if (!confirm(`Tirar ${membro.nome} da família? O que essa pessoa lançou continua aqui.`)) {
+    if (!confirm($localize`Tirar ${membro.nome} da família? O que essa pessoa lançou continua aqui.`)) {
       return;
     }
-    this.executar(this.familias.removerMembro(membro.id), 'Pessoa removida da família.');
+    this.executar(this.familias.removerMembro(membro.id), $localize`Pessoa removida da família.`);
   }
 
   protected sairDaFamilia(): void {
-    if (!confirm('Sair da família? Você passa a ter uma família só sua e precisa entrar de novo.')) {
+    if (!confirm($localize`Sair da família? Você passa a ter uma família só sua e precisa entrar de novo.`)) {
       return;
     }
     this.familias.sair().subscribe({
