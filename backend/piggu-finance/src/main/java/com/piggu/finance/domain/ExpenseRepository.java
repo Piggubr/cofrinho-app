@@ -1,6 +1,7 @@
 package com.piggu.finance.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,6 +37,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     @Query("SELECT e.category, COALESCE(SUM(e.amount), 0) FROM Expense e "
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.category")
     List<Object[]> totaisPorCategoria(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Busca pelo nome do item ou do estabelecimento, mais recentes primeiro. */
+    @Query("SELECT e FROM Expense e WHERE LOWER(e.item) LIKE :termo OR LOWER(e.merchant) LIKE :termo "
+            + "ORDER BY e.expenseDate DESC, e.createdAt DESC")
+    List<Expense> buscar(@Param("termo") String termo, Limit limite);
 
     @Query("SELECT e.externalId FROM Expense e WHERE e.externalId IN :ids")
     List<String> idsExternosJaImportados(@Param("ids") Collection<String> ids);

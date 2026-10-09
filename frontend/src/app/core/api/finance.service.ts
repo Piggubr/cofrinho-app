@@ -152,6 +152,11 @@ export class FinanceService extends ApiBase {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
   }
 
+  /** Busca global: ate 20 gastos pelo item ou estabelecimento. */
+  buscarGastos(q: string): Observable<Gasto[]> {
+    return this.http.get<Gasto[]>(this.url('/expenses/search'), { params: { q } });
+  }
+
   /** Le o extrato (OFX ou CSV) e devolve a previa; nada e gravado. */
   previaDoExtrato(conteudo: string): Observable<LinhaDoExtrato[]> {
     return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview'), { conteudo });

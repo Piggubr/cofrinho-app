@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
@@ -56,7 +56,9 @@ export class Expenses {
 
   protected readonly gastos = signal<Gasto[]>([]);
   protected readonly categorias = signal<string[]>([]);
-  protected readonly mesAtual = signal(mesKey(new Date()));
+  /** A busca global abre os gastos no mes do resultado (?mes=AAAA-MM). */
+  private readonly mesPedido = inject(ActivatedRoute).snapshot.queryParamMap.get('mes') ?? '';
+  protected readonly mesAtual = signal(/^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()));
 
   protected readonly novoItem = signal('');
   protected readonly novoValor = signal<number | null>(null);

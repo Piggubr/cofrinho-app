@@ -22,6 +22,8 @@
       }
     </div>
 
+    <app-busca-global [telas]="itensVisiveis()" />
+
     <div class="usuario">
       @if (auth.usuario(); as pessoa) {
         <a routerLink="/perfil" class="usuario-link" (click)="fecharMenu()">
