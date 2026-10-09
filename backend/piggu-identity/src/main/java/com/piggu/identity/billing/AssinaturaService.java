@@ -11,6 +11,8 @@ import com.piggu.identity.domain.UserAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,13 +38,18 @@ public class AssinaturaService {
     private final FamiliaService familias;
     private final ProvedorDePagamento pagamentos;
 
+    private final LojaDeApps lojas;
+    private final JdbcTemplate jdbc;
     private final int diasDeTeste;
 
     public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
+                             LojaDeApps lojas, JdbcTemplate jdbc,
                              @Value("${piggu.assinatura.dias-de-teste:7}") int diasDeTeste) {
         this.usuarios = usuarios;
         this.familias = familias;
         this.pagamentos = pagamentos;
+        this.lojas = lojas;
+        this.jdbc = jdbc;
         this.diasDeTeste = diasDeTeste;
     }
 
@@ -105,6 +112,39 @@ public class AssinaturaService {
         pagamentos.cancelarComReembolso(conta.getStripeCustomerId(), PRAZO_DE_ARREPENDIMENTO);
         familia.aplicarAssinatura("WEB", null, Instant.now());
         log.info("Arrependimento: conta={} familia={}", conta.getId(), familia.getId());
+    }
+
+    /**
+     * Aviso de compra feita no app. Idempotente: o mesmo aviso reenviado nao conta duas
+     * vezes, e um aviso antigo que chega depois de um mais novo e ignorado pela familia.
+     *
+     * @param loja APP_STORE ou PLAY_STORE
+     */
+    @Transactional
+    public void aplicarAvisoDaLoja(String loja, String corpo, String autorizacao) {
+        if (!lojas.habilitada()) {
+            throw new BusinessException("A assinatura pelo app chega junto com os apps.",
+                    HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");
+        }
+        lojas.lerAviso(loja, corpo, autorizacao).ifPresent(aviso -> {
+            int novo = jdbc.update("INSERT INTO billing_events (event_id, provider) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                    aviso.id(), aviso.origem());
+            if (novo == 0) {
+                log.info("Aviso da loja repetido ignorado");
+                return;
+            }
+            EventoDeAssinatura evento = aviso.evento();
+            usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
+                if (evento.emTeste()) {
+                    conta.marcarTesteGratisUsado();
+                }
+                Household familia = familias.daConta(conta);
+                boolean aplicado = familia.aplicarAssinatura(aviso.origem(), evento.premiumAte(), evento.momento(),
+                        evento.inicio());
+                log.info("Assinatura na loja: conta={} familia={} origem={} plano={} aplicado={}",
+                        conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
+            }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));
+        });
     }
 
     private UserAccount conta(UUID usuarioId) {

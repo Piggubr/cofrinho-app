@@ -53,6 +53,14 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("sem o segredo do RevenueCat configurado, compra pelo app responde 501")
+    void lojaDesligada() throws Exception {
+        mockMvc.perform(post("/api/billing/stores/app-store/purchases")
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isNotImplemented());
+    }
+
+    @Test
     @DisplayName("convite com e-mail invalido e 400")
     void conviteInvalido() throws Exception {
         mockMvc.perform(post("/api/family/invites").with(TokensDeTeste.titular())

@@ -81,7 +81,10 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 5. ~~Aviso de privacidade~~: feito, a Stripe está na lista de operadores em `/privacidade`.
 6. ~~Teste grátis~~: 7 dias (`PIGGU_DIAS_DE_TESTE`) por `trial_period_days` no Checkout,
    uma vez por conta (marcado quando a Stripe avisa que o teste começou).
-7. **Apps:** validar recibo pela App Store Server API e pela Google Play Developer API.
+7. ~~Apps~~: webhook do RevenueCat em `POST /api/billing/stores/{app-store|play-store}/purchases`
+   (o RevenueCat valida o recibo com as lojas), autenticado pelo segredo
+   `REVENUECAT_WEBHOOK_SECRET`, idempotente pelo id do aviso. Falta criar a conta no
+   RevenueCat e publicar os apps com o id da conta Piggu como `app_user_id`.
 8. **Premium está magro** para R$ 19,90 (três recursos). Candidatos: relatório do ano
    com gráficos, orçamento por categoria com alerta, várias metas. Exportar os dados
    tem de ficar grátis (portabilidade, LGPD art. 18 V).
