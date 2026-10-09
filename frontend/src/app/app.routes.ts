@@ -53,6 +53,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/expenses/expenses').then((m) => m.Expenses),
       },
       {
+        path: 'receitas',
+        canActivate: [perfilGuard('ADMIN', 'TITULAR')],
+        loadComponent: () => import('./features/incomes/incomes').then((m) => m.Incomes),
+      },
+      {
         path: 'calendario',
         canActivate: [perfilGuard('ADMIN', 'TITULAR')],
         loadComponent: () => import('./features/calendar/calendar').then((m) => m.Calendar),

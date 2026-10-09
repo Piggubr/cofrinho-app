@@ -11,7 +11,9 @@ import {
   Nota,
   NovoLancamento,
   Produto,
+  Receita,
   ReciboLido,
+  ResumoDoMes,
   UsoDeLeituras,
 } from './models';
 
@@ -90,6 +92,27 @@ export class FinanceService extends ApiBase {
   }
 
   /** Le um recibo por foto. Nada e gravado: o usuario confere antes de lancar. */
+  listarReceitas(mes: string): Observable<Receita[]> {
+    return this.http.get<Receita[]>(this.url('/incomes'), { params: { mes } });
+  }
+
+  categoriasDeReceita(): Observable<string[]> {
+    return this.http.get<string[]>(this.url('/incomes/categories'));
+  }
+
+  lancarReceita(receita: Omit<Receita, 'id' | 'usuario'>): Observable<Receita> {
+    return this.http.post<Receita>(this.url('/incomes'), receita);
+  }
+
+  excluirReceita(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/incomes/${id}`));
+  }
+
+  /** Receitas, gastos, sobra e taxa de poupanca do mes. */
+  resumoDoMes(mes: string): Observable<ResumoDoMes> {
+    return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
   /** Quantas notas a familia leu pela foto no mes e quantas sobram no gratuito. */
   usoDeLeituras(): Observable<UsoDeLeituras> {
     return this.http.get<UsoDeLeituras>(this.url('/receipts/usage'));
