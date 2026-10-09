@@ -25,6 +25,7 @@ export class Plan {
 
   protected readonly info = signal<InfoDoPlano | null>(null);
   protected readonly erro = signal('');
+  protected readonly aviso = signal('');
   protected readonly ocupado = signal(false);
   protected readonly voltouDoPagamento =
     inject(ActivatedRoute).snapshot.queryParamMap.get('assinatura') === 'ok';
@@ -48,6 +49,25 @@ export class Plan {
 
   protected async assinar(periodo: Periodo): Promise<void> {
     await this.abrir(() => this.billing.checkout(periodo));
+  }
+
+  /** Arrependimento (CDC art. 49): cancela agora e devolve tudo o que foi pago. */
+  protected async pedirReembolso(): Promise<void> {
+    if (!confirm('Cancelar o Premium agora e receber de volta todo o valor pago?')) {
+      return;
+    }
+    this.ocupado.set(true);
+    this.erro.set('');
+    try {
+      await firstValueFrom(this.billing.reembolso());
+      await firstValueFrom(this.auth.renovar());
+      this.info.set(await firstValueFrom(this.billing.plano()));
+      this.aviso.set('Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.');
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha));
+    } finally {
+      this.ocupado.set(false);
+    }
   }
 
   protected async gerenciar(): Promise<void> {

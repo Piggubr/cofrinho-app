@@ -54,6 +54,14 @@ public class BillingController {
         return Map.of("url", assinaturas.portal(usuario.id()));
     }
 
+    /** Desistir nos 7 primeiros dias, com o dinheiro de volta (CDC art. 49). */
+    @PostMapping("/refund")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    public ResponseEntity<Void> reembolso(@AuthUser CurrentUser usuario) {
+        assinaturas.cancelarComReembolso(usuario.id());
+        return ResponseEntity.noContent().build();
+    }
+
     /** Aberto: quem prova a origem e a assinatura HMAC do cabecalho, nao um token. */
     @PostMapping("/webhooks/stripe")
     public ResponseEntity<Void> webhookStripe(@RequestBody String corpo,

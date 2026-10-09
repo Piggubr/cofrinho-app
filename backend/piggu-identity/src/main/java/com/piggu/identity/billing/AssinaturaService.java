@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -25,6 +27,9 @@ import java.util.UUID;
 public class AssinaturaService {
 
     private static final Logger log = LoggerFactory.getLogger(AssinaturaService.class);
+
+    /** CDC art. 49: sete dias para desistir de compra feita fora do estabelecimento. */
+    public static final Duration PRAZO_DE_ARREPENDIMENTO = Duration.ofDays(7);
 
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
@@ -65,10 +70,27 @@ public class AssinaturaService {
                 usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
                     conta.lembrarClienteNoProvedor(evento.clienteNoProvedor());
                     Household familia = familias.daConta(conta);
-                    boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento());
+                    boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
+                            evento.inicio());
                     log.info("Assinatura web: conta={} familia={} plano={} aplicado={}",
                             conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
                 }, () -> log.warn("Assinatura web de conta inexistente id={}", evento.usuarioId())));
+    }
+
+    /**
+     * Direito de arrependimento (CDC art. 49): nos 7 primeiros dias, quem assinou cancela
+     * e recebe tudo de volta. O Premium sai na hora aqui; o aviso da Stripe confirma depois.
+     */
+    @Transactional
+    public void cancelarComReembolso(UUID usuarioId) {
+        UserAccount conta = conta(usuarioId);
+        Household familia = familias.daConta(conta);
+        if (conta.getStripeCustomerId() == null || !"WEB".equals(familia.getPlanSource())) {
+            throw new BusinessException("O reembolso pelo app vale para quem assinou pelo site.");
+        }
+        pagamentos.cancelarComReembolso(conta.getStripeCustomerId(), PRAZO_DE_ARREPENDIMENTO);
+        familia.aplicarAssinatura("WEB", null, Instant.now());
+        log.info("Arrependimento: conta={} familia={}", conta.getId(), familia.getId());
     }
 
     private UserAccount conta(UUID usuarioId) {

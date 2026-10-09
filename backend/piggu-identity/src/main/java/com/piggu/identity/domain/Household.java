@@ -35,6 +35,9 @@ public class Household {
     @Column(name = "billing_event_at")
     private Instant billingEventAt;
 
+    @Column(name = "premium_since")
+    private Instant premiumSince;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -73,13 +76,25 @@ public class Household {
      * @return falso quando o evento e mais antigo que o ultimo aplicado (chegou fora de ordem)
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento) {
+        return aplicarAssinatura(origem, ate, momento, null);
+    }
+
+    /** @param inicio quando a assinatura comecou; nulo mantem o que ja se sabia */
+    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio) {
         if (billingEventAt != null && momento.isBefore(billingEventAt)) {
             return false;
         }
         this.premiumUntil = ate;
         this.planSource = origem;
         this.billingEventAt = momento;
+        if (inicio != null) {
+            this.premiumSince = inicio;
+        }
         return true;
+    }
+
+    public Instant getPremiumSince() {
+        return premiumSince;
     }
 
     public void renomear(String name) {
