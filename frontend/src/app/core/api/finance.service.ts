@@ -15,6 +15,7 @@ import {
   Produto,
   Receita,
   ReciboLido,
+  RelatorioDoAno,
   ResumoDoMes,
   UsoDeLeituras,
 } from './models';
@@ -143,6 +144,11 @@ export class FinanceService extends ApiBase {
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
   resumoDoMes(mes: string): Observable<ResumoDoMes> {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
+  /** Ano mes a mes e por categoria (Premium). */
+  relatorioDoAno(ano: number): Observable<RelatorioDoAno> {
+    return this.http.get<RelatorioDoAno>(this.url('/reports/year'), { params: { ano } });
   }
 
   /** Quantas notas a familia leu pela foto no mes e quantas sobram no gratuito. */
