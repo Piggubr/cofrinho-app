@@ -159,3 +159,12 @@
     display: none;
   }
 }
+
+.faixa-demo {
+  margin: 0;
+  padding: calc(0.35rem + env(safe-area-inset-top, 0px)) 1rem 0.35rem;
+  text-align: center;
+  font-size: 0.8rem;
+  background: var(--rose-deep);
+  color: #fff;
+}

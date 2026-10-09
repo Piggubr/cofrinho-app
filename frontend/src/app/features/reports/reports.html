@@ -39,9 +39,9 @@
         @if (r.variacao !== null) {
           <p class="linha-detalhe variacao">
             @if (r.variacao > 0) {
-              <span i18n>▲ {{ r.variacao }}% a mais</span>
+              <span i18n>▲ {{ r.variacao | number: '1.0-1' }}% a mais</span>
             } @else if (r.variacao < 0) {
-              <span i18n>▼ {{ -r.variacao }}% a menos</span>
+              <span i18n>▼ {{ -r.variacao | number: '1.0-1' }}% a menos</span>
             } @else {
               <span i18n>igual</span>
             }
