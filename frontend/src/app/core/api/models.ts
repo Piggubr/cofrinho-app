@@ -373,6 +373,22 @@ export interface ResumoDoMes {
   sobra: number;
   /** Em porcentagem; nula quando o mes nao tem receita. */
   taxaDePoupanca: number | null;
+  gastosMesAnterior: number;
+  /** Gastos contra o mes anterior, em porcentagem; nula se o anterior nao teve gasto. */
+  variacao: number | null;
+  /** So no mes corrente: o ritmo de gasto ate hoje levado ao fim do mes. */
+  projecaoDeGastos: number | null;
+  porCategoria: { categoria: string; total: number; anterior: number }[];
+}
+
+/** Relatorio do ano (Premium): mes a mes e por categoria. */
+export interface RelatorioDoAno {
+  ano: number;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  meses: { mes: string; receitas: number; gastos: number; sobra: number }[];
+  porCategoria: { categoria: string; total: number }[];
 }
 
 /** Conta fixa no mes: quando vence e se ja foi lancada. */

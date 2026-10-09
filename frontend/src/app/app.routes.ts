@@ -58,6 +58,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/incomes/incomes').then((m) => m.Incomes),
       },
       {
+        path: 'relatorios',
+        canActivate: [perfilGuard('ADMIN', 'TITULAR')],
+        loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
+      },
+      {
         path: 'contas-fixas',
         canActivate: [perfilGuard('ADMIN', 'TITULAR')],
         loadComponent: () => import('./features/bills/bills').then((m) => m.Bills),
