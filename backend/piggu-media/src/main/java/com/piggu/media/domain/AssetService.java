@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -26,8 +25,6 @@ public class AssetService {
     /** Cinco megabytes, o mesmo teto que o Apps Script aplicava. */
     public static final int TAMANHO_MAXIMO = 5 * 1024 * 1024;
 
-    private static final Set<String> TIPOS_ACEITOS = Set.of("image/jpeg", "image/png", "image/webp");
-    private static final String TIPO_PADRAO = "image/jpeg";
 
     private final AssetRepository repositorio;
     private final StoragePort armazenamento;
@@ -37,6 +34,7 @@ public class AssetService {
         this.armazenamento = armazenamento;
     }
 
+    /** @param mimeType o que o cliente diz; so informativo, o tipo gravado sai dos bytes */
     @Transactional
     public Asset guardar(String imageBase64, String mimeType, String contexto, String pasta, String emailUsuario) {
         byte[] conteudo = decodificar(imageBase64);
@@ -45,7 +43,9 @@ public class AssetService {
             throw new BusinessException("A foto e grande demais. O limite e de 5 MB.");
         }
 
-        String tipo = tipoAceito(mimeType);
+        // O tipo sai dos bytes, nao do que o cliente diz: um .jpg que na verdade e HTML
+        // ou script nao entra.
+        String tipo = tipoPeloConteudo(conteudo);
         String rotulo = Texto.limitarOuPadrao(contexto, 30, Asset.CONTEXTO_PADRAO);
         String nome = UUID.randomUUID() + extensao(tipo);
 
@@ -98,9 +98,19 @@ public class AssetService {
         }
     }
 
-    private String tipoAceito(String mimeType) {
-        String informado = Texto.email(mimeType);
-        return TIPOS_ACEITOS.contains(informado) ? informado : TIPO_PADRAO;
+    /** Assinatura dos primeiros bytes: JPEG FF D8 FF, PNG 89 50 4E 47, WebP RIFF....WEBP. */
+    static String tipoPeloConteudo(byte[] b) {
+        if (b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+        if (b.length >= 4 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') {
+            return "image/png";
+        }
+        if (b.length >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+                && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') {
+            return "image/webp";
+        }
+        throw new BusinessException("A foto precisa ser JPEG, PNG ou WebP.");
     }
 
     private String extensao(String contentType) {

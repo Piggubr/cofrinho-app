@@ -4,10 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -78,6 +83,15 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("o log do 500 leva o padrao da rota, nunca o e-mail que estava no caminho")
+    @ExtendWith(OutputCaptureExtension.class)
+    void logSemDadoPessoal(CapturedOutput saida) throws Exception {
+        mockMvc.perform(get("/teste/pessoa/fulana@exemplo.test")).andExpect(status().isInternalServerError());
+
+        assertThat(saida.getAll()).contains("/teste/pessoa/{email}").doesNotContain("fulana@exemplo.test");
+    }
+
+    @Test
     @DisplayName("validacao lista o campo invalido e resume a primeira mensagem")
     void validacaoDetalhaCampo() throws Exception {
         mockMvc.perform(post("/teste/validado")
@@ -124,6 +138,11 @@ class ApiExceptionHandlerTest {
         @GetMapping("/explode")
         String explode() {
             throw new IllegalStateException("detalhe interno que nao pode vazar");
+        }
+
+        @GetMapping("/pessoa/{email}")
+        String pessoa(@PathVariable String email) {
+            throw new IllegalStateException("falha");
         }
 
         @PostMapping("/validado")

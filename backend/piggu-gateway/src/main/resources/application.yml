@@ -15,7 +15,10 @@ spring:
               '[/**]':
                 allowedOrigins: ${CORS_ORIGINS:http://localhost:4200}
                 allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-                allowedHeaders: '*'
+                # So o que o front manda de fato. Credenciais ligadas por um motivo so: o
+                # cookie HttpOnly do refresh (/api/auth). Origem e lista fixa (CORS_ORIGINS).
+                allowedHeaders: [Authorization, Content-Type, X-Request-Id]
+                exposedHeaders: [X-Request-Id, Retry-After, Content-Disposition]
                 allowCredentials: true
                 maxAge: 3600
           # Teto de corpo na porta de entrada; cada servico ainda confere o proprio limite
