@@ -30,7 +30,7 @@ commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodad
 | 14 | Média | Fonte do Google carregada no `<head>` envia IP de todo visitante ao Google | Corrigido (B6) |
 | 15 | Média | Sem cabeçalhos de segurança do front (CSP, HSTS, frame-ancestors) | Corrigido (B6) |
 | 16 | Média | Token v3 do TMDB vai na URL | Corrigido (B9) |
-| 17 | Média | Spring Boot 3.5 fora do suporte open source | Ver B10 |
+| 17 | Média | Spring Boot 3.5 fora do suporte open source | Corrigido (B10) |
 | 18 | Baixa | Tipo da imagem enviada não é conferido pelo conteúdo | Corrigido (B11) |
 | 19 | Baixa | CORS com `allowCredentials: true` e `allowedHeaders: '*'` sem necessidade | Corrigido (B11) |
 | 20 | Baixa | URI de erro 500 pode conter e-mail | Corrigido (B11) |
@@ -252,5 +252,5 @@ commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodad
 | 16 | TMDB só com token v4 no cabeçalho | B9 |
 | 18 a 21 | Tipo da imagem pelos bytes; CORS só com os cabeçalhos usados; rota (não URI) no log do 500; URLs externas de imagem só de TMDB e Open Food Facts | B11 |
 | — | `docs/plano-de-incidente.md` e canal privacidade@ no aviso | B12 |
-| 17 | Migração para Spring Boot 4: ver o commit B10 | B10 |
+| 17 | Spring Boot 4.0.8 + Spring Cloud 2025.1.3, Jackson 3, Testcontainers 2 | B10 |
 
