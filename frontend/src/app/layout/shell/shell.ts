@@ -37,6 +37,7 @@ export class Shell {
   protected readonly itens: ItemDeMenu[] = [
     { rota: '/painel', rotulo: $localize`Painel`, icone: '🏠' },
     { rota: '/gastos', rotulo: $localize`Gastos`, icone: '💸', somenteCompleto: true },
+    { rota: '/receitas', rotulo: $localize`Receitas`, icone: '💰', somenteCompleto: true },
     { rota: '/calendario', rotulo: $localize`Calendário`, icone: '📅', somenteCompleto: true },
     { rota: '/compras', rotulo: $localize`Compras`, icone: '🛒', somenteCompleto: true },
     { rota: '/lugares', rotulo: $localize`Lugares`, icone: '📍', somenteCompleto: true },

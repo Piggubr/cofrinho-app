@@ -354,3 +354,23 @@ export interface ConnectToken {
   accessToken: string;
   sandbox: boolean;
 }
+
+/** Receita da familia (salario, extra, reembolso...). */
+export interface Receita {
+  id: string;
+  data: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  usuario: string;
+}
+
+/** Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca. */
+export interface ResumoDoMes {
+  mes: string;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  /** Em porcentagem; nula quando o mes nao tem receita. */
+  taxaDePoupanca: number | null;
+}

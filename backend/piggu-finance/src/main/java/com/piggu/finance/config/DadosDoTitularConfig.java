@@ -25,6 +25,7 @@ public class DadosDoTitularConfig {
         return new DadosDaFamilia(jdbc, json, List.of(
                 Tabela.compartilhada("notes", "user_email"),
                 Tabela.compartilhada("expenses", "user_email"),
+                Tabela.compartilhada("incomes", "user_email"),
                 Tabela.compartilhada("piggy_deposits", "user_email"),
                 Tabela.compartilhada("monthly_goals", "user_email"),
                 Tabela.compartilhada("product_memory", "user_email"),

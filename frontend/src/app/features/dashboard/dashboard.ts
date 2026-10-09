@@ -8,6 +8,7 @@ import { BankingService } from '../../core/api/banking.service';
 import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
 import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
+import { ResumoDoMesCard } from './resumo-do-mes';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -28,7 +29,7 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, ResumoDoMesCard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

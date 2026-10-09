@@ -7,6 +7,10 @@
 @if (carregando()) {
   <p i18n class="carregando">Carregando seus dados...</p>
 } @else {
+  @if (!auth.ehMembro()) {
+    <app-resumo-do-mes [mes]="mesAtual()" />
+  }
+
   <section class="cartao">
     <div class="cartao-titulo">
       <h2 i18n>Cofrinho</h2>
