@@ -60,6 +60,29 @@
       <label i18n for="data">Data</label>
       <input id="data" type="date" [ngModel]="novaData()" (ngModelChange)="novaData.set($event)" />
     </div>
+    @if (contas().length) {
+      <div class="campo">
+        <label i18n for="conta">Pago com</label>
+        <select id="conta" [ngModel]="novaConta()" (ngModelChange)="novaConta.set($event)">
+          <option i18n value="">Não informar</option>
+          @for (conta of contas(); track conta.id) {
+            <option [value]="conta.id">{{ conta.nome }}</option>
+          }
+        </select>
+      </div>
+    }
+    <div class="campo">
+      <label i18n for="parcelas">Parcelas</label>
+      <input
+        id="parcelas"
+        type="number"
+        min="1"
+        max="48"
+        step="1"
+        [ngModel]="novasParcelas()"
+        (ngModelChange)="novasParcelas.set($event)"
+      />
+    </div>
     <div class="campo">
       <label i18n for="tipo">Tipo</label>
       <select id="tipo" [ngModel]="novoTipo()" (ngModelChange)="novoTipo.set($event)">
@@ -251,6 +274,9 @@
             <p class="linha-titulo">{{ gasto.item }}</p>
             <p class="linha-detalhe">
               {{ gasto.data | dataBr }} · {{ gasto.categoria }}
+              @if (gasto.parcelas) {
+                <ng-container i18n>· parcela {{ gasto.parcela }}/{{ gasto.parcelas }}</ng-container>
+              }
               @if (gasto.estabelecimento) {
                 · {{ gasto.estabelecimento }}
               }

@@ -4,7 +4,13 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
-import { Gasto, ItemDeGasto, ReciboLido, RegraDeCategoria } from '../../core/api/models';
+import {
+  ContaOuCartao,
+  Gasto,
+  ItemDeGasto,
+  ReciboLido,
+  RegraDeCategoria,
+} from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
@@ -67,6 +73,9 @@ export class Expenses {
   protected readonly itemEditado = signal('');
   protected readonly categoriaEditada = signal('');
   protected readonly regras = signal<RegraDeCategoria[]>([]);
+  protected readonly contas = signal<ContaOuCartao[]>([]);
+  protected readonly novaConta = signal('');
+  protected readonly novasParcelas = signal<number | null>(1);
   protected readonly termoDaRegra = signal('');
   protected readonly categoriaDaRegra = signal('');
   /** Depois de corrigir a categoria de um gasto: oferece virar regra. */
@@ -84,6 +93,7 @@ export class Expenses {
   constructor() {
     this.carregar();
     this.carregarRegras();
+    this.finance.contas().subscribe({ next: (lista) => this.contas.set(lista) });
     if (!this.auth.ehPremium()) {
       this.finance.usoDeLeituras().subscribe({
         next: (uso) => this.leiturasRestantes.set(uso.restantes),
@@ -130,6 +140,11 @@ export class Expenses {
       this.erro.set($localize`Digite um valor válido.`);
       return;
     }
+    const parcelas = this.novasParcelas() ?? 1;
+    if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 48) {
+      this.erro.set($localize`Parcelas: de 1 a 48.`);
+      return;
+    }
 
     this.salvando.set(true);
     this.erro.set('');
@@ -138,11 +153,14 @@ export class Expenses {
         data: this.novaData(),
         origem: 'Manual',
         itens: [{ item, categoria: this.novaCategoria() || null, valor, tipo: this.novoTipo() }],
+        contaId: this.novaConta() || null,
+        parcelas: parcelas > 1 ? parcelas : null,
       })
       .subscribe({
         next: (salvos) => {
           this.novoItem.set('');
           this.novoValor.set(null);
+          this.novasParcelas.set(1);
           this.aviso.set($localize`Gasto lançado.`);
           this.salvando.set(false);
           this.carregarGastos();

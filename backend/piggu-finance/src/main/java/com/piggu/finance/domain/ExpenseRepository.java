@@ -36,6 +36,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.category")
     List<Object[]> totaisPorCategoria(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
+    List<Expense> findByAccountIdAndExpenseDateBetweenOrderByExpenseDateAscCreatedAtAsc(
+            UUID accountId, LocalDate inicio, LocalDate fim);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e "
+            + "WHERE e.accountId = :conta AND e.expenseDate >= :inicio AND e.expenseDate <= :fim")
+    BigDecimal somarDaConta(@Param("conta") UUID conta, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
     /** Total do periodo por categoria, somado pelo banco. */
     default Map<String, BigDecimal> somarPorCategoria(LocalDate inicio, LocalDate fim) {
         return totaisPorCategoria(inicio, fim).stream()

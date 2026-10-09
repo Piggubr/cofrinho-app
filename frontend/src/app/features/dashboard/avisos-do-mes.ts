@@ -1,8 +1,9 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
-import { ContaFixa, Orcamento } from '../../core/api/models';
+import { ContaFixa, ContaOuCartao, Orcamento } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { dataIso } from '../../core/ui/datas';
 import { MoedaPipe } from '../../core/ui/moeda';
 
 /** Lembretes do mes no painel: contas fixas vencidas ou para vencer. */
@@ -23,6 +24,22 @@ import { MoedaPipe } from '../../core/ui/moeda';
             } @else {
               <span i18n>{{ orcamento.categoria }} já usou {{ orcamento.percentual }}% do limite</span>
             }
+          </p>
+        }
+      </section>
+    }
+    @if (faturasAVencer().length) {
+      <section class="cartao" aria-labelledby="titulo-faturas">
+        <div class="cartao-titulo">
+          <h2 i18n id="titulo-faturas">Fatura do cartão</h2>
+          <a i18n routerLink="/contas-e-cartoes" class="botao contorno pequeno">Ver faturas</a>
+        </div>
+        @for (cartao of faturasAVencer(); track cartao.id) {
+          <p class="linha-detalhe">
+            <span i18n
+              >{{ cartao.nome }} vence em {{ cartao.faturaAPagar!.vencimento | dataBr }}:
+              {{ cartao.faturaAPagar!.total | moeda }}</span
+            >
           </p>
         }
       </section>
@@ -64,6 +81,14 @@ export class AvisosDoMes {
   readonly mes = input.required<string>();
   private readonly contas = signal<ContaFixa[]>([]);
   private readonly orcamentos = signal<Orcamento[]>([]);
+  private readonly cartoes = signal<ContaOuCartao[]>([]);
+  /** Fatura fechada, com valor, que vence nos proximos 10 dias. */
+  protected readonly faturasAVencer = computed(() => {
+    const limite = dataIso(new Date(Date.now() + 10 * 86_400_000));
+    return this.cartoes().filter(
+      (c) => c.faturaAPagar && c.faturaAPagar.total > 0 && c.faturaAPagar.vencimento <= limite,
+    );
+  });
   protected readonly orcamentosEmAlerta = computed(() =>
     this.orcamentos().filter((o) => o.alerta !== 'OK'),
   );
@@ -86,6 +111,11 @@ export class AvisosDoMes {
         pedido.unsubscribe();
         alertas.unsubscribe();
       });
+    });
+    // A fatura nao depende do mes escolhido no painel: e sempre a proxima a vencer.
+    this.finance.contas().subscribe({
+      next: (contas) => this.cartoes.set(contas),
+      error: () => this.cartoes.set([]),
     });
   }
 }

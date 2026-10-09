@@ -4,8 +4,10 @@ import { ApiBase } from './api-base';
 import {
   Cofrinho,
   ContaFixa,
+  ContaOuCartao,
   Cotacao,
   Deposito,
+  Fatura,
   Gasto,
   ItemDeGasto,
   MoedaDisponivel,
@@ -145,6 +147,25 @@ export class FinanceService extends ApiBase {
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
   resumoDoMes(mes: string): Observable<ResumoDoMes> {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
+  contas(): Observable<ContaOuCartao[]> {
+    return this.http.get<ContaOuCartao[]>(this.url('/accounts'));
+  }
+
+  criarConta(conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>): Observable<ContaOuCartao> {
+    return this.http.post<ContaOuCartao>(this.url('/accounts'), conta);
+  }
+
+  excluirConta(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/accounts/${id}`));
+  }
+
+  /** Fatura do cartao que fecha no mes (AAAA-MM), com os gastos. */
+  fatura(id: string, mes: string): Observable<{ fatura: Fatura; gastos: Gasto[] }> {
+    return this.http.get<{ fatura: Fatura; gastos: Gasto[] }>(this.url(`/accounts/${id}/statement`), {
+      params: { mes },
+    });
   }
 
   regrasDeCategoria(): Observable<RegraDeCategoria[]> {

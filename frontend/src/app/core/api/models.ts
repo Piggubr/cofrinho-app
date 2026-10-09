@@ -119,6 +119,10 @@ export interface Gasto {
   origem: string;
   usuario: string;
   registradoEm: string;
+  contaId?: string | null;
+  /** Parcela N de M; ausentes quando o gasto e a vista. */
+  parcela?: number | null;
+  parcelas?: number | null;
 }
 
 export interface ItemDeGasto {
@@ -134,6 +138,9 @@ export interface NovoLancamento {
   reciboId?: string | null;
   origem?: string | null;
   itens: ItemDeGasto[];
+  contaId?: string | null;
+  /** 2 a 48 divide cada item em uma linha por mes. */
+  parcelas?: number | null;
 }
 
 export interface ReciboLido {
@@ -420,4 +427,24 @@ export interface RegraDeCategoria {
   id: string;
   termo: string;
   categoria: string;
+}
+
+/** Fatura do cartao: os gastos entre o dia seguinte ao fechamento anterior e o fechamento. */
+export interface Fatura {
+  mes: string;
+  inicio: string;
+  fechamento: string;
+  vencimento: string;
+  total: number;
+}
+
+/** Conta ou cartao; no cartao, a fatura aberta e a fechada que ainda vai vencer. */
+export interface ContaOuCartao {
+  id: string;
+  nome: string;
+  tipo: 'CONTA' | 'CARTAO';
+  fechamento: number | null;
+  vencimento: number | null;
+  faturaAberta: Fatura | null;
+  faturaAPagar: Fatura | null;
 }
