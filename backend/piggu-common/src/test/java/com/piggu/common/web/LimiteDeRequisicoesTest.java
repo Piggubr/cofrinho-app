@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LimiteDeRequisicoesTest {
 
     private static final LimiteDeRequisicoes.Limites LIMITES =
-            new LimiteDeRequisicoes.Limites(3, 3, 3, 2, 1000, 5000, 1);
+            new LimiteDeRequisicoes.Limites(3, 3, 3, 2, 2, 1000, 5000, 1);
 
     private final MutableClock relogio = new MutableClock();
     private final LimiteDeRequisicoes antes = new LimiteDeRequisicoes(
@@ -83,6 +83,32 @@ class LimiteDeRequisicoesTest {
     }
 
     @Test
+    @DisplayName("extrato conta como envio de arquivo: corpo maior e limite de envio")
+    void extrato() throws Exception {
+        MockHttpServletRequest extrato = new MockHttpServletRequest("POST", "/api/expenses/import/preview");
+        extrato.setContent(new byte[4000]);
+        MockHttpServletResponse resposta = new MockHttpServletResponse();
+        antes.doFilter(extrato, resposta, new MockFilterChain());
+        assertThat(resposta.getStatus()).isEqualTo(200);
+
+        assertThat(escrever("ana", "/api/expenses/import").getStatus()).isEqualTo(200);
+        assertThat(escrever("ana", "/api/expenses/import/preview").getStatus()).isEqualTo(200);
+        assertThat(escrever("ana", "/api/expenses/import").getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    @DisplayName("busca que chama servico de fora tem limite por conta; leitura comum segue livre")
+    void consultaQueCusta() throws Exception {
+        assertThat(ler("ana", "/api/movies/search").getStatus()).isEqualTo(200);
+        assertThat(ler("ana", "/api/exchange-rate").getStatus()).isEqualTo(200);
+        assertThat(ler("ana", "/api/shopping/catalog").getStatus()).isEqualTo(429);
+        assertThat(ler("bia", "/api/shopping/catalog").getStatus()).isEqualTo(200);
+        for (int i = 0; i < 5; i++) {
+            assertThat(ler("ana", "/api/expenses").getStatus()).isEqualTo(200);
+        }
+    }
+
+    @Test
     @DisplayName("corpo acima do limite e recusado com 413 antes de chegar ao servico")
     void corpoGrande() throws Exception {
         MockHttpServletRequest grande = new MockHttpServletRequest("POST", "/api/expenses");
@@ -110,6 +136,13 @@ class LimiteDeRequisicoesTest {
         logar(conta);
         MockHttpServletResponse resposta = new MockHttpServletResponse();
         depois.doFilter(new MockHttpServletRequest("POST", rota), resposta, new MockFilterChain());
+        return resposta;
+    }
+
+    private MockHttpServletResponse ler(String conta, String rota) throws Exception {
+        logar(conta);
+        MockHttpServletResponse resposta = new MockHttpServletResponse();
+        depois.doFilter(new MockHttpServletRequest("GET", rota), resposta, new MockFilterChain());
         return resposta;
     }
 

@@ -19,6 +19,8 @@ public interface HouseholdInviteRepository extends JpaRepository<HouseholdInvite
 
     Optional<HouseholdInvite> findByHouseholdIdAndEmail(UUID householdId, String email);
 
+    long countByHouseholdIdAndExpiresAtAfter(UUID householdId, Instant agora);
+
     @Modifying
     @Query("DELETE FROM HouseholdInvite c WHERE c.expiresAt < :limite")
     int apagarVencidos(@Param("limite") Instant limite);
