@@ -41,16 +41,20 @@ public record PlanoResponse(
     public static final Precos PRECOS_APP = new Precos("22,89", "228,85");
 
     private static final List<String> GRATUITO = List.of(
-            "Gastos, categorias, meta do mês e calendário",
+            "Gastos, receitas, categorias, meta do mês e calendário",
+            "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
             "Cofrinho com depósitos da família",
             "Lista de compras, lugares e filmes",
             "Prêmios e Fofocoins",
             "Moeda e cotação à sua escolha",
+            "Baixar e apagar seus dados quando quiser",
             "Tudo o que você guardou continua visível se o Premium acabar"
     );
 
     private static final List<String> PREMIUM = List.of(
             "Tudo do gratuito",
+            "Orçamento por categoria, com alerta em 80% e 100%",
+            "Relatório do ano com gráficos",
             "Contas bancárias pelo Open Finance, com saldo atualizado",
             "Leitura da nota fiscal pela foto",
             "Mural de fotos"
