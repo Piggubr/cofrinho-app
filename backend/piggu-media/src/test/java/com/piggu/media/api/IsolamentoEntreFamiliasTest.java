@@ -1,15 +1,15 @@
 package com.piggu.media.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,9 +41,9 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     @DisplayName("foto por id e foto do mural nao cruzam familias")
     void fotos() throws Exception {
         String asset = casas.criar("/api/assets", casas.casaA,
-                "{\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\",\"contexto\":\"LUGAR\"}").path("id").asText();
+                "{\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\",\"contexto\":\"LUGAR\"}").path("id").asString();
         String foto = casas.criar("/api/feed", casas.casaA,
-                "{\"mesKey\":\"2026-09\",\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}").path("id").asText();
+                "{\"mesKey\":\"2026-09\",\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}").path("id").asString();
 
         mockMvc.perform(get("/api/assets/" + asset + "/content").with(casas.casaB)).andExpect(status().isNotFound());
         mockMvc.perform(delete("/api/assets/" + asset).with(casas.casaB)).andExpect(status().isNotFound());

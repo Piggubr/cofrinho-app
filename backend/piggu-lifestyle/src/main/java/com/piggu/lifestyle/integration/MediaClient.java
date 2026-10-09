@@ -1,12 +1,11 @@
 package com.piggu.lifestyle.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.UpstreamException;
+import com.piggu.common.web.CorrelacaoFilter;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import com.piggu.common.web.CorrelacaoFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -14,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
 import java.util.UUID;
@@ -68,7 +68,7 @@ public class MediaClient {
         if (resposta == null || !resposta.hasNonNull("id")) {
             throw new UpstreamException("Nao consegui guardar a foto agora.");
         }
-        return UUID.fromString(resposta.path("id").asText());
+        return UUID.fromString(resposta.path("id").asString());
     }
 
     /**

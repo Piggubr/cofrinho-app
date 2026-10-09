@@ -1,6 +1,5 @@
 package com.piggu.lifestyle.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.Texto;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -68,7 +68,7 @@ public class TmdbClient {
 
         List<TmdbMovie> filmes = new ArrayList<>();
         dados.path("results").forEach(filme -> {
-            if (filmes.size() < RESULTADOS_NA_BUSCA && !filme.path("title").asText("").isBlank()) {
+            if (filmes.size() < RESULTADOS_NA_BUSCA && !filme.path("title").asString("").isBlank()) {
                 filmes.add(normalizar(filme));
             }
         });
@@ -98,7 +98,7 @@ public class TmdbClient {
         JsonNode dados = chamar("/discover/movie", parametros);
         List<JsonNode> resultados = new ArrayList<>();
         dados.path("results").forEach(filme -> {
-            if (!filme.path("title").asText("").isBlank()) {
+            if (!filme.path("title").asString("").isBlank()) {
                 resultados.add(filme);
             }
         });
@@ -138,17 +138,17 @@ public class TmdbClient {
     }
 
     private TmdbMovie normalizar(JsonNode filme) {
-        String poster = filme.path("poster_path").asText("");
+        String poster = filme.path("poster_path").asString("");
         BigDecimal nota = BigDecimal.valueOf(filme.path("vote_average").asDouble(0))
                 .setScale(1, RoundingMode.HALF_UP);
 
         return new TmdbMovie(
-                filme.path("id").asText(""),
-                Texto.limitar(filme.path("title").asText(""), 200),
-                Texto.limitar(filme.path("release_date").asText(""), 4),
+                filme.path("id").asString(""),
+                Texto.limitar(filme.path("title").asString(""), 200),
+                Texto.limitar(filme.path("release_date").asString(""), 4),
                 poster.isBlank() ? "" : BASE_POSTER + poster,
                 nota,
-                Texto.limitar(filme.path("overview").asText(""), 1000)
+                Texto.limitar(filme.path("overview").asString(""), 1000)
         );
     }
 

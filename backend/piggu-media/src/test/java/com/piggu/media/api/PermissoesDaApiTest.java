@@ -1,14 +1,14 @@
 package com.piggu.media.api;
 
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.media.domain.Asset;
 import com.piggu.media.domain.AssetService;
-import com.piggu.common.security.FamiliaAtual;
 import com.piggu.testing.PostgresIntegrationTest;
 import com.piggu.testing.TokensDeTeste;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 

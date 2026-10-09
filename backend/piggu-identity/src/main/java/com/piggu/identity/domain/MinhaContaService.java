@@ -1,6 +1,5 @@
 package com.piggu.identity.domain;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
@@ -9,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;

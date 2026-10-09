@@ -1,7 +1,5 @@
 package com.piggu.identity.billing;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.error.UpstreamException;
@@ -16,9 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -31,6 +29,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Stripe Checkout + Portal do Cliente, pela API REST (sem SDK: sao duas chamadas e um HMAC).
@@ -94,7 +94,7 @@ public class StripePagamentos implements ProvedorDePagamento {
             // A Stripe precisa do e-mail para mandar recibo e aviso de cobranca.
             form.add("customer_email", conta.getEmail());
         }
-        return postar("/v1/checkout/sessions", form).path("url").asText();
+        return postar("/v1/checkout/sessions", form).path("url").asString();
     }
 
     @Override
@@ -105,7 +105,7 @@ public class StripePagamentos implements ProvedorDePagamento {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("customer", conta.getStripeCustomerId());
         form.add("return_url", propriedades.siteUrl() + "/plano");
-        return postar("/v1/billing_portal/sessions", form).path("url").asText();
+        return postar("/v1/billing_portal/sessions", form).path("url").asString();
     }
 
     @Override
@@ -139,17 +139,17 @@ public class StripePagamentos implements ProvedorDePagamento {
         } catch (Exception erro) {
             throw new BusinessException("Aviso da Stripe ilegível.");
         }
-        String tipo = evento.path("type").asText();
+        String tipo = evento.path("type").asString();
         JsonNode assinaturaStripe = evento.path("data").path("object");
-        String usuario = assinaturaStripe.path("metadata").path("userId").asText("");
+        String usuario = assinaturaStripe.path("metadata").path("userId").asString("");
         if (!EVENTOS.contains(tipo) || usuario.isBlank()) {
             return Optional.empty();
         }
 
-        boolean paga = !tipo.endsWith(".deleted") && STATUS_PAGOS.contains(assinaturaStripe.path("status").asText());
+        boolean paga = !tipo.endsWith(".deleted") && STATUS_PAGOS.contains(assinaturaStripe.path("status").asString());
         return Optional.of(new EventoDeAssinatura(
                 UUID.fromString(usuario),
-                assinaturaStripe.path("customer").asText(null),
+                assinaturaStripe.path("customer").asString(null),
                 paga ? fimDoPeriodo(assinaturaStripe) : null,
                 Instant.ofEpochSecond(evento.path("created").asLong())));
     }

@@ -1,7 +1,5 @@
 package com.piggu.finance.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.Texto;
@@ -15,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -79,8 +79,8 @@ public class GeminiReceiptReader {
 
         return new ReceiptParseResponse(
                 UUID.randomUUID(),
-                Texto.limitar(lido.path("estabelecimento").asText(""), 200),
-                dataOuHoje(lido.path("data").asText(""), hoje),
+                Texto.limitar(lido.path("estabelecimento").asString(""), 200),
+                dataOuHoje(lido.path("data").asString(""), hoje),
                 extrairItens(lido.path("itens")),
                 "GEMINI",
                 null
@@ -177,7 +177,7 @@ public class GeminiReceiptReader {
         partes.forEach(parte -> {
             // Modelos com raciocinio marcam blocos internos com thought; esses nao sao resposta.
             if (parte.hasNonNull("text") && !parte.path("thought").asBoolean(false)) {
-                texto.append(parte.path("text").asText());
+                texto.append(parte.path("text").asString());
             }
         });
         if (texto.isEmpty()) {
@@ -199,14 +199,14 @@ public class GeminiReceiptReader {
     private List<ReceiptParseResponse.Item> extrairItens(JsonNode itens) {
         List<ReceiptParseResponse.Item> resultado = new ArrayList<>();
         itens.forEach(item -> {
-            String nome = Texto.limitar(item.path("item").asText(""), 200);
+            String nome = Texto.limitar(item.path("item").asString(""), 200);
             BigDecimal valor = item.path("valor").decimalValue();
             if (nome.isEmpty() || valor.compareTo(BigDecimal.ZERO) < 0) {
                 return;
             }
             resultado.add(new ReceiptParseResponse.Item(
                     nome,
-                    categorias.normalizar(item.path("categoria").asText("")),
+                    categorias.normalizar(item.path("categoria").asString("")),
                     valor));
         });
         if (resultado.isEmpty()) {

@@ -71,7 +71,7 @@ class ExchangeRateServiceTest {
     @DisplayName("moeda que a fonte nao cobre vira aviso, nao 500")
     void moedaSemCotacao() {
         fonte.expect(requestTo("https://cambio.test/v2/rate/EUR/XAU"))
-                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY));
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_CONTENT));
 
         assertThatThrownBy(() -> servico.consultar("EUR", "XAU"))
                 .isInstanceOf(BusinessException.class)

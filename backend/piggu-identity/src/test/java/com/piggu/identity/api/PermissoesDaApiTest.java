@@ -5,7 +5,7 @@ import com.piggu.testing.TokensDeTeste;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -70,6 +70,6 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(put("/api/auth/me/preferences").with(TokensDeTeste.membro())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"moeda\":\"XYZ\",\"moedaConversao\":\"BRL\",\"mostrarCotacao\":true}"))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isUnprocessableContent());
     }
 }

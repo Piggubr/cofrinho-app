@@ -2,7 +2,7 @@
 
 Migração do backend do Piggu, que era um único arquivo Google Apps Script
 (`Code.gs`, 1542 linhas) usando uma planilha Google como banco de dados, para
-uma plataforma de microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL.
+uma plataforma de microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL.
 
 ## Os sete serviços
 

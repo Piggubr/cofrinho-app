@@ -1,6 +1,5 @@
 package com.piggu.common.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +9,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -25,9 +25,9 @@ class LimiteDeRequisicoesTest {
 
     private final MutableClock relogio = new MutableClock();
     private final LimiteDeRequisicoes antes = new LimiteDeRequisicoes(
-            LimiteDeRequisicoes.Etapa.ANTES_DO_LOGIN, LIMITES, new ObjectMapper().findAndRegisterModules(), relogio);
+            LimiteDeRequisicoes.Etapa.ANTES_DO_LOGIN, LIMITES, new ObjectMapper(), relogio);
     private final LimiteDeRequisicoes depois = new LimiteDeRequisicoes(
-            LimiteDeRequisicoes.Etapa.DEPOIS_DO_LOGIN, LIMITES, new ObjectMapper().findAndRegisterModules(), relogio);
+            LimiteDeRequisicoes.Etapa.DEPOIS_DO_LOGIN, LIMITES, new ObjectMapper(), relogio);
 
     @AfterEach
     void limpar() {

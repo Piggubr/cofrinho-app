@@ -47,7 +47,7 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
     public void exigirPremium(String recurso) {
         if (!isPremium()) {
             throw new BusinessException(recurso + " faz parte do Piggu Premium.",
-                    HttpStatus.UNPROCESSABLE_ENTITY, Plano.CODIGO_PREMIUM);
+                    HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
         }
     }
 

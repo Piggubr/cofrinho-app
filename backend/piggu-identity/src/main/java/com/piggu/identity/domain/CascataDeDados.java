@@ -1,6 +1,5 @@
 package com.piggu.identity.domain;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.identity.config.DadosProperties;
 import org.slf4j.Logger;
@@ -8,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -1,8 +1,7 @@
 package com.piggu.media.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
+import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.media.storage.StoragePort;
 import org.slf4j.Logger;
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

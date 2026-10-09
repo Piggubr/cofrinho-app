@@ -1,6 +1,5 @@
 package com.piggu.common.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.error.ApiError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -92,7 +92,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
         if (etapa == Etapa.ANTES_DO_LOGIN && escrita) {
             long maximo = envio ? limites.envioMaximo() : limites.corpoMaximo();
             if (pedido.getContentLengthLong() > maximo) {
-                recusar(resposta, HttpStatus.PAYLOAD_TOO_LARGE, "O envio e grande demais.", "CORPO_GRANDE_DEMAIS", 0);
+                recusar(resposta, HttpStatus.CONTENT_TOO_LARGE, "O envio e grande demais.", "CORPO_GRANDE_DEMAIS", 0);
                 return;
             }
         }

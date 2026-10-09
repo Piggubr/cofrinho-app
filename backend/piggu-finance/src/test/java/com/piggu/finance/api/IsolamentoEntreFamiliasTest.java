@@ -1,17 +1,17 @@
 package com.piggu.finance.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -52,7 +52,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     void gastos() throws Exception {
         String id = criar("/api/expenses", casaA, """
                 {"data":"2026-09-10","itens":[{"item":"Pao","categoria":"Mercado","valor":10}]}
-                """).get(0).path("id").asText();
+                """).get(0).path("id").asString();
 
         mockMvc.perform(get("/api/expenses").with(casaB))
                 .andExpect(status().isOk())
@@ -82,9 +82,9 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     @DisplayName("cofrinho, notas, produtos e categorias nao cruzam familias")
     void demaisRecursos() throws Exception {
         String deposito = criar("/api/piggy-bank/deposits", casaA, "{\"data\":\"2026-09-01\",\"valor\":100}")
-                .path("id").asText();
+                .path("id").asString();
         String nota = criar("/api/notes", casaA, "{\"titulo\":\"Segredo\",\"texto\":\"so da casa A\"}")
-                .path("id").asText();
+                .path("id").asString();
         criar("/api/expenses", casaA, """
                 {"data":"2026-09-10","itens":[{"item":"Cafe especial","categoria":"Mercado","valor":30}]}
                 """);

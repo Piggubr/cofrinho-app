@@ -1,12 +1,12 @@
 package com.piggu.rewards.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
+import com.piggu.common.dados.DadosDaFamilia;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

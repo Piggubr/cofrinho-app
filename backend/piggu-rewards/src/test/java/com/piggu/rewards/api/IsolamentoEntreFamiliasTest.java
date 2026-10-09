@@ -1,15 +1,15 @@
 package com.piggu.rewards.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,7 +39,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     @DisplayName("moedas de uma familia nao pagam premio da outra, e premio alheio nao e visto nem mexido")
     void fofocoins() throws Exception {
         casas.criar("/api/coins/adjustments", casas.casaA, "{\"valor\":100,\"motivo\":\"mesada\"}");
-        String premio = casas.criar("/api/prizes", casas.casaA, "{\"nome\":\"Cinema\",\"preco\":50}").path("id").asText();
+        String premio = casas.criar("/api/prizes", casas.casaA, "{\"nome\":\"Cinema\",\"preco\":50}").path("id").asString();
 
         mockMvc.perform(get("/api/coins").with(casas.casaB)).andExpect(jsonPath("$.saldo").value(0));
         mockMvc.perform(get("/api/prizes").with(casas.casaB)).andExpect(jsonPath("$.length()").value(0));

@@ -1,18 +1,18 @@
 package com.piggu.lifestyle.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -43,7 +43,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
         String lugar = """
                 {"nome":"Cantina","categoria":"Outros","nota":5,"data":"2026-09-10"}
                 """;
-        String id = casas.criar("/api/places", casas.casaA, lugar).path("id").asText();
+        String id = casas.criar("/api/places", casas.casaA, lugar).path("id").asString();
 
         mockMvc.perform(get("/api/places").with(casas.casaB)).andExpect(jsonPath("$.length()").value(0));
         mockMvc.perform(put("/api/places/" + id).with(casas.casaB)
@@ -59,7 +59,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
         String filme = """
                 {"tmdbId":"603","titulo":"Matrix","ano":"1999"}
                 """;
-        String id = casas.criar("/api/movies", casas.casaA, filme).path("id").asText();
+        String id = casas.criar("/api/movies", casas.casaA, filme).path("id").asString();
         casas.criar("/api/movies", casas.casaB, filme);
 
         mockMvc.perform(get("/api/movies").with(casas.casaB))
@@ -76,7 +76,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("lista de compras e marcadores sao da familia")
     void comprasEMarcadores() throws Exception {
-        String id = casas.criar("/api/shopping/items", casas.casaA, "{\"item\":\"Leite\"}").path("id").asText();
+        String id = casas.criar("/api/shopping/items", casas.casaA, "{\"item\":\"Leite\"}").path("id").asString();
         casas.criar("/api/places/tags", casas.casaA, "{\"nome\":\"Romantico\"}");
 
         mockMvc.perform(get("/api/shopping/items").with(casas.casaB)).andExpect(jsonPath("$.length()").value(0));
