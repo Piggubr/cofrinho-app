@@ -56,6 +56,8 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 
 | Variável | Para quê |
 |---|---|
+| `DOMINIO`, `EMAIL_DO_CERTIFICADO` | domínio do site e e-mail de aviso do Let's Encrypt (serviço `web`) |
+| `SITE_URL` | endereço do site com `https://` (volta da Stripe) |
 | `PIGGU_ADMIN_EMAILS` | e-mails de quem opera a instalação (viram ADMIN ao entrar) |
 | `PIGGU_LIMITE_PROXIESNAFRENTE` | `2` com o Caddy na frente do gateway (limite de chamadas por IP lê o IP certo) |
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
@@ -67,5 +69,17 @@ valores de desenvolvimento.
 
 ## 5. HTTPS e cabeçalhos
 
-Ver `deploy/` (Caddy na frente do gateway, HTTPS automático, HTTP → HTTPS, cabeçalhos de
-segurança) e `docs/revisao-seguranca-pre-publicacao.md`.
+O Caddy (`deploy/`) é a única porta pública: tira e renova o certificado sozinho, manda
+HTTP → HTTPS (308) e põe os cabeçalhos de segurança (HSTS, CSP, X-Frame-Options...).
+
+```bash
+cd frontend && npm ci && npm run build && cd ..
+cd backend
+# .env com DOMINIO=piggu.app, EMAIL_DO_CERTIFICADO=..., SITE_URL=https://piggu.app,
+# CORS_ORIGINS=https://piggu.app, PIGGU_AMBIENTE=producao, PIGGU_LIMITE_PROXIESNAFRENTE=2
+docker compose --profile producao up -d --build
+```
+
+O gateway fica publicado só em `127.0.0.1:8080`; de fora, a API chega pelo Caddy.
+Com `PIGGU_AMBIENTE=producao`, os serviços recusam subir com `SITE_URL` ou
+`CORS_ORIGINS` em `http://`. Revisão completa em `docs/revisao-seguranca-pre-publicacao.md`.

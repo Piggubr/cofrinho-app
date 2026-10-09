@@ -85,8 +85,26 @@ export class Plan {
     }
   }
 
-  /** Separado para os testes nao saírem da pagina. */
+  /**
+   * Separado para os testes nao saírem da pagina. So segue para a Stripe: um endereco
+   * de outro lugar (resposta adulterada) nunca tira a pessoa do Piggu.
+   */
   protected irPara(url: string): void {
+    if (!ehDaStripe(url)) {
+      this.erro.set($localize`Endereço de pagamento inválido. Tente de novo.`);
+      this.ocupado.set(false);
+      return;
+    }
     window.location.assign(url);
+  }
+}
+
+/** Checkout e portal da Stripe: https e dominio stripe.com. */
+export function ehDaStripe(url: string): boolean {
+  try {
+    const endereco = new URL(url);
+    return endereco.protocol === 'https:' && (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'));
+  } catch {
+    return false;
   }
 }

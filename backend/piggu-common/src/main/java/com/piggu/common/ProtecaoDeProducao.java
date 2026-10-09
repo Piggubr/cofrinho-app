@@ -3,6 +3,7 @@ package com.piggu.common;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -27,6 +28,13 @@ public class ProtecaoDeProducao implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
+        // Endereco do site (volta da Stripe) e origens do CORS: em producao, so HTTPS.
+        for (String variavel : List.of("SITE_URL", "CORS_ORIGINS")) {
+            String valor = ambiente.getProperty(variavel, "");
+            if (valor.contains("http://")) {
+                throw new IllegalStateException("Em producao " + variavel + " precisa usar https:// (veio: " + valor + ").");
+            }
+        }
         if (ambiente.getProperty("spring.datasource.url") == null) {
             return;
         }
