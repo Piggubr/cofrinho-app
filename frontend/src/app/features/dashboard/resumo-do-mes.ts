@@ -1,4 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
 import { ResumoDoMes } from '../../core/api/models';
@@ -7,14 +8,14 @@ import { MoedaPipe } from '../../core/ui/moeda';
 /** Card do mes no painel: receitas - gastos = sobra, e quanto disso foi poupado. */
 @Component({
   selector: 'app-resumo-do-mes',
-  imports: [MoedaPipe, RouterLink],
+  imports: [MoedaPipe, RouterLink, DecimalPipe],
   template: `
     @if (resumo(); as r) {
       <section class="cartao" aria-labelledby="titulo-resumo">
         <div class="cartao-titulo">
           <h2 i18n id="titulo-resumo">Este mês</h2>
           @if (r.taxaDePoupanca !== null) {
-            <span i18n class="etiqueta">{{ r.taxaDePoupanca }}% poupado</span>
+            <span i18n class="etiqueta">{{ r.taxaDePoupanca | number: '1.0-1' }}% poupado</span>
           }
         </div>
         <div class="resumo-do-mes">

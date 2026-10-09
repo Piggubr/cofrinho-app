@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
 import { RelatorioDoAno, ResumoDoMes } from '../../core/api/models';
@@ -34,7 +35,7 @@ function barra(x: number, altura: number): string {
  */
 @Component({
   selector: 'app-reports',
-  imports: [MoedaPipe, RouterLink],
+  imports: [MoedaPipe, RouterLink, DecimalPipe],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })

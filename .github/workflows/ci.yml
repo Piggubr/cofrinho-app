@@ -55,4 +55,6 @@ jobs:
       # Falha com vulnerabilidade alta ou critica conhecida nas dependencias.
       - run: npm audit --audit-level=high
       - run: npm run build
+      # A demonstracao (dados de exemplo) so pode existir no build "demo".
+      - run: "! grep -rq token-da-demonstracao dist/frontend/browser"
       - run: npx ng test --watch=false

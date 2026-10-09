@@ -70,7 +70,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">43</context>
+          <context context-type="linenumber">45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="889671434839069081" datatype="html">
@@ -312,7 +312,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">44</context>
+          <context context-type="linenumber">46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5562708575440017986" datatype="html">
@@ -549,7 +549,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1345186712079444415" datatype="html">
@@ -630,7 +630,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">46</context>
+          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6735120598455645603" datatype="html">
@@ -1082,7 +1082,7 @@
         <source>Este mês</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">15,16</context>
+          <context context-type="linenumber">16,17</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/reports/reports.html</context>
@@ -1090,17 +1090,17 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2821788319120059803" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="{{ r.taxaDePoupanca }}"/>% poupado</source>
+        <source><x id="INTERPOLATION" equiv-text="{{ r.taxaDePoupanca | number: &apos;1.0-1&apos; }}"/>% poupado</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">17,18</context>
+          <context context-type="linenumber">18,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6914995339590461813" datatype="html">
         <source>Receitas</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">22,23</context>
+          <context context-type="linenumber">23,24</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/incomes/incomes.html</context>
@@ -1124,14 +1124,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">41</context>
+          <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8624567031746684913" datatype="html">
         <source>Gastos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">26,27</context>
+          <context context-type="linenumber">27,28</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
@@ -1163,14 +1163,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9049763768063152475" datatype="html">
         <source>Sobra</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">31,32</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/reports/reports.html</context>
@@ -1185,7 +1185,7 @@
         <source> Lance as <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/receitas&quot;&gt;"/>receitas do mês<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> para ver quanto sobrou e quanto você poupou. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/resumo-do-mes.ts</context>
-          <context context-type="linenumber">36,38</context>
+          <context context-type="linenumber">37,39</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3859249285751755021" datatype="html">
@@ -1759,7 +1759,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6240993498629563139" datatype="html">
@@ -2037,7 +2037,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">52</context>
+          <context context-type="linenumber">54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7921212561857979135" datatype="html">
@@ -2856,7 +2856,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.html</context>
-          <context context-type="linenumber">14,15</context>
+          <context context-type="linenumber">17,18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1664139451109015618" datatype="html">
@@ -2941,7 +2941,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="725889377315904928" datatype="html">
@@ -3172,7 +3172,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">48</context>
+          <context context-type="linenumber">50</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5602518078527880666" datatype="html">
@@ -3584,18 +3584,18 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">42</context>
+          <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4093011362395593080" datatype="html">
-        <source>▲ <x id="INTERPOLATION" equiv-text="{{ r.variacao }}"/>% a mais</source>
+        <source>▲ <x id="INTERPOLATION" equiv-text="{{ r.variacao | number: &apos;1.0-1&apos; }}"/>% a mais</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/reports/reports.html</context>
           <context context-type="linenumber">42,43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2096623692828753208" datatype="html">
-        <source>▼ <x id="INTERPOLATION" equiv-text="{{ -r.variacao }}"/>% a menos</source>
+        <source>▼ <x id="INTERPOLATION" equiv-text="{{ -r.variacao | number: &apos;1.0-1&apos; }}"/>% a menos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/reports/reports.html</context>
           <context context-type="linenumber">44,45</context>
@@ -3658,7 +3658,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="877091690913713837" datatype="html">
@@ -3850,7 +3850,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">47</context>
+          <context context-type="linenumber">49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6231863802697340717" datatype="html">
@@ -3965,39 +3965,46 @@
           <context context-type="linenumber">189</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="3671770151314275252" datatype="html">
+        <source>Demonstração · dados de exemplo, nada é salvo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/layout/shell/shell.html</context>
+          <context context-type="linenumber">2,4</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="4005939732738513328" datatype="html">
         <source>Abrir menu</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.html</context>
-          <context context-type="linenumber">8,10</context>
+          <context context-type="linenumber">11,13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4711539933884989412" datatype="html">
         <source>Sair</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.html</context>
-          <context context-type="linenumber">53,54</context>
+          <context context-type="linenumber">56,57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8136637640732521020" datatype="html">
         <source>Painel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">39</context>
+          <context context-type="linenumber">41</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2500721907326447786" datatype="html">
         <source>Fotos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8958531078371076584" datatype="html">
         <source>Premium</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">54</context>
+          <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
     </body>

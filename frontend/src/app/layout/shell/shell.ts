@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao } from '../../core/api/models';
 import { formatadorDe } from '../../core/ui/moeda';
+import { MODO_DEMO } from '../../demo/modo-demo';
 import { BuscaGlobal } from './busca-global';
 
 interface ItemDeMenu {
@@ -31,6 +32,7 @@ export class Shell {
   private readonly finance = inject(FinanceService);
   protected readonly auth = inject(AuthService);
 
+  protected readonly modoDemo = MODO_DEMO;
   protected readonly menuAberto = signal(false);
   protected readonly cotacao = signal<Cotacao | null>(null);
 
