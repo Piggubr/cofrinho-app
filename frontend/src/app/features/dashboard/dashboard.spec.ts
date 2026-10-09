@@ -43,7 +43,7 @@ describe('Dashboard', () => {
     http.expectOne('/api/monthly-goals').flush({});
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
-    for (const extra of http.match((req) => /\/api\/(reports|bills|budgets|cards)/.test(req.url))) {
+    for (const extra of http.match((req) => /\/api\/(reports|bills|budgets|accounts)/.test(req.url))) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
     return tela;

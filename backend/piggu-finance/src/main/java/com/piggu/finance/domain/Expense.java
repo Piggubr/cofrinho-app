@@ -57,6 +57,17 @@ public class Expense {
     @Column(name = "user_email", nullable = false, length = 320)
     private String userEmail;
 
+    /** Conta ou cartao que pagou; nulo quando nao foi informado. */
+    @Column(name = "account_id")
+    private UUID accountId;
+
+    /** Parcela N de M; nulos quando o gasto e a vista. */
+    @Column(name = "installment_number")
+    private Short installmentNumber;
+
+    @Column(name = "installment_count")
+    private Short installmentCount;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -90,6 +101,27 @@ public class Expense {
         this.item = item;
         this.category = category;
         this.amount = amount;
+    }
+
+    public void pagarCom(UUID accountId) {
+        this.accountId = accountId;
+    }
+
+    public void parcela(int numero, int total) {
+        this.installmentNumber = (short) numero;
+        this.installmentCount = (short) total;
+    }
+
+    public UUID getAccountId() {
+        return accountId;
+    }
+
+    public Short getInstallmentNumber() {
+        return installmentNumber;
+    }
+
+    public Short getInstallmentCount() {
+        return installmentCount;
     }
 
     public UUID getId() {

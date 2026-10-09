@@ -62,6 +62,248 @@
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="5459523692290118181" datatype="html">
+        <source>Contas e cartões</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">1,3</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="889671434839069081" datatype="html">
+        <source>Suas contas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">9,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2944939537428549883" datatype="html">
+        <source>Fecha dia <x id="INTERPOLATION" equiv-text="{{ conta.fechamento }}"/> · vence dia <x id="INTERPOLATION_1" equiv-text="{{ conta.vencimento }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">16,17</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6473345750193373730" datatype="html">
+        <source> Fatura aberta (<x id="INTERPOLATION" equiv-text="{{ rotuloDoMes(f.mes) }}"/>): <x id="INTERPOLATION_1" equiv-text="{{ f.total | moeda }}"/>, fecha em <x id="INTERPOLATION_2" equiv-text="{{ f.fechamento | dataBr }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">19,21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1303135421166859529" datatype="html">
+        <source>A pagar: <x id="INTERPOLATION" equiv-text="{{ f.total | moeda }}"/> até <x id="INTERPOLATION_1" equiv-text="{{ f.vencimento | dataBr }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">23,25</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6166932071268416131" datatype="html">
+        <source>Conta</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">26,27</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">115,116</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1726503189409004812" datatype="html">
+        <source> Ver fatura </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7368908909686115507" datatype="html">
+        <source>Apagar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">40,41</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/budgets/budgets.html</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/calendar/calendar.html</context>
+          <context context-type="linenumber">155,156</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">293,294</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">314,315</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feed/feed.html</context>
+          <context context-type="linenumber">47,48</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/places/places.html</context>
+          <context context-type="linenumber">140,141</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/shopping/shopping.html</context>
+          <context context-type="linenumber">83,84</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/shopping/shopping.html</context>
+          <context context-type="linenumber">104,105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2230367484919430293" datatype="html">
+        <source>Nenhuma conta ainda. Cadastre para escolher no lançamento e ver a fatura do cartão.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">44,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2886104077187031705" datatype="html">
+        <source>Fatura anterior</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">55,56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="921380007408819310" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ a.cartao.nome }}"/> · <x id="INTERPOLATION_1" equiv-text="{{ rotuloDoMes(a.fatura.mes) }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">60,61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8592402723467641286" datatype="html">
+        <source>Próxima fatura</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">65,66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="364372800196066523" datatype="html">
+        <source> De <x id="INTERPOLATION" equiv-text="{{ a.fatura.inicio | dataBr }}"/> a <x id="INTERPOLATION_1" equiv-text="{{ a.fatura.fechamento | dataBr }}"/> · vence em <x id="INTERPOLATION_2" equiv-text="{{ a.fatura.vencimento | dataBr }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">72,75</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="798448443438650123" datatype="html">
+        <source>· parcela <x id="INTERPOLATION" equiv-text="{{ gasto.parcela }}"/>/<x id="INTERPOLATION_1" equiv-text="{{ gasto.parcelas }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">83,84</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">278,279</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="890113588757257894" datatype="html">
+        <source>Nenhum gasto nesta fatura.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">90,92</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1439280836606328002" datatype="html">
+        <source>Nova conta ou cartão</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">97,98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2332180001770133395" datatype="html">
+        <source>Nome</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">101,102</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/places/places.html</context>
+          <context context-type="linenumber">19,20</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/rewards/rewards.html</context>
+          <context context-type="linenumber">63,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8176056764818744588" datatype="html">
+        <source>Ex.: Nubank</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">106,107</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2759773909798147145" datatype="html">
+        <source>Tipo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">112,113</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">87,88</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1381302555464905408" datatype="html">
+        <source>Cartão de crédito</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">114,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8921803695554419332" datatype="html">
+        <source>Dia do fechamento</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">120,121</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="816652536699867286" datatype="html">
+        <source>Dia do vencimento</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">131,132</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/bills/bills.html</context>
+          <context context-type="linenumber">121,122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5954338936032655558" datatype="html">
+        <source>Salvar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.html</context>
+          <context context-type="linenumber">144,145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1650632409999601348" datatype="html">
+        <source>Digite o nome da conta ou do cartão.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1176810285318607938" datatype="html">
+        <source>Informe os dias de fechamento e de vencimento (1 a 31).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.ts</context>
+          <context context-type="linenumber">46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2649205118897721929" datatype="html">
+        <source>Apagar &quot;<x id="PH" equiv-text="conta.nome"/>&quot;? Os gastos continuam, só sem a conta.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/accounts/accounts.ts</context>
+          <context context-type="linenumber">74</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="5072270016520701426" datatype="html">
         <source>Contas fixas</source>
         <context-group purpose="location">
@@ -70,7 +312,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">42</context>
+          <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5562708575440017986" datatype="html">
@@ -224,11 +466,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">152,153</context>
+          <context context-type="linenumber">175,176</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">217,218</context>
+          <context context-type="linenumber">240,241</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/incomes/incomes.html</context>
@@ -248,13 +490,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/incomes/incomes.html</context>
           <context context-type="linenumber">45,46</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="816652536699867286" datatype="html">
-        <source>Dia do vencimento</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/bills/bills.html</context>
-          <context context-type="linenumber">121,122</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4935807333317391663" datatype="html">
@@ -314,7 +549,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">43</context>
+          <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1345186712079444415" datatype="html">
@@ -329,41 +564,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/budgets/budgets.html</context>
           <context context-type="linenumber">33,34</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7368908909686115507" datatype="html">
-        <source>Apagar</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/budgets/budgets.html</context>
-          <context context-type="linenumber">35,36</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/calendar/calendar.html</context>
-          <context context-type="linenumber">155,156</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">267,268</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">288,289</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/feed/feed.html</context>
-          <context context-type="linenumber">47,48</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/places/places.html</context>
-          <context context-type="linenumber">140,141</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/shopping/shopping.html</context>
-          <context context-type="linenumber">83,84</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/shopping/shopping.html</context>
-          <context context-type="linenumber">104,105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2192841236486055625" datatype="html">
@@ -430,7 +630,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">44</context>
+          <context context-type="linenumber">45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6735120598455645603" datatype="html">
@@ -526,7 +726,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">202,203</context>
+          <context context-type="linenumber">225,226</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/family/family.html</context>
@@ -590,56 +790,77 @@
         <source>Orçamento</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">16,17</context>
+          <context context-type="linenumber">17,18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4895401273747628898" datatype="html">
         <source>Ver orçamentos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">17,18</context>
+          <context context-type="linenumber">18,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="792694704038499872" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ orcamento.categoria }}"/> passou do limite: <x id="INTERPOLATION_1" equiv-text="{{ orcamento.gasto | moeda }}"/> de <x id="INTERPOLATION_2" equiv-text="{{ orcamento.limite | moeda }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">22,23</context>
+          <context context-type="linenumber">23,24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6630422653087515453" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ orcamento.categoria }}"/> já usou <x id="INTERPOLATION_1" equiv-text="{{ orcamento.percentual }}"/>% do limite</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">24,25</context>
+          <context context-type="linenumber">25,26</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5196756034928671366" datatype="html">
+        <source>Fatura do cartão</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
+          <context context-type="linenumber">34,35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4005369604143406009" datatype="html">
+        <source>Ver faturas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="633283339853909667" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ cartao.nome }}"/> vence em <x id="INTERPOLATION_1" equiv-text="{{ cartao.faturaAPagar!.vencimento | dataBr }}"/>: <x id="INTERPOLATION_2" equiv-text="{{ cartao.faturaAPagar!.total | moeda }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
+          <context context-type="linenumber">40,42</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4278771109601120551" datatype="html">
         <source>Para pagar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">33,34</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6407483933109007587" datatype="html">
         <source>Ver contas</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">51,52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2529830034200819689" datatype="html">
         <source>Venceu em <x id="INTERPOLATION" equiv-text="{{ conta.vencimento | dataBr }}"/>: <x id="INTERPOLATION_1" equiv-text="{{ conta.descricao }}"/>, <x id="INTERPOLATION_2" equiv-text="{{ conta.valor | moeda }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">40,42</context>
+          <context context-type="linenumber">57,59</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6637303369523342021" datatype="html">
         <source>Vence em <x id="INTERPOLATION" equiv-text="{{ conta.vencimento | dataBr }}"/>: <x id="INTERPOLATION_1" equiv-text="{{ conta.descricao }}"/>, <x id="INTERPOLATION_2" equiv-text="{{ conta.valor | moeda }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/dashboard/avisos-do-mes.ts</context>
-          <context context-type="linenumber">45,47</context>
+          <context context-type="linenumber">62,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="565269388364671705" datatype="html">
@@ -780,7 +1001,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">267</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/family/family.html</context>
@@ -985,7 +1206,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">115,116</context>
+          <context context-type="linenumber">138,139</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1778855898018671590" datatype="html">
@@ -1003,11 +1224,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">143,144</context>
+          <context context-type="linenumber">166,167</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">208,209</context>
+          <context context-type="linenumber">231,232</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/shopping/shopping.html</context>
@@ -1029,11 +1250,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">164,165</context>
+          <context context-type="linenumber">187,188</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">229,230</context>
+          <context context-type="linenumber">252,253</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7762746917966099808" datatype="html">
@@ -1043,39 +1264,53 @@
           <context context-type="linenumber">53,54</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2759773909798147145" datatype="html">
-        <source>Tipo</source>
+      <trans-unit id="4237864606878638160" datatype="html">
+        <source>Pago com</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">64,65</context>
+          <context context-type="linenumber">65,66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="509926285809162643" datatype="html">
+        <source>Não informar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">67,68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8425323531426396806" datatype="html">
+        <source>Parcelas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
+          <context context-type="linenumber">75,76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3596887604468778700" datatype="html">
         <source>Variável</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">66,67</context>
+          <context context-type="linenumber">89,90</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2105904957742897749" datatype="html">
         <source>Fixo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">67,68</context>
+          <context context-type="linenumber">90,91</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2270858859297070378" datatype="html">
         <source><x id="START_BLOCK_IF" equiv-text="@if (salvando()) {"/>Guardando...<x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/>Lançar<x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">74,77</context>
+          <context context-type="linenumber">97,100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8301071322227829998" datatype="html">
         <source>Ler recibo por foto ⭐ Premium</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">101,102</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2699690231455109108" datatype="html">
@@ -1088,91 +1323,91 @@
         /&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">81,89</context>
+          <context context-type="linenumber">104,112</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8014241426893929531" datatype="html">
         <source><x id="START_BLOCK_IF" equiv-text="@if (leiturasRestantes() === 0) {"/> As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode lançar os itens à mão. <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> Restam <x id="INTERPOLATION" equiv-text="{{ leiturasRestantes() }}"/> leituras de nota grátis neste mês. <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">94,102</context>
+          <context context-type="linenumber">117,125</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8617735056992730074" datatype="html">
         <source>Ler com a IA do Google?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">106,107</context>
+          <context context-type="linenumber">129,130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5518158897696769487" datatype="html">
         <source> A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/privacidade&quot; target=&quot;_blank&quot;&gt;"/>Aviso de Privacidade<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">109,113</context>
+          <context context-type="linenumber">132,136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9022577989622062755" datatype="html">
         <source>Autorizar e ler</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">114,115</context>
+          <context context-type="linenumber">137,138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1574686883738722557" datatype="html">
         <source>Conferir recibo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">123,124</context>
+          <context context-type="linenumber">146,147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8329812980487181429" datatype="html">
         <source>Foto do recibo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">137</context>
+          <context context-type="linenumber">160</context>
         </context-group>
       </trans-unit>
       <trans-unit id="812363076773060252" datatype="html">
         <source> Remover </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">176</context>
+          <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7875244284598709760" datatype="html">
         <source> Lançar <x id="INTERPOLATION" equiv-text="{{ itensEmConferencia().length }}"/> item(ns) </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">184,185</context>
+          <context context-type="linenumber">207,208</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6654258202807359701" datatype="html">
         <source>Descartar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">186,187</context>
+          <context context-type="linenumber">209,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9053961753309349313" datatype="html">
         <source> Salvar </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">241</context>
+          <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2332784393609439278" datatype="html">
         <source> Editar </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">265</context>
+          <context context-type="linenumber">291</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7396102092323560905" datatype="html">
         <source>Nenhum gasto neste mês.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">273,275</context>
+          <context context-type="linenumber">299,301</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/reports/reports.html</context>
@@ -1183,88 +1418,95 @@
         <source>Regras de categoria</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">279,280</context>
+          <context context-type="linenumber">305,306</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1846620579210401553" datatype="html">
         <source> Com a categoria em &quot;Automática&quot;, o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">282,284</context>
+          <context context-type="linenumber">308,310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7980729417725298071" datatype="html">
         <source>Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">291,293</context>
+          <context context-type="linenumber">317,319</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6486966880720758116" datatype="html">
         <source>Quando tiver</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">295,296</context>
+          <context context-type="linenumber">321,322</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1577142607455405682" datatype="html">
         <source>Usar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">299,300</context>
+          <context context-type="linenumber">325,326</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3319003197393596546" datatype="html">
         <source>Salvar regra</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">308,309</context>
+          <context context-type="linenumber">334,335</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2259293326925965725" datatype="html">
         <source>Gasto lançado. <x id="PH" equiv-text="categoria"/> passou do limite do mês (<x id="PH_1" equiv-text="orcamento.percentual"/>%).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">105</context>
+          <context context-type="linenumber">115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2790564304463645100" datatype="html">
         <source>Gasto lançado. <x id="PH" equiv-text="categoria"/> já usou <x id="PH_1" equiv-text="orcamento.percentual"/>% do limite do mês.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">107</context>
+          <context context-type="linenumber">117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1198524321086540103" datatype="html">
         <source>Digite o nome do item.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">126</context>
+          <context context-type="linenumber">136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1234710637108347282" datatype="html">
         <source>Digite um valor válido.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">140</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/incomes/incomes.ts</context>
           <context context-type="linenumber">54</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2802630467848383346" datatype="html">
+        <source>Parcelas: de 1 a 48.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
+          <context context-type="linenumber">145</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="332894942195002344" datatype="html">
         <source>Gasto lançado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9086611529619583679" datatype="html">
         <source>A foto é grande demais. O limite é de 5 MB.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">182</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feed/feed.ts</context>
@@ -1279,7 +1521,7 @@
         <source>Não consegui ler essa imagem.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">176</context>
+          <context context-type="linenumber">194</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feed/feed.ts</context>
@@ -1294,42 +1536,42 @@
         <source>Adicione pelo menos um item válido.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3346430118122803571" datatype="html">
         <source>Recibo lançado.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">260</context>
+          <context context-type="linenumber">278</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4640692390125433887" datatype="html">
         <source>Confira o nome e o valor do gasto.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">285</context>
+          <context context-type="linenumber">303</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6587679254898875170" datatype="html">
         <source>Digite o termo e escolha a categoria.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">310</context>
+          <context context-type="linenumber">328</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8425515850979102419" datatype="html">
         <source>Regra salva: &quot;<x id="PH" equiv-text="regra.termo"/>&quot; vai para <x id="PH_1" equiv-text="regra.categoria"/>.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">335</context>
         </context-group>
       </trans-unit>
       <trans-unit id="705924588507089287" datatype="html">
         <source>Apagar &quot;<x id="PH" equiv-text="gasto.item"/>&quot;?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/expenses.ts</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">354</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/places/places.ts</context>
@@ -1344,7 +1586,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6240993498629563139" datatype="html">
@@ -1622,7 +1864,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7921212561857979135" datatype="html">
@@ -2522,7 +2764,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">47</context>
+          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="725889377315904928" datatype="html">
@@ -2749,7 +2991,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">46</context>
+          <context context-type="linenumber">47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5602518078527880666" datatype="html">
@@ -2764,17 +3006,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/places/places.html</context>
           <context context-type="linenumber">14,16</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2332180001770133395" datatype="html">
-        <source>Nome</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/places/places.html</context>
-          <context context-type="linenumber">19,20</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/rewards/rewards.html</context>
-          <context context-type="linenumber">63,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4545144725304292040" datatype="html">
@@ -3246,7 +3477,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">50</context>
         </context-group>
       </trans-unit>
       <trans-unit id="877091690913713837" datatype="html">
@@ -3434,7 +3665,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6231863802697340717" datatype="html">
@@ -3532,14 +3763,14 @@
         <source>Fotos</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">48</context>
+          <context context-type="linenumber">49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8958531078371076584" datatype="html">
         <source>Premium</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/shell.ts</context>
-          <context context-type="linenumber">52</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
     </body>

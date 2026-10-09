@@ -1,0 +1,146 @@
+<h1 i18n>Contas e cartões</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao" aria-labelledby="titulo-contas">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-contas">Suas contas</h2>
+  </div>
+  @for (conta of contas(); track conta.id) {
+    <div class="linha">
+      <div>
+        <p class="linha-titulo">{{ conta.tipo === 'CARTAO' ? '💳' : '🏦' }} {{ conta.nome }}</p>
+        @if (conta.tipo === 'CARTAO') {
+          <p i18n class="linha-detalhe">Fecha dia {{ conta.fechamento }} · vence dia {{ conta.vencimento }}</p>
+          @if (conta.faturaAberta; as f) {
+            <p i18n class="linha-detalhe">
+              Fatura aberta ({{ rotuloDoMes(f.mes) }}): {{ f.total | moeda }}, fecha em {{ f.fechamento | dataBr }}
+            </p>
+          }
+          @if (conta.faturaAPagar; as f) {
+            <p i18n class="linha-detalhe">A pagar: {{ f.total | moeda }} até {{ f.vencimento | dataBr }}</p>
+          }
+        } @else {
+          <p i18n class="linha-detalhe">Conta</p>
+        }
+      </div>
+      <div class="linha-acoes">
+        @if (conta.tipo === 'CARTAO' && conta.faturaAberta) {
+          <button
+            i18n
+            type="button"
+            class="botao contorno pequeno"
+            (click)="verFatura(conta, conta.faturaAberta.mes)"
+          >
+            Ver fatura
+          </button>
+        }
+        <button i18n type="button" class="botao contorno pequeno" (click)="excluir(conta)">Apagar</button>
+      </div>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Nenhuma conta ainda. Cadastre para escolher no lançamento e ver a fatura do cartão.</p>
+  }
+</section>
+
+@if (aberta(); as a) {
+  <section class="cartao" aria-labelledby="titulo-fatura">
+    <div class="cartao-titulo">
+      <button
+        type="button"
+        class="botao contorno pequeno"
+        (click)="verFatura(a.cartao, a.fatura.mes, -1)"
+        aria-label="Fatura anterior"
+        i18n-aria-label
+      >
+        ‹
+      </button>
+      <h2 i18n id="titulo-fatura">{{ a.cartao.nome }} · {{ rotuloDoMes(a.fatura.mes) }}</h2>
+      <button
+        type="button"
+        class="botao contorno pequeno"
+        (click)="verFatura(a.cartao, a.fatura.mes, 1)"
+        aria-label="Próxima fatura"
+        i18n-aria-label
+      >
+        ›
+      </button>
+    </div>
+    <p i18n class="linha-detalhe">
+      De {{ a.fatura.inicio | dataBr }} a {{ a.fatura.fechamento | dataBr }} · vence em
+      {{ a.fatura.vencimento | dataBr }}
+    </p>
+    <p class="numero">{{ a.fatura.total | moeda }}</p>
+    @for (gasto of a.gastos; track gasto.id) {
+      <div class="linha">
+        <div>
+          <p class="linha-titulo">{{ gasto.item }}</p>
+          <p class="linha-detalhe">
+            {{ gasto.data | dataBr }} · {{ gasto.categoria }}
+            @if (gasto.parcelas) {
+              <ng-container i18n>· parcela {{ gasto.parcela }}/{{ gasto.parcelas }}</ng-container>
+            }
+          </p>
+        </div>
+        <span class="linha-valor">{{ gasto.valor | moeda }}</span>
+      </div>
+    } @empty {
+      <p i18n class="vazio">Nenhum gasto nesta fatura.</p>
+    }
+  </section>
+}
+
+<section class="cartao" aria-labelledby="titulo-nova-conta">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-nova-conta">Nova conta ou cartão</h2>
+  </div>
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="nome-conta">Nome</label>
+      <input
+        i18n-placeholder
+        id="nome-conta"
+        maxlength="60"
+        placeholder="Ex.: Nubank"
+        [ngModel]="nome()"
+        (ngModelChange)="nome.set($event)"
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="tipo-conta">Tipo</label>
+      <select id="tipo-conta" [ngModel]="tipo()" (ngModelChange)="tipo.set($event)">
+        <option i18n value="CARTAO">Cartão de crédito</option>
+        <option i18n value="CONTA">Conta</option>
+      </select>
+    </div>
+    @if (tipo() === 'CARTAO') {
+      <div class="campo">
+        <label i18n for="fechamento">Dia do fechamento</label>
+        <input
+          id="fechamento"
+          type="number"
+          min="1"
+          max="31"
+          [ngModel]="fechamento()"
+          (ngModelChange)="fechamento.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="vencimento">Dia do vencimento</label>
+        <input
+          id="vencimento"
+          type="number"
+          min="1"
+          max="31"
+          [ngModel]="vencimento()"
+          (ngModelChange)="vencimento.set($event)"
+        />
+      </div>
+    }
+  </div>
+  <div class="acoes">
+    <button i18n type="button" class="botao" (click)="salvar()" [disabled]="ocupado()">Salvar</button>
+  </div>
+</section>

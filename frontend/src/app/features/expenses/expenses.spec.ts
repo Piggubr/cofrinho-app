@@ -36,6 +36,7 @@ describe('Expenses', () => {
     http.expectOne((pedido) => pedido.url.startsWith('/api/expenses')).flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
     http.expectOne('/api/categories/rules').flush([]);
+    http.expectOne('/api/accounts').flush([]);
     http.expectOne('/api/receipts/usage').flush({ usadas: 10 - restantes, limite: 10, restantes });
     tela.detectChanges();
     return tela.nativeElement;
@@ -63,6 +64,7 @@ describe('Expenses', () => {
     http.expectOne((pedido) => pedido.url.startsWith('/api/expenses')).flush([gasto]);
     http.expectOne('/api/categories').flush({ categorias: ['Outros', 'Transporte'] });
     http.expectOne('/api/categories/rules').flush([]);
+    http.expectOne('/api/accounts').flush([]);
     http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
 
     const tela$ = tela.componentInstance as unknown as {

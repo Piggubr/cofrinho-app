@@ -11,11 +11,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 /**
  * Gastos: o centro do Piggu.
@@ -34,15 +37,18 @@ public class ExpenseService {
     private final CategoryService categorias;
     private final ProductMemoryService memoriaDeProdutos;
     private final RegrasDeCategoria regras;
+    private final PaymentAccountRepository contas;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
                           ProductMemoryService memoriaDeProdutos,
-                          RegrasDeCategoria regras) {
+                          RegrasDeCategoria regras,
+                          PaymentAccountRepository contas) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
         this.regras = regras;
+        this.contas = contas;
     }
 
     @Transactional(readOnly = true)
@@ -74,14 +80,23 @@ public class ExpenseService {
         String estabelecimento = Texto.limitar(pedido.estabelecimento(), 200);
         String origem = Texto.limitarOuPadrao(pedido.origem(), 30, ORIGEM_PADRAO);
 
+        // A conta precisa ser da familia: o filtro do tenant faz o findById nao achar a dos outros.
+        if (pedido.contaId() != null && !contas.existsById(pedido.contaId())) {
+            throw new NotFoundException("Conta ou cartao nao encontrado.");
+        }
+        int parcelas = pedido.parcelas() == null ? 1 : pedido.parcelas();
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
-                .map(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, emailUsuario,
-                        regrasDaFamilia))
+                .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, emailUsuario,
+                        regrasDaFamilia, parcelas).stream())
                 .toList();
+        gastos.forEach(gasto -> gasto.pagarCom(pedido.contaId()));
 
         List<Expense> salvos = repositorio.saveAll(gastos);
-        memoriaDeProdutos.registrar(salvos);
+        // ponytail: parcela nao entra na memoria de precos (o valor seria o da parcela, nao o do produto).
+        if (parcelas == 1) {
+            memoriaDeProdutos.registrar(salvos);
+        }
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
@@ -136,19 +151,29 @@ public class ExpenseService {
         return categorias.normalizar(automatica.orElse(item.categoria()));
     }
 
-    private Expense montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
-                           String estabelecimento, String origem, String emailUsuario,
-                           List<CategoryRule> regrasDaFamilia) {
-        return new Expense(
-                data,
-                reciboId,
-                estabelecimento,
-                Texto.limitar(item.item(), 200),
-                categoriaDe(item, estabelecimento, origem, regrasDaFamilia),
-                item.valor(),
-                Texto.limitarOuPadrao(item.tipo(), 30, TIPO_PADRAO),
-                origem,
-                emailUsuario
-        );
+    /** Um item vira uma linha; parcelado, uma linha por mes com o valor dividido (o centavo que sobra vai na ultima). */
+    private List<Expense> montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
+                                 String estabelecimento, String origem, String emailUsuario,
+                                 List<CategoryRule> regrasDaFamilia, int parcelas) {
+        String categoria = categoriaDe(item, estabelecimento, origem, regrasDaFamilia);
+        BigDecimal parcela = item.valor().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN);
+        BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
+        return IntStream.range(0, parcelas).mapToObj(i -> {
+            Expense gasto = new Expense(
+                    data.plusMonths(i),
+                    reciboId,
+                    estabelecimento,
+                    Texto.limitar(item.item(), 200),
+                    categoria,
+                    i == parcelas - 1 ? ultima : parcela,
+                    Texto.limitarOuPadrao(item.tipo(), 30, TIPO_PADRAO),
+                    origem,
+                    emailUsuario
+            );
+            if (parcelas > 1) {
+                gasto.parcela(i + 1, parcelas);
+            }
+            return gasto;
+        }).toList();
     }
 }
