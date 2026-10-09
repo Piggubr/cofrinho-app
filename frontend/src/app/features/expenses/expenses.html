@@ -6,6 +6,13 @@
 @if (aviso()) {
   <p class="aviso sucesso">{{ aviso() }}</p>
 }
+@if (sugestaoDeRegra(); as s) {
+  <p class="aviso sucesso">
+    <span i18n>Sempre usar {{ s.categoria }} para "{{ s.termo }}"?</span>
+    <button i18n type="button" class="botao contorno pequeno" (click)="criarRegra(s.termo, s.categoria)">Criar regra</button>
+    <button i18n type="button" class="botao contorno pequeno" (click)="sugestaoDeRegra.set(null)">Agora não</button>
+  </p>
+}
 
 <section class="cartao">
   <div class="cartao-titulo">
@@ -43,6 +50,7 @@
         [ngModel]="novaCategoria()"
         (ngModelChange)="novaCategoria.set($event)"
       >
+        <option i18n value="">Automática</option>
         @for (categoria of categorias(); track categoria) {
           <option [value]="categoria">{{ categoria }}</option>
         }
@@ -264,4 +272,39 @@
   } @else {
     <p i18n class="vazio">Nenhum gasto neste mês.</p>
   }
+</section>
+
+<section class="cartao" aria-labelledby="titulo-regras">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-regras">Regras de categoria</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Com a categoria em "Automática", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e
+    depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto.
+  </p>
+  @for (regra of regras(); track regra.id) {
+    <div class="linha">
+      <p class="linha-titulo">{{ regra.termo }} → {{ regra.categoria }}</p>
+      <button i18n type="button" class="botao contorno pequeno" (click)="excluirRegra(regra)">Apagar</button>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</p>
+  }
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="termo-regra">Quando tiver</label>
+      <input id="termo-regra" maxlength="100" [ngModel]="termoDaRegra()" (ngModelChange)="termoDaRegra.set($event)" />
+    </div>
+    <div class="campo">
+      <label i18n for="categoria-regra">Usar</label>
+      <select id="categoria-regra" [ngModel]="categoriaDaRegra()" (ngModelChange)="categoriaDaRegra.set($event)">
+        @for (categoria of categorias(); track categoria) {
+          <option [value]="categoria">{{ categoria }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="acoes">
+    <button i18n type="button" class="botao" (click)="criarRegra(termoDaRegra(), categoriaDaRegra())">Salvar regra</button>
+  </div>
 </section>

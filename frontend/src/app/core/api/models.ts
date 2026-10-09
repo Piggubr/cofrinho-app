@@ -414,3 +414,10 @@ export interface Orcamento {
   percentual: number;
   alerta: 'OK' | 'ATENCAO' | 'ESTOUROU';
 }
+
+/** Regra de categoria automatica: o termo ja vem normalizado (sem acento, minusculo). */
+export interface RegraDeCategoria {
+  id: string;
+  termo: string;
+  categoria: string;
+}

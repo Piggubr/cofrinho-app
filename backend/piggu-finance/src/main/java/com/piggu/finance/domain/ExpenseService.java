@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,13 +33,16 @@ public class ExpenseService {
     private final ExpenseRepository repositorio;
     private final CategoryService categorias;
     private final ProductMemoryService memoriaDeProdutos;
+    private final RegrasDeCategoria regras;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
-                          ProductMemoryService memoriaDeProdutos) {
+                          ProductMemoryService memoriaDeProdutos,
+                          RegrasDeCategoria regras) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
+        this.regras = regras;
     }
 
     @Transactional(readOnly = true)
@@ -70,8 +74,10 @@ public class ExpenseService {
         String estabelecimento = Texto.limitar(pedido.estabelecimento(), 200);
         String origem = Texto.limitarOuPadrao(pedido.origem(), 30, ORIGEM_PADRAO);
 
+        List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
-                .map(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, emailUsuario))
+                .map(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, emailUsuario,
+                        regrasDaFamilia))
                 .toList();
 
         List<Expense> salvos = repositorio.saveAll(gastos);
@@ -112,14 +118,33 @@ public class ExpenseService {
                 .orElseThrow(() -> new NotFoundException("Gasto nao encontrado."));
     }
 
+    /**
+     * Categoria escolhida a mao no lancamento manual e respeitada. Sem escolha, ou vinda da
+     * leitura de nota, valem as regras da familia; sem regra e sem categoria, a da ultima compra
+     * do mesmo produto.
+     */
+    private String categoriaDe(ExpenseItemRequest item, String estabelecimento, String origem,
+                               List<CategoryRule> regrasDaFamilia) {
+        boolean escolhidaAMao = ORIGEM_PADRAO.equals(origem) && !Texto.vazio(item.categoria());
+        if (escolhidaAMao) {
+            return categorias.normalizar(item.categoria());
+        }
+        Optional<String> automatica = RegrasDeCategoria.porRegra(regrasDaFamilia, item.item(), estabelecimento);
+        if (automatica.isEmpty() && Texto.vazio(item.categoria())) {
+            automatica = regras.daMemoria(item.item());
+        }
+        return categorias.normalizar(automatica.orElse(item.categoria()));
+    }
+
     private Expense montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
-                           String estabelecimento, String origem, String emailUsuario) {
+                           String estabelecimento, String origem, String emailUsuario,
+                           List<CategoryRule> regrasDaFamilia) {
         return new Expense(
                 data,
                 reciboId,
                 estabelecimento,
                 Texto.limitar(item.item(), 200),
-                categorias.normalizar(item.categoria()),
+                categoriaDe(item, estabelecimento, origem, regrasDaFamilia),
                 item.valor(),
                 Texto.limitarOuPadrao(item.tipo(), 30, TIPO_PADRAO),
                 origem,
