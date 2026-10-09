@@ -28,6 +28,7 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("incomes", "user_email"),
                 Tabela.compartilhada("recurring_bills", "user_email"),
                 Tabela.compartilhada("category_budgets", "user_email"),
+                Tabela.compartilhada("category_rules", "user_email"),
                 Tabela.compartilhada("piggy_deposits", "user_email"),
                 Tabela.compartilhada("monthly_goals", "user_email"),
                 Tabela.compartilhada("product_memory", "user_email"),

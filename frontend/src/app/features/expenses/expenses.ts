@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
-import { Gasto, ItemDeGasto, ReciboLido } from '../../core/api/models';
+import { Gasto, ItemDeGasto, ReciboLido, RegraDeCategoria } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
@@ -66,6 +66,11 @@ export class Expenses {
   protected readonly emEdicao = signal<string | null>(null);
   protected readonly itemEditado = signal('');
   protected readonly categoriaEditada = signal('');
+  protected readonly regras = signal<RegraDeCategoria[]>([]);
+  protected readonly termoDaRegra = signal('');
+  protected readonly categoriaDaRegra = signal('');
+  /** Depois de corrigir a categoria de um gasto: oferece virar regra. */
+  protected readonly sugestaoDeRegra = signal<{ termo: string; categoria: string } | null>(null);
   protected readonly valorEditado = signal<number | null>(null);
 
   protected readonly rotuloDoMes = computed(() => mesPorExtenso(this.mesAtual()));
@@ -78,6 +83,7 @@ export class Expenses {
 
   constructor() {
     this.carregar();
+    this.carregarRegras();
     if (!this.auth.ehPremium()) {
       this.finance.usoDeLeituras().subscribe({
         next: (uso) => this.leiturasRestantes.set(uso.restantes),
@@ -280,6 +286,7 @@ export class Expenses {
       return;
     }
 
+    const antes = this.gastos().find((g) => g.id === id);
     this.finance
       .editarGasto(id, {
         item: this.itemEditado().trim(),
@@ -287,12 +294,42 @@ export class Expenses {
         valor,
       })
       .subscribe({
-        next: () => {
+        next: (salvo) => {
+          if (antes && antes.categoria !== salvo.categoria) {
+            this.sugestaoDeRegra.set({ termo: salvo.item, categoria: salvo.categoria });
+          }
           this.emEdicao.set(null);
           this.carregarGastos();
         },
         error: (falha) => this.erro.set(mensagemDeErro(falha)),
       });
+  }
+
+  protected criarRegra(termo: string, categoria: string): void {
+    if (!termo.trim() || !categoria) {
+      this.erro.set($localize`Digite o termo e escolha a categoria.`);
+      return;
+    }
+    this.finance.definirRegra(termo.trim(), categoria).subscribe({
+      next: (regra) => {
+        this.sugestaoDeRegra.set(null);
+        this.termoDaRegra.set('');
+        this.aviso.set($localize`Regra salva: "${regra.termo}" vai para ${regra.categoria}.`);
+        this.carregarRegras();
+      },
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected excluirRegra(regra: RegraDeCategoria): void {
+    this.finance.excluirRegra(regra.id).subscribe({
+      next: () => this.carregarRegras(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  private carregarRegras(): void {
+    this.finance.regrasDeCategoria().subscribe({ next: (lista) => this.regras.set(lista) });
   }
 
   protected excluir(gasto: Gasto): void {
@@ -320,7 +357,7 @@ export class Expenses {
       next: ({ gastos, categorias }) => {
         this.gastos.set(gastos);
         this.categorias.set(categorias.categorias);
-        this.novaCategoria.set(categorias.categorias[0] ?? '');
+        this.categoriaDaRegra.set(categorias.categorias[0] ?? '');
         this.carregando.set(false);
       },
       error: (falha) => {

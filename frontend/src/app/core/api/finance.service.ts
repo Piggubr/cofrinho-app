@@ -15,6 +15,7 @@ import {
   Produto,
   Receita,
   ReciboLido,
+  RegraDeCategoria,
   RelatorioDoAno,
   ResumoDoMes,
   UsoDeLeituras,
@@ -144,6 +145,19 @@ export class FinanceService extends ApiBase {
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
   resumoDoMes(mes: string): Observable<ResumoDoMes> {
     return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  }
+
+  regrasDeCategoria(): Observable<RegraDeCategoria[]> {
+    return this.http.get<RegraDeCategoria[]>(this.url('/categories/rules'));
+  }
+
+  /** Cria a regra; se o termo ja tem uma, troca a categoria. */
+  definirRegra(termo: string, categoria: string): Observable<RegraDeCategoria> {
+    return this.http.put<RegraDeCategoria>(this.url('/categories/rules'), { termo, categoria });
+  }
+
+  excluirRegra(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/categories/rules/${id}`));
   }
 
   /** Ano mes a mes e por categoria (Premium). */

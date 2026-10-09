@@ -35,6 +35,7 @@ describe('Expenses', () => {
     tela.detectChanges();
     http.expectOne((pedido) => pedido.url.startsWith('/api/expenses')).flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
+    http.expectOne('/api/categories/rules').flush([]);
     http.expectOne('/api/receipts/usage').flush({ usadas: 10 - restantes, limite: 10, restantes });
     tela.detectChanges();
     return tela.nativeElement;
@@ -50,5 +51,41 @@ describe('Expenses', () => {
     const pagina = abrir(0);
     expect(pagina.querySelector('input[type="file"]')).toBeNull();
     expect(pagina.textContent).toContain('leituras grátis deste mês acabaram');
+  });
+
+  it('corrigir a categoria de um gasto sugere criar a regra', () => {
+    const tela = TestBed.createComponent(Expenses);
+    tela.detectChanges();
+    const gasto = {
+      id: 'g1', data: '2026-09-10', reciboId: 'r1', estabelecimento: '', item: 'Uber', categoria: 'Outros',
+      valor: 20, tipo: 'Variavel', origem: 'Manual', usuario: 'a', registradoEm: '',
+    };
+    http.expectOne((pedido) => pedido.url.startsWith('/api/expenses')).flush([gasto]);
+    http.expectOne('/api/categories').flush({ categorias: ['Outros', 'Transporte'] });
+    http.expectOne('/api/categories/rules').flush([]);
+    http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
+
+    const tela$ = tela.componentInstance as unknown as {
+      abrirEdicao(g: typeof gasto): void;
+      categoriaEditada: { set(v: string): void };
+      salvarEdicao(id: string): void;
+    };
+    tela$.abrirEdicao(gasto);
+    tela$.categoriaEditada.set('Transporte');
+    tela$.salvarEdicao('g1');
+    http.expectOne('/api/expenses/g1').flush({ ...gasto, categoria: 'Transporte' });
+    http.expectOne((pedido) => pedido.url.startsWith('/api/expenses')).flush([]);
+    tela.detectChanges();
+
+    const botao = [...tela.nativeElement.querySelectorAll('button')].find(
+      (b: HTMLButtonElement) => b.textContent?.trim() === 'Criar regra',
+    ) as HTMLButtonElement;
+    expect(tela.nativeElement.textContent).toContain('Sempre usar Transporte para "Uber"?');
+    botao.click();
+    const pedido = http.expectOne('/api/categories/rules');
+    expect(pedido.request.method).toBe('PUT');
+    expect(pedido.request.body).toEqual({ termo: 'Uber', categoria: 'Transporte' });
+    pedido.flush({ id: 'r1', termo: 'uber', categoria: 'Transporte' });
+    http.expectOne('/api/categories/rules').flush([{ id: 'r1', termo: 'uber', categoria: 'Transporte' }]);
   });
 });
