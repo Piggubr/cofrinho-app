@@ -29,8 +29,13 @@ public record UserResponse(
         UUID familia
 ) {
 
-    /** Moeda dos valores, moeda da cotacao e se a cotacao aparece no topo. */
-    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
+    /** Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso e idioma. */
+    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao, String fuso,
+                               String idioma) {
+
+        public Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
+            this(moeda, moedaConversao, mostrarCotacao, null, null);
+        }
     }
 
     /** O plano vem da familia: o titular assina e todos usam. */
@@ -45,7 +50,8 @@ public record UserResponse(
                 conta.getRole(),
                 conta.isActive(),
                 conta.getPermissions(),
-                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate()),
+                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate(),
+                        conta.getTimezone(), conta.getLocale()),
                 familia.planoVigente(),
                 familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId()

@@ -66,13 +66,21 @@ public class UserAccount {
     private Instant lastLoginAt;
 
     @Column(nullable = false, length = 3)
-    private String currency = "EUR";
+    private String currency = "BRL";
 
     @Column(name = "conversion_currency", nullable = false, length = 3)
-    private String conversionCurrency = "BRL";
+    private String conversionCurrency = "USD";
 
     @Column(name = "show_exchange_rate", nullable = false)
     private boolean showExchangeRate = true;
+
+    /** Fuso da pessoa (IANA); conta nova nasce no horario de Brasilia. */
+    @Column(nullable = false, length = 50)
+    private String timezone = "America/Sao_Paulo";
+
+    /** Idioma da interface; por enquanto so pt-BR, os textos ja estao prontos para traducao. */
+    @Column(nullable = false, length = 10)
+    private String locale = "pt-BR";
 
     /** Familia a que a conta pertence; o plano e os dados de dominio sao dela. */
     @Column(name = "household_id", nullable = false)
@@ -213,14 +221,26 @@ public class UserAccount {
     }
 
     /** Os codigos chegam ja validados como ISO 4217. */
-    public void alterarPreferencias(String currency, String conversionCurrency, boolean showExchangeRate) {
+    public void alterarPreferencias(String currency, String conversionCurrency, boolean showExchangeRate,
+                                    String timezone) {
         this.currency = currency;
         this.conversionCurrency = conversionCurrency;
         this.showExchangeRate = showExchangeRate;
+        if (timezone != null) {
+            this.timezone = timezone;
+        }
     }
 
     public String getCurrency() {
         return currency;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public String getLocale() {
+        return locale;
     }
 
     public String getConversionCurrency() {

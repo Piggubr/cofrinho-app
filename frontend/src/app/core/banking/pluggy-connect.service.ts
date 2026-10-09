@@ -52,7 +52,7 @@ export class PluggyConnectService {
         includeSandbox: token.sandbox,
         onSuccess: (dados) => resolver(dados.item.id),
         onError: (erro) =>
-          rejeitar(new Error(erro?.message || 'Nao foi possivel conectar o banco.')),
+          rejeitar(new Error(erro?.message || $localize`Nao foi possivel conectar o banco.`)),
         onClose: () => resolver(null),
       });
       widget.init();
@@ -80,10 +80,10 @@ export class PluggyConnectService {
       script.onload = () =>
         window.PluggyConnect
           ? resolver(window.PluggyConnect)
-          : rejeitar(new Error('O widget da Pluggy carregou incompleto.'));
+          : rejeitar(new Error($localize`O widget da Pluggy carregou incompleto.`));
       script.onerror = () => {
         this.carregamento = undefined;
-        rejeitar(new Error('Nao consegui carregar o widget da Pluggy.'));
+        rejeitar(new Error($localize`Nao consegui carregar o widget da Pluggy.`));
       };
       document.head.appendChild(script);
     });

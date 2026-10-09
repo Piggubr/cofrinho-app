@@ -1,4 +1,4 @@
-<h1>Família</h1>
+<h1 i18n>Família</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -8,11 +8,11 @@
 }
 
 @for (convite of convitesRecebidos(); track convite.id) {
-  <section class="cartao destaque" aria-label="Convite recebido">
-    <p class="linha-titulo">Convite para entrar na {{ convite.familia }}</p>
-    <p class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
+  <section i18n-aria-label class="cartao destaque" aria-label="Convite recebido">
+    <p i18n class="linha-titulo">Convite para entrar na {{ convite.familia }}</p>
+    <p i18n class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
     <div class="acoes">
-      <button type="button" class="botao" (click)="aceitar(convite)">Entrar nessa família</button>
+      <button i18n type="button" class="botao" (click)="aceitar(convite)">Entrar nessa família</button>
     </div>
   </section>
 }
@@ -27,7 +27,7 @@
     @if (auth.ehTitular()) {
       <div class="linha-de-campos">
         <div class="campo">
-          <label for="nome-familia">Nome da família</label>
+          <label i18n for="nome-familia">Nome da família</label>
           <input
             id="nome-familia"
             maxlength="120"
@@ -36,7 +36,7 @@
           />
         </div>
         <div class="campo alinhado">
-          <button type="button" class="botao contorno" (click)="renomear()" [disabled]="ocupado()">
+          <button i18n type="button" class="botao contorno" (click)="renomear()" [disabled]="ocupado()">
             Salvar nome
           </button>
         </div>
@@ -45,7 +45,7 @@
 
     <ul class="lista-simples">
       @for (pessoa of casa.membros; track pessoa.id) {
-        <li class="linha">
+        <li i18n class="linha">
           <div>
             <p class="linha-titulo">{{ pessoa.nome }}</p>
             <p class="linha-detalhe">{{ pessoa.email }} · {{ papel(pessoa.papel) }}</p>
@@ -68,16 +68,16 @@
   @if (auth.ehTitular()) {
     <section class="cartao" aria-labelledby="titulo-convite">
       <div class="cartao-titulo">
-        <h2 id="titulo-convite">Convidar alguém</h2>
+        <h2 i18n id="titulo-convite">Convidar alguém</h2>
       </div>
-      <p class="linha-detalhe">
+      <p i18n class="linha-detalhe">
         A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
         convite vale 7 dias.
       </p>
       <div class="linha-de-campos">
         <div class="campo">
-          <label for="email-convite">E-mail</label>
-          <input
+          <label i18n for="email-convite">E-mail</label>
+          <input i18n-placeholder
             id="email-convite"
             type="email"
             maxlength="320"
@@ -88,7 +88,7 @@
           />
         </div>
         <div class="campo alinhado">
-          <button type="button" class="botao" (click)="convidar()" [disabled]="ocupado()">
+          <button i18n type="button" class="botao" (click)="convidar()" [disabled]="ocupado()">
             Convidar
           </button>
         </div>
@@ -98,24 +98,24 @@
         <div class="linha">
           <div>
             <p class="linha-titulo">{{ convite.email }}</p>
-            <p class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
+            <p i18n class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
           </div>
-          <button type="button" class="botao contorno pequeno" (click)="cancelarConvite(convite.id)">
+          <button i18n type="button" class="botao contorno pequeno" (click)="cancelarConvite(convite.id)">
             Cancelar
           </button>
         </div>
       } @empty {
-        <p class="vazio">Nenhum convite pendente.</p>
+        <p i18n class="vazio">Nenhum convite pendente.</p>
       }
     </section>
   } @else {
     <section class="cartao">
-      <p class="linha-detalhe">Só o titular convida e remove pessoas.</p>
+      <p i18n class="linha-detalhe">Só o titular convida e remove pessoas.</p>
       <div class="acoes">
-        <button type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
+        <button i18n type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
       </div>
     </section>
   }
 } @else if (!erro()) {
-  <p class="carregando">Carregando...</p>
+  <p i18n class="carregando">Carregando...</p>
 }

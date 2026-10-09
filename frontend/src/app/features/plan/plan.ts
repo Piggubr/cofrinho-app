@@ -53,7 +53,7 @@ export class Plan {
 
   /** Arrependimento (CDC art. 49): cancela agora e devolve tudo o que foi pago. */
   protected async pedirReembolso(): Promise<void> {
-    if (!confirm('Cancelar o Premium agora e receber de volta todo o valor pago?')) {
+    if (!confirm($localize`Cancelar o Premium agora e receber de volta todo o valor pago?`)) {
       return;
     }
     this.ocupado.set(true);
@@ -62,7 +62,7 @@ export class Plan {
       await firstValueFrom(this.billing.reembolso());
       await firstValueFrom(this.auth.renovar());
       this.info.set(await firstValueFrom(this.billing.plano()));
-      this.aviso.set('Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.');
+      this.aviso.set($localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`);
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     } finally {

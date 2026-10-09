@@ -35,17 +35,17 @@ export class Shell {
 
   /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
   protected readonly itens: ItemDeMenu[] = [
-    { rota: '/painel', rotulo: 'Painel', icone: '🏠' },
-    { rota: '/gastos', rotulo: 'Gastos', icone: '💸', somenteCompleto: true },
-    { rota: '/calendario', rotulo: 'Calendário', icone: '📅', somenteCompleto: true },
-    { rota: '/compras', rotulo: 'Compras', icone: '🛒', somenteCompleto: true },
-    { rota: '/lugares', rotulo: 'Lugares', icone: '📍', somenteCompleto: true },
-    { rota: '/filmes', rotulo: 'Filmes', icone: '🎬', somenteCompleto: true },
-    { rota: '/feed', rotulo: 'Fotos', icone: '📸', somenteCompleto: true },
-    { rota: '/premios', rotulo: 'Prêmios', icone: '🏆', somenteCompleto: true },
-    { rota: '/metas', rotulo: 'Metas', icone: '🎯', somenteCompleto: true },
-    { rota: '/familia', rotulo: 'Família', icone: '👪' },
-    { rota: '/plano', rotulo: 'Premium', icone: '⭐', somenteCompleto: true },
+    { rota: '/painel', rotulo: $localize`Painel`, icone: '🏠' },
+    { rota: '/gastos', rotulo: $localize`Gastos`, icone: '💸', somenteCompleto: true },
+    { rota: '/calendario', rotulo: $localize`Calendário`, icone: '📅', somenteCompleto: true },
+    { rota: '/compras', rotulo: $localize`Compras`, icone: '🛒', somenteCompleto: true },
+    { rota: '/lugares', rotulo: $localize`Lugares`, icone: '📍', somenteCompleto: true },
+    { rota: '/filmes', rotulo: $localize`Filmes`, icone: '🎬', somenteCompleto: true },
+    { rota: '/feed', rotulo: $localize`Fotos`, icone: '📸', somenteCompleto: true },
+    { rota: '/premios', rotulo: $localize`Prêmios`, icone: '🏆', somenteCompleto: true },
+    { rota: '/metas', rotulo: $localize`Metas`, icone: '🎯', somenteCompleto: true },
+    { rota: '/familia', rotulo: $localize`Família`, icone: '👪' },
+    { rota: '/plano', rotulo: $localize`Premium`, icone: '⭐', somenteCompleto: true },
   ];
 
   constructor() {

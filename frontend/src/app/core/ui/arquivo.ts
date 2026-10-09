@@ -9,12 +9,12 @@ export function lerImagemComoBase64(
 ): Promise<{ base64: string; mimeType: string; dataUrl: string }> {
   return new Promise((resolver, rejeitar) => {
     const leitor = new FileReader();
-    leitor.onerror = () => rejeitar(new Error('Nao consegui ler essa imagem.'));
+    leitor.onerror = () => rejeitar(new Error($localize`Nao consegui ler essa imagem.`));
     leitor.onload = () => {
       const dataUrl = String(leitor.result ?? '');
       const separador = dataUrl.indexOf(',');
       if (separador < 0) {
-        rejeitar(new Error('Nao consegui ler essa imagem.'));
+        rejeitar(new Error($localize`Nao consegui ler essa imagem.`));
         return;
       }
       resolver({

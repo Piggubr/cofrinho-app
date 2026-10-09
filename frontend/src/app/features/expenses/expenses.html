@@ -1,4 +1,4 @@
-<h1>Gastos</h1>
+<h1 i18n>Gastos</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -9,13 +9,13 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Lançar gasto</h2>
+    <h2 i18n>Lançar gasto</h2>
   </div>
 
   <div class="linha-de-campos">
     <div class="campo">
-      <label for="item">Item</label>
-      <input
+      <label i18n for="item">Item</label>
+      <input i18n-placeholder
         id="item"
         type="text"
         [ngModel]="novoItem()"
@@ -24,7 +24,7 @@
       />
     </div>
     <div class="campo">
-      <label for="valor">Valor ({{ moeda.simbolo() }})</label>
+      <label i18n for="valor">Valor ({{ moeda.simbolo() }})</label>
       <input
         id="valor"
         type="number"
@@ -37,7 +37,7 @@
       />
     </div>
     <div class="campo">
-      <label for="categoria">Categoria</label>
+      <label i18n for="categoria">Categoria</label>
       <select
         id="categoria"
         [ngModel]="novaCategoria()"
@@ -49,28 +49,28 @@
       </select>
     </div>
     <div class="campo">
-      <label for="data">Data</label>
+      <label i18n for="data">Data</label>
       <input id="data" type="date" [ngModel]="novaData()" (ngModelChange)="novaData.set($event)" />
     </div>
     <div class="campo">
-      <label for="tipo">Tipo</label>
+      <label i18n for="tipo">Tipo</label>
       <select id="tipo" [ngModel]="novoTipo()" (ngModelChange)="novoTipo.set($event)">
-        <option value="Variavel">Variável</option>
-        <option value="Fixo">Fixo</option>
+        <option i18n value="Variavel">Variável</option>
+        <option i18n value="Fixo">Fixo</option>
       </select>
     </div>
   </div>
 
   <div class="acoes">
-    <button type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
-      {{ salvando() ? 'Guardando...' : 'Lançar' }}
+    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
+      @if (salvando()) {Guardando...} @else {Lançar}
     </button>
 
     @if (leiturasRestantes() === 0) {
-      <a routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
+      <a i18n routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
     } @else {
-      <label class="botao secundario arquivo">
-        {{ lendoRecibo() ? 'Lendo recibo...' : 'Ler recibo por foto' }}
+      <label i18n class="botao secundario arquivo">
+        @if (lendoRecibo()) {Lendo recibo...} @else {Ler recibo por foto}
         <input
           type="file"
           accept="image/*"
@@ -82,7 +82,7 @@
     }
   </div>
   @if (leiturasRestantes() !== null) {
-    <p class="linha-detalhe">
+    <p i18n class="linha-detalhe">
       @if (leiturasRestantes() === 0) {
         As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode
         lançar os itens à mão.
@@ -95,16 +95,16 @@
 
 @if (pedidoDeIa(); as pedido) {
   <section class="cartao" role="alertdialog" aria-labelledby="titulo-ia">
-    <h2 id="titulo-ia">Ler com a IA do Google?</h2>
+    <h2 i18n id="titulo-ia">Ler com a IA do Google?</h2>
     <p>{{ pedido.mensagem }}</p>
-    <p class="linha-detalhe">
+    <p i18n class="linha-detalhe">
       A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os
       itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no
       <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
     </p>
     <div class="acoes">
-      <button type="button" class="botao" (click)="autorizarIa()">Autorizar e ler</button>
-      <button type="button" class="botao contorno" (click)="recusarIa()">Agora não</button>
+      <button i18n type="button" class="botao" (click)="autorizarIa()">Autorizar e ler</button>
+      <button i18n type="button" class="botao contorno" (click)="recusarIa()">Agora não</button>
     </div>
   </section>
 }
@@ -112,7 +112,7 @@
 @if (recibo(); as lido) {
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2>Conferir recibo</h2>
+      <h2 i18n>Conferir recibo</h2>
       <span class="etiqueta">{{ totalEmConferencia() | moeda }}</span>
     </div>
 
@@ -126,13 +126,13 @@
     }
 
     @if (previaDoRecibo()) {
-      <img [src]="previaDoRecibo()" alt="Foto do recibo" class="previa" />
+      <img i18n-alt [src]="previaDoRecibo()" alt="Foto do recibo" class="previa" />
     }
 
     @for (item of itensEmConferencia(); track $index) {
       <div class="linha-de-campos item-conferido">
         <div class="campo">
-          <label [for]="'confItem' + $index">Item</label>
+          <label i18n [for]="'confItem' + $index">Item</label>
           <input
             [id]="'confItem' + $index"
             type="text"
@@ -141,7 +141,7 @@
           />
         </div>
         <div class="campo">
-          <label [for]="'confCat' + $index">Categoria</label>
+          <label i18n [for]="'confCat' + $index">Categoria</label>
           <select
             [id]="'confCat' + $index"
             [value]="item.categoria"
@@ -153,7 +153,7 @@
           </select>
         </div>
         <div class="campo">
-          <label [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
+          <label i18n [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
           <input
             [id]="'confValor' + $index"
             type="number"
@@ -164,7 +164,7 @@
           />
         </div>
         <div class="campo alinhado">
-          <button type="button" class="botao perigo" (click)="removerItemDoRecibo($index)">
+          <button i18n type="button" class="botao perigo" (click)="removerItemDoRecibo($index)">
             Remover
           </button>
         </div>
@@ -172,10 +172,10 @@
     }
 
     <div class="acoes">
-      <button type="button" class="botao" (click)="confirmarRecibo()" [disabled]="salvando()">
+      <button i18n type="button" class="botao" (click)="confirmarRecibo()" [disabled]="salvando()">
         Lançar {{ itensEmConferencia().length }} item(ns)
       </button>
-      <button type="button" class="botao contorno" (click)="cancelarRecibo()">Descartar</button>
+      <button i18n type="button" class="botao contorno" (click)="cancelarRecibo()">Descartar</button>
     </div>
   </section>
 }
@@ -191,13 +191,13 @@
   </div>
 
   @if (carregando()) {
-    <p class="carregando">Carregando...</p>
+    <p i18n class="carregando">Carregando...</p>
   } @else if (gastos().length) {
     @for (gasto of gastos(); track gasto.id) {
       @if (emEdicao() === gasto.id) {
         <div class="linha-de-campos item-conferido">
           <div class="campo">
-            <label [for]="'ed' + gasto.id">Item</label>
+            <label i18n [for]="'ed' + gasto.id">Item</label>
             <input
               [id]="'ed' + gasto.id"
               type="text"
@@ -206,7 +206,7 @@
             />
           </div>
           <div class="campo">
-            <label [for]="'edCat' + gasto.id">Categoria</label>
+            <label i18n [for]="'edCat' + gasto.id">Categoria</label>
             <select
               [id]="'edCat' + gasto.id"
               [ngModel]="categoriaEditada()"
@@ -218,7 +218,7 @@
             </select>
           </div>
           <div class="campo">
-            <label [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
+            <label i18n [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input
               [id]="'edVal' + gasto.id"
               type="number"
@@ -229,10 +229,10 @@
             />
           </div>
           <div class="campo alinhado acoes-edicao">
-            <button type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">
+            <button i18n type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">
               Salvar
             </button>
-            <button type="button" class="botao contorno pequeno" (click)="cancelarEdicao()">
+            <button i18n type="button" class="botao contorno pequeno" (click)="cancelarEdicao()">
               Cancelar
             </button>
           </div>
@@ -253,15 +253,15 @@
           </div>
           <div class="linha-acoes">
             <span class="linha-valor">{{ gasto.valor | moeda }}</span>
-            <button type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">
+            <button i18n type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">
               Editar
             </button>
-            <button type="button" class="botao perigo" (click)="excluir(gasto)">Apagar</button>
+            <button i18n type="button" class="botao perigo" (click)="excluir(gasto)">Apagar</button>
           </div>
         </div>
       }
     }
   } @else {
-    <p class="vazio">Nenhum gasto neste mês.</p>
+    <p i18n class="vazio">Nenhum gasto neste mês.</p>
   }
 </section>

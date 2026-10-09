@@ -160,3 +160,13 @@ npm test
   elas, ficaram de fora — precisam primeiro existir na API.
 - **Telas de erro.** Um 403 ou um erro de rede aparece como aviso no topo da
   tela; não há página dedicada.
+
+## Textos e tradução
+
+Os textos ficam prontos para tradução com o i18n do próprio Angular, sem traduzir nada
+ainda: nos templates, cada texto leva o atributo `i18n` (e `i18n-placeholder`,
+`i18n-aria-label`... nos atributos); no TypeScript, ``$localize`...` ``. O idioma de origem
+é `pt-BR` (`angular.json`). `npm run i18n` extrai tudo para um catálogo só,
+`src/locale/messages.xlf`. Para um idioma novo: copiar para `messages.<idioma>.xlf`,
+traduzir e declarar o locale em `angular.json`. Texto novo entra já marcado.
+

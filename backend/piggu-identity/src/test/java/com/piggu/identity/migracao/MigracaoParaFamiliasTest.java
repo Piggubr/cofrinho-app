@@ -39,6 +39,9 @@ class MigracaoParaFamiliasTest extends PostgresIntegrationTest {
                 .containsExactly("TITULAR", "MEMBRO", "ADMIN");
         assertThat(jdbc.queryForList("SELECT DISTINCT household_id::text FROM legado.users", String.class))
                 .containsExactly(FAMILIA_INICIAL);
+        // D5: quem ja existia continua em euro, no fuso de Lisboa; so conta nova nasce no Brasil.
+        assertThat(jdbc.queryForList("SELECT DISTINCT currency || ' ' || timezone FROM legado.users", String.class))
+                .containsExactly("EUR Europe/Lisbon");
         assertThat(jdbc.queryForObject("SELECT plan_source FROM legado.households WHERE id = '" + FAMILIA_INICIAL + "'", String.class))
                 .isEqualTo("WEB");
         assertThat(jdbc.queryForObject("SELECT premium_until > now() FROM legado.households WHERE id = '" + FAMILIA_INICIAL + "'", Boolean.class))

@@ -135,8 +135,19 @@ public class AuthService {
         String conversao = Moedas.validar(pedido.moedaConversao());
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
-        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao());
+        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao(), fusoValido(pedido.fuso()));
         return UserResponse.de(conta, familias.daConta(conta));
+    }
+
+    private static String fusoValido(String fuso) {
+        if (fuso == null || fuso.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.ZoneId.of(fuso.trim()).getId();
+        } catch (java.time.DateTimeException invalido) {
+            throw new com.piggu.common.error.BusinessException("Fuso horario desconhecido: " + Texto.limitar(fuso, 50));
+        }
     }
 
     private TokenResponse emitirPar(UserAccount conta, String userAgent, boolean lembrar) {

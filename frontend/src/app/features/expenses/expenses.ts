@@ -98,11 +98,11 @@ export class Expenses {
     const valor = this.novoValor();
 
     if (!item) {
-      this.erro.set('Digite o nome do item.');
+      this.erro.set($localize`Digite o nome do item.`);
       return;
     }
     if (valor === null || valor < 0) {
-      this.erro.set('Digite um valor válido.');
+      this.erro.set($localize`Digite um valor válido.`);
       return;
     }
 
@@ -118,7 +118,7 @@ export class Expenses {
         next: () => {
           this.novoItem.set('');
           this.novoValor.set(null);
-          this.aviso.set('Gasto lançado.');
+          this.aviso.set($localize`Gasto lançado.`);
           this.salvando.set(false);
           this.carregarGastos();
         },
@@ -135,7 +135,7 @@ export class Expenses {
       return;
     }
     if (!imagemCabeNoLimite(arquivo)) {
-      this.erro.set('A foto é grande demais. O limite é de 5 MB.');
+      this.erro.set($localize`A foto é grande demais. O limite é de 5 MB.`);
       return;
     }
 
@@ -147,7 +147,7 @@ export class Expenses {
 
       this.lerRecibo(base64, mimeType);
     } catch (falha) {
-      this.erro.set(mensagemDeErro(falha, 'Não consegui ler essa imagem.'));
+      this.erro.set(mensagemDeErro(falha, $localize`Não consegui ler essa imagem.`));
       this.lendoRecibo.set(false);
     }
   }
@@ -215,7 +215,7 @@ export class Expenses {
     const itens = this.itensEmConferencia().filter((item) => item.item.trim() && item.valor >= 0);
 
     if (!lido || !itens.length) {
-      this.erro.set('Adicione pelo menos um item válido.');
+      this.erro.set($localize`Adicione pelo menos um item válido.`);
       return;
     }
 
@@ -231,7 +231,7 @@ export class Expenses {
       .subscribe({
         next: () => {
           this.cancelarRecibo();
-          this.aviso.set('Recibo lançado.');
+          this.aviso.set($localize`Recibo lançado.`);
           this.salvando.set(false);
           this.carregarGastos();
         },
@@ -256,7 +256,7 @@ export class Expenses {
   protected salvarEdicao(id: string): void {
     const valor = this.valorEditado();
     if (!this.itemEditado().trim() || valor === null || valor < 0) {
-      this.erro.set('Confira o nome e o valor do gasto.');
+      this.erro.set($localize`Confira o nome e o valor do gasto.`);
       return;
     }
 
@@ -276,7 +276,7 @@ export class Expenses {
   }
 
   protected excluir(gasto: Gasto): void {
-    if (!confirm(`Apagar "${gasto.item}"?`)) {
+    if (!confirm($localize`Apagar "${gasto.item}"?`)) {
       return;
     }
     this.finance.excluirGasto(gasto.id).subscribe({

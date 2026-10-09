@@ -54,7 +54,7 @@ export class Feed {
       return;
     }
     if (!imagemCabeNoLimite(arquivo)) {
-      this.erro.set('A foto é grande demais. O limite é de 5 MB.');
+      this.erro.set($localize`A foto é grande demais. O limite é de 5 MB.`);
       return;
     }
 
@@ -74,7 +74,7 @@ export class Feed {
         },
       });
     } catch (falha) {
-      this.erro.set(mensagemDeErro(falha, 'Não consegui ler essa imagem.'));
+      this.erro.set(mensagemDeErro(falha, $localize`Não consegui ler essa imagem.`));
       this.enviando.set(false);
     }
   }
@@ -90,7 +90,7 @@ export class Feed {
   }
 
   protected excluir(foto: FotoDoFeed): void {
-    if (!confirm('Apagar esta foto?')) {
+    if (!confirm($localize`Apagar esta foto?`)) {
       return;
     }
     this.media.excluirDoFeed(foto.id).subscribe({
