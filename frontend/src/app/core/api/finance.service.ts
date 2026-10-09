@@ -4,14 +4,15 @@ import { ApiBase } from './api-base';
 import {
   Cofrinho,
   Cotacao,
-  MoedaDisponivel,
   Deposito,
   Gasto,
   ItemDeGasto,
+  MoedaDisponivel,
   Nota,
   NovoLancamento,
   Produto,
   ReciboLido,
+  UsoDeLeituras,
 } from './models';
 
 /** Gastos, metas, cofrinho, notas, produtos, categorias, recibos e cambio. */
@@ -89,6 +90,11 @@ export class FinanceService extends ApiBase {
   }
 
   /** Le um recibo por foto. Nada e gravado: o usuario confere antes de lancar. */
+  /** Quantas notas a familia leu pela foto no mes e quantas sobram no gratuito. */
+  usoDeLeituras(): Observable<UsoDeLeituras> {
+    return this.http.get<UsoDeLeituras>(this.url('/receipts/usage'));
+  }
+
   /** @param versaoDoAviso so quando a pessoa autorizou, agora, o envio da foto a IA */
   lerRecibo(imageBase64: string, mimeType: string, versaoDoAviso?: string): Observable<ReciboLido> {
     return this.http.post<ReciboLido>(this.url('/receipts/parse'), {

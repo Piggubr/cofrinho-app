@@ -42,6 +42,7 @@ public record PlanoResponse(
 
     private static final List<String> GRATUITO = List.of(
             "Gastos, receitas, categorias, meta do mês e calendário",
+            "Leitura de nota fiscal pela foto: 10 por mês",
             "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
             "Cofrinho com depósitos da família",
             "Lista de compras, lugares e filmes",
@@ -56,7 +57,7 @@ public record PlanoResponse(
             "Orçamento por categoria, com alerta em 80% e 100%",
             "Relatório do ano com gráficos",
             "Contas bancárias pelo Open Finance, com saldo atualizado",
-            "Leitura da nota fiscal pela foto",
+            "Leitura de nota fiscal sem limite, com a IA quando a foto é difícil",
             "Mural de fotos"
     );
 
