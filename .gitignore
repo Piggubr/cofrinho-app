@@ -16,3 +16,15 @@ backend/keys/
 frontend/node_modules/
 frontend/dist/
 frontend/.angular/
+
+# Segredos: nunca no Git (o .env.example, com valores de desenvolvimento, fica).
+.env
+.env.*
+!.env.example
+*.pem
+!backend/piggu-identity/src/test/resources/keys/*.pem
+*.p12
+*.jks
+*.key
+*credentials*.json
+service-account*.json
