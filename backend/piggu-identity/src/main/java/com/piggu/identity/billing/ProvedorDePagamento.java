@@ -16,8 +16,12 @@ public interface ProvedorDePagamento {
 
     boolean habilitado();
 
-    /** Endereco da pagina de pagamento do provedor. */
-    String abrirCheckout(UserAccount conta, Periodo periodo);
+    /**
+     * Endereco da pagina de pagamento do provedor.
+     *
+     * @param diasDeTeste dias gratis antes da primeira cobranca; 0 cobra na hora
+     */
+    String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste);
 
     /** Endereco onde a pessoa troca cartao, ve recibos e cancela. */
     String abrirPortal(UserAccount conta);

@@ -44,6 +44,7 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PRICE_MENSAL: ${STRIPE_PRICE_MENSAL:-}
       STRIPE_PRICE_ANUAL: ${STRIPE_PRICE_ANUAL:-}
+      PIGGU_DIAS_DE_TESTE: ${PIGGU_DIAS_DE_TESTE:-7}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
       # Exportar e apagar a conta passa por todos os servicos com dado de pessoas.
       FINANCE_URL: http://finance:8082

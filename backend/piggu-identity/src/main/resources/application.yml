@@ -53,6 +53,10 @@ piggu:
       # Vazio quando o Open Finance esta desligado.
       banking: ${BANKING_URL:}
 
+  assinatura:
+    # Teste gratis do Premium ao assinar pelo site, uma vez por conta. 0 desliga.
+    dias-de-teste: ${PIGGU_DIAS_DE_TESTE:7}
+
   stripe:
     # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.
     secret-key: ${STRIPE_SECRET_KEY:}

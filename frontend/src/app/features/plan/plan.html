@@ -81,6 +81,12 @@
 
       @if (plano.plano === 'GRATUITO' && !auth.ehAdmin()) {
         @if (plano.assinaturaDisponivel) {
+          @if (plano.diasDeTeste > 0) {
+            <p class="linha-detalhe">
+              Comece com {{ plano.diasDeTeste }} dias grátis. A primeira cobrança só acontece depois
+              disso, e você pode cancelar antes sem pagar nada.
+            </p>
+          }
           <div class="acoes">
             <button type="button" class="botao" (click)="assinar('MENSAL')" [disabled]="ocupado()">
               Assinar mensal

@@ -10,6 +10,7 @@ import com.piggu.identity.domain.UserAccount;
 import com.piggu.identity.domain.UserAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,15 +36,25 @@ public class AssinaturaService {
     private final FamiliaService familias;
     private final ProvedorDePagamento pagamentos;
 
-    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos) {
+    private final int diasDeTeste;
+
+    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
+                             @Value("${piggu.assinatura.dias-de-teste:7}") int diasDeTeste) {
         this.usuarios = usuarios;
         this.familias = familias;
         this.pagamentos = pagamentos;
+        this.diasDeTeste = diasDeTeste;
     }
 
     @Transactional(readOnly = true)
     public PlanoResponse plano(UUID usuarioId) {
-        return PlanoResponse.de(familias.daConta(conta(usuarioId)), pagamentos.habilitado());
+        UserAccount conta = conta(usuarioId);
+        return PlanoResponse.de(familias.daConta(conta), pagamentos.habilitado(), diasDeTesteDe(conta));
+    }
+
+    /** Teste gratis uma vez por conta. */
+    private int diasDeTesteDe(UserAccount conta) {
+        return conta.usouTesteGratis() ? 0 : Math.max(0, diasDeTeste);
     }
 
     @Transactional(readOnly = true)
@@ -52,7 +63,7 @@ public class AssinaturaService {
         if (familias.daConta(conta).planoVigente() == Plano.PREMIUM) {
             throw new BusinessException("Sua família já é Premium.");
         }
-        return pagamentos.abrirCheckout(conta, periodo);
+        return pagamentos.abrirCheckout(conta, periodo, diasDeTesteDe(conta));
     }
 
     @Transactional(readOnly = true)
@@ -69,6 +80,9 @@ public class AssinaturaService {
         pagamentos.lerWebhook(corpo, assinatura).ifPresent(evento ->
                 usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
                     conta.lembrarClienteNoProvedor(evento.clienteNoProvedor());
+                    if (evento.emTeste()) {
+                        conta.marcarTesteGratisUsado();
+                    }
                     Household familia = familias.daConta(conta);
                     boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
                             evento.inicio());

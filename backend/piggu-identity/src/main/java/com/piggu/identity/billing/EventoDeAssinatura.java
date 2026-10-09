@@ -11,11 +11,12 @@ import java.util.UUID;
  * @param premiumAte        ate quando vale; nulo ou no passado encerra o Premium
  * @param momento           quando o provedor gerou o evento, para ignorar os atrasados
  * @param inicio            quando a assinatura comecou, para o prazo de arrependimento; pode ser nulo
+ * @param emTeste           a assinatura esta no teste gratis
  */
 public record EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
-                                 Instant inicio) {
+                                 Instant inicio, boolean emTeste) {
 
     public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, null);
+        this(usuarioId, clienteNoProvedor, premiumAte, momento, null, false);
     }
 }

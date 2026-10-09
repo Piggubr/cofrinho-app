@@ -18,12 +18,14 @@ import java.util.List;
  * @param app                  precos dentro do app iOS/Android: +15% pela taxa das lojas
  * @param reembolsoAte         ate quando da para desistir com dinheiro de volta (7 dias, CDC
  *                             art. 49); nulo fora do prazo ou quando nao foi assinado pelo site
+ * @param diasDeTeste          dias gratis que esta conta ainda tem ao assinar; 0 se ja usou
  */
 public record PlanoResponse(
         Plano plano,
         Instant premiumAte,
         String origem,
         Instant reembolsoAte,
+        int diasDeTeste,
         boolean assinaturaDisponivel,
         Precos site,
         Precos app,
@@ -54,13 +56,14 @@ public record PlanoResponse(
             "Mural de fotos"
     );
 
-    public static PlanoResponse de(Household familia, boolean assinaturaDisponivel) {
+    public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste) {
         Plano vigente = familia.planoVigente();
         Instant reembolsoAte = vigente == Plano.PREMIUM && "WEB".equals(familia.getPlanSource())
                 && familia.getPremiumSince() != null
                 ? familia.getPremiumSince().plus(AssinaturaService.PRAZO_DE_ARREPENDIMENTO) : null;
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getPlanSource(),
-                reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+                reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null,
+                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
     }
 }

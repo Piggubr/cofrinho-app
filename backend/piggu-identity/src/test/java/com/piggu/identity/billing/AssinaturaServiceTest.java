@@ -76,6 +76,17 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("teste gratis: a conta tem 7 dias ate a Stripe avisar que o teste comecou; depois, nunca mais")
+    void testeGratisUmaVez() {
+        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).isEqualTo(7);
+
+        receber(evento("customer.subscription.created", "trialing", Instant.now().plus(Duration.ofDays(7)), Instant.now()));
+
+        assertThat(planoDe(conta)).as("em teste ja e Premium").isEqualTo(Plano.PREMIUM);
+        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).isZero();
+    }
+
+    @Test
     @DisplayName("cancelada volta ao gratuito, e um aviso antigo chegando depois nao reativa")
     void avisoAtrasadoNaoReativa() {
         Instant agora = Instant.now();
