@@ -40,8 +40,25 @@
         inputmode="decimal"
         [ngModel]="novoValor()"
         (ngModelChange)="novoValor.set($event)"
+        (blur)="conferirPreco()"
         placeholder="0,00"
       />
+      @if (precoAcima(); as p) {
+        <p i18n class="linha-detalhe alerta-preco" role="status">
+          ⚠️ {{ p.percentual }}% acima da média deste item ({{ p.media | moeda }})
+        </p>
+      }
+    </div>
+    <div class="campo">
+      <label i18n for="moeda-compra">Moeda da compra</label>
+      <select id="moeda-compra" [ngModel]="moedaDaCompra()" (ngModelChange)="trocarMoeda($event)">
+        @for (codigo of moedasDaCompra(); track codigo) {
+          <option [value]="codigo">{{ codigo }}</option>
+        }
+      </select>
+      @if (convertido() !== null) {
+        <p i18n class="linha-detalhe">≈ {{ convertido() | moeda }} (cotação de hoje)</p>
+      }
     </div>
     <div class="campo">
       <label i18n for="categoria">Categoria</label>
@@ -70,6 +87,21 @@
           }
         </select>
       </div>
+    }
+    @if (membros().length > 1) {
+      <fieldset class="campo dividir">
+        <legend i18n>Dividir com</legend>
+        @for (membro of membros(); track membro.email) {
+          <label>
+            <input
+              type="checkbox"
+              [checked]="dividirCom().includes(membro.email)"
+              (change)="alternarDivisao(membro.email)"
+            />
+            {{ membro.nome }}
+          </label>
+        }
+      </fieldset>
     }
     <div class="campo">
       <label i18n for="parcelas">Parcelas</label>
@@ -283,6 +315,9 @@
               @if (gasto.origem !== 'Manual') {
                 · {{ gasto.origem }}
               }
+              @if (gasto.moedaOriginal) {
+                · {{ gasto.valorOriginal | moeda: gasto.moedaOriginal }}
+              }
             </p>
           </div>
           <div class="linha-acoes">
@@ -299,6 +334,31 @@
     <p i18n class="vazio">Nenhum gasto neste mês.</p>
   }
 </section>
+
+@if (acerto().length) {
+  <section class="cartao" aria-labelledby="titulo-acerto">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-acerto">Divisão do mês</h2>
+    </div>
+    @for (pessoa of acerto(); track pessoa.email) {
+      <div class="linha">
+        <div>
+          <p class="linha-titulo">{{ nomeDe(pessoa.email) }}</p>
+          <p i18n class="linha-detalhe">Pagou {{ pessoa.pagou | moeda }} · parte {{ pessoa.parte | moeda }}</p>
+        </div>
+        <span class="linha-valor">
+          @if (pessoa.saldo > 0) {
+            <ng-container i18n>recebe {{ pessoa.saldo | moeda }}</ng-container>
+          } @else if (pessoa.saldo < 0) {
+            <ng-container i18n>deve {{ -pessoa.saldo | moeda }}</ng-container>
+          } @else {
+            <ng-container i18n>quite</ng-container>
+          }
+        </span>
+      </div>
+    }
+  </section>
+}
 
 <section class="cartao" aria-labelledby="titulo-regras">
   <div class="cartao-titulo">

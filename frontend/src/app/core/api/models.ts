@@ -123,6 +123,9 @@ export interface Gasto {
   /** Parcela N de M; ausentes quando o gasto e a vista. */
   parcela?: number | null;
   parcelas?: number | null;
+  /** Compra em outra moeda: o valor acima ja e o convertido. */
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
 }
 
 export interface ItemDeGasto {
@@ -130,6 +133,8 @@ export interface ItemDeGasto {
   categoria?: string | null;
   valor: number;
   tipo?: string | null;
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
 }
 
 export interface NovoLancamento {
@@ -141,6 +146,8 @@ export interface NovoLancamento {
   contaId?: string | null;
   /** 2 a 48 divide cada item em uma linha por mes. */
   parcelas?: number | null;
+  /** E-mails da familia que dividem em partes iguais; quem lanca e quem pagou. */
+  dividirCom?: string[] | null;
 }
 
 export interface ReciboLido {
@@ -447,4 +454,20 @@ export interface ContaOuCartao {
   vencimento: number | null;
   faturaAberta: Fatura | null;
   faturaAPagar: Fatura | null;
+}
+
+/** Acerto dos gastos divididos: saldo positivo tem a receber; negativo deve. */
+export interface AcertoDeDivisao {
+  email: string;
+  pagou: number;
+  parte: number;
+  saldo: number;
+}
+
+/** Preco digitado contra a media do produto: acima quando passa 15% com 2 compras ou mais. */
+export interface ConferenciaDePreco {
+  media: number;
+  compras: number;
+  percentual: number;
+  acima: boolean;
 }

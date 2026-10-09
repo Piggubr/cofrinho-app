@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
@@ -16,6 +17,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -38,17 +40,20 @@ public class ExpenseService {
     private final ProductMemoryService memoriaDeProdutos;
     private final RegrasDeCategoria regras;
     private final PaymentAccountRepository contas;
+    private final DivisaoDeGastos divisao;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
                           ProductMemoryService memoriaDeProdutos,
                           RegrasDeCategoria regras,
-                          PaymentAccountRepository contas) {
+                          PaymentAccountRepository contas,
+                          DivisaoDeGastos divisao) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
         this.regras = regras;
         this.contas = contas;
+        this.divisao = divisao;
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +98,10 @@ public class ExpenseService {
         gastos.forEach(gasto -> gasto.pagarCom(pedido.contaId()));
 
         List<Expense> salvos = repositorio.saveAll(gastos);
+        if (pedido.dividirCom() != null) {
+            divisao.dividir(salvos, pedido.dividirCom().stream()
+                    .map(email -> email.trim().toLowerCase(Locale.ROOT)).distinct().toList());
+        }
         // ponytail: parcela nao entra na memoria de precos (o valor seria o da parcela, nao o do produto).
         if (parcelas == 1) {
             memoriaDeProdutos.registrar(salvos);
@@ -155,6 +164,9 @@ public class ExpenseService {
     private List<Expense> montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
                                  String estabelecimento, String origem, String emailUsuario,
                                  List<CategoryRule> regrasDaFamilia, int parcelas) {
+        if ((item.moedaOriginal() == null) != (item.valorOriginal() == null)) {
+            throw new BusinessException("Informe a moeda e o valor original juntos.");
+        }
         String categoria = categoriaDe(item, estabelecimento, origem, regrasDaFamilia);
         BigDecimal parcela = item.valor().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN);
         BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
@@ -172,6 +184,13 @@ public class ExpenseService {
             );
             if (parcelas > 1) {
                 gasto.parcela(i + 1, parcelas);
+            }
+            if (item.moedaOriginal() != null) {
+                // ponytail: o original tambem e dividido pelas parcelas, com o centavo na ultima.
+                BigDecimal original = item.valorOriginal().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN);
+                gasto.valorOriginal(item.moedaOriginal(), i == parcelas - 1
+                        ? item.valorOriginal().subtract(original.multiply(BigDecimal.valueOf(parcelas - 1L)))
+                        : original);
             }
             return gasto;
         }).toList();

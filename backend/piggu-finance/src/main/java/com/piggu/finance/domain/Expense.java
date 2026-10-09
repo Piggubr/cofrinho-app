@@ -68,6 +68,13 @@ public class Expense {
     @Column(name = "installment_count")
     private Short installmentCount;
 
+    /** Gasto feito em outra moeda: o valor acima ja vem convertido; aqui fica o original. */
+    @Column(name = "original_currency", length = 3)
+    private String originalCurrency;
+
+    @Column(name = "original_amount", precision = 12, scale = 2)
+    private BigDecimal originalAmount;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -110,6 +117,19 @@ public class Expense {
     public void parcela(int numero, int total) {
         this.installmentNumber = (short) numero;
         this.installmentCount = (short) total;
+    }
+
+    public void valorOriginal(String moeda, BigDecimal valor) {
+        this.originalCurrency = moeda;
+        this.originalAmount = valor;
+    }
+
+    public String getOriginalCurrency() {
+        return originalCurrency;
+    }
+
+    public BigDecimal getOriginalAmount() {
+        return originalAmount;
     }
 
     public UUID getAccountId() {

@@ -24,6 +24,7 @@ public class DadosDoTitularConfig {
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
                 Tabela.compartilhada("notes", "user_email"),
+                Tabela.compartilhada("expense_shares", "member_email"),
                 Tabela.compartilhada("expenses", "user_email"),
                 Tabela.compartilhada("incomes", "user_email"),
                 Tabela.compartilhada("recurring_bills", "user_email"),

@@ -3,11 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
+import { FamilyService } from '../../core/api/family.service';
 import { FinanceService } from '../../core/api/finance.service';
 import {
+  AcertoDeDivisao,
+  ConferenciaDePreco,
   ContaOuCartao,
   Gasto,
   ItemDeGasto,
+  MembroDaFamilia,
   ReciboLido,
   RegraDeCategoria,
 } from '../../core/api/models';
@@ -42,6 +46,7 @@ export class Expenses {
   protected readonly moeda = inject(MoedaService);
   protected readonly auth = inject(AuthService);
   private readonly finance = inject(FinanceService);
+  private readonly familia = inject(FamilyService);
 
   protected readonly carregando = signal(true);
   protected readonly erro = signal('');
@@ -76,6 +81,23 @@ export class Expenses {
   protected readonly contas = signal<ContaOuCartao[]>([]);
   protected readonly novaConta = signal('');
   protected readonly novasParcelas = signal<number | null>(1);
+
+  /** Compra em outra moeda: converte pela cotacao do dia antes de gravar. */
+  protected readonly moedaDaCompra = signal('');
+  private readonly cotacao = signal<number | null>(null);
+  protected readonly moedasDaCompra = computed(() => [
+    ...new Set([this.moeda.codigo(), 'BRL', 'USD', 'EUR', 'GBP', 'ARS', 'CLP', 'UYU', 'JPY']),
+  ]);
+  protected readonly convertido = computed(() => {
+    const taxa = this.cotacao();
+    const valor = this.novoValor();
+    return taxa === null || valor === null ? null : Math.round(valor * taxa * 100) / 100;
+  });
+
+  protected readonly membros = signal<MembroDaFamilia[]>([]);
+  protected readonly dividirCom = signal<string[]>([]);
+  protected readonly acerto = signal<AcertoDeDivisao[]>([]);
+  protected readonly precoAcima = signal<ConferenciaDePreco | null>(null);
   protected readonly termoDaRegra = signal('');
   protected readonly categoriaDaRegra = signal('');
   /** Depois de corrigir a categoria de um gasto: oferece virar regra. */
@@ -94,6 +116,8 @@ export class Expenses {
     this.carregar();
     this.carregarRegras();
     this.finance.contas().subscribe({ next: (lista) => this.contas.set(lista) });
+    this.familia.ver().subscribe({ next: (familia) => this.membros.set(familia.membros) });
+    this.moedaDaCompra.set(this.moeda.codigo());
     if (!this.auth.ehPremium()) {
       this.finance.usoDeLeituras().subscribe({
         next: (uso) => this.leiturasRestantes.set(uso.restantes),
@@ -140,6 +164,12 @@ export class Expenses {
       this.erro.set($localize`Digite um valor válido.`);
       return;
     }
+    const outraMoeda = this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo();
+    const convertido = this.convertido();
+    if (outraMoeda && convertido === null) {
+      this.erro.set($localize`Aguarde a cotação da moeda da compra.`);
+      return;
+    }
     const parcelas = this.novasParcelas() ?? 1;
     if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 48) {
       this.erro.set($localize`Parcelas: de 1 a 48.`);
@@ -152,15 +182,27 @@ export class Expenses {
       .lancarGastos({
         data: this.novaData(),
         origem: 'Manual',
-        itens: [{ item, categoria: this.novaCategoria() || null, valor, tipo: this.novoTipo() }],
+        itens: [
+          {
+            item,
+            categoria: this.novaCategoria() || null,
+            valor: outraMoeda ? convertido! : valor,
+            tipo: this.novoTipo(),
+            moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
+            valorOriginal: outraMoeda ? valor : null,
+          },
+        ],
         contaId: this.novaConta() || null,
         parcelas: parcelas > 1 ? parcelas : null,
+        dividirCom: this.dividirCom().length ? this.dividirCom() : null,
       })
       .subscribe({
         next: (salvos) => {
           this.novoItem.set('');
           this.novoValor.set(null);
           this.novasParcelas.set(1);
+          this.precoAcima.set(null);
+          this.dividirCom.set([]);
           this.aviso.set($localize`Gasto lançado.`);
           this.salvando.set(false);
           this.carregarGastos();
@@ -323,6 +365,44 @@ export class Expenses {
       });
   }
 
+  protected trocarMoeda(codigo: string): void {
+    this.moedaDaCompra.set(codigo);
+    this.cotacao.set(null);
+    if (codigo === this.moeda.codigo()) {
+      return;
+    }
+    this.finance.consultarCotacao(codigo, this.moeda.codigo()).subscribe({
+      next: (cotacao) => this.cotacao.set(cotacao.taxa),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected alternarDivisao(email: string): void {
+    this.dividirCom.update((lista) =>
+      lista.includes(email) ? lista.filter((e) => e !== email) : [...lista, email],
+    );
+  }
+
+  protected nomeDe(email: string): string {
+    return this.membros().find((m) => m.email.toLowerCase() === email)?.nome ?? email;
+  }
+
+  /** Ao sair do valor: avisa se o preco passou da media do item (so na moeda da pessoa). */
+  protected conferirPreco(): void {
+    const item = this.novoItem().trim();
+    const valor = this.novoValor();
+    const outraMoeda = this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo();
+    if (!item || valor === null || valor <= 0 || outraMoeda) {
+      this.precoAcima.set(null);
+      return;
+    }
+    this.finance.conferirPreco(item, valor).subscribe({
+      next: (conferencia) => this.precoAcima.set(conferencia?.acima ? conferencia : null),
+      // O aviso de preco e extra: sem ele o lancamento segue.
+      error: () => this.precoAcima.set(null),
+    });
+  }
+
   protected criarRegra(termo: string, categoria: string): void {
     if (!termo.trim() || !categoria) {
       this.erro.set($localize`Digite o termo e escolha a categoria.`);
@@ -365,6 +445,11 @@ export class Expenses {
       next: (gastos) => this.gastos.set(gastos),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
+    this.carregarAcerto();
+  }
+
+  private carregarAcerto(): void {
+    this.finance.acertoDoMes(this.mesAtual()).subscribe({ next: (lista) => this.acerto.set(lista) });
   }
 
   private carregar(): void {
@@ -374,6 +459,7 @@ export class Expenses {
     }).subscribe({
       next: ({ gastos, categorias }) => {
         this.gastos.set(gastos);
+        this.carregarAcerto();
         this.categorias.set(categorias.categorias);
         this.categoriaDaRegra.set(categorias.categorias[0] ?? '');
         this.carregando.set(false);
