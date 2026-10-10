@@ -11,48 +11,50 @@
  * de qualquer login ou aviso (LGPD). */
 
 :root {
+  color-scheme: light;
+
   /* Paleta da marca */
-  --pink-bg: #f1dce5;
+  --pink-bg: #f7dde7;
   --ink: #2b1e32;
-  --ink-soft: #574c52;
-  --muted: #857a7f;
-  --rose: #a24a6c;
-  --rose-deep: #6d1541;
+  --ink-soft: #5c4c58;
+  --muted: #94808a;
+  --rose: #c27a97;
+  --rose-deep: #8e2f58;
   --evento: #5c4270;
-  --ok: #6f9a78;
-  --over: #b4234f;
+  --ok: #7fa07f;
+  --over: #c0436e;
 
   /* Papeis das cores. Trocar a paleta e mexer so neste bloco. */
   --primaria: var(--rose-deep);
-  --primaria-hover: #580f34;
+  --primaria-hover: #77264a;
   --primaria-contraste: #ffffff;
-  --destaque-1: #7e2150;
-  --destaque-2: #6d1541;
-  --destaque-3: #4a0e2c;
-  --destaque-brilho: rgba(214, 120, 160, 0.28);
-  --anel: rgba(162, 74, 108, 0.16);
-  --ok-soft: #e8f1ea;
-  --ok-ink: #3c6045;
-  --danger: #b4234f;
-  --danger-soft: #f8e6eb;
-  --danger-ink: #8a1a3c;
-  --ouro: #c89b3c;
-  --ouro-soft: #f7efdc;
-  --ouro-ink: #7a5a16;
-  --serie-receita: #6f9a78;
-  --serie-gasto: #a24a6c;
-  --placeholder: #a39a9d;
+  --destaque-1: #b04c78;
+  --destaque-2: #8e2f58;
+  --destaque-3: #6e2245;
+  --destaque-brilho: rgba(255, 190, 215, 0.35);
+  --anel: rgba(194, 122, 151, 0.2);
+  --ok-soft: #ecf3ec;
+  --ok-ink: #46664a;
+  --danger: #c0436e;
+  --danger-soft: #fceaf0;
+  --danger-ink: #962e54;
+  --ouro: #d4a64a;
+  --ouro-soft: #fbf1de;
+  --ouro-ink: #82601a;
+  --serie-receita: #7fa07f;
+  --serie-gasto: #c27a97;
+  --placeholder: #a8969f;
 
   /* Superficies */
-  --site-bg: #f6f4f3;
+  --site-bg: #fcf8f9;
   --surface: #ffffff;
-  --surface-sunken: #f1eeec;
-  --border: #e8e3e1;
-  --border-strong: #d9d1ce;
-  --field-bg: #f1eeec;
-  --button-bg: #f5e9ee;
-  --track: #ece6e4;
-  --rose-soft: #f5e9ee;
+  --surface-sunken: #f7f0f3;
+  --border: #f0e4e9;
+  --border-strong: #e3d2da;
+  --field-bg: #f7f0f3;
+  --button-bg: #fbeff3;
+  --track: #f3e6ec;
+  --rose-soft: #fbeff3;
 
   /* Forma */
   --shadow-card: 0 1px 2px rgba(43, 30, 50, 0.04), 0 6px 24px rgba(43, 30, 50, 0.05);
@@ -61,6 +63,57 @@
   --raio-pequeno: 12px;
   --altura-controle: 46px;
   --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
+}
+
+/* Versao escura: segue o modo do aparelho. O cartao de destaque continua vinho e o
+ * vinho dos textos vira um rosa claro para manter o contraste sobre o fundo escuro. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --pink-bg: #3a2030;
+    --ink: #f3e9ee;
+    --ink-soft: #cdbcc5;
+    --muted: #a08e98;
+    --rose: #d88aa9;
+    --rose-deep: #f0a6c4;
+    --evento: #b9a0d0;
+    --ok: #8fbf8f;
+    --over: #ef6b95;
+
+    --primaria: #e58fb2;
+    --primaria-hover: #f0a6c4;
+    --primaria-contraste: #2a0f1d;
+    --destaque-1: #8e2f58;
+    --destaque-2: #6e2245;
+    --destaque-3: #4a1530;
+    --destaque-brilho: rgba(255, 150, 195, 0.25);
+    --anel: rgba(232, 143, 178, 0.28);
+    --ok-soft: #1f3324;
+    --ok-ink: #a9d4a9;
+    --danger: #ef6b95;
+    --danger-soft: #3d1a27;
+    --danger-ink: #f5a3bd;
+    --ouro: #e0b45a;
+    --ouro-soft: #3a2e17;
+    --ouro-ink: #f0cd85;
+    --serie-receita: #8fbf8f;
+    --serie-gasto: #e58fb2;
+    --placeholder: #7d6b75;
+
+    --site-bg: #161015;
+    --surface: #221a20;
+    --surface-sunken: #2c2229;
+    --border: #372b34;
+    --border-strong: #4b3d47;
+    --field-bg: #2c2229;
+    --button-bg: #3a2431;
+    --track: #372b34;
+    --rose-soft: #3a2431;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
+    --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
 }
 
 * {

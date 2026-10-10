@@ -48,8 +48,8 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: var(--rose-deep);
-  color: #fff;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
 }
 
 /* No computador a marca fica no topo do menu lateral. */
@@ -253,7 +253,7 @@
     grid-auto-columns: 1fr;
     align-items: center;
     padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
-    background: rgba(255, 255, 255, 0.92);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
     backdrop-filter: saturate(180%) blur(16px);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     border-top: 1px solid var(--border);
@@ -286,8 +286,8 @@
     width: 48px;
     height: 48px;
     border-radius: 16px;
-    background: var(--rose-deep);
-    color: #fff;
+    background: var(--primaria);
+    color: var(--primaria-contraste);
     box-shadow: 0 6px 16px color-mix(in srgb, var(--primaria) 30%, transparent);
   }
 
@@ -387,8 +387,8 @@
   }
 
   .menu-itens .menu-item.ativo .menu-icone {
-    background: var(--rose-deep);
-    color: #fff;
+    background: var(--primaria);
+    color: var(--primaria-contraste);
   }
 
   .menu-rotulo {
@@ -419,6 +419,6 @@
   text-align: center;
   font-size: 0.75rem;
   font-weight: 500;
-  background: var(--rose-deep);
-  color: #fff;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
 }
