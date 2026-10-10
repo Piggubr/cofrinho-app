@@ -96,4 +96,19 @@ describe('Shell', () => {
       desatualizada: false,
     });
   });
+
+  it('a barra de baixo tem os atalhos e o "Mais" abre o menu com todas as telas', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+
+    const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
+    expect(abas).toEqual(['Painel', 'Gastos', '', 'Relatórios', 'Mais']);
+    expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
+
+    (pagina.querySelector('nav.abas button') as HTMLButtonElement).click();
+    tela.detectChanges();
+    expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
+    expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(16);
+  });
 });

@@ -1,8 +1,11 @@
 import { Component, effect, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao } from '../../core/api/models';
+import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
 import { MODO_DEMO } from '../../demo/modo-demo';
 import { BuscaGlobal } from './busca-global';
@@ -10,7 +13,7 @@ import { BuscaGlobal } from './busca-global';
 interface ItemDeMenu {
   readonly rota: string;
   readonly rotulo: string;
-  readonly icone: string;
+  readonly icone: NomeDoIcone;
   /** Quando ausente, o item aparece para todos os perfis. */
   readonly somenteCompleto?: boolean;
 }
@@ -18,13 +21,17 @@ interface ItemDeMenu {
 /**
  * Moldura do app: cabecalho, menu e area de conteudo.
  *
+ * <p>No computador o menu e uma coluna fixa a esquerda. No celular ele vira uma barra
+ * de abas embaixo, com os atalhos mais usados e o botao "Mais", que abre uma folha
+ * com todas as telas.</p>
+ *
  * <p>O app original tinha onze abas em um unico HTML, trocadas por classe CSS.
  * Aqui cada uma virou rota, o que traz historico de navegacao, link direto para
  * uma tela e carregamento sob demanda.</p>
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Icone],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
@@ -38,25 +45,33 @@ export class Shell {
 
   /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
   protected readonly itens: ItemDeMenu[] = [
-    { rota: '/painel', rotulo: $localize`Painel`, icone: '🏠' },
-    { rota: '/gastos', rotulo: $localize`Gastos`, icone: '💸', somenteCompleto: true },
-    { rota: '/receitas', rotulo: $localize`Receitas`, icone: '💰', somenteCompleto: true },
-    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: '📈', somenteCompleto: true },
-    { rota: '/contas-e-cartoes', rotulo: $localize`Contas e cartões`, icone: '💳', somenteCompleto: true },
-    { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: '🧾', somenteCompleto: true },
-    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: '📊', somenteCompleto: true },
-    { rota: '/calendario', rotulo: $localize`Calendário`, icone: '📅', somenteCompleto: true },
-    { rota: '/compras', rotulo: $localize`Compras`, icone: '🛒', somenteCompleto: true },
-    { rota: '/lugares', rotulo: $localize`Lugares`, icone: '📍', somenteCompleto: true },
-    { rota: '/filmes', rotulo: $localize`Filmes`, icone: '🎬', somenteCompleto: true },
-    { rota: '/feed', rotulo: $localize`Fotos`, icone: '📸', somenteCompleto: true },
-    { rota: '/premios', rotulo: $localize`Prêmios`, icone: '🏆', somenteCompleto: true },
-    { rota: '/metas', rotulo: $localize`Metas`, icone: '🎯', somenteCompleto: true },
-    { rota: '/familia', rotulo: $localize`Família`, icone: '👪' },
-    { rota: '/plano', rotulo: $localize`Premium`, icone: '⭐', somenteCompleto: true },
+    { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa' },
+    { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', somenteCompleto: true },
+    { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', somenteCompleto: true },
+    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', somenteCompleto: true },
+    { rota: '/contas-e-cartoes', rotulo: $localize`Contas e cartões`, icone: 'cartao', somenteCompleto: true },
+    { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: 'recibo', somenteCompleto: true },
+    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: 'pizza', somenteCompleto: true },
+    { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', somenteCompleto: true },
+    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', somenteCompleto: true },
+    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', somenteCompleto: true },
+    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', somenteCompleto: true },
+    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', somenteCompleto: true },
+    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', somenteCompleto: true },
+    { rota: '/metas', rotulo: $localize`Metas`, icone: 'alvo', somenteCompleto: true },
+    { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas' },
+    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', somenteCompleto: true },
   ];
 
   constructor() {
+    // Fecha a folha do "Mais" a cada troca de tela, inclusive pelo voltar do navegador.
+    inject(Router)
+      .events.pipe(
+        filter((evento) => evento instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.fecharMenu());
+
     // Refaz a consulta quando a pessoa troca as moedas ou liga a cotacao no perfil.
     effect((onCleanup) => {
       const preferencias = this.auth.usuario()?.preferencias;
@@ -73,6 +88,12 @@ export class Shell {
         });
       onCleanup(() => pedido.unsubscribe());
     });
+  }
+
+  /** Atalhos da barra de baixo no celular; o resto fica em "Mais". */
+  protected atalhos(): ItemDeMenu[] {
+    const rotas = this.auth.ehMembro() ? ['/painel', '/familia'] : ['/painel', '/gastos', '/relatorios'];
+    return this.itens.filter((item) => rotas.includes(item.rota));
   }
 
   protected itensVisiveis(): ItemDeMenu[] {

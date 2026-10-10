@@ -7,6 +7,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Contas fixas: o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
@@ -14,8 +15,9 @@ import { MoedaPipe } from '../../core/ui/moeda';
  */
 @Component({
   selector: 'app-bills',
-  imports: [FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './bills.html',
+  styleUrl: './bills.scss',
 })
 export class Bills {
   private readonly finance = inject(FinanceService);

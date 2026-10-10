@@ -136,8 +136,8 @@
           </div>
         }
         <div class="acoes">
-          <button i18n type="button" class="botao contorno pequeno" (click)="editar(lugar)">Editar</button>
-          <button i18n type="button" class="botao perigo" (click)="excluir(lugar)">Apagar</button>
+          <button type="button" class="botao icone-so fantasma" (click)="editar(lugar)" aria-label="Editar" i18n-aria-label title="Editar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
+          <button type="button" class="botao icone-so perigo" (click)="excluir(lugar)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
         </div>
       </article>
     }

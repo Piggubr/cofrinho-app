@@ -5,6 +5,7 @@ import { RewardsService } from '../../core/api/rewards.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Premio, Resgate, SaldoDeMoedas } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Fofocoins e premios.
@@ -15,7 +16,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [FormsModule],
+  imports: [Icone, FormsModule],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })

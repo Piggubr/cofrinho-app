@@ -6,6 +6,7 @@ import { InfoDoPlano, Periodo } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Planos do Piggu.
@@ -15,7 +16,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
  */
 @Component({
   selector: 'app-plan',
-  imports: [DataBrPipe],
+  imports: [Icone, DataBrPipe],
   templateUrl: './plan.html',
   styleUrl: './plan.scss',
 })
