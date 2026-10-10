@@ -126,6 +126,16 @@ textarea:focus {
   outline-offset: 1px;
 }
 
+/* No iOS, campo com fonte menor que 16px faz o Safari e o app dar zoom ao focar, e
+ * o zoom nao volta quando o teclado fecha. Em tela de toque todo campo usa 16px. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 textarea {
   min-height: 90px;
   resize: vertical;

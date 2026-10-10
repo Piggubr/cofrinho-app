@@ -39,7 +39,15 @@
     </div>
   </header>
 
-  <nav class="menu" [class.aberto]="menuAberto()">
+  @if (menuAberto()) {
+    <button i18n-aria-label type="button" class="menu-fundo" aria-label="Fechar menu" (click)="fecharMenu()"></button>
+  }
+
+  <nav class="menu" [class.aberto]="menuAberto()" (keydown.escape)="fecharMenu()">
+    <div class="menu-topo">
+      <strong i18n>Piggu</strong>
+      <button i18n-aria-label type="button" class="menu-fechar" aria-label="Fechar menu" (click)="fecharMenu()">✕</button>
+    </div>
     @for (item of itensVisiveis(); track item.rota) {
       <a
         [routerLink]="item.rota"

@@ -109,6 +109,28 @@
   color: var(--muted);
 }
 
+/* Titulo e botao de fechar da gaveta: so aparecem no celular. */
+.menu-topo {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0.5rem 0.75rem 0.75rem;
+}
+
+.menu-topo strong {
+  color: var(--rose-deep);
+  font-size: 1.15rem;
+}
+
+.menu-fechar {
+  border: none;
+  background: transparent;
+  color: var(--rose-deep);
+  font-size: 1.1rem;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
 .menu-icone {
   font-size: 1.05rem;
   width: 1.3rem;
@@ -134,21 +156,47 @@
     display: block;
   }
 
+  /* No celular o menu e uma gaveta lateral por cima de tudo, com a propria area
+   * segura. Antes ele abria em top: 56px fixo e ficava por baixo do cabecalho
+   * sempre que a faixa da demo ou a barra de status empurravam o cabecalho para baixo. */
   .menu {
     position: fixed;
-    top: 56px;
+    top: 0;
+    bottom: 0;
     left: 0;
-    right: 0;
-    z-index: 15;
+    z-index: 40;
+    width: min(300px, 84vw);
+    padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 0.65rem
+      calc(1rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border-right: none;
-    border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow-card);
-    /* Fechado por padrao no celular: o menu inteiro cabe em uma gaveta. */
-    display: none;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.25s ease,
+      visibility 0s linear 0.25s;
   }
 
   .menu.aberto {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+  }
+
+  .menu-topo {
     display: flex;
+  }
+
+  .menu-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    border: none;
+    padding: 0;
+    background: rgba(43, 30, 50, 0.35);
+    cursor: pointer;
   }
 
   .conteudo {
