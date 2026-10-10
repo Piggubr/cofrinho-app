@@ -108,6 +108,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/rewards/rewards').then((m) => m.Rewards),
       },
       {
+        path: 'planejar',
+        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
+        loadComponent: () => import('./features/plan-hub/plan-hub').then((m) => m.PlanHub),
+      },
+      {
         path: 'metas',
         canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/goals/goals').then((m) => m.Goals),

@@ -4,17 +4,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
-import { Cotacao } from '../../core/api/models';
+import { Cotacao, ModuloDeEstiloDeVida } from '../../core/api/models';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
 import { MODO_DEMO } from '../../demo/modo-demo';
 import { BuscaGlobal } from './busca-global';
 
+type Grupo = 'dia-a-dia' | 'planejar' | 'contas' | 'estilo' | 'conta';
+
 interface ItemDeMenu {
   readonly rota: string;
   readonly rotulo: string;
   readonly icone: NomeDoIcone;
+  readonly grupo: Grupo;
+  /** Tela de estilo de vida: so aparece com o modulo ligado no perfil. */
+  readonly modulo?: ModuloDeEstiloDeVida;
   /** Quando ausente, o item aparece para todos os perfis. */
   readonly somenteCompleto?: boolean;
   /** Assinar e cancelar o Premium e so do titular; o parceiro nao ve o item. */
@@ -26,15 +31,32 @@ const SIMBOLOS: Record<string, string> = {
   '/painel': 'house',
   '/gastos': 'creditcard',
   '/relatorios': 'chart.bar',
+  '/planejar': 'target',
   '/familia': 'person.2',
 };
+
+const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
+  { id: 'dia-a-dia', titulo: $localize`Dia a dia` },
+  { id: 'planejar', titulo: $localize`Planejar` },
+  { id: 'contas', titulo: $localize`Cartões e contas` },
+  { id: 'estilo', titulo: $localize`Estilo de vida` },
+  { id: 'conta', titulo: $localize`Família e plano` },
+];
+
+export interface GrupoDeMenu {
+  readonly id: Grupo;
+  readonly titulo: string;
+  readonly itens: ItemDeMenu[];
+}
 
 /**
  * Moldura do app: cabecalho, menu e area de conteudo.
  *
- * <p>No computador o menu e uma coluna fixa a esquerda. No celular ele vira uma barra
- * de abas embaixo, com os atalhos mais usados e o botao "Mais", que abre uma folha
- * com todas as telas.</p>
+ * <p>No computador o menu e uma coluna fixa a esquerda, em grupos. No celular ele vira
+ * uma barra de cinco abas embaixo (Painel, Gastos, Relatorios, Planejar e Mais), com o
+ * botao "+" de lancar gasto flutuando acima dela em todas as telas. O "Mais" abre uma
+ * folha com as demais telas. As de estilo de vida (compras, lugares, filmes, fotos e
+ * premios) so aparecem quando a pessoa as liga no perfil.</p>
  *
  * <p>O app original tinha onze abas em um unico HTML, trocadas por classe CSS.
  * Aqui cada uma virou rota, o que traz historico de navegacao, link direto para
@@ -63,23 +85,25 @@ export class Shell {
   private readonly rotaAtual = signal(this.router.url);
 
   /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
+  // prettier-ignore
   protected readonly itens: ItemDeMenu[] = [
-    { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa' },
-    { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', somenteCompleto: true },
-    { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', somenteCompleto: true },
-    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', somenteCompleto: true },
-    { rota: '/contas-e-cartoes', rotulo: $localize`Contas e cartões`, icone: 'cartao', somenteCompleto: true },
-    { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: 'recibo', somenteCompleto: true },
-    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: 'pizza', somenteCompleto: true },
-    { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', somenteCompleto: true },
-    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', somenteCompleto: true },
-    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', somenteCompleto: true },
-    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', somenteCompleto: true },
-    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', somenteCompleto: true },
-    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', somenteCompleto: true },
-    { rota: '/metas', rotulo: $localize`Metas`, icone: 'alvo', somenteCompleto: true },
-    { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas' },
-    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', somenteCompleto: true, somenteTitular: true },
+    { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa', grupo: 'dia-a-dia' },
+    { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', grupo: 'dia-a-dia', somenteCompleto: true },
+    { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia', somenteCompleto: true },
+    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia', somenteCompleto: true },
+    { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: 'pizza', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/metas', rotulo: $localize`Metas`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/contas-e-cartoes', rotulo: $localize`Contas e cartões`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
+    { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', grupo: 'contas', somenteCompleto: true },
+    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo', modulo: 'compras', somenteCompleto: true },
+    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo', modulo: 'lugares', somenteCompleto: true },
+    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo', modulo: 'filmes', somenteCompleto: true },
+    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo', modulo: 'fotos', somenteCompleto: true },
+    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo', modulo: 'premios', somenteCompleto: true },
+    { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas', grupo: 'conta' },
+    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', grupo: 'conta', somenteCompleto: true, somenteTitular: true },
   ];
 
   constructor() {
@@ -118,25 +142,22 @@ export class Shell {
 
   /** Atalhos da barra de baixo no celular; o resto fica em "Mais". */
   protected atalhos(): ItemDeMenu[] {
-    const rotas = this.auth.ehMembro() ? ['/painel', '/familia'] : ['/painel', '/gastos', '/relatorios'];
+    const rotas = this.auth.ehMembro()
+      ? ['/painel', '/familia']
+      : ['/painel', '/gastos', '/relatorios', '/planejar'];
     return this.itens.filter((item) => rotas.includes(item.rota));
   }
 
-  /** Os mesmos atalhos da barra HTML, com o "+" no meio e o "Mais" no fim. */
+  /**
+   * Os mesmos atalhos da barra HTML, com o "Mais" no fim. O "+" de lancar nao entra: o
+   * UITabBar mostra no maximo cinco abas, e o botao flutuante da pagina continua por cima.
+   */
   private readonly abasDoNativo = computed<AbaNativa[]>(() => {
     const abas: AbaNativa[] = this.atalhos().map((item) => ({
       id: item.rota,
       titulo: item.rotulo,
       simbolo: SIMBOLOS[item.rota] ?? 'circle',
     }));
-    if (!this.auth.ehMembro()) {
-      abas.splice(2, 0, {
-        id: 'lancar',
-        titulo: $localize`Lançar`,
-        simbolo: 'plus.circle.fill',
-        acao: true,
-      });
-    }
     abas.push({ id: 'mais', titulo: $localize`Mais`, simbolo: 'square.grid.2x2' });
     return abas;
   });
@@ -180,7 +201,20 @@ export class Shell {
     if (this.auth.ehMembro()) {
       return this.itens.filter((item) => !item.somenteCompleto);
     }
-    return this.auth.ehTitular() ? this.itens : this.itens.filter((item) => !item.somenteTitular);
+    // Sem a lista (conta antiga, demo), todos os modulos ficam ligados.
+    const modulos = this.auth.usuario()?.preferencias?.modulos;
+    return this.itens
+      .filter((item) => this.auth.ehTitular() || !item.somenteTitular)
+      .filter((item) => !item.modulo || !modulos || modulos.includes(item.modulo));
+  }
+
+  /** Menu do computador e folha do "Mais", em grupos; grupo vazio nao aparece. */
+  protected gruposVisiveis(): GrupoDeMenu[] {
+    const visiveis = this.itensVisiveis();
+    return GRUPOS.map((grupo) => ({
+      ...grupo,
+      itens: visiveis.filter((item) => item.grupo === grupo.id),
+    })).filter((grupo) => grupo.itens.length > 0);
   }
 
   protected alternarMenu(): void {

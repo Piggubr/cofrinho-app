@@ -5,7 +5,10 @@ import com.piggu.common.security.Plano;
 import com.piggu.identity.domain.Household;
 import com.piggu.identity.domain.UserAccount;
 
+import com.piggu.identity.domain.ModulosDeEstiloDeVida;
+
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,12 +32,15 @@ public record UserResponse(
         UUID familia
 ) {
 
-    /** Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso e idioma. */
+    /**
+     * Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso, idioma e os
+     * modulos de estilo de vida ligados no menu.
+     */
     public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao, String fuso,
-                               String idioma) {
+                               String idioma, List<String> modulos) {
 
         public Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
-            this(moeda, moedaConversao, mostrarCotacao, null, null);
+            this(moeda, moedaConversao, mostrarCotacao, null, null, ModulosDeEstiloDeVida.TODOS);
         }
     }
 
@@ -51,7 +57,7 @@ public record UserResponse(
                 conta.isActive(),
                 conta.getPermissions(),
                 new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate(),
-                        conta.getTimezone(), conta.getLocale()),
+                        conta.getTimezone(), conta.getLocale(), conta.getModulos()),
                 familia.planoVigente(),
                 familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId()

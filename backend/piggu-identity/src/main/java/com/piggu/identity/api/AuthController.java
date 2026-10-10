@@ -10,6 +10,8 @@ import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Entrada e saida da conta.
@@ -101,5 +104,14 @@ public class AuthController {
     public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
                                      @AuthUser CurrentUser usuario) {
         return servico.salvarPreferencias(usuario.id(), pedido);
+    }
+
+    public record ModulosRequest(@NotNull(message = "Escolha os modulos.") @Size(max = 10) List<String> modulos) {
+    }
+
+    /** Liga e desliga as telas de estilo de vida no menu da propria pessoa. */
+    @PutMapping("/me/modules")
+    public UserResponse modulos(@Valid @RequestBody ModulosRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.escolherModulos(usuario.id(), pedido.modulos());
     }
 }

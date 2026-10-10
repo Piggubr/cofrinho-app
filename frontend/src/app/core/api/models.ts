@@ -97,7 +97,11 @@ export interface Preferencias {
   fuso?: string;
   /** Idioma da interface; hoje so pt-BR. */
   idioma?: string;
+  /** Telas de estilo de vida ligadas no menu; ausente (conta antiga, demo) liga todas. */
+  modulos?: ModuloDeEstiloDeVida[];
 }
+
+export type ModuloDeEstiloDeVida = 'compras' | 'lugares' | 'filmes' | 'fotos' | 'premios';
 
 export interface MoedaDisponivel {
   codigo: string;

@@ -139,6 +139,14 @@ public class AuthService {
         return UserResponse.de(conta, familias.daConta(conta));
     }
 
+    @Transactional
+    public UserResponse escolherModulos(java.util.UUID usuarioId, List<String> modulos) {
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        conta.escolherModulos(modulos);
+        return UserResponse.de(conta, familias.daConta(conta));
+    }
+
     private static String fusoValido(String fuso) {
         if (fuso == null || fuso.isBlank()) {
             return null;

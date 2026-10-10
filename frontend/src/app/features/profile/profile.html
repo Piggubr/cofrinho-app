@@ -75,6 +75,30 @@
   </div>
 </section>
 
+@if (!auth.ehMembro()) {
+  <section class="cartao" aria-labelledby="titulo-modulos">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-modulos">Telas do menu</h2>
+    </div>
+    <p i18n class="linha-detalhe">
+      Ligue só o que você usa. Desligar tira a tela do menu; nada do que está nela é apagado.
+    </p>
+    <div class="modulos">
+      @for (modulo of modulos; track modulo.id) {
+        <label class="caixa">
+          <input
+            type="checkbox"
+            [checked]="ligado(modulo.id)"
+            [disabled]="salvandoModulos()"
+            (change)="alternarModulo(modulo.id)"
+          />
+          {{ modulo.nome }}
+        </label>
+      }
+    </div>
+  </section>
+}
+
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-dados">Seus dados</h2>
