@@ -422,3 +422,25 @@
   background: var(--primaria);
   color: var(--primaria-contraste);
 }
+
+/* ---------- Abas nativas do app iOS ---------- */
+
+/* O UITabBar nativo fica por cima do WebView e substitui a barra HTML. O conteudo
+ * continua passando por tras do vidro; so reserva a altura que o iOS informa. */
+:host(.abas-nativas) {
+  .abas {
+    display: none;
+  }
+
+  @media (max-width: 899px) {
+    .conteudo {
+      padding-bottom: calc(var(--abas-nativas-altura, 83px) + 1rem);
+    }
+
+    /* A folha do "Mais" abre acima da barra, que segue tocavel para fecha-la. */
+    .menu {
+      bottom: var(--abas-nativas-altura, 83px);
+      padding-bottom: 1rem;
+    }
+  }
+}
