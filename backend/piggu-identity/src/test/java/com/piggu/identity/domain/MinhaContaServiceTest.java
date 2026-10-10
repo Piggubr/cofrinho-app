@@ -95,6 +95,19 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("titular sai e ha um parceiro: o parceiro assume, mesmo sendo mais novo que o membro")
+    void titularSaiParceiroAssume() {
+        familias.convidar(como(titular), "caio@familia.test");
+        UserAccount parceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        familias.mudarPapel(como(titular), parceiro.getId(), PigguRole.PARCEIRO);
+
+        contas.excluir(titular.getId());
+
+        assertThat(usuarios.findById(parceiro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.TITULAR);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
+    @Test
     @DisplayName("servico fora do ar: a conta continua inteira para tentar de novo")
     void falhaNaCascata() {
         willThrow(new UpstreamException("fora do ar")).given(cascata).apagar(anyString());

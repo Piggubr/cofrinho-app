@@ -10,6 +10,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 const PAPEIS: Record<PigguRole, string> = {
   ADMIN: $localize`Admin`,
   TITULAR: $localize`Titular`,
+  PARCEIRO: $localize`Parceiro`,
   MEMBRO: $localize`Membro`,
 };
 
@@ -91,6 +92,22 @@ export class Family {
 
   protected cancelarConvite(id: string): void {
     this.executar(this.familias.cancelarConvite(id), $localize`Convite cancelado.`);
+  }
+
+  /** O parceiro lanca e edita como o titular, mas nao mexe no plano nem nas pessoas. */
+  protected mudarPapel(membro: MembroDaFamilia): void {
+    const papel = membro.papel === 'PARCEIRO' ? 'MEMBRO' : 'PARCEIRO';
+    const texto =
+      papel === 'PARCEIRO'
+        ? $localize`Tornar ${membro.nome} parceiro? Essa pessoa passa a lançar e editar gastos, receitas, contas e orçamentos da família. Plano, convites e pessoas continuam só com você.`
+        : $localize`Voltar ${membro.nome} a membro? Essa pessoa passa a ver só o painel e o cofrinho.`;
+    if (!confirm(texto)) {
+      return;
+    }
+    this.executar(
+      this.familias.mudarPapel(membro.id, papel),
+      $localize`Papel alterado. A mudança vale quando a pessoa entrar de novo.`,
+    );
   }
 
   protected remover(membro: MembroDaFamilia): void {

@@ -8,6 +8,8 @@ import java.util.Locale;
  * <ul>
  *   <li>{@link #ADMIN} — opera a instalacao; dentro da propria familia vale como titular.</li>
  *   <li>{@link #TITULAR} — dono da familia: convida membros, assina o Premium e gerencia tudo dela.</li>
+ *   <li>{@link #PARCEIRO} — promovido pelo titular; lanca e edita os dados da familia como ele,
+ *       mas nao mexe no plano, nos convites nem tira pessoas.</li>
  *   <li>{@link #MEMBRO} — convidado; so consulta o painel e deposita no cofrinho.</li>
  * </ul>
  */
@@ -15,6 +17,7 @@ public enum PigguRole {
 
     ADMIN,
     TITULAR,
+    PARCEIRO,
     MEMBRO;
 
     public static final String AUTHORITY_PREFIX = "ROLE_";
@@ -34,6 +37,7 @@ public enum PigguRole {
         return switch (valor.trim().toUpperCase(Locale.ROOT)) {
             case "ADMIN" -> ADMIN;
             case "TITULAR", "BEATRIZ" -> TITULAR;
+            case "PARCEIRO" -> PARCEIRO;
             default -> MEMBRO;
         };
     }

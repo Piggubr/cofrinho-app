@@ -33,7 +33,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/shopping")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ShoppingController {
 
     private final ShoppingService servico;

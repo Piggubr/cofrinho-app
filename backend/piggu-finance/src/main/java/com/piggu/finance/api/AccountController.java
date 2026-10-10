@@ -30,7 +30,7 @@ import java.util.UUID;
 /** Contas e cartoes da familia, e a fatura do cartao. */
 @RestController
 @RequestMapping("/api/accounts")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class AccountController {
 
     private final ContasECartoes servico;

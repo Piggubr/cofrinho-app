@@ -9,3 +9,10 @@
 .destaque {
   border-color: var(--rose);
 }
+
+.acoes-da-pessoa {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}

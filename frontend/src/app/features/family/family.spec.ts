@@ -79,6 +79,28 @@ describe('Family', () => {
     expect(pagina.textContent).toContain('Convite para entrar na Familia Souza');
   });
 
+  it('titular torna o membro parceiro depois de confirmar', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const pagina = abrir();
+
+    [...pagina.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Tornar parceiro')!.click();
+
+    const pedido = http.expectOne('/api/family/members/u2/role');
+    expect(pedido.request.method).toBe('PUT');
+    expect(pedido.request.body).toEqual({ papel: 'PARCEIRO' });
+    pedido.flush({ ...FAMILIA, membros: [FAMILIA.membros[0], { ...FAMILIA.membros[1], papel: 'PARCEIRO' }] });
+  });
+
+  it('parceiro nao convida, nao remove nem muda papel', () => {
+    auth.usuario.set(usuarioDeTeste({ role: 'PARCEIRO' }));
+    const pagina = abrir();
+
+    expect(pagina.querySelector('#email-convite')).toBeNull();
+    expect(pagina.textContent).not.toContain('Remover');
+    expect(pagina.textContent).not.toContain('Tornar parceiro');
+    expect(pagina.textContent).toContain('Sair da família');
+  });
+
   it('membro nao ve convites nem botao de remover', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
     const pagina = abrir();

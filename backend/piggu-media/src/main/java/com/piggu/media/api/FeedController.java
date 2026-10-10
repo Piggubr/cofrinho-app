@@ -27,7 +27,7 @@ import java.util.UUID;
 /** Feed de fotos por mes. Substitui saveFeed, updateFeed, deleteFeed e getFeedPhoto. */
 @RestController
 @RequestMapping("/api/feed")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class FeedController {
 
     private final FeedService servico;

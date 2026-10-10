@@ -46,13 +46,13 @@ public class PrizeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public PrizeResponse criar(@Valid @RequestBody PrizeRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.criarPremio(pedido, usuario.email());
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public PrizeResponse atualizar(@PathVariable UUID id,
                                    @Valid @RequestBody PrizeRequest pedido,
                                    @AuthUser CurrentUser usuario) {
@@ -60,7 +60,7 @@ public class PrizeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
         servico.excluirPremio(id);
         return ResponseEntity.noContent().build();
@@ -68,13 +68,13 @@ public class PrizeController {
 
     @PostMapping("/{id}/redemptions")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public RedemptionResponse resgatar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.resgatar(id, usuario.email());
     }
 
     @GetMapping("/redemptions")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public List<RedemptionResponse> historicoDeResgates() {
         return servico.listarResgates();
     }

@@ -26,6 +26,11 @@ export class FamilyService extends ApiBase {
     return this.http.delete<Familia>(this.url(`/family/members/${id}`));
   }
 
+  /** O titular promove a parceiro ou volta a membro. */
+  mudarPapel(id: string, papel: 'PARCEIRO' | 'MEMBRO'): Observable<Familia> {
+    return this.http.put<Familia>(this.url(`/family/members/${id}/role`), { papel });
+  }
+
   /** Convites de outras familias para o meu e-mail. */
   convitesParaMim(): Observable<ConviteDaFamilia[]> {
     return this.http.get<ConviteDaFamilia[]>(this.url('/family/invites/mine'));
