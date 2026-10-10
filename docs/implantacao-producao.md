@@ -83,3 +83,64 @@ docker compose --profile producao up -d --build
 O gateway fica publicado só em `127.0.0.1:8080`; de fora, a API chega pelo Caddy.
 Com `PIGGU_AMBIENTE=producao`, os serviços recusam subir com `SITE_URL` ou
 `CORS_ORIGINS` em `http://`. Revisão completa em `docs/revisao-seguranca-pre-publicacao.md`.
+
+## 6. Backup diário testado
+
+Sem backup, perder o disco da VPS é perder o dinheiro registrado de todas as famílias
+(e a LGPD, art. 46, pede proteção contra perda). Os scripts ficam em `backend/scripts/`
+e o CI testa todos eles num Postgres descartável a cada pull request.
+
+| Script | O que faz |
+|---|---|
+| `backup.sh` | `pg_dump` dos seis bancos e dos papéis, mais as fotos do volume `piggu-fotos`, conferidos, num `piggu-AAAA-MM-DD.tar.gpg` cifrado. Guarda 7 diários e 4 semanais e manda uma cópia para fora da VPS |
+| `testar-restauracao.sh` | restaura o backup mais recente em bancos à parte e confere, tabela por tabela, que voltaram as mesmas linhas da hora do backup. Depois apaga os bancos de teste |
+| `restaurar.sh` | volta o backup por cima dos bancos de verdade (`--confirmo`) ou em bancos com prefixo (`--prefixo`) |
+
+**Senha da cifra.** Gere uma vez e guarde também **fora da VPS** (no gerenciador de
+senhas). Sem ela, o backup não abre:
+
+```bash
+sudo install -d -m 700 /etc/piggu
+openssl rand -base64 32 | sudo tee /etc/piggu/backup.senha > /dev/null
+sudo chmod 600 /etc/piggu/backup.senha
+```
+
+**Cópia fora da VPS.** O destino é qualquer remoto do [rclone](https://rclone.org). O
+padrão sugerido é um bucket do **Backblaze B2** (barato, com cobrança por GB e sem taxa
+de saída até 3x o armazenado). O Cloudflare R2 ou o S3 servem do mesmo jeito. Crie o
+bucket com uma chave que só escreve nele e configure o remoto com `rclone config`
+(nome `b2-piggu` no exemplo). O script só envia arquivo cifrado, recusa enviar sem
+senha e nunca usa `rclone sync`: se o disco da VPS voltar vazio, a cópia de fora fica.
+
+**Agendamento** (`sudo crontab -e`):
+
+```cron
+PIGGU_BACKUP_SENHA_ARQUIVO=/etc/piggu/backup.senha
+PIGGU_BACKUP_DESTINO=b2-piggu:piggu-backups
+# Todo dia às 3h15, e o teste de restauração todo domingo às 3h45.
+15 3 * * *  /opt/piggu/backend/scripts/backup.sh >> /var/log/piggu-backup.log 2>&1
+45 3 * * 0  /opt/piggu/backend/scripts/testar-restauracao.sh >> /var/log/piggu-backup.log 2>&1
+```
+
+As demais opções (pasta, quantos guardar, dia do semanal) estão no cabeçalho do
+`backup.sh`. Vale ligar um aviso para quando o cron falhar, por exemplo um
+[healthchecks.io](https://healthchecks.io) chamado no fim do comando com `&& curl -fsS ...`.
+
+**Restaurar de verdade:**
+
+```bash
+cd /opt/piggu/backend
+docker compose stop gateway identity finance rewards lifestyle media banking
+PIGGU_BACKUP_SENHA_ARQUIVO=/etc/piggu/backup.senha \
+  scripts/restaurar.sh /var/backups/piggu/diario/piggu-2026-10-10.tar.gpg --confirmo \
+  --fotos "$(docker volume ls -q | grep -E '(^|_)piggu-fotos$')"
+docker compose up -d
+```
+
+Se a VPS sumiu, baixe o arquivo do bucket (`rclone copy b2-piggu:piggu-backups/diario/piggu-AAAA-MM-DD.tar.gpg .`),
+suba só o `postgres` numa máquina nova e rode o mesmo comando.
+
+**Banco novo depois da primeira subida.** O `db/init/01-criar-bancos.sh` só roda
+sozinho com o volume vazio. Ele é idempotente (só cria o que falta), então, se um
+serviço novo ganhar banco, rode de novo:
+`docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh`.
