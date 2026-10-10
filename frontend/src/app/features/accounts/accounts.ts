@@ -6,11 +6,12 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mesPorExtenso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
+import { Icone } from '../../core/ui/icone';
 
 /** Contas e cartoes: no cartao, a fatura entre os fechamentos e o vencimento. */
 @Component({
   selector: 'app-accounts',
-  imports: [FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './accounts.html',
 })
 export class Accounts {

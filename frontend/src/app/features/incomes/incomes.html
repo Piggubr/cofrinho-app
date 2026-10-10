@@ -64,22 +64,22 @@
   <div class="cartao-titulo">
     <button
       type="button"
-      class="botao contorno pequeno"
+      class="botao contorno icone-so"
       (click)="trocarMes(-1)"
       aria-label="Mês anterior"
       i18n-aria-label
     >
-      ‹
+      <app-icone nome="esquerda" [tamanho]="18" />
     </button>
     <h2 id="titulo-receitas-mes">{{ rotuloDoMes() }}</h2>
     <button
       type="button"
-      class="botao contorno pequeno"
+      class="botao contorno icone-so"
       (click)="trocarMes(1)"
       aria-label="Próximo mês"
       i18n-aria-label
     >
-      ›
+      <app-icone nome="direita" [tamanho]="18" />
     </button>
   </div>
   <p i18n class="linha-detalhe">Total: {{ total() | moeda }}</p>
@@ -91,9 +91,7 @@
       </div>
       <div class="linha-acoes">
         <strong>{{ receita.valor | moeda }}</strong>
-        <button i18n type="button" class="botao contorno pequeno" (click)="excluir(receita)">
-          Apagar
-        </button>
+        <button type="button" class="botao icone-so perigo" (click)="excluir(receita)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     </div>
   } @empty {

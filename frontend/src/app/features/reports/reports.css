@@ -1,7 +1,5 @@
 /* Receitas e gastos: par validado (CVD e contraste) contra a superficie clara. */
 :host {
-  --serie-receita: #6a6fc4;
-  --serie-gasto: #c2507f;
 }
 
 .numeros {

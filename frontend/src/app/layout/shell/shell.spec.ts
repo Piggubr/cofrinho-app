@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
+import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AuthFalso } from '../../testing/auth-falso';
 import { Shell } from './shell';
 
@@ -24,12 +25,12 @@ describe('Shell', () => {
         { provide: AuthService, useValue: auth },
       ],
     });
-    http = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => http.verify());
 
   function abrir() {
+    http = TestBed.inject(HttpTestingController);
     const tela = TestBed.createComponent(Shell);
     tela.detectChanges();
     return tela;
@@ -95,5 +96,55 @@ describe('Shell', () => {
       estimativa: true,
       desatualizada: false,
     });
+  });
+
+  it('a barra de baixo tem os atalhos e o "Mais" abre o menu com todas as telas', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+
+    const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
+    expect(abas).toEqual(['Painel', 'Gastos', '', 'Relatórios', 'Mais']);
+    expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
+
+    (pagina.querySelector('nav.abas button') as HTMLButtonElement).click();
+    tela.detectChanges();
+    expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
+    expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(16);
+  });
+
+  it('no app iOS com o plugin, troca a barra HTML pelas abas nativas', () => {
+    let tocar: (id: string) => void = () => {};
+    const configuradas: AbaNativa[][] = [];
+    const selecionadas: (string | null)[] = [];
+    TestBed.overrideProvider(AbasNativas, {
+      useValue: {
+        disponivel: true,
+        configurar: (abas: AbaNativa[]) => configuradas.push(abas),
+        selecionar: (id: string | null) => selecionadas.push(id),
+        mostrarSoEmTelaEstreita: () => () => {},
+        ouvir: (aoTocar: (id: string) => void) => {
+          tocar = aoTocar;
+          return () => {};
+        },
+      },
+    });
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+
+    expect(pagina.classList).toContain('abas-nativas');
+    expect(configuradas.at(-1)!.map((aba) => aba.id)).toEqual([
+      '/painel',
+      '/gastos',
+      'lancar',
+      '/relatorios',
+      'mais',
+    ]);
+
+    tocar('mais');
+    tela.detectChanges();
+    expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
+    expect(selecionadas.at(-1)).toBe('mais');
   });
 });

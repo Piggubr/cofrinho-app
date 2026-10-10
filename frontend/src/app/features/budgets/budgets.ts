@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Orcamento por categoria (Premium): um limite por mes e o alerta em 80% e 100%.
@@ -14,7 +15,7 @@ import { MoedaPipe } from '../../core/ui/moeda';
  */
 @Component({
   selector: 'app-budgets',
-  imports: [FormsModule, MoedaPipe, RouterLink],
+  imports: [Icone, FormsModule, MoedaPipe, RouterLink],
   templateUrl: './budgets.html',
   styles: `
     .progresso.atencao span {

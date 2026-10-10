@@ -9,6 +9,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Lugares visitados e avaliados.
@@ -19,7 +20,7 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
  */
 @Component({
   selector: 'app-places',
-  imports: [FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })

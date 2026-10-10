@@ -1,33 +1,133 @@
 /* Design system do Piggu.
  *
- * Os tokens vieram de css/variables.css do app original, para que a identidade
- * visual continue a mesma. Ficam como custom properties no :root porque o app
- * antigo ja trocava de tema redefinindo essas mesmas variaveis. */
+ * A paleta (vinho, rosa e os tons de tinta) veio de css/variables.css do app original
+ * e continua a mesma. O que mudou foi o uso: o rosa deixou de pintar fundos, bordas e
+ * campos e ficou como cor de destaque; as superficies sao brancas sobre um fundo quase
+ * neutro, com bordas e sombras discretas. Os tokens ficam como custom properties no
+ * :root porque o app antigo ja trocava de tema redefinindo essas mesmas variaveis. */
 
 /* A fonte Sora vem do proprio app (pacote @fontsource-variable/sora, declarado no
  * angular.json): carregar do Google entregaria o IP de todo visitante a terceiros antes
  * de qualquer login ou aviso (LGPD). */
 
 :root {
-  --pink-bg: #fae2e9;
-  --site-bg: #fbf1f4;
-  --surface: #ffffff;
+  color-scheme: light;
+
+  /* Paleta da marca */
+  --pink-bg: #f7dde7;
   --ink: #2b1e32;
   --ink-soft: #5c4c58;
-  --muted: #8b7480;
-  --border: #f0cfdb;
-  --rose: #b85c7d;
-  --rose-deep: #6d1541;
+  --muted: #94808a;
+  --rose: #c27a97;
+  --rose-deep: #8e2f58;
   --evento: #5c4270;
-  --ok: #7fa06b;
-  --over: #e0399b;
-  --field-bg: #fff1f6;
-  --button-bg: #f5cadb;
-  --track: #f3d9e2;
-  --shadow-card: 0 18px 45px rgba(109, 21, 65, 0.1);
-  --raio: 18px;
+  --ok: #7fa07f;
+  --over: #c0436e;
+
+  /* Papeis das cores. Trocar a paleta e mexer so neste bloco. */
+  --primaria: var(--rose-deep);
+  --primaria-hover: #77264a;
+  --primaria-contraste: #ffffff;
+  --destaque-1: #b04c78;
+  --destaque-2: #8e2f58;
+  --destaque-3: #6e2245;
+  --destaque-brilho: rgba(255, 190, 215, 0.35);
+  --anel: rgba(194, 122, 151, 0.2);
+  --ok-soft: #ecf3ec;
+  --ok-ink: #46664a;
+  --danger: #c0436e;
+  --danger-soft: #fceaf0;
+  --danger-ink: #962e54;
+  --ouro: #d4a64a;
+  --ouro-soft: #fbf1de;
+  --ouro-ink: #82601a;
+  --serie-receita: #7fa07f;
+  --serie-gasto: #c27a97;
+  --placeholder: #a8969f;
+
+  /* Superficies */
+  --site-bg: #fcf8f9;
+  --surface: #ffffff;
+  --surface-sunken: #f7f0f3;
+  --border: #f0e4e9;
+  --border-strong: #e3d2da;
+  --field-bg: #f7f0f3;
+  --button-bg: #fbeff3;
+  --track: #f3e6ec;
+  --rose-soft: #fbeff3;
+
+  /* Vidro (barras e folhas flutuantes do celular) */
+  --vidro-fundo: rgba(255, 255, 255, 0.68);
+  --vidro-forte: rgba(255, 255, 255, 0.78);
+  --vidro-borda: rgba(255, 255, 255, 0.7);
+  --vidro-brilho: rgba(255, 255, 255, 0.9);
+  --vidro-sombra: 0 10px 34px rgba(110, 34, 69, 0.14), 0 2px 6px rgba(43, 30, 50, 0.06);
+  --vidro-desfoque: blur(22px) saturate(190%);
+
+  /* Forma */
+  --shadow-card: 0 1px 2px rgba(43, 30, 50, 0.04), 0 6px 24px rgba(43, 30, 50, 0.05);
+  --shadow-float: 0 12px 40px rgba(43, 30, 50, 0.16);
+  --raio: 20px;
   --raio-pequeno: 12px;
+  --altura-controle: 46px;
   --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
+}
+
+/* Versao escura: segue o modo do aparelho. O cartao de destaque continua vinho e o
+ * vinho dos textos vira um rosa claro para manter o contraste sobre o fundo escuro. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --pink-bg: #3a2030;
+    --ink: #f3e9ee;
+    --ink-soft: #cdbcc5;
+    --muted: #a08e98;
+    --rose: #d88aa9;
+    --rose-deep: #f0a6c4;
+    --evento: #b9a0d0;
+    --ok: #8fbf8f;
+    --over: #ef6b95;
+
+    --primaria: #e58fb2;
+    --primaria-hover: #f0a6c4;
+    --primaria-contraste: #2a0f1d;
+    --destaque-1: #8e2f58;
+    --destaque-2: #6e2245;
+    --destaque-3: #4a1530;
+    --destaque-brilho: rgba(255, 150, 195, 0.25);
+    --anel: rgba(232, 143, 178, 0.28);
+    --ok-soft: #1f3324;
+    --ok-ink: #a9d4a9;
+    --danger: #ef6b95;
+    --danger-soft: #3d1a27;
+    --danger-ink: #f5a3bd;
+    --ouro: #e0b45a;
+    --ouro-soft: #3a2e17;
+    --ouro-ink: #f0cd85;
+    --serie-receita: #8fbf8f;
+    --serie-gasto: #e58fb2;
+    --placeholder: #7d6b75;
+
+    --site-bg: #161015;
+    --surface: #221a20;
+    --surface-sunken: #2c2229;
+    --border: #372b34;
+    --border-strong: #4b3d47;
+    --field-bg: #2c2229;
+    --button-bg: #3a2431;
+    --track: #372b34;
+    --rose-soft: #3a2431;
+
+    --vidro-fundo: rgba(40, 28, 37, 0.66);
+    --vidro-forte: rgba(40, 28, 37, 0.78);
+    --vidro-borda: rgba(255, 255, 255, 0.12);
+    --vidro-brilho: rgba(255, 255, 255, 0.18);
+    --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
+    --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
 }
 
 * {
@@ -41,6 +141,11 @@ body {
   min-height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: var(--site-bg);
   color: var(--ink);
@@ -48,6 +153,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
 }
 
 h1,
@@ -57,16 +163,35 @@ h4 {
   margin: 0 0 0.5rem;
   font-weight: 600;
   line-height: 1.25;
+  letter-spacing: -0.015em;
 }
 
-h1 { font-size: 1.5rem; }
-h2 { font-size: 1.2rem; }
-h3 { font-size: 1rem; }
+h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.1rem;
+}
 
-p { margin: 0 0 0.75rem; }
+h2 {
+  font-size: 1.05rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
 
 a {
   color: var(--rose-deep);
+  text-underline-offset: 3px;
+}
+
+::selection {
+  background: var(--pink-bg);
 }
 
 /* ---------- Cartoes ---------- */
@@ -76,11 +201,27 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--raio);
   box-shadow: var(--shadow-card);
-  padding: 1.15rem;
+  padding: 1.25rem;
 }
 
 .cartao + .cartao {
-  margin-top: 1rem;
+  margin-top: 0.9rem;
+}
+
+/* Cartoes que vem de componentes filhos nao sao irmaos no DOM; o espaco vem do host. */
+app-resumo-do-mes,
+app-avisos-do-mes {
+  display: block;
+}
+
+app-resumo-do-mes + *,
+app-avisos-do-mes + * {
+  margin-top: 0.9rem;
+}
+
+app-resumo-do-mes:empty + *,
+app-avisos-do-mes:empty + * {
+  margin-top: 0;
 }
 
 .cartao-titulo {
@@ -88,7 +229,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .cartao-titulo h2,
@@ -100,51 +241,140 @@ a {
 
 label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--ink-soft);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid var(--border);
+  min-height: var(--altura-controle);
+  padding: 0.6rem 0.85rem;
+  border: 1px solid transparent;
   border-radius: var(--raio-pequeno);
   background: var(--field-bg);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.95rem;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--border-strong);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--rose);
-  outline-offset: 1px;
+  outline: none;
+  background: var(--surface);
+  border-color: var(--rose);
+  box-shadow: 0 0 0 4px var(--anel);
+}
+
+select {
+  appearance: none;
+  padding-right: 2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b7480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--rose-deep);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+input[type='file'] {
+  min-height: 0;
+  padding: 0.5rem;
+}
+
+/* No iOS, campo com fonte menor que 16px faz o Safari e o app dar zoom ao focar, e
+ * o zoom nao volta quando o teclado fecha. Em tela de toque todo campo usa 16px. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 textarea {
-  min-height: 90px;
+  min-height: 96px;
   resize: vertical;
 }
 
 .campo + .campo {
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+/* Rotulo com caixa de selecao ao lado: "[x] Lancar sozinha no vencimento". */
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  font-weight: 400;
+  cursor: pointer;
 }
 
 .linha-de-campos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.linha-de-campos + .linha-de-campos,
+.linha-de-campos + .campo,
+.campo + .linha-de-campos {
+  margin-top: 0.85rem;
+}
+
+/* Dentro da grade o espaco vem do gap, nao da margem entre campos. */
+.linha-de-campos > .campo + .campo {
+  margin-top: 0;
+}
+
+/* Botao na mesma linha dos campos, alinhado pela base do campo ao lado. */
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
 }
 
 .erro-do-campo {
-  color: var(--over);
+  color: var(--danger);
   font-size: 0.78rem;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
 }
 
 /* ---------- Botoes ---------- */
@@ -157,55 +387,106 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1.1rem;
+  gap: 0.45rem;
+  min-height: var(--altura-controle);
+  padding: 0.6rem 1.25rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--rose-deep);
-  color: #fff;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
-  transition: filter 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease,
+    opacity 0.15s ease;
 }
 
 .botao:hover:not(:disabled) {
-  filter: brightness(1.12);
+  background: var(--primaria-hover);
+}
+
+.botao:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.botao:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
 }
 
 .botao:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .botao.secundario {
-  background: var(--button-bg);
+  background: var(--rose-soft);
   color: var(--rose-deep);
+}
+
+.botao.secundario:hover:not(:disabled) {
+  background: var(--pink-bg);
 }
 
 .botao.contorno {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--rose-deep);
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.botao.contorno:hover:not(:disabled) {
+  background: var(--surface-sunken);
 }
 
 .botao.perigo {
+  min-height: 0;
   background: transparent;
   border-color: transparent;
-  color: var(--over);
-  padding: 0.35rem 0.5rem;
+  color: var(--danger);
+  padding: 0.4rem 0.6rem;
+  font-weight: 500;
+}
+
+.botao.perigo:hover:not(:disabled) {
+  background: var(--danger-soft);
 }
 
 .botao.pequeno {
-  padding: 0.35rem 0.75rem;
+  min-height: 34px;
+  padding: 0.35rem 0.85rem;
   font-size: 0.8rem;
+}
+
+.botao.fantasma {
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.botao.fantasma:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+/* Botao quadrado so com icone, como as setas de trocar o mes. */
+.botao.icone-so {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .acoes {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.9rem;
+  margin-top: 1rem;
 }
 
 /* ---------- Listas ---------- */
@@ -215,8 +496,58 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.7rem 0;
+  padding: 0.8rem 0;
   border-bottom: 1px solid var(--border);
+}
+
+.linha {
+  flex-wrap: wrap;
+}
+
+/* Texto ocupa o que der; se faltar espaco, as acoes descem para baixo, a direita. */
+.linha > :first-child {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+/* Linha com muito texto: no celular as acoes descem para baixo do texto. */
+@media (max-width: 640px) {
+  .linha.empilhada > :first-child {
+    flex-basis: 100%;
+  }
+}
+
+/* Icone em quadradinho rosa no inicio de uma linha. */
+.linha-com-icone {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.icone-tile {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+  flex-shrink: 0;
+}
+
+/* Valor e botoes de icone no fim da linha. */
+.linha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.linha-acoes .linha-valor,
+.linha-acoes > strong {
+  margin-right: 0.35rem;
 }
 
 .linha:last-child {
@@ -250,41 +581,49 @@ button {
 /* ---------- Etiquetas e avisos ---------- */
 
 .etiqueta {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.65rem;
   border-radius: 999px;
-  background: var(--pink-bg);
+  background: var(--rose-soft);
   color: var(--rose-deep);
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.etiqueta.premium {
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
 }
 
 .aviso {
-  padding: 0.7rem 0.9rem;
+  padding: 0.75rem 0.95rem;
   border-radius: var(--raio-pequeno);
   font-size: 0.85rem;
   margin-bottom: 0.9rem;
 }
 
 .aviso.erro {
-  background: #fdeaf3;
-  color: #8c1745;
+  background: var(--danger-soft);
+  color: var(--danger-ink);
 }
 
 .aviso.sucesso {
-  background: #e9f3e3;
-  color: #3f5a30;
+  background: var(--ok-soft);
+  color: var(--ok-ink);
 }
 
 .aviso.informacao {
-  background: var(--pink-bg);
+  background: var(--rose-soft);
   color: var(--rose-deep);
 }
 
 /* ---------- Barra de progresso ---------- */
 
 .progresso {
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: var(--track);
   overflow: hidden;
@@ -293,6 +632,7 @@ button {
 .progresso > span {
   display: block;
   height: 100%;
+  border-radius: inherit;
   background: var(--ok);
   transition: width 0.3s ease;
 }
@@ -305,7 +645,7 @@ button {
 
 .grade {
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
@@ -322,6 +662,15 @@ button {
 
 @media (max-width: 640px) {
   .cartao {
-    padding: 0.95rem;
+    padding: 1.05rem;
+  }
+
+  /* No celular a grade tem duas colunas: botao que sobraria sozinho ocupa a linha toda. */
+  .linha-de-campos > .campo.alinhado:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+  }
+
+  h1 {
+    font-size: 1.5rem;
   }
 }

@@ -1,0 +1,4 @@
+# Achados revisados e liberados pelo fingerprint (commit:arquivo:regra:linha), para nao
+# esconder um segredo de verdade que apareca depois no mesmo arquivo.
+# JWT falso do teste do TMDB ({"alg":"HS256"}.{"sub":"teste"}.assinatura), nao assina nada.
+910af3f5e90e99609f26cee723a61fdca1b114e7:backend/piggu-lifestyle/src/test/java/com/piggu/lifestyle/integration/TmdbClientTest.java:jwt:22

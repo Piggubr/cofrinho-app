@@ -60,9 +60,7 @@
               <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
               <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario }}</p>
             </div>
-            <button i18n type="button" class="botao perigo" (click)="excluirDeposito(deposito.id)">
-              Apagar
-            </button>
+            <button type="button" class="botao icone-so perigo" (click)="excluirDeposito(deposito.id)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         }
       </div>
@@ -76,8 +74,8 @@
       <div class="cartao-titulo">
         <h2>{{ rotuloDoMes() }}</h2>
         <div class="navegacao-de-mes">
-          <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
-          <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+          <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+          <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
         </div>
       </div>
 

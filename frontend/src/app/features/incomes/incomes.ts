@@ -7,11 +7,12 @@ import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas'
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { ResumoDoMesCard } from '../dashboard/resumo-do-mes';
+import { Icone } from '../../core/ui/icone';
 
 /** Receitas do mes: com elas o painel mostra a sobra e a taxa de poupanca. */
 @Component({
   selector: 'app-incomes',
-  imports: [FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard],
   templateUrl: './incomes.html',
 })
 export class Incomes {

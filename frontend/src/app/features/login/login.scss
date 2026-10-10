@@ -3,18 +3,33 @@
   display: grid;
   place-items: center;
   padding: 1.25rem;
-  background: var(--site-bg);
+  background:
+    radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--destaque-brilho) 35%, transparent) 0%, transparent 70%),
+    var(--site-bg);
+}
+
+.simbolo {
+  display: inline-grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  margin-bottom: 1rem;
+  border-radius: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--destaque-1) 0%, var(--destaque-2) 60%, var(--destaque-3) 100%);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--destaque-2) 30%, transparent);
 }
 
 .caixa {
-  width: min(420px, 100%);
+  width: min(400px, 100%);
   text-align: center;
-  padding: 2rem 1.5rem;
+  padding: 2.25rem 1.5rem 1.75rem;
+  box-shadow: var(--shadow-float);
 }
 
 h1 {
   color: var(--rose-deep);
-  font-size: 2rem;
+  font-size: 1.9rem;
   margin-bottom: 0.25rem;
 }
 
