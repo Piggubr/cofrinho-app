@@ -33,7 +33,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/assets")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class AssetController {
 
     private final AssetService servico;

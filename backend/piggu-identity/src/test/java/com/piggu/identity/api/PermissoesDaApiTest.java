@@ -53,6 +53,24 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("parceiro nao convida, nao remove, nao muda papel nem mexe no plano")
+    void parceiroNaoCuidaDaFamilia() throws Exception {
+        mockMvc.perform(post("/api/family/invites").with(TokensDeTeste.parceiro())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"x@piggu.test\"}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/family/members/" + java.util.UUID.randomUUID()).with(TokensDeTeste.parceiro()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put("/api/family/members/" + java.util.UUID.randomUUID() + "/role").with(TokensDeTeste.parceiro())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"papel\":\"PARCEIRO\"}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/billing/checkout").with(TokensDeTeste.parceiro())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"periodo\":\"MENSAL\"}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/billing/refund").with(TokensDeTeste.parceiro()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("sem o segredo do RevenueCat configurado, compra pelo app responde 501")
     void lojaDesligada() throws Exception {
         mockMvc.perform(post("/api/billing/stores/app-store/purchases")

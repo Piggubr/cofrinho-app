@@ -33,7 +33,7 @@ import java.util.UUID;
 /** Receitas da familia. Como os gastos, so o titular (e o admin) lanca e ve. */
 @RestController
 @RequestMapping("/api/incomes")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class IncomeController {
 
     private final IncomeService servico;

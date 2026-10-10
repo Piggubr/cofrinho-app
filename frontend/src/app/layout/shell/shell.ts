@@ -17,6 +17,8 @@ interface ItemDeMenu {
   readonly icone: NomeDoIcone;
   /** Quando ausente, o item aparece para todos os perfis. */
   readonly somenteCompleto?: boolean;
+  /** Assinar e cancelar o Premium e so do titular; o parceiro nao ve o item. */
+  readonly somenteTitular?: boolean;
 }
 
 /** SF Symbols dos atalhos na barra nativa do iOS. */
@@ -77,7 +79,7 @@ export class Shell {
     { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', somenteCompleto: true },
     { rota: '/metas', rotulo: $localize`Metas`, icone: 'alvo', somenteCompleto: true },
     { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas' },
-    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', somenteCompleto: true },
+    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', somenteCompleto: true, somenteTitular: true },
   ];
 
   constructor() {
@@ -175,7 +177,10 @@ export class Shell {
   }
 
   protected itensVisiveis(): ItemDeMenu[] {
-    return this.auth.ehMembro() ? this.itens.filter((item) => !item.somenteCompleto) : this.itens;
+    if (this.auth.ehMembro()) {
+      return this.itens.filter((item) => !item.somenteCompleto);
+    }
+    return this.auth.ehTitular() ? this.itens : this.itens.filter((item) => !item.somenteTitular);
   }
 
   protected alternarMenu(): void {

@@ -28,7 +28,7 @@ import java.util.UUID;
 /** Categorias de gasto e as regras de categoria automatica. */
 @RestController
 @RequestMapping("/api/categories")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class CategoryController {
 
     private final CategoryService servico;

@@ -73,6 +73,20 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("parceiro lanca e consulta gastos, receitas, orcamentos e contas como o titular")
+    void parceiroLanca() throws Exception {
+        mockMvc.perform(post("/api/expenses")
+                        .with(TokensDeTeste.parceiro())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Pao\",\"valor\":12.5}]}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/incomes").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/budgets").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/bills").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("gasto invalido responde 400 com o campo apontado")
     void gastoInvalidoApontaOCampo() throws Exception {
         mockMvc.perform(post("/api/expenses")

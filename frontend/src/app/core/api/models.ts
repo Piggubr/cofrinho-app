@@ -6,7 +6,7 @@
  */
 
 /** ADMIN opera a instalacao; TITULAR e o dono da familia; MEMBRO foi convidado. */
-export type PigguRole = 'ADMIN' | 'TITULAR' | 'MEMBRO';
+export type PigguRole = 'ADMIN' | 'TITULAR' | 'PARCEIRO' | 'MEMBRO';
 
 export interface Usuario {
   id: string;

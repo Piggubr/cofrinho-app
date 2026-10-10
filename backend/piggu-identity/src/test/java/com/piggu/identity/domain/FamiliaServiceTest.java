@@ -122,6 +122,57 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> familias.sair(como(titular))).isInstanceOf(BusinessException.class);
     }
 
+    @Test
+    @DisplayName("titular promove o membro a parceiro e volta atras; a pessoa entra de novo")
+    void promoverAParceiro() {
+        sessoes.save(new RefreshSession(membro.getId(), "hash-do-membro", null, Instant.now().plusSeconds(3600)));
+
+        FamiliaResponse depois = familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.PARCEIRO);
+        assertThat(depois.membros()).extracting(FamiliaResponse.Membro::papel).contains(PigguRole.PARCEIRO);
+        assertThat(sessoes.count()).as("o token antigo ainda diz MEMBRO").isZero();
+
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.MEMBRO);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
+    @Test
+    @DisplayName("parceiro nao convida, nao remove nem muda papel; ninguem vira titular ou admin por aqui")
+    void limitesDoParceiro() {
+        familias.convidar(como(titular), "caio@familia.test");
+        UserAccount terceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        UserAccount parceiro = usuarios.findById(membro.getId()).orElseThrow();
+
+        assertThatThrownBy(() -> familias.convidar(como(parceiro), "x@familia.test")).isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> familias.removerMembro(como(parceiro), terceiro.getId())).isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> familias.mudarPapel(como(parceiro), terceiro.getId(), PigguRole.PARCEIRO))
+                .isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), terceiro.getId(), PigguRole.TITULAR))
+                .isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), terceiro.getId(), PigguRole.ADMIN))
+                .isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), titular.getId(), PigguRole.MEMBRO))
+                .isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), vizinho.getId(), PigguRole.PARCEIRO))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("parceiro pode ser removido pelo titular e pode sair sozinho")
+    void parceiroSaiOuERemovido() {
+        familias.convidar(como(titular), "caio@familia.test");
+        UserAccount outro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.mudarPapel(como(titular), outro.getId(), PigguRole.PARCEIRO);
+
+        familias.removerMembro(como(titular), membro.getId());
+        familias.sair(como(usuarios.findById(outro.getId()).orElseThrow()));
+
+        assertThat(familias.ver(como(titular)).membros()).hasSize(1);
+    }
+
     private static CurrentUser como(UserAccount conta) {
         return new CurrentUser(conta.getId(), conta.getEmail(), conta.getRole(), null, conta.getHouseholdId());
     }

@@ -38,6 +38,11 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
         return role == PigguRole.TITULAR || isAdmin();
     }
 
+    /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
+    public boolean podeLancar() {
+        return isTitular() || role == PigguRole.PARCEIRO;
+    }
+
     /** O ADMIN opera a instalacao e usa tudo; os demais dependem do plano da familia. */
     public boolean isPremium() {
         return isAdmin() || plano == Plano.PREMIUM;
@@ -52,10 +57,10 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
     }
 
     /**
-     * Autor do registro ou titular da familia. Registro de outra familia nem chega aqui:
+     * Autor do registro, titular ou parceiro da familia. Registro de outra familia nem chega aqui:
      * o filtro por familia ({@link FamiliaAtual}) ja o deixou fora da consulta.
      */
     public boolean podeGerenciar(String emailDono) {
-        return isTitular() || (emailDono != null && emailDono.equalsIgnoreCase(email));
+        return podeLancar() || (emailDono != null && emailDono.equalsIgnoreCase(email));
     }
 }

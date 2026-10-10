@@ -47,7 +47,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/expenses")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ExpenseController {
 
     private final ExpenseService servico;

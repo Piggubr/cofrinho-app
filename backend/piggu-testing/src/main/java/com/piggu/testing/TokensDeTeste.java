@@ -21,6 +21,7 @@ public final class TokensDeTeste {
     public static final String EMAIL_ADMIN = "admin@piggu.test";
     public static final String EMAIL_TITULAR = "titular@piggu.test";
     public static final String EMAIL_MEMBRO = "membro@piggu.test";
+    public static final String EMAIL_PARCEIRO = "parceiro@piggu.test";
 
     public static final UUID FAMILIA = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final UUID OUTRA_FAMILIA = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -40,6 +41,11 @@ public final class TokensDeTeste {
     /** Titular no plano gratuito, para conferir o que o Premium barra. */
     public static RequestPostProcessor titularGratuita() {
         return como(EMAIL_TITULAR, PigguRole.TITULAR, UUID.nameUUIDFromBytes(EMAIL_TITULAR.getBytes()), "GRATUITO");
+    }
+
+    /** Parceiro da familia do titular, no Premium como ela. */
+    public static RequestPostProcessor parceiro() {
+        return como(EMAIL_PARCEIRO, PigguRole.PARCEIRO, UUID.nameUUIDFromBytes(EMAIL_PARCEIRO.getBytes()), "PREMIUM");
     }
 
     public static RequestPostProcessor membro() {

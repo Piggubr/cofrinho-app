@@ -17,7 +17,7 @@ import java.time.Year;
 /** Resumos e relatorios da familia. */
 @RestController
 @RequestMapping("/api/reports")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ReportController {
 
     private final RelatorioService relatorios;

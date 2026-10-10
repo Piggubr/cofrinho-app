@@ -36,7 +36,7 @@ import java.util.UUID;
 /** Contas fixas recorrentes da familia. */
 @RestController
 @RequestMapping("/api/bills")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class BillController {
 
     private final ContasFixasService servico;

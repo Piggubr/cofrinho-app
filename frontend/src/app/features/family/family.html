@@ -50,15 +50,25 @@
             <p class="linha-titulo">{{ pessoa.nome }}</p>
             <p class="linha-detalhe">{{ pessoa.email }} · {{ papel(pessoa.papel) }}</p>
           </div>
-          @if (auth.ehTitular() && pessoa.papel === 'MEMBRO') {
-            <button
-              type="button"
-              class="botao perigo pequeno"
-              (click)="remover(pessoa)"
-              [disabled]="ocupado()"
-            >
-              Remover
-            </button>
+          @if (auth.ehTitular() && (pessoa.papel === 'MEMBRO' || pessoa.papel === 'PARCEIRO')) {
+            <div class="acoes-da-pessoa">
+              <button
+                type="button"
+                class="botao contorno pequeno"
+                (click)="mudarPapel(pessoa)"
+                [disabled]="ocupado()"
+              >
+                {{ pessoa.papel === 'PARCEIRO' ? 'Voltar a membro' : 'Tornar parceiro' }}
+              </button>
+              <button
+                type="button"
+                class="botao perigo pequeno"
+                (click)="remover(pessoa)"
+                [disabled]="ocupado()"
+              >
+                Remover
+              </button>
+            </div>
           }
         </li>
       }
@@ -72,7 +82,8 @@
       </div>
       <p i18n class="linha-detalhe">
         A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
-        convite vale 7 dias.
+        convite vale 7 dias. Para que ela também lance gastos e receitas, use "Tornar parceiro" na
+        lista acima.
       </p>
       <div class="linha-de-campos">
         <div class="campo">
@@ -110,7 +121,7 @@
     </section>
   } @else {
     <section class="cartao">
-      <p i18n class="linha-detalhe">Só o titular convida e remove pessoas.</p>
+      <p i18n class="linha-detalhe">Só o titular convida e remove pessoas e cuida do plano.</p>
       <div class="acoes">
         <button i18n type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
       </div>

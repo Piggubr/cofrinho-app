@@ -29,7 +29,7 @@ export class Profile {
   protected readonly contas = signal<Usuario[]>([]);
   protected readonly carregandoAdmin = signal(false);
 
-  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'MEMBRO'];
+  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'PARCEIRO', 'MEMBRO'];
 
   private readonly finance = inject(FinanceService);
   protected readonly moedas = signal<MoedaDisponivel[]>([]);
