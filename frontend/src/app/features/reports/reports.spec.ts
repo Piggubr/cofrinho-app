@@ -73,6 +73,6 @@ describe('Reports', () => {
     http.expectOne((r) => r.url === '/api/reports/month').flush(RESUMO);
     tela.detectChanges();
     expect(tela.nativeElement.textContent).toContain('Piggu Premium');
-    expect(tela.nativeElement.querySelector('svg')).toBeNull();
+    expect(tela.nativeElement.querySelector('svg[role="img"]')).toBeNull();
   });
 });

@@ -1,11 +1,4 @@
-.campo.alinhado {
-  display: flex;
-  align-items: flex-end;
-}
 
-.campo.alinhado .botao {
-  width: 100%;
-}
 
 .destaque {
   display: flex;
@@ -71,7 +64,7 @@
 }
 
 .estrela.marcada {
-  color: #e8b923;
+  color: var(--ouro);
 }
 
 @media (max-width: 640px) {

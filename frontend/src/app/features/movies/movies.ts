@@ -4,6 +4,7 @@ import { LifestyleService } from '../../core/api/lifestyle.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Filme, FilmeDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /** Generos do TMDB que cabem em um sorteio de noite de filme. */
 const GENEROS: { id: string; nome: string }[] = [
@@ -27,7 +28,7 @@ const GENEROS: { id: string; nome: string }[] = [
  */
 @Component({
   selector: 'app-movies',
-  imports: [FormsModule],
+  imports: [Icone, FormsModule],
   templateUrl: './movies.html',
   styleUrl: './movies.scss',
 })

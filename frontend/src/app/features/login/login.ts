@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { GoogleIdentityService } from '../../core/auth/google-identity.service';
 import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Entrada no app.
@@ -14,7 +15,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
  */
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink],
+  imports: [Icone, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

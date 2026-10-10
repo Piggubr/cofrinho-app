@@ -109,7 +109,7 @@
               <span class="etiqueta">Desativado</span>
             }
             @if (auth.ehTitular() && premio.ativo) {
-              <button type="button" class="botao perigo" (click)="desativar(premio)">Remover</button>
+              <button type="button" class="botao icone-so perigo" (click)="desativar(premio)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
             }
           </div>
         </article>

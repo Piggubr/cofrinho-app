@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { ItemDeCompra, ProdutoDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 type NomeDeLista = 'Compras' | 'Desejos';
 
@@ -15,7 +16,7 @@ type NomeDeLista = 'Compras' | 'Desejos';
  */
 @Component({
   selector: 'app-shopping',
-  imports: [FormsModule],
+  imports: [Icone, FormsModule],
   templateUrl: './shopping.html',
   styleUrl: './shopping.scss',
 })

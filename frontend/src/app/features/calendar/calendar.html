@@ -8,8 +8,8 @@
   <div class="cartao-titulo">
     <h2>{{ rotuloDoMes() }}</h2>
     <div class="navegacao-de-mes">
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
     </div>
   </div>
 
@@ -76,7 +76,7 @@
             @if (nota.valor > 0) {
               <span class="linha-valor">{{ nota.valor | moeda }}</span>
             }
-            <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </div>
       }
@@ -152,7 +152,7 @@
             <p class="linha-detalhe">{{ nota.texto }}</p>
           }
         </div>
-        <button i18n type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+        <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     }
   } @else {

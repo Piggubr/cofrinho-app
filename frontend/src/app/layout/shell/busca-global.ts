@@ -6,17 +6,18 @@ import { FinanceService } from '../../core/api/finance.service';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { Filme, Gasto, ItemDeCompra, Lugar } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
+import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { MoedaService } from '../../core/ui/moeda';
 
 export interface TelaBuscavel {
   readonly rota: string;
   readonly rotulo: string;
-  readonly icone: string;
+  readonly icone: NomeDoIcone;
 }
 
 interface Resultado {
   readonly grupo: string;
-  readonly icone: string;
+  readonly icone: NomeDoIcone;
   readonly titulo: string;
   readonly detalhe: string;
   readonly rota: string;
@@ -34,6 +35,7 @@ function normalizar(texto: string): string {
  */
 @Component({
   selector: 'app-busca-global',
+  imports: [Icone],
   template: `
     <button
       type="button"
@@ -43,7 +45,7 @@ function normalizar(texto: string): string {
       i18n-aria-label
       title="Ctrl+K"
     >
-      🔍
+      <app-icone nome="busca" />
     </button>
     @if (aberta()) {
       <div class="fundo" (click)="fechar()"></div>
@@ -75,7 +77,7 @@ function normalizar(texto: string): string {
               (click)="ir(r)"
               (mouseenter)="selecionado.set(i)"
             >
-              <span aria-hidden="true">{{ r.icone }}</span>
+              <span class="icone-do-resultado"><app-icone [nome]="r.icone" [tamanho]="18" /></span>
               <span class="texto">
                 <span>{{ r.titulo }}</span>
                 @if (r.detalhe) {
@@ -93,11 +95,19 @@ function normalizar(texto: string): string {
   `,
   styles: `
     .lupa {
-      background: none;
+      display: inline-grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
       border: 0;
-      font-size: 1.1rem;
+      border-radius: 50%;
+      background: none;
+      color: var(--ink-soft);
       cursor: pointer;
-      padding: 0.3rem;
+      transition: background-color 0.15s ease;
+    }
+    .lupa:hover {
+      background: var(--surface);
     }
     .fundo {
       position: fixed;
@@ -107,7 +117,7 @@ function normalizar(texto: string): string {
     }
     .busca {
       position: fixed;
-      top: 10vh;
+      top: calc(10vh + env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(560px, calc(100vw - 32px));
@@ -115,17 +125,9 @@ function normalizar(texto: string): string {
       overflow: auto;
       background: var(--surface);
       border-radius: var(--raio);
-      box-shadow: var(--shadow-card);
+      box-shadow: var(--shadow-float);
       padding: 0.75rem;
       z-index: 41;
-    }
-    input {
-      width: 100%;
-      font-size: 1rem;
-      padding: 0.6rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: var(--raio-pequeno);
-      background: var(--field-bg);
     }
     ul {
       list-style: none;
@@ -133,28 +135,41 @@ function normalizar(texto: string): string {
       padding: 0;
     }
     .grupo {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin: 0.6rem 0.4rem 0.2rem;
+      letter-spacing: 0.06em;
+      margin: 0.75rem 0.5rem 0.3rem;
     }
     [role='option'] {
       display: flex;
-      gap: 0.6rem;
+      gap: 0.7rem;
       align-items: center;
-      padding: 0.45rem 0.5rem;
+      padding: 0.5rem;
       border-radius: var(--raio-pequeno);
       cursor: pointer;
     }
+    .icone-do-resultado {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--surface-sunken);
+      color: var(--rose-deep);
+    }
     .selecionado {
-      background: var(--pink-bg);
+      background: var(--surface-sunken);
+    }
+    .selecionado .icone-do-resultado {
+      background: var(--surface);
     }
     .texto {
       display: grid;
     }
     small {
-      color: var(--ink-soft);
+      color: var(--muted);
     }
   `,
   host: { '(document:keydown)': 'atalho($event)' },
@@ -193,7 +208,7 @@ export class BuscaGlobal {
     const listas = this.listas();
     const gastos = this.gastos().map((g) => ({
       grupo: $localize`Gastos`,
-      icone: '💸',
+      icone: 'carteira' as const,
       titulo: g.item,
       detalhe: `${g.data.split('-').reverse().join('/')} · ${this.moeda.formatar(g.valor)}`,
       rota: '/gastos',
@@ -202,15 +217,15 @@ export class BuscaGlobal {
     const lugares = (listas?.lugares ?? [])
       .filter((l) => tem(l.nome, l.localizacao, l.categoria))
       .slice(0, 8)
-      .map((l) => ({ grupo: $localize`Lugares`, icone: '📍', titulo: l.nome, detalhe: l.localizacao, rota: '/lugares' }));
+      .map((l) => ({ grupo: $localize`Lugares`, icone: 'local' as const, titulo: l.nome, detalhe: l.localizacao, rota: '/lugares' }));
     const filmes = (listas?.filmes ?? [])
       .filter((f) => tem(f.titulo))
       .slice(0, 8)
-      .map((f) => ({ grupo: $localize`Filmes`, icone: '🎬', titulo: f.titulo, detalhe: f.ano, rota: '/filmes' }));
+      .map((f) => ({ grupo: $localize`Filmes`, icone: 'filme' as const, titulo: f.titulo, detalhe: f.ano, rota: '/filmes' }));
     const compras = (listas?.compras ?? [])
       .filter((c) => tem(c.item, c.marca))
       .slice(0, 8)
-      .map((c) => ({ grupo: $localize`Compras`, icone: '🛒', titulo: c.item, detalhe: c.lista, rota: '/compras' }));
+      .map((c) => ({ grupo: $localize`Compras`, icone: 'carrinho' as const, titulo: c.item, detalhe: c.lista, rota: '/compras' }));
     return [...telas, ...gastos, ...lugares, ...filmes, ...compras];
   });
 
