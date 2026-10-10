@@ -215,10 +215,14 @@
       'conteudo';
   }
 
+  /* Cabecalho de vidro: o conteudo passa por baixo, desfocado. */
   .cabecalho {
     min-height: 56px;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--site-bg) 74%, transparent);
+    backdrop-filter: var(--vidro-desfoque);
+    -webkit-backdrop-filter: var(--vidro-desfoque);
+    box-shadow: inset 0 -0.5px 0 var(--border-strong);
   }
 
   .cabecalho .marca {
@@ -238,34 +242,42 @@
   }
 
   .conteudo {
-    padding: 1.1rem 1rem calc(96px + env(safe-area-inset-bottom, 0px));
+    padding: 1.1rem 1rem calc(112px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Barra de abas fixa embaixo, acima da barra de gestos do iPhone. */
+  /* Barra de abas em capsula de vidro, flutuando acima da barra de gestos do iPhone
+   * (no estilo Liquid Glass do iOS 26). O brilho da borda de cima imita a luz batendo
+   * no vidro; o conteudo continua visivel, desfocado, atras dela. */
   .abas {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
     z-index: 30;
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 1fr;
     align-items: center;
-    padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-top: 1px solid var(--border);
+    padding: 0.3rem;
+    border-radius: 30px;
+    background: var(--vidro-fundo);
+    backdrop-filter: var(--vidro-desfoque);
+    -webkit-backdrop-filter: var(--vidro-desfoque);
+    border: 0.5px solid var(--vidro-borda);
+    box-shadow:
+      inset 0 1px 0 var(--vidro-brilho),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.03),
+      var(--vidro-sombra);
   }
 
   .aba {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.2rem;
-    padding: 0.35rem 0;
+    gap: 0.15rem;
+    padding: 0.4rem 0;
     border: none;
+    border-radius: 24px;
     background: none;
     color: var(--muted);
     font-family: inherit;
@@ -275,38 +287,58 @@
     cursor: pointer;
   }
 
+  .aba {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  /* A aba ativa ganha uma gota de vidro mais densa por tras do icone. */
   .aba.ativo {
     color: var(--rose-deep);
     font-weight: 600;
+    background: color-mix(in srgb, var(--rose-soft) 75%, transparent);
+    box-shadow: inset 0 0.5px 0 var(--vidro-brilho);
+  }
+
+  .aba-lancar {
+    padding: 0;
   }
 
   .aba-lancar-botao {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    background: var(--primaria);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--primaria) 82%, #fff) 0%, var(--primaria) 55%);
     color: var(--primaria-contraste);
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--primaria) 30%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 6px 16px color-mix(in srgb, var(--primaria) 35%, transparent);
   }
 
   /* "Mais": folha que sobe de baixo, por cima de tudo e com a propria area segura. */
   .menu {
     position: fixed;
     top: auto;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
     z-index: 40;
     height: auto;
-    max-height: 85vh;
-    padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
-    border-right: none;
-    border-radius: 24px 24px 0 0;
-    box-shadow: var(--shadow-float);
+    max-height: 82vh;
+    padding: 0.5rem 1rem 1rem;
+    border: 0.5px solid var(--vidro-borda);
+    border-radius: 32px;
+    background: var(--vidro-forte);
+    backdrop-filter: var(--vidro-desfoque);
+    -webkit-backdrop-filter: var(--vidro-desfoque);
+    box-shadow:
+      inset 0 1px 0 var(--vidro-brilho),
+      var(--vidro-sombra);
     overscroll-behavior: contain;
-    transform: translateY(100%);
+    transform: translateY(calc(100% + 2rem));
     visibility: hidden;
     transition:
       transform 0.28s cubic-bezier(0.32, 0.72, 0, 1),
@@ -378,7 +410,8 @@
     width: 48px;
     height: 48px;
     border-radius: 16px;
-    background: var(--surface-sunken);
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    box-shadow: inset 0 0.5px 0 var(--vidro-brilho);
     color: var(--rose-deep);
   }
 
@@ -408,7 +441,7 @@
     z-index: 35;
     border: none;
     padding: 0;
-    background: rgba(43, 30, 50, 0.35);
+    background: rgba(43, 30, 50, 0.22);
     cursor: pointer;
   }
 }
