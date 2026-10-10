@@ -20,6 +20,7 @@ import {
   Produto,
   RelatorioDoAno,
   ResumoDoMes,
+  Preferencias,
   Usuario,
 } from '../core/api/models';
 import { dataIso } from '../core/ui/datas';
@@ -482,6 +483,11 @@ const ROTAS: Rota[] = [
   ['GET', /^\/auth\/me$/, () => estado.titular],
   ['PUT', /^\/auth\/me\/preferences$/, (_p, _x, c) => {
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };
+    return estado.titular;
+  }],
+  ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
+    const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
+    estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };
     return estado.titular;
   }],
   ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],

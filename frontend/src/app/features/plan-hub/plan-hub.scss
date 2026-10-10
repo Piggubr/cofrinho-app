@@ -1,0 +1,23 @@
+.atalhos {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.atalho {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.atalho:hover {
+  border-color: var(--rose);
+}
+
+.texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}

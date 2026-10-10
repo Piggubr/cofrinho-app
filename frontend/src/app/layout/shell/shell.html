@@ -83,19 +83,24 @@
       </button>
     </div>
 
-    <div class="menu-itens">
-      @for (item of itensVisiveis(); track item.rota) {
-        <a
-          [routerLink]="item.rota"
-          routerLinkActive="ativo"
-          class="menu-item"
-          (click)="fecharMenu()"
-        >
-          <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
-          <span class="menu-rotulo">{{ item.rotulo }}</span>
-        </a>
-      }
-    </div>
+    @for (grupo of gruposVisiveis(); track grupo.id) {
+      <div class="menu-grupo">
+        <span class="menu-grupo-titulo">{{ grupo.titulo }}</span>
+        <div class="menu-itens">
+          @for (item of grupo.itens; track item.rota) {
+            <a
+              [routerLink]="item.rota"
+              routerLinkActive="ativo"
+              class="menu-item"
+              (click)="fecharMenu()"
+            >
+              <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
+              <span class="menu-rotulo">{{ item.rotulo }}</span>
+            </a>
+          }
+        </div>
+      </div>
+    }
 
     <button type="button" class="menu-item sair" (click)="sair()">
       <span class="menu-icone"><app-icone nome="sair" /></span>
@@ -107,22 +112,22 @@
     <router-outlet />
   </main>
 
+  <!-- Lancar gasto de qualquer tela, no celular, acima da barra de abas. -->
+  @if (!auth.ehMembro()) {
+    <a
+      routerLink="/gastos"
+      class="lancar-flutuante"
+      aria-label="Lançar gasto"
+      i18n-aria-label
+      (click)="fecharMenu()"
+    >
+      <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
+    </a>
+  }
+
   <!-- Barra de abas do celular. -->
   <nav class="abas" aria-label="Atalhos" i18n-aria-label>
-    @for (item of atalhos(); track item.rota; let i = $index) {
-      @if (i === 2 && !auth.ehMembro()) {
-        <a
-          routerLink="/gastos"
-          class="aba aba-lancar"
-          aria-label="Lançar gasto"
-          i18n-aria-label
-          (click)="fecharMenu()"
-        >
-          <span class="aba-lancar-botao"
-            ><app-icone nome="mais" [tamanho]="24" [traco]="2.2"
-          /></span>
-        </a>
-      }
+    @for (item of atalhos(); track item.rota) {
       <a [routerLink]="item.rota" routerLinkActive="ativo" class="aba" (click)="fecharMenu()">
         <app-icone [nome]="item.icone" [tamanho]="22" />
         <span>{{ item.rotulo }}</span>

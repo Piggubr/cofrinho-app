@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
-import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
+import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
@@ -41,6 +41,15 @@ export class Profile {
     this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
   );
   protected readonly salvandoPreferencias = signal(false);
+  protected readonly salvandoModulos = signal(false);
+
+  protected readonly modulos: { id: ModuloDeEstiloDeVida; nome: string }[] = [
+    { id: 'compras', nome: $localize`Compras` },
+    { id: 'lugares', nome: $localize`Lugares` },
+    { id: 'filmes', nome: $localize`Filmes` },
+    { id: 'fotos', nome: $localize`Fotos` },
+    { id: 'premios', nome: $localize`Prêmios` },
+  ];
   protected readonly excluindo = signal(false);
 
   constructor() {
@@ -74,6 +83,32 @@ export class Profile {
           this.salvandoPreferencias.set(false);
         },
       });
+  }
+
+  /** Sem a lista (conta antiga, demo), todos estao ligados. */
+  protected ligado(modulo: ModuloDeEstiloDeVida): boolean {
+    const ligados = this.auth.usuario()?.preferencias?.modulos;
+    return !ligados || ligados.includes(modulo);
+  }
+
+  /** Cada toque ja salva: o menu muda na hora. */
+  protected alternarModulo(modulo: ModuloDeEstiloDeVida): void {
+    const ligados = this.modulos.map((m) => m.id).filter((id) => this.ligado(id));
+    const novos = ligados.includes(modulo)
+      ? ligados.filter((id) => id !== modulo)
+      : [...ligados, modulo];
+    this.salvandoModulos.set(true);
+    this.erro.set('');
+    this.users.salvarModulos(novos).subscribe({
+      next: (usuario) => {
+        this.auth.atualizarUsuario(usuario);
+        this.salvandoModulos.set(false);
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.salvandoModulos.set(false);
+      },
+    });
   }
 
   protected baixarMeusDados(): void {
