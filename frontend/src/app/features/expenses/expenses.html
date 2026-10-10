@@ -45,7 +45,7 @@
       />
       @if (precoAcima(); as p) {
         <p i18n class="linha-detalhe alerta-preco" role="status">
-          ⚠️ {{ p.percentual }}% acima da média deste item ({{ p.media | moeda }})
+          <app-icone nome="alerta" [tamanho]="14" /> {{ p.percentual }}% acima da média deste item ({{ p.media | moeda }})
         </p>
       }
     </div>
@@ -130,7 +130,7 @@
     </button>
 
     @if (leiturasRestantes() === 0) {
-      <a i18n routerLink="/plano" class="botao contorno">Ler recibo por foto ⭐ Premium</a>
+      <a i18n routerLink="/plano" class="botao contorno"><app-icone nome="camera" [tamanho]="18" /> Ler recibo por foto · Premium</a>
     } @else {
       <label i18n class="botao secundario arquivo">
         @if (lendoRecibo()) {Lendo recibo...} @else {Ler recibo por foto}
@@ -227,9 +227,7 @@
           />
         </div>
         <div class="campo alinhado">
-          <button i18n type="button" class="botao perigo" (click)="removerItemDoRecibo($index)">
-            Remover
-          </button>
+          <button type="button" class="botao icone-so perigo" (click)="removerItemDoRecibo($index)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
         </div>
       </div>
     }
@@ -245,11 +243,13 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>{{ rotuloDoMes() }}</h2>
+    <div>
+      <h2>{{ rotuloDoMes() }}</h2>
+      <p i18n class="linha-detalhe">Total de {{ totalDoMes() | moeda }}</p>
+    </div>
     <div class="cabecalho-mes">
-      <span class="etiqueta">{{ totalDoMes() | moeda }}</span>
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
     </div>
   </div>
 
@@ -322,10 +322,8 @@
           </div>
           <div class="linha-acoes">
             <span class="linha-valor">{{ gasto.valor | moeda }}</span>
-            <button i18n type="button" class="botao contorno pequeno" (click)="abrirEdicao(gasto)">
-              Editar
-            </button>
-            <button i18n type="button" class="botao perigo" (click)="excluir(gasto)">Apagar</button>
+            <button type="button" class="botao icone-so fantasma" (click)="abrirEdicao(gasto)" aria-label="Editar" i18n-aria-label title="Editar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
+            <button type="button" class="botao icone-so perigo" (click)="excluir(gasto)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </div>
       }
@@ -378,7 +376,7 @@
   @for (regra of regras(); track regra.id) {
     <div class="linha">
       <p class="linha-titulo">{{ regra.termo }} → {{ regra.categoria }}</p>
-      <button i18n type="button" class="botao contorno pequeno" (click)="excluirRegra(regra)">Apagar</button>
+      <button type="button" class="botao icone-so perigo" (click)="excluirRegra(regra)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
     </div>
   } @empty {
     <p i18n class="vazio">Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</p>

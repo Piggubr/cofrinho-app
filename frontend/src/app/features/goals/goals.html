@@ -62,7 +62,7 @@
         <p class="linha-titulo">{{ meta.rotulo }}</p>
         <div class="linha-acoes">
           <span class="linha-valor">{{ meta.limite | moeda }}</span>
-          <button i18n type="button" class="botao contorno pequeno" (click)="editar(meta)">Editar</button>
+          <button type="button" class="botao icone-so fantasma" (click)="editar(meta)" aria-label="Editar" i18n-aria-label title="Editar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
         </div>
       </div>
     }

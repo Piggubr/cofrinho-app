@@ -1,12 +1,17 @@
+/* Computador: coluna de menu a esquerda e cabecalho fino em cima do conteudo.
+ * Celular: cabecalho fino em cima, abas embaixo e o menu completo numa folha. */
+
 .moldura {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 248px 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
-    'cabecalho cabecalho'
+    'menu cabecalho'
     'menu conteudo';
 }
+
+/* ---------- Cabecalho ---------- */
 
 .cabecalho {
   grid-area: cabecalho;
@@ -16,72 +21,135 @@
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 0.7rem 1rem;
-  background: var(--pink-bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.menu-botao {
-  display: none;
-  border: none;
-  background: transparent;
-  font-size: 1.3rem;
-  cursor: pointer;
-  color: var(--rose-deep);
-  padding: 0.2rem 0.4rem;
+  min-height: 64px;
+  padding: 0.6rem 1.75rem;
+  background: rgba(248, 245, 246, 0.85);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
 }
 
 .marca {
   display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  flex: 1;
-  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  color: var(--rose-deep);
 }
 
 .marca strong {
-  color: var(--rose-deep);
   font-size: 1.15rem;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.marca-simbolo {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--rose-deep);
+  color: #fff;
+}
+
+/* No computador a marca fica no topo do menu lateral. */
+.cabecalho .marca {
+  display: none;
 }
 
 .cotacao {
   font-size: 0.75rem;
   color: var(--muted);
   white-space: nowrap;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.cabecalho-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .usuario-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.2rem 0.75rem 0.2rem 0.2rem;
+  border-radius: 999px;
   text-decoration: none;
-  color: var(--rose-deep);
+  color: var(--ink);
   font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.usuario-link:hover {
+  background: var(--surface);
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--border);
 }
+
+.avatar-inicial {
+  display: inline-grid;
+  place-items: center;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ---------- Menu lateral ---------- */
 
 .menu {
   grid-area: menu;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 1rem 0.65rem;
+  gap: 0.15rem;
+  padding: 1.1rem 0.85rem 1rem;
   background: var(--surface);
   border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.menu-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.6rem 1.1rem;
+}
+
+.menu-titulo {
+  display: none;
+  font-size: 1rem;
+}
+
+.menu-alca,
+.menu-fechar {
+  display: none;
+}
+
+.menu-itens {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   padding: 0.6rem 0.75rem;
   border: none;
   border-radius: var(--raio-pequeno);
@@ -92,16 +160,20 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .menu-item:hover {
-  background: var(--field-bg);
+  background: var(--surface-sunken);
+  color: var(--ink);
 }
 
 .menu-item.ativo {
-  background: var(--button-bg);
+  background: var(--rose-soft);
   color: var(--rose-deep);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .menu-item.sair {
@@ -109,40 +181,31 @@
   color: var(--muted);
 }
 
-/* Titulo e botao de fechar da gaveta: so aparecem no celular. */
-.menu-topo {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.25rem 0.5rem 0.75rem 0.75rem;
-}
-
-.menu-topo strong {
-  color: var(--rose-deep);
-  font-size: 1.15rem;
-}
-
-.menu-fechar {
-  border: none;
-  background: transparent;
-  color: var(--rose-deep);
-  font-size: 1.1rem;
-  padding: 0.3rem 0.5rem;
-  cursor: pointer;
-}
-
 .menu-icone {
-  font-size: 1.05rem;
-  width: 1.3rem;
-  text-align: center;
+  display: inline-flex;
+  color: inherit;
 }
+
+.menu-fundo {
+  display: none;
+}
+
+/* ---------- Conteudo ---------- */
 
 .conteudo {
   grid-area: conteudo;
-  padding: 1.25rem;
-  max-width: 1100px;
+  padding: 0.75rem 1.75rem 2.5rem;
+  max-width: 1080px;
   width: 100%;
 }
+
+/* ---------- Abas do celular ---------- */
+
+.abas {
+  display: none;
+}
+
+/* ---------- Celular ---------- */
 
 @media (max-width: 899px) {
   .moldura {
@@ -152,44 +215,194 @@
       'conteudo';
   }
 
-  .menu-botao {
-    display: block;
+  .cabecalho {
+    min-height: 56px;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
   }
 
-  /* No celular o menu e uma gaveta lateral por cima de tudo, com a propria area
-   * segura. Antes ele abria em top: 56px fixo e ficava por baixo do cabecalho
-   * sempre que a faixa da demo ou a barra de status empurravam o cabecalho para baixo. */
+  .cabecalho .marca {
+    display: flex;
+  }
+
+  .cotacao {
+    display: none;
+  }
+
+  .usuario-link {
+    padding: 0.15rem;
+  }
+
+  .usuario-nome {
+    display: none;
+  }
+
+  .conteudo {
+    padding: 1.1rem 1rem calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Barra de abas fixa embaixo, acima da barra de gestos do iPhone. */
+  .abas {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: center;
+    padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-top: 1px solid var(--border);
+  }
+
+  .aba {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.35rem 0;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .aba.ativo {
+    color: var(--rose-deep);
+    font-weight: 600;
+  }
+
+  .aba-lancar-botao {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--rose-deep);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(109, 21, 65, 0.3);
+  }
+
+  /* "Mais": folha que sobe de baixo, por cima de tudo e com a propria area segura. */
   .menu {
     position: fixed;
-    top: 0;
-    bottom: 0;
+    top: auto;
     left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 40;
-    width: min(300px, 84vw);
-    padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 0.65rem
-      calc(1rem + env(safe-area-inset-bottom, 0px));
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    height: auto;
+    max-height: 85vh;
+    padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
     border-right: none;
-    box-shadow: var(--shadow-card);
-    transform: translateX(-100%);
+    border-radius: 24px 24px 0 0;
+    box-shadow: var(--shadow-float);
+    overscroll-behavior: contain;
+    transform: translateY(100%);
     visibility: hidden;
     transition:
-      transform 0.25s ease,
-      visibility 0s linear 0.25s;
+      transform 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0s linear 0.28s;
   }
 
   .menu.aberto {
     transform: none;
     visibility: visible;
-    transition: transform 0.25s ease;
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .menu-topo {
-    display: flex;
+    position: relative;
+    padding: 1rem 0.25rem 0.9rem;
+  }
+
+  .menu-topo .marca {
+    display: none;
+  }
+
+  .menu-titulo {
+    display: block;
+  }
+
+  .menu-alca {
+    display: block;
+    position: absolute;
+    top: 0.1rem;
+    left: 50%;
+    width: 36px;
+    height: 4px;
+    margin-left: -18px;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+
+  .menu-fechar {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: var(--surface-sunken);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  /* No celular as telas aparecem em grade, como icones de app. */
+  .menu-itens {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+
+  .menu-itens .menu-item {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.6rem 0.2rem;
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+
+  .menu-itens .menu-icone {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--surface-sunken);
+    color: var(--rose-deep);
+  }
+
+  .menu-itens .menu-item.ativo {
+    background: none;
+  }
+
+  .menu-itens .menu-item.ativo .menu-icone {
+    background: var(--rose-deep);
+    color: #fff;
+  }
+
+  .menu-rotulo {
+    line-height: 1.2;
+  }
+
+  .menu-item.sair {
+    margin-top: 0.75rem;
+    justify-content: center;
+    border: 1px solid var(--border);
   }
 
   .menu-fundo {
+    display: block;
     position: fixed;
     inset: 0;
     z-index: 35;
@@ -198,21 +411,14 @@
     background: rgba(43, 30, 50, 0.35);
     cursor: pointer;
   }
-
-  .conteudo {
-    padding: 1rem 0.85rem 2.5rem;
-  }
-
-  .usuario-nome {
-    display: none;
-  }
 }
 
 .faixa-demo {
   margin: 0;
-  padding: calc(0.35rem + env(safe-area-inset-top, 0px)) 1rem 0.35rem;
+  padding: calc(0.3rem + env(safe-area-inset-top, 0px)) 1rem 0.3rem;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   background: var(--rose-deep);
   color: #fff;
 }

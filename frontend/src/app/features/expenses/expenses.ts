@@ -22,6 +22,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
+import { Icone } from '../../core/ui/icone';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -39,7 +40,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
+  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })

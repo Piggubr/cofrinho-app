@@ -3,74 +3,125 @@ import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
 import { ContaFixa, ContaOuCartao, Orcamento } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { Icone } from '../../core/ui/icone';
 import { dataIso } from '../../core/ui/datas';
 import { MoedaPipe } from '../../core/ui/moeda';
 
 /** Lembretes do mes no painel: contas fixas vencidas ou para vencer. */
 @Component({
   selector: 'app-avisos-do-mes',
-  imports: [MoedaPipe, DataBrPipe, RouterLink],
+  imports: [MoedaPipe, DataBrPipe, RouterLink, Icone],
   template: `
-    @if (orcamentosEmAlerta().length) {
-      <section class="cartao" aria-labelledby="titulo-orcamentos-alerta">
-        <div class="cartao-titulo">
-          <h2 i18n id="titulo-orcamentos-alerta">Orçamento</h2>
-          <a i18n routerLink="/orcamentos" class="botao contorno pequeno">Ver orçamentos</a>
-        </div>
-        @for (orcamento of orcamentosEmAlerta(); track orcamento.id) {
-          <p class="linha-detalhe" [class.atrasada]="orcamento.alerta === 'ESTOUROU'">
-            @if (orcamento.alerta === 'ESTOUROU') {
-              <span i18n>{{ orcamento.categoria }} passou do limite: {{ orcamento.gasto | moeda }} de {{ orcamento.limite | moeda }}</span>
-            } @else {
-              <span i18n>{{ orcamento.categoria }} já usou {{ orcamento.percentual }}% do limite</span>
-            }
-          </p>
-        }
-      </section>
-    }
-    @if (faturasAVencer().length) {
-      <section class="cartao" aria-labelledby="titulo-faturas">
-        <div class="cartao-titulo">
-          <h2 i18n id="titulo-faturas">Fatura do cartão</h2>
-          <a i18n routerLink="/contas-e-cartoes" class="botao contorno pequeno">Ver faturas</a>
-        </div>
-        @for (cartao of faturasAVencer(); track cartao.id) {
-          <p class="linha-detalhe">
-            <span i18n
-              >{{ cartao.nome }} vence em {{ cartao.faturaAPagar!.vencimento | dataBr }}:
-              {{ cartao.faturaAPagar!.total | moeda }}</span
-            >
-          </p>
-        }
-      </section>
-    }
-    @if (contasEmAberto().length) {
+    @if (orcamentosEmAlerta().length || faturasAVencer().length || contasEmAberto().length) {
       <section class="cartao" aria-labelledby="titulo-avisos">
         <div class="cartao-titulo">
-          <h2 i18n id="titulo-avisos">Para pagar</h2>
-          <a i18n routerLink="/contas-fixas" class="botao contorno pequeno">Ver contas</a>
+          <h2 i18n id="titulo-avisos">Para ficar de olho</h2>
         </div>
+
+        @for (orcamento of orcamentosEmAlerta(); track orcamento.id) {
+          <a
+            routerLink="/orcamentos"
+            class="aviso-linha"
+            [class.atrasada]="orcamento.alerta === 'ESTOUROU'"
+          >
+            <span class="aviso-icone"><app-icone nome="pizza" [tamanho]="18" /></span>
+            <span class="aviso-texto">
+              <strong i18n>Orçamento</strong>
+              @if (orcamento.alerta === 'ESTOUROU') {
+                <span i18n
+                  >{{ orcamento.categoria }} passou do limite: {{ orcamento.gasto | moeda }} de
+                  {{ orcamento.limite | moeda }}</span
+                >
+              } @else {
+                <span i18n
+                  >{{ orcamento.categoria }} já usou {{ orcamento.percentual }}% do limite</span
+                >
+              }
+            </span>
+            <app-icone nome="direita" [tamanho]="18" class="aviso-seta" />
+          </a>
+        }
+
+        @for (cartao of faturasAVencer(); track cartao.id) {
+          <a routerLink="/contas-e-cartoes" class="aviso-linha">
+            <span class="aviso-icone"><app-icone nome="cartao" [tamanho]="18" /></span>
+            <span class="aviso-texto">
+              <strong i18n>Fatura do cartão</strong>
+              <span i18n
+                >{{ cartao.nome }} vence em {{ cartao.faturaAPagar!.vencimento | dataBr }}:
+                {{ cartao.faturaAPagar!.total | moeda }}</span
+              >
+            </span>
+            <app-icone nome="direita" [tamanho]="18" class="aviso-seta" />
+          </a>
+        }
+
         @for (conta of contasEmAberto(); track conta.id) {
-          <p class="linha-detalhe" [class.atrasada]="conta.situacao === 'VENCIDA'">
-            @if (conta.situacao === 'VENCIDA') {
-              <span i18n
-                >Venceu em {{ conta.vencimento | dataBr }}: {{ conta.descricao }},
-                {{ conta.valor | moeda }}</span
-              >
-            } @else {
-              <span i18n
-                >Vence em {{ conta.vencimento | dataBr }}: {{ conta.descricao }},
-                {{ conta.valor | moeda }}</span
-              >
-            }
-          </p>
+          <a
+            routerLink="/contas-fixas"
+            class="aviso-linha"
+            [class.atrasada]="conta.situacao === 'VENCIDA'"
+          >
+            <span class="aviso-icone"><app-icone nome="recibo" [tamanho]="18" /></span>
+            <span class="aviso-texto">
+              <strong>{{ conta.descricao }} · {{ conta.valor | moeda }}</strong>
+              @if (conta.situacao === 'VENCIDA') {
+                <span i18n>Venceu em {{ conta.vencimento | dataBr }}</span>
+              } @else {
+                <span i18n>Vence em {{ conta.vencimento | dataBr }}</span>
+              }
+            </span>
+            <app-icone nome="direita" [tamanho]="18" class="aviso-seta" />
+          </a>
         }
       </section>
     }
   `,
   styles: `
-    .atrasada {
-      color: var(--over);
+    .aviso-linha {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      color: inherit;
+      text-decoration: none;
+    }
+    .aviso-linha:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .aviso-icone {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--rose-soft);
+      color: var(--rose-deep);
+      flex-shrink: 0;
+    }
+    .aviso-texto {
+      display: grid;
+      flex: 1;
+      min-width: 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .aviso-texto strong {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .aviso-seta {
+      color: var(--muted);
+    }
+    .atrasada .aviso-icone {
+      background: #fdecf2;
+      color: var(--danger);
+    }
+    .atrasada .aviso-texto span {
+      color: var(--danger);
     }
   `,
 })

@@ -80,7 +80,7 @@
             }
           </span>
         </label>
-        <button i18n type="button" class="botao perigo" (click)="excluir(item)">Apagar</button>
+        <button type="button" class="botao icone-so perigo" (click)="excluir(item)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     }
   } @else {
@@ -101,7 +101,7 @@
           <input type="checkbox" [checked]="item.comprado" (change)="alternarComprado(item)" />
           <span class="linha-titulo">{{ item.item }}</span>
         </label>
-        <button i18n type="button" class="botao perigo" (click)="excluir(item)">Apagar</button>
+        <button type="button" class="botao icone-so perigo" (click)="excluir(item)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     }
   </section>

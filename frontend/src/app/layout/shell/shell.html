@@ -3,35 +3,43 @@
 }
 <div class="moldura">
   <header class="cabecalho">
-    <button i18n-aria-label
-      type="button"
-      class="menu-botao"
-      (click)="alternarMenu()"
-      [attr.aria-expanded]="menuAberto()"
-      aria-label="Abrir menu"
-    >
-      ☰
-    </button>
-
-    <div class="marca">
+    <a routerLink="/painel" class="marca" (click)="fecharMenu()">
+      <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>
       <strong i18n>Piggu</strong>
-      @if (taxaFormatada(); as taxa) {
-        <span
-          class="cotacao"
-          [title]="cotacao()?.desatualizada ? 'Última cotação conhecida' : 'Referência de bancos centrais'"
-        >
-          {{ taxa }}
-        </span>
-      }
-    </div>
+    </a>
 
-    <app-busca-global [telas]="itensVisiveis()" />
+    @if (taxaFormatada(); as taxa) {
+      <span
+        class="cotacao"
+        [title]="
+          cotacao()?.desatualizada ? 'Última cotação conhecida' : 'Referência de bancos centrais'
+        "
+      >
+        {{ taxa }}
+      </span>
+    }
 
-    <div class="usuario">
+    <div class="cabecalho-acoes">
+      <app-busca-global [telas]="itensVisiveis()" />
+
       @if (auth.usuario(); as pessoa) {
-        <a routerLink="/perfil" class="usuario-link" (click)="fecharMenu()">
+        <a
+          routerLink="/perfil"
+          class="usuario-link"
+          (click)="fecharMenu()"
+          [attr.aria-label]="pessoa.nome"
+        >
           @if (pessoa.foto) {
-            <img [src]="pessoa.foto" [alt]="pessoa.nome" class="avatar" referrerpolicy="no-referrer" />
+            <img
+              [src]="pessoa.foto"
+              [alt]="pessoa.nome"
+              class="avatar"
+              referrerpolicy="no-referrer"
+            />
+          } @else {
+            <span class="avatar avatar-inicial" aria-hidden="true">{{
+              pessoa.primeiroNome.charAt(0)
+            }}</span>
           }
           <span class="usuario-nome">{{ pessoa.primeiroNome }}</span>
         </a>
@@ -39,33 +47,96 @@
     </div>
   </header>
 
+  <!-- Menu lateral do computador; no celular vira a folha do "Mais". -->
   @if (menuAberto()) {
-    <button i18n-aria-label type="button" class="menu-fundo" aria-label="Fechar menu" (click)="fecharMenu()"></button>
+    <button
+      i18n-aria-label
+      type="button"
+      class="menu-fundo"
+      aria-label="Fechar menu"
+      (click)="fecharMenu()"
+    ></button>
   }
 
-  <nav class="menu" [class.aberto]="menuAberto()" (keydown.escape)="fecharMenu()">
+  <nav
+    class="menu"
+    [class.aberto]="menuAberto()"
+    (keydown.escape)="fecharMenu()"
+    aria-label="Telas"
+    i18n-aria-label
+  >
     <div class="menu-topo">
-      <strong i18n>Piggu</strong>
-      <button i18n-aria-label type="button" class="menu-fechar" aria-label="Fechar menu" (click)="fecharMenu()">✕</button>
-    </div>
-    @for (item of itensVisiveis(); track item.rota) {
-      <a
-        [routerLink]="item.rota"
-        routerLinkActive="ativo"
-        class="menu-item"
+      <span class="menu-alca" aria-hidden="true"></span>
+      <a routerLink="/painel" class="marca" (click)="fecharMenu()">
+        <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>
+        <strong i18n>Piggu</strong>
+      </a>
+      <strong i18n class="menu-titulo">Todas as telas</strong>
+      <button
+        i18n-aria-label
+        type="button"
+        class="menu-fechar"
+        aria-label="Fechar menu"
         (click)="fecharMenu()"
       >
-        <span class="menu-icone" aria-hidden="true">{{ item.icone }}</span>
-        <span>{{ item.rotulo }}</span>
-      </a>
-    }
+        <app-icone nome="fechar" />
+      </button>
+    </div>
+
+    <div class="menu-itens">
+      @for (item of itensVisiveis(); track item.rota) {
+        <a
+          [routerLink]="item.rota"
+          routerLinkActive="ativo"
+          class="menu-item"
+          (click)="fecharMenu()"
+        >
+          <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
+          <span class="menu-rotulo">{{ item.rotulo }}</span>
+        </a>
+      }
+    </div>
+
     <button type="button" class="menu-item sair" (click)="sair()">
-      <span class="menu-icone" aria-hidden="true">🚪</span>
-      <span i18n>Sair</span>
+      <span class="menu-icone"><app-icone nome="sair" /></span>
+      <span class="menu-rotulo" i18n>Sair</span>
     </button>
   </nav>
 
   <main class="conteudo">
     <router-outlet />
   </main>
+
+  <!-- Barra de abas do celular. -->
+  <nav class="abas" aria-label="Atalhos" i18n-aria-label>
+    @for (item of atalhos(); track item.rota; let i = $index) {
+      @if (i === 2 && !auth.ehMembro()) {
+        <a
+          routerLink="/gastos"
+          class="aba aba-lancar"
+          aria-label="Lançar gasto"
+          i18n-aria-label
+          (click)="fecharMenu()"
+        >
+          <span class="aba-lancar-botao"
+            ><app-icone nome="mais" [tamanho]="24" [traco]="2.2"
+          /></span>
+        </a>
+      }
+      <a [routerLink]="item.rota" routerLinkActive="ativo" class="aba" (click)="fecharMenu()">
+        <app-icone [nome]="item.icone" [tamanho]="22" />
+        <span>{{ item.rotulo }}</span>
+      </a>
+    }
+    <button
+      type="button"
+      class="aba"
+      [class.ativo]="menuAberto()"
+      (click)="alternarMenu()"
+      [attr.aria-expanded]="menuAberto()"
+    >
+      <app-icone nome="grade" [tamanho]="22" />
+      <span i18n>Mais</span>
+    </button>
+  </nav>
 </div>

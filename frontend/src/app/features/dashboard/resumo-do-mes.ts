@@ -3,37 +3,45 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
 import { ResumoDoMes } from '../../core/api/models';
+import { Icone } from '../../core/ui/icone';
 import { MoedaPipe } from '../../core/ui/moeda';
 
 /** Card do mes no painel: receitas - gastos = sobra, e quanto disso foi poupado. */
 @Component({
   selector: 'app-resumo-do-mes',
-  imports: [MoedaPipe, RouterLink, DecimalPipe],
+  imports: [MoedaPipe, RouterLink, DecimalPipe, Icone],
   template: `
     @if (resumo(); as r) {
-      <section class="cartao" aria-labelledby="titulo-resumo">
-        <div class="cartao-titulo">
-          <h2 i18n id="titulo-resumo">Este mês</h2>
+      <section class="cartao resumo" aria-labelledby="titulo-resumo">
+        <div class="resumo-topo">
+          <h2 i18n id="titulo-resumo">Sobra do mês</h2>
           @if (r.taxaDePoupanca !== null) {
-            <span i18n class="etiqueta">{{ r.taxaDePoupanca | number: '1.0-1' }}% poupado</span>
+            <span i18n class="poupado">{{ r.taxaDePoupanca | number: '1.0-1' }}% poupado</span>
           }
         </div>
+        <p class="sobra" [class.negativo]="r.sobra < 0">{{ r.sobra | moeda }}</p>
         <div class="resumo-do-mes">
-          <div>
-            <p i18n class="linha-detalhe">Receitas</p>
-            <p class="numero">{{ r.receitas | moeda }}</p>
+          <div class="parcela">
+            <span class="parcela-icone entrada"
+              ><app-icone nome="entrada" [tamanho]="16" [traco]="2"
+            /></span>
+            <div>
+              <p i18n class="rotulo">Receitas</p>
+              <p class="valor">{{ r.receitas | moeda }}</p>
+            </div>
           </div>
-          <div>
-            <p i18n class="linha-detalhe">Gastos</p>
-            <p class="numero">{{ r.gastos | moeda }}</p>
-          </div>
-          <div>
-            <p i18n class="linha-detalhe">Sobra</p>
-            <p class="numero" [class.negativo]="r.sobra < 0">{{ r.sobra | moeda }}</p>
+          <div class="parcela">
+            <span class="parcela-icone saida"
+              ><app-icone nome="carteira" [tamanho]="16" [traco]="2"
+            /></span>
+            <div>
+              <p i18n class="rotulo">Gastos</p>
+              <p class="valor">{{ r.gastos | moeda }}</p>
+            </div>
           </div>
         </div>
         @if (r.receitas === 0) {
-          <p i18n class="linha-detalhe">
+          <p i18n class="dica">
             Lance as <a routerLink="/receitas">receitas do mês</a> para ver quanto sobrou e quanto
             você poupou.
           </p>
@@ -42,13 +50,84 @@ import { MoedaPipe } from '../../core/ui/moeda';
     }
   `,
   styles: `
-    .resumo-do-mes {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .resumo {
+      position: relative;
+      overflow: hidden;
+      border: none;
+      color: #fff;
+      background:
+        radial-gradient(120% 140% at 100% 0%, rgba(224, 57, 155, 0.35) 0%, transparent 55%),
+        linear-gradient(135deg, #7a1a4a 0%, var(--rose-deep) 55%, #4f0f30 100%);
+      box-shadow: 0 14px 34px rgba(109, 21, 65, 0.28);
+    }
+    .resumo-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 0.75rem;
     }
+    h2 {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.78);
+      letter-spacing: 0;
+    }
+    .poupado {
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .sobra {
+      margin: 0.35rem 0 1.1rem;
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
     .negativo {
-      color: var(--over);
+      color: #ffc2dd;
+    }
+    .resumo-do-mes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+    .parcela {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .parcela-icone {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .rotulo {
+      margin: 0;
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    .valor {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+    .dica {
+      margin: 0.9rem 0 0;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .dica a {
+      color: #fff;
     }
   `,
 })

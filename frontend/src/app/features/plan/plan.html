@@ -19,7 +19,7 @@
   @if (plano.plano === 'PREMIUM') {
     <section class="cartao">
       <div class="cartao-titulo">
-        <h2 i18n>Você é Premium ⭐</h2>
+        <h2><span class="selo"><app-icone nome="estrela" [tamanho]="16" [traco]="2.2" /></span><ng-container i18n>Você é Premium</ng-container></h2>
         @if (plano.premiumAte) {
           <span i18n class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
         }

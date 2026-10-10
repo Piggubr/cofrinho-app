@@ -11,42 +11,44 @@
   <div class="cartao-titulo">
     <button
       type="button"
-      class="botao contorno pequeno"
+      class="botao contorno icone-so"
       (click)="trocarMes(-1)"
       aria-label="Mês anterior"
       i18n-aria-label
     >
-      ‹
+      <app-icone nome="esquerda" [tamanho]="18" />
     </button>
     <h2 id="titulo-contas-mes">{{ rotuloDoMes() }}</h2>
     <button
       type="button"
-      class="botao contorno pequeno"
+      class="botao contorno icone-so"
       (click)="trocarMes(1)"
       aria-label="Próximo mês"
       i18n-aria-label
     >
-      ›
+      <app-icone nome="direita" [tamanho]="18" />
     </button>
   </div>
   <p i18n class="linha-detalhe">Em aberto: {{ totalEmAberto() | moeda }}</p>
 
   @for (conta of contas(); track conta.id) {
-    <div class="linha">
-      <div>
-        <p class="linha-titulo">{{ conta.descricao }}</p>
-        <p class="linha-detalhe">
-          {{ conta.vencimento | dataBr }} · {{ conta.categoria }}
-          @if (conta.automatico) {
-            <span i18n> · lança sozinha</span>
-          }
-        </p>
+    <div class="conta-fixa">
+      <div class="linha conta">
+        <div>
+          <p class="linha-titulo">{{ conta.descricao }}</p>
+          <p class="linha-detalhe">
+            {{ conta.vencimento | dataBr }} · {{ conta.categoria }}
+            @if (conta.automatico) {
+              <span i18n> · lança sozinha</span>
+            }
+          </p>
+        </div>
+        <strong class="conta-valor">{{ conta.valor | moeda }}</strong>
       </div>
-      <div class="linha-acoes">
-        <strong>{{ conta.valor | moeda }}</strong>
+      <div class="conta-acoes">
         @switch (conta.situacao) {
           @case ('PAGA') {
-            <span i18n class="etiqueta">Paga</span>
+            <span i18n class="etiqueta paga">Paga</span>
           }
           @case ('VENCIDA') {
             <span i18n class="etiqueta atrasada">Vencida</span>
@@ -59,7 +61,7 @@
           <button
             i18n
             type="button"
-            class="botao pequeno"
+            class="botao secundario pequeno"
             (click)="pagar(conta)"
             [disabled]="ocupado()"
           >
@@ -67,13 +69,16 @@
           </button>
         }
         <button
-          i18n
           type="button"
-          class="botao contorno pequeno"
+          class="botao icone-so perigo"
           (click)="excluir(conta)"
           [disabled]="ocupado()"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
         >
-          Apagar
+          <app-icone nome="lixeira" [tamanho]="18" />
         </button>
       </div>
     </div>

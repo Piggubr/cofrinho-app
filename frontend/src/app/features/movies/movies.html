@@ -86,7 +86,7 @@
           <p class="linha-detalhe">{{ filme.ano }}</p>
           <div class="acoes">
             <button i18n type="button" class="botao pequeno" (click)="alternarAssistido(filme)">Já assistimos</button>
-            <button i18n type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluir(filme)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </article>
       }
@@ -133,7 +133,7 @@
             <button i18n type="button" class="botao contorno pequeno" (click)="alternarAssistido(filme)">
               Voltar para a fila
             </button>
-            <button i18n type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluir(filme)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </article>
       }
