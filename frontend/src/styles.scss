@@ -56,6 +56,14 @@
   --track: #f3e6ec;
   --rose-soft: #fbeff3;
 
+  /* Vidro (barras e folhas flutuantes do celular) */
+  --vidro-fundo: rgba(255, 255, 255, 0.68);
+  --vidro-forte: rgba(255, 255, 255, 0.78);
+  --vidro-borda: rgba(255, 255, 255, 0.7);
+  --vidro-brilho: rgba(255, 255, 255, 0.9);
+  --vidro-sombra: 0 10px 34px rgba(110, 34, 69, 0.14), 0 2px 6px rgba(43, 30, 50, 0.06);
+  --vidro-desfoque: blur(22px) saturate(190%);
+
   /* Forma */
   --shadow-card: 0 1px 2px rgba(43, 30, 50, 0.04), 0 6px 24px rgba(43, 30, 50, 0.05);
   --shadow-float: 0 12px 40px rgba(43, 30, 50, 0.16);
@@ -110,6 +118,12 @@
     --button-bg: #3a2431;
     --track: #372b34;
     --rose-soft: #3a2431;
+
+    --vidro-fundo: rgba(40, 28, 37, 0.66);
+    --vidro-forte: rgba(40, 28, 37, 0.78);
+    --vidro-borda: rgba(255, 255, 255, 0.12);
+    --vidro-brilho: rgba(255, 255, 255, 0.18);
+    --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
 
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
     --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
