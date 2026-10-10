@@ -12,28 +12,47 @@
 
 :root {
   /* Paleta da marca */
-  --pink-bg: #fae2e9;
+  --pink-bg: #f1dce5;
   --ink: #2b1e32;
-  --ink-soft: #5c4c58;
-  --muted: #8b7480;
-  --rose: #b85c7d;
+  --ink-soft: #574c52;
+  --muted: #857a7f;
+  --rose: #a24a6c;
   --rose-deep: #6d1541;
   --evento: #5c4270;
-  --ok: #7fa06b;
-  --over: #e0399b;
+  --ok: #6f9a78;
+  --over: #b4234f;
+
+  /* Papeis das cores. Trocar a paleta e mexer so neste bloco. */
+  --primaria: var(--rose-deep);
+  --primaria-hover: #580f34;
+  --primaria-contraste: #ffffff;
+  --destaque-1: #7e2150;
+  --destaque-2: #6d1541;
+  --destaque-3: #4a0e2c;
+  --destaque-brilho: rgba(214, 120, 160, 0.28);
+  --anel: rgba(162, 74, 108, 0.16);
+  --ok-soft: #e8f1ea;
+  --ok-ink: #3c6045;
+  --danger: #b4234f;
+  --danger-soft: #f8e6eb;
+  --danger-ink: #8a1a3c;
+  --ouro: #c89b3c;
+  --ouro-soft: #f7efdc;
+  --ouro-ink: #7a5a16;
+  --serie-receita: #6f9a78;
+  --serie-gasto: #a24a6c;
+  --placeholder: #a39a9d;
 
   /* Superficies */
-  --site-bg: #f8f5f6;
+  --site-bg: #f6f4f3;
   --surface: #ffffff;
-  --surface-sunken: #f4eff1;
-  --border: #ece4e8;
-  --border-strong: #ddd1d7;
-  --field-bg: #f4eff1;
-  --button-bg: #fbe9ef;
-  --track: #f1e7eb;
-  --rose-soft: #fbe9ef;
-  --ok-soft: #edf4e8;
-  --danger: #c2185b;
+  --surface-sunken: #f1eeec;
+  --border: #e8e3e1;
+  --border-strong: #d9d1ce;
+  --field-bg: #f1eeec;
+  --button-bg: #f5e9ee;
+  --track: #ece6e4;
+  --rose-soft: #f5e9ee;
 
   /* Forma */
   --shadow-card: 0 1px 2px rgba(43, 30, 50, 0.04), 0 6px 24px rgba(43, 30, 50, 0.05);
@@ -181,7 +200,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #a8969f;
+  color: var(--placeholder);
 }
 
 input:hover,
@@ -196,7 +215,7 @@ textarea:focus {
   outline: none;
   background: var(--surface);
   border-color: var(--rose);
-  box-shadow: 0 0 0 4px rgba(184, 92, 125, 0.15);
+  box-shadow: 0 0 0 4px var(--anel);
 }
 
 select {
@@ -306,8 +325,8 @@ button {
   padding: 0.6rem 1.25rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--rose-deep);
-  color: #fff;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.2;
@@ -322,7 +341,7 @@ button {
 }
 
 .botao:hover:not(:disabled) {
-  background: #5a1036;
+  background: var(--primaria-hover);
 }
 
 .botao:active:not(:disabled) {
@@ -368,7 +387,7 @@ button {
 }
 
 .botao.perigo:hover:not(:disabled) {
-  background: #fdecf2;
+  background: var(--danger-soft);
 }
 
 .botao.pequeno {
@@ -508,8 +527,8 @@ button {
 }
 
 .etiqueta.premium {
-  background: #fff4d6;
-  color: #8a5a00;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
 }
 
 .aviso {
@@ -520,13 +539,13 @@ button {
 }
 
 .aviso.erro {
-  background: #fdecf2;
-  color: #8c1745;
+  background: var(--danger-soft);
+  color: var(--danger-ink);
 }
 
 .aviso.sucesso {
   background: var(--ok-soft);
-  color: #3f5a30;
+  color: var(--ok-ink);
 }
 
 .aviso.informacao {

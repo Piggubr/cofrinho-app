@@ -56,9 +56,9 @@ import { MoedaPipe } from '../../core/ui/moeda';
       border: none;
       color: #fff;
       background:
-        radial-gradient(120% 140% at 100% 0%, rgba(224, 57, 155, 0.35) 0%, transparent 55%),
-        linear-gradient(135deg, #7a1a4a 0%, var(--rose-deep) 55%, #4f0f30 100%);
-      box-shadow: 0 14px 34px rgba(109, 21, 65, 0.28);
+        radial-gradient(120% 140% at 100% 0%, var(--destaque-brilho) 0%, transparent 55%),
+        linear-gradient(135deg, var(--destaque-1) 0%, var(--destaque-2) 55%, var(--destaque-3) 100%);
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--destaque-2) 30%, transparent);
     }
     .resumo-topo {
       display: flex;

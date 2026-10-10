@@ -117,7 +117,7 @@ import { MoedaPipe } from '../../core/ui/moeda';
       color: var(--muted);
     }
     .atrasada .aviso-icone {
-      background: #fdecf2;
+      background: var(--danger-soft);
       color: var(--danger);
     }
     .atrasada .aviso-texto span {

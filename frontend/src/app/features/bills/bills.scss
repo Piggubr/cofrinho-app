@@ -20,11 +20,11 @@
 
 .etiqueta.paga {
   background: var(--ok-soft);
-  color: #3f5a30;
+  color: var(--ok-ink);
 }
 
 .etiqueta.atrasada {
-  background: #fdecf2;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 

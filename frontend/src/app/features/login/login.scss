@@ -4,7 +4,7 @@
   place-items: center;
   padding: 1.25rem;
   background:
-    radial-gradient(60% 50% at 50% 0%, rgba(224, 57, 155, 0.12) 0%, transparent 70%),
+    radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--destaque-brilho) 35%, transparent) 0%, transparent 70%),
     var(--site-bg);
 }
 
@@ -16,8 +16,8 @@
   margin-bottom: 1rem;
   border-radius: 22px;
   color: #fff;
-  background: linear-gradient(135deg, #8a1f55 0%, var(--rose-deep) 60%, #4f0f30 100%);
-  box-shadow: 0 12px 28px rgba(109, 21, 65, 0.3);
+  background: linear-gradient(135deg, var(--destaque-1) 0%, var(--destaque-2) 60%, var(--destaque-3) 100%);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--destaque-2) 30%, transparent);
 }
 
 .caixa {
