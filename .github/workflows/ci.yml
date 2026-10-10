@@ -32,6 +32,15 @@ jobs:
       - name: Procurar segredos no historico
         run: '"$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --no-banner -v .'
 
+  backup:
+    name: Backup e restauracao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck -x backend/scripts/*.sh backend/db/init/*.sh scripts/*.sh
+      # Postgres descartavel: backup cifrado, rotacao, restauracao testada e por cima.
+      - run: backend/scripts/teste-do-backup.sh
+
   backend:
     name: Backend (mvn verify)
     runs-on: ubuntu-latest
