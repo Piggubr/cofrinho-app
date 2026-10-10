@@ -9,16 +9,22 @@ o botão e mostra o convite.
 | Recurso | Plano | Por quê |
 |---|---|---|
 | Gastos, categorias, meta do mês, calendário | Grátis | É o núcleo do app; sem isso ninguém chega a querer o Premium |
-| Cofrinho e depósitos da família (inclui o perfil FAMILIAR) | Grátis | Idem; é o que traz a família para dentro |
+| Cofrinho e depósitos da família (inclui o MEMBRO) | Grátis | Idem; é o que traz a família para dentro |
 | Lista de compras, lugares (com foto), filmes | Grátis | Custo baixo e geram uso diário |
 | Prêmios e Fofocoins | Grátis | Engajamento |
 | Moeda e cotação | Grátis | Custo zero (Frankfurter) |
+| Receitas, relatório do mês, comparação com o mês anterior e projeção | Grátis | Saber para onde vai o dinheiro é o básico de um app de finanças |
+| Exportar e apagar os dados | Sempre grátis | Portabilidade e eliminação são direitos (LGPD art. 18) |
+| **Orçamento por categoria com alerta** (80% e 100%) | **Premium** | Planejamento ativo, o que mais pesa na decisão de pagar |
+| **Relatório do ano com gráficos** | **Premium** | Visão de longo prazo; o relatório do mês continua grátis |
 | **Contas bancárias pelo Open Finance** (conectar e atualizar saldo) | **Premium** | Custo por conexão na Pluggy; é o recurso que mais vale |
-| **Leitura da nota fiscal pela foto** (Gemini) | **Premium** | Custo por chamada de IA |
+| Leitura da nota fiscal pela foto, pelo leitor próprio (OCR) | Grátis até 10 por mês por família | A foto não sai do servidor e custa pouco; o limite segura abuso |
+| **Leitura de nota além de 10 por mês, e a reserva pela IA (Gemini)** | **Premium** | Custo por chamada de IA |
 | **Mural de fotos** (feed) | **Premium** | Custo de armazenamento |
 | Ver, apagar e desconectar o que já existe | Sempre grátis | Premium vencido nunca prende dado da pessoa (LGPD) |
 
-O ADMIN usa tudo sem plano (opera a instalação). A FAMILIAR não alcança nenhum
+O Premium é da família: o titular assina e todos da família usam. O ADMIN usa tudo
+sem plano (opera a instalação). O MEMBRO não alcança nenhum
 recurso Premium, então não assina.
 
 ## Posso cobrar pelo Open Finance?
@@ -75,12 +81,14 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 3. **Premium vencido:** hoje as contas salvas seguem visíveis (certo), mas o item
    continua sincronizando na Pluggy (custo e tratamento sem finalidade). Sugestão:
    desconectar sozinho 30 dias depois do vencimento, com aviso.
-4. **Arrependimento de 7 dias** (CDC art. 49): a tela promete devolução integral; hoje o
-   reembolso é manual pelo painel da Stripe.
-5. **Aviso de privacidade:** incluir a Stripe como operadora (recebe e-mail e pagamento).
-6. **Teste grátis:** não ligado. O Piggu Kids dá 30 dias; aqui seria `trial_period_days`
-   no checkout.
-7. **Apps:** validar recibo pela App Store Server API e pela Google Play Developer API.
-8. **Premium está magro** para R$ 19,90 (três recursos). Candidatos: relatório do ano
-   com gráficos, orçamento por categoria com alerta, várias metas. Exportar os dados
-   tem de ficar grátis (portabilidade, LGPD art. 18 V).
+4. ~~Arrependimento de 7 dias~~ (CDC art. 49): feito, botão "Cancelar e pedir reembolso"
+   na tela de planos nos 7 primeiros dias, que cancela e devolve pela API da Stripe.
+5. ~~Aviso de privacidade~~: feito, a Stripe está na lista de operadores em `/privacidade`.
+6. ~~Teste grátis~~: 7 dias (`PIGGU_DIAS_DE_TESTE`) por `trial_period_days` no Checkout,
+   uma vez por conta (marcado quando a Stripe avisa que o teste começou).
+7. ~~Apps~~: webhook do RevenueCat em `POST /api/billing/stores/{app-store|play-store}/purchases`
+   (o RevenueCat valida o recibo com as lojas), autenticado pelo segredo
+   `REVENUECAT_WEBHOOK_SECRET`, idempotente pelo id do aviso. Falta criar a conta no
+   RevenueCat e publicar os apps com o id da conta Piggu como `app_user_id`.
+8. ~~Premium magro~~: entraram o orçamento por categoria com alerta e o relatório do ano
+   com gráficos (C5). Exportar os dados e o relatório do mês seguem grátis.

@@ -1,4 +1,4 @@
-<h1>Perfil</h1>
+<h1 i18n>Perfil</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -17,23 +17,24 @@
         <h2>{{ pessoa.nome }}</h2>
         <p class="linha-detalhe">{{ pessoa.email }}</p>
         <span class="etiqueta">{{ pessoa.role }}</span>
+        <p class="linha-detalhe"><a i18n routerLink="/familia">Ver minha família</a></p>
       </div>
     </div>
 
     <div class="acoes">
-      <button type="button" class="botao contorno" (click)="sair()">Sair da conta</button>
+      <button i18n type="button" class="botao contorno" (click)="sair()">Sair da conta</button>
     </div>
   </section>
 }
 
 <section class="cartao" aria-labelledby="titulo-moeda">
   <div class="cartao-titulo">
-    <h2 id="titulo-moeda">Moeda</h2>
+    <h2 i18n id="titulo-moeda">Moeda</h2>
   </div>
 
   <div class="linha-de-campos">
     <div class="campo">
-      <label for="moeda">Mostrar valores em</label>
+      <label i18n for="moeda">Mostrar valores em</label>
       <select id="moeda" [ngModel]="moeda()" (ngModelChange)="moeda.set($event)">
         @for (opcao of moedas(); track opcao.codigo) {
           <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
@@ -41,7 +42,7 @@
       </select>
     </div>
     <div class="campo">
-      <label for="moedaConversao">Converter cotação para</label>
+      <label i18n for="moedaConversao">Converter cotação para</label>
       <select
         id="moedaConversao"
         [ngModel]="moedaConversao()"
@@ -54,22 +55,38 @@
     </div>
   </div>
 
-  <label class="caixa">
+  <label i18n class="caixa">
     <input type="checkbox" [ngModel]="mostrarCotacao()" (ngModelChange)="mostrarCotacao.set($event)" />
     Mostrar a cotação no topo do app
   </label>
-  <p class="linha-detalhe">
+  <p i18n class="linha-detalhe">
     Trocar a moeda muda só como os valores aparecem; os valores já lançados não são convertidos.
   </p>
 
   <div class="acoes">
-    <button
+    <button i18n
       type="button"
       class="botao"
       (click)="salvarPreferencias()"
       [disabled]="salvandoPreferencias() || !moedas().length"
     >
-      {{ salvandoPreferencias() ? 'Salvando...' : 'Salvar preferências' }}
+      @if (salvandoPreferencias()) {Salvando...} @else {Salvar preferências}
+    </button>
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-dados">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-dados">Seus dados</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são
+    gratuitos em qualquer plano.
+  </p>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno" (click)="baixarMeusDados()">Baixar meus dados</button>
+    <button i18n type="button" class="botao perigo" (click)="excluirConta()" [disabled]="excluindo()">
+      @if (excluindo()) {Excluindo...} @else {Excluir minha conta}
     </button>
   </div>
 </section>
@@ -77,47 +94,11 @@
 @if (auth.ehAdmin()) {
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2>Quem pode entrar</h2>
-    </div>
-
-    <div class="linha-de-campos">
-      <div class="campo">
-        <label for="email">E-mail</label>
-        <input id="email" type="email" [ngModel]="novoEmail()" (ngModelChange)="novoEmail.set($event)" placeholder="pessoa@gmail.com" />
-      </div>
-      <div class="campo">
-        <label for="perfil">Perfil</label>
-        <select id="perfil" [ngModel]="novoPerfil()" (ngModelChange)="novoPerfil.set($event)">
-          @for (perfil of perfis; track perfil) {
-            <option [value]="perfil">{{ perfil }}</option>
-          }
-        </select>
-      </div>
-      <div class="campo alinhado">
-        <button type="button" class="botao" (click)="autorizar()">Autorizar</button>
-      </div>
-    </div>
-
-    @for (item of autorizados(); track item.email) {
-      <div class="linha">
-        <div>
-          <p class="linha-titulo">{{ item.email }}</p>
-          <p class="linha-detalhe">{{ item.role }}</p>
-        </div>
-        <button type="button" class="botao perigo" (click)="revogar(item.email)">Remover</button>
-      </div>
-    } @empty {
-      <p class="vazio">Nenhum e-mail liberado.</p>
-    }
-  </section>
-
-  <section class="cartao">
-    <div class="cartao-titulo">
-      <h2>Contas</h2>
+      <h2 i18n>Contas da instalação</h2>
     </div>
 
     @if (carregandoAdmin()) {
-      <p class="carregando">Carregando...</p>
+      <p i18n class="carregando">Carregando...</p>
     } @else {
       @for (conta of contas(); track conta.id) {
         <div class="linha">
@@ -126,18 +107,18 @@
             <p class="linha-detalhe">{{ conta.email }}</p>
           </div>
           <div class="linha-acoes">
-            <select [ngModel]="conta.role" (ngModelChange)="alterarPerfil(conta, $event)" aria-label="Perfil">
+            <select i18n-aria-label [ngModel]="conta.role" (ngModelChange)="alterarPerfil(conta, $event)" aria-label="Perfil">
               @for (perfil of perfis; track perfil) {
                 <option [value]="perfil">{{ perfil }}</option>
               }
             </select>
-            <button type="button" class="botao contorno pequeno" (click)="alternarAtivo(conta)">
-              {{ conta.ativo ? 'Desativar' : 'Ativar' }}
+            <button i18n type="button" class="botao contorno pequeno" (click)="alternarAtivo(conta)">
+              @if (conta.ativo) {Desativar} @else {Ativar}
             </button>
           </div>
         </div>
       } @empty {
-        <p class="vazio">Nenhuma conta criada ainda.</p>
+        <p i18n class="vazio">Nenhuma conta criada ainda.</p>
       }
     }
   </section>

@@ -4,9 +4,11 @@ import com.piggu.banking.api.dto.BankAccountResponse;
 import com.piggu.banking.api.dto.ConnectTokenResponse;
 import com.piggu.banking.api.dto.RegisterItemRequest;
 import com.piggu.banking.domain.BankingService;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,13 +27,19 @@ import java.util.UUID;
 /** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
 @RestController
 @RequestMapping("/api/banking")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class BankingController {
 
     private final BankingService servico;
+    private final Consentimentos consentimentos;
 
-    public BankingController(BankingService servico) {
+    public BankingController(BankingService servico, Consentimentos consentimentos) {
         this.servico = servico;
+        this.consentimentos = consentimentos;
+    }
+
+    /** O consentimento chega no mesmo pedido que abre a conexao com o banco. */
+    public record ConsentimentoRequest(Boolean autorizo, @Size(max = 20) String versaoDoAviso) {
     }
 
     /** Open Finance e opcional: o front so mostra o card quando isto diz que esta ligado. */
@@ -40,9 +48,17 @@ public class BankingController {
         return Map.of("habilitado", servico.habilitado());
     }
 
+    /**
+     * Cada banco conectado e um compartilhamento novo: a autorizacao vem a cada vez,
+     * antes de o widget da Pluggy sequer carregar.
+     */
     @PostMapping("/connect-token")
-    public ConnectTokenResponse connectToken(@AuthUser CurrentUser usuario) {
+    public ConnectTokenResponse connectToken(@Valid @RequestBody(required = false) ConsentimentoRequest pedido,
+                                             @AuthUser CurrentUser usuario) {
         usuario.exigirPremium("Conectar bancos pelo Open Finance");
+        consentimentos.exigirAgora(usuario, "PLUGGY",
+                "Para conectar um banco, autorize o compartilhamento dos seus dados bancarios com a Pluggy.",
+                pedido == null ? null : pedido.autorizo(), pedido == null ? null : pedido.versaoDoAviso());
         return servico.gerarConnectToken(usuario);
     }
 

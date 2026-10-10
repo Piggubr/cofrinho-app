@@ -1,20 +1,22 @@
 import { Component, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
+import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
 /**
- * Perfil e, para o administrador, a gestao de contas.
+ * Perfil e, para o administrador, as contas da instalacao.
  *
- * <p>A lista de e-mails liberados era constante no codigo do Apps Script e exigia
- * reimplantar o script para mudar. Agora e uma tela.</p>
+ * <p>O cadastro e aberto: quem entra em cada familia e assunto do titular, na tela
+ * Familia.</p>
  */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -25,13 +27,9 @@ export class Profile {
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly contas = signal<Usuario[]>([]);
-  protected readonly autorizados = signal<{ email: string; role: PigguRole }[]>([]);
   protected readonly carregandoAdmin = signal(false);
 
-  protected readonly novoEmail = signal('');
-  protected readonly novoPerfil = signal<PigguRole>('FAMILIAR');
-
-  protected readonly perfis: PigguRole[] = ['ADMIN', 'BEATRIZ', 'FAMILIAR'];
+  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'MEMBRO'];
 
   private readonly finance = inject(FinanceService);
   protected readonly moedas = signal<MoedaDisponivel[]>([]);
@@ -43,6 +41,7 @@ export class Profile {
     this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
   );
   protected readonly salvandoPreferencias = signal(false);
+  protected readonly excluindo = signal(false);
 
   constructor() {
     this.finance.listarMoedas().subscribe({
@@ -67,7 +66,7 @@ export class Profile {
       .subscribe({
         next: (usuario) => {
           this.auth.atualizarUsuario(usuario);
-          this.aviso.set('Preferências salvas.');
+          this.aviso.set($localize`Preferências salvas.`);
           this.salvandoPreferencias.set(false);
         },
         error: (falha) => {
@@ -77,35 +76,35 @@ export class Profile {
       });
   }
 
+  protected baixarMeusDados(): void {
+    this.erro.set('');
+    this.users.exportarMeusDados().subscribe({
+      next: (arquivo) => baixar(arquivo, 'piggu-meus-dados.json'),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected excluirConta(): void {
+    const texto =
+      $localize`Excluir sua conta apaga o que é só seu. Se você for a última pessoa da família, ` +
+      $localize`tudo da família é apagado. Se outras pessoas ficarem, o que você lançou fica com elas, ` +
+      $localize`sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ` +
+      $localize`Digite EXCLUIR para confirmar.`;
+    if (prompt(texto)?.trim().toUpperCase() !== 'EXCLUIR') {
+      return;
+    }
+    this.excluindo.set(true);
+    this.users.excluirConta().subscribe({
+      next: () => void this.auth.encerrarLocalmente(),
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.excluindo.set(false);
+      },
+    });
+  }
+
   protected sair(): void {
     void this.auth.sair();
-  }
-
-  protected autorizar(): void {
-    const email = this.novoEmail().trim();
-    if (!email) {
-      this.erro.set('Digite um e-mail válido.');
-      return;
-    }
-
-    this.users.autorizar(email, this.novoPerfil()).subscribe({
-      next: () => {
-        this.novoEmail.set('');
-        this.aviso.set('E-mail autorizado.');
-        this.carregarAdmin();
-      },
-      error: (falha) => this.erro.set(mensagemDeErro(falha)),
-    });
-  }
-
-  protected revogar(email: string): void {
-    if (!confirm(`Remover o acesso de ${email}?`)) {
-      return;
-    }
-    this.users.revogar(email).subscribe({
-      next: () => this.carregarAdmin(),
-      error: (falha) => this.erro.set(mensagemDeErro(falha)),
-    });
   }
 
   protected alterarPerfil(conta: Usuario, role: PigguRole): void {
@@ -133,10 +132,6 @@ export class Profile {
         this.erro.set(mensagemDeErro(falha));
         this.carregandoAdmin.set(false);
       },
-    });
-    this.users.listarAutorizados().subscribe({
-      next: (lista) => this.autorizados.set(lista),
-      error: () => this.autorizados.set([]),
     });
   }
 }

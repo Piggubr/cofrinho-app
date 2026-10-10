@@ -89,10 +89,10 @@ export class GoogleIdentityService {
         if (window.google?.accounts) {
           resolver(window.google.accounts);
         } else {
-          rejeitar(new Error('O cliente do Google carregou incompleto.'));
+          rejeitar(new Error($localize`O cliente do Google carregou incompleto.`));
         }
       };
-      script.onerror = () => rejeitar(new Error('Nao consegui carregar o login do Google.'));
+      script.onerror = () => rejeitar(new Error($localize`Nao consegui carregar o login do Google.`));
       document.head.appendChild(script);
     });
 

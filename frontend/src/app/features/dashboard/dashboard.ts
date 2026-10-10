@@ -8,9 +8,13 @@ import { BankingService } from '../../core/api/banking.service';
 import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
 import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
+import { AvisosDoMes } from './avisos-do-mes';
+import { ResumoDoMesCard } from './resumo-do-mes';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { Icone } from '../../core/ui/icone';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -21,13 +25,13 @@ interface TotalPorCategoria {
 /**
  * Painel inicial.
  *
- * <p>E a unica tela que o perfil familiar alcanca, e para ele o backend devolve
+ * <p>E a unica tela que o membro da familia alcanca, e para ele o backend devolve
  * apenas os proprios depositos, com o restante zerado. Por isso os blocos de gastos
  * e meta ficam escondidos nesse caso, em vez de mostrarem zeros sem sentido.</p>
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ResumoDoMesCard, AvisosDoMes],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -97,16 +101,25 @@ export class Dashboard {
 
   constructor() {
     this.carregar();
-    if (!this.auth.ehFamiliar()) {
+    if (!this.auth.ehMembro()) {
       this.carregarContas();
     }
   }
 
-  protected async conectarBanco(): Promise<void> {
+  /** Cada banco e um compartilhamento novo: a autorizacao e pedida toda vez. */
+  protected readonly pedindoAutorizacaoBanco = signal(false);
+
+  protected conectarBanco(): void {
+    this.erroBancos.set('');
+    this.pedindoAutorizacaoBanco.set(true);
+  }
+
+  protected async autorizarBanco(): Promise<void> {
+    this.pedindoAutorizacaoBanco.set(false);
     this.ocupadoComBancos.set(true);
     this.erroBancos.set('');
     try {
-      const contas = await this.pluggy.conectar();
+      const contas = await this.pluggy.conectar(VERSAO_DO_AVISO);
       if (contas) {
         this.contas.set(contas);
       }
@@ -193,7 +206,7 @@ export class Dashboard {
   protected depositar(): void {
     const valor = this.novoDeposito();
     if (!valor || valor <= 0) {
-      this.erro.set('Digite um valor de depósito válido.');
+      this.erro.set($localize`Digite um valor de depósito válido.`);
       return;
     }
 
@@ -213,7 +226,7 @@ export class Dashboard {
   }
 
   protected excluirDeposito(id: string): void {
-    if (!confirm('Apagar este depósito?')) {
+    if (!confirm($localize`Apagar este depósito?`)) {
       return;
     }
     this.finance.excluirDeposito(id).subscribe({
@@ -233,7 +246,7 @@ export class Dashboard {
     this.carregando.set(true);
     this.erro.set('');
 
-    if (this.auth.ehFamiliar()) {
+    if (this.auth.ehMembro()) {
       this.finance.consultarCofrinho().subscribe({
         next: (cofrinho) => {
           this.cofrinho.set(cofrinho);

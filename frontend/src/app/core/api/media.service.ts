@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { imagemDaDemo } from '../../demo/modo-demo';
 import { APP_CONFIG } from '../config/app-config';
 import { ApiBase } from './api-base';
 import { Arquivo, FotoDoFeed } from './models';
@@ -37,7 +38,7 @@ export class MediaService extends ApiBase {
    * esta URL direto em uma tag img em vez de baixar e converter para base64.</p>
    */
   urlDaImagem(assetId: string): string {
-    return `${this.configuracao.apiUrl}/assets/${assetId}/content`;
+    return imagemDaDemo(assetId) ?? `${this.configuracao.apiUrl}/assets/${assetId}/content`;
   }
 
   baixarArquivo(assetId: string): Observable<Blob> {

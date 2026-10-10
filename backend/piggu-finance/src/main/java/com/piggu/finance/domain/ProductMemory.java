@@ -4,11 +4,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Historico de preco de um produto — a aba Produtos.
@@ -21,8 +23,16 @@ import java.time.LocalDate;
 @Table(name = "product_memory")
 public class ProductMemory {
 
+    /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
+    @TenantId
+    @Column(name = "household_id", nullable = false, updatable = false)
+    private UUID householdId;
+
     @Id
-    @Column(name = "product_key", length = 200)
+    private UUID id = UUID.randomUUID();
+
+    /** Nome normalizado; unico dentro da familia. */
+    @Column(name = "product_key", nullable = false, length = 200)
     private String productKey;
 
     @Column(nullable = false, length = 200)

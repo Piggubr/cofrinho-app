@@ -11,9 +11,15 @@ export class BankingService extends ApiBase {
     return this.http.get<{ habilitado: boolean }>(this.url('/banking/status'));
   }
 
-  /** Token de 30 minutos que abre o widget Pluggy Connect. */
-  gerarConnectToken(): Observable<ConnectToken> {
-    return this.http.post<ConnectToken>(this.url('/banking/connect-token'), {});
+  /**
+   * Token de 30 minutos que abre o widget Pluggy Connect. Leva a autorizacao da pessoa,
+   * que o backend grava no mesmo pedido.
+   */
+  gerarConnectToken(versaoDoAviso: string): Observable<ConnectToken> {
+    return this.http.post<ConnectToken>(this.url('/banking/connect-token'), {
+      autorizo: true,
+      versaoDoAviso,
+    });
   }
 
   /** Registra o item que o widget devolveu e ja traz as contas dele. */

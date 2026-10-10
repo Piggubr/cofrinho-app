@@ -1,4 +1,4 @@
-<h1>Calendário</h1>
+<h1 i18n>Calendário</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -8,8 +8,8 @@
   <div class="cartao-titulo">
     <h2>{{ rotuloDoMes() }}</h2>
     <div class="navegacao-de-mes">
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
-      <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
     </div>
   </div>
 
@@ -35,7 +35,7 @@
             <span class="marca-gasto">{{ dia.totalGasto | moeda }}</span>
           }
           @if (dia.notas > 0) {
-            <span class="marca-nota" aria-label="Tem lembrete">•</span>
+            <span i18n-aria-label class="marca-nota" aria-label="Tem lembrete">•</span>
           }
         </button>
       }
@@ -44,7 +44,7 @@
 </section>
 
 @if (diaSelecionado(); as dia) {
-  <section class="cartao">
+  <section i18n class="cartao">
     <div class="cartao-titulo">
       <h2>{{ dia | dataBr }}</h2>
     </div>
@@ -76,7 +76,7 @@
             @if (nota.valor > 0) {
               <span class="linha-valor">{{ nota.valor | moeda }}</span>
             }
-            <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </div>
       }
@@ -90,25 +90,25 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Nova nota</h2>
+    <h2 i18n>Nova nota</h2>
   </div>
 
   <div class="linha-de-campos">
     <div class="campo">
-      <label for="tituloNota">Título</label>
-      <input id="tituloNota" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
+      <label i18n for="tituloNota">Título</label>
+      <input id="tituloNota" maxlength="150" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
     </div>
     <div class="campo">
-      <label for="dataNota">Data</label>
+      <label i18n for="dataNota">Data</label>
       <input id="dataNota" type="date" [ngModel]="dataDaNota()" (ngModelChange)="dataDaNota.set($event)" />
     </div>
     <div class="campo">
-      <label for="valorNota">Valor do evento ({{ moeda.simbolo() }})</label>
-      <input id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
+      <label i18n for="valorNota">Valor do evento ({{ moeda.simbolo() }})</label>
+      <input i18n-placeholder id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
     </div>
     @if (viraGasto()) {
       <div class="campo">
-        <label for="categoriaNota">Categoria</label>
+        <label i18n for="categoriaNota">Categoria</label>
         <select id="categoriaNota" [ngModel]="categoriaDaNota()" (ngModelChange)="categoriaDaNota.set($event)">
           @for (categoria of categorias(); track categoria) {
             <option [value]="categoria">{{ categoria }}</option>
@@ -119,30 +119,30 @@
   </div>
 
   <div class="campo">
-    <label for="textoNota">Detalhes</label>
-    <textarea id="textoNota" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
+    <label i18n for="textoNota">Detalhes</label>
+    <textarea id="textoNota" maxlength="1500" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
   </div>
 
   @if (viraGasto()) {
-    <p class="aviso informacao">
+    <p i18n class="aviso informacao">
       Com valor preenchido, esta nota também lança um gasto. Apagar a nota apaga o gasto junto.
     </p>
   }
 
   <div class="acoes">
-    <button type="button" class="botao" (click)="criarNota()" [disabled]="salvando()">
-      {{ salvando() ? 'Guardando...' : 'Criar nota' }}
+    <button i18n type="button" class="botao" (click)="criarNota()" [disabled]="salvando()">
+      @if (salvando()) {Guardando...} @else {Criar nota}
     </button>
   </div>
 </section>
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Sem data</h2>
+    <h2 i18n>Sem data</h2>
   </div>
 
   @if (carregando()) {
-    <p class="carregando">Carregando...</p>
+    <p i18n class="carregando">Carregando...</p>
   } @else if (notasSemData().length) {
     @for (nota of notasSemData(); track nota.id) {
       <div class="linha">
@@ -152,10 +152,10 @@
             <p class="linha-detalhe">{{ nota.texto }}</p>
           }
         </div>
-        <button type="button" class="botao perigo" (click)="excluirNota(nota)">Apagar</button>
+        <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     }
   } @else {
-    <p class="vazio">Nenhuma nota solta.</p>
+    <p i18n class="vazio">Nenhuma nota solta.</p>
   }
 </section>

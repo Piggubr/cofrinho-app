@@ -1,21 +1,25 @@
 package com.piggu.common.error;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.ObjectMapper;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,7 +59,7 @@ class ApiExceptionHandlerTest {
     @DisplayName("erro de negocio mantem a mensagem escrita para o usuario")
     void erroDeNegocioMantemMensagem() throws Exception {
         mockMvc.perform(get("/teste/negocio"))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.erro").value("O saldo nao pode ficar negativo."))
                 .andExpect(jsonPath("$.codigo").value("BusinessException"));
     }
@@ -75,6 +79,15 @@ class ApiExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.erro").value("Ocorreu um erro. Tente novamente."))
                 .andExpect(jsonPath("$.codigo").value("ERRO_INTERNO"));
+    }
+
+    @Test
+    @DisplayName("o log do 500 leva o padrao da rota, nunca o e-mail que estava no caminho")
+    @ExtendWith(OutputCaptureExtension.class)
+    void logSemDadoPessoal(CapturedOutput saida) throws Exception {
+        mockMvc.perform(get("/teste/pessoa/fulana@exemplo.test")).andExpect(status().isInternalServerError());
+
+        assertThat(saida.getAll()).contains("/teste/pessoa/{email}").doesNotContain("fulana@exemplo.test");
     }
 
     @Test
@@ -124,6 +137,11 @@ class ApiExceptionHandlerTest {
         @GetMapping("/explode")
         String explode() {
             throw new IllegalStateException("detalhe interno que nao pode vazar");
+        }
+
+        @GetMapping("/pessoa/{email}")
+        String pessoa(@PathVariable String email) {
+            throw new IllegalStateException("falha");
         }
 
         @PostMapping("/validado")

@@ -69,7 +69,13 @@ class MigrationsTest extends PostgresIntegrationTest {
     @DisplayName("o mes da meta so aceita o formato AAAA-MM")
     void formatoDoMesDaMeta() {
         assertThat(jdbc.queryForObject(
-                "SELECT count(*) FROM pg_constraint WHERE conname = 'monthly_goals_month_check'",
+                // Filtra pela tabela: o MigracaoParaFamiliasTest roda as migrations num schema
+                // "legado", que cria uma restricao com o mesmo nome em outra tabela.
+                """
+                SELECT count(*) FROM pg_constraint
+                WHERE conname = 'monthly_goals_month_check'
+                  AND conrelid = 'monthly_goals'::regclass
+                """,
                 Integer.class)).isEqualTo(1);
     }
 }

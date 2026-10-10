@@ -37,15 +37,28 @@ public class RefreshSession {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
+    /** Continuar conectado: o cookie sobrevive a fechar o navegador. */
+    @Column(nullable = false)
+    private boolean remember = true;
+
     protected RefreshSession() {
     }
 
     public RefreshSession(UUID userId, String tokenHash, String userAgent, Instant expiresAt) {
+        this(userId, tokenHash, userAgent, expiresAt, true);
+    }
+
+    public RefreshSession(UUID userId, String tokenHash, String userAgent, Instant expiresAt, boolean remember) {
         this.id = UUID.randomUUID();
         this.userId = userId;
         this.tokenHash = tokenHash;
         this.userAgent = userAgent;
         this.expiresAt = expiresAt;
+        this.remember = remember;
+    }
+
+    public boolean isRemember() {
+        return remember;
     }
 
     public boolean estaValida() {
@@ -62,6 +75,14 @@ public class RefreshSession {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     public Instant getExpiresAt() {

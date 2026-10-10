@@ -5,7 +5,8 @@
  * dicionario a mais para manter sincronizado toda vez que um campo mudasse.</p>
  */
 
-export type PigguRole = 'ADMIN' | 'BEATRIZ' | 'FAMILIAR';
+/** ADMIN opera a instalacao; TITULAR e o dono da familia; MEMBRO foi convidado. */
+export type PigguRole = 'ADMIN' | 'TITULAR' | 'MEMBRO';
 
 export interface Usuario {
   id: string;
@@ -19,8 +20,35 @@ export interface Usuario {
   permissoes: Record<string, unknown>;
   preferencias: Preferencias;
   plano: Plano;
-  /** Ate quando o Premium vale; nulo no gratuito. */
+  /** Ate quando o Premium (da familia) vale; nulo no gratuito. */
   premiumAte: string | null;
+  /** Familia a que a conta pertence. */
+  familia: string;
+}
+
+/** Familia de quem esta logado; convites so chegam para o titular. */
+export interface Familia {
+  id: string;
+  nome: string;
+  plano: Plano;
+  membros: MembroDaFamilia[];
+  convites: ConviteDaFamilia[];
+}
+
+export interface MembroDaFamilia {
+  id: string;
+  nome: string;
+  email: string;
+  foto: string | null;
+  papel: PigguRole;
+}
+
+export interface ConviteDaFamilia {
+  id: string;
+  email: string;
+  venceEm: string;
+  /** Nome da familia que convidou. */
+  familia: string;
 }
 
 export type Plano = 'GRATUITO' | 'PREMIUM';
@@ -37,6 +65,10 @@ export interface InfoDoPlano {
   plano: Plano;
   premiumAte: string | null;
   origem: 'WEB' | 'APP_STORE' | 'PLAY_STORE' | null;
+  /** Ate quando da para desistir com o dinheiro de volta (7 dias); nulo fora do prazo. */
+  reembolsoAte: string | null;
+  /** Dias gratis ao assinar (uma vez por conta); 0 quando ja usou. */
+  diasDeTeste: number;
   assinaturaDisponivel: boolean;
   site: Precos;
   app: Precos;
@@ -49,6 +81,10 @@ export interface Preferencias {
   moeda: string;
   moedaConversao: string;
   mostrarCotacao: boolean;
+  /** Fuso IANA da pessoa; conta nova nasce em America/Sao_Paulo. */
+  fuso?: string;
+  /** Idioma da interface; hoje so pt-BR. */
+  idioma?: string;
 }
 
 export interface MoedaDisponivel {
@@ -56,9 +92,9 @@ export interface MoedaDisponivel {
   nome: string;
 }
 
+/** O refresh nao vem no corpo: fica num cookie HttpOnly que o JavaScript nao le. */
 export interface ParDeTokens {
   accessToken: string;
-  refreshToken: string;
   expiresIn: number;
   usuario: Usuario;
 }
@@ -83,6 +119,13 @@ export interface Gasto {
   origem: string;
   usuario: string;
   registradoEm: string;
+  contaId?: string | null;
+  /** Parcela N de M; ausentes quando o gasto e a vista. */
+  parcela?: number | null;
+  parcelas?: number | null;
+  /** Compra em outra moeda: o valor acima ja e o convertido. */
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
 }
 
 export interface ItemDeGasto {
@@ -90,6 +133,8 @@ export interface ItemDeGasto {
   categoria?: string | null;
   valor: number;
   tipo?: string | null;
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
 }
 
 export interface NovoLancamento {
@@ -98,6 +143,11 @@ export interface NovoLancamento {
   reciboId?: string | null;
   origem?: string | null;
   itens: ItemDeGasto[];
+  contaId?: string | null;
+  /** 2 a 48 divide cada item em uma linha por mes. */
+  parcelas?: number | null;
+  /** E-mails da familia que dividem em partes iguais; quem lanca e quem pagou. */
+  dividirCom?: string[] | null;
 }
 
 export interface ReciboLido {
@@ -105,6 +155,20 @@ export interface ReciboLido {
   estabelecimento: string;
   data: string;
   itens: { item: string; categoria: string; valor: number }[];
+  /** OCR: leitor proprio, a foto nao saiu do servidor. GEMINI: leitura por IA. */
+  origem: 'OCR' | 'GEMINI';
+  /** O que conferir com mais cuidado; nulo quando a soma bateu com o total do cupom. */
+  aviso: string | null;
+  /** Leituras gratis que sobram no mes; nulo no Premium (sem limite). */
+  leiturasRestantes: number | null;
+}
+
+/** Leituras de nota pela foto no mes da familia. */
+export interface UsoDeLeituras {
+  usadas: number;
+  limite: number;
+  /** Nulo no Premium: sem limite. */
+  restantes: number | null;
 }
 
 export interface Deposito {
@@ -303,4 +367,117 @@ export interface ContaBancaria {
 export interface ConnectToken {
   accessToken: string;
   sandbox: boolean;
+}
+
+/** Receita da familia (salario, extra, reembolso...). */
+export interface Receita {
+  id: string;
+  data: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  usuario: string;
+}
+
+/** Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca. */
+export interface ResumoDoMes {
+  mes: string;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  /** Em porcentagem; nula quando o mes nao tem receita. */
+  taxaDePoupanca: number | null;
+  gastosMesAnterior: number;
+  /** Gastos contra o mes anterior, em porcentagem; nula se o anterior nao teve gasto. */
+  variacao: number | null;
+  /** So no mes corrente: o ritmo de gasto ate hoje levado ao fim do mes. */
+  projecaoDeGastos: number | null;
+  porCategoria: { categoria: string; total: number; anterior: number }[];
+}
+
+/** Relatorio do ano (Premium): mes a mes e por categoria. */
+export interface RelatorioDoAno {
+  ano: number;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  meses: { mes: string; receitas: number; gastos: number; sobra: number }[];
+  porCategoria: { categoria: string; total: number }[];
+}
+
+/** Conta fixa no mes: quando vence e se ja foi lancada. */
+export interface ContaFixa {
+  id: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  /** Dia do vencimento (1 a 31; 31 vira o ultimo dia do mes). */
+  dia: number;
+  /** Lancada sozinha no dia do vencimento. */
+  automatico: boolean;
+  vencimento: string;
+  situacao: 'PAGA' | 'PENDENTE' | 'VENCIDA';
+}
+
+/** Orcamento de uma categoria no mes: alerta em 80% (ATENCAO) e 100% (ESTOUROU). */
+export interface Orcamento {
+  id: string;
+  categoria: string;
+  limite: number;
+  gasto: number;
+  percentual: number;
+  alerta: 'OK' | 'ATENCAO' | 'ESTOUROU';
+}
+
+/** Regra de categoria automatica: o termo ja vem normalizado (sem acento, minusculo). */
+export interface RegraDeCategoria {
+  id: string;
+  termo: string;
+  categoria: string;
+}
+
+/** Fatura do cartao: os gastos entre o dia seguinte ao fechamento anterior e o fechamento. */
+export interface Fatura {
+  mes: string;
+  inicio: string;
+  fechamento: string;
+  vencimento: string;
+  total: number;
+}
+
+/** Conta ou cartao; no cartao, a fatura aberta e a fechada que ainda vai vencer. */
+export interface ContaOuCartao {
+  id: string;
+  nome: string;
+  tipo: 'CONTA' | 'CARTAO';
+  fechamento: number | null;
+  vencimento: number | null;
+  faturaAberta: Fatura | null;
+  faturaAPagar: Fatura | null;
+}
+
+/** Acerto dos gastos divididos: saldo positivo tem a receber; negativo deve. */
+export interface AcertoDeDivisao {
+  email: string;
+  pagou: number;
+  parte: number;
+  saldo: number;
+}
+
+/** Preco digitado contra a media do produto: acima quando passa 15% com 2 compras ou mais. */
+export interface ConferenciaDePreco {
+  media: number;
+  compras: number;
+  percentual: number;
+  acima: boolean;
+}
+
+/** Linha do extrato na previa da importacao. */
+export interface LinhaDoExtrato {
+  data: string;
+  descricao: string;
+  valor: number;
+  idExterno: string;
+  categoria: string;
+  jaImportada: boolean;
 }

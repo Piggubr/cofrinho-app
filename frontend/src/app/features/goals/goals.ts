@@ -6,6 +6,7 @@ import { Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
+import { Icone } from '../../core/ui/icone';
 
 interface MetaNaTela {
   readonly mes: string;
@@ -21,7 +22,7 @@ interface MetaNaTela {
  */
 @Component({
   selector: 'app-goals',
-  imports: [FormsModule, MoedaPipe],
+  imports: [Icone, FormsModule, MoedaPipe],
   templateUrl: './goals.html',
   styleUrl: './goals.scss',
 })
@@ -85,7 +86,7 @@ export class Goals {
   protected salvar(): void {
     const limite = this.limite();
     if (!limite || limite <= 0) {
-      this.erro.set('Digite um valor válido para a meta.');
+      this.erro.set($localize`Digite um valor válido para a meta.`);
       return;
     }
 

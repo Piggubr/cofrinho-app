@@ -1,17 +1,34 @@
 <div class="tela-de-login">
   <section class="cartao caixa">
-    <h1>Piggu</h1>
-    <p class="subtitulo">O cofrinho dos fofos.</p>
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Piggu</h1>
+    <p i18n class="subtitulo">O cofrinho dos fofos.</p>
 
     @if (erro()) {
       <p class="aviso erro" role="alert">{{ erro() }}</p>
     }
 
     @if (entrando()) {
-      <p class="aviso informacao">Confirmando seu acesso...</p>
+      <p i18n class="aviso informacao">Confirmando seu acesso...</p>
     }
 
-    <div #botaoGoogle class="area-do-botao"></div>
+    @if (aguardandoAceite()) {
+      <div class="aceite">
+        <p i18n>Falta pouco para criar sua conta.</p>
+        <label class="lembrar">
+          <input type="checkbox" [checked]="aceitou()" (change)="aceitou.set($any($event.target).checked)" />
+          <span i18n>
+            Li e aceito os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
+            <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+          </span>
+        </label>
+        <button i18n type="button" class="botao" (click)="criarConta()" [disabled]="!aceitou() || entrando()">
+          Criar minha conta
+        </button>
+      </div>
+    }
+
+    <div #botaoGoogle class="area-do-botao" [hidden]="aguardandoAceite()"></div>
 
     <label class="lembrar">
       <input
@@ -19,9 +36,11 @@
         [checked]="lembrar()"
         (change)="alternarLembrar($any($event.target).checked)"
       />
-      <span>Continuar conectado neste aparelho</span>
+      <span i18n>Continuar conectado neste aparelho</span>
     </label>
 
-    <p class="nota">O acesso é restrito às contas autorizadas.</p>
+    <p class="nota">
+      <a i18n routerLink="/termos">Termos de Uso</a> · <a i18n routerLink="/privacidade">Aviso de Privacidade</a>
+    </p>
   </section>
 </div>

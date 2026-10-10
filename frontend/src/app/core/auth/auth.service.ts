@@ -10,9 +10,10 @@ import { TokenStorage } from './token-storage';
 /**
  * Entrada e saida da conta.
  *
- * <p>O backend trabalha com dois tokens: um curto, enviado em cada chamada, e um
- * longo, usado so para renovar. Este servico esconde essa mecanica do resto do app,
- * que so precisa saber se ha alguem logado e qual o perfil.</p>
+ * <p>O backend trabalha com dois tokens: um curto, enviado em cada chamada e guardado
+ * so em memoria, e um longo, num cookie HttpOnly que so viaja para /api/auth. Este
+ * servico esconde essa mecanica do resto do app, que so precisa saber se ha alguem
+ * logado e qual o perfil.</p>
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -32,8 +33,10 @@ export class AuthService {
   readonly ehPremium = computed(
     () => this.usuarioAtual()?.role === 'ADMIN' || this.usuarioAtual()?.plano === 'PREMIUM',
   );
-  /** O perfil familiar so alcanca o painel e o cofrinho. */
-  readonly ehFamiliar = computed(() => this.usuarioAtual()?.role === 'FAMILIAR');
+  /** O membro da familia so alcanca o painel e o cofrinho. */
+  readonly ehMembro = computed(() => this.usuarioAtual()?.role === 'MEMBRO');
+  /** Titular da familia; o ADMIN vale como titular dentro da propria familia. */
+  readonly ehTitular = computed(() => this.usuarioAtual()?.role === 'TITULAR' || this.ehAdmin());
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;
@@ -41,11 +44,17 @@ export class AuthService {
   }
 
   /** Troca o ID token do Google por um par de tokens do Piggu. */
-  async entrarComGoogle(idToken: string, lembrar: boolean): Promise<void> {
+  /** @param versaoDosTermos so para conta nova: o backend pede quando a conta ainda nao existe */
+  async entrarComGoogle(idToken: string, lembrar: boolean, versaoDosTermos?: string): Promise<void> {
+    // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
     const tokens = await firstValueFrom(
-      this.http.post<ParDeTokens>(`${this.config.apiUrl}/auth/google`, { idToken }),
+      this.http.post<ParDeTokens>(
+        `${this.config.apiUrl}/auth/google`,
+        { idToken, versaoDosTermos, lembrar },
+        { withCredentials: true },
+      ),
     );
-    this.storage.guardar(tokens, lembrar);
+    this.storage.guardar(tokens);
     this.usuarioAtual.set(tokens.usuario);
   }
 
@@ -55,9 +64,7 @@ export class AuthService {
    * @returns verdadeiro quando havia sessao valida guardada
    */
   async restaurarSessao(): Promise<boolean> {
-    if (!this.storage.refreshToken) {
-      return false;
-    }
+    // Sem como saber se o cookie existe (HttpOnly): pergunta ao identity.
     try {
       await firstValueFrom(this.renovar());
       return true;
@@ -80,13 +87,12 @@ export class AuthService {
       return this.renovacaoEmCurso;
     }
 
-    const refreshToken = this.storage.refreshToken;
     this.renovacaoEmCurso = this.http
-      .post<ParDeTokens>(`${this.config.apiUrl}/auth/refresh`, { refreshToken })
+      .post<ParDeTokens>(`${this.config.apiUrl}/auth/refresh`, {}, { withCredentials: true })
       .pipe(
         tap({
           next: (tokens) => {
-            this.storage.atualizar(tokens);
+            this.storage.guardar(tokens);
             this.usuarioAtual.set(tokens.usuario);
             this.renovacaoEmCurso = undefined;
           },
@@ -106,14 +112,11 @@ export class AuthService {
   }
 
   async sair(): Promise<void> {
-    const refreshToken = this.storage.refreshToken;
-    if (refreshToken) {
-      // Avisar o servidor e o que encerra a sessao de verdade; falhar aqui nao
-      // pode impedir o usuario de sair desta maquina.
-      await firstValueFrom(
-        this.http.post(`${this.config.apiUrl}/auth/logout`, { refreshToken }),
-      ).catch(() => null);
-    }
+    // Avisar o servidor e o que encerra a sessao e apaga o cookie; falhar aqui nao
+    // pode impedir o usuario de sair desta maquina.
+    await firstValueFrom(
+      this.http.post(`${this.config.apiUrl}/auth/logout`, {}, { withCredentials: true }),
+    ).catch(() => null);
     await this.encerrarLocalmente();
   }
 

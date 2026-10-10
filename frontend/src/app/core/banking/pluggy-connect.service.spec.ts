@@ -46,8 +46,11 @@ describe('PluggyConnectService', () => {
   async function abrirWidget(): Promise<{
     resultado: ReturnType<PluggyConnectService['conectar']>;
   }> {
-    const resultado = servico.conectar();
-    http.expectOne('/api/banking/connect-token').flush({ accessToken: 'token-1', sandbox: true });
+    const resultado = servico.conectar('2026-10-08');
+    const pedido = http.expectOne('/api/banking/connect-token');
+    // A autorizacao vai no mesmo pedido que abre a conexao.
+    expect(pedido.request.body).toEqual({ autorizo: true, versaoDoAviso: '2026-10-08' });
+    pedido.flush({ accessToken: 'token-1', sandbox: true });
     await vi.waitFor(() => expect(opcoes).toBeDefined());
     return { resultado };
   }

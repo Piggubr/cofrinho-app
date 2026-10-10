@@ -1,0 +1,185 @@
+/* Receitas e gastos: par validado (CVD e contraste) contra a superficie clara. */
+:host {
+}
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.negativo {
+  color: var(--over);
+}
+
+.variacao {
+  margin-top: 0.15rem;
+}
+
+.legenda {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+.amostra {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 0.35rem;
+  vertical-align: -1px;
+}
+
+.amostra.receita {
+  background: var(--serie-receita);
+}
+
+.amostra.gasto {
+  background: var(--serie-gasto);
+}
+
+.amostra.marca {
+  width: 2px;
+  border-radius: 0;
+  background: var(--ink-soft);
+}
+
+.categorias {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.categoria-texto {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.numero-pequeno {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.trilho {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+.barra-gasto {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--serie-gasto);
+}
+
+.marca-anterior {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 16px;
+  margin-left: -1px;
+  background: var(--ink-soft);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.grafico {
+  position: relative;
+}
+
+.grafico svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.linha-base {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.barra.receita {
+  fill: var(--serie-receita);
+}
+
+.barra.gasto {
+  fill: var(--serie-gasto);
+}
+
+.foco {
+  fill: var(--pink-bg);
+}
+
+.alvo {
+  fill: transparent;
+  outline: none;
+  cursor: default;
+}
+
+.alvo:focus-visible {
+  stroke: var(--rose-deep);
+  stroke-width: 2;
+}
+
+.eixo {
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.dica {
+  position: absolute;
+  top: 0;
+  margin-left: 4px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  box-shadow: var(--shadow-card);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dica.a-esquerda {
+  margin-left: -4px;
+  transform: translateX(-100%);
+}
+
+details {
+  margin: 0.75rem 0 1rem;
+  font-size: 0.85rem;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela th,
+.tabela td {
+  padding: 0.3rem 0.4rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabela th:first-child {
+  text-align: left;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 1rem 0 0.6rem;
+}

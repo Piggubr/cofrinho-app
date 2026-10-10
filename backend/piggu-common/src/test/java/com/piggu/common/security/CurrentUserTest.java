@@ -21,22 +21,29 @@ class CurrentUserTest {
     @Test
     @DisplayName("dono do registro pode gerenciar")
     void donoPodeGerenciar() {
-        CurrentUser dona = new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ);
-        assertThat(dona.podeGerenciar("beatriz@piggu.test")).isTrue();
+        CurrentUser dona = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
+        assertThat(dona.podeGerenciar("titular@piggu.test")).isTrue();
     }
 
     @Test
     @DisplayName("comparacao de dono ignora maiusculas")
     void comparacaoIgnoraCaixa() {
-        CurrentUser dona = new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ);
-        assertThat(dona.podeGerenciar("Beatriz@Piggu.TEST")).isTrue();
+        CurrentUser dona = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
+        assertThat(dona.podeGerenciar("Titular@Piggu.TEST")).isTrue();
     }
 
     @Test
-    @DisplayName("quem nao e dono nem admin nao pode")
+    @DisplayName("titular gerencia o que qualquer pessoa da familia lancou")
+    void titularGerencia() {
+        CurrentUser titular = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
+        assertThat(titular.podeGerenciar("membro@piggu.test")).isTrue();
+    }
+
+    @Test
+    @DisplayName("quem nao e dono nem titular nao pode")
     void terceiroNaoPode() {
-        CurrentUser outra = new CurrentUser(ID, "familiar@piggu.test", PigguRole.FAMILIAR);
-        assertThat(outra.podeGerenciar("beatriz@piggu.test")).isFalse();
+        CurrentUser outra = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
+        assertThat(outra.podeGerenciar("titular@piggu.test")).isFalse();
     }
 
     @Test
@@ -44,13 +51,13 @@ class CurrentUserTest {
     void adminPodeTudo() {
         CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
         assertThat(admin.isAdmin()).isTrue();
-        assertThat(admin.podeGerenciar("beatriz@piggu.test")).isTrue();
+        assertThat(admin.podeGerenciar("titular@piggu.test")).isTrue();
     }
 
     @Test
     @DisplayName("registro sem dono so e gerenciavel por administrador")
     void registroSemDono() {
-        CurrentUser comum = new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ);
+        CurrentUser comum = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
         assertThat(comum.podeGerenciar(null)).isFalse();
 
         CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
@@ -60,12 +67,12 @@ class CurrentUserTest {
     @Test
     @DisplayName("Premium barra o gratuito com codigo proprio e deixa passar o pago e o admin")
     void exigirPremium() {
-        CurrentUser gratuita = new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ);
+        CurrentUser gratuita = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
         assertThatThrownBy(() -> gratuita.exigirPremium("Conectar bancos"))
                 .isInstanceOfSatisfying(com.piggu.common.error.BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo(Plano.CODIGO_PREMIUM));
 
-        new CurrentUser(ID, "beatriz@piggu.test", PigguRole.BEATRIZ, Plano.PREMIUM).exigirPremium("Conectar bancos");
+        new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR, Plano.PREMIUM).exigirPremium("Conectar bancos");
         new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN).exigirPremium("Conectar bancos");
     }
 }

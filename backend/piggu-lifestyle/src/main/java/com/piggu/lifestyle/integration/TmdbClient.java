@@ -1,6 +1,5 @@
 package com.piggu.lifestyle.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.Texto;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
+import tools.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,9 +28,8 @@ import java.util.function.Function;
  *
  * <p>Porte de consultarTmdb_, buscarFilmes_, sortearFilme_ e normalizarFilmeTmdb_.</p>
  *
- * <p>O TMDB tem duas formas de credencial: a chave curta da v3, que vai na query, e
- * o token longo da v4, que vai no cabecalho Authorization. O Apps Script distinguia
- * as duas olhando o formato do texto, e essa deteccao foi mantida.</p>
+ * <p>So o token longo da v4, no cabecalho Authorization. A chave curta da v3 iria na
+ * URL, e a URL aparece no log em erro de rede: com ela a busca fica desligada.</p>
  */
 @Component
 public class TmdbClient {
@@ -42,13 +41,15 @@ public class TmdbClient {
 
     private final RestClient cliente;
     private final IntegracoesProperties.Tmdb propriedades;
-    private final boolean tokenLongo;
 
     public TmdbClient(RestClient.Builder builder, IntegracoesProperties propriedades) {
         this.propriedades = propriedades.tmdb();
         this.cliente = builder.baseUrl(this.propriedades.baseUrl()).build();
         String token = this.propriedades.token();
-        this.tokenLongo = token != null && (token.contains(".") || token.startsWith("eyJ"));
+        if (token != null && !token.isBlank() && !this.propriedades.habilitado()) {
+            log.warn("TMDB_READ_TOKEN nao e um token v4 (eyJ...): busca de filmes desligada."
+                    + " A chave curta v3 iria na URL e acabaria no log.");
+        }
     }
 
     public List<TmdbMovie> buscar(String termo) {
@@ -67,7 +68,7 @@ public class TmdbClient {
 
         List<TmdbMovie> filmes = new ArrayList<>();
         dados.path("results").forEach(filme -> {
-            if (filmes.size() < RESULTADOS_NA_BUSCA && !filme.path("title").asText("").isBlank()) {
+            if (filmes.size() < RESULTADOS_NA_BUSCA && !filme.path("title").asString("").isBlank()) {
                 filmes.add(normalizar(filme));
             }
         });
@@ -97,7 +98,7 @@ public class TmdbClient {
         JsonNode dados = chamar("/discover/movie", parametros);
         List<JsonNode> resultados = new ArrayList<>();
         dados.path("results").forEach(filme -> {
-            if (!filme.path("title").asText("").isBlank()) {
+            if (!filme.path("title").asString("").isBlank()) {
                 resultados.add(filme);
             }
         });
@@ -116,19 +117,14 @@ public class TmdbClient {
         Function<UriBuilder, URI> uri = builder -> {
             builder.path(caminho);
             parametros.forEach(builder::queryParam);
-            if (!tokenLongo) {
-                builder.queryParam("api_key", propriedades.token());
-            }
             return builder.build();
         };
 
         try {
-            RestClient.RequestHeadersSpec<?> pedido =
-                    cliente.get().uri(uri).header("accept", "application/json");
-            if (tokenLongo) {
-                pedido = pedido.header("Authorization", "Bearer " + propriedades.token());
-            }
-            return pedido.retrieve()
+            return cliente.get().uri(uri)
+                    .header("accept", "application/json")
+                    .header("Authorization", "Bearer " + propriedades.token())
+                    .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
                         throw traduzirErro(res.getStatusCode().value());
                     })
@@ -142,17 +138,17 @@ public class TmdbClient {
     }
 
     private TmdbMovie normalizar(JsonNode filme) {
-        String poster = filme.path("poster_path").asText("");
+        String poster = filme.path("poster_path").asString("");
         BigDecimal nota = BigDecimal.valueOf(filme.path("vote_average").asDouble(0))
                 .setScale(1, RoundingMode.HALF_UP);
 
         return new TmdbMovie(
-                filme.path("id").asText(""),
-                Texto.limitar(filme.path("title").asText(""), 200),
-                Texto.limitar(filme.path("release_date").asText(""), 4),
+                filme.path("id").asString(""),
+                Texto.limitar(filme.path("title").asString(""), 200),
+                Texto.limitar(filme.path("release_date").asString(""), 4),
                 poster.isBlank() ? "" : BASE_POSTER + poster,
                 nota,
-                Texto.limitar(filme.path("overview").asText(""), 1000)
+                Texto.limitar(filme.path("overview").asString(""), 1000)
         );
     }
 

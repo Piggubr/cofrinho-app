@@ -5,6 +5,7 @@ import { RewardsService } from '../../core/api/rewards.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Premio, Resgate, SaldoDeMoedas } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Fofocoins e premios.
@@ -15,7 +16,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [FormsModule],
+  imports: [Icone, FormsModule],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })
@@ -48,11 +49,11 @@ export class Rewards {
     const motivo = this.ajusteMotivo().trim();
 
     if (!valor) {
-      this.erro.set('Digite uma quantidade válida de Fofocoins.');
+      this.erro.set($localize`Digite uma quantidade válida de Fofocoins.`);
       return;
     }
     if (!motivo) {
-      this.erro.set('Explique o motivo do ajuste.');
+      this.erro.set($localize`Explique o motivo do ajuste.`);
       return;
     }
 
@@ -62,7 +63,7 @@ export class Rewards {
         this.saldo.set(saldo);
         this.ajusteValor.set(null);
         this.ajusteMotivo.set('');
-        this.aviso.set('Saldo atualizado.');
+        this.aviso.set($localize`Saldo atualizado.`);
       },
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
@@ -73,11 +74,11 @@ export class Rewards {
     const preco = this.novoPreco();
 
     if (!nome) {
-      this.erro.set('Digite o nome do prêmio.');
+      this.erro.set($localize`Digite o nome do prêmio.`);
       return;
     }
     if (!preco || preco <= 0) {
-      this.erro.set('Digite um preço válido.');
+      this.erro.set($localize`Digite um preço válido.`);
       return;
     }
 
@@ -96,14 +97,14 @@ export class Rewards {
   }
 
   protected resgatar(premio: Premio): void {
-    if (!confirm(`Resgatar "${premio.nome}" por ${premio.preco} Fofocoins?`)) {
+    if (!confirm($localize`Resgatar "${premio.nome}" por ${premio.preco} Fofocoins?`)) {
       return;
     }
 
     this.erro.set('');
     this.rewards.resgatar(premio.id).subscribe({
       next: (resgate) => {
-        this.aviso.set(`Resgatado. Saldo agora: ${resgate.saldo} Fofocoins.`);
+        this.aviso.set($localize`Resgatado. Saldo agora: ${resgate.saldo} Fofocoins.`);
         this.carregar();
       },
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
@@ -111,7 +112,7 @@ export class Rewards {
   }
 
   protected desativar(premio: Premio): void {
-    if (!confirm(`Tirar "${premio.nome}" da lista?`)) {
+    if (!confirm($localize`Tirar "${premio.nome}" da lista?`)) {
       return;
     }
     this.rewards.excluirPremio(premio.id).subscribe({
@@ -125,7 +126,7 @@ export class Rewards {
   }
 
   private recarregarPremios(): void {
-    this.rewards.listarPremios(this.auth.ehAdmin()).subscribe({
+    this.rewards.listarPremios(this.auth.ehTitular()).subscribe({
       next: (premios) => this.premios.set(premios),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
@@ -135,7 +136,7 @@ export class Rewards {
     this.carregando.set(true);
     forkJoin({
       saldo: this.rewards.consultarSaldo(),
-      premios: this.rewards.listarPremios(this.auth.ehAdmin()),
+      premios: this.rewards.listarPremios(this.auth.ehTitular()),
       resgates: this.rewards.listarResgates(),
     }).subscribe({
       next: ({ saldo, premios, resgates }) => {

@@ -8,13 +8,13 @@ import { ApiError } from '../api/models';
  * portugues e pronto para a tela. O resto e rede fora do ar ou algo que nao veio
  * da nossa API, e entao precisa de um texto generico.</p>
  */
-export function mensagemDeErro(erro: unknown, padrao = 'Nao foi possivel concluir.'): string {
+export function mensagemDeErro(erro: unknown, padrao = $localize`Nao foi possivel concluir.`): string {
   if (!(erro instanceof HttpErrorResponse)) {
     return padrao;
   }
 
   if (erro.status === 0) {
-    return 'Sem conexao com o servidor. Confira a internet e tente de novo.';
+    return $localize`Sem conexao com o servidor. Confira a internet e tente de novo.`;
   }
 
   const corpo = erro.error as Partial<ApiError> | string | null;

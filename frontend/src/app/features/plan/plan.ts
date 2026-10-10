@@ -6,6 +6,7 @@ import { InfoDoPlano, Periodo } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Planos do Piggu.
@@ -15,7 +16,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
  */
 @Component({
   selector: 'app-plan',
-  imports: [DataBrPipe],
+  imports: [Icone, DataBrPipe],
   templateUrl: './plan.html',
   styleUrl: './plan.scss',
 })
@@ -25,6 +26,7 @@ export class Plan {
 
   protected readonly info = signal<InfoDoPlano | null>(null);
   protected readonly erro = signal('');
+  protected readonly aviso = signal('');
   protected readonly ocupado = signal(false);
   protected readonly voltouDoPagamento =
     inject(ActivatedRoute).snapshot.queryParamMap.get('assinatura') === 'ok';
@@ -50,6 +52,25 @@ export class Plan {
     await this.abrir(() => this.billing.checkout(periodo));
   }
 
+  /** Arrependimento (CDC art. 49): cancela agora e devolve tudo o que foi pago. */
+  protected async pedirReembolso(): Promise<void> {
+    if (!confirm($localize`Cancelar o Premium agora e receber de volta todo o valor pago?`)) {
+      return;
+    }
+    this.ocupado.set(true);
+    this.erro.set('');
+    try {
+      await firstValueFrom(this.billing.reembolso());
+      await firstValueFrom(this.auth.renovar());
+      this.info.set(await firstValueFrom(this.billing.plano()));
+      this.aviso.set($localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`);
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha));
+    } finally {
+      this.ocupado.set(false);
+    }
+  }
+
   protected async gerenciar(): Promise<void> {
     await this.abrir(() => this.billing.portal());
   }
@@ -65,8 +86,26 @@ export class Plan {
     }
   }
 
-  /** Separado para os testes nao saírem da pagina. */
+  /**
+   * Separado para os testes nao saírem da pagina. So segue para a Stripe: um endereco
+   * de outro lugar (resposta adulterada) nunca tira a pessoa do Piggu.
+   */
   protected irPara(url: string): void {
+    if (!ehDaStripe(url)) {
+      this.erro.set($localize`Endereço de pagamento inválido. Tente de novo.`);
+      this.ocupado.set(false);
+      return;
+    }
     window.location.assign(url);
+  }
+}
+
+/** Checkout e portal da Stripe: https e dominio stripe.com. */
+export function ehDaStripe(url: string): boolean {
+  try {
+    const endereco = new URL(url);
+    return endereco.protocol === 'https:' && (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'));
+  } catch {
+    return false;
   }
 }

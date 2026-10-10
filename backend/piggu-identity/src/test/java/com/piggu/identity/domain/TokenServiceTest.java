@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class TokenServiceTest extends PostgresIntegrationTest {
 
+    private static final Household FAMILIA = new Household("Familia de teste");
+
     @Autowired
     private TokenService tokens;
 
@@ -28,25 +30,26 @@ class TokenServiceTest extends PostgresIntegrationTest {
     private JwtDecoder decoder;
 
     @Test
-    @DisplayName("access token carrega id, e-mail e perfil, e e verificavel pela chave publica")
+    @DisplayName("access token carrega id, e-mail, papel, plano e familia, e e verificavel pela chave publica")
     void accessTokenCarregaOEssencial() {
-        UserAccount conta = new UserAccount("beatriz@piggu.test", PigguRole.BEATRIZ);
+        UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
 
         assertThat(token.getSubject()).isEqualTo(conta.getId().toString());
-        assertThat(token.getClaimAsString("email")).isEqualTo("beatriz@piggu.test");
-        assertThat(token.getClaimAsString("role")).isEqualTo("BEATRIZ");
+        assertThat(token.getClaimAsString("email")).isEqualTo("titular@piggu.test");
+        assertThat(token.getClaimAsString("role")).isEqualTo("TITULAR");
         assertThat(token.getClaimAsString("plano")).isEqualTo("GRATUITO");
+        assertThat(token.getClaimAsString("familia")).isEqualTo(FAMILIA.getId().toString());
         assertThat(token.getIssuer()).hasToString("https://piggu.test");
     }
 
     @Test
     @DisplayName("access token traz o kid que o JWKS publica")
     void tokenTrazOKid() {
-        UserAccount conta = new UserAccount("admin@piggu.test", PigguRole.ADMIN);
+        UserAccount conta = new UserAccount("admin@piggu.test", PigguRole.ADMIN, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
 
         assertThat(token.getHeaders()).containsEntry("kid", "piggu-signing-key");
         assertThat(token.getHeaders()).containsEntry("alg", "RS256");
@@ -55,9 +58,9 @@ class TokenServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("access token expira dentro do prazo configurado")
     void tokenExpira() {
-        UserAccount conta = new UserAccount("beatriz@piggu.test", PigguRole.BEATRIZ);
+        UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
 
         assertThat(token.getExpiresAt()).isNotNull().isAfter(Instant.now());
         assertThat(tokens.segundosDeAcesso()).isEqualTo(1800);

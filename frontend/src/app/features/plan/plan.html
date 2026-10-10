@@ -1,12 +1,15 @@
-<h1>Piggu Premium</h1>
+<h1 i18n>Piggu Premium</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
 }
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
 
 @if (info(); as plano) {
   @if (voltouDoPagamento && plano.plano === 'GRATUITO') {
-    <p class="aviso">
+    <p i18n class="aviso">
       Pagamento enviado. O Premium aparece assim que o pagamento for confirmado, o que leva alguns
       segundos.
       <button type="button" class="botao contorno pequeno" (click)="carregar()">Atualizar</button>
@@ -16,33 +19,43 @@
   @if (plano.plano === 'PREMIUM') {
     <section class="cartao">
       <div class="cartao-titulo">
-        <h2>Você é Premium ⭐</h2>
+        <h2><span class="selo"><app-icone nome="estrela" [tamanho]="16" [traco]="2.2" /></span><ng-container i18n>Você é Premium</ng-container></h2>
         @if (plano.premiumAte) {
-          <span class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
+          <span i18n class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
         }
       </div>
       @if (plano.origem === 'WEB') {
-        <p class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
+        <p i18n class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
         <div class="acoes">
-          <button type="button" class="botao contorno" (click)="gerenciar()" [disabled]="ocupado()">
+          <button i18n type="button" class="botao contorno" (click)="gerenciar()" [disabled]="ocupado()">
             Gerenciar assinatura
           </button>
+          @if (plano.reembolsoAte) {
+            <button i18n type="button" class="botao perigo" (click)="pedirReembolso()" [disabled]="ocupado()">
+              Cancelar e pedir reembolso
+            </button>
+          }
         </div>
+        @if (plano.reembolsoAte) {
+          <p i18n class="linha-detalhe">
+            Mudou de ideia? Até {{ plano.reembolsoAte | dataBr }} você cancela e recebe tudo de volta.
+          </p>
+        }
       } @else if (plano.origem) {
-        <p class="linha-detalhe">
+        <p i18n class="linha-detalhe">
           Assinado pelo app. Para cancelar, use as assinaturas da
           {{ plano.origem === 'APP_STORE' ? 'App Store' : 'Google Play' }}.
         </p>
       }
     </section>
   } @else if (auth.ehPremium()) {
-    <p class="aviso">Como administrador, você já usa tudo do Premium.</p>
+    <p i18n class="aviso">Como administrador, você já usa tudo do Premium.</p>
   }
 
   <div class="planos">
     <section class="cartao" aria-labelledby="titulo-gratuito">
       <div class="cartao-titulo">
-        <h2 id="titulo-gratuito">Gratuito</h2>
+        <h2 i18n id="titulo-gratuito">Gratuito</h2>
         <span class="etiqueta">R$ 0</span>
       </div>
       <ul class="itens">
@@ -52,7 +65,7 @@
       </ul>
     </section>
 
-    <section class="cartao destaque" aria-labelledby="titulo-premium">
+    <section i18n class="cartao destaque" aria-labelledby="titulo-premium">
       <div class="cartao-titulo">
         <h2 id="titulo-premium">Premium</h2>
       </div>
@@ -68,6 +81,12 @@
 
       @if (plano.plano === 'GRATUITO' && !auth.ehAdmin()) {
         @if (plano.assinaturaDisponivel) {
+          @if (plano.diasDeTeste > 0) {
+            <p class="linha-detalhe">
+              Comece com {{ plano.diasDeTeste }} dias grátis. A primeira cobrança só acontece depois
+              disso, e você pode cancelar antes sem pagar nada.
+            </p>
+          }
           <div class="acoes">
             <button type="button" class="botao" (click)="assinar('MENSAL')" [disabled]="ocupado()">
               Assinar mensal
@@ -88,11 +107,11 @@
     </section>
   </div>
 
-  <p class="linha-detalhe letras-miudas">
+  <p i18n class="linha-detalhe letras-miudas">
     O pagamento é feito na página segura da Stripe; o Piggu não vê nem guarda dados do cartão.
     Cancele quando quiser, sem multa. Se desistir em até 7 dias da assinatura, devolvemos o valor
     integral. Se o Premium acabar, nada do que você guardou some: tudo continua visível.
   </p>
 } @else if (!erro()) {
-  <p class="vazio">Carregando...</p>
+  <p i18n class="vazio">Carregando...</p>
 }

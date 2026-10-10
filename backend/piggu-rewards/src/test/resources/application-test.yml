@@ -13,3 +13,12 @@ logging:
   level:
     org.hibernate.SQL: WARN
     com.piggu: WARN
+
+piggu:
+  # Os testes fazem muitas escritas seguidas com a mesma conta; o limite em si tem
+  # teste proprio (LimiteDeRequisicoesTest).
+  limite:
+    login: 100000
+    publico: 100000
+    escrita: 100000
+    envio: 100000

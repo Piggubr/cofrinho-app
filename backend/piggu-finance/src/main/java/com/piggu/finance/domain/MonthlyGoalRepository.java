@@ -2,5 +2,10 @@ package com.piggu.finance.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MonthlyGoalRepository extends JpaRepository<MonthlyGoal, String> {
+import java.util.Optional;
+import java.util.UUID;
+
+public interface MonthlyGoalRepository extends JpaRepository<MonthlyGoal, UUID> {
+
+    Optional<MonthlyGoal> findByReferenceMonth(String referenceMonth);
 }

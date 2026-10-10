@@ -1,10 +1,12 @@
 package com.piggu.lifestyle.api.dto;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -39,13 +41,17 @@ public record PlaceRequest(
         @NotNull(message = "Escolha a data da visita.")
         LocalDate data,
 
-        List<String> marcacoes,
+        @Size(max = 20, message = "Marcacoes demais.")
+        List<@Size(max = 40) String> marcacoes,
 
         @DecimalMin(value = "0", message = "Digite um valor valido.")
+        @DecimalMax(value = "1000000", message = "O valor e alto demais.")
         BigDecimal valor,
 
+        @Size(max = 7_000_000, message = "A foto e grande demais. O limite e de 5 MB.")
         String imageBase64,
 
+        @Pattern(regexp = "image/[a-z0-9.+-]{1,30}", message = "Formato de imagem nao aceito.")
         String mimeType
 ) {
 }

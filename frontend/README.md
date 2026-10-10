@@ -29,17 +29,18 @@ onze mesmo abrindo só uma.
 |---|---|---|
 | `/entrar` | Login com Google | — |
 | `/painel` | Cofrinho, meta do mês, gastos por categoria e saldo dos bancos conectados | todos |
-| `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, BEATRIZ |
-| `/calendario` | Grade do mês com gastos e lembretes | ADMIN, BEATRIZ |
-| `/compras` | Listas de compras e desejos, busca no catálogo | ADMIN, BEATRIZ |
-| `/lugares` | Lugares visitados, com foto e marcadores | ADMIN, BEATRIZ |
-| `/filmes` | Lista, busca no TMDB, sorteio e avaliação | ADMIN, BEATRIZ |
-| `/feed` | Fotos do mês com legenda | ADMIN, BEATRIZ |
-| `/premios` | Fofocoins, prêmios e resgates | ADMIN, BEATRIZ |
-| `/metas` | Limite de gasto por mês | ADMIN, BEATRIZ |
+| `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, TITULAR |
+| `/calendario` | Grade do mês com gastos e lembretes | ADMIN, TITULAR |
+| `/compras` | Listas de compras e desejos, busca no catálogo | ADMIN, TITULAR |
+| `/lugares` | Lugares visitados, com foto e marcadores | ADMIN, TITULAR |
+| `/filmes` | Lista, busca no TMDB, sorteio e avaliação | ADMIN, TITULAR |
+| `/feed` | Fotos do mês com legenda | ADMIN, TITULAR |
+| `/premios` | Fofocoins, prêmios e resgates | ADMIN, TITULAR |
+| `/metas` | Limite de gasto por mês | ADMIN, TITULAR |
 | `/perfil` | Conta e, para o admin, gestão de acessos | todos |
 
-O perfil `FAMILIAR` só enxerga `/painel` e `/perfil`; o menu esconde o resto.
+O `MEMBRO` da família só enxerga `/painel`, `/familia` e `/perfil`; o menu esconde o resto.
+Em `/familia` o titular convida pelo e-mail e remove membros; o membro pode sair.
 Isso é conveniência de navegação — quem decide de verdade é o backend, que
 recusa com 403 mesmo se a tela abrir.
 
@@ -159,3 +160,13 @@ npm test
   elas, ficaram de fora — precisam primeiro existir na API.
 - **Telas de erro.** Um 403 ou um erro de rede aparece como aviso no topo da
   tela; não há página dedicada.
+
+## Textos e tradução
+
+Os textos ficam prontos para tradução com o i18n do próprio Angular, sem traduzir nada
+ainda: nos templates, cada texto leva o atributo `i18n` (e `i18n-placeholder`,
+`i18n-aria-label`... nos atributos); no TypeScript, ``$localize`...` ``. O idioma de origem
+é `pt-BR` (`angular.json`). `npm run i18n` extrai tudo para um catálogo só,
+`src/locale/messages.xlf`. Para um idioma novo: copiar para `messages.<idioma>.xlf`,
+traduzir e declarar o locale em `angular.json`. Texto novo entra já marcado.
+

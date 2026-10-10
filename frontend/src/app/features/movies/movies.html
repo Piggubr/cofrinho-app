@@ -1,4 +1,4 @@
-<h1>Filmes</h1>
+<h1 i18n>Filmes</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -6,12 +6,12 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>O que vamos assistir?</h2>
+    <h2 i18n>O que vamos assistir?</h2>
   </div>
 
   <div class="linha-de-campos">
     <div class="campo">
-      <label for="genero">Gênero</label>
+      <label i18n for="genero">Gênero</label>
       <select id="genero" [ngModel]="generoEscolhido()" (ngModelChange)="generoEscolhido.set($event)">
         @for (genero of generos; track genero.id) {
           <option [value]="genero.id">{{ genero.nome }}</option>
@@ -19,8 +19,8 @@
       </select>
     </div>
     <div class="campo alinhado">
-      <button type="button" class="botao" (click)="sortear()" [disabled]="sorteando()">
-        {{ sorteando() ? 'Sorteando...' : 'Sortear filme' }}
+      <button i18n type="button" class="botao" (click)="sortear()" [disabled]="sorteando()">
+        @if (sorteando()) {Sorteando...} @else {Sortear filme}
       </button>
     </div>
   </div>
@@ -32,21 +32,21 @@
       }
       <div>
         <h3>{{ filme.titulo }} <small>{{ filme.ano }}</small></h3>
-        <p class="linha-detalhe">Nota TMDB: {{ filme.nota }}</p>
+        <p i18n class="linha-detalhe">Nota TMDB: {{ filme.nota }}</p>
         <p class="sinopse">{{ filme.sinopse }}</p>
-        <button type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar à lista</button>
+        <button i18n type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar à lista</button>
       </div>
     </article>
   }
 
   <div class="linha-de-campos">
     <div class="campo">
-      <label for="buscaFilme">Buscar filme</label>
-      <input id="buscaFilme" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscar()" placeholder="Nome do filme" />
+      <label i18n for="buscaFilme">Buscar filme</label>
+      <input i18n-placeholder id="buscaFilme" maxlength="100" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscar()" placeholder="Nome do filme" />
     </div>
     <div class="campo alinhado">
-      <button type="button" class="botao secundario" (click)="buscar()" [disabled]="buscando()">
-        {{ buscando() ? 'Buscando...' : 'Buscar' }}
+      <button i18n type="button" class="botao secundario" (click)="buscar()" [disabled]="buscando()">
+        @if (buscando()) {Buscando...} @else {Buscar}
       </button>
     </div>
   </div>
@@ -60,7 +60,7 @@
           }
           <h3>{{ filme.titulo }}</h3>
           <p class="linha-detalhe">{{ filme.ano }} · {{ filme.nota }}</p>
-          <button type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar</button>
+          <button i18n type="button" class="botao pequeno" (click)="adicionar(filme)">Adicionar</button>
         </article>
       }
     </div>
@@ -69,12 +69,12 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Para assistir</h2>
+    <h2 i18n>Para assistir</h2>
     <span class="etiqueta">{{ paraVer().length }}</span>
   </div>
 
   @if (carregando()) {
-    <p class="carregando">Carregando...</p>
+    <p i18n class="carregando">Carregando...</p>
   } @else if (paraVer().length) {
     <div class="grade">
       @for (filme of paraVer(); track filme.id) {
@@ -85,20 +85,20 @@
           <h3>{{ filme.titulo }}</h3>
           <p class="linha-detalhe">{{ filme.ano }}</p>
           <div class="acoes">
-            <button type="button" class="botao pequeno" (click)="alternarAssistido(filme)">Já assistimos</button>
-            <button type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+            <button i18n type="button" class="botao pequeno" (click)="alternarAssistido(filme)">Já assistimos</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluir(filme)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </article>
       }
     </div>
   } @else {
-    <p class="vazio">Nenhum filme na fila.</p>
+    <p i18n class="vazio">Nenhum filme na fila.</p>
   }
 </section>
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Já assistidos</h2>
+    <h2 i18n>Já assistidos</h2>
     <span class="etiqueta">{{ assistidos().length }}</span>
   </div>
 
@@ -111,7 +111,7 @@
           }
           <h3>{{ filme.titulo }}</h3>
 
-          <div class="estrelas" role="group" aria-label="Sua nota">
+          <div i18n-aria-label class="estrelas" role="group" aria-label="Sua nota">
             @for (nota of notasPossiveis; track nota) {
               <button
                 type="button"
@@ -130,15 +130,15 @@
           }
 
           <div class="acoes">
-            <button type="button" class="botao contorno pequeno" (click)="alternarAssistido(filme)">
+            <button i18n type="button" class="botao contorno pequeno" (click)="alternarAssistido(filme)">
               Voltar para a fila
             </button>
-            <button type="button" class="botao perigo" (click)="excluir(filme)">Remover</button>
+            <button type="button" class="botao icone-so perigo" (click)="excluir(filme)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </article>
       }
     </div>
   } @else {
-    <p class="vazio">Nenhum filme assistido ainda.</p>
+    <p i18n class="vazio">Nenhum filme assistido ainda.</p>
   }
 </section>

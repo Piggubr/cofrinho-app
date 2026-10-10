@@ -1,0 +1,197 @@
+<h1 i18n>Relatórios</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao" aria-labelledby="titulo-relatorio-mes">
+  <div class="cartao-titulo">
+    <button
+      type="button"
+      class="botao contorno icone-so"
+      (click)="trocarMes(-1)"
+      aria-label="Mês anterior"
+      i18n-aria-label
+    >
+      <app-icone nome="esquerda" [tamanho]="18" />
+    </button>
+    <h2 id="titulo-relatorio-mes">{{ rotuloDoMes() }}</h2>
+    <button
+      type="button"
+      class="botao contorno icone-so"
+      (click)="trocarMes(1)"
+      aria-label="Próximo mês"
+      i18n-aria-label
+    >
+      <app-icone nome="direita" [tamanho]="18" />
+    </button>
+  </div>
+
+  @if (resumo(); as r) {
+    <div class="numeros">
+      <div>
+        <p i18n class="linha-detalhe">Gastos</p>
+        <p class="numero">{{ r.gastos | moeda }}</p>
+      </div>
+      <div>
+        <p i18n class="linha-detalhe">Mês anterior</p>
+        <p class="numero">{{ r.gastosMesAnterior | moeda }}</p>
+        @if (r.variacao !== null) {
+          <p class="linha-detalhe variacao">
+            @if (r.variacao > 0) {
+              <span i18n>▲ {{ r.variacao | number: '1.0-1' }}% a mais</span>
+            } @else if (r.variacao < 0) {
+              <span i18n>▼ {{ -r.variacao | number: '1.0-1' }}% a menos</span>
+            } @else {
+              <span i18n>igual</span>
+            }
+          </p>
+        }
+      </div>
+      @if (r.projecaoDeGastos !== null) {
+        <div>
+          <p i18n class="linha-detalhe">Projeção do mês</p>
+          <p class="numero">{{ r.projecaoDeGastos | moeda }}</p>
+        </div>
+      }
+    </div>
+
+    @if (r.porCategoria.length) {
+      <div class="legenda" aria-hidden="true">
+        <span><i class="amostra gasto"></i><ng-container i18n>Este mês</ng-container></span>
+        <span><i class="amostra marca"></i><ng-container i18n>Mês anterior</ng-container></span>
+      </div>
+      <ul class="categorias">
+        @for (c of r.porCategoria; track c.categoria) {
+          <li>
+            <div class="categoria-texto">
+              <span>{{ c.categoria }}</span>
+              <span class="numero-pequeno">{{ c.total | moeda }}</span>
+            </div>
+            <div
+              class="trilho"
+              role="img"
+              [attr.aria-label]="c.categoria + ': ' + (c.total | moeda) + ' · ' + (c.anterior | moeda)"
+              [title]="(c.total | moeda) + ' · ' + (c.anterior | moeda)"
+            >
+              <span class="barra-gasto" [style.width.%]="percentual(c.total)"></span>
+              @if (c.anterior > 0) {
+                <span class="marca-anterior" [style.left.%]="percentual(c.anterior)"></span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p i18n class="vazio">Nenhum gasto neste mês.</p>
+    }
+  }
+</section>
+
+<section class="cartao" aria-labelledby="titulo-relatorio-ano">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-relatorio-ano">Ano de {{ ano() }}</h2>
+    <span class="etiqueta premium"><app-icone nome="estrela" [tamanho]="12" [traco]="2.4" /> Premium</span>
+  </div>
+
+  @if (!auth.ehPremium()) {
+    <p i18n class="linha-detalhe">
+      Veja o ano mês a mês, receitas contra gastos e para onde foi o dinheiro. Faz parte do
+      <a routerLink="/plano">Piggu Premium</a>.
+    </p>
+  } @else if (doAno(); as a) {
+    <div class="numeros">
+      <div>
+        <p i18n class="linha-detalhe">Receitas</p>
+        <p class="numero">{{ a.receitas | moeda }}</p>
+      </div>
+      <div>
+        <p i18n class="linha-detalhe">Gastos</p>
+        <p class="numero">{{ a.gastos | moeda }}</p>
+      </div>
+      <div>
+        <p i18n class="linha-detalhe">Sobra</p>
+        <p class="numero" [class.negativo]="a.sobra < 0">{{ a.sobra | moeda }}</p>
+      </div>
+    </div>
+
+    <div class="legenda" aria-hidden="true">
+      <span><i class="amostra receita"></i><ng-container i18n>Receitas</ng-container></span>
+      <span><i class="amostra gasto"></i><ng-container i18n>Gastos</ng-container></span>
+    </div>
+    <div class="grafico" (mouseleave)="mesEmFoco.set(null)">
+      <svg [attr.viewBox]="'0 0 ' + largura + ' ' + altura" role="img" aria-labelledby="titulo-relatorio-ano">
+        <line class="linha-base" x1="0" [attr.x2]="largura" [attr.y1]="base" [attr.y2]="base" />
+        @for (c of colunas(); track c.mes; let i = $index) {
+          @if (mesEmFoco() === i) {
+            <rect class="foco" [attr.x]="c.x" y="0" [attr.width]="c.passo" [attr.height]="base" />
+          }
+          <path class="barra receita" [attr.d]="c.receita" />
+          <path class="barra gasto" [attr.d]="c.gasto" />
+          <text class="eixo" [attr.x]="c.meio" [attr.y]="altura - 4" text-anchor="middle">{{ c.rotulo }}</text>
+          <rect
+            class="alvo"
+            [attr.x]="c.x"
+            y="0"
+            [attr.width]="c.passo"
+            [attr.height]="altura"
+            tabindex="0"
+            [attr.aria-label]="c.rotulo + ': ' + (c.receitas | moeda) + ' · ' + (c.gastos | moeda)"
+            (mouseenter)="mesEmFoco.set(i)"
+            (focus)="mesEmFoco.set(i)"
+            (blur)="mesEmFoco.set(null)"
+          />
+        }
+      </svg>
+      @if (emFoco(); as f) {
+        <div class="dica" role="status" [class.a-esquerda]="f.aEsquerda" [style.left.%]="f.posicao">
+          <strong>{{ f.rotulo }} {{ ano() }}</strong>
+          <span><i class="amostra receita"></i><ng-container i18n>Receitas</ng-container> {{ f.receitas | moeda }}</span>
+          <span><i class="amostra gasto"></i><ng-container i18n>Gastos</ng-container> {{ f.gastos | moeda }}</span>
+          <span i18n>Sobra {{ f.sobra | moeda }}</span>
+        </div>
+      }
+    </div>
+
+    <details>
+      <summary i18n>Ver em tabela</summary>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th i18n scope="col">Mês</th>
+            <th i18n scope="col">Receitas</th>
+            <th i18n scope="col">Gastos</th>
+            <th i18n scope="col">Sobra</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of colunas(); track c.mes) {
+            <tr>
+              <th scope="row">{{ c.rotulo }}</th>
+              <td>{{ c.receitas | moeda }}</td>
+              <td>{{ c.gastos | moeda }}</td>
+              <td>{{ c.sobra | moeda }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </details>
+
+    @if (a.porCategoria.length) {
+      <h3 i18n>Para onde foi o dinheiro</h3>
+      <ul class="categorias">
+        @for (c of a.porCategoria; track c.categoria) {
+          <li>
+            <div class="categoria-texto">
+              <span>{{ c.categoria }}</span>
+              <span class="numero-pequeno">{{ c.total | moeda }}</span>
+            </div>
+            <div class="trilho" aria-hidden="true">
+              <span class="barra-gasto" [style.width.%]="(c.total / a.porCategoria[0].total) * 100"></span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

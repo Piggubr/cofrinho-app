@@ -47,7 +47,7 @@ class TextoTest {
     @Test
     @DisplayName("e-mail vira minusculo e sem espacos, que e a forma usada como chave")
     void emailNormalizado() {
-        assertThat(Texto.email("  Beatriz@Gmail.COM ")).isEqualTo("beatriz@gmail.com");
+        assertThat(Texto.email("  Titular@Gmail.COM ")).isEqualTo("titular@gmail.com");
     }
 
     @Test

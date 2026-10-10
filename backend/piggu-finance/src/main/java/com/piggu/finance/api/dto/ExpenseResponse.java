@@ -18,7 +18,12 @@ public record ExpenseResponse(
         String tipo,
         String origem,
         String usuario,
-        Instant registradoEm
+        Instant registradoEm,
+        UUID contaId,
+        Short parcela,
+        Short parcelas,
+        String moedaOriginal,
+        BigDecimal valorOriginal
 ) {
 
     public static ExpenseResponse de(Expense gasto) {
@@ -33,7 +38,12 @@ public record ExpenseResponse(
                 gasto.getKind(),
                 gasto.getSource(),
                 gasto.getUserEmail(),
-                gasto.getCreatedAt()
+                gasto.getCreatedAt(),
+                gasto.getAccountId(),
+                gasto.getInstallmentNumber(),
+                gasto.getInstallmentCount(),
+                gasto.getOriginalCurrency(),
+                gasto.getOriginalAmount()
         );
     }
 }

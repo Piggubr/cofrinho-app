@@ -1,4 +1,4 @@
-<h1>Prêmios</h1>
+<h1 i18n>Prêmios</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -9,29 +9,29 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Fofocoins</h2>
+    <h2 i18n>Fofocoins</h2>
     <span class="saldo">{{ saldo()?.saldo ?? 0 }}</span>
   </div>
 
-  @if (auth.ehAdmin()) {
+  @if (auth.ehTitular()) {
     <div class="linha-de-campos">
       <div class="campo">
-        <label for="ajusteValor">Quantidade</label>
-        <input id="ajusteValor" type="number" step="1" [ngModel]="ajusteValor()" (ngModelChange)="ajusteValor.set($event)" placeholder="Use negativo para debitar" />
+        <label i18n for="ajusteValor">Quantidade</label>
+        <input i18n-placeholder id="ajusteValor" type="number" step="1" [ngModel]="ajusteValor()" (ngModelChange)="ajusteValor.set($event)" placeholder="Use negativo para debitar" />
       </div>
       <div class="campo">
-        <label for="ajusteMotivo">Motivo</label>
-        <input id="ajusteMotivo" type="text" [ngModel]="ajusteMotivo()" (ngModelChange)="ajusteMotivo.set($event)" placeholder="Ex.: Arrumou a cozinha" />
+        <label i18n for="ajusteMotivo">Motivo</label>
+        <input i18n-placeholder id="ajusteMotivo" maxlength="200" type="text" [ngModel]="ajusteMotivo()" (ngModelChange)="ajusteMotivo.set($event)" placeholder="Ex.: Arrumou a cozinha" />
       </div>
       <div class="campo alinhado">
-        <button type="button" class="botao" (click)="ajustar()">Ajustar</button>
+        <button i18n type="button" class="botao" (click)="ajustar()">Ajustar</button>
       </div>
     </div>
   }
 
   <div class="acoes">
-    <button type="button" class="botao contorno pequeno" (click)="alternarHistorico()">
-      {{ mostrarHistorico() ? 'Esconder histórico' : 'Ver histórico' }}
+    <button i18n type="button" class="botao contorno pequeno" (click)="alternarHistorico()">
+      @if (mostrarHistorico()) {Esconder histórico} @else {Ver histórico}
     </button>
   </div>
 
@@ -43,36 +43,36 @@
           <p class="linha-detalhe">{{ movimento.data }}</p>
         </div>
         <span class="linha-valor" [class.positivo]="movimento.valor > 0" [class.negativo]="movimento.valor < 0">
-          {{ movimento.valor > 0 ? '+' : '' }}{{ movimento.valor }}
+          @if (movimento.valor > 0) {+} @else {}{{ movimento.valor }}
         </span>
       </div>
     } @empty {
-      <p class="vazio">Nenhuma movimentação ainda.</p>
+      <p i18n class="vazio">Nenhuma movimentação ainda.</p>
     }
   }
 </section>
 
-@if (auth.ehAdmin()) {
+@if (auth.ehTitular()) {
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2>Novo prêmio</h2>
+      <h2 i18n>Novo prêmio</h2>
     </div>
 
     <div class="linha-de-campos">
       <div class="campo">
-        <label for="premioNome">Nome</label>
-        <input id="premioNome" type="text" [ngModel]="novoNome()" (ngModelChange)="novoNome.set($event)" />
+        <label i18n for="premioNome">Nome</label>
+        <input id="premioNome" maxlength="100" type="text" [ngModel]="novoNome()" (ngModelChange)="novoNome.set($event)" />
       </div>
       <div class="campo">
-        <label for="premioDescricao">Descrição</label>
-        <input id="premioDescricao" type="text" [ngModel]="novaDescricao()" (ngModelChange)="novaDescricao.set($event)" />
+        <label i18n for="premioDescricao">Descrição</label>
+        <input id="premioDescricao" maxlength="300" type="text" [ngModel]="novaDescricao()" (ngModelChange)="novaDescricao.set($event)" />
       </div>
       <div class="campo">
-        <label for="premioPreco">Preço em Fofocoins</label>
+        <label i18n for="premioPreco">Preço em Fofocoins</label>
         <input id="premioPreco" type="number" min="1" step="1" [ngModel]="novoPreco()" (ngModelChange)="novoPreco.set($event)" />
       </div>
       <div class="campo alinhado">
-        <button type="button" class="botao" (click)="criarPremio()">Criar</button>
+        <button i18n type="button" class="botao" (click)="criarPremio()">Criar</button>
       </div>
     </div>
   </section>
@@ -80,11 +80,11 @@
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Disponíveis</h2>
+    <h2 i18n>Disponíveis</h2>
   </div>
 
   @if (carregando()) {
-    <p class="carregando">Carregando...</p>
+    <p i18n class="carregando">Carregando...</p>
   } @else if (premios().length) {
     <div class="grade">
       @for (premio of premios(); track premio.id) {
@@ -93,9 +93,9 @@
           @if (premio.descricao) {
             <p class="linha-detalhe">{{ premio.descricao }}</p>
           }
-          <p class="preco">{{ premio.preco }} Fofocoins</p>
+          <p i18n class="preco">{{ premio.preco }} Fofocoins</p>
 
-          <div class="acoes">
+          <div i18n class="acoes">
             @if (premio.ativo) {
               <button
                 type="button"
@@ -108,21 +108,21 @@
             } @else {
               <span class="etiqueta">Desativado</span>
             }
-            @if (auth.ehAdmin() && premio.ativo) {
-              <button type="button" class="botao perigo" (click)="desativar(premio)">Remover</button>
+            @if (auth.ehTitular() && premio.ativo) {
+              <button type="button" class="botao icone-so perigo" (click)="desativar(premio)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
             }
           </div>
         </article>
       }
     </div>
   } @else {
-    <p class="vazio">Nenhum prêmio cadastrado.</p>
+    <p i18n class="vazio">Nenhum prêmio cadastrado.</p>
   }
 </section>
 
 <section class="cartao">
   <div class="cartao-titulo">
-    <h2>Resgates</h2>
+    <h2 i18n>Resgates</h2>
   </div>
 
   @for (resgate of resgates(); track resgate.id) {
@@ -134,6 +134,6 @@
       <span class="linha-valor">{{ resgate.preco }}</span>
     </div>
   } @empty {
-    <p class="vazio">Nenhum resgate ainda.</p>
+    <p i18n class="vazio">Nenhum resgate ainda.</p>
   }
 </section>

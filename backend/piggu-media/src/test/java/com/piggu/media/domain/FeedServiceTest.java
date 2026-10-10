@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class FeedServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
 
     @Autowired
     private FeedService feed;
@@ -51,7 +51,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
         assertThat(foto.mesKey()).isEqualTo("2026-09");
         assertThat(foto.assetId()).isNotNull();
         assertThat(foto.legenda()).isEmpty();
-        assertThat(foto.usuario()).isEqualTo(BEATRIZ.email());
+        assertThat(foto.usuario()).isEqualTo(TITULAR.email());
         assertThat(assets.count()).isEqualTo(1);
     }
 
@@ -60,7 +60,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
     void legendar() {
         FeedPhotoResponse foto = publicar("2026-09");
 
-        assertThat(feed.legendar(foto.id(), "Nosso setembro", BEATRIZ).legenda())
+        assertThat(feed.legendar(foto.id(), "Nosso setembro", TITULAR).legenda())
                 .isEqualTo("Nosso setembro");
     }
 
@@ -69,7 +69,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
     void legendaCortada() {
         FeedPhotoResponse foto = publicar("2026-09");
 
-        assertThat(feed.legendar(foto.id(), "x".repeat(400), BEATRIZ).legenda()).hasSize(300);
+        assertThat(feed.legendar(foto.id(), "x".repeat(400), TITULAR).legenda()).hasSize(300);
     }
 
     @Test
@@ -78,7 +78,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
         FeedPhotoResponse foto = publicar("2026-09");
         assertThat(assets.count()).isEqualTo(1);
 
-        feed.excluir(foto.id(), BEATRIZ);
+        feed.excluir(foto.id(), TITULAR);
 
         assertThat(feed.listar(null)).isEmpty();
         assertThat(assets.count()).as("arquivo nao pode ficar orfao").isZero();
@@ -107,7 +107,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
     @DisplayName("ninguem apaga foto de outra pessoa")
     void naoApagaFotoAlheia() {
         FeedPhotoResponse foto = publicar("2026-09");
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "familiar@piggu.test", PigguRole.FAMILIAR);
+        CurrentUser outra = new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
 
         assertThatThrownBy(() -> feed.excluir(foto.id(), outra)).isInstanceOf(ForbiddenException.class);
         assertThatThrownBy(() -> feed.legendar(foto.id(), "x", outra)).isInstanceOf(ForbiddenException.class);
@@ -115,6 +115,6 @@ class FeedServiceTest extends PostgresIntegrationTest {
 
     private FeedPhotoResponse publicar(String mesKey) {
         return feed.publicar(new FeedPhotoRequest(
-                mesKey, Base64.getEncoder().encodeToString(new byte[]{1, 2, 3}), "image/png"), BEATRIZ.email());
+                mesKey, Base64.getEncoder().encodeToString(new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 1}), "image/png"), TITULAR.email());
     }
 }

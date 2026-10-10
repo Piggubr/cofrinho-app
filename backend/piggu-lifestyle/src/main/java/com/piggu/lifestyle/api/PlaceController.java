@@ -32,7 +32,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/places")
-@PreAuthorize("hasAnyRole('ADMIN', 'BEATRIZ')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
 public class PlaceController {
 
     private final PlaceService servico;
