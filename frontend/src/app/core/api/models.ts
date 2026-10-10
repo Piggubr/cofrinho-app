@@ -43,6 +43,18 @@ export interface MembroDaFamilia {
   papel: PigguRole;
 }
 
+/** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */
+export interface EventoDeAuditoria {
+  id: number;
+  autor: string;
+  acao: 'CRIOU' | 'EDITOU' | 'APAGOU' | 'IMPORTOU' | 'PAGOU' | 'MUDOU_PAPEL' | 'REMOVEU' | 'ENTROU' | 'SAIU' | 'CONVIDOU';
+  entidade: string;
+  entidadeId: string | null;
+  antes: string | null;
+  depois: string | null;
+  quando: string;
+}
+
 export interface ConviteDaFamilia {
   id: string;
   email: string;

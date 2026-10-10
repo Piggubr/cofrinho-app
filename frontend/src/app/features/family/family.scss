@@ -16,3 +16,8 @@
   justify-content: flex-end;
   gap: 0.4rem;
 }
+
+.historico .quando {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

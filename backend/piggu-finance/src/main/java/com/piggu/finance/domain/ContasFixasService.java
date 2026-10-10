@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.FamiliaAtual;
@@ -47,15 +48,17 @@ public class ContasFixasService {
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transacao;
     private final Clock relogio;
+    private final TrilhaDeAuditoria trilha;
 
     public ContasFixasService(RecurringBillRepository repositorio, ExpenseService gastos, CategoryService categorias,
-                              JdbcTemplate jdbc, TransactionTemplate transacao) {
+                              JdbcTemplate jdbc, TransactionTemplate transacao, TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
         this.gastos = gastos;
         this.categorias = categorias;
         this.jdbc = jdbc;
         this.transacao = transacao;
         this.relogio = Clock.system(Meses.BRASILIA);
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -74,21 +77,27 @@ public class ContasFixasService {
     @Transactional
     public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
                                String autor) {
-        return repositorio.save(new RecurringBill(Texto.limitar(descricao, 200), categorias.normalizar(categoria),
-                valor, dia, automatico, autor));
+        RecurringBill conta = repositorio.save(new RecurringBill(Texto.limitar(descricao, 200),
+                categorias.normalizar(categoria), valor, dia, automatico, autor));
+        trilha.criou("conta-fixa", conta.getId(), Resumos.contaFixa(conta));
+        return conta;
     }
 
     @Transactional
     public RecurringBill atualizar(UUID id, String descricao, String categoria, BigDecimal valor, int dia,
                                    boolean automatico) {
         RecurringBill conta = buscar(id);
+        String antes = Resumos.contaFixa(conta);
         conta.editar(Texto.limitar(descricao, 200), categorias.normalizar(categoria), valor, dia, automatico);
+        trilha.editou("conta-fixa", id, antes, Resumos.contaFixa(conta));
         return conta;
     }
 
     @Transactional
     public void excluir(UUID id) {
-        repositorio.delete(buscar(id));
+        RecurringBill conta = buscar(id);
+        repositorio.delete(conta);
+        trilha.apagou("conta-fixa", id, Resumos.contaFixa(conta));
     }
 
     /** Lanca o gasto do mes no vencimento, uma vez so por mes. */
@@ -102,6 +111,8 @@ public class ContasFixasService {
                 List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(), "Fixo"))),
                 autor).get(0);
         conta.marcarPaga(mes);
+        trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,
+                Resumos.contaFixa(conta) + " · " + mes);
         log.info("Conta fixa lancada: conta={} mes={}", id, mes);
         return gasto;
     }

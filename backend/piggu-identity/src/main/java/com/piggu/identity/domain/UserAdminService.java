@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UpdateUserRequest;
@@ -20,13 +21,16 @@ public class UserAdminService {
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
     private final RefreshSessionRepository sessoes;
+    private final TrilhaDeAuditoria trilha;
 
     public UserAdminService(UserAccountRepository usuarios,
                             FamiliaService familias,
-                            RefreshSessionRepository sessoes) {
+                            RefreshSessionRepository sessoes,
+                            TrilhaDeAuditoria trilha) {
         this.usuarios = usuarios;
         this.familias = familias;
         this.sessoes = sessoes;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -45,8 +49,13 @@ public class UserAdminService {
         if (pedido.apelido() != null) {
             conta.setNickname(Texto.limitar(pedido.apelido(), 120));
         }
-        if (pedido.role() != null) {
+        if (pedido.role() != null && pedido.role() != conta.getRole()) {
+            String antes = conta.primeiroNomeExibicao() + " · " + conta.getRole().name();
             conta.setRole(pedido.role());
+            // Na familia da pessoa, para o titular ver que o papel mudou e quem mudou.
+            trilha.registrar(conta.getHouseholdId(), TrilhaDeAuditoria.autorDaRequisicao(),
+                    TrilhaDeAuditoria.Acao.MUDOU_PAPEL, "pessoa", conta.getId(), antes,
+                    conta.primeiroNomeExibicao() + " · " + conta.getRole().name());
         }
         if (pedido.ativo() != null) {
             conta.setActive(pedido.ativo());

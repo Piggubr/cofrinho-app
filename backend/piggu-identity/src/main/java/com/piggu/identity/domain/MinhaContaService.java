@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
@@ -33,19 +34,22 @@ public class MinhaContaService {
     private final FamiliaService familia;
     private final CascataDeDados cascata;
     private final ProvedorDePagamento pagamentos;
+    private final TrilhaDeAuditoria trilha;
 
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
                              HouseholdRepository familias,
                              FamiliaService familia,
                              CascataDeDados cascata,
-                             ProvedorDePagamento pagamentos) {
+                             ProvedorDePagamento pagamentos,
+                             TrilhaDeAuditoria trilha) {
         this.usuarios = usuarios;
         this.sessoes = sessoes;
         this.familias = familias;
         this.familia = familia;
         this.cascata = cascata;
         this.pagamentos = pagamentos;
+        this.trilha = trilha;
     }
 
     /**
@@ -65,6 +69,10 @@ public class MinhaContaService {
         arquivo.put("sessoes", sessoes.findByUserId(conta.getId()).stream()
                 .map(sessao -> Map.of("criadaEm", sessao.getCreatedAt(), "venceEm", sessao.getExpiresAt(),
                         "navegador", Optional.ofNullable(sessao.getUserAgent()).orElse("")))
+                .toList());
+        // O titular leva o historico da familia; os demais, o que eles mesmos fizeram.
+        arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE).stream()
+                .filter(evento -> usuario.isTitular() || evento.autor().equals(usuario.email()))
                 .toList());
         Map<String, JsonNode> servicos = cascata.exportar(token);
         arquivo.put("dados", servicos);

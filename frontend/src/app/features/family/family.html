@@ -75,6 +75,38 @@
     </ul>
   </section>
 
+  @if (auth.podeLancar()) {
+    <section class="cartao" aria-labelledby="titulo-historico">
+      <div class="cartao-titulo">
+        <h2 i18n id="titulo-historico">Histórico</h2>
+      </div>
+      @if (historico(); as eventos) {
+        <ul class="lista-simples historico">
+          @for (evento of eventos; track evento.entidade + evento.id) {
+            <li class="linha">
+              <div>
+                <p class="linha-titulo">{{ descrever(evento) }}</p>
+                @if (evento.antes && evento.depois) {
+                  <p class="linha-detalhe">{{ evento.antes }} → {{ evento.depois }}</p>
+                } @else if (evento.antes || evento.depois) {
+                  <p class="linha-detalhe">{{ evento.antes || evento.depois }}</p>
+                }
+              </div>
+              <span class="linha-detalhe quando">{{ quando(evento) }}</span>
+            </li>
+          } @empty {
+            <p i18n class="vazio">Nenhuma mudança registrada ainda.</p>
+          }
+        </ul>
+      } @else {
+        <p i18n class="linha-detalhe">Quem lançou, alterou ou apagou cada coisa, e quando.</p>
+        <div class="acoes">
+          <button i18n type="button" class="botao contorno" (click)="verHistorico()">Ver histórico</button>
+        </div>
+      }
+    </section>
+  }
+
   @if (auth.ehTitular()) {
     <section class="cartao" aria-labelledby="titulo-convite">
       <div class="cartao-titulo">

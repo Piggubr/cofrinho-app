@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,11 @@ public class MonthlyGoalService {
     private static final Logger log = LoggerFactory.getLogger(MonthlyGoalService.class);
 
     private final MonthlyGoalRepository repositorio;
+    private final TrilhaDeAuditoria trilha;
 
-    public MonthlyGoalService(MonthlyGoalRepository repositorio) {
+    public MonthlyGoalService(MonthlyGoalRepository repositorio, TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -39,9 +42,14 @@ public class MonthlyGoalService {
         log.info("Meta do mes definida: mes={}", mes);
         return repositorio.findByReferenceMonth(mes)
                 .map(existente -> {
+                    String antes = Resumos.meta(mes, existente.getLimitAmount());
                     existente.atualizar(limite, emailUsuario);
+                    trilha.editou("meta", mes, antes, Resumos.meta(mes, limite));
                     return repositorio.save(existente);
                 })
-                .orElseGet(() -> repositorio.save(new MonthlyGoal(mes, limite, emailUsuario)));
+                .orElseGet(() -> {
+                    trilha.criou("meta", mes, Resumos.meta(mes, limite));
+                    return repositorio.save(new MonthlyGoal(mes, limite, emailUsuario));
+                });
     }
 }
