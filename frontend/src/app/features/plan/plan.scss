@@ -10,8 +10,8 @@
 }
 
 .destaque {
-  border: 1.5px solid var(--rose-deep);
-  background: linear-gradient(180deg, var(--surface) 0%, #fdf3f7 100%);
+  border: 1.5px solid var(--primaria);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--rose-soft) 100%);
 }
 
 .selo {
@@ -21,8 +21,8 @@
   height: 30px;
   margin-right: 0.5rem;
   border-radius: 10px;
-  background: #fff4d6;
-  color: #b07800;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
   vertical-align: middle;
 }
 

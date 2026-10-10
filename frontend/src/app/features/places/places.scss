@@ -32,7 +32,7 @@
 }
 
 .estrela.marcada {
-  color: #e8b923;
+  color: var(--ouro);
 }
 
 .marcadores {
@@ -67,7 +67,7 @@
 }
 
 .lugar .nota {
-  color: #e8b923;
+  color: var(--ouro);
   margin: 0.25rem 0;
   letter-spacing: 0.1em;
 }
