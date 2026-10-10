@@ -2,10 +2,40 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
-import { ConviteDaFamilia, Familia, MembroDaFamilia, PigguRole } from '../../core/api/models';
+import { HistoryService } from '../../core/api/history.service';
+import {
+  ConviteDaFamilia,
+  EventoDeAuditoria,
+  Familia,
+  MembroDaFamilia,
+  PigguRole,
+} from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+
+const ACOES: Record<EventoDeAuditoria['acao'], string> = {
+  CRIOU: $localize`lançou`,
+  EDITOU: $localize`alterou`,
+  APAGOU: $localize`apagou`,
+  IMPORTOU: $localize`importou`,
+  PAGOU: $localize`pagou`,
+  MUDOU_PAPEL: $localize`mudou o papel de`,
+  REMOVEU: $localize`tirou da família`,
+  ENTROU: $localize`entrou na família`,
+  SAIU: $localize`saiu da família`,
+  CONVIDOU: $localize`convidou`,
+};
+
+const ENTIDADES: Record<string, string> = {
+  gasto: $localize`gasto`,
+  receita: $localize`receita`,
+  meta: $localize`meta do mês`,
+  orcamento: $localize`orçamento`,
+  'conta-fixa': $localize`conta fixa`,
+  deposito: $localize`depósito no cofrinho`,
+  pessoa: '',
+};
 
 const PAPEIS: Record<PigguRole, string> = {
   ADMIN: $localize`Admin`,
@@ -28,6 +58,7 @@ const PAPEIS: Record<PigguRole, string> = {
 })
 export class Family {
   private readonly familias = inject(FamilyService);
+  private readonly historicoDaApi = inject(HistoryService);
   protected readonly auth = inject(AuthService);
 
   protected readonly familia = signal<Familia | null>(null);
@@ -37,6 +68,8 @@ export class Family {
   protected readonly email = signal('');
   protected readonly nome = signal('');
   protected readonly ocupado = signal(false);
+  /** Nulo ate a pessoa pedir: o historico so e buscado quando alguem quer ver. */
+  protected readonly historico = signal<EventoDeAuditoria[] | null>(null);
 
   constructor() {
     this.familias.ver().subscribe({
@@ -61,6 +94,29 @@ export class Family {
     this.familias.aceitarConvite(convite.id).subscribe({
       next: () => void this.auth.encerrarLocalmente(),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected verHistorico(): void {
+    this.historicoDaApi.daFamilia().subscribe((eventos) => this.historico.set(eventos));
+  }
+
+  /** "Bia apagou gasto" com o nome de quem esta na familia; quem saiu aparece pelo e-mail. */
+  protected descrever(evento: EventoDeAuditoria): string {
+    const autor =
+      evento.autor === 'sistema'
+        ? 'Piggu'
+        : evento.autor === 'conta-excluida'
+          ? $localize`Conta excluída`
+          : (this.familia()?.membros.find((m) => m.email === evento.autor)?.nome ?? evento.autor);
+    const entidade = ENTIDADES[evento.entidade] ?? evento.entidade;
+    return [autor, ACOES[evento.acao] ?? evento.acao, entidade].filter(Boolean).join(' ');
+  }
+
+  protected quando(evento: EventoDeAuditoria): string {
+    return new Date(evento.quando).toLocaleString('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
     });
   }
 
@@ -111,14 +167,20 @@ export class Family {
   }
 
   protected remover(membro: MembroDaFamilia): void {
-    if (!confirm($localize`Tirar ${membro.nome} da família? O que essa pessoa lançou continua aqui.`)) {
+    if (
+      !confirm($localize`Tirar ${membro.nome} da família? O que essa pessoa lançou continua aqui.`)
+    ) {
       return;
     }
     this.executar(this.familias.removerMembro(membro.id), $localize`Pessoa removida da família.`);
   }
 
   protected sairDaFamilia(): void {
-    if (!confirm($localize`Sair da família? Você passa a ter uma família só sua e precisa entrar de novo.`)) {
+    if (
+      !confirm(
+        $localize`Sair da família? Você passa a ter uma família só sua e precisa entrar de novo.`,
+      )
+    ) {
       return;
     }
     this.familias.sair().subscribe({

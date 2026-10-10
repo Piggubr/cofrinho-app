@@ -71,6 +71,14 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("historico da familia: titular e parceiro veem, membro nao")
+    void historicoDaFamilia() throws Exception {
+        mockMvc.perform(get("/api/family/history").with(TokensDeTeste.titular())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/family/history").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/family/history").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("sem o segredo do RevenueCat configurado, compra pelo app responde 501")
     void lojaDesligada() throws Exception {
         mockMvc.perform(post("/api/billing/stores/app-store/purchases")

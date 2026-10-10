@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
 import org.slf4j.Logger;
@@ -23,9 +24,11 @@ public class IncomeService {
     private static final Logger log = LoggerFactory.getLogger(IncomeService.class);
 
     private final IncomeRepository repositorio;
+    private final TrilhaDeAuditoria trilha;
 
-    public IncomeService(IncomeRepository repositorio) {
+    public IncomeService(IncomeRepository repositorio, TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -36,6 +39,7 @@ public class IncomeService {
     @Transactional
     public Income criar(LocalDate data, String descricao, String categoria, BigDecimal valor, String emailUsuario) {
         Income receita = repositorio.save(new Income(data, Texto.limitar(descricao, 200), categoria(categoria), valor, emailUsuario));
+        trilha.criou("receita", receita.getId(), Resumos.receita(receita));
         log.info("Receita lancada: id={}", receita.getId());
         return receita;
     }
@@ -43,13 +47,17 @@ public class IncomeService {
     @Transactional
     public Income atualizar(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor) {
         Income receita = buscar(id);
+        String antes = Resumos.receita(receita);
         receita.editar(data, Texto.limitar(descricao, 200), categoria(categoria), valor);
+        trilha.editou("receita", id, antes, Resumos.receita(receita));
         return receita;
     }
 
     @Transactional
     public void excluir(UUID id) {
-        repositorio.delete(buscar(id));
+        Income receita = buscar(id);
+        repositorio.delete(receita);
+        trilha.apagou("receita", id, Resumos.receita(receita));
         log.info("Receita apagada: id={}", id);
     }
 

@@ -1,14 +1,18 @@
 package com.piggu.finance.config;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
 import com.piggu.common.dados.DadosDaFamilia;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -35,9 +39,17 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("monthly_goals", "user_email"),
                 Tabela.compartilhada("product_memory", "user_email"),
                 Tabela.compartilhada("custom_categories", "created_by"),
+                Tabela.compartilhada("eventos_de_auditoria", "autor_email"),
                 Tabela.pessoal("consents", "user_email"),
                 new Tabela("receipt_usage", null, false)
         ), extras.orderedStream().toList());
+    }
+
+    /** Quem mudou gastos, receitas, metas, orcamentos, contas fixas e o cofrinho. */
+    @Bean
+    TrilhaDeAuditoria trilhaDeAuditoria(JdbcTemplate jdbc,
+                                        @Value("${piggu.auditoria.retencao-dias:400}") int retencaoEmDias) {
+        return new TrilhaDeAuditoria(jdbc, Duration.ofDays(retencaoEmDias), Clock.systemUTC());
     }
 
     @Bean

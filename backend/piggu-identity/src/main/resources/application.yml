@@ -23,6 +23,9 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  # Historico da familia (trilha de auditoria) pela rota que o gateway ja manda para ca.
+  auditoria:
+    rota: /api/family/history
   google:
     # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.

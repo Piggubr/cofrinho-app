@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
@@ -45,19 +46,22 @@ public class ExpenseService {
     private final RegrasDeCategoria regras;
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
+    private final TrilhaDeAuditoria trilha;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
                           ProductMemoryService memoriaDeProdutos,
                           RegrasDeCategoria regras,
                           PaymentAccountRepository contas,
-                          DivisaoDeGastos divisao) {
+                          DivisaoDeGastos divisao,
+                          TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
         this.regras = regras;
         this.contas = contas;
         this.divisao = divisao;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +114,7 @@ public class ExpenseService {
         if (parcelas == 1) {
             memoriaDeProdutos.registrar(salvos);
         }
+        salvos.forEach(gasto -> trilha.criou("gasto", gasto.getId(), Resumos.gasto(gasto)));
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
@@ -173,6 +178,10 @@ public class ExpenseService {
                 })
                 .toList();
         memoriaDeProdutos.registrar(repositorio.saveAll(novos));
+        if (!novos.isEmpty()) {
+            trilha.registrar(TrilhaDeAuditoria.Acao.IMPORTOU, "gasto", lote, null,
+                    novos.size() + " gastos do extrato");
+        }
         log.info("Extrato importado: linhas={} novas={}", linhas.size(), novos.size());
         return novos.size();
     }
@@ -216,18 +225,23 @@ public class ExpenseService {
     @Transactional
     public ExpenseResponse atualizar(UUID id, UpdateExpenseRequest pedido) {
         Expense gasto = buscar(id);
+        String antes = Resumos.gasto(gasto);
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
         log.info("Gasto editado: id={}", id);
-        return ExpenseResponse.de(repositorio.save(gasto));
+        Expense salvo = repositorio.save(gasto);
+        trilha.editou("gasto", id, antes, Resumos.gasto(salvo));
+        return ExpenseResponse.de(salvo);
     }
 
     @Transactional
     public void excluir(UUID id) {
-        repositorio.delete(buscar(id));
+        Expense gasto = buscar(id);
+        repositorio.delete(gasto);
+        trilha.apagou("gasto", id, Resumos.gasto(gasto));
         log.info("Gasto apagado: id={}", id);
     }
 
@@ -235,7 +249,10 @@ public class ExpenseService {
     @Transactional
     public void excluirSeExistir(UUID id) {
         if (id != null) {
-            repositorio.findById(id).ifPresent(repositorio::delete);
+            repositorio.findById(id).ifPresent(gasto -> {
+                repositorio.delete(gasto);
+                trilha.apagou("gasto", id, Resumos.gasto(gasto));
+            });
         }
     }
 

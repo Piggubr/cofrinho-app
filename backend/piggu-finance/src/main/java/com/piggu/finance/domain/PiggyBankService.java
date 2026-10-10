@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
@@ -40,10 +41,12 @@ public class PiggyBankService {
 
     private final PiggyDepositRepository depositos;
     private final ExpenseRepository gastos;
+    private final TrilhaDeAuditoria trilha;
 
-    public PiggyBankService(PiggyDepositRepository depositos, ExpenseRepository gastos) {
+    public PiggyBankService(PiggyDepositRepository depositos, ExpenseRepository gastos, TrilhaDeAuditoria trilha) {
         this.depositos = depositos;
         this.gastos = gastos;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +73,7 @@ public class PiggyBankService {
     public DepositResponse depositar(DepositRequest pedido, String emailUsuario) {
         LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
         PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), emailUsuario));
+        trilha.criou("deposito", deposito.getId(), Resumos.deposito(deposito));
         log.info("Deposito no cofrinho: id={} data={}", deposito.getId(), data);
         return DepositResponse.de(deposito);
     }
@@ -84,6 +88,7 @@ public class PiggyBankService {
             throw new ForbiddenException("Voce nao pode apagar este deposito.");
         }
         depositos.delete(deposito);
+        trilha.apagou("deposito", id, Resumos.deposito(deposito));
         log.info("Deposito apagado: id={}", id);
     }
 

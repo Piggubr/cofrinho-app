@@ -499,6 +499,7 @@ const ROTAS: Rota[] = [
   ['DELETE', new RegExp(`^/family/members/${ID}$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['PUT', new RegExp(`^/family/members/${ID}/role$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/family\/invites\/mine$/, () => []],
+  ['GET', /^\/(family\/)?history$/, () => []],
   ['POST', /^\/family\/(leave|invites\/.+\/accept)$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
 
   // Plano e pagamento: nada sai para a Stripe.

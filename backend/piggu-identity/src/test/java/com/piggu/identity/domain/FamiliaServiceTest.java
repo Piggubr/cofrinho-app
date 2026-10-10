@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
@@ -32,6 +33,9 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
 
     @Autowired
     private RefreshSessionRepository sessoes;
+
+    @Autowired
+    private TrilhaDeAuditoria trilha;
 
     private UserAccount titular;
     private UserAccount membro;
@@ -171,6 +175,29 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         familias.sair(como(usuarios.findById(outro.getId()).orElseThrow()));
 
         assertThat(familias.ver(como(titular)).membros()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("promover, remover e sair ficam no historico da familia, com quem fez")
+    void historicoDaFamilia() {
+        familias.convidar(como(titular), "caio@familia.test");
+        UserAccount caio = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.removerMembro(como(titular), caio.getId());
+        familias.sair(como(usuarios.findById(membro.getId()).orElseThrow()));
+
+        assertThat(trilha.recentes(titular.getHouseholdId(), "pessoa", 10))
+                .extracting(TrilhaDeAuditoria.Evento::acao, TrilhaDeAuditoria.Evento::autor,
+                        TrilhaDeAuditoria.Evento::antes, TrilhaDeAuditoria.Evento::depois)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.SAIU, "membro@familia.test",
+                                "membro · PARCEIRO", null),
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.REMOVEU, "titular@familia.test",
+                                "caio · MEMBRO", null),
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, "titular@familia.test",
+                                "membro · MEMBRO", "membro · PARCEIRO"));
+        assertThat(trilha.recentes(vizinho.getHouseholdId(), null, 10)).isEmpty();
     }
 
     private static CurrentUser como(UserAccount conta) {
