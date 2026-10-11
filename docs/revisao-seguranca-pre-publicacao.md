@@ -145,20 +145,20 @@ Commit: `5537408`.
 - Retenção automática: refresh vencido, contas desativadas, fotos órfãs e dados de banco.
 - CORS com lista fixa de origens (em produção, só `https://`).
 
-### Dados sensíveis expostos — **atenção**
-1. **`Code.gs`** (Apps Script original) tem **9 e-mails reais** e o **ID da planilha** do
-   controle antigo. Não é chave de acesso, mas aponta para dados financeiros pessoais. Saiu
-   da raiz das branches novas; segue na `main` e na `develop`, que ainda rodam o Apps Script.
-2. **`V1__esquema_inicial.sql`** (identity) tem **5 e-mails reais** na carga inicial. A
-   migração não pode ser editada (o Flyway confere o checksum em bancos já criados).
-3. Os dois arquivos também estão no **histórico do Git** (12 commits).
+### Dados sensíveis expostos — resolvido em 11/10/2026
+O `Code.gs` (Apps Script original) e a `V1__esquema_inicial.sql` do identity tinham 9
+e-mails reais e os IDs das planilhas do controle antigo. O histórico do Git foi reescrito
+(`git filter-repo`) em todas as branches: no lugar deles ficaram marcadores
+(`titular@exemplo.com`, `ID_DA_PLANILHA` e outros). O `Code.gs` saiu da raiz das branches
+novas e segue, com os marcadores, na `main` e na `develop`. A `V1` mudou de checksum: banco
+de dev criado antes disso precisa ser recriado.
 
 ## 8. O que depende de você antes de publicar
 
-1. **Visibilidade do repositório**: enquanto `Code.gs` e a `V1` estiverem no histórico,
-   mantenha o repositório **privado**. Para abrir, o caminho é reescrever o histórico
-   (`git filter-repo`) trocando os e-mails, avisar quem tem clone e forçar o push — faço
-   quando você decidir.
+1. **Visibilidade do repositório**: o GitHub guarda os commits antigos (anteriores à
+   reescrita) alcançáveis pelo id e pelos PRs fechados até o suporte rodar a limpeza.
+   Peça ao suporte do GitHub para remover as visualizações em cache e rodar o garbage
+   collection antes de abrir o repositório; até lá, mantenha-o **privado**.
 2. **Planilha antiga**: confira no Google Drive se o compartilhamento da planilha do
    `SHEET_ID` está como "Restrito" (não "qualquer pessoa com o link").
 3. **Produção**: preencher o `.env` do servidor com `PIGGU_AMBIENTE=producao`, `DOMINIO`,
