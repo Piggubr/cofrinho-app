@@ -50,6 +50,11 @@ public class TokenService {
         return gerar(conta, familia, Duration.ofMinutes(5), escopo);
     }
 
+    /** Token de cinco minutos para o lembrete diario ler os avisos da pessoa no financeiro. */
+    public String gerarTokenDoLembrete(UserAccount conta, Household familia) {
+        return gerar(conta, familia, Duration.ofMinutes(5), null);
+    }
+
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao) {
         Instant agora = Instant.now();
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()

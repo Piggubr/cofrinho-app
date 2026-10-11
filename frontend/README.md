@@ -154,8 +154,6 @@ npm test
 
 ## O que ainda falta
 
-- **Testes de componente.** Painel, perfil e cabeçalho têm teste; as demais telas
-  (gastos, calendário, lugares, filmes, compras, feed, prêmios, metas) ainda não.
 - **PWA.** O app antigo tinha `manifest.webmanifest` e era instalável no iPhone.
   Isso não foi portado ainda.
 - **Academia e metas pessoais.** Duas funcionalidades do app antigo viviam só no

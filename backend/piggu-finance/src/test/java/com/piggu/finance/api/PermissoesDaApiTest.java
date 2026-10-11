@@ -48,6 +48,16 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/categories").with(TokensDeTeste.membro()))
                 .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/alerts").with(TokensDeTeste.membro()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("avisos de hoje: familia sem nada cadastrado nao tem aviso")
+    void avisosDeHoje() throws Exception {
+        mockMvc.perform(get("/api/alerts").with(TokensDeTeste.parceiro()))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$").isArray());
     }
 
     @Test

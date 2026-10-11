@@ -87,6 +87,13 @@ public class UserAccount {
     @Column(name = "lifestyle_modules", length = 200)
     private String lifestyleModules = "";
 
+    /** Avisos fora do app (fatura, orcamento, conta fixa); cada canal nasce desligado. */
+    @Column(name = "alerts_by_email", nullable = false)
+    private boolean alertsByEmail;
+
+    @Column(name = "alerts_by_push", nullable = false)
+    private boolean alertsByPush;
+
     /** Familia a que a conta pertence; o plano e os dados de dominio sao dela. */
     @Column(name = "household_id", nullable = false)
     private UUID householdId;
@@ -242,6 +249,19 @@ public class UserAccount {
 
     public void escolherModulos(List<String> modulos) {
         this.lifestyleModules = ModulosDeEstiloDeVida.gravar(modulos);
+    }
+
+    public void escolherAvisos(boolean porEmail, boolean porPush) {
+        this.alertsByEmail = porEmail;
+        this.alertsByPush = porPush;
+    }
+
+    public boolean isAlertsByEmail() {
+        return alertsByEmail;
+    }
+
+    public boolean isAlertsByPush() {
+        return alertsByPush;
     }
 
     public String getCurrency() {

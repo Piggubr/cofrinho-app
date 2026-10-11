@@ -37,7 +37,8 @@ import java.util.HexFormat;
  * caminho {@code classpath:} / {@code file:} — util no ambiente local.</p>
  */
 @Configuration
-@EnableConfigurationProperties({JwtProperties.class, GoogleProperties.class, StripeProperties.class, DadosProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, GoogleProperties.class, StripeProperties.class, DadosProperties.class,
+        com.piggu.identity.avisos.AvisosProperties.class})
 public class TokenConfig {
 
     private final ResourceLoader carregador;

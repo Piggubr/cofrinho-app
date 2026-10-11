@@ -147,6 +147,14 @@ public class AuthService {
         return UserResponse.de(conta, familias.daConta(conta));
     }
 
+    @Transactional
+    public UserResponse escolherAvisos(java.util.UUID usuarioId, boolean porEmail, boolean porPush) {
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        conta.escolherAvisos(porEmail, porPush);
+        return UserResponse.de(conta, familias.daConta(conta));
+    }
+
     private static String fusoValido(String fuso) {
         if (fuso == null || fuso.isBlank()) {
             return null;

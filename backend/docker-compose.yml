@@ -68,6 +68,14 @@ services:
       PIGGU_DIAS_DE_TESTE: ${PIGGU_DIAS_DE_TESTE:-7}
       REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
+      # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
+      PIGGU_EMAIL_API_KEY: ${PIGGU_EMAIL_API_KEY:-}
+      PIGGU_EMAIL_REMETENTE: ${PIGGU_EMAIL_REMETENTE:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_CHAVE: ${APNS_CHAVE:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-}
+      APNS_SANDBOX: ${APNS_SANDBOX:-false}
       # Exportar e apagar a conta passa por todos os servicos com dado de pessoas.
       FINANCE_URL: http://finance:8082
       REWARDS_URL: http://rewards:8083

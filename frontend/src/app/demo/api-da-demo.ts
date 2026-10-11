@@ -498,6 +498,10 @@ const ROTAS: Rota[] = [
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };
     return estado.titular;
   }],
+  ['PUT', /^\/auth\/me\/alerts$/, (_p, _x, c) => {
+    estado.titular = { ...estado.titular, avisos: c as { email: boolean; push: boolean } };
+    return estado.titular;
+  }],
   ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
     const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };

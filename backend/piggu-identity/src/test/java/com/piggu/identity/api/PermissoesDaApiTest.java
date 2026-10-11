@@ -106,4 +106,24 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                         .content("{\"moeda\":\"XYZ\",\"moedaConversao\":\"BRL\",\"mostrarCotacao\":true}"))
                 .andExpect(status().isUnprocessableContent());
     }
+
+    @Test
+    @DisplayName("avisos: canal sem valor e 400; aparelho com token que nao e do APNs ou de outra plataforma e 400")
+    void validaAvisos() throws Exception {
+        mockMvc.perform(put("/api/auth/me/alerts").with(TokensDeTeste.titular())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"email\":true}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/me/devices").with(TokensDeTeste.titular())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"<script>\",\"plataforma\":\"IOS\"}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/me/devices").with(TokensDeTeste.titular())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"" + "ab".repeat(32) + "\",\"plataforma\":\"WINDOWS\"}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/me/devices")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"" + "ab".repeat(32) + "\",\"plataforma\":\"IOS\"}"))
+                .andExpect(status().isUnauthorized());
+    }
 }

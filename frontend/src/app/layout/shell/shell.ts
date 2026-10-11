@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao, ModuloDeEstiloDeVida } from '../../core/api/models';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
+import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
 import { MODO_DEMO } from '../../demo/modo-demo';
@@ -77,6 +78,7 @@ export class Shell {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly abasNativas = inject(AbasNativas);
+  private readonly avisosNoCelular = inject(AvisosNoCelular);
 
   protected readonly modoDemo = MODO_DEMO;
   protected readonly menuAberto = signal(false);
@@ -116,6 +118,11 @@ export class Shell {
         this.rotaAtual.set(evento.urlAfterRedirects);
         this.fecharMenu();
       });
+
+    // O token do aparelho muda quando o sistema quer: renova a cada abertura do app.
+    if (this.auth.usuario()?.avisos?.push) {
+      void this.avisosNoCelular.renovar();
+    }
 
     if (this.usaAbasNativas) {
       this.ligarAbasNativas();

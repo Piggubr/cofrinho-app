@@ -19,6 +19,8 @@ export interface Usuario {
   ativo: boolean;
   permissoes: Record<string, unknown>;
   preferencias: Preferencias;
+  /** Avisos fora do app; ausente em conta antiga da demo. */
+  avisos?: { email: boolean; push: boolean };
   plano: Plano;
   /** Ate quando o Premium (da familia) vale; nulo no gratuito. */
   premiumAte: string | null;
