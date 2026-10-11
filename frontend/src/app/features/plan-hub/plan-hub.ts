@@ -10,8 +10,8 @@ interface Atalho {
 }
 
 /**
- * Aba "Planejar": o que olha para a frente (quanto gastar, quanto guardar, o que vence)
- * num lugar so, em vez de tres itens soltos no menu.
+ * Aba "Planejar": o que olha para a frente (quanto gastar e o que vence) num lugar so,
+ * em vez de itens soltos no menu.
  */
 @Component({
   selector: 'app-plan-hub',
@@ -23,19 +23,13 @@ export class PlanHub {
   protected readonly atalhos: Atalho[] = [
     {
       rota: '/orcamentos',
-      titulo: $localize`Orçamentos`,
-      descricao: $localize`Quanto gastar em cada categoria, com aviso em 80% e 100%.`,
+      titulo: $localize`Orçamento`,
+      descricao: $localize`O limite do mês e, por categoria, com aviso em 80% e 100%.`,
       icone: 'pizza',
     },
     {
-      rota: '/metas',
-      titulo: $localize`Metas`,
-      descricao: $localize`O limite de gastos do mês e quanto ainda sobra.`,
-      icone: 'alvo',
-    },
-    {
       rota: '/contas-fixas',
-      titulo: $localize`Contas fixas`,
+      titulo: $localize`Contas do mês`,
       descricao: $localize`Aluguel, luz, internet: o que vence todo mês, lançado no dia.`,
       icone: 'recibo',
     },

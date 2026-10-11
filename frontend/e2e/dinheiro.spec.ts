@@ -29,28 +29,31 @@ test('lancar um gasto: aparece na lista e soma no mes', async ({ page }) => {
   await expect(page.getByText(/R\$\s42,50/).first()).toBeVisible();
 });
 
-test('definir a meta do mes em Metas', async ({ page }) => {
+test('definir o limite do mes no Orcamento (o endereco antigo de Metas leva para la)', async ({ page }) => {
   await abrirPainel(page);
   await page.goto('/metas');
-  // Esperar a carga: ela preenche o limite com a meta atual e apagaria o que foi digitado.
+  await expect(page).toHaveURL(/\/orcamentos$/);
+  await expect(page.getByRole('heading', { name: 'Orçamento', exact: true })).toBeVisible();
+  // Esperar a carga: ela preenche o limite com o atual e apagaria o que foi digitado.
   await expect(page.getByRole('button', { name: 'Editar' }).first()).toBeVisible();
 
   await page.locator('#limite').fill('5000');
-  await page.getByRole('button', { name: 'Salvar meta' }).click();
+  await page.getByRole('button', { name: 'Salvar limite' }).click();
 
   await expect(page.getByText(/de R\$\s5\.000,00/)).toBeVisible();
   await expect(page.getByText(/% usado/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Por categoria/ })).toBeVisible();
 });
 
-test('Planejar leva a Orcamentos, Metas e Contas fixas', async ({ page }) => {
+test('Planejar leva ao Orcamento e as Contas do mes', async ({ page }) => {
   await abrirPainel(page);
   await page.goto('/planejar');
 
   const conteudo = page.getByRole('main');
-  for (const tela of ['Orçamentos', 'Metas', 'Contas fixas']) {
+  for (const tela of ['Orçamento', 'Contas do mês']) {
     await expect(conteudo.getByRole('link', { name: new RegExp(tela) })).toBeVisible();
   }
-  await conteudo.getByRole('link', { name: /Orçamentos/ }).click();
-  await expect(page).toHaveURL(/\/orcamentos$/);
-  await expect(page.getByRole('heading', { name: 'Orçamentos' })).toBeVisible();
+  await conteudo.getByRole('link', { name: /Contas do mês/ }).click();
+  await expect(page).toHaveURL(/\/contas-fixas$/);
+  await expect(page.getByRole('heading', { name: 'Contas do mês' })).toBeVisible();
 });

@@ -8,14 +8,16 @@ import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
+import { Goals } from '../goals/goals';
 
 /**
- * Orcamento por categoria (Premium): um limite por mes e o alerta em 80% e 100%.
- * Ver e apagar o que ja existe segue livre no gratuito.
+ * Orcamento: o limite total do mes (gratis) e, abaixo dele, o limite por categoria
+ * (Premium) com alerta em 80% e 100%. Ver e apagar o que ja existe segue livre no
+ * gratuito. Antes eram duas telas, "Metas" e "Orcamentos", que se confundiam.
  */
 @Component({
   selector: 'app-budgets',
-  imports: [Icone, FormsModule, MoedaPipe, RouterLink],
+  imports: [Icone, FormsModule, MoedaPipe, RouterLink, Goals],
   templateUrl: './budgets.html',
   styles: `
     .progresso.atencao span {
