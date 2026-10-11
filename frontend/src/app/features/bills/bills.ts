@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { Observable } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { ContaFixa } from '../../core/api/models';
@@ -15,7 +16,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-bills',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })

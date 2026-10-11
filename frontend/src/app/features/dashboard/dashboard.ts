@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
@@ -10,6 +11,7 @@ import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
+import { PrimeirosPassos } from './primeiros-passos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -33,6 +35,7 @@ interface TotalPorCategoria {
 @Component({
   selector: 'app-dashboard',
   imports: [
+    Focar,
     Icone,
     FormsModule,
     RouterLink,
@@ -40,6 +43,7 @@ interface TotalPorCategoria {
     DataBrPipe,
     PessoaPipe,
     ResumoDoMesCard,
+    PrimeirosPassos,
     AvisosDoMes,
   ],
   templateUrl: './dashboard.html',
@@ -81,6 +85,11 @@ export class Dashboard {
     this.gastos().reduce((soma, gasto) => soma + gasto.valor, 0),
   );
   protected readonly metaDoMes = computed(() => this.metas()[this.mesAtual()] ?? 0);
+  /** Para o guia de primeiro uso: algum limite em qualquer mes, algum gasto ja lancado. */
+  protected readonly temLimite = computed(() => Object.values(this.metas()).some((v) => v > 0));
+  protected readonly temGasto = computed(
+    () => this.gastos().length > 0 || (this.cofrinho()?.totalGastos ?? 0) > 0,
+  );
 
   protected readonly progressoDaMeta = computed(() => {
     const meta = this.metaDoMes();

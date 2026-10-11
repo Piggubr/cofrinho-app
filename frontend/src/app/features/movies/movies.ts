@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Filme, FilmeDoCatalogo } from '../../core/api/models';
@@ -29,7 +30,7 @@ const GENEROS: { id: string; nome: string }[] = [
  */
 @Component({
   selector: 'app-movies',
-  imports: [Icone, FormsModule, PessoaPipe],
+  imports: [Focar, Icone, FormsModule, PessoaPipe],
   templateUrl: './movies.html',
   styleUrl: './movies.scss',
 })

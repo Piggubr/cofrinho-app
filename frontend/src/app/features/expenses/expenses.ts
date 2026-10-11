@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
@@ -41,7 +42,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
+  imports: [Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -59,7 +60,8 @@ export class Expenses {
   protected readonly gastos = signal<Gasto[]>([]);
   protected readonly categorias = signal<string[]>([]);
   /** A busca global abre os gastos no mes do resultado (?mes=AAAA-MM). */
-  private readonly mesPedido = inject(ActivatedRoute).snapshot.queryParamMap.get('mes') ?? '';
+  private readonly rota = inject(ActivatedRoute).snapshot;
+  private readonly mesPedido = this.rota.queryParamMap.get('mes') ?? '';
   protected readonly mesAtual = signal(
     /^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()),
   );
@@ -140,6 +142,12 @@ export class Expenses {
   });
 
   constructor() {
+    // Vindo do guia de primeiro uso por "Importar extrato".
+    if (this.rota.fragment === 'importar') {
+      afterNextRender(() =>
+        document.getElementById('titulo-extrato')?.scrollIntoView?.({ block: 'start' }),
+      );
+    }
     this.carregar();
     this.carregarRegras();
     this.finance.contas().subscribe({

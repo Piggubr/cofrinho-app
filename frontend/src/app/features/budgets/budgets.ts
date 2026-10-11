@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
 import { Orcamento } from '../../core/api/models';
@@ -17,7 +18,7 @@ import { Goals } from '../goals/goals';
  */
 @Component({
   selector: 'app-budgets',
-  imports: [Icone, FormsModule, MoedaPipe, RouterLink, Goals],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, RouterLink, Goals],
   templateUrl: './budgets.html',
   styles: `
     .progresso.atencao span {

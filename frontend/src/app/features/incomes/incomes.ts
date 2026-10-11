@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { FinanceService } from '../../core/api/finance.service';
 import { Receita } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
@@ -12,7 +13,7 @@ import { Icone } from '../../core/ui/icone';
 /** Receitas do mes: com elas o painel mostra a sobra e a taxa de poupanca. */
 @Component({
   selector: 'app-incomes',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard],
   templateUrl: './incomes.html',
 })
 export class Incomes {

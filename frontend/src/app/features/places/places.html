@@ -11,21 +11,49 @@
 @if (formularioAberto()) {
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2 i18n>@if (editandoId()) {Editar lugar} @else {Novo lugar}</h2>
+      <h2 i18n>
+        @if (editandoId()) {
+          Editar lugar
+        } @else {
+          Novo lugar
+        }
+      </h2>
     </div>
 
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="nomeLugar">Nome</label>
-        <input id="nomeLugar" maxlength="120" type="text" [ngModel]="nome()" (ngModelChange)="nome.set($event)" />
+        <input
+          id="nomeLugar"
+          maxlength="120"
+          type="text"
+          [ngModel]="nome()"
+          (ngModelChange)="nome.set($event)"
+        />
       </div>
       <div class="campo">
         <label i18n for="categoriaLugar">Categoria</label>
-        <input i18n-placeholder id="categoriaLugar" maxlength="50" type="text" [ngModel]="categoria()" (ngModelChange)="categoria.set($event)" placeholder="Ex.: Restaurante" />
+        <input
+          i18n-placeholder
+          id="categoriaLugar"
+          maxlength="50"
+          type="text"
+          [ngModel]="categoria()"
+          (ngModelChange)="categoria.set($event)"
+          placeholder="Ex.: Restaurante"
+        />
       </div>
       <div class="campo">
         <label i18n for="localizacao">Localização</label>
-        <input i18n-placeholder id="localizacao" maxlength="200" type="text" [ngModel]="localizacao()" (ngModelChange)="localizacao.set($event)" placeholder="Ex.: Lisboa" />
+        <input
+          i18n-placeholder
+          id="localizacao"
+          maxlength="200"
+          type="text"
+          [ngModel]="localizacao()"
+          (ngModelChange)="localizacao.set($event)"
+          placeholder="Ex.: Lisboa"
+        />
       </div>
       <div class="campo">
         <label i18n for="dataVisita">Data da visita</label>
@@ -33,7 +61,14 @@
       </div>
       <div class="campo">
         <label i18n for="valorLugar">Quanto gastamos ({{ moeda.simbolo() }})</label>
-        <input id="valorLugar" type="number" min="0" step="0.01" [ngModel]="valor()" (ngModelChange)="valor.set($event)" />
+        <input
+          id="valorLugar"
+          type="number"
+          min="0"
+          step="0.01"
+          [ngModel]="valor()"
+          (ngModelChange)="valor.set($event)"
+        />
       </div>
     </div>
 
@@ -56,7 +91,12 @@
 
     <div class="campo">
       <label i18n for="comentario">Comentário</label>
-      <textarea id="comentario" maxlength="500" [ngModel]="comentario()" (ngModelChange)="comentario.set($event)"></textarea>
+      <textarea
+        id="comentario"
+        maxlength="500"
+        [ngModel]="comentario()"
+        (ngModelChange)="comentario.set($event)"
+      ></textarea>
     </div>
 
     <div class="campo">
@@ -78,10 +118,18 @@
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="novoMarcador">Criar marcador</label>
-        <input id="novoMarcador" maxlength="40" type="text" [ngModel]="novoMarcador()" (ngModelChange)="novoMarcador.set($event)" />
+        <input
+          id="novoMarcador"
+          maxlength="40"
+          type="text"
+          [ngModel]="novoMarcador()"
+          (ngModelChange)="novoMarcador.set($event)"
+        />
       </div>
       <div class="campo alinhado">
-        <button i18n type="button" class="botao contorno" (click)="criarMarcador()">Adicionar marcador</button>
+        <button i18n type="button" class="botao contorno" (click)="criarMarcador()">
+          Adicionar marcador
+        </button>
       </div>
     </div>
 
@@ -97,7 +145,11 @@
 
     <div class="acoes">
       <button i18n type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
-        @if (salvando()) {Guardando...} @else {Salvar}
+        @if (salvando()) {
+          Guardando...
+        } @else {
+          Salvar
+        }
       </button>
       <button i18n type="button" class="botao contorno" (click)="fechar()">Cancelar</button>
     </div>
@@ -136,12 +188,35 @@
           </div>
         }
         <div class="acoes">
-          <button type="button" class="botao icone-so fantasma" (click)="editar(lugar)" aria-label="Editar" i18n-aria-label title="Editar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
-          <button type="button" class="botao icone-so perigo" (click)="excluir(lugar)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            (click)="editar(lugar)"
+            aria-label="Editar"
+            i18n-aria-label
+            title="Editar"
+            i18n-title
+          >
+            <app-icone nome="lapis" [tamanho]="18" />
+          </button>
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="excluir(lugar)"
+            aria-label="Apagar"
+            i18n-aria-label
+            title="Apagar"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
         </div>
       </article>
     }
   </div>
 } @else {
   <p i18n class="vazio">Nenhum lugar registrado ainda.</p>
+  <p class="vazio-acao">
+    <button i18n class="botao contorno pequeno" appFocar="nomeLugar">Registrar um lugar</button>
+  </p>
 }

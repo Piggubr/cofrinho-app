@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { forkJoin } from 'rxjs';
 import { RewardsService } from '../../core/api/rewards.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -17,7 +18,7 @@ import { PessoaPipe } from '../../core/api/pessoas-da-familia';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [Icone, FormsModule, PessoaPipe],
+  imports: [Focar, Icone, FormsModule, PessoaPipe],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })

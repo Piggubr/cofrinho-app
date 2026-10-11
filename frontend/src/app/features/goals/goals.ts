@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto } from '../../core/api/models';
@@ -23,7 +24,7 @@ interface MetaNaTela {
  */
 @Component({
   selector: 'app-goals',
-  imports: [Icone, FormsModule, MoedaPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe],
   templateUrl: './goals.html',
   styleUrl: './goals.scss',
 })

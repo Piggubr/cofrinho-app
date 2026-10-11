@@ -8,6 +8,7 @@
   <p i18n class="carregando">Carregando seus dados...</p>
 } @else {
   @if (!auth.ehMembro()) {
+    <app-primeiros-passos [temLimite]="temLimite()" [temGasto]="temGasto()" />
     <app-resumo-do-mes [mes]="mesAtual()" />
     <app-avisos-do-mes [mes]="mesAtual()" />
   }
@@ -88,6 +89,11 @@
       </div>
     } @else {
       <p i18n class="vazio">Nenhum depósito ainda.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="valorDeposito">
+          Fazer o primeiro depósito
+        </button>
+      </p>
     }
   </section>
 
@@ -281,6 +287,9 @@
         }
       } @else {
         <p i18n class="vazio">Nenhum gasto lançado neste mês.</p>
+        <p class="vazio-acao">
+          <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
+        </p>
       }
     </section>
   }
