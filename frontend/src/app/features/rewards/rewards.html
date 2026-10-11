@@ -13,15 +13,31 @@
     <span class="saldo">{{ saldo()?.saldo ?? 0 }}</span>
   </div>
 
-  @if (auth.ehTitular()) {
+  @if (auth.podeLancar()) {
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="ajusteValor">Quantidade</label>
-        <input i18n-placeholder id="ajusteValor" type="number" step="1" [ngModel]="ajusteValor()" (ngModelChange)="ajusteValor.set($event)" placeholder="Use negativo para debitar" />
+        <input
+          i18n-placeholder
+          id="ajusteValor"
+          type="number"
+          step="1"
+          [ngModel]="ajusteValor()"
+          (ngModelChange)="ajusteValor.set($event)"
+          placeholder="Use negativo para debitar"
+        />
       </div>
       <div class="campo">
         <label i18n for="ajusteMotivo">Motivo</label>
-        <input i18n-placeholder id="ajusteMotivo" maxlength="200" type="text" [ngModel]="ajusteMotivo()" (ngModelChange)="ajusteMotivo.set($event)" placeholder="Ex.: Arrumou a cozinha" />
+        <input
+          i18n-placeholder
+          id="ajusteMotivo"
+          maxlength="200"
+          type="text"
+          [ngModel]="ajusteMotivo()"
+          (ngModelChange)="ajusteMotivo.set($event)"
+          placeholder="Ex.: Arrumou a cozinha"
+        />
       </div>
       <div class="campo alinhado">
         <button i18n type="button" class="botao" (click)="ajustar()">Ajustar</button>
@@ -31,7 +47,11 @@
 
   <div class="acoes">
     <button i18n type="button" class="botao contorno pequeno" (click)="alternarHistorico()">
-      @if (mostrarHistorico()) {Esconder histórico} @else {Ver histórico}
+      @if (mostrarHistorico()) {
+        Esconder histórico
+      } @else {
+        Ver histórico
+      }
     </button>
   </div>
 
@@ -42,8 +62,15 @@
           <p class="linha-titulo">{{ movimento.motivo }}</p>
           <p class="linha-detalhe">{{ movimento.data }}</p>
         </div>
-        <span class="linha-valor" [class.positivo]="movimento.valor > 0" [class.negativo]="movimento.valor < 0">
-          @if (movimento.valor > 0) {+} @else {}{{ movimento.valor }}
+        <span
+          class="linha-valor"
+          [class.positivo]="movimento.valor > 0"
+          [class.negativo]="movimento.valor < 0"
+        >
+          @if (movimento.valor > 0) {
+            +
+          } @else {}
+          {{ movimento.valor }}
         </span>
       </div>
     } @empty {
@@ -52,7 +79,7 @@
   }
 </section>
 
-@if (auth.ehTitular()) {
+@if (auth.podeLancar()) {
   <section class="cartao">
     <div class="cartao-titulo">
       <h2 i18n>Novo prêmio</h2>
@@ -61,15 +88,34 @@
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="premioNome">Nome</label>
-        <input id="premioNome" maxlength="100" type="text" [ngModel]="novoNome()" (ngModelChange)="novoNome.set($event)" />
+        <input
+          id="premioNome"
+          maxlength="100"
+          type="text"
+          [ngModel]="novoNome()"
+          (ngModelChange)="novoNome.set($event)"
+        />
       </div>
       <div class="campo">
         <label i18n for="premioDescricao">Descrição</label>
-        <input id="premioDescricao" maxlength="300" type="text" [ngModel]="novaDescricao()" (ngModelChange)="novaDescricao.set($event)" />
+        <input
+          id="premioDescricao"
+          maxlength="300"
+          type="text"
+          [ngModel]="novaDescricao()"
+          (ngModelChange)="novaDescricao.set($event)"
+        />
       </div>
       <div class="campo">
         <label i18n for="premioPreco">Preço em Fofocoins</label>
-        <input id="premioPreco" type="number" min="1" step="1" [ngModel]="novoPreco()" (ngModelChange)="novoPreco.set($event)" />
+        <input
+          id="premioPreco"
+          type="number"
+          min="1"
+          step="1"
+          [ngModel]="novoPreco()"
+          (ngModelChange)="novoPreco.set($event)"
+        />
       </div>
       <div class="campo alinhado">
         <button i18n type="button" class="botao" (click)="criarPremio()">Criar</button>
@@ -108,8 +154,18 @@
             } @else {
               <span class="etiqueta">Desativado</span>
             }
-            @if (auth.ehTitular() && premio.ativo) {
-              <button type="button" class="botao icone-so perigo" (click)="desativar(premio)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+            @if (auth.podeLancar() && premio.ativo) {
+              <button
+                type="button"
+                class="botao icone-so perigo"
+                (click)="desativar(premio)"
+                aria-label="Remover"
+                i18n-aria-label
+                title="Remover"
+                i18n-title
+              >
+                <app-icone nome="lixeira" [tamanho]="18" />
+              </button>
             }
           </div>
         </article>
@@ -117,6 +173,9 @@
     </div>
   } @else {
     <p i18n class="vazio">Nenhum prêmio cadastrado.</p>
+    <p class="vazio-acao">
+      <button i18n class="botao contorno pequeno" appFocar="premioNome">Cadastrar um prêmio</button>
+    </p>
   }
 </section>
 
@@ -129,7 +188,7 @@
     <div class="linha">
       <div>
         <p class="linha-titulo">{{ resgate.premio }}</p>
-        <p class="linha-detalhe">{{ resgate.usuario }} · {{ resgate.status }}</p>
+        <p class="linha-detalhe">{{ resgate.usuario | pessoa }} · {{ resgate.status }}</p>
       </div>
       <span class="linha-valor">{{ resgate.preco }}</span>
     </div>

@@ -33,15 +33,13 @@ import java.util.regex.Pattern;
  */
 public class DadosDaFamilia {
 
-    /** Autor de registro anonimizado: a conta foi excluida, o lancamento ficou com a familia. */
-    public static final String ANONIMO = "conta-excluida";
-
     private static final Pattern NOME_SQL = Pattern.compile("^[a-z_]+$");
     private static final Logger log = LoggerFactory.getLogger(DadosDaFamilia.class);
 
     /**
      * @param nome    tabela com a coluna household_id
-     * @param autor   coluna com o e-mail de quem lancou; nula quando a tabela nao tem autor
+     * @param autor   coluna com o id de quem lancou; nula quando a tabela nao tem autor. Na
+     *                exclusao da pessoa ela vira nula: o lancamento fica com a familia, sem dono
      * @param pessoal verdadeiro quando o registro e so da pessoa e sai mesmo que a familia fique
      */
     public record Tabela(String nome, String autor, boolean pessoal) {
@@ -63,7 +61,7 @@ public class DadosDaFamilia {
 
     /** O que o servico precisa fazer alem do SQL (arquivos, provedores externos). */
     public interface AoApagar {
-        void antes(UUID familia, String email, EscopoDeExclusao escopo);
+        void antes(UUID familia, UUID pessoa, EscopoDeExclusao escopo);
     }
 
     private final JdbcTemplate jdbc;
@@ -90,7 +88,7 @@ public class DadosDaFamilia {
             String linhas = usuario.isTitular()
                     ? jdbc.queryForObject(sql, String.class, usuario.familia())
                     : jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,
-                            usuario.familia(), usuario.email());
+                            usuario.familia(), usuario.id());
             dados.put(tabela.nome(), ler(linhas));
         }
         return dados;
@@ -100,17 +98,17 @@ public class DadosDaFamilia {
     @Transactional
     public void apagar(CurrentUser usuario, EscopoDeExclusao escopo) {
         UUID familia = usuario.familia();
-        extras.forEach(extra -> extra.antes(familia, usuario.email(), escopo));
+        extras.forEach(extra -> extra.antes(familia, usuario.id(), escopo));
         int linhas = 0;
         for (Tabela tabela : tabelas) {
             if (escopo == EscopoDeExclusao.FAMILIA) {
                 linhas += jdbc.update("DELETE FROM " + tabela.nome() + " WHERE household_id = ?", familia);
             } else if (tabela.autor() != null && tabela.pessoal()) {
                 linhas += jdbc.update("DELETE FROM " + tabela.nome() + " WHERE household_id = ? AND "
-                        + tabela.autor() + " = ?", familia, usuario.email());
+                        + tabela.autor() + " = ?", familia, usuario.id());
             } else if (tabela.autor() != null) {
-                linhas += jdbc.update("UPDATE " + tabela.nome() + " SET " + tabela.autor() + " = ? WHERE household_id = ? AND "
-                        + tabela.autor() + " = ?", ANONIMO, familia, usuario.email());
+                linhas += jdbc.update("UPDATE " + tabela.nome() + " SET " + tabela.autor() + " = NULL WHERE household_id = ? AND "
+                        + tabela.autor() + " = ?", familia, usuario.id());
             }
         }
         log.info("Dados apagados: conta={} familia={} escopo={} linhas={}", usuario.id(), familia, escopo, linhas);

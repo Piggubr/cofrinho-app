@@ -94,6 +94,8 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.codigo").value("PLANO_PREMIUM"));
         mockMvc.perform(post("/api/banking/sync").with(TokensDeTeste.titularGratuita()))
                 .andExpect(status().isUnprocessableContent());
+        mockMvc.perform(get("/api/banking/transactions").with(TokensDeTeste.titularGratuita()))
+                .andExpect(status().isUnprocessableContent());
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.titularGratuita()))
                 .andExpect(status().isOk());
         // Desconectar nunca pede Premium: aqui so nao acha o banco.

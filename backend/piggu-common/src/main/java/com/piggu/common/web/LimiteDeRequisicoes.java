@@ -151,12 +151,13 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     }
 
     /**
-     * Rotas que recebem foto em base64 ou extrato de banco: corpo maior e limite proprio,
+     * Rotas que recebem foto em base64 ou extrato de banco, e a pergunta ao assistente: limite proprio,
      * porque custam storage, IA ou leitura de milhares de linhas.
      */
     private static boolean ehEnvioDeArquivo(String caminho) {
         return caminho.equals("/api/assets") || caminho.equals("/api/feed") || caminho.equals("/api/receipts/parse")
-                || caminho.startsWith("/api/places") || caminho.startsWith("/api/expenses/import");
+                || caminho.startsWith("/api/places") || caminho.startsWith("/api/expenses/import")
+                || caminho.equals("/api/assistant/ask");
     }
 
     /** Leituras que chamam servico de fora (TMDB, Open Food Facts, cambio) ou varrem o banco. */

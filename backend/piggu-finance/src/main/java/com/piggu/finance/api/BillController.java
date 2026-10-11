@@ -36,7 +36,7 @@ import java.util.UUID;
 /** Contas fixas recorrentes da familia. */
 @RestController
 @RequestMapping("/api/bills")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class BillController {
 
     private final ContasFixasService servico;
@@ -75,7 +75,7 @@ public class BillController {
     @PostMapping
     public ResponseEntity<Void> criar(@Valid @RequestBody BillRequest pedido, @AuthUser CurrentUser usuario) {
         servico.criar(pedido.descricao(), pedido.categoria(), pedido.valor(), pedido.dia(),
-                Boolean.TRUE.equals(pedido.automatico()), usuario.email());
+                Boolean.TRUE.equals(pedido.automatico()), usuario.id());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -97,6 +97,6 @@ public class BillController {
     @ResponseStatus(HttpStatus.CREATED)
     public ExpenseResponse pagar(@PathVariable UUID id, @RequestParam(required = false) String mes,
                                  @AuthUser CurrentUser usuario) {
-        return servico.pagar(id, Meses.ouAtual(mes), usuario.email());
+        return servico.pagar(id, Meses.ouAtual(mes), usuario.id());
     }
 }

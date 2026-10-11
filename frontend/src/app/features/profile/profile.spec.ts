@@ -90,4 +90,32 @@ describe('Profile', () => {
     expect(tela.nativeElement.textContent).toContain('Moeda desconhecida');
     expect(auth.usuario()?.preferencias.moeda).toBe('EUR');
   });
+
+  it('avisos: liga o e-mail e grava; no navegador nao oferece a notificacao do iPhone', async () => {
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+    await tela.whenStable();
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).not.toContain('Notificação neste iPhone');
+
+    const caixa = [...pagina.querySelectorAll('label.caixa')].find((l) =>
+      l.textContent?.includes('Por e-mail'),
+    )!;
+    expect(caixa.textContent).toContain('titular@piggu.test');
+    caixa.querySelector('input')!.click();
+    tela.detectChanges();
+    [...pagina.querySelectorAll('button')]
+      .find((b) => b.textContent?.includes('Salvar avisos'))!
+      .click();
+    await tela.whenStable();
+
+    const pedido = http.expectOne('/api/auth/me/alerts');
+    expect(pedido.request.body).toEqual({ email: true, push: false });
+    pedido.flush(usuarioDeTeste({ avisos: { email: true, push: false } }));
+    tela.detectChanges();
+    expect(auth.usuario()?.avisos?.email).toBe(true);
+    expect(pagina.textContent).toContain('Avisos salvos.');
+  });
 });

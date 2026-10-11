@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/movies")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class MovieController {
 
     private final MovieService servico;
@@ -60,7 +60,7 @@ public class MovieController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MovieResponse adicionar(@Valid @RequestBody TmdbMovie filme, @AuthUser CurrentUser usuario) {
-        return servico.adicionar(filme, usuario.email());
+        return servico.adicionar(filme, usuario.id());
     }
 
     @PatchMapping("/{id}/watched")
@@ -72,7 +72,7 @@ public class MovieController {
     public MovieResponse avaliar(@PathVariable UUID id,
                                  @Valid @RequestBody MovieRatingRequest pedido,
                                  @AuthUser CurrentUser usuario) {
-        return servico.avaliar(id, pedido.nota(), usuario.email());
+        return servico.avaliar(id, pedido.nota(), usuario.id());
     }
 
     @DeleteMapping("/{id}")

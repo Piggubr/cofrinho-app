@@ -9,3 +9,15 @@
 .destaque {
   border-color: var(--rose);
 }
+
+.acoes-da-pessoa {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.historico .quando {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

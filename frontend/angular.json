@@ -28,6 +28,7 @@
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
+            "serviceWorker": "ngsw-config.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
@@ -121,7 +122,29 @@
           }
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "coverageInclude": [
+              "src/app/**/*.ts"
+            ],
+            "coverageExclude": [
+              "src/app/**/*.spec.ts",
+              "src/app/testing/**",
+              "src/app/demo/**",
+              "src/app/**/*.routes.ts"
+            ],
+            "coverageReporters": [
+              "text-summary",
+              "lcovonly",
+              "html"
+            ],
+            "coverageThresholds": {
+              "statements": 75,
+              "branches": 73,
+              "functions": 70,
+              "lines": 75
+            }
+          }
         }
       }
     }

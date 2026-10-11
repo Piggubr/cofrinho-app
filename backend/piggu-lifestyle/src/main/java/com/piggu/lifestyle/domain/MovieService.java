@@ -46,7 +46,7 @@ public class MovieService {
     }
 
     @Transactional
-    public MovieResponse adicionar(TmdbMovie filme, String emailUsuario) {
+    public MovieResponse adicionar(TmdbMovie filme, UUID usuarioId) {
         String titulo = Texto.limitar(filme.titulo(), 200);
         if (titulo.isEmpty()) {
             throw new BusinessException("O filme nao chegou corretamente.");
@@ -64,7 +64,7 @@ public class MovieService {
                 posterDoTmdb(filme.poster()),
                 filme.nota() == null ? BigDecimal.ZERO : filme.nota(),
                 Texto.limitar(filme.sinopse(), 1000),
-                emailUsuario
+                usuarioId
         );
         return MovieResponse.de(repositorio.save(novo));
     }
@@ -87,16 +87,16 @@ public class MovieService {
 
     /** Cada pessoa tem a propria nota; avaliar de novo substitui a anterior. */
     @Transactional
-    public MovieResponse avaliar(UUID id, int nota, String emailUsuario) {
+    public MovieResponse avaliar(UUID id, int nota, UUID usuarioId) {
         Movie filme = buscar(id);
-        filme.avaliar(emailUsuario, nota);
+        filme.avaliar(usuarioId, nota);
         return MovieResponse.de(repositorio.save(filme));
     }
 
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
         Movie filme = buscar(id);
-        if (!usuario.podeGerenciar(filme.getUserEmail())) {
+        if (!usuario.podeGerenciar(filme.getUserId())) {
             throw new ForbiddenException("Voce nao pode apagar este filme.");
         }
         repositorio.delete(filme);

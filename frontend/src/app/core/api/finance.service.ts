@@ -16,13 +16,18 @@ import {
   MoedaDisponivel,
   Nota,
   NovoLancamento,
+  ObjetivoDoCofrinho,
   Orcamento,
+  PedidoAoAssistente,
+  PedidoDeObjetivo,
   Produto,
   Receita,
   ReciboLido,
   RegraDeCategoria,
   RelatorioDoAno,
+  RespostaDoAssistente,
   ResumoDoMes,
+  SituacaoDoAssistente,
   UsoDeLeituras,
 } from './models';
 
@@ -62,8 +67,33 @@ export class FinanceService extends ApiBase {
     return this.http.get<Cofrinho>(this.url('/piggy-bank'));
   }
 
-  depositar(valor: number, data?: string): Observable<Deposito> {
-    return this.http.post<Deposito>(this.url('/piggy-bank/deposits'), { valor, data });
+  /** @param objetivo cofrinho por objetivo; sem ele o deposito vai para o cofrinho geral */
+  depositar(valor: number, data?: string, objetivo?: string): Observable<Deposito> {
+    return this.http.post<Deposito>(this.url('/piggy-bank/deposits'), { valor, data, objetivo });
+  }
+
+  situacaoDoAssistente(): Observable<SituacaoDoAssistente> {
+    return this.http.get<SituacaoDoAssistente>(this.url('/assistant'));
+  }
+
+  perguntarAoAssistente(pedido: PedidoAoAssistente): Observable<RespostaDoAssistente> {
+    return this.http.post<RespostaDoAssistente>(this.url('/assistant/ask'), pedido);
+  }
+
+  listarObjetivos(): Observable<ObjetivoDoCofrinho[]> {
+    return this.http.get<ObjetivoDoCofrinho[]>(this.url('/piggy-bank/goals'));
+  }
+
+  criarObjetivo(pedido: PedidoDeObjetivo): Observable<ObjetivoDoCofrinho> {
+    return this.http.post<ObjetivoDoCofrinho>(this.url('/piggy-bank/goals'), pedido);
+  }
+
+  alterarObjetivo(id: string, pedido: PedidoDeObjetivo): Observable<void> {
+    return this.http.put<void>(this.url(`/piggy-bank/goals/${id}`), pedido);
+  }
+
+  excluirObjetivo(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/piggy-bank/goals/${id}`));
   }
 
   excluirDeposito(id: string): Observable<void> {
@@ -121,7 +151,9 @@ export class FinanceService extends ApiBase {
     return this.http.get<ContaFixa[]>(this.url('/bills'), { params: { mes } });
   }
 
-  criarContaFixa(conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>): Observable<void> {
+  criarContaFixa(
+    conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>,
+  ): Observable<void> {
     return this.http.post<void>(this.url('/bills'), conta);
   }
 
@@ -162,6 +194,13 @@ export class FinanceService extends ApiBase {
     return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview'), { conteudo });
   }
 
+  /** Mesma previa para linhas ja separadas, como os gastos lidos do banco conectado. */
+  previaDeLinhas(
+    linhas: Pick<LinhaDoExtrato, 'data' | 'descricao' | 'valor' | 'idExterno'>[],
+  ): Observable<LinhaDoExtrato[]> {
+    return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview-lines'), { linhas });
+  }
+
   importarExtrato(
     linhas: Omit<LinhaDoExtrato, 'jaImportada'>[],
     contaId: string | null,
@@ -191,7 +230,9 @@ export class FinanceService extends ApiBase {
     return this.http.get<ContaOuCartao[]>(this.url('/accounts'));
   }
 
-  criarConta(conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>): Observable<ContaOuCartao> {
+  criarConta(
+    conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>,
+  ): Observable<ContaOuCartao> {
     return this.http.post<ContaOuCartao>(this.url('/accounts'), conta);
   }
 
@@ -201,9 +242,12 @@ export class FinanceService extends ApiBase {
 
   /** Fatura do cartao que fecha no mes (AAAA-MM), com os gastos. */
   fatura(id: string, mes: string): Observable<{ fatura: Fatura; gastos: Gasto[] }> {
-    return this.http.get<{ fatura: Fatura; gastos: Gasto[] }>(this.url(`/accounts/${id}/statement`), {
-      params: { mes },
-    });
+    return this.http.get<{ fatura: Fatura; gastos: Gasto[] }>(
+      this.url(`/accounts/${id}/statement`),
+      {
+        params: { mes },
+      },
+    );
   }
 
   regrasDeCategoria(): Observable<RegraDeCategoria[]> {

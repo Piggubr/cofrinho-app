@@ -1,0 +1,14 @@
+<h1 i18n>Planejar</h1>
+
+<div class="atalhos">
+  @for (atalho of atalhos; track atalho.rota) {
+    <a class="cartao atalho" [routerLink]="atalho.rota">
+      <span class="icone-tile"><app-icone [nome]="atalho.icone" /></span>
+      <span class="texto">
+        <strong>{{ atalho.titulo }}</strong>
+        <span class="linha-detalhe">{{ atalho.descricao }}</span>
+      </span>
+      <app-icone nome="direita" [tamanho]="18" />
+    </a>
+  }
+</div>

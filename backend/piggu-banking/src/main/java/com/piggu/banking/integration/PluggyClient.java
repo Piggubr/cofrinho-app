@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +115,43 @@ public class PluggyClient {
                 conta.path("currencyCode").asString("BRL")
         )));
         return contas;
+    }
+
+    /** Lancamento de uma conta: so os debitos ja confirmados viram gasto. */
+    public record Transacao(String id, LocalDate data, String descricao, BigDecimal valor, boolean debito,
+                            boolean confirmada, String moeda) {
+    }
+
+    /** Teto de paginas por conta (500 lancamentos cada): 90 dias de conta comum cabem folgados. */
+    static final int MAXIMO_DE_PAGINAS = 5;
+
+    /**
+     * Lancamentos de uma conta desde a data pedida. Na Pluggy o tipo diz o sentido
+     * (DEBIT sai, CREDIT entra), em conta corrente e em cartao; o sinal do valor muda
+     * de um tipo de conta para o outro, entao o valor volta sempre positivo.
+     */
+    public List<Transacao> listarTransacoes(String contaId, LocalDate desde) {
+        List<Transacao> transacoes = new ArrayList<>();
+        int total = 1;
+        for (int pagina = 1; pagina <= Math.min(total, MAXIMO_DE_PAGINAS); pagina++) {
+            int atual = pagina;
+            JsonNode resposta = chamar(() -> cliente.get()
+                    .uri("/transactions?accountId={id}&from={de}&pageSize=500&page={p}", contaId, desde, atual)
+                    .header("X-API-KEY", apiKey()));
+            total = resposta.path("totalPages").asInt(1);
+            resposta.path("results").forEach(t -> {
+                String loja = t.path("merchant").path("name").asString("");
+                transacoes.add(new Transacao(
+                        t.path("id").asString(),
+                        LocalDate.parse(t.path("date").asString().substring(0, 10)),
+                        loja.isBlank() ? t.path("description").asString("") : loja,
+                        t.path("amount").decimalValue().abs(),
+                        "DEBIT".equalsIgnoreCase(t.path("type").asString("")),
+                        !"PENDING".equalsIgnoreCase(t.path("status").asString("")),
+                        t.path("currencyCode").asString("BRL")));
+            });
+        }
+        return transacoes;
     }
 
     private synchronized String apiKey() {

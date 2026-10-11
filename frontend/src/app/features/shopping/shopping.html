@@ -5,10 +5,22 @@
 }
 
 <div class="abas">
-  <button i18n type="button" class="aba" [class.ativa]="listaAtiva() === 'Compras'" (click)="trocarLista('Compras')">
+  <button
+    i18n
+    type="button"
+    class="aba"
+    [class.ativa]="listaAtiva() === 'Compras'"
+    (click)="trocarLista('Compras')"
+  >
     Compras
   </button>
-  <button i18n type="button" class="aba" [class.ativa]="listaAtiva() === 'Desejos'" (click)="trocarLista('Desejos')">
+  <button
+    i18n
+    type="button"
+    class="aba"
+    [class.ativa]="listaAtiva() === 'Desejos'"
+    (click)="trocarLista('Desejos')"
+  >
     Desejos
   </button>
 </div>
@@ -17,11 +29,27 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="novoItem">Item</label>
-      <input i18n-placeholder id="novoItem" maxlength="150" type="text" [ngModel]="novoItem()" (ngModelChange)="novoItem.set($event)" placeholder="Ex.: Ovos" />
+      <input
+        i18n-placeholder
+        id="novoItem"
+        maxlength="150"
+        type="text"
+        [ngModel]="novoItem()"
+        (ngModelChange)="novoItem.set($event)"
+        placeholder="Ex.: Ovos"
+      />
     </div>
     <div class="campo">
       <label i18n for="quantidade">Quantidade</label>
-      <input i18n-placeholder id="quantidade" maxlength="50" type="text" [ngModel]="novaQuantidade()" (ngModelChange)="novaQuantidade.set($event)" placeholder="Ex.: 12" />
+      <input
+        i18n-placeholder
+        id="quantidade"
+        maxlength="50"
+        type="text"
+        [ngModel]="novaQuantidade()"
+        (ngModelChange)="novaQuantidade.set($event)"
+        placeholder="Ex.: 12"
+      />
     </div>
     <div class="campo alinhado">
       <button i18n type="button" class="botao" (click)="adicionar()">Adicionar</button>
@@ -31,11 +59,30 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="busca">Buscar no catálogo</label>
-      <input i18n-placeholder id="busca" maxlength="100" type="search" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="buscarNoCatalogo()" placeholder="Nome do produto" />
+      <input
+        i18n-placeholder
+        id="busca"
+        maxlength="100"
+        type="search"
+        [ngModel]="busca()"
+        (ngModelChange)="busca.set($event)"
+        (keyup.enter)="buscarNoCatalogo()"
+        placeholder="Nome do produto"
+      />
     </div>
     <div class="campo alinhado">
-      <button i18n type="button" class="botao secundario" (click)="buscarNoCatalogo()" [disabled]="buscando()">
-        @if (buscando()) {Buscando...} @else {Buscar}
+      <button
+        i18n
+        type="button"
+        class="botao secundario"
+        (click)="buscarNoCatalogo()"
+        [disabled]="buscando()"
+      >
+        @if (buscando()) {
+          Buscando...
+        } @else {
+          Buscar
+        }
       </button>
     </div>
   </div>
@@ -80,11 +127,24 @@
             }
           </span>
         </label>
-        <button type="button" class="botao icone-so perigo" (click)="excluir(item)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+        <button
+          type="button"
+          class="botao icone-so perigo"
+          (click)="excluir(item)"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
+        >
+          <app-icone nome="lixeira" [tamanho]="18" />
+        </button>
       </div>
     }
   } @else {
     <p i18n class="vazio">Lista vazia.</p>
+    <p class="vazio-acao">
+      <button i18n class="botao contorno pequeno" appFocar="novoItem">Adicionar item</button>
+    </p>
   }
 </section>
 
@@ -101,7 +161,17 @@
           <input type="checkbox" [checked]="item.comprado" (change)="alternarComprado(item)" />
           <span class="linha-titulo">{{ item.item }}</span>
         </label>
-        <button type="button" class="botao icone-so perigo" (click)="excluir(item)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+        <button
+          type="button"
+          class="botao icone-so perigo"
+          (click)="excluir(item)"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
+        >
+          <app-icone nome="lixeira" [tamanho]="18" />
+        </button>
       </div>
     }
   </section>

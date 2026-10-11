@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
@@ -10,11 +11,14 @@ import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
+import { PrimeirosPassos } from './primeiros-passos';
+import { Objetivos } from './objetivos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
+import { PessoaPipe } from '../../core/api/pessoas-da-familia';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -31,7 +35,19 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ResumoDoMesCard, AvisosDoMes],
+  imports: [
+    Focar,
+    Icone,
+    FormsModule,
+    RouterLink,
+    MoedaPipe,
+    DataBrPipe,
+    PessoaPipe,
+    ResumoDoMesCard,
+    PrimeirosPassos,
+    AvisosDoMes,
+    Objetivos,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -71,6 +87,11 @@ export class Dashboard {
     this.gastos().reduce((soma, gasto) => soma + gasto.valor, 0),
   );
   protected readonly metaDoMes = computed(() => this.metas()[this.mesAtual()] ?? 0);
+  /** Para o guia de primeiro uso: algum limite em qualquer mes, algum gasto ja lancado. */
+  protected readonly temLimite = computed(() => Object.values(this.metas()).some((v) => v > 0));
+  protected readonly temGasto = computed(
+    () => this.gastos().length > 0 || (this.cofrinho()?.totalGastos ?? 0) > 0,
+  );
 
   protected readonly progressoDaMeta = computed(() => {
     const meta = this.metaDoMes();
@@ -235,7 +256,7 @@ export class Dashboard {
     });
   }
 
-  private recarregarCofrinho(): void {
+  protected recarregarCofrinho(): void {
     this.finance.consultarCofrinho().subscribe({
       next: (cofrinho) => this.cofrinho.set(cofrinho),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),

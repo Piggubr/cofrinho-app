@@ -91,10 +91,25 @@
       </div>
       <div class="linha-acoes">
         <strong>{{ receita.valor | moeda }}</strong>
-        <button type="button" class="botao icone-so perigo" (click)="excluir(receita)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+        <button
+          type="button"
+          class="botao icone-so perigo"
+          (click)="excluir(receita)"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
+        >
+          <app-icone nome="lixeira" [tamanho]="18" />
+        </button>
       </div>
     </div>
   } @empty {
     <p i18n class="vazio">Nenhuma receita neste mês.</p>
+    <p class="vazio-acao">
+      <button i18n class="botao contorno pequeno" appFocar="descricao-receita">
+        Lançar uma receita
+      </button>
+    </p>
   }
 </section>

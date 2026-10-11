@@ -51,7 +51,7 @@ class FeedServiceTest extends PostgresIntegrationTest {
         assertThat(foto.mesKey()).isEqualTo("2026-09");
         assertThat(foto.assetId()).isNotNull();
         assertThat(foto.legenda()).isEmpty();
-        assertThat(foto.usuario()).isEqualTo(TITULAR.email());
+        assertThat(foto.usuario()).isEqualTo(TITULAR.id());
         assertThat(assets.count()).isEqualTo(1);
     }
 
@@ -115,6 +115,6 @@ class FeedServiceTest extends PostgresIntegrationTest {
 
     private FeedPhotoResponse publicar(String mesKey) {
         return feed.publicar(new FeedPhotoRequest(
-                mesKey, Base64.getEncoder().encodeToString(new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 1}), "image/png"), TITULAR.email());
+                mesKey, Base64.getEncoder().encodeToString(new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 1}), "image/png"), TITULAR.id());
     }
 }

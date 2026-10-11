@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
-import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
+import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
+import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
@@ -29,7 +30,7 @@ export class Profile {
   protected readonly contas = signal<Usuario[]>([]);
   protected readonly carregandoAdmin = signal(false);
 
-  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'MEMBRO'];
+  protected readonly perfis: PigguRole[] = ['ADMIN', 'TITULAR', 'PARCEIRO', 'MEMBRO'];
 
   private readonly finance = inject(FinanceService);
   protected readonly moedas = signal<MoedaDisponivel[]>([]);
@@ -41,6 +42,19 @@ export class Profile {
     this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
   );
   protected readonly salvandoPreferencias = signal(false);
+  protected readonly salvandoModulos = signal(false);
+  protected readonly celular = inject(AvisosNoCelular);
+  protected readonly avisoPorEmail = signal(this.auth.usuario()?.avisos?.email ?? false);
+  protected readonly avisoNoCelular = signal(this.auth.usuario()?.avisos?.push ?? false);
+  protected readonly salvandoAvisos = signal(false);
+
+  protected readonly modulos: { id: ModuloDeEstiloDeVida; nome: string }[] = [
+    { id: 'compras', nome: $localize`Compras` },
+    { id: 'lugares', nome: $localize`Lugares` },
+    { id: 'filmes', nome: $localize`Filmes` },
+    { id: 'fotos', nome: $localize`Fotos` },
+    { id: 'premios', nome: $localize`Prêmios` },
+  ];
   protected readonly excluindo = signal(false);
 
   constructor() {
@@ -74,6 +88,60 @@ export class Profile {
           this.salvandoPreferencias.set(false);
         },
       });
+  }
+
+  /** No celular, a permissao do sistema vem antes de gravar: sem ela o push fica desligado. */
+  protected async salvarAvisos(): Promise<void> {
+    this.salvandoAvisos.set(true);
+    this.erro.set('');
+    this.aviso.set('');
+    let push = this.avisoNoCelular() && this.celular.disponivel;
+    if (push && !(await this.celular.ativar())) {
+      push = false;
+      this.avisoNoCelular.set(false);
+      this.erro.set(
+        $localize`Permita as notificações do Piggu nos Ajustes do iPhone e tente de novo.`,
+      );
+    }
+    this.users.salvarAvisos(this.avisoPorEmail(), push).subscribe({
+      next: (usuario) => {
+        this.auth.atualizarUsuario(usuario);
+        if (!this.erro()) {
+          this.aviso.set($localize`Avisos salvos.`);
+        }
+        this.salvandoAvisos.set(false);
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.salvandoAvisos.set(false);
+      },
+    });
+  }
+
+  /** Sem a lista (conta antiga, demo), todos estao ligados. */
+  protected ligado(modulo: ModuloDeEstiloDeVida): boolean {
+    const ligados = this.auth.usuario()?.preferencias?.modulos;
+    return !ligados || ligados.includes(modulo);
+  }
+
+  /** Cada toque ja salva: o menu muda na hora. */
+  protected alternarModulo(modulo: ModuloDeEstiloDeVida): void {
+    const ligados = this.modulos.map((m) => m.id).filter((id) => this.ligado(id));
+    const novos = ligados.includes(modulo)
+      ? ligados.filter((id) => id !== modulo)
+      : [...ligados, modulo];
+    this.salvandoModulos.set(true);
+    this.erro.set('');
+    this.users.salvarModulos(novos).subscribe({
+      next: (usuario) => {
+        this.auth.atualizarUsuario(usuario);
+        this.salvandoModulos.set(false);
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.salvandoModulos.set(false);
+      },
+    });
   }
 
   protected baixarMeusDados(): void {

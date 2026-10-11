@@ -13,6 +13,12 @@
   <artifactId>piggu-media</artifactId>
   <name>Piggu Media</name>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.84</cobertura.linhas>
+    <cobertura.ramos>0.70</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.piggu</groupId>

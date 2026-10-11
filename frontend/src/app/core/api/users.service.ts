@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import { PigguRole, Preferencias, Usuario } from './models';
+import { ModuloDeEstiloDeVida, PigguRole, Preferencias, Usuario } from './models';
 
 /** Conta propria e, para o ADMIN, as contas da instalacao. */
 @Injectable({ providedIn: 'root' })
@@ -13,6 +13,21 @@ export class UsersService extends ApiBase {
   /** Qualquer perfil grava as proprias preferencias de moeda. */
   salvarPreferencias(preferencias: Preferencias): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/auth/me/preferences'), preferencias);
+  }
+
+  /** Avisos do dia (fatura, orcamento, conta do mes) por e-mail e no celular. */
+  salvarAvisos(email: boolean, push: boolean): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/auth/me/alerts'), { email, push });
+  }
+
+  /** Token do APNs deste iPhone, para o push dos avisos. */
+  registrarAparelho(token: string): Observable<void> {
+    return this.http.post<void>(this.url('/auth/me/devices'), { token, plataforma: 'IOS' });
+  }
+
+  /** Liga e desliga as telas de estilo de vida no menu da propria pessoa. */
+  salvarModulos(modulos: ModuloDeEstiloDeVida[]): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/auth/me/modules'), { modulos });
   }
 
   /** Copia de tudo o que o Piggu guarda da pessoa (LGPD art. 18), em um JSON. */

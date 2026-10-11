@@ -33,7 +33,7 @@ import java.util.UUID;
 /** Receitas da familia. Como os gastos, so o titular (e o admin) lanca e ve. */
 @RestController
 @RequestMapping("/api/incomes")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class IncomeController {
 
     private final IncomeService servico;
@@ -52,11 +52,11 @@ public class IncomeController {
     }
 
     public record IncomeResponse(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                 String usuario) {
+                                 UUID usuario) {
 
         static IncomeResponse de(Income receita) {
             return new IncomeResponse(receita.getId(), receita.getIncomeDate(), receita.getDescription(),
-                    receita.getCategory(), receita.getAmount(), receita.getUserEmail());
+                    receita.getCategory(), receita.getAmount(), receita.getUserId());
         }
     }
 
@@ -74,7 +74,7 @@ public class IncomeController {
     @ResponseStatus(HttpStatus.CREATED)
     public IncomeResponse criar(@Valid @RequestBody IncomeRequest pedido, @AuthUser CurrentUser usuario) {
         return IncomeResponse.de(servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
-                usuario.email()));
+                usuario.id()));
     }
 
     @PutMapping("/{id}")

@@ -2,6 +2,7 @@ package com.piggu.banking.domain;
 
 import com.piggu.banking.api.dto.BankAccountResponse;
 import com.piggu.banking.integration.PluggyClient;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UpstreamException;
@@ -12,9 +13,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +44,9 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Autowired
     private BankConnectionRepository conexoes;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     private final CurrentUser titular = new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
     private final CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
@@ -63,6 +69,21 @@ class BankingServiceTest extends PostgresIntegrationTest {
         assertThat(contas).extracting(BankAccountResponse::saldo)
                 .containsExactlyInAnyOrder(new BigDecimal("1520.35"), new BigDecimal("-300.00"));
         assertThat(contas).allSatisfy(conta -> assertThat(conta.instituicao()).isEqualTo("Nubank"));
+    }
+
+    @Test
+    @DisplayName("do numero da conta so ficam os 4 ultimos digitos, e a API ja entrega mascarado")
+    void guardaSoOsUltimosDigitos() {
+        item("item-6", titular, "Caixa");
+        when(pluggy.listarContas("item-6")).thenReturn(List.of(
+                new PluggyClient.Conta("c6", "Corrente", "CHECKING_ACCOUNT", "00012345-6", BigDecimal.TEN, "BRL"),
+                new PluggyClient.Conta("c7", "Cartao", "CREDIT_CARD", "", BigDecimal.ONE, "BRL")));
+
+        List<BankAccountResponse> contas = servico.registrar("item-6", titular);
+
+        assertThat(contas).extracting(BankAccountResponse::numero).containsExactlyInAnyOrder("•••• 3456", "");
+        assertThat(jdbc.queryForList("SELECT number FROM bank_accounts WHERE pluggy_account_id IN ('c6', 'c7')", String.class))
+                .containsExactlyInAnyOrder("3456", "");
     }
 
     @Test
@@ -166,6 +187,47 @@ class BankingServiceTest extends PostgresIntegrationTest {
         doThrow(new NotFoundException("sumiu")).when(pluggy).apagarItem("item-9");
         servico.desconectar(conexao, titular);
         assertThat(conexoes.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("gastos do banco: so debitos confirmados, de todas as contas da pessoa, do mais novo ao mais velho")
+    void gastosDoBanco() {
+        item("item-g", titular, "Nubank");
+        when(pluggy.listarContas("item-g")).thenReturn(List.of(conta("cg1", "Conta", "10"), conta("cg2", "Cartao", "0")));
+        servico.registrar("item-g", titular);
+        LocalDate desde = LocalDate.now().minusDays(10);
+        when(pluggy.listarTransacoes("cg1", desde)).thenReturn(List.of(
+                transacao("a", desde.plusDays(1), "Padaria", "12.50", true, true),
+                transacao("b", desde.plusDays(2), "Salario", "5000", false, true),
+                transacao("c", desde.plusDays(3), "Pendente", "8", true, false)));
+        when(pluggy.listarTransacoes("cg2", desde)).thenReturn(List.of(
+                transacao("d", desde.plusDays(4), "Cinema", "60", true, true)));
+
+        List<BankingService.GastoDoBanco> gastos = servico.gastosDesde(desde, titular);
+
+        assertThat(gastos).extracting(BankingService.GastoDoBanco::idExterno).containsExactly("pluggy:d", "pluggy:a");
+        assertThat(gastos.get(0).conta()).isEqualTo("Nubank · Cartao");
+        assertThat(gastos.get(1).valor()).isEqualByComparingTo("12.50");
+    }
+
+    @Test
+    @DisplayName("gastos do banco: so ate 90 dias para tras e nunca no futuro; banco de outra pessoa nao entra")
+    void gastosDoBancoNoPrazo() {
+        item("item-h", admin, "Itau");
+        when(pluggy.listarContas("item-h")).thenReturn(List.of(conta("ch1", "Conta", "10")));
+        servico.registrar("item-h", admin);
+
+        assertThatThrownBy(() -> servico.gastosDesde(LocalDate.now().minusDays(91), titular))
+                .isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> servico.gastosDesde(LocalDate.now().plusDays(1), titular))
+                .isInstanceOf(BusinessException.class);
+        assertThat(servico.gastosDesde(LocalDate.now().minusDays(5), titular)).isEmpty();
+        verify(pluggy, never()).listarTransacoes(anyString(), org.mockito.ArgumentMatchers.any());
+    }
+
+    private static PluggyClient.Transacao transacao(String id, LocalDate data, String descricao, String valor,
+                                                    boolean debito, boolean confirmada) {
+        return new PluggyClient.Transacao(id, data, descricao, new BigDecimal(valor), debito, confirmada, "BRL");
     }
 
     private void item(String id, CurrentUser dono, String instituicao) {

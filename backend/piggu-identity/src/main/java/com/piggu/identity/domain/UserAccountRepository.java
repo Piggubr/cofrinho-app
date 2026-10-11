@@ -21,6 +21,11 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
     @Query("SELECT u.id FROM UserAccount u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :limite")
     List<UUID> semAcessoDesde(@Param("limite") Instant limite);
 
+    /** Quem pediu aviso fora do app e ve as financas da familia (o membro nao ve). */
+    @Query("SELECT u FROM UserAccount u WHERE u.active = true AND (u.alertsByEmail = true OR u.alertsByPush = true)"
+            + " AND u.role <> com.piggu.common.security.PigguRole.MEMBRO ORDER BY u.createdAt")
+    List<UserAccount> comAvisosLigados();
+
     @Query("SELECT u.id FROM UserAccount u WHERE u.active = false AND u.deactivatedAt < :limite")
     List<UUID> desativadasDesde(@Param("limite") Instant limite);
 }

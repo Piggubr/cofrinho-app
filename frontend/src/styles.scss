@@ -674,3 +674,12 @@ button {
     font-size: 1.5rem;
   }
 }
+
+/* Acao logo abaixo de um estado vazio: diz o que fazer para sair dele. */
+.vazio-acao {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: -0.9rem 0 1rem;
+}

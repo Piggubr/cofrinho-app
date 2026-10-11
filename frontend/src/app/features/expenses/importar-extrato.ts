@@ -1,15 +1,25 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { of, switchMap } from 'rxjs';
+import { BankingService } from '../../core/api/banking.service';
 import { FinanceService } from '../../core/api/finance.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { ContaOuCartao, LinhaDoExtrato } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { dataIso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 
 /** Arquivo ate 2 MB: o mesmo limite do servidor. */
 const TAMANHO_MAXIMO = 2_000_000;
 
-/** Importar extrato OFX/CSV com previa (o que ja entrou vem desmarcado) e exportar CSV. */
+/** Quantos dias para tras o "Trazer do banco" busca. */
+const DIAS_DO_BANCO = 30;
+
+/**
+ * Importar extrato OFX/CSV com previa (o que ja entrou vem desmarcado) e exportar CSV.
+ * Com banco conectado (Premium), os debitos do Open Finance entram na mesma previa.
+ */
 @Component({
   selector: 'app-importar-extrato',
   imports: [FormsModule, MoedaPipe, DataBrPipe],
@@ -19,15 +29,28 @@ const TAMANHO_MAXIMO = 2_000_000;
         <h2 i18n id="titulo-extrato">Importar e exportar</h2>
       </div>
       <p i18n class="linha-detalhe">
-        Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere antes de
-        gravar, e o que já foi importado fica de fora.
+        Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere
+        antes de gravar, e o que já foi importado fica de fora.
       </p>
       <div class="acoes">
         <label i18n class="botao secundario arquivo">
           Escolher extrato
           <input type="file" accept=".ofx,.csv,.txt,text/csv" (change)="escolher($event)" hidden />
         </label>
-        <button i18n type="button" class="botao contorno" (click)="exportar()">Exportar CSV do mês</button>
+        @if (comBanco()) {
+          <button
+            i18n
+            type="button"
+            class="botao secundario"
+            (click)="trazerDoBanco()"
+            [disabled]="ocupado()"
+          >
+            Trazer do banco
+          </button>
+        }
+        <button i18n type="button" class="botao contorno" (click)="exportar()">
+          Exportar CSV do mês
+        </button>
       </div>
       @if (erro()) {
         <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -59,6 +82,9 @@ const TAMANHO_MAXIMO = 2_000_000;
                 <span class="linha-titulo">{{ linha.descricao }}</span>
                 <span class="linha-detalhe">
                   {{ linha.data | dataBr }}
+                  @if (linha.conta) {
+                    · {{ linha.conta }}
+                  }
                   @if (linha.jaImportada) {
                     <ng-container i18n>· já importado</ng-container>
                   }
@@ -80,10 +106,18 @@ const TAMANHO_MAXIMO = 2_000_000;
           </div>
         }
         <div class="acoes">
-          <button i18n type="button" class="botao" (click)="importar()" [disabled]="ocupado() || !marcadas().length">
+          <button
+            i18n
+            type="button"
+            class="botao"
+            (click)="importar()"
+            [disabled]="ocupado() || !marcadas().length"
+          >
             Importar marcados
           </button>
-          <button i18n type="button" class="botao contorno" (click)="linhas.set([])">Cancelar</button>
+          <button i18n type="button" class="botao contorno" (click)="linhas.set([])">
+            Cancelar
+          </button>
         </div>
       }
     </section>
@@ -104,6 +138,8 @@ const TAMANHO_MAXIMO = 2_000_000;
 })
 export class ImportarExtrato {
   private readonly finance = inject(FinanceService);
+  private readonly banking = inject(BankingService);
+  private readonly auth = inject(AuthService);
 
   readonly categorias = input.required<string[]>();
   readonly contas = input.required<ContaOuCartao[]>();
@@ -111,13 +147,73 @@ export class ImportarExtrato {
   readonly mes = input.required<string>();
   readonly importado = output<void>();
 
-  protected readonly linhas = signal<(LinhaDoExtrato & { marcada: boolean })[]>([]);
+  protected readonly linhas = signal<(LinhaDoExtrato & { marcada: boolean; conta?: string })[]>([]);
+  /** Ha banco conectado de onde trazer os gastos (Open Finance e Premium). */
+  protected readonly comBanco = signal(false);
   protected readonly conta = signal('');
   protected readonly erro = signal('');
   protected readonly resultado = signal('');
   protected readonly ocupado = signal(false);
   protected readonly marcadas = computed(() => this.linhas().filter((l) => l.marcada));
-  protected readonly totalMarcado = computed(() => this.marcadas().reduce((soma, l) => soma + l.valor, 0));
+  protected readonly totalMarcado = computed(() =>
+    this.marcadas().reduce((soma, l) => soma + l.valor, 0),
+  );
+
+  constructor() {
+    if (!this.auth.ehPremium() || !this.auth.podeLancar()) {
+      return;
+    }
+    // Opcional como no painel: qualquer falha so esconde o botao.
+    this.banking
+      .status()
+      .pipe(switchMap(({ habilitado }) => (habilitado ? this.banking.listarContas() : of([]))))
+      .subscribe({ next: (contas) => this.comBanco.set(contas.length > 0), error: () => {} });
+  }
+
+  protected trazerDoBanco(): void {
+    const desde = new Date();
+    desde.setDate(desde.getDate() - DIAS_DO_BANCO);
+    const contaDe = new Map<string, string>();
+    this.erro.set('');
+    this.resultado.set('');
+    this.ocupado.set(true);
+    this.banking
+      .gastosDoBanco(dataIso(desde))
+      .pipe(
+        switchMap((gastos) => {
+          gastos.forEach((g) => contaDe.set(g.idExterno, g.conta));
+          return gastos.length
+            ? this.finance.previaDeLinhas(
+                gastos.map(({ data, descricao, valor, idExterno }) => ({
+                  data,
+                  descricao,
+                  valor,
+                  idExterno,
+                })),
+              )
+            : of([]);
+        }),
+      )
+      .subscribe({
+        next: (linhas) => {
+          this.linhas.set(
+            linhas.map((l) => ({ ...l, conta: contaDe.get(l.idExterno), marcada: !l.jaImportada })),
+          );
+          if (!linhas.length) {
+            this.resultado.set(
+              $localize`Nenhum gasto nos bancos conectados nos últimos ${DIAS_DO_BANCO} dias.`,
+            );
+          } else if (linhas.every((l) => l.jaImportada)) {
+            this.resultado.set($localize`Tudo dos últimos ${DIAS_DO_BANCO} dias já está no Piggu.`);
+          }
+          this.ocupado.set(false);
+        },
+        error: (falha) => {
+          this.erro.set(mensagemDeErro(falha));
+          this.ocupado.set(false);
+        },
+      });
+  }
 
   protected async escolher(evento: Event): Promise<void> {
     const campo = evento.target as HTMLInputElement;
@@ -145,7 +241,9 @@ export class ImportarExtrato {
   }
 
   protected alternar(i: number): void {
-    this.linhas.update((lista) => lista.map((l, j) => (j === i ? { ...l, marcada: !l.marcada } : l)));
+    this.linhas.update((lista) =>
+      lista.map((l, j) => (j === i ? { ...l, marcada: !l.marcada } : l)),
+    );
   }
 
   protected mudarCategoria(i: number, categoria: string): void {

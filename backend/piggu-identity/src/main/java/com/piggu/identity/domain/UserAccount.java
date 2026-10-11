@@ -14,6 +14,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -81,6 +82,17 @@ public class UserAccount {
     /** Idioma da interface; por enquanto so pt-BR, os textos ja estao prontos para traducao. */
     @Column(nullable = false, length = 10)
     private String locale = "pt-BR";
+
+    /** Telas de estilo de vida no menu (ver {@link ModulosDeEstiloDeVida}); conta nova nasce sem nenhuma. */
+    @Column(name = "lifestyle_modules", length = 200)
+    private String lifestyleModules = "";
+
+    /** Avisos fora do app (fatura, orcamento, conta fixa); cada canal nasce desligado. */
+    @Column(name = "alerts_by_email", nullable = false)
+    private boolean alertsByEmail;
+
+    @Column(name = "alerts_by_push", nullable = false)
+    private boolean alertsByPush;
 
     /** Familia a que a conta pertence; o plano e os dados de dominio sao dela. */
     @Column(name = "household_id", nullable = false)
@@ -229,6 +241,27 @@ public class UserAccount {
         if (timezone != null) {
             this.timezone = timezone;
         }
+    }
+
+    public List<String> getModulos() {
+        return ModulosDeEstiloDeVida.ler(lifestyleModules);
+    }
+
+    public void escolherModulos(List<String> modulos) {
+        this.lifestyleModules = ModulosDeEstiloDeVida.gravar(modulos);
+    }
+
+    public void escolherAvisos(boolean porEmail, boolean porPush) {
+        this.alertsByEmail = porEmail;
+        this.alertsByPush = porPush;
+    }
+
+    public boolean isAlertsByEmail() {
+        return alertsByEmail;
+    }
+
+    public boolean isAlertsByPush() {
+        return alertsByPush;
     }
 
     public String getCurrency() {

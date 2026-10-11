@@ -11,7 +11,12 @@
   <section class="cartao">
     <div class="identidade">
       @if (pessoa.foto) {
-        <img [src]="pessoa.foto" [alt]="pessoa.nome" class="avatar-grande" referrerpolicy="no-referrer" />
+        <img
+          [src]="pessoa.foto"
+          [alt]="pessoa.nome"
+          class="avatar-grande"
+          referrerpolicy="no-referrer"
+        />
       }
       <div>
         <h2>{{ pessoa.nome }}</h2>
@@ -56,7 +61,11 @@
   </div>
 
   <label i18n class="caixa">
-    <input type="checkbox" [ngModel]="mostrarCotacao()" (ngModelChange)="mostrarCotacao.set($event)" />
+    <input
+      type="checkbox"
+      [ngModel]="mostrarCotacao()"
+      (ngModelChange)="mostrarCotacao.set($event)"
+    />
     Mostrar a cotação no topo do app
   </label>
   <p i18n class="linha-detalhe">
@@ -64,29 +73,113 @@
   </p>
 
   <div class="acoes">
-    <button i18n
+    <button
+      i18n
       type="button"
       class="botao"
       (click)="salvarPreferencias()"
       [disabled]="salvandoPreferencias() || !moedas().length"
     >
-      @if (salvandoPreferencias()) {Salvando...} @else {Salvar preferências}
+      @if (salvandoPreferencias()) {
+        Salvando...
+      } @else {
+        Salvar preferências
+      }
     </button>
   </div>
 </section>
+
+@if (!auth.ehMembro()) {
+  <section class="cartao" aria-labelledby="titulo-avisos">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-avisos">Avisos</h2>
+    </div>
+    <p i18n class="linha-detalhe">
+      Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app
+      fechado. No máximo uma vez por dia, e só quando há novidade.
+    </p>
+    <label i18n class="caixa">
+      <input
+        type="checkbox"
+        [ngModel]="avisoPorEmail()"
+        (ngModelChange)="avisoPorEmail.set($event)"
+      />
+      Por e-mail, para {{ auth.usuario()?.email }}
+    </label>
+    @if (celular.disponivel) {
+      <label i18n class="caixa">
+        <input
+          type="checkbox"
+          [ngModel]="avisoNoCelular()"
+          (ngModelChange)="avisoNoCelular.set($event)"
+        />
+        Notificação neste iPhone
+      </label>
+    }
+    <div class="acoes">
+      <button
+        i18n
+        type="button"
+        class="botao"
+        (click)="salvarAvisos()"
+        [disabled]="salvandoAvisos()"
+      >
+        @if (salvandoAvisos()) {
+          Salvando...
+        } @else {
+          Salvar avisos
+        }
+      </button>
+    </div>
+  </section>
+
+  <section class="cartao" aria-labelledby="titulo-modulos">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-modulos">Telas do menu</h2>
+    </div>
+    <p i18n class="linha-detalhe">
+      Ligue só o que você usa. Desligar tira a tela do menu; nada do que está nela é apagado.
+    </p>
+    <div class="modulos">
+      @for (modulo of modulos; track modulo.id) {
+        <label class="caixa">
+          <input
+            type="checkbox"
+            [checked]="ligado(modulo.id)"
+            [disabled]="salvandoModulos()"
+            (change)="alternarModulo(modulo.id)"
+          />
+          {{ modulo.nome }}
+        </label>
+      }
+    </div>
+  </section>
+}
 
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-dados">Seus dados</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são
-    gratuitos em qualquer plano.
+    Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são gratuitos
+    em qualquer plano.
   </p>
   <div class="acoes">
-    <button i18n type="button" class="botao contorno" (click)="baixarMeusDados()">Baixar meus dados</button>
-    <button i18n type="button" class="botao perigo" (click)="excluirConta()" [disabled]="excluindo()">
-      @if (excluindo()) {Excluindo...} @else {Excluir minha conta}
+    <button i18n type="button" class="botao contorno" (click)="baixarMeusDados()">
+      Baixar meus dados
+    </button>
+    <button
+      i18n
+      type="button"
+      class="botao perigo"
+      (click)="excluirConta()"
+      [disabled]="excluindo()"
+    >
+      @if (excluindo()) {
+        Excluindo...
+      } @else {
+        Excluir minha conta
+      }
     </button>
   </div>
 </section>
@@ -107,13 +200,27 @@
             <p class="linha-detalhe">{{ conta.email }}</p>
           </div>
           <div class="linha-acoes">
-            <select i18n-aria-label [ngModel]="conta.role" (ngModelChange)="alterarPerfil(conta, $event)" aria-label="Perfil">
+            <select
+              i18n-aria-label
+              [ngModel]="conta.role"
+              (ngModelChange)="alterarPerfil(conta, $event)"
+              aria-label="Perfil"
+            >
               @for (perfil of perfis; track perfil) {
                 <option [value]="perfil">{{ perfil }}</option>
               }
             </select>
-            <button i18n type="button" class="botao contorno pequeno" (click)="alternarAtivo(conta)">
-              @if (conta.ativo) {Desativar} @else {Ativar}
+            <button
+              i18n
+              type="button"
+              class="botao contorno pequeno"
+              (click)="alternarAtivo(conta)"
+            >
+              @if (conta.ativo) {
+                Desativar
+              } @else {
+                Ativar
+              }
             </button>
           </div>
         </div>

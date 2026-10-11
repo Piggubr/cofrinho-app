@@ -33,7 +33,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/assets")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class AssetController {
 
     private final AssetService servico;
@@ -47,7 +47,7 @@ public class AssetController {
     public AssetResponse enviar(@Valid @RequestBody AssetUploadRequest pedido,
                                 @AuthUser CurrentUser usuario) {
         return AssetResponse.de(servico.guardar(
-                pedido.imageBase64(), pedido.mimeType(), pedido.contexto(), null, usuario.email()));
+                pedido.imageBase64(), pedido.mimeType(), pedido.contexto(), null, usuario.id()));
     }
 
     /**

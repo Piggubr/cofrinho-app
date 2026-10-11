@@ -13,6 +13,12 @@
   <artifactId>piggu-finance</artifactId>
   <name>Piggu Finance</name>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.90</cobertura.linhas>
+    <cobertura.ramos>0.77</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.piggu</groupId>

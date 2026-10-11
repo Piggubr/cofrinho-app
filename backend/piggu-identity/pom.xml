@@ -13,6 +13,12 @@
   <artifactId>piggu-identity</artifactId>
   <name>Piggu Identity</name>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.79</cobertura.linhas>
+    <cobertura.ramos>0.65</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.piggu</groupId>

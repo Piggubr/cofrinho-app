@@ -36,7 +36,9 @@ describe('Expenses', () => {
     http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
     http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http.expectOne('/api/family').flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
+    http
+      .expectOne('/api/family')
+      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
     http.expectOne('/api/categories/rules').flush([]);
     http.expectOne('/api/accounts').flush([]);
     http.expectOne('/api/receipts/usage').flush({ usadas: 10 - restantes, limite: 10, restantes });
@@ -60,13 +62,24 @@ describe('Expenses', () => {
     const tela = TestBed.createComponent(Expenses);
     tela.detectChanges();
     const gasto = {
-      id: 'g1', data: '2026-09-10', reciboId: 'r1', estabelecimento: '', item: 'Uber', categoria: 'Outros',
-      valor: 20, tipo: 'Variavel', origem: 'Manual', usuario: 'a', registradoEm: '',
+      id: 'g1',
+      data: '2026-09-10',
+      reciboId: 'r1',
+      estabelecimento: '',
+      item: 'Uber',
+      categoria: 'Outros',
+      valor: 20,
+      tipo: 'Variavel',
+      origem: 'Manual',
+      usuario: 'a',
+      registradoEm: '',
     };
     http.expectOne((pedido) => pedido.url === '/api/expenses').flush([gasto]);
     http.expectOne('/api/categories').flush({ categorias: ['Outros', 'Transporte'] });
     http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http.expectOne('/api/family').flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
+    http
+      .expectOne('/api/family')
+      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
     http.expectOne('/api/categories/rules').flush([]);
     http.expectOne('/api/accounts').flush([]);
     http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
@@ -93,7 +106,9 @@ describe('Expenses', () => {
     expect(pedido.request.method).toBe('PUT');
     expect(pedido.request.body).toEqual({ termo: 'Uber', categoria: 'Transporte' });
     pedido.flush({ id: 'r1', termo: 'uber', categoria: 'Transporte' });
-    http.expectOne('/api/categories/rules').flush([{ id: 'r1', termo: 'uber', categoria: 'Transporte' }]);
+    http
+      .expectOne('/api/categories/rules')
+      .flush([{ id: 'r1', termo: 'uber', categoria: 'Transporte' }]);
   });
 
   it('compra em dolar grava o convertido e o original; preco acima da media avisa', () => {
@@ -109,13 +124,17 @@ describe('Expenses', () => {
     t.novoItem.set('Café');
     t.novoValor.set(24);
     t.conferirPreco();
-    http.expectOne((r) => r.url === '/api/products/price-check').flush({ media: 20, compras: 3, percentual: 20, acima: true });
+    http
+      .expectOne((r) => r.url === '/api/products/price-check')
+      .flush({ media: 20, compras: 3, percentual: 20, acima: true });
     tela.detectChanges();
     expect(tela.nativeElement.textContent).toContain('20% acima da média');
 
     t.novoValor.set(20);
     t.trocarMoeda('USD');
-    http.expectOne((r) => r.url === '/api/exchange-rate' && r.params.get('de') === 'USD').flush({ taxa: 5.5 });
+    http
+      .expectOne((r) => r.url === '/api/exchange-rate' && r.params.get('de') === 'USD')
+      .flush({ taxa: 5.5 });
     t.lancar();
     const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
     expect(pedido.request.body.itens[0]).toEqual(
@@ -126,14 +145,147 @@ describe('Expenses', () => {
     http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
   });
 
-  function abrirCom(tela: ReturnType<typeof TestBed.createComponent<Expenses>>): void {
+  it('divide pelo id de cada pessoa e mostra o acerto com o nome; conta excluida vira ex-membro', () => {
+    const tela = TestBed.createComponent(Expenses);
+    const bia = {
+      id: 'u-bia',
+      nome: 'Bia',
+      email: 'bia@piggu.test',
+      foto: null,
+      papel: 'PARCEIRO',
+    };
+    const eu = {
+      id: usuarioDeTeste().id,
+      nome: 'Titular',
+      email: 'titular@piggu.test',
+      foto: null,
+      papel: 'TITULAR',
+    };
+    abrirCom(
+      tela,
+      [eu, bia],
+      [
+        { pessoa: eu.id, pagou: 100, parte: 50, saldo: 50 },
+        { pessoa: 'u-bia', pagou: 0, parte: 30, saldo: -30 },
+        { pessoa: null, pagou: 0, parte: 20, saldo: -20 },
+      ],
+    );
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    const nomes = [...pagina.querySelectorAll('.linha-titulo')].map((l) => l.textContent?.trim());
+    expect(nomes).toEqual(expect.arrayContaining(['Titular', 'Bia', 'Ex-membro']));
+    expect(pagina.textContent).not.toContain('@piggu.test');
+
+    const caixas = [...pagina.querySelectorAll<HTMLInputElement>('.dividir input[type=checkbox]')];
+    caixas.forEach((caixa) => caixa.dispatchEvent(new Event('change')));
+    const t = tela.componentInstance as unknown as {
+      novoItem: { set(v: string): void };
+      novoValor: { set(v: number): void };
+      lancar(): void;
+    };
+    t.novoItem.set('Jantar');
+    t.novoValor.set(100);
+    t.lancar();
+    const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
+    expect(pedido.request.body.dividirCom).toEqual([eu.id, 'u-bia']);
+    pedido.flush([]);
+    http.expectOne((r) => r.url === '/api/expenses').flush([]);
+    http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
+  });
+
+  it('lançamento rápido: o resto fica em Mais opções e a última conta vira a padrão', () => {
+    localStorage.setItem('piggu_conta_padrao', 'c2');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(
+      tela,
+      [],
+      [],
+      [
+        {
+          id: 'c1',
+          nome: 'Conta',
+          tipo: 'CONTA',
+          fechamento: null,
+          vencimento: null,
+          faturaAberta: null,
+        },
+        {
+          id: 'c2',
+          nome: 'Nubank',
+          tipo: 'CARTAO',
+          fechamento: 3,
+          vencimento: 10,
+          faturaAberta: null,
+        },
+      ],
+    );
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    const opcoes = pagina.querySelector<HTMLDetailsElement>('details.mais-opcoes')!;
+    expect(opcoes.open).toBe(false);
+    expect(opcoes.querySelector('summary')?.textContent).toContain('Hoje · Nubank · à vista');
+
+    const t = tela.componentInstance as unknown as {
+      novoItem: { set(v: string): void };
+      novoValor: { set(v: number): void };
+      novaConta: { set(v: string): void };
+      novasParcelas: { set(v: number): void };
+      lancar(): void;
+    };
+    t.novaConta.set('c1');
+    t.novasParcelas.set(3);
+    tela.detectChanges();
+    expect(opcoes.querySelector('summary')?.textContent).toContain('Conta · 3x');
+    t.novoItem.set('Mercado');
+    t.novoValor.set(90);
+    t.lancar();
+    const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
+    expect(pedido.request.body.contaId).toBe('c1');
+    pedido.flush([]);
+    http.expectOne((r) => r.url === '/api/expenses').flush([]);
+    http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
+    expect(localStorage.getItem('piggu_conta_padrao')).toBe('c1');
+    localStorage.removeItem('piggu_conta_padrao');
+  });
+
+  it('sem internet o gasto fica na fila deste aparelho e o formulario limpa', () => {
+    localStorage.removeItem('piggu_fila_de_gastos');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(tela);
+    const t = tela.componentInstance as unknown as {
+      novoItem: { set(v: string): void; (): string };
+      novoValor: { set(v: number): void };
+      lancar(): void;
+    };
+    t.novoItem.set('Pao');
+    t.novoValor.set(8);
+    t.lancar();
+    http
+      .expectOne((r) => r.url === '/api/expenses' && r.method === 'POST')
+      .error(new ProgressEvent('error'), { status: 0 });
+    tela.detectChanges();
+
+    expect(t.novoItem()).toBe('');
+    expect(tela.nativeElement.textContent).toContain('ficou guardado neste aparelho');
+    expect(tela.nativeElement.textContent).toContain('1 gasto esperando conexão');
+    localStorage.removeItem('piggu_fila_de_gastos');
+  });
+
+  function abrirCom(
+    tela: ReturnType<typeof TestBed.createComponent<Expenses>>,
+    membros: unknown[] = [],
+    acerto: unknown[] = [],
+    contas: unknown[] = [],
+  ): void {
     tela.detectChanges();
     http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
-    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http.expectOne('/api/family').flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
+    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush(acerto);
+    http
+      .expectOne('/api/family')
+      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] });
     http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush([]);
+    http.expectOne('/api/accounts').flush(contas);
     http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
   }
 });

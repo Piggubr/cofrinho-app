@@ -17,7 +17,9 @@ export abstract class ApiBase {
   }
 
   /** Monta query string ignorando valores nulos, vazios ou indefinidos. */
-  protected params(valores: Record<string, string | number | boolean | null | undefined>): HttpParams {
+  protected params(
+    valores: Record<string, string | number | boolean | null | undefined>,
+  ): HttpParams {
     let params = new HttpParams();
     for (const [chave, valor] of Object.entries(valores)) {
       if (valor !== null && valor !== undefined && valor !== '') {

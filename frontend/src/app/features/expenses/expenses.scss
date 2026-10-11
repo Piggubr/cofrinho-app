@@ -16,7 +16,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-
 .acoes-edicao {
   flex-wrap: wrap;
 }
@@ -26,7 +25,6 @@
   align-items: center;
   gap: 0.4rem;
 }
-
 
 .alerta-preco {
   color: var(--over);
@@ -51,5 +49,23 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.9rem;
+  }
+}
+
+.mais-opcoes {
+  margin: 0.4rem 0 0.9rem;
+
+  summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    font-weight: 600;
+  }
+
+  &[open] summary {
+    margin-bottom: 0.6rem;
   }
 }

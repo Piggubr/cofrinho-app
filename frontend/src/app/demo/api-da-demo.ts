@@ -14,12 +14,15 @@ import {
   Fatura,
   Gasto,
   InfoDoPlano,
+  GastoDoBanco,
   LinhaDoExtrato,
+  ObjetivoDoCofrinho,
   Orcamento,
   ParDeTokens,
   Produto,
   RelatorioDoAno,
   ResumoDoMes,
+  Preferencias,
   Usuario,
 } from '../core/api/models';
 import { dataIso } from '../core/ui/datas';
@@ -28,6 +31,7 @@ import {
   CATEGORIAS_DE_RECEITA,
   ContaDemo,
   EstadoDaDemo,
+  ObjetivoDemo,
   FILMES_DO_CATALOGO,
   PRODUTOS_DO_CATALOGO,
   criarEstado,
@@ -168,10 +172,6 @@ function categoriaAutomatica(item: string, estabelecimento: string): string {
   return anterior?.categoria ?? 'Outros';
 }
 
-function usuarioPorEmail(email: string): Usuario {
-  return email === estado.membro.email ? estado.membro : estado.titular;
-}
-
 // ---------- Calculos ----------
 
 function resumo(mes: string): ResumoDoMes {
@@ -294,17 +294,18 @@ function acerto(mes: string): AcertoDeDivisao[] {
     if (!partes) {
       continue;
     }
-    for (const [email, valor] of Object.entries(partes)) {
-      parte[email] = arredondar((parte[email] ?? 0) + valor);
-      pagou[g.usuario] = arredondar((pagou[g.usuario] ?? 0) + valor);
+    for (const [pessoa, valor] of Object.entries(partes)) {
+      parte[pessoa] = arredondar((parte[pessoa] ?? 0) + valor);
+      const quem = g.usuario ?? '';
+      pagou[quem] = arredondar((pagou[quem] ?? 0) + valor);
     }
   }
-  const emails = [...new Set([...Object.keys(pagou), ...Object.keys(parte)])];
-  return emails
-    .map((email) => {
-      const p = pagou[email] ?? 0;
-      const d = parte[email] ?? 0;
-      return { email, pagou: p, parte: d, saldo: arredondar(p - d) };
+  const pessoas = [...new Set([...Object.keys(pagou), ...Object.keys(parte)])];
+  return pessoas
+    .map((pessoa) => {
+      const p = pagou[pessoa] ?? 0;
+      const d = parte[pessoa] ?? 0;
+      return { pessoa, pagou: p, parte: d, saldo: arredondar(p - d) };
     })
     .sort((a, b) => b.saldo - a.saldo);
 }
@@ -343,6 +344,67 @@ function cofrinho() {
   return { depositos, totalDepositos, totalGastos, saldo: arredondar(totalDepositos - totalGastos) };
 }
 
+/** Espelha o ObjetivosService do backend: meses contam o atual e o do prazo; por mes arredonda para cima. */
+function situacaoDoObjetivo(objetivo: ObjetivoDemo): ObjetivoDoCofrinho {
+  const guardado = somar(estado.depositos.filter((d) => d.objetivo === objetivo.id).map((d) => d.valor));
+  const falta = arredondar(Math.max(0, objetivo.alvo - guardado));
+  const concluido = falta === 0;
+  const percentual = Math.min(100, Math.floor((guardado * 100) / objetivo.alvo));
+  let mesesRestantes: number | null = null;
+  let porMes: number | null = null;
+  let atrasado = false;
+  if (objetivo.prazo) {
+    const hoje = new Date();
+    const [ano, mes] = objetivo.prazo.split('-').map(Number);
+    mesesRestantes = Math.max(0, (ano - hoje.getFullYear()) * 12 + (mes - 1 - hoje.getMonth()) + 1);
+    atrasado = !concluido && objetivo.prazo < hojeIso();
+    porMes = Math.ceil((falta * 100) / Math.max(1, mesesRestantes)) / 100;
+  }
+  return { ...objetivo, guardado, falta, percentual, mesesRestantes, porMes, concluido, atrasado };
+}
+
+const LIMITE_DO_ASSISTENTE = 150;
+
+function situacaoDoAssistente() {
+  return {
+    habilitado: true,
+    autorizado: estado.assistenteAutorizado,
+    limite: LIMITE_DO_ASSISTENTE,
+    restantes: LIMITE_DO_ASSISTENTE - estado.perguntasAoAssistente,
+  };
+}
+
+/** Na demo nao ha IA: tres respostas de exemplo, escolhidas pelo assunto da pergunta. */
+function respostaDoAssistente(pergunta: string): { texto: string; tela: string | null } {
+  const real = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const assunto = semAcento(pergunta);
+  const mes = mesAtual();
+  if (/objetivo|cofrinho|guardar|viagem/.test(assunto)) {
+    const linhas = estado.objetivos.map(situacaoDoObjetivo).map((o) =>
+      o.concluido
+        ? `${o.nome}: concluído!`
+        : `${o.nome}: faltam ${real(o.falta)}` + (o.porMes !== null ? `, guardando ${real(o.porMes)} por mês.` : '.'),
+    );
+    return { texto: linhas.length ? linhas.join('\n') : 'Você ainda não tem cofrinho por objetivo.', tela: 'painel' };
+  }
+  if (/orcamento|estour|limite/.test(assunto)) {
+    const atencao = orcamentos(mes).filter((o) => o.alerta !== 'OK');
+    const texto = atencao.length
+      ? atencao.map((o) => `${o.categoria}: ${o.percentual}% do limite (${real(o.gasto)} de ${real(o.limite)}).`).join('\n')
+      : 'Neste mês nenhuma categoria passou de 80% do limite.';
+    return { texto, tela: 'orcamentos' };
+  }
+  const r = resumo(mes);
+  const maior = r.porCategoria[0];
+  return {
+    texto:
+      `Neste mês você gastou ${real(r.gastos)} e recebeu ${real(r.receitas)}.` +
+      (maior ? ` A maior categoria é ${maior.categoria}, com ${real(maior.total)}.` : '') +
+      ' (Na demonstração as respostas são de exemplo; no app, a IA responde a sua pergunta.)',
+    tela: 'relatorios',
+  };
+}
+
 function familia(): Familia {
   const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role });
   return {
@@ -365,12 +427,27 @@ function plano(): InfoDoPlano {
     site: { mensal: '19,90', anual: '199,00' },
     app: { mensal: '22,89', anual: '228,85' },
     gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
-    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos'],
+    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo', 'Assistente de IA'],
   };
 }
 
 function tokens(): ParDeTokens {
   return { accessToken: 'token-da-demonstracao', expiresIn: 1800, usuario: estado.titular };
+}
+
+/** Alguns debitos recentes do banco de exemplo, sempre os mesmos ids para a reimportacao pular. */
+function gastosDoBanco(): GastoDoBanco[] {
+  const dia = (atras: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - atras);
+    return d.toISOString().slice(0, 10);
+  };
+  const conta = 'Banco Exemplo · Conta corrente';
+  return [
+    { data: dia(1), descricao: 'Padaria Pão Quente', valor: 18.9, idExterno: 'pluggy:demo-1', conta, moeda: 'BRL' },
+    { data: dia(3), descricao: 'Uber', valor: 27.5, idExterno: 'pluggy:demo-2', conta, moeda: 'BRL' },
+    { data: dia(6), descricao: 'Farmácia', valor: 64.3, idExterno: 'pluggy:demo-3', conta, moeda: 'BRL' },
+  ];
 }
 
 /** Le o CSV da importacao do jeito mais simples: data, descricao, valor (debito negativo). */
@@ -449,7 +526,7 @@ function lancar(corpo: Corpo): Gasto[] {
         valor: i === parcelas - 1 ? arredondar(valor - parcela * (parcelas - 1)) : parcela,
         tipo: item['tipo'] ?? 'Variavel',
         origem: corpo['origem'] ?? 'Manual',
-        usuario: estado.titular.email,
+        usuario: estado.titular.id,
         registradoEm: new Date().toISOString(),
         contaId: corpo['contaId'] ?? null,
         parcela: parcelas > 1 ? i + 1 : null,
@@ -462,7 +539,7 @@ function lancar(corpo: Corpo): Gasto[] {
   const dividir = (corpo['dividirCom'] ?? []) as string[];
   for (const gasto of novos) {
     if (dividir.length) {
-      estado.partes[gasto.id] = Object.fromEntries(dividir.map((email) => [email, arredondar(gasto.valor / dividir.length)]));
+      estado.partes[gasto.id] = Object.fromEntries(dividir.map((pessoa) => [pessoa, arredondar(gasto.valor / dividir.length)]));
     }
   }
   estado.gastos.push(...novos);
@@ -484,6 +561,15 @@ const ROTAS: Rota[] = [
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };
     return estado.titular;
   }],
+  ['PUT', /^\/auth\/me\/alerts$/, (_p, _x, c) => {
+    estado.titular = { ...estado.titular, avisos: c as { email: boolean; push: boolean } };
+    return estado.titular;
+  }],
+  ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
+    const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
+    estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };
+    return estado.titular;
+  }],
   ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],
   ['DELETE', /^\/me$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/users$/, () => [estado.titular, estado.membro]],
@@ -497,7 +583,9 @@ const ROTAS: Rota[] = [
   }],
   ['DELETE', new RegExp(`^/family/invites/${ID}$`), (_p, [id]) => { remover(estado.convites, id); return familia(); }],
   ['DELETE', new RegExp(`^/family/members/${ID}$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  ['PUT', new RegExp(`^/family/members/${ID}/role$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/family\/invites\/mine$/, () => []],
+  ['GET', /^\/(family\/)?history$/, () => []],
   ['POST', /^\/family\/(leave|invites\/.+\/accept)$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
 
   // Plano e pagamento: nada sai para a Stripe.
@@ -508,6 +596,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/banking\/status$/, () => ({ habilitado: true })],
   ['GET', /^\/banking\/accounts$/, () => estado.bancos],
   ['POST', /^\/banking\/sync$/, () => estado.bancos],
+  ['GET', /^\/banking\/transactions$/, () => gastosDoBanco()],
   ['POST', /^\/banking\/(connect-token|items)$/, () => { throw new ErroDaDemo(422, 'Conectar banco (Pluggy) fica indisponível na demonstração. As contas abaixo são de exemplo.'); }],
   ['DELETE', new RegExp(`^/banking/connections/${ID}$`), (_p, [id]) => { estado.bancos = estado.bancos.filter((b) => b.conexaoId !== id); return estado.bancos; }],
 
@@ -522,6 +611,8 @@ const ROTAS: Rota[] = [
   ['GET', /^\/expenses\/splits$/, (p) => acerto(mesDe(p))],
   ['GET', /^\/expenses\/export$/, (p) => csvDoMes(mesDe(p))],
   ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
+  ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
+    (c['linhas'] as LinhaDoExtrato[]).map((l) => linha(l.data, l.descricao, l.valor, l.idExterno))],
   ['POST', /^\/expenses\/import$/, (_p, _x, c) => {
     const linhas = (c['linhas'] ?? []) as Corpo[];
     let importados = 0;
@@ -578,7 +669,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/incomes\/categories$/, () => CATEGORIAS_DE_RECEITA],
   ['GET', /^\/incomes$/, (p) => estado.receitas.filter((r) => r.data.startsWith(mesDe(p))).sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/incomes$/, (_p, _x, c) => {
-    const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.email };
+    const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.id };
     estado.receitas.push(receita);
     return receita;
   }],
@@ -640,18 +731,49 @@ const ROTAS: Rota[] = [
   }],
 
   // Metas, cofrinho, notas, produtos
-  ['GET', /^\/monthly-goals$/, () => estado.metas],
-  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return estado.metas; }],
+  // Sempre uma copia: devolver o mesmo objeto faz o signal da tela nao ver a mudanca.
+  ['GET', /^\/monthly-goals$/, () => ({ ...estado.metas })],
+  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
   ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
-    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.email, registradoEm: new Date().toISOString() };
+    const objetivo = (c['objetivo'] as string | undefined) ?? null;
+    if (objetivo) {
+      exigir(estado.objetivos.find((o) => o.id === objetivo), 'Objetivo não encontrado.');
+    }
+    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.id, registradoEm: new Date().toISOString(), objetivo };
     estado.depositos.push(deposito);
     return deposito;
   }],
   ['DELETE', new RegExp(`^/piggy-bank/deposits/${ID}$`), (_p, [id]) => remover(estado.depositos, id)],
+  ['GET', /^\/piggy-bank\/goals$/, () => estado.objetivos.map(situacaoDoObjetivo)],
+  ['POST', /^\/piggy-bank\/goals$/, (_p, _x, c) => {
+    const objetivo = { id: novoId('objetivo'), nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null };
+    estado.objetivos.push(objetivo);
+    return situacaoDoObjetivo(objetivo);
+  }],
+  ['PUT', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id], c) => {
+    const objetivo = exigir(estado.objetivos.find((o) => o.id === id), 'Objetivo não encontrado.');
+    Object.assign(objetivo, { nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null });
+  }],
+  ['DELETE', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id]) => {
+    remover(estado.objetivos, id);
+    estado.depositos.filter((d) => d.objetivo === id).forEach((d) => (d.objetivo = null));
+  }],
+  // Assistente: respostas montadas aqui, sem IA, a partir dos dados de exemplo.
+  ['GET', /^\/assistant$/, () => situacaoDoAssistente()],
+  ['POST', /^\/assistant\/ask$/, (_p, _x, c) => {
+    if (c['autorizoIa'] === true) {
+      estado.assistenteAutorizado = true;
+    }
+    if (!estado.assistenteAutorizado) {
+      throw new ErroDaDemo(422, 'Autorize o envio ao assistente para continuar.', 'CONSENTIMENTO_NECESSARIO');
+    }
+    estado.perguntasAoAssistente++;
+    return { ...respostaDoAssistente(String(c['pergunta'] ?? '')), restantes: situacaoDoAssistente().restantes };
+  }],
   ['GET', /^\/notes$/, () => estado.notas],
   ['POST', /^\/notes$/, (_p, _x, c) => {
-    const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.email, criadoEm: new Date().toISOString() };
+    const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.id, criadoEm: new Date().toISOString() };
     estado.notas.push(nota);
     return nota;
   }],
@@ -696,8 +818,8 @@ const ROTAS: Rota[] = [
   }],
 
   // Lugares
-  ['GET', /^\/places\/tags$/, () => estado.marcadores],
-  ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return estado.marcadores; }],
+  ['GET', /^\/places\/tags$/, () => [...estado.marcadores]],
+  ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return [...estado.marcadores]; }],
   ['GET', /^\/places$/, () => [...estado.lugares].sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/places$/, (_p, _x, c) => salvarLugar(null, c)],
   ['PUT', new RegExp(`^/places/${ID}$`), (_p, [id], c) => salvarLugar(id, c)],
@@ -714,7 +836,7 @@ const ROTAS: Rota[] = [
     if (estado.filmes.some((f) => f.tmdbId === c['tmdbId'])) {
       throw new ErroDaDemo(422, 'Esse filme já está na lista.');
     }
-    const filme = { id: novoId('filme'), tmdbId: c['tmdbId'], titulo: c['titulo'], ano: c['ano'] ?? '', poster: '', nota: Number(c['nota'] ?? 0), sinopse: c['sinopse'] ?? '', assistido: false, avaliacoes: {}, usuario: estado.titular.email };
+    const filme = { id: novoId('filme'), tmdbId: c['tmdbId'], titulo: c['titulo'], ano: c['ano'] ?? '', poster: '', nota: Number(c['nota'] ?? 0), sinopse: c['sinopse'] ?? '', assistido: false, avaliacoes: {}, usuario: estado.titular.id };
     estado.filmes.push(filme);
     return filme;
   }],
@@ -725,7 +847,7 @@ const ROTAS: Rota[] = [
   }],
   ['PUT', new RegExp(`^/movies/${ID}/rating$`), (_p, [id], c) => {
     const filme = exigir(estado.filmes.find((f) => f.id === id));
-    filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.primeiroNome]: Number(c['nota']) };
+    filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.id]: Number(c['nota']) };
     return filme;
   }],
   ['DELETE', new RegExp(`^/movies/${ID}$`), (_p, [id]) => remover(estado.filmes, id)],
@@ -740,7 +862,7 @@ const ROTAS: Rota[] = [
     return estado.compras.filter((c) => !lista || c.lista === lista);
   }],
   ['POST', /^\/shopping\/items$/, (_p, _x, c) => {
-    const item = { id: novoId('compra'), item: c['item'], quantidade: c['quantidade'] ?? '', lista: c['lista'] === 'Desejos' ? 'Desejos' as const : 'Compras' as const, comprado: false, marca: c['marca'] ?? '', imagem: c['imagem'] ?? '', codigo: c['codigo'] ?? '', usuario: estado.titular.email };
+    const item = { id: novoId('compra'), item: c['item'], quantidade: c['quantidade'] ?? '', lista: c['lista'] === 'Desejos' ? 'Desejos' as const : 'Compras' as const, comprado: false, marca: c['marca'] ?? '', imagem: c['imagem'] ?? '', codigo: c['codigo'] ?? '', usuario: estado.titular.id };
     estado.compras.push(item);
     return item;
   }],
@@ -758,7 +880,7 @@ const ROTAS: Rota[] = [
   }],
   ['POST', /^\/feed$/, (_p, _x, c) => {
     const assetId = guardarImagem(c);
-    const foto = { id: novoId('feed'), mesKey: c['mesKey'] || mesAtual(), assetId, legenda: '', usuario: estado.titular.email, criadoEm: new Date().toISOString() };
+    const foto = { id: novoId('feed'), mesKey: c['mesKey'] || mesAtual(), assetId, legenda: '', usuario: estado.titular.id, criadoEm: new Date().toISOString() };
     estado.fotos.push(foto);
     return foto;
   }],
@@ -777,7 +899,7 @@ const ROTAS: Rota[] = [
   ['POST', /^\/coins\/adjustments$/, (_p, _x, c) => {
     const valor = Number(c['valor']);
     estado.moedas += valor;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor, motivo: String(c['motivo'] ?? ''), usuario: estado.titular.email });
+    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor, motivo: String(c['motivo'] ?? ''), usuario: estado.titular.id });
     return { saldo: estado.moedas, historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)) };
   }],
   ['GET', /^\/prizes\/redemptions$/, () => estado.resgates],
@@ -787,8 +909,8 @@ const ROTAS: Rota[] = [
       throw new ErroDaDemo(422, 'Moedas insuficientes para esse prêmio.', 'SALDO_INSUFICIENTE');
     }
     estado.moedas -= premio.preco;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor: -premio.preco, motivo: `Resgate: ${premio.nome}`, usuario: estado.titular.email });
-    const resgate = { id: novoId('resgate'), premio: premio.nome, preco: premio.preco, usuario: estado.titular.email, status: 'RESGATADO', data: hojeIso(), saldo: estado.moedas };
+    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor: -premio.preco, motivo: `Resgate: ${premio.nome}`, usuario: estado.titular.id });
+    const resgate = { id: novoId('resgate'), premio: premio.nome, preco: premio.preco, usuario: estado.titular.id, status: 'RESGATADO', data: hojeIso(), saldo: estado.moedas };
     estado.resgates.unshift(resgate);
     return resgate;
   }],
@@ -827,7 +949,7 @@ function salvarLugar(id: string | null, c: Corpo) {
     fotoAssetId,
     temFoto: fotoAssetId !== null,
     valor: Number(c['valor'] ?? 0),
-    usuario: existente?.usuario ?? usuarioPorEmail(estado.titular.email).email,
+    usuario: existente?.usuario ?? estado.titular.id,
   };
   if (existente) {
     Object.assign(existente, lugar);

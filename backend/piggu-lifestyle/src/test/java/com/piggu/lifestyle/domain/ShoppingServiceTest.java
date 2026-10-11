@@ -123,6 +123,6 @@ class ShoppingServiceTest extends PostgresIntegrationTest {
     }
 
     private ShoppingItemResponse criar(ShoppingItemRequest pedido) {
-        return compras.criar(pedido, TITULAR.email());
+        return compras.criar(pedido, TITULAR.id());
     }
 }

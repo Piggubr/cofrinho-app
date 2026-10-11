@@ -23,6 +23,9 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  # Historico da familia (trilha de auditoria) pela rota que o gateway ja manda para ca.
+  auditoria:
+    rota: /api/family/history
   google:
     # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
@@ -52,6 +55,21 @@ piggu:
       media: ${MEDIA_URL:http://localhost:8085}
       # Vazio quando o Open Finance esta desligado.
       banking: ${BANKING_URL:}
+
+  # Avisos fora do app (fatura, orcamento, conta fixa). Cada canal so liga com as credenciais.
+  avisos:
+    cron: ${PIGGU_AVISOS_CRON:0 0 9 * * *}
+    email:
+      api-url: ${PIGGU_EMAIL_API_URL:https://api.resend.com/emails}
+      api-key: ${PIGGU_EMAIL_API_KEY:}
+      remetente: ${PIGGU_EMAIL_REMETENTE:}
+    apns:
+      team-id: ${APNS_TEAM_ID:}
+      key-id: ${APNS_KEY_ID:}
+      # Conteudo do AuthKey_XXXX.p8 (PEM).
+      chave: ${APNS_CHAVE:}
+      bundle-id: ${APNS_BUNDLE_ID:}
+      sandbox: ${APNS_SANDBOX:false}
 
   assinatura:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta. 0 desliga.

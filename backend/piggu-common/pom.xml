@@ -14,6 +14,12 @@
   <name>Piggu Common</name>
   <description>Erros, seguranca e utilitarios compartilhados entre os servicos</description>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.42</cobertura.linhas>
+    <cobertura.ramos>0.52</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

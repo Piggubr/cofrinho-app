@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import { ConnectToken, ContaBancaria } from './models';
+import { ConnectToken, ContaBancaria, GastoDoBanco } from './models';
 
 /** Bancos conectados por Open Finance (Pluggy). */
 @Injectable({ providedIn: 'root' })
@@ -34,6 +34,11 @@ export class BankingService extends ApiBase {
   /** Apaga a conexao na Pluggy e as contas dela. Sempre gratis. */
   desconectar(conexaoId: string): Observable<ContaBancaria[]> {
     return this.http.delete<ContaBancaria[]>(this.url(`/banking/connections/${conexaoId}`));
+  }
+
+  /** Debitos confirmados dos bancos conectados desde a data (ate 90 dias). Premium. */
+  gastosDoBanco(desde: string): Observable<GastoDoBanco[]> {
+    return this.http.get<GastoDoBanco[]>(this.url('/banking/transactions'), { params: { desde } });
   }
 
   sincronizar(): Observable<ContaBancaria[]> {

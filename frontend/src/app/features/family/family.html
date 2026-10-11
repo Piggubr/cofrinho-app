@@ -50,20 +50,62 @@
             <p class="linha-titulo">{{ pessoa.nome }}</p>
             <p class="linha-detalhe">{{ pessoa.email }} · {{ papel(pessoa.papel) }}</p>
           </div>
-          @if (auth.ehTitular() && pessoa.papel === 'MEMBRO') {
-            <button
-              type="button"
-              class="botao perigo pequeno"
-              (click)="remover(pessoa)"
-              [disabled]="ocupado()"
-            >
-              Remover
-            </button>
+          @if (auth.ehTitular() && (pessoa.papel === 'MEMBRO' || pessoa.papel === 'PARCEIRO')) {
+            <div class="acoes-da-pessoa">
+              <button
+                type="button"
+                class="botao contorno pequeno"
+                (click)="mudarPapel(pessoa)"
+                [disabled]="ocupado()"
+              >
+                {{ pessoa.papel === 'PARCEIRO' ? 'Voltar a membro' : 'Tornar parceiro' }}
+              </button>
+              <button
+                type="button"
+                class="botao perigo pequeno"
+                (click)="remover(pessoa)"
+                [disabled]="ocupado()"
+              >
+                Remover
+              </button>
+            </div>
           }
         </li>
       }
     </ul>
   </section>
+
+  @if (auth.podeLancar()) {
+    <section class="cartao" aria-labelledby="titulo-historico">
+      <div class="cartao-titulo">
+        <h2 i18n id="titulo-historico">Histórico</h2>
+      </div>
+      @if (historico(); as eventos) {
+        <ul class="lista-simples historico">
+          @for (evento of eventos; track evento.entidade + evento.id) {
+            <li class="linha">
+              <div>
+                <p class="linha-titulo">{{ descrever(evento) }}</p>
+                @if (evento.antes && evento.depois) {
+                  <p class="linha-detalhe">{{ evento.antes }} → {{ evento.depois }}</p>
+                } @else if (evento.antes || evento.depois) {
+                  <p class="linha-detalhe">{{ evento.antes || evento.depois }}</p>
+                }
+              </div>
+              <span class="linha-detalhe quando">{{ quando(evento) }}</span>
+            </li>
+          } @empty {
+            <p i18n class="vazio">Nenhuma mudança registrada ainda.</p>
+          }
+        </ul>
+      } @else {
+        <p i18n class="linha-detalhe">Quem lançou, alterou ou apagou cada coisa, e quando.</p>
+        <div class="acoes">
+          <button i18n type="button" class="botao contorno" (click)="verHistorico()">Ver histórico</button>
+        </div>
+      }
+    </section>
+  }
 
   @if (auth.ehTitular()) {
     <section class="cartao" aria-labelledby="titulo-convite">
@@ -72,7 +114,8 @@
       </div>
       <p i18n class="linha-detalhe">
         A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
-        convite vale 7 dias.
+        convite vale 7 dias. Para que ela também lance gastos e receitas, use "Tornar parceiro" na
+        lista acima.
       </p>
       <div class="linha-de-campos">
         <div class="campo">
@@ -110,7 +153,7 @@
     </section>
   } @else {
     <section class="cartao">
-      <p i18n class="linha-detalhe">Só o titular convida e remove pessoas.</p>
+      <p i18n class="linha-detalhe">Só o titular convida e remove pessoas e cuida do plano.</p>
       <div class="acoes">
         <button i18n type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
       </div>

@@ -1,9 +1,20 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
+import { nomeNaFamilia } from '../../core/api/pessoas-da-familia';
 import { FinanceService } from '../../core/api/finance.service';
 import {
   AcertoDeDivisao,
@@ -12,6 +23,7 @@ import {
   Gasto,
   ItemDeGasto,
   MembroDaFamilia,
+  NovoLancamento,
   ReciboLido,
   RegraDeCategoria,
 } from '../../core/api/models';
@@ -19,10 +31,11 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
-import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { dataCurta, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
+import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -40,7 +53,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
+  imports: [Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -48,6 +61,7 @@ export class Expenses {
   protected readonly moeda = inject(MoedaService);
   protected readonly auth = inject(AuthService);
   private readonly finance = inject(FinanceService);
+  protected readonly fila = inject(FilaDeGastos);
   private readonly familia = inject(FamilyService);
 
   protected readonly carregando = signal(true);
@@ -58,8 +72,12 @@ export class Expenses {
   protected readonly gastos = signal<Gasto[]>([]);
   protected readonly categorias = signal<string[]>([]);
   /** A busca global abre os gastos no mes do resultado (?mes=AAAA-MM). */
-  private readonly mesPedido = inject(ActivatedRoute).snapshot.queryParamMap.get('mes') ?? '';
-  protected readonly mesAtual = signal(/^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()));
+  private readonly rota = inject(ActivatedRoute).snapshot;
+  private readonly injetor = inject(Injector);
+  private readonly mesPedido = this.rota.queryParamMap.get('mes') ?? '';
+  protected readonly mesAtual = signal(
+    /^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()),
+  );
 
   protected readonly novoItem = signal('');
   protected readonly novoValor = signal<number | null>(null);
@@ -68,9 +86,11 @@ export class Expenses {
   protected readonly novoTipo = signal('Variavel');
 
   /** Foto que so a IA consegue ler, esperando a pessoa autorizar o envio. */
-  protected readonly pedidoDeIa = signal<{ base64: string; mimeType: string; mensagem: string } | null>(
-    null,
-  );
+  protected readonly pedidoDeIa = signal<{
+    base64: string;
+    mimeType: string;
+    mensagem: string;
+  } | null>(null);
   protected readonly lendoRecibo = signal(false);
   /** Leituras gratis que sobram no mes; nulo no Premium ou antes de saber. */
   protected readonly leiturasRestantes = signal<number | null>(null);
@@ -84,6 +104,8 @@ export class Expenses {
   protected readonly regras = signal<RegraDeCategoria[]>([]);
   protected readonly contas = signal<ContaOuCartao[]>([]);
   protected readonly novaConta = signal('');
+  /** Lancamento rapido: data, conta, moeda, parcelas e divisao ficam recolhidos. */
+  protected readonly maisOpcoes = signal(false);
   protected readonly novasParcelas = signal<number | null>(1);
 
   /** Compra em outra moeda: converte pela cotacao do dia antes de gravar. */
@@ -115,11 +137,64 @@ export class Expenses {
   protected readonly totalEmConferencia = computed(() =>
     this.itensEmConferencia().reduce((soma, item) => soma + Number(item.valor || 0), 0),
   );
+  /** O que esta escolhido em "Mais opções", para conferir sem abrir. */
+  protected readonly resumoDasOpcoes = computed(() => {
+    const data = this.novaData() === hojeIso() ? $localize`Hoje` : dataCurta(this.novaData());
+    const conta = this.contas().find((c) => c.id === this.novaConta());
+    const parcelas = this.novasParcelas() ?? 1;
+    const partes = [
+      data,
+      conta ? conta.nome : $localize`sem conta`,
+      parcelas > 1 ? `${parcelas}x` : $localize`à vista`,
+    ];
+    if (this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo()) {
+      partes.push(this.moedaDaCompra());
+    }
+    if (this.dividirCom().length) partes.push($localize`dividido`);
+    return partes.join(' · ');
+  });
 
   constructor() {
+    // O que ficou guardado sem sinal vai agora; quando chega, a lista recarrega.
+    void this.fila.enviar();
+    effect(() => {
+      const enviados = this.fila.enviados();
+      if (enviados > 0) {
+        this.aviso.set($localize`Enviados ${enviados} gastos guardados sem conexão.`);
+        this.carregarGastos();
+      }
+    });
+    // Atalho "Lançar gasto" (icone, Siri, link piggu://): cursor no valor, ja preenchido se veio.
+    // Pela assinatura, e nao pelo snapshot: o atalho pode chegar com esta tela ja aberta.
+    inject(ActivatedRoute)
+      .queryParamMap.pipe(takeUntilDestroyed())
+      .subscribe((parametros) => {
+        if (parametros.get('rapido') !== '1') {
+          return;
+        }
+        const valor = Number(parametros.get('valor'));
+        if (valor > 0) {
+          this.novoValor.set(valor);
+        }
+        afterNextRender(() => document.getElementById('valor')?.focus(), {
+          injector: this.injetor,
+        });
+      });
+    // Vindo do guia de primeiro uso por "Importar extrato".
+    if (this.rota.fragment === 'importar') {
+      afterNextRender(() =>
+        document.getElementById('titulo-extrato')?.scrollIntoView?.({ block: 'start' }),
+      );
+    }
     this.carregar();
     this.carregarRegras();
-    this.finance.contas().subscribe({ next: (lista) => this.contas.set(lista) });
+    this.finance.contas().subscribe({
+      next: (lista) => {
+        this.contas.set(lista);
+        const padrao = lerContaPadrao();
+        if (padrao && lista.some((conta) => conta.id === padrao)) this.novaConta.set(padrao);
+      },
+    });
     this.familia.ver().subscribe({ next: (familia) => this.membros.set(familia.membros) });
     this.moedaDaCompra.set(this.moeda.codigo());
     if (!this.auth.ehPremium()) {
@@ -140,9 +215,13 @@ export class Expenses {
       next: (orcamentos) => {
         const orcamento = orcamentos.find((o) => o.categoria === categoria && o.alerta !== 'OK');
         if (orcamento?.alerta === 'ESTOUROU') {
-          this.aviso.set($localize`Gasto lançado. ${categoria} passou do limite do mês (${orcamento.percentual}%).`);
+          this.aviso.set(
+            $localize`Gasto lançado. ${categoria} passou do limite do mês (${orcamento.percentual}%).`,
+          );
         } else if (orcamento) {
-          this.aviso.set($localize`Gasto lançado. ${categoria} já usou ${orcamento.percentual}% do limite do mês.`);
+          this.aviso.set(
+            $localize`Gasto lançado. ${categoria} já usou ${orcamento.percentual}% do limite do mês.`,
+          );
         }
       },
       // O aviso de orcamento e extra: sem ele o lancamento ja deu certo.
@@ -182,41 +261,58 @@ export class Expenses {
 
     this.salvando.set(true);
     this.erro.set('');
-    this.finance
-      .lancarGastos({
-        data: this.novaData(),
-        origem: 'Manual',
-        itens: [
-          {
-            item,
-            categoria: this.novaCategoria() || null,
-            valor: outraMoeda ? convertido! : valor,
-            tipo: this.novoTipo(),
-            moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
-            valorOriginal: outraMoeda ? valor : null,
-          },
-        ],
-        contaId: this.novaConta() || null,
-        parcelas: parcelas > 1 ? parcelas : null,
-        dividirCom: this.dividirCom().length ? this.dividirCom() : null,
-      })
-      .subscribe({
-        next: (salvos) => {
-          this.novoItem.set('');
-          this.novoValor.set(null);
-          this.novasParcelas.set(1);
-          this.precoAcima.set(null);
-          this.dividirCom.set([]);
-          this.aviso.set($localize`Gasto lançado.`);
-          this.salvando.set(false);
-          this.carregarGastos();
-          this.avisarOrcamento(salvos[0]?.categoria, this.novaData().slice(0, 7));
+    const pedido: NovoLancamento = {
+      data: this.novaData(),
+      origem: 'Manual',
+      itens: [
+        {
+          item,
+          categoria: this.novaCategoria() || null,
+          valor: outraMoeda ? convertido! : valor,
+          tipo: this.novoTipo(),
+          moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
+          valorOriginal: outraMoeda ? valor : null,
         },
-        error: (falha) => {
-          this.erro.set(mensagemDeErro(falha));
-          this.salvando.set(false);
-        },
-      });
+      ],
+      contaId: this.novaConta() || null,
+      parcelas: parcelas > 1 ? parcelas : null,
+      dividirCom: this.dividirCom().length ? this.dividirCom() : null,
+    };
+    this.finance.lancarGastos(pedido).subscribe({
+      next: (salvos) => {
+        this.limparLancamento();
+        this.aviso.set($localize`Gasto lançado.`);
+        this.carregarGastos();
+        this.avisarOrcamento(salvos[0]?.categoria, this.novaData().slice(0, 7));
+      },
+      error: (falha) => {
+        if (semConexao(falha)) {
+          // Na fila do mercado, sem sinal: guarda e manda quando a conexao voltar.
+          this.fila.guardar(pedido);
+          this.limparLancamento();
+          this.aviso.set(
+            $localize`Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar.`,
+          );
+          return;
+        }
+        this.erro.set(mensagemDeErro(falha));
+        this.salvando.set(false);
+      },
+    });
+  }
+
+  private limparLancamento(): void {
+    guardarContaPadrao(this.novaConta());
+    this.novoItem.set('');
+    this.novoValor.set(null);
+    this.novasParcelas.set(1);
+    this.precoAcima.set(null);
+    this.dividirCom.set([]);
+    this.salvando.set(false);
+  }
+
+  protected enviarFila(): void {
+    void this.fila.enviar();
   }
 
   protected async escolherFoto(evento: Event): Promise<void> {
@@ -381,14 +477,14 @@ export class Expenses {
     });
   }
 
-  protected alternarDivisao(email: string): void {
+  protected alternarDivisao(pessoa: string): void {
     this.dividirCom.update((lista) =>
-      lista.includes(email) ? lista.filter((e) => e !== email) : [...lista, email],
+      lista.includes(pessoa) ? lista.filter((p) => p !== pessoa) : [...lista, pessoa],
     );
   }
 
-  protected nomeDe(email: string): string {
-    return this.membros().find((m) => m.email.toLowerCase() === email)?.nome ?? email;
+  protected nomeDe(pessoa: string | null): string {
+    return nomeNaFamilia(this.membros(), pessoa);
   }
 
   /** Ao sair do valor: avisa se o preco passou da media do item (so na moeda da pessoa). */
@@ -453,7 +549,9 @@ export class Expenses {
   }
 
   private carregarAcerto(): void {
-    this.finance.acertoDoMes(this.mesAtual()).subscribe({ next: (lista) => this.acerto.set(lista) });
+    this.finance
+      .acertoDoMes(this.mesAtual())
+      .subscribe({ next: (lista) => this.acerto.set(lista) });
   }
 
   private carregar(): void {
@@ -473,5 +571,25 @@ export class Expenses {
         this.carregando.set(false);
       },
     });
+  }
+}
+
+const CONTA_PADRAO = 'piggu_conta_padrao';
+
+/** A ultima conta usada vira a padrao do proximo lancamento, neste aparelho. */
+function lerContaPadrao(): string {
+  try {
+    return localStorage.getItem(CONTA_PADRAO) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function guardarContaPadrao(conta: string): void {
+  try {
+    if (conta) localStorage.setItem(CONTA_PADRAO, conta);
+    else localStorage.removeItem(CONTA_PADRAO);
+  } catch {
+    // Sem armazenamento (aba privada): segue sem lembrar.
   }
 }

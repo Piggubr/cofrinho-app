@@ -54,8 +54,8 @@ public class Expense {
     @Column(nullable = false, length = 30)
     private String source = "Manual";
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     /** Conta ou cartao que pagou; nulo quando nao foi informado. */
     @Column(name = "account_id")
@@ -86,7 +86,7 @@ public class Expense {
     }
 
     public Expense(LocalDate expenseDate, UUID receiptId, String merchant, String item,
-                   String category, BigDecimal amount, String kind, String source, String userEmail) {
+                   String category, BigDecimal amount, String kind, String source, UUID userId) {
         this.id = UUID.randomUUID();
         this.expenseDate = expenseDate;
         this.receiptId = receiptId;
@@ -96,7 +96,7 @@ public class Expense {
         this.amount = amount;
         this.kind = kind;
         this.source = source;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -188,8 +188,8 @@ public class Expense {
         return source;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public Instant getCreatedAt() {

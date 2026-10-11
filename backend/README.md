@@ -31,6 +31,17 @@ docker compose up --build
 A API fica em `http://localhost:8080`. O Compose cria o Postgres, os seis
 bancos e sobe os sete processos na ordem certa.
 
+Para não começar com tudo vazio, entre uma vez pelo app com a sua conta Google (isso
+cria a conta e a família) e grave os dados de exemplo nela:
+
+```bash
+./scripts/dados-de-exemplo.sh voce@gmail.com            # três meses de gastos, receitas, cofrinho...
+./scripts/dados-de-exemplo.sh --premium voce@gmail.com  # e 30 dias de Premium
+```
+
+O script só roda numa família sem gastos e recusa `PIGGU_AMBIENTE=producao`. Os
+dados ficam em `db/exemplo/`.
+
 Para rodar um serviço isolado durante o desenvolvimento:
 
 ```bash

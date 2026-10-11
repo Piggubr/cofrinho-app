@@ -36,7 +36,7 @@ public class AssetService {
 
     /** @param mimeType o que o cliente diz; so informativo, o tipo gravado sai dos bytes */
     @Transactional
-    public Asset guardar(String imageBase64, String mimeType, String contexto, String pasta, String emailUsuario) {
+    public Asset guardar(String imageBase64, String mimeType, String contexto, String pasta, UUID usuarioId) {
         byte[] conteudo = decodificar(imageBase64);
 
         if (conteudo.length > TAMANHO_MAXIMO) {
@@ -50,7 +50,7 @@ public class AssetService {
         String nome = UUID.randomUUID() + extensao(tipo);
 
         String idNoProvedor = armazenamento.guardar(nome, tipo, conteudo, pasta);
-        return repositorio.save(new Asset(idNoProvedor, tipo, conteudo.length, rotulo, emailUsuario));
+        return repositorio.save(new Asset(idNoProvedor, tipo, conteudo.length, rotulo, usuarioId));
     }
 
     @Transactional(readOnly = true)
@@ -67,7 +67,7 @@ public class AssetService {
     @Transactional
     public void apagar(UUID id, CurrentUser usuario) {
         Asset asset = buscar(id);
-        if (!usuario.podeGerenciar(asset.getOwnerEmail())) {
+        if (!usuario.podeGerenciar(asset.getOwnerId())) {
             throw new ForbiddenException("Voce nao pode apagar esta foto.");
         }
         apagarInterno(asset);

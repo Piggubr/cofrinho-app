@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /** Lancamento, edicao e exclusao de gastos. */
 class ExpenseServiceTest extends PostgresIntegrationTest {
 
-    private static final String EMAIL = "titular@piggu.test";
+    private static final UUID PESSOA = UUID.randomUUID();
 
     @Autowired
     private ExpenseService gastos;
@@ -43,14 +43,14 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
                 List.of(
                         new ExpenseItemRequest("Leite", "Alimentação", new BigDecimal("1.29"), "Variavel"),
                         new ExpenseItemRequest("Pao", "Alimentação", new BigDecimal("0.90"), null))
-        ), EMAIL);
+        ), PESSOA);
 
         assertThat(salvos).hasSize(2);
         assertThat(salvos.get(0).reciboId()).isEqualTo(salvos.get(1).reciboId());
         assertThat(salvos).allSatisfy(gasto -> {
             assertThat(gasto.estabelecimento()).isEqualTo("Continente");
             assertThat(gasto.origem()).isEqualTo("Foto");
-            assertThat(gasto.usuario()).isEqualTo(EMAIL);
+            assertThat(gasto.usuario()).isEqualTo(PESSOA);
         });
     }
 
@@ -60,7 +60,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
         ExpenseResponse gasto = gastos.salvar(new SaveExpensesRequest(
                 LocalDate.now(), null, null, null,
                 List.of(new ExpenseItemRequest("Item", null, BigDecimal.ONE, null))
-        ), EMAIL).get(0);
+        ), PESSOA).get(0);
 
         assertThat(gasto.estabelecimento()).isEmpty();
         assertThat(gasto.origem()).isEqualTo("Manual");
@@ -76,7 +76,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
         ExpenseResponse gasto = gastos.salvar(new SaveExpensesRequest(
                 LocalDate.now(), "Loja", recibo, "Foto",
                 List.of(new ExpenseItemRequest("Item", "Lazer", BigDecimal.TEN, null))
-        ), EMAIL).get(0);
+        ), PESSOA).get(0);
 
         assertThat(gasto.reciboId()).isEqualTo(recibo);
     }
@@ -87,7 +87,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
         ExpenseResponse original = gastos.salvar(new SaveExpensesRequest(
                 LocalDate.of(2026, 9, 10), "Continente", null, "Foto",
                 List.of(new ExpenseItemRequest("Leite", "Alimentação", new BigDecimal("1.29"), "Variavel"))
-        ), EMAIL).get(0);
+        ), PESSOA).get(0);
 
         ExpenseResponse editado = gastos.atualizar(original.id(),
                 new UpdateExpenseRequest("Leite meio gordo", "Lazer", new BigDecimal("2.50")));
@@ -130,6 +130,6 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
 
     private void lancar(LocalDate data) {
         gastos.salvar(new SaveExpensesRequest(data, "Loja", null, "Manual",
-                List.of(new ExpenseItemRequest("Item " + data, "Lazer", BigDecimal.ONE, null))), EMAIL);
+                List.of(new ExpenseItemRequest("Item " + data, "Lazer", BigDecimal.ONE, null))), PESSOA);
     }
 }

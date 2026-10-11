@@ -18,7 +18,7 @@ import java.util.Map;
 /** Limites de gasto por mes. Substitui a acao setMonthlyGoal. */
 @RestController
 @RequestMapping("/api/monthly-goals")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class MonthlyGoalController {
 
     private final MonthlyGoalService servico;
@@ -36,7 +36,7 @@ public class MonthlyGoalController {
     @PutMapping
     public Map<String, BigDecimal> definir(@Valid @RequestBody MonthlyGoalRequest pedido,
                                            @AuthUser CurrentUser usuario) {
-        servico.definir(pedido.mes(), pedido.limite(), usuario.email());
+        servico.definir(pedido.mes(), pedido.limite(), usuario.id());
         return servico.listar();
     }
 }

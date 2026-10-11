@@ -10,8 +10,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
+| [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
-| `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
 
 ## O que o app faz
@@ -22,8 +22,22 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
   metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
   relatório do mês e do ano, importação de OFX/CSV sem duplicar e exportação em CSV.
-- **Bancos:** saldo pelo Open Finance (Pluggy), sempre com consentimento e com
-  desconexão grátis.
+- **Cofrinhos por objetivo:** nome, quanto juntar e até quando; o Piggu diz quanto
+  guardar por mês. Um no gratuito, quantos quiser no Premium.
+- **Bancos:** saldo pelo Open Finance (Pluggy) e os débitos dos últimos 30 dias
+  trazidos como gastos, revistos antes de gravar e sem repetir; sempre com
+  consentimento e com desconexão grátis.
+- **Avisos:** fatura chegando, orçamento em 80% e 100% e conta do mês vencendo, por
+  e-mail ou notificação no iPhone, uma vez por dia e sem repetir; cada canal é escolha
+  da pessoa no perfil.
+- **Sem sinal:** instala como app pelo navegador (PWA) e, com "manter conectado", abre
+  sem internet; o gasto lançado sem sinal fica guardado no aparelho e vai sozinho
+  quando a conexão volta.
+- **Assistente de IA (Premium):** perguntas como "quanto gastei com mercado?" ou
+  "vou estourar algum orçamento?", respondidas com os números da família pelo Gemini.
+  Só lê, pede autorização no primeiro uso, não guarda a conversa e tem limite mensal.
+- **Atalhos:** "Lançar gasto" no toque longo do ícone (iPhone e Android), pela Siri
+  ("Lançar gasto no Piggu", com ou sem o valor) e por links `piggu://gastos?rapido=1`.
 - **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
 - **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
 - **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste
@@ -32,7 +46,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   versão, retenção automática e sessão com refresh token em cookie HttpOnly.
 - **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
   (Ctrl+K). Há um modo demo, sem backend, para mostrar o app
-  ([app iOS de demonstração](docs/app-ios-demo.md)).
+  ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
+  `android-demo`).
 
 ## Subindo tudo
 
@@ -70,9 +85,15 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # 333 testes (precisa de Docker)
-cd frontend && npm test     # 72 testes
+cd backend && mvn verify    # mais de 400 testes e o piso de cobertura (precisa de Docker)
+cd frontend && npm test     # 298 testes
+cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
+cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
+bash backend/scripts/teste-do-backup.sh   # backup e restauração num Postgres descartável
 ```
 
-O CI roda os três a cada pull request.
+O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste novo,
+piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
+propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
+(JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).

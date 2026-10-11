@@ -28,6 +28,9 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  assistente:
+    # Perguntas ao assistente de IA por pessoa no mes (Premium).
+    perguntas-por-mes: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:150}
   integracoes:
     gemini:
       # Vazio desliga a leitura de recibos por foto, com aviso claro na tela.

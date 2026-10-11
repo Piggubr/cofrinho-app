@@ -5,7 +5,10 @@ import com.piggu.common.security.Plano;
 import com.piggu.identity.domain.Household;
 import com.piggu.identity.domain.UserAccount;
 
+import com.piggu.identity.domain.ModulosDeEstiloDeVida;
+
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,15 +29,23 @@ public record UserResponse(
         Preferencias preferencias,
         Plano plano,
         Instant premiumAte,
-        UUID familia
+        UUID familia,
+        Avisos avisos
 ) {
 
-    /** Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso e idioma. */
+    /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
+    public record Avisos(boolean email, boolean push) {
+    }
+
+    /**
+     * Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso, idioma e os
+     * modulos de estilo de vida ligados no menu.
+     */
     public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao, String fuso,
-                               String idioma) {
+                               String idioma, List<String> modulos) {
 
         public Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
-            this(moeda, moedaConversao, mostrarCotacao, null, null);
+            this(moeda, moedaConversao, mostrarCotacao, null, null, ModulosDeEstiloDeVida.TODOS);
         }
     }
 
@@ -51,10 +62,11 @@ public record UserResponse(
                 conta.isActive(),
                 conta.getPermissions(),
                 new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate(),
-                        conta.getTimezone(), conta.getLocale()),
+                        conta.getTimezone(), conta.getLocale(), conta.getModulos()),
                 familia.planoVigente(),
                 familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
-                familia.getId()
+                familia.getId(),
+                new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush())
         );
     }
 }

@@ -33,7 +33,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/shopping")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ShoppingController {
 
     private final ShoppingService servico;
@@ -54,7 +54,7 @@ public class ShoppingController {
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingItemResponse criar(@Valid @RequestBody ShoppingItemRequest pedido,
                                       @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido, usuario.email());
+        return servico.criar(pedido, usuario.id());
     }
 
     @PatchMapping("/items/{id}/purchased")

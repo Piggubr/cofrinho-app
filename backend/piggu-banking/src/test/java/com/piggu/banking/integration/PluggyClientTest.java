@@ -110,6 +110,39 @@ class PluggyClientTest {
     }
 
     @Test
+    @DisplayName("le os lancamentos de todas as paginas, com o sentido pelo tipo e o valor sempre positivo")
+    void leTransacoesPaginadas() {
+        pluggy.expect(requestTo("https://api.pluggy.test/auth"))
+                .andRespond(withSuccess("{\"apiKey\":\"chave\"}", MediaType.APPLICATION_JSON));
+        pluggy.expect(requestTo("https://api.pluggy.test/transactions?accountId=conta-1&from=2026-09-01&pageSize=500&page=1"))
+                .andExpect(header("X-API-KEY", "chave"))
+                .andRespond(withSuccess("""
+                        {"totalPages":2,"results":[
+                         {"id":"t1","date":"2026-09-03T00:00:00.000Z","description":"PAG*IFOOD","amount":-42.9,
+                          "type":"DEBIT","status":"POSTED","currencyCode":"BRL","merchant":{"name":"iFood"}},
+                         {"id":"t2","date":"2026-09-04T00:00:00.000Z","description":"Salario","amount":5000,
+                          "type":"CREDIT","status":"POSTED","currencyCode":"BRL"}]}
+                        """, MediaType.APPLICATION_JSON));
+        pluggy.expect(requestTo("https://api.pluggy.test/transactions?accountId=conta-1&from=2026-09-01&pageSize=500&page=2"))
+                .andRespond(withSuccess("""
+                        {"totalPages":2,"results":[
+                         {"id":"t3","date":"2026-09-05T12:00:00.000Z","description":"Mercado","amount":120.5,
+                          "type":"DEBIT","status":"PENDING","currencyCode":"BRL"}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        PluggyClient cliente = new PluggyClient(builder, CONFIGURADA);
+
+        assertThat(cliente.listarTransacoes("conta-1", java.time.LocalDate.of(2026, 9, 1))).containsExactly(
+                new PluggyClient.Transacao("t1", java.time.LocalDate.of(2026, 9, 3), "iFood",
+                        new java.math.BigDecimal("42.9"), true, true, "BRL"),
+                new PluggyClient.Transacao("t2", java.time.LocalDate.of(2026, 9, 4), "Salario",
+                        new java.math.BigDecimal("5000"), false, true, "BRL"),
+                new PluggyClient.Transacao("t3", java.time.LocalDate.of(2026, 9, 5), "Mercado",
+                        new java.math.BigDecimal("120.5"), true, false, "BRL"));
+        pluggy.verify();
+    }
+
+    @Test
     @DisplayName("item inexistente na Pluggy vira 404 para o usuario")
     void itemInexistente() {
         pluggy.expect(requestTo("https://api.pluggy.test/auth"))

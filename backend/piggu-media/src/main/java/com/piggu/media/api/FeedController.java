@@ -27,7 +27,7 @@ import java.util.UUID;
 /** Feed de fotos por mes. Substitui saveFeed, updateFeed, deleteFeed e getFeedPhoto. */
 @RestController
 @RequestMapping("/api/feed")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class FeedController {
 
     private final FeedService servico;
@@ -47,7 +47,7 @@ public class FeedController {
     public FeedPhotoResponse publicar(@Valid @RequestBody FeedPhotoRequest pedido,
                                       @AuthUser CurrentUser usuario) {
         usuario.exigirPremium("O mural de fotos");
-        return servico.publicar(pedido, usuario.email());
+        return servico.publicar(pedido, usuario.id());
     }
 
     @PatchMapping("/{id}/caption")

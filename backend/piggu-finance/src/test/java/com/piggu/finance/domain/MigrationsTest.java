@@ -35,7 +35,7 @@ class MigrationsTest extends PostgresIntegrationTest {
                 String.class);
 
         assertThat(tabelas).contains(
-                "expenses", "monthly_goals", "piggy_deposits",
+                "expenses", "monthly_goals", "piggy_deposits", "savings_goals",
                 "notes", "product_memory", "custom_categories", "app_settings");
     }
 

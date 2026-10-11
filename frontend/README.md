@@ -28,7 +28,7 @@ onze mesmo abrindo só uma.
 | Rota | O que faz | Perfis |
 |---|---|---|
 | `/entrar` | Login com Google | — |
-| `/painel` | Cofrinho, meta do mês, gastos por categoria e saldo dos bancos conectados | todos |
+| `/painel` | Cofrinho, limite do mês, gastos por categoria e saldo dos bancos conectados | todos |
 | `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, TITULAR |
 | `/calendario` | Grade do mês com gastos e lembretes | ADMIN, TITULAR |
 | `/compras` | Listas de compras e desejos, busca no catálogo | ADMIN, TITULAR |
@@ -36,7 +36,10 @@ onze mesmo abrindo só uma.
 | `/filmes` | Lista, busca no TMDB, sorteio e avaliação | ADMIN, TITULAR |
 | `/feed` | Fotos do mês com legenda | ADMIN, TITULAR |
 | `/premios` | Fofocoins, prêmios e resgates | ADMIN, TITULAR |
-| `/metas` | Limite de gasto por mês | ADMIN, TITULAR |
+| `/planejar` | Atalhos para Orçamento e Contas do mês | ADMIN, TITULAR, PARCEIRO |
+| `/orcamentos` | Orçamento: limite total do mês e limite por categoria (`/metas` redireciona para cá) | ADMIN, TITULAR, PARCEIRO |
+| `/contas-fixas` | Contas do mês: o que vence todo mês, lançado no dia | ADMIN, TITULAR, PARCEIRO |
+| `/contas-e-cartoes` | Cartões e bancos: contas, cartões e faturas | ADMIN, TITULAR, PARCEIRO |
 | `/perfil` | Conta e, para o admin, gestão de acessos | todos |
 
 O `MEMBRO` da família só enxerga `/painel`, `/familia` e `/perfil`; o menu esconde o resto.
@@ -151,10 +154,6 @@ npm test
 
 ## O que ainda falta
 
-- **Testes de componente.** Painel, perfil e cabeçalho têm teste; as demais telas
-  (gastos, calendário, lugares, filmes, compras, feed, prêmios, metas) ainda não.
-- **PWA.** O app antigo tinha `manifest.webmanifest` e era instalável no iPhone.
-  Isso não foi portado ainda.
 - **Academia e metas pessoais.** Duas funcionalidades do app antigo viviam só no
   `localStorage`, sem backend (`js/piggu-features.js`). Como não há endpoint para
   elas, ficaram de fora — precisam primeiro existir na API.

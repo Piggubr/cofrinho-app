@@ -32,3 +32,10 @@
   width: auto;
   margin: 0;
 }
+
+.modulos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.4rem 1rem;
+  margin-top: 0.6rem;
+}

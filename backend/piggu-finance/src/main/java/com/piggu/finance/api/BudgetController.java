@@ -28,7 +28,7 @@ import java.util.UUID;
 /** Orcamento por categoria. Criar e mudar limite e Premium; ver e apagar, nao. */
 @RestController
 @RequestMapping("/api/budgets")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class BudgetController {
 
     private final OrcamentoService servico;

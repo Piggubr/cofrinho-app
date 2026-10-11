@@ -95,11 +95,11 @@ public class ProductMemoryService {
         repositorio.findByProductKey(chave).ifPresentOrElse(
                 produto -> {
                     produto.registrarCompra(gasto.getItem(), gasto.getCategory(),
-                            gasto.getAmount(), data, gasto.getUserEmail());
+                            gasto.getAmount(), data, gasto.getUserId());
                     repositorio.save(produto);
                 },
                 () -> repositorio.save(new ProductMemory(chave, gasto.getItem(), gasto.getCategory(),
-                        gasto.getAmount(), data, gasto.getUserEmail()))
+                        gasto.getAmount(), data, gasto.getUserId()))
         );
     }
 }

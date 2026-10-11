@@ -25,8 +25,8 @@ public class CustomPlaceTag {
     @Column(nullable = false, unique = true, length = 50)
     private String name;
 
-    @Column(name = "created_by", nullable = false, length = 320)
-    private String createdBy;
+    @Column(name = "created_by_id")
+    private UUID createdBy;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
@@ -34,7 +34,7 @@ public class CustomPlaceTag {
     protected CustomPlaceTag() {
     }
 
-    public CustomPlaceTag(String name, String createdBy) {
+    public CustomPlaceTag(String name, UUID createdBy) {
         this.id = UUID.randomUUID();
         this.name = name;
         this.createdBy = createdBy;

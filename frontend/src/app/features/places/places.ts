@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Focar } from '../../core/ui/focar';
 import { forkJoin } from 'rxjs';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { MediaService } from '../../core/api/media.service';
@@ -20,7 +21,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-places',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })
