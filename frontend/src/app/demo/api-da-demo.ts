@@ -648,8 +648,9 @@ const ROTAS: Rota[] = [
   }],
 
   // Metas, cofrinho, notas, produtos
-  ['GET', /^\/monthly-goals$/, () => estado.metas],
-  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return estado.metas; }],
+  // Sempre uma copia: devolver o mesmo objeto faz o signal da tela nao ver a mudanca.
+  ['GET', /^\/monthly-goals$/, () => ({ ...estado.metas })],
+  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
   ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
     const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.email, registradoEm: new Date().toISOString() };
@@ -704,8 +705,8 @@ const ROTAS: Rota[] = [
   }],
 
   // Lugares
-  ['GET', /^\/places\/tags$/, () => estado.marcadores],
-  ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return estado.marcadores; }],
+  ['GET', /^\/places\/tags$/, () => [...estado.marcadores]],
+  ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return [...estado.marcadores]; }],
   ['GET', /^\/places$/, () => [...estado.lugares].sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/places$/, (_p, _x, c) => salvarLugar(null, c)],
   ['PUT', new RegExp(`^/places/${ID}$`), (_p, [id], c) => salvarLugar(id, c)],
