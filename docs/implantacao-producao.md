@@ -168,3 +168,24 @@ A restauração por cima devolve cada banco ao usuário do serviço (roda o
 sozinho com o volume vazio. Ele é idempotente (só cria o que falta e acerta donos e
 permissões), então, se um serviço novo ganhar banco, rode de novo:
 `docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh`.
+
+## 7. Logs
+
+Cada container escreve no próprio stdout, e o Docker guarda com rotação (`x-logs` no
+`docker-compose.yml`): no máximo 5 arquivos de 10 MB por serviço, 50 MB no total. Quando
+o limite enche, o arquivo mais velho sai sozinho. Com o movimento de hoje, isso cobre
+algumas semanas; com mais uso, cobre menos tempo, nunca mais espaço.
+
+O que há nos logs: id da requisição, id da conta (o UUID, nunca e-mail) e o que deu
+errado. Conteúdo de recibo, nome de item e e-mail não vão para o log (ver
+`docs/relatorio-lgpd-seguranca.md`, item 5).
+
+```bash
+docker compose logs --since 2h finance          # um serviço
+docker compose logs --since 30m | grep <requestId>  # uma requisição em todos
+```
+
+Se um dia os logs forem para um serviço central (Grafana Loki, Better Stack, Axiom),
+configure lá a retenção de **30 dias** e mantenha a rotação local como está. Em um
+incidente, copie os arquivos antes de qualquer reinício (`docker compose up
+--force-recreate` apaga os logs do container): eles são a prova do que aconteceu.
