@@ -46,7 +46,7 @@ public class PiggyBankController {
     @ResponseStatus(HttpStatus.CREATED)
     public DepositResponse depositar(@Valid @RequestBody DepositRequest pedido,
                                      @AuthUser CurrentUser usuario) {
-        return servico.depositar(pedido, usuario.id());
+        return servico.depositar(pedido, usuario);
     }
 
     @DeleteMapping("/deposits/{id}")

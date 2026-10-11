@@ -97,6 +97,10 @@
     }
   </section>
 
+  @if (auth.podeLancar()) {
+    <app-objetivos (depositou)="recarregarCofrinho()" />
+  }
+
   @if (!auth.ehMembro()) {
     <section class="cartao">
       <div class="cartao-titulo">

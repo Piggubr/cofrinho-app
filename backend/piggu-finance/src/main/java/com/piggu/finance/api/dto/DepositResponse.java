@@ -7,7 +7,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record DepositResponse(UUID id, LocalDate data, BigDecimal valor, UUID usuario, Instant registradoEm) {
+public record DepositResponse(UUID id, LocalDate data, BigDecimal valor, UUID usuario, Instant registradoEm,
+                              UUID objetivo) {
 
     public static DepositResponse de(PiggyDeposit deposito) {
         return new DepositResponse(
@@ -15,7 +16,8 @@ public record DepositResponse(UUID id, LocalDate data, BigDecimal valor, UUID us
                 deposito.getDepositDate(),
                 deposito.getAmount(),
                 deposito.getUserId(),
-                deposito.getCreatedAt()
+                deposito.getCreatedAt(),
+                deposito.getGoalId()
         );
     }
 }

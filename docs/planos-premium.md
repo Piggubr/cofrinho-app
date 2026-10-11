@@ -10,6 +10,7 @@ o botão e mostra o convite.
 |---|---|---|
 | Gastos, categorias, meta do mês, calendário | Grátis | É o núcleo do app; sem isso ninguém chega a querer o Premium |
 | Cofrinho e depósitos da família (inclui o MEMBRO) | Grátis | Idem; é o que traz a família para dentro |
+| Um cofrinho por objetivo (nome, valor, prazo e quanto guardar por mês) | Grátis | Dá o gosto de planejar; o segundo objetivo é o convite natural ao Premium |
 | Lista de compras, lugares (com foto), filmes | Grátis | Custo baixo e geram uso diário |
 | Prêmios e Fofocoins | Grátis | Engajamento |
 | Moeda e cotação | Grátis | Custo zero (Frankfurter) |
@@ -21,6 +22,7 @@ o botão e mostra o convite.
 | Leitura da nota fiscal pela foto, pelo leitor próprio (OCR) | Grátis até 10 por mês por família | A foto não sai do servidor e custa pouco; o limite segura abuso |
 | **Leitura de nota além de 10 por mês, e a reserva pela IA (Gemini)** | **Premium** | Custo por chamada de IA |
 | **Mural de fotos** (feed) | **Premium** | Custo de armazenamento |
+| **Vários cofrinhos por objetivo** | **Premium** | Planejamento de quem já guarda para mais de uma coisa |
 | Ver, apagar e desconectar o que já existe | Sempre grátis | Premium vencido nunca prende dado da pessoa (LGPD) |
 
 O Premium é da família: o titular assina e todos da família usam. O ADMIN usa tudo

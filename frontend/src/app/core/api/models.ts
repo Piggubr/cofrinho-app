@@ -208,6 +208,31 @@ export interface Deposito {
   /** Id de quem lancou; nulo quando a conta foi excluida. */
   usuario: string | null;
   registradoEm: string;
+  /** Cofrinho por objetivo que recebeu o deposito; nulo e o cofrinho geral. */
+  objetivo?: string | null;
+}
+
+/** Cofrinho por objetivo e onde ele esta. */
+export interface ObjetivoDoCofrinho {
+  id: string;
+  nome: string;
+  alvo: number;
+  prazo: string | null;
+  guardado: number;
+  falta: number;
+  percentual: number;
+  /** Meses ate o prazo contando o atual; nulo sem prazo. */
+  mesesRestantes: number | null;
+  /** Quanto guardar por mes para chegar no prazo; nulo sem prazo. */
+  porMes: number | null;
+  concluido: boolean;
+  atrasado: boolean;
+}
+
+export interface PedidoDeObjetivo {
+  nome: string;
+  alvo: number;
+  prazo: string | null;
 }
 
 export interface Cofrinho {

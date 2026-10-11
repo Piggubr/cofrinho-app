@@ -23,6 +23,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
   metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
   relatório do mês e do ano, importação de OFX/CSV sem duplicar e exportação em CSV.
+- **Cofrinhos por objetivo:** nome, quanto juntar e até quando; o Piggu diz quanto
+  guardar por mês. Um no gratuito, quantos quiser no Premium.
 - **Bancos:** saldo pelo Open Finance (Pluggy) e os débitos dos últimos 30 dias
   trazidos como gastos, revistos antes de gravar e sem repetir; sempre com
   consentimento e com desconexão grátis.

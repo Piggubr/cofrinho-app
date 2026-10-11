@@ -35,6 +35,13 @@ export interface ContaDemo {
   vencimento: number | null;
 }
 
+export interface ObjetivoDemo {
+  id: string;
+  nome: string;
+  alvo: number;
+  prazo: string | null;
+}
+
 export interface EstadoDaDemo {
   titular: Usuario;
   membro: Usuario;
@@ -53,6 +60,7 @@ export interface EstadoDaDemo {
   regras: RegraDeCategoria[];
   metas: Record<string, number>;
   depositos: Deposito[];
+  objetivos: ObjetivoDemo[];
   notas: Nota[];
   lugares: Lugar[];
   marcadores: string[];
@@ -171,6 +179,7 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     ],
     metas: {},
     depositos: [],
+    objetivos: [{ id: 'objetivo-viagem', nome: 'Viagem de férias', alvo: 6000, prazo: diaDoMes(hoje, 8, 15) }],
     notas: [],
     lugares: [],
     marcadores: ['Romântico', 'Barato', 'Com as crianças', 'Vista bonita'],
@@ -243,6 +252,10 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     estado.metas[mes] = 4500;
     estado.depositos.push({
       id: novoId('deposito'), data: dia(1), valor: 4000, usuario: ana.id, registradoEm: `${dia(1)}T09:00:00Z`,
+    });
+    estado.depositos.push({
+      id: novoId('deposito'), data: dia(6), valor: 500, usuario: beto.id, registradoEm: `${dia(6)}T09:00:00Z`,
+      objetivo: 'objetivo-viagem',
     });
     estado.receitas.push(
       { id: novoId('receita'), data: dia(5), descricao: 'Salário Ana', categoria: 'Salário', valor: 6500, usuario: ana.id },

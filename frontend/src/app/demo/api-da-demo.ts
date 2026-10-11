@@ -16,6 +16,7 @@ import {
   InfoDoPlano,
   GastoDoBanco,
   LinhaDoExtrato,
+  ObjetivoDoCofrinho,
   Orcamento,
   ParDeTokens,
   Produto,
@@ -30,6 +31,7 @@ import {
   CATEGORIAS_DE_RECEITA,
   ContaDemo,
   EstadoDaDemo,
+  ObjetivoDemo,
   FILMES_DO_CATALOGO,
   PRODUTOS_DO_CATALOGO,
   criarEstado,
@@ -342,6 +344,25 @@ function cofrinho() {
   return { depositos, totalDepositos, totalGastos, saldo: arredondar(totalDepositos - totalGastos) };
 }
 
+/** Espelha o ObjetivosService do backend: meses contam o atual e o do prazo; por mes arredonda para cima. */
+function situacaoDoObjetivo(objetivo: ObjetivoDemo): ObjetivoDoCofrinho {
+  const guardado = somar(estado.depositos.filter((d) => d.objetivo === objetivo.id).map((d) => d.valor));
+  const falta = arredondar(Math.max(0, objetivo.alvo - guardado));
+  const concluido = falta === 0;
+  const percentual = Math.min(100, Math.floor((guardado * 100) / objetivo.alvo));
+  let mesesRestantes: number | null = null;
+  let porMes: number | null = null;
+  let atrasado = false;
+  if (objetivo.prazo) {
+    const hoje = new Date();
+    const [ano, mes] = objetivo.prazo.split('-').map(Number);
+    mesesRestantes = Math.max(0, (ano - hoje.getFullYear()) * 12 + (mes - 1 - hoje.getMonth()) + 1);
+    atrasado = !concluido && objetivo.prazo < hojeIso();
+    porMes = Math.ceil((falta * 100) / Math.max(1, mesesRestantes)) / 100;
+  }
+  return { ...objetivo, guardado, falta, percentual, mesesRestantes, porMes, concluido, atrasado };
+}
+
 function familia(): Familia {
   const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role });
   return {
@@ -364,7 +385,7 @@ function plano(): InfoDoPlano {
     site: { mensal: '19,90', anual: '199,00' },
     app: { mensal: '22,89', anual: '228,85' },
     gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
-    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos'],
+    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo'],
   };
 }
 
@@ -673,11 +694,29 @@ const ROTAS: Rota[] = [
   ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
   ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
-    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.id, registradoEm: new Date().toISOString() };
+    const objetivo = (c['objetivo'] as string | undefined) ?? null;
+    if (objetivo) {
+      exigir(estado.objetivos.find((o) => o.id === objetivo), 'Objetivo não encontrado.');
+    }
+    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.id, registradoEm: new Date().toISOString(), objetivo };
     estado.depositos.push(deposito);
     return deposito;
   }],
   ['DELETE', new RegExp(`^/piggy-bank/deposits/${ID}$`), (_p, [id]) => remover(estado.depositos, id)],
+  ['GET', /^\/piggy-bank\/goals$/, () => estado.objetivos.map(situacaoDoObjetivo)],
+  ['POST', /^\/piggy-bank\/goals$/, (_p, _x, c) => {
+    const objetivo = { id: novoId('objetivo'), nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null };
+    estado.objetivos.push(objetivo);
+    return situacaoDoObjetivo(objetivo);
+  }],
+  ['PUT', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id], c) => {
+    const objetivo = exigir(estado.objetivos.find((o) => o.id === id), 'Objetivo não encontrado.');
+    Object.assign(objetivo, { nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null });
+  }],
+  ['DELETE', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id]) => {
+    remover(estado.objetivos, id);
+    estado.depositos.filter((d) => d.objetivo === id).forEach((d) => (d.objetivo = null));
+  }],
   ['GET', /^\/notes$/, () => estado.notas],
   ['POST', /^\/notes$/, (_p, _x, c) => {
     const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.id, criadoEm: new Date().toISOString() };

@@ -62,6 +62,11 @@ public final class TokensDeTeste {
         return token(email, role, idDe(email), "PREMIUM", familia);
     }
 
+    /** Pessoa de outra familia no plano gratuito, para limites do gratuito sem dado de outro teste. */
+    public static RequestPostProcessor gratuitaDa(UUID familia, String email, PigguRole role) {
+        return token(email, role, idDe(email), "GRATUITO", familia);
+    }
+
     /** Token de exclusao que so o identity emite, com o escopo PESSOA ou FAMILIA. */
     public static RequestPostProcessor exclusao(UUID familia, String email, PigguRole role, String escopo) {
         return SecurityMockMvcRequestPostProcessors.jwt()

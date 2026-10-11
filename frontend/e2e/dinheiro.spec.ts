@@ -75,3 +75,14 @@ test('trazer os gastos do banco conectado, revisar e importar; de novo, nada rep
   await page.getByRole('button', { name: 'Trazer do banco' }).click();
   await expect(page.getByText(/já está no Piggu/)).toBeVisible();
 });
+
+test('cofrinho por objetivo: guardar na viagem soma nela', async ({ page }) => {
+  await abrirPainel(page);
+  const viagem = page.locator('.objetivo', { hasText: 'Viagem de férias' });
+  await expect(viagem.getByText(/R\$\s1\.500,00 de R\$\s6\.000,00/)).toBeVisible();
+  await expect(viagem.getByText(/por mês até/)).toBeVisible();
+
+  await viagem.locator('input[type="number"]').fill('250');
+  await viagem.getByRole('button', { name: 'Guardar' }).click();
+  await expect(viagem.getByText(/R\$\s1\.750,00 de R\$\s6\.000,00/)).toBeVisible();
+});

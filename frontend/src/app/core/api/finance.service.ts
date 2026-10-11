@@ -16,7 +16,9 @@ import {
   MoedaDisponivel,
   Nota,
   NovoLancamento,
+  ObjetivoDoCofrinho,
   Orcamento,
+  PedidoDeObjetivo,
   Produto,
   Receita,
   ReciboLido,
@@ -62,8 +64,25 @@ export class FinanceService extends ApiBase {
     return this.http.get<Cofrinho>(this.url('/piggy-bank'));
   }
 
-  depositar(valor: number, data?: string): Observable<Deposito> {
-    return this.http.post<Deposito>(this.url('/piggy-bank/deposits'), { valor, data });
+  /** @param objetivo cofrinho por objetivo; sem ele o deposito vai para o cofrinho geral */
+  depositar(valor: number, data?: string, objetivo?: string): Observable<Deposito> {
+    return this.http.post<Deposito>(this.url('/piggy-bank/deposits'), { valor, data, objetivo });
+  }
+
+  listarObjetivos(): Observable<ObjetivoDoCofrinho[]> {
+    return this.http.get<ObjetivoDoCofrinho[]>(this.url('/piggy-bank/goals'));
+  }
+
+  criarObjetivo(pedido: PedidoDeObjetivo): Observable<ObjetivoDoCofrinho> {
+    return this.http.post<ObjetivoDoCofrinho>(this.url('/piggy-bank/goals'), pedido);
+  }
+
+  alterarObjetivo(id: string, pedido: PedidoDeObjetivo): Observable<void> {
+    return this.http.put<void>(this.url(`/piggy-bank/goals/${id}`), pedido);
+  }
+
+  excluirObjetivo(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/piggy-bank/goals/${id}`));
   }
 
   excluirDeposito(id: string): Observable<void> {

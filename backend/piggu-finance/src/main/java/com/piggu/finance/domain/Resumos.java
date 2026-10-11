@@ -36,6 +36,10 @@ final class Resumos {
         return juntar(deposito.getDepositDate(), valor(deposito.getAmount()));
     }
 
+    static String objetivo(SavingsGoal objetivo) {
+        return juntar(objetivo.getName(), valor(objetivo.getTargetAmount()), objetivo.getDeadline());
+    }
+
     private static String valor(BigDecimal valor) {
         return valor == null ? null : valor.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
     }

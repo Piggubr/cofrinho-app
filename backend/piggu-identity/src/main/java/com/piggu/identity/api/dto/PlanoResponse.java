@@ -44,7 +44,7 @@ public record PlanoResponse(
             "Gastos, receitas, categorias, meta do mês e calendário",
             "Leitura de nota fiscal pela foto: 10 por mês",
             "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
-            "Cofrinho com depósitos da família",
+            "Cofrinho com depósitos da família e um cofrinho por objetivo",
             "Lista de compras, lugares e filmes",
             "Prêmios e Fofocoins",
             "Moeda e cotação à sua escolha",
@@ -58,7 +58,8 @@ public record PlanoResponse(
             "Relatório do ano com gráficos",
             "Contas bancárias pelo Open Finance, com saldo atualizado",
             "Leitura de nota fiscal sem limite, com a IA quando a foto é difícil",
-            "Mural de fotos"
+            "Mural de fotos",
+            "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês"
     );
 
     public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste) {

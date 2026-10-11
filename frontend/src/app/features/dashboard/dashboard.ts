@@ -12,6 +12,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
 import { PrimeirosPassos } from './primeiros-passos';
+import { Objetivos } from './objetivos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -45,6 +46,7 @@ interface TotalPorCategoria {
     ResumoDoMesCard,
     PrimeirosPassos,
     AvisosDoMes,
+    Objetivos,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -254,7 +256,7 @@ export class Dashboard {
     });
   }
 
-  private recarregarCofrinho(): void {
+  protected recarregarCofrinho(): void {
     this.finance.consultarCofrinho().subscribe({
       next: (cofrinho) => this.cofrinho.set(cofrinho),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),

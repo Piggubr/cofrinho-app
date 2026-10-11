@@ -34,6 +34,10 @@ public class PiggyDeposit {
     @Column(name = "user_id")
     private UUID userId;
 
+    /** Objetivo para o qual o deposito foi; nulo e o cofrinho geral. */
+    @Column(name = "goal_id")
+    private UUID goalId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -41,10 +45,15 @@ public class PiggyDeposit {
     }
 
     public PiggyDeposit(LocalDate depositDate, BigDecimal amount, UUID userId) {
+        this(depositDate, amount, userId, null);
+    }
+
+    public PiggyDeposit(LocalDate depositDate, BigDecimal amount, UUID userId, UUID goalId) {
         this.id = UUID.randomUUID();
         this.depositDate = depositDate;
         this.amount = amount;
         this.userId = userId;
+        this.goalId = goalId;
     }
 
     @PrePersist
@@ -69,6 +78,10 @@ public class PiggyDeposit {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public UUID getGoalId() {
+        return goalId;
     }
 
     public Instant getCreatedAt() {

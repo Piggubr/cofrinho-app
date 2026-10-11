@@ -36,6 +36,7 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("category_rules", "user_id"),
                 Tabela.compartilhada("payment_accounts", "user_id"),
                 Tabela.compartilhada("piggy_deposits", "user_id"),
+                Tabela.compartilhada("savings_goals", "user_id"),
                 Tabela.compartilhada("monthly_goals", "user_id"),
                 Tabela.compartilhada("product_memory", "user_id"),
                 Tabela.compartilhada("custom_categories", "created_by_id"),

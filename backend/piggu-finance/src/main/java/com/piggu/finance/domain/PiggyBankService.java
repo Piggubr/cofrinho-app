@@ -41,11 +41,14 @@ public class PiggyBankService {
 
     private final PiggyDepositRepository depositos;
     private final ExpenseRepository gastos;
+    private final SavingsGoalRepository objetivos;
     private final TrilhaDeAuditoria trilha;
 
-    public PiggyBankService(PiggyDepositRepository depositos, ExpenseRepository gastos, TrilhaDeAuditoria trilha) {
+    public PiggyBankService(PiggyDepositRepository depositos, ExpenseRepository gastos,
+                            SavingsGoalRepository objetivos, TrilhaDeAuditoria trilha) {
         this.depositos = depositos;
         this.gastos = gastos;
+        this.objetivos = objetivos;
         this.trilha = trilha;
     }
 
@@ -70,9 +73,18 @@ public class PiggyBankService {
     }
 
     @Transactional
-    public DepositResponse depositar(DepositRequest pedido, UUID usuarioId) {
+    public DepositResponse depositar(DepositRequest pedido, CurrentUser usuario) {
         LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
-        PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), usuarioId));
+        UUID objetivo = pedido.objetivo();
+        if (objetivo != null) {
+            // O membro nao ve os objetivos (o total deles soma o deposito dos outros).
+            if (usuario.role() == PigguRole.MEMBRO) {
+                throw new ForbiddenException("Os cofrinhos por objetivo sao do titular e do parceiro.");
+            }
+            // Objetivo de outra familia nem aparece: o filtro da familia responde 404.
+            objetivos.findById(objetivo).orElseThrow(() -> new NotFoundException("Objetivo nao encontrado."));
+        }
+        PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), usuario.id(), objetivo));
         trilha.criou("deposito", deposito.getId(), Resumos.deposito(deposito));
         log.info("Deposito no cofrinho: id={} data={}", deposito.getId(), data);
         return DepositResponse.de(deposito);

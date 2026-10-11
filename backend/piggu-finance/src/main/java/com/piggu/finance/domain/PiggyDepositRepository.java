@@ -21,6 +21,10 @@ public interface PiggyDepositRepository extends JpaRepository<PiggyDeposit, UUID
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM PiggyDeposit d WHERE d.userId = ?1")
     BigDecimal somarDoUsuario(UUID userId);
 
+    /** Quanto ja foi guardado em cada objetivo, pelo id do objetivo. */
+    @Query("SELECT d.goalId, SUM(d.amount) FROM PiggyDeposit d WHERE d.goalId IS NOT NULL GROUP BY d.goalId")
+    List<Object[]> somarPorObjetivo();
+
     /** Instante do primeiro deposito: marca de onde comeca a contar o gasto do cofrinho. */
     @Query("SELECT MIN(d.createdAt) FROM PiggyDeposit d")
     Optional<Instant> primeiroDeposito();
