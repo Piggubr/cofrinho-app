@@ -42,6 +42,8 @@ jobs:
       - run: backend/scripts/teste-do-backup.sh
       # Um usuario do Postgres por servico, isolado, e a atualizacao de instalacao antiga.
       - run: backend/scripts/teste-dos-usuarios.sh
+      # Dados de exemplo do dev sobre as migracoes reais, so na familia pedida.
+      - run: backend/scripts/teste-dos-dados-de-exemplo.sh
 
   backend:
     name: Backend (mvn verify)
