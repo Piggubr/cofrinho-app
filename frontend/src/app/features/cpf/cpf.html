@@ -1,0 +1,41 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Seu CPF</h1>
+    <p i18n class="subtitulo">
+      Cada pessoa tem uma conta no Piggu. O CPF garante isso: ele fica preso à sua conta e não pode
+      ser usado em outra.
+    </p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    <form class="formulario-cpf" (submit)="$event.preventDefault(); salvar()">
+      <div class="campo">
+        <label i18n for="cpf">CPF</label>
+        <input
+          #campo
+          id="cpf"
+          name="cpf"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="000.000.000-00"
+          maxlength="14"
+          [value]="cpf()"
+          (input)="digitar(campo.value, campo)"
+        />
+      </div>
+      <button i18n type="submit" class="botao" [disabled]="salvando()">Continuar</button>
+    </form>
+
+    <p i18n class="nota">
+      Guardamos o CPF cifrado e usamos só para isso. Ele não aparece para a sua família e sai
+      inteiro apenas quando você baixa os seus dados. Detalhes no
+      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>. Já tem conta com este
+      CPF ou quer corrigir? Escreva para {{ contato }}.
+    </p>
+
+    <button i18n type="button" class="botao contorno pequeno" (click)="sair()">Sair</button>
+  </section>
+</div>

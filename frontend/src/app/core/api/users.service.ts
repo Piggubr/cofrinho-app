@@ -30,6 +30,11 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/auth/me/modules'), { modulos });
   }
 
+  /** Prende o CPF a conta; uma vez so, e o mesmo CPF nao entra em outra conta. */
+  informarCpf(cpf: string): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/cpf'), { cpf });
+  }
+
   /** Copia de tudo o que o Piggu guarda da pessoa (LGPD art. 18), em um JSON. */
   exportarMeusDados(): Observable<Blob> {
     return this.http.get(this.url('/me/export'), { responseType: 'blob' });

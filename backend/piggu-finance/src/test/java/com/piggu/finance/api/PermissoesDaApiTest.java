@@ -83,6 +83,14 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("conta sem CPF nao alcanca os dados ate informar (403 CPF_PENDENTE)")
+    void semCpfNaoAlcanca() throws Exception {
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.titularSemCpf()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("CPF_PENDENTE"));
+    }
+
+    @Test
     @DisplayName("parceiro lanca e consulta gastos, receitas, orcamentos e contas como o titular")
     void parceiroLanca() throws Exception {
         mockMvc.perform(post("/api/expenses")

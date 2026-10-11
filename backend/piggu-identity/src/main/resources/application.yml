@@ -23,6 +23,14 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  # Open Finance escondido por enquanto: some da lista do Premium. PIGGU_OPEN_FINANCE=true volta.
+  open-finance:
+    ligado: ${PIGGU_OPEN_FINANCE:false}
+  cpf:
+    # O CPF e informado aqui; exportar e apagar a conta tambem funcionam sem ele.
+    exigir: false
+    # 32 bytes em base64 (openssl rand -base64 32). Vazio so fora de producao.
+    chave: ${PIGGU_CPF_CHAVE:}
   # Historico da familia (trilha de auditoria) pela rota que o gateway ja manda para ca.
   auditoria:
     rota: /api/family/history

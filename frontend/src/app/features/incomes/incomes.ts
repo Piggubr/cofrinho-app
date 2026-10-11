@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { FinanceService } from '../../core/api/finance.service';
 import { Receita } from '../../core/api/models';
@@ -35,6 +36,17 @@ export class Incomes {
   protected readonly total = computed(() => this.receitas().reduce((soma, r) => soma + r.valor, 0));
 
   constructor() {
+    // Lancado pelo "+" com esta tela aberta: recarrega (a primeira leitura e so a inicial).
+    const lancamentos = inject(Lancamentos);
+    let primeira = true;
+    effect(() => {
+      lancamentos.versao();
+      if (primeira) {
+        primeira = false;
+        return;
+      }
+      untracked(() => this.carregar());
+    });
     this.finance.categoriasDeReceita().subscribe({ next: (lista) => this.categorias.set(lista) });
     this.carregar();
   }

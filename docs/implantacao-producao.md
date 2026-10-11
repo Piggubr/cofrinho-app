@@ -39,6 +39,23 @@ JWT_PUBLIC_KEY=file:/run/secrets/piggu-prod-public.pem
 Trocar a chave derruba todas as sessões (todo mundo entra de novo). Faça isso se houver
 qualquer suspeita de vazamento.
 
+## 2b. Chave do CPF
+
+O CPF de cada conta fica cifrado no banco (e o indice que impede duas contas com o mesmo
+CPF e um HMAC). A chave fica fora do banco:
+
+```bash
+openssl rand -base64 32
+```
+
+```env
+PIGGU_CPF_CHAVE=...
+```
+
+Sem ela, ou com a de desenvolvimento, o identity recusa subir em producao. **Guarde junto
+com a senha do backup**: um backup restaurado sem a mesma chave nao le os CPFs, e trocar
+a chave depois quebra o indice (o mesmo CPF poderia abrir outra conta).
+
 ## 3. Senha do Postgres
 
 ```bash
@@ -97,6 +114,8 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `PIGGU_LIMITE_PROXIESNAFRENTE` | `2` com o Caddy na frente do gateway (limite de chamadas por IP lê o IP certo) |
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
 | `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo) |
+| `PIGGU_OPEN_FINANCE` | `false` (padrao desde 11/10/2026) esconde o card de bancos e o Open Finance da lista do Premium; `true` volta (com `PLUGGY_*` e o perfil `open-finance`) |
+| `PIGGU_LEITOR_PROPRIO` | `false` (padrao desde 11/10/2026): recibo lido so pelo Gemini, 10 por mes por familia no gratuito; `true` volta o leitor proprio (Tesseract) primeiro |
 | `GEMINI_API_KEY`, `PLUGGY_*`, `STRIPE_*`, `TMDB_READ_TOKEN`, `DRIVE_*` | integrações; vazias, o recurso fica desligado |
 | `PIGGU_ASSISTENTE_PERGUNTAS_POR_MES` | perguntas ao assistente de IA por pessoa no mês (padrão 150); o assistente usa a mesma `GEMINI_API_KEY` |
 | `PIGGU_EMAIL_API_KEY`, `PIGGU_EMAIL_REMETENTE` | avisos por e-mail (fatura, orçamento, conta do mês), pela API da Resend; o remetente precisa ser de um domínio verificado lá (ex.: `Piggu <avisos@piggu.app>`) |

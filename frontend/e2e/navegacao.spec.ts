@@ -22,14 +22,6 @@ test.describe('no celular', () => {
     await expect(page).toHaveURL(/\/planejar$/);
   });
 
-  test('o "+" flutuante abre o lancamento de gasto', async ({ page }) => {
-    await page.goto('/relatorios');
-
-    await page.getByRole('link', { name: 'Lançar gasto' }).click();
-
-    await expect(page).toHaveURL(/\/gastos$/);
-    await expect(page.locator('#item')).toBeVisible();
-  });
 
   test('"Mais" abre o menu agrupado e fecha ao escolher uma tela', async ({ page }) => {
     await page.goto('/painel');
@@ -71,4 +63,23 @@ test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto'
   expect(manifesto.display).toBe('standalone');
   expect(manifesto.icons.some((i: { purpose?: string }) => i.purpose === 'maskable')).toBe(true);
   expect((await request.get('/icons/icon-192.png')).ok()).toBe(true);
+});
+
+test('o "+" abre o lancamento por cima da tela, sem sair dela', async ({ page }) => {
+  await page.goto('/relatorios');
+
+  await page.getByRole('button', { name: 'Lançar gasto ou receita' }).click();
+  const painel = page.getByRole('dialog', { name: 'Lançar' });
+  await painel.locator('#valor-rapido').fill('12.5');
+  await painel.locator('#descricao-rapida').fill('Pão de queijo');
+  await painel.getByRole('button', { name: 'Lançar gasto' }).click();
+
+  await expect(painel.getByText('Gasto lançado.')).toBeVisible();
+  await expect(page).toHaveURL(/\/relatorios$/);
+
+  await painel.getByRole('tab', { name: 'Receita' }).click();
+  await painel.locator('#valor-rapido').fill('300');
+  await painel.locator('#descricao-rapida').fill('Freela');
+  await painel.getByRole('button', { name: 'Lançar receita' }).click();
+  await expect(painel.getByText('Receita lançada.')).toBeVisible();
 });

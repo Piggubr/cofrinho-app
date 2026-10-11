@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** Quem alcanca as rotas de banco. Saldo bancario fica fora do alcance do perfil MEMBRO. */
 @AutoConfigureMockMvc
+@TestPropertySource(properties = "piggu.open-finance.ligado=true")
 class PermissoesDaApiTest extends PostgresIntegrationTest {
 
     @Autowired

@@ -45,6 +45,9 @@ export class AuthService {
     () => this.ehTitular() || this.usuarioAtual()?.role === 'PARCEIRO',
   );
 
+  /** Conta ainda sem CPF: o app so abre a tela de informar. */
+  readonly cpfPendente = computed(() => this.usuarioAtual()?.cpfInformado === false);
+
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;
     return atual != null && perfis.includes(atual);

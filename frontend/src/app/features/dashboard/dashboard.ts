@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -121,6 +122,17 @@ export class Dashboard {
   });
 
   constructor() {
+    // Lancado pelo "+" com esta tela aberta: recarrega (a primeira leitura e so a inicial).
+    const lancamentos = inject(Lancamentos);
+    let primeira = true;
+    effect(() => {
+      lancamentos.versao();
+      if (primeira) {
+        primeira = false;
+        return;
+      }
+      untracked(() => this.carregar());
+    });
     this.carregar();
     if (!this.auth.ehMembro()) {
       this.carregarContas();

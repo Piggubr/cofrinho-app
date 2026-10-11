@@ -6,9 +6,11 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
@@ -155,6 +157,17 @@ export class Expenses {
   });
 
   constructor() {
+    // Lancado pelo "+" com esta tela aberta: recarrega (a primeira leitura e so a inicial).
+    const lancamentos = inject(Lancamentos);
+    let primeira = true;
+    effect(() => {
+      lancamentos.versao();
+      if (primeira) {
+        primeira = false;
+        return;
+      }
+      untracked(() => this.carregarGastos());
+    });
     // O que ficou guardado sem sinal vai agora; quando chega, a lista recarrega.
     void this.fila.enviar();
     effect(() => {

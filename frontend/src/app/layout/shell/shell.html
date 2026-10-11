@@ -115,17 +115,26 @@
     <router-outlet />
   </main>
 
-  <!-- Lancar gasto de qualquer tela, no celular, acima da barra de abas. -->
+  <!-- Lancar gasto ou receita de qualquer tela: o painel abre no canto, sem trocar de tela. -->
   @if (!auth.ehMembro()) {
-    <a
-      routerLink="/gastos"
+    @if (lancamentoAberto()) {
+      <app-lancamento-rapido
+        class="painel-rapido"
+        (fechar)="fecharLancamento()"
+        (abrirGastos)="abrirGastos()"
+      />
+    }
+    <button
+      type="button"
       class="lancar-flutuante"
-      aria-label="Lançar gasto"
+      [class.aberto]="lancamentoAberto()"
+      [attr.aria-expanded]="lancamentoAberto()"
+      aria-label="Lançar gasto ou receita"
       i18n-aria-label
-      (click)="fecharMenu()"
+      (click)="alternarLancamento()"
     >
       <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
-    </a>
+    </button>
   }
 
   <!-- Barra de abas do celular. -->

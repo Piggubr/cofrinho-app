@@ -41,10 +41,13 @@ public class AssinaturaService {
     private final LojaDeApps lojas;
     private final JdbcTemplate jdbc;
     private final int diasDeTeste;
+    private final boolean openFinance;
 
     public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
                              LojaDeApps lojas, JdbcTemplate jdbc,
-                             @Value("${piggu.assinatura.dias-de-teste:7}") int diasDeTeste) {
+                             @Value("${piggu.assinatura.dias-de-teste:7}") int diasDeTeste,
+                             @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
+        this.openFinance = openFinance;
         this.usuarios = usuarios;
         this.familias = familias;
         this.pagamentos = pagamentos;
@@ -56,7 +59,7 @@ public class AssinaturaService {
     @Transactional(readOnly = true)
     public PlanoResponse plano(UUID usuarioId) {
         UserAccount conta = conta(usuarioId);
-        return PlanoResponse.de(familias.daConta(conta), pagamentos.habilitado(), diasDeTesteDe(conta));
+        return PlanoResponse.de(familias.daConta(conta), pagamentos.habilitado(), diasDeTesteDe(conta), openFinance);
     }
 
     /** Teste gratis uma vez por conta. */

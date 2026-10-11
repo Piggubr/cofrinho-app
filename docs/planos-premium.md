@@ -4,6 +4,18 @@ Proposta implementada na branch `feature/nova-arquitetura` (1º/10/2026). Os lim
 são aplicados no backend (erro `422` com código `PLANO_PREMIUM`); o front só esconde
 o botão e mostra o convite.
 
+## Desligado por enquanto (lembrar de reverter)
+
+Decidido em 11/10/2026, antes da 1.0.0. Cada item volta com uma variável, sem mexer no código:
+
+| O quê | Como está | Para voltar |
+|---|---|---|
+| Conectar banco (Open Finance) | Card escondido, conexão nova recusada, some da lista do Premium | `PIGGU_OPEN_FINANCE=true` (mais `PLUGGY_*` e o perfil `open-finance`) |
+| Leitor próprio de nota (Tesseract) | Toda foto vai direto ao Gemini; 10 por mês por família no grátis, sem limite no Premium | `PIGGU_LEITOR_PROPRIO=true` |
+
+O aviso de privacidade foi ajustado para o Gemini direto; ao religar o leitor próprio, volte
+o texto da linha "Foto da nota fiscal" e o do Google (Gemini).
+
 ## Divisão
 
 | Recurso | Plano | Por quê |

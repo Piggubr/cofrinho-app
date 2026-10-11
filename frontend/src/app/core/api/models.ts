@@ -26,6 +26,8 @@ export interface Usuario {
   premiumAte: string | null;
   /** Familia a que a conta pertence. */
   familia: string;
+  /** Falso: o app pede o CPF antes de liberar o resto. Ausente (demo, perfil antigo) conta como informado. */
+  cpfInformado?: boolean;
 }
 
 /** Familia de quem esta logado; convites so chegam para o titular. */

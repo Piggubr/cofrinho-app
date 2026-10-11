@@ -1,6 +1,7 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.dados.Consentimentos;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
@@ -168,6 +169,49 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
         verify(cascata).apagar(token.capture());
         return decoder.decode(token.getValue()).getClaimAsString("exclusao");
+    }
+
+    @Test
+    @DisplayName("CPF fica preso a conta: guardado cifrado, sai inteiro so na exportacao")
+    void cpfInformado() {
+        assertThat(contas.informarCpf(titular.getId(), "529.982.247-25").cpfInformado()).isTrue();
+
+        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(salvo.temCpf()).isTrue();
+        assertThat(salvo.getCpfCifrado()).doesNotContain("52998224725");
+        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("cpf")
+                .asString().contains("529.982.247-25");
+    }
+
+    @Test
+    @DisplayName("o mesmo CPF nao entra em outra conta, nem com outra pontuacao")
+    void cpfUnico() {
+        contas.informarCpf(titular.getId(), "529.982.247-25");
+
+        assertThatThrownBy(() -> contas.informarCpf(membro.getId(), "52998224725"))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo(MinhaContaService.CODIGO_CPF_EM_USO));
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().temCpf()).isFalse();
+    }
+
+    @Test
+    @DisplayName("CPF invalido e recusado e CPF ja informado nao muda pelo app")
+    void cpfInvalidoOuTroca() {
+        assertThatThrownBy(() -> contas.informarCpf(titular.getId(), "111.111.111-11"))
+                .isInstanceOf(BusinessException.class);
+        contas.informarCpf(titular.getId(), "529.982.247-25");
+        assertThatThrownBy(() -> contas.informarCpf(titular.getId(), "111.444.777-35"))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já tem um CPF");
+    }
+
+    @Test
+    @DisplayName("conta apagada libera o CPF para uma conta nova")
+    void exclusaoLiberaCpf() {
+        UserAccount sozinho = familias.criarConta("caio@sozinho.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        contas.informarCpf(sozinho.getId(), "111.444.777-35");
+        contas.excluir(sozinho.getId());
+
+        assertThat(contas.informarCpf(titular.getId(), "111.444.777-35").cpfInformado()).isTrue();
     }
 
     private static CurrentUser como(UserAccount conta) {

@@ -105,7 +105,7 @@ describe('Shell', () => {
 
     const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
     expect(abas).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar', 'Mais']);
-    expect(pagina.querySelector('a.lancar-flutuante')!.getAttribute('href')).toBe('/gastos');
+    expect(pagina.querySelector('button.lancar-flutuante')).not.toBeNull();
     expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
 
     (pagina.querySelector('nav.abas button') as HTMLButtonElement).click();
@@ -144,7 +144,21 @@ describe('Shell', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
-    expect((tela.nativeElement as HTMLElement).querySelector('a.lancar-flutuante')).toBeNull();
+    expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
+  });
+
+  it('o "+" abre o painel de lancamento por cima da tela, sem trocar de rota', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+
+    (pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement).click();
+    tela.detectChanges();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+
+    expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
+    expect(pagina.querySelector('button.lancar-flutuante')!.getAttribute('aria-expanded')).toBe('true');
   });
 
   it('o parceiro ve as telas de dinheiro, mas nao o Premium, que e do titular', () => {

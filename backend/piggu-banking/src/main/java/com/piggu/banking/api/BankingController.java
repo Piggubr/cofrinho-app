@@ -5,10 +5,12 @@ import com.piggu.banking.api.dto.ConnectTokenResponse;
 import com.piggu.banking.api.dto.RegisterItemRequest;
 import com.piggu.banking.domain.BankingService;
 import com.piggu.common.dados.Consentimentos;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,8 +37,15 @@ public class BankingController {
 
     private final BankingService servico;
     private final Consentimentos consentimentos;
+    private final boolean ligado;
 
-    public BankingController(BankingService servico, Consentimentos consentimentos) {
+    /**
+     * @param ligado {@code PIGGU_OPEN_FINANCE}; falso (padrao desde 11/10/2026) esconde o card e
+     *               recusa novas conexoes. Ver, sincronizar e desconectar o que ja existe seguem livres.
+     */
+    public BankingController(BankingService servico, Consentimentos consentimentos,
+                             @Value("${piggu.open-finance.ligado:false}") boolean ligado) {
+        this.ligado = ligado;
         this.servico = servico;
         this.consentimentos = consentimentos;
     }
@@ -48,7 +57,7 @@ public class BankingController {
     /** Open Finance e opcional: o front so mostra o card quando isto diz que esta ligado. */
     @GetMapping("/status")
     public Map<String, Boolean> status() {
-        return Map.of("habilitado", servico.habilitado());
+        return Map.of("habilitado", ligado && servico.habilitado());
     }
 
     /**
@@ -58,6 +67,7 @@ public class BankingController {
     @PostMapping("/connect-token")
     public ConnectTokenResponse connectToken(@Valid @RequestBody(required = false) ConsentimentoRequest pedido,
                                              @AuthUser CurrentUser usuario) {
+        exigirLigado();
         usuario.exigirPremium("Conectar bancos pelo Open Finance");
         consentimentos.exigirAgora(usuario, "PLUGGY",
                 "Para conectar um banco, autorize o compartilhamento dos seus dados bancarios com a Pluggy.",
@@ -69,6 +79,7 @@ public class BankingController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<BankAccountResponse> registrar(@Valid @RequestBody RegisterItemRequest pedido,
                                                @AuthUser CurrentUser usuario) {
+        exigirLigado();
         usuario.exigirPremium("Conectar bancos pelo Open Finance");
         return servico.registrar(pedido.itemId(), usuario);
     }
@@ -97,5 +108,11 @@ public class BankingController {
     public List<BankAccountResponse> sincronizar(@AuthUser CurrentUser usuario) {
         usuario.exigirPremium("Atualizar os saldos dos bancos");
         return servico.sincronizarTudo(usuario);
+    }
+
+    private void exigirLigado() {
+        if (!ligado) {
+            throw new BusinessException("Conectar bancos está desligado por enquanto.");
+        }
     }
 }

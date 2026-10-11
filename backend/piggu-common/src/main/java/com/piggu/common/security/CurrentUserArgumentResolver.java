@@ -41,6 +41,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static final String CLAIM_ROLE = "role";
         public static final String CLAIM_PLANO = "plano";
         public static final String CLAIM_FAMILIA = "familia";
+        /** Falso quando a conta ainda nao informou o CPF (ver {@link CpfObrigatorio}). */
+        public static final String CLAIM_CPF = "cpf";
 
         private JwtClaims() {
         }
