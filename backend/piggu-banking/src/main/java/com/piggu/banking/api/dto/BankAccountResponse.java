@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+/** @param numero so os 4 ultimos digitos, ja mascarados ("•••• 1234"), ou vazio */
 public record BankAccountResponse(
         UUID id,
         UUID conexaoId,
@@ -26,7 +27,7 @@ public record BankAccountResponse(
                 conta.getConnection().getInstitution(),
                 conta.getName(),
                 conta.getType(),
-                conta.getNumber(),
+                conta.getNumber().isEmpty() ? "" : "•••• " + conta.getNumber(),
                 conta.getBalance(),
                 conta.getCurrency(),
                 conta.getConnection().getStatus(),
