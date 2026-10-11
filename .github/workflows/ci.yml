@@ -57,8 +57,15 @@ jobs:
           java-version: '21'
           cache: maven
       # Os testes de integracao sobem PostgreSQL via Testcontainers; o runner
-      # ubuntu-latest ja traz Docker.
+      # ubuntu-latest ja traz Docker. O verify tambem confere o piso de cobertura
+      # do JaCoCo (propriedades cobertura.* no pom de cada modulo, que so sobem).
       - run: mvn -B verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-do-backend
+          path: backend/*/target/site/jacoco/
+          retention-days: 14
 
   frontend:
     name: Frontend (build + testes)

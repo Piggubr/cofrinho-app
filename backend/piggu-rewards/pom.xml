@@ -13,6 +13,12 @@
   <artifactId>piggu-rewards</artifactId>
   <name>Piggu Rewards</name>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.96</cobertura.linhas>
+    <cobertura.ramos>0.86</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.piggu</groupId>

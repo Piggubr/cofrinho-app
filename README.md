@@ -86,13 +86,15 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # mais de 340 testes (precisa de Docker)
-cd frontend && npm test     # 278 testes
+cd backend && mvn verify    # mais de 400 testes e o piso de cobertura (precisa de Docker)
+cd frontend && npm test     # 298 testes
 cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
 bash backend/scripts/teste-do-backup.sh   # backup e restauração num Postgres descartável
 ```
 
-O CI roda tudo a cada pull request. No front, a cobertura tem um piso no
-`angular.json` (`coverageThresholds`) que só sobe: teste novo, piso novo.
+O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste novo,
+piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
+propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
+(JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).

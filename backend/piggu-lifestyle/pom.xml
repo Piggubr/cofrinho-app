@@ -13,6 +13,12 @@
   <artifactId>piggu-lifestyle</artifactId>
   <name>Piggu Lifestyle</name>
 
+  <properties>
+    <!-- Piso de cobertura do JaCoCo: so sobe. -->
+    <cobertura.linhas>0.73</cobertura.linhas>
+    <cobertura.ramos>0.57</cobertura.ramos>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.piggu</groupId>
