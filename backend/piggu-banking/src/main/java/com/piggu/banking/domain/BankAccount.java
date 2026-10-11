@@ -39,7 +39,8 @@ public class BankAccount {
     @Column(nullable = false, length = 50)
     private String type = "";
 
-    @Column(nullable = false, length = 50)
+    /** So os 4 ultimos caracteres (S7): o numero inteiro nao serve para nada no app. */
+    @Column(nullable = false, length = 4)
     private String number = "";
 
     @Column(nullable = false, precision = 19, scale = 2)
@@ -63,10 +64,19 @@ public class BankAccount {
     public void atualizar(String name, String type, String number, BigDecimal balance, String currency) {
         this.name = name;
         this.type = type;
-        this.number = number;
+        this.number = ultimosQuatro(number);
         this.balance = balance;
         this.currency = currency;
         this.updatedAt = Instant.now();
+    }
+
+    /** "12345-6" vira "3456"; o que nao e letra ou numero (traco, ponto, espaco) sai antes. */
+    static String ultimosQuatro(String numero) {
+        if (numero == null) {
+            return "";
+        }
+        String limpo = numero.replaceAll("[^0-9A-Za-z]", "");
+        return limpo.length() <= 4 ? limpo : limpo.substring(limpo.length() - 4);
     }
 
     public UUID getId() {

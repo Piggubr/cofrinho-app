@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
@@ -41,6 +42,9 @@ class BankingServiceTest extends PostgresIntegrationTest {
     @Autowired
     private BankConnectionRepository conexoes;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     private final CurrentUser titular = new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
     private final CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
@@ -63,6 +67,21 @@ class BankingServiceTest extends PostgresIntegrationTest {
         assertThat(contas).extracting(BankAccountResponse::saldo)
                 .containsExactlyInAnyOrder(new BigDecimal("1520.35"), new BigDecimal("-300.00"));
         assertThat(contas).allSatisfy(conta -> assertThat(conta.instituicao()).isEqualTo("Nubank"));
+    }
+
+    @Test
+    @DisplayName("do numero da conta so ficam os 4 ultimos digitos, e a API ja entrega mascarado")
+    void guardaSoOsUltimosDigitos() {
+        item("item-6", titular, "Caixa");
+        when(pluggy.listarContas("item-6")).thenReturn(List.of(
+                new PluggyClient.Conta("c6", "Corrente", "CHECKING_ACCOUNT", "00012345-6", BigDecimal.TEN, "BRL"),
+                new PluggyClient.Conta("c7", "Cartao", "CREDIT_CARD", "", BigDecimal.ONE, "BRL")));
+
+        List<BankAccountResponse> contas = servico.registrar("item-6", titular);
+
+        assertThat(contas).extracting(BankAccountResponse::numero).containsExactlyInAnyOrder("•••• 3456", "");
+        assertThat(jdbc.queryForList("SELECT number FROM bank_accounts WHERE pluggy_account_id IN ('c6', 'c7')", String.class))
+                .containsExactlyInAnyOrder("3456", "");
     }
 
     @Test
