@@ -77,4 +77,11 @@ jobs:
       - run: npm run build
       # A demonstracao (dados de exemplo) so pode existir no build "demo".
       - run: "! grep -rq token-da-demonstracao dist/frontend/browser"
-      - run: npx ng test --watch=false
+      # O piso de cobertura fica no angular.json (coverageThresholds) e so sobe.
+      - run: npx ng test --watch=false --coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-do-front
+          path: frontend/coverage/
+          retention-days: 14

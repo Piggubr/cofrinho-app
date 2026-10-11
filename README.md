@@ -70,9 +70,12 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # 333 testes (precisa de Docker)
-cd frontend && npm test     # 72 testes
+cd backend && mvn verify    # mais de 340 testes (precisa de Docker)
+cd frontend && npm test     # 215 testes
+cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
+bash backend/scripts/teste-do-backup.sh   # backup e restauração num Postgres descartável
 ```
 
-O CI roda os três a cada pull request.
+O CI roda tudo a cada pull request. No front, a cobertura tem um piso no
+`angular.json` (`coverageThresholds`) que só sobe: teste novo, piso novo.
