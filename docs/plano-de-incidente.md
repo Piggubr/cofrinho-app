@@ -12,7 +12,7 @@ titulares e de terceiros. Quem opera a instalação (ADMIN) responde.
 |---|---|
 | Chave JWT exposta | Gerar par novo (`docs/implantacao-producao.md`), trocar `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` e reiniciar: todos os tokens e sessões caem. Se a chave vazada é a antiga do Git, o identity já a recusa. |
 | Sessão roubada de uma pessoa | ADMIN desativa a conta (`PATCH /api/users/{id}` com `ativo=false`): apaga as sessões dela na hora. |
-| Senha do banco exposta | `ALTER USER piggu PASSWORD '...'`, atualizar `DB_PASSWORD` e reiniciar os serviços. Conferir que a porta 5432 não está publicada. |
+| Senha do banco exposta | Do superusuário: `ALTER USER piggu PASSWORD '...'` e atualizar `DB_PASSWORD`. De um serviço: trocar a `DB_PASSWORD_<SERVIÇO>` no `.env`, `docker compose up -d postgres`, rodar o `db/init/01-criar-bancos.sh` e reiniciar o serviço. Conferir que a porta 5432 não está publicada. |
 | Chave de integração exposta (Gemini, Pluggy, Stripe, TMDB, Drive) | Revogar no painel do provedor, gerar outra, trocar no `.env` e reiniciar. Stripe: também trocar o segredo do webhook. |
 | Abuso em massa (scraping, força bruta) | Baixar os limites (`piggu.limite.*`) e, se preciso, bloquear o IP no Caddy/firewall. |
 | Falha no código que expõe dado de outra família | Tirar a rota do ar no gateway (ou o serviço inteiro) até o conserto, mesmo que o app fique parcial. |

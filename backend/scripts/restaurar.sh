@@ -57,6 +57,15 @@ for banco in $ALVOS; do
   docker exec -i "$CONTAINER" pg_restore -U "$PG_USER" -d "$destino" --no-owner --role="$PG_USER" \
     --exit-on-error < "$PASTA/$banco.dump"
 done
+# Restaurado pelo superusuario, tudo volta com dono piggu. O init devolve cada banco e
+# suas tabelas ao usuario do servico (S4) e refaz as permissoes de conexao.
+if [ -z "$PREFIXO" ]; then
+  if docker exec "$CONTAINER" test -f /docker-entrypoint-initdb.d/01-criar-bancos.sh; then
+    docker exec "$CONTAINER" bash /docker-entrypoint-initdb.d/01-criar-bancos.sh > /dev/null
+  else
+    echo "AVISO: sem o db/init no container; rode o 01-criar-bancos.sh antes de subir os servicos." >&2
+  fi
+fi
 if [ -n "$VOLUME_FOTOS" ]; then
   [ -f "$PASTA/fotos.tar" ] || falhar "O backup nao tem fotos."
   echo "$(date '+%F %T') restaurando as fotos em $VOLUME_FOTOS"

@@ -45,9 +45,30 @@ qualquer suspeita de vazamento.
 openssl rand -base64 24
 ```
 
-Use o resultado em `DB_PASSWORD` **antes** da primeira subida: o Postgres grava a senha
-no volume ao criar o banco. Para trocar depois, rode `ALTER USER piggu PASSWORD '...'`
-no banco e atualize o `.env`.
+Gere sete senhas: uma para `DB_PASSWORD`, a do superusuário `piggu` (backup,
+restauração, administração), e uma para cada serviço: `DB_PASSWORD_IDENTITY`,
+`DB_PASSWORD_FINANCE`, `DB_PASSWORD_REWARDS`, `DB_PASSWORD_LIFESTYLE`,
+`DB_PASSWORD_MEDIA` e `DB_PASSWORD_BANKING`. Cada serviço entra com o próprio usuário
+(`piggu_finance` e assim por diante), que só alcança o próprio banco: uma injeção de
+SQL num serviço não chega às tabelas dos outros.
+
+Coloque todas no `.env` **antes** da primeira subida: o Postgres grava a senha do
+`piggu` no volume ao criar o banco. Para trocar a do `piggu` depois, rode
+`ALTER USER piggu PASSWORD '...'` e atualize o `.env`. Para trocar a de um serviço,
+mude no `.env`, recrie o postgres (`docker compose up -d postgres`) e rode
+`docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh`.
+
+**Instalação que já existia com um usuário só.** Depois de atualizar o código e o
+`.env`, antes de subir os serviços:
+
+```bash
+docker compose up -d postgres
+docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh
+docker compose up -d
+```
+
+O script cria os usuários e passa para eles os bancos e as tabelas que eram do `piggu`.
+Sem ele, os serviços não conseguem entrar no banco.
 
 Em produção o banco não fica publicado: tire a linha `ports` do serviço `postgres` no
 `docker-compose.yml` (os serviços falam com ele pela rede interna).
@@ -140,7 +161,10 @@ docker compose up -d
 Se a VPS sumiu, baixe o arquivo do bucket (`rclone copy b2-piggu:piggu-backups/diario/piggu-AAAA-MM-DD.tar.gpg .`),
 suba só o `postgres` numa máquina nova e rode o mesmo comando.
 
+A restauração por cima devolve cada banco ao usuário do serviço (roda o
+`01-criar-bancos.sh` no fim).
+
 **Banco novo depois da primeira subida.** O `db/init/01-criar-bancos.sh` só roda
-sozinho com o volume vazio. Ele é idempotente (só cria o que falta), então, se um
-serviço novo ganhar banco, rode de novo:
+sozinho com o volume vazio. Ele é idempotente (só cria o que falta e acerta donos e
+permissões), então, se um serviço novo ganhar banco, rode de novo:
 `docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh`.
