@@ -43,7 +43,9 @@ describe('Dashboard', () => {
     http.expectOne('/api/monthly-goals').flush({});
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
-    for (const extra of http.match((req) => /\/api\/(reports|bills|budgets|accounts)/.test(req.url))) {
+    for (const extra of http.match((req) =>
+      /\/api\/(reports|bills|budgets|accounts)/.test(req.url),
+    )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
     return tela;
@@ -110,22 +112,20 @@ describe('Dashboard', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const tela = abrir();
     http.expectOne('/api/banking/status').flush({ habilitado: true });
-    http
-      .expectOne('/api/banking/accounts')
-      .flush([
-        {
-          id: 'c1',
-          conexaoId: 'x1',
-          instituicao: 'Nubank',
-          nome: 'NuConta',
-          tipo: '',
-          numero: '',
-          saldo: 1,
-          moeda: 'BRL',
-          status: 'UPDATED',
-          atualizadoEm: null,
-        },
-      ]);
+    http.expectOne('/api/banking/accounts').flush([
+      {
+        id: 'c1',
+        conexaoId: 'x1',
+        instituicao: 'Nubank',
+        nome: 'NuConta',
+        tipo: '',
+        numero: '',
+        saldo: 1,
+        moeda: 'BRL',
+        status: 'UPDATED',
+        atualizadoEm: null,
+      },
+    ]);
     tela.detectChanges();
 
     [...tela.nativeElement.querySelectorAll('button')]

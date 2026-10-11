@@ -5,13 +5,31 @@
 # Em producao:  docker compose --profile producao up -d --build
 # sobe tambem o Caddy (servico web), unica porta publica: 80 e 443, com HTTPS automatico.
 
+# Logs no stdout de cada container, com rotacao (S5): no maximo 5 arquivos de 10 MB
+# por servico. O mais velho sai sozinho, entao log com id de usuario nao fica para
+# sempre. Prazo e destino estao em docs/implantacao-producao.md (Logs).
+x-logs: &logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
+    logging: *logs
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: piggu
       POSTGRES_PASSWORD: ${DB_PASSWORD:-piggu}
       POSTGRES_DB: postgres
+      # Um usuario por servico (db/init/01-criar-bancos.sh). Sem a variavel propria,
+      # vale DB_PASSWORD, o que so serve em desenvolvimento.
+      DB_PASSWORD_IDENTITY: ${DB_PASSWORD_IDENTITY:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_FINANCE: ${DB_PASSWORD_FINANCE:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_REWARDS: ${DB_PASSWORD_REWARDS:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_LIFESTYLE: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_MEDIA: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_BANKING: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
     volumes:
       - piggu-dados:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
@@ -25,14 +43,15 @@ services:
       retries: 10
 
   identity:
+    logging: *logs
     build:
       context: .
       args:
         MODULO: piggu-identity
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_identity
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_identity
+      DB_PASSWORD: ${DB_PASSWORD_IDENTITY:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
@@ -69,14 +88,15 @@ services:
       start_period: 40s
 
   finance:
+    logging: *logs
     build:
       context: .
       args:
         MODULO: piggu-finance
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_finance
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_finance
+      DB_PASSWORD: ${DB_PASSWORD_FINANCE:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
@@ -88,14 +108,15 @@ services:
         condition: service_healthy
 
   rewards:
+    logging: *logs
     build:
       context: .
       args:
         MODULO: piggu-rewards
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_rewards
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_rewards
+      DB_PASSWORD: ${DB_PASSWORD_REWARDS:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
@@ -106,14 +127,15 @@ services:
         condition: service_healthy
 
   lifestyle:
+    logging: *logs
     build:
       context: .
       args:
         MODULO: piggu-lifestyle
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_lifestyle
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_lifestyle
+      DB_PASSWORD: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
@@ -126,14 +148,15 @@ services:
         condition: service_healthy
 
   media:
+    logging: *logs
     build:
       context: .
       args:
         MODULO: piggu-media
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_media
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_media
+      DB_PASSWORD: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
@@ -151,6 +174,7 @@ services:
   # Opcional: so sobe com  docker compose --profile open-finance up
   # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
   banking:
+    logging: *logs
     profiles: ["open-finance"]
     build:
       context: .
@@ -158,8 +182,8 @@ services:
         MODULO: piggu-banking
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_banking
-      DB_USER: piggu
-      DB_PASSWORD: ${DB_PASSWORD:-piggu}
+      DB_USER: piggu_banking
+      DB_PASSWORD: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
@@ -173,6 +197,7 @@ services:
         condition: service_healthy
 
   gateway:
+    logging: *logs
     build:
       context: .
       args:
@@ -199,12 +224,13 @@ services:
   # Porta publica em producao: front + /api para o gateway, HTTPS e cabecalhos de seguranca.
   # Construa o front antes:  cd frontend && npm ci && npm run build
   web:
+    logging: *logs
     profiles: ["producao"]
     build:
       context: ..
       dockerfile: deploy/Dockerfile.web
     environment:
-      DOMINIO: ${DOMINIO:?defina DOMINIO no arquivo .env (ex.: piggu.app)}
+      DOMINIO: "${DOMINIO:?defina DOMINIO no arquivo .env (ex.: piggu.app)}"
       EMAIL_DO_CERTIFICADO: ${EMAIL_DO_CERTIFICADO:?defina EMAIL_DO_CERTIFICADO no arquivo .env}
     ports:
       - "80:80"

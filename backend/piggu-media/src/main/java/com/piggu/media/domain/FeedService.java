@@ -44,22 +44,22 @@ public class FeedService {
     }
 
     @Transactional
-    public FeedPhotoResponse publicar(FeedPhotoRequest pedido, String emailUsuario) {
+    public FeedPhotoResponse publicar(FeedPhotoRequest pedido, UUID usuarioId) {
         Asset asset = assets.guardar(
                 pedido.imageBase64(),
                 pedido.mimeType(),
                 CONTEXTO,
                 nomeDaPasta(pedido.mesKey()),
-                emailUsuario
+                usuarioId
         );
-        FeedPhoto foto = new FeedPhoto(pedido.mesKey(), asset.getId(), emailUsuario);
+        FeedPhoto foto = new FeedPhoto(pedido.mesKey(), asset.getId(), usuarioId);
         return FeedPhotoResponse.de(repositorio.save(foto));
     }
 
     @Transactional
     public FeedPhotoResponse legendar(UUID id, String legenda, CurrentUser usuario) {
         FeedPhoto foto = buscar(id);
-        if (!usuario.podeGerenciar(foto.getUserEmail())) {
+        if (!usuario.podeGerenciar(foto.getUserId())) {
             throw new ForbiddenException("Voce nao pode editar esta foto.");
         }
         foto.legendar(Texto.limitar(legenda, 300));
@@ -69,7 +69,7 @@ public class FeedService {
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
         FeedPhoto foto = buscar(id);
-        if (!usuario.podeGerenciar(foto.getUserEmail())) {
+        if (!usuario.podeGerenciar(foto.getUserId())) {
             throw new ForbiddenException("Voce nao pode apagar esta foto.");
         }
         Asset asset = assets.detalhes(foto.getAssetId());

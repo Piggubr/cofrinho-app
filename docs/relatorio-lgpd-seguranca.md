@@ -82,6 +82,8 @@ commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodad
 - **Problema:** log é cópia do dado pessoal fora do banco, sem controle de acesso, sem
   exclusão quando o titular pede e frequentemente enviada a ferramentas de terceiros.
 - **Correção:** os logs passam a usar id (conta, gasto) e tamanho do texto.
+  Os logs têm rotação no Docker (5 × 10 MB por serviço) e retenção de 30 dias se forem
+  para um serviço central (`docs/implantacao-producao.md`, seção 7).
 
 ### 6. Dependências com falhas conhecidas — Alta
 - **Onde:** `backend/pom.xml:10` e `:37`; `frontend/package.json`.
@@ -234,6 +236,10 @@ commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodad
   alterada e revogada, e-mail liberado (sem o e-mail), gastos lançados/editados/apagados,
   depósito, meta, Fofocoins, resgate, prêmio desativado, banco sincronizado e item Pluggy de
   outra conta recusado. Falhas de integração externa já eram registradas.
+- Fora do identity, nenhuma tabela guarda e-mail: quem lançou, dividiu, avaliou ou fez
+  cada mudança é o id da conta (S3). Na exclusão da conta, o que fica com a família perde
+  o dono (o id vira nulo) e a tela mostra "Ex-membro"; o que o Piggu faz sozinho tem o id
+  zero.
 
 ---
 

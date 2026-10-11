@@ -34,7 +34,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     void bancosPorFamilia() {
         UUID casaA = UUID.randomUUID();
         UUID casaB = UUID.randomUUID();
-        String email = "mesma-pessoa-" + casaA + "@piggu.test";
+        UUID email = UUID.nameUUIDFromBytes(("mesma-pessoa-" + casaA + "@piggu.test").getBytes());
 
         UUID conexaoId = FamiliaAtual.como(casaA, () -> transacao.execute(status -> {
             BankConnection conexao = conexoes.save(new BankConnection("item-" + casaA, email));
@@ -46,7 +46,7 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
 
         FamiliaAtual.como(casaB, () -> transacao.executeWithoutResult(status -> {
             assertThat(conexoes.findById(conexaoId)).isEmpty();
-            assertThat(conexoes.findByUserEmail(email)).isEmpty();
+            assertThat(conexoes.findByUserId(email)).isEmpty();
             assertThat(contas.listarDoUsuario(email)).isEmpty();
         }));
         FamiliaAtual.como(casaA, () -> transacao.executeWithoutResult(status ->
@@ -57,10 +57,10 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
     @DisplayName("sem familia (sem token) nada aparece")
     void semFamiliaNadaAparece() {
         UUID casa = UUID.randomUUID();
-        String email = "sem-familia-" + casa + "@piggu.test";
+        UUID email = UUID.nameUUIDFromBytes(("sem-familia-" + casa + "@piggu.test").getBytes());
         FamiliaAtual.como(casa, () -> transacao.executeWithoutResult(status ->
                 conexoes.save(new BankConnection("item-" + casa, email))));
 
-        transacao.executeWithoutResult(status -> assertThat(conexoes.findByUserEmail(email)).isEmpty());
+        transacao.executeWithoutResult(status -> assertThat(conexoes.findByUserId(email)).isEmpty());
     }
 }

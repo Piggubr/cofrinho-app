@@ -18,8 +18,8 @@ import java.util.UUID;
 /**
  * Filme na lista do casal. Uma linha da aba Filmes.
  *
- * <p>As notas de cada pessoa ficam em um mapa de e-mail para nota de 1 a 5, do
- * mesmo jeito que a coluna Avaliacoes_JSON guardava.</p>
+ * <p>As notas de cada pessoa ficam em um mapa do id da pessoa para nota de 1 a 5, como
+ * a coluna Avaliacoes_JSON guardava (la a chave era o e-mail).</p>
  */
 @Entity
 @Table(name = "movies")
@@ -58,8 +58,8 @@ public class Movie {
     @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Integer> ratings = new HashMap<>();
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -68,7 +68,7 @@ public class Movie {
     }
 
     public Movie(String tmdbId, String title, String year, String poster,
-                 BigDecimal tmdbRating, String synopsis, String userEmail) {
+                 BigDecimal tmdbRating, String synopsis, UUID userId) {
         this.id = UUID.randomUUID();
         this.tmdbId = tmdbId;
         this.title = title;
@@ -76,7 +76,7 @@ public class Movie {
         this.poster = poster;
         this.tmdbRating = tmdbRating;
         this.synopsis = synopsis;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -92,11 +92,11 @@ public class Movie {
     }
 
     /** Registra ou substitui a nota de uma pessoa. */
-    public void avaliar(String email, int nota) {
+    public void avaliar(UUID pessoa, int nota) {
         if (ratings == null) {
             ratings = new HashMap<>();
         }
-        ratings.put(email, nota);
+        ratings.put(pessoa.toString(), nota);
     }
 
     public UUID getId() {
@@ -135,7 +135,7 @@ public class Movie {
         return ratings == null ? Map.of() : ratings;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 }

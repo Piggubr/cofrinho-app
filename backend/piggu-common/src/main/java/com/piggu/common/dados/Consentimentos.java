@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * nao colhe consentimento sobre um texto que ja saiu do ar, e mudar o aviso invalida
  * os consentimentos antigos sozinho.</p>
  *
- * <p>Fica na tabela {@code consents} de cada servico que faz o ato, com e-mail e
+ * <p>Fica na tabela {@code consents} de cada servico que faz o ato, com o id da pessoa e a
  * familia, para sair junto na exportacao e na exclusao da conta.</p>
  */
 public class Consentimentos {
@@ -37,8 +37,8 @@ public class Consentimentos {
 
     public boolean jaAutorizou(CurrentUser usuario, String finalidade) {
         Integer vezes = jdbc.queryForObject(
-                "SELECT count(*) FROM consents WHERE household_id = ? AND user_email = ? AND purpose = ? AND notice_version = ?",
-                Integer.class, usuario.familia(), usuario.email(), finalidade, VERSAO_DO_AVISO);
+                "SELECT count(*) FROM consents WHERE household_id = ? AND user_id = ? AND purpose = ? AND notice_version = ?",
+                Integer.class, usuario.familia(), usuario.id(), finalidade, VERSAO_DO_AVISO);
         return vezes != null && vezes > 0;
     }
 
@@ -71,8 +71,8 @@ public class Consentimentos {
             throw new BusinessException("O aviso de privacidade mudou. Recarregue a pagina e leia de novo.",
                     HttpStatus.CONFLICT, CODIGO_AVISO_MUDOU);
         }
-        jdbc.update("INSERT INTO consents (household_id, user_email, purpose, notice_version) VALUES (?, ?, ?, ?)",
-                usuario.familia(), usuario.email(), finalidade, VERSAO_DO_AVISO);
+        jdbc.update("INSERT INTO consents (household_id, user_id, purpose, notice_version) VALUES (?, ?, ?, ?)",
+                usuario.familia(), usuario.id(), finalidade, VERSAO_DO_AVISO);
         log.info("Consentimento registrado: conta={} finalidade={} versao={}", usuario.id(), finalidade, VERSAO_DO_AVISO);
     }
 }

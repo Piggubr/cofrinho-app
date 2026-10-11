@@ -1,5 +1,7 @@
 package com.piggu.common;
 
+import com.piggu.common.auditoria.HistoricoController;
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.MeusDadosController;
 import com.piggu.common.error.ApiExceptionHandler;
@@ -76,6 +78,17 @@ public class PigguCommonAutoConfiguration {
         @Bean
         MeusDadosController meusDadosController(DadosDaFamilia dados) {
             return new MeusDadosController(dados);
+        }
+    }
+
+    /** Servico que guarda a trilha de auditoria ganha a rota do historico. */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnBean(TrilhaDeAuditoria.class)
+    static class RotaDoHistorico {
+
+        @Bean
+        HistoricoController historicoController(TrilhaDeAuditoria trilha) {
+            return new HistoricoController(trilha);
         }
     }
 

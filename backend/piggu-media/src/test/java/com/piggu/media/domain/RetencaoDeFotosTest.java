@@ -27,8 +27,8 @@ class RetencaoDeFotosTest extends PostgresIntegrationTest {
         UUID orfaNova = foto(familia, "FEED", "1 hour");
         UUID noMural = foto(familia, "FEED", "2 days");
         UUID deLugar = foto(familia, "LUGAR", "2 days");
-        jdbc.update("INSERT INTO feed_photos (month_key, asset_id, user_email, household_id) VALUES (?, ?, ?, ?)",
-                "2026-09", noMural, "a@x.test", familia);
+        jdbc.update("INSERT INTO feed_photos (month_key, asset_id, user_id, household_id) VALUES (?, ?, ?, ?)",
+                "2026-09", noMural, UUID.randomUUID(), familia);
 
         retencao.aplicar();
 
@@ -40,9 +40,9 @@ class RetencaoDeFotosTest extends PostgresIntegrationTest {
 
     private UUID foto(UUID familia, String contexto, String idade) {
         UUID id = UUID.randomUUID();
-        jdbc.update("INSERT INTO assets (id, drive_file_id, content_type, size_bytes, context, owner_email, household_id,"
+        jdbc.update("INSERT INTO assets (id, drive_file_id, content_type, size_bytes, context, owner_id, household_id,"
                         + " created_at) VALUES (?, ?, ?, 10, ?, ?, ?, now() - CAST(? AS interval))",
-                id, "arquivo-que-nao-existe-" + id, "image/png", contexto, "a@x.test", familia, idade);
+                id, "arquivo-que-nao-existe-" + id, "image/png", contexto, UUID.randomUUID(), familia, idade);
         return id;
     }
 

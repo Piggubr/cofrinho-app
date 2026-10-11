@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Filme, FilmeDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
+import { PessoaPipe } from '../../core/api/pessoas-da-familia';
 
 /** Generos do TMDB que cabem em um sorteio de noite de filme. */
 const GENEROS: { id: string; nome: string }[] = [
@@ -28,7 +29,7 @@ const GENEROS: { id: string; nome: string }[] = [
  */
 @Component({
   selector: 'app-movies',
-  imports: [Icone, FormsModule],
+  imports: [Icone, FormsModule, PessoaPipe],
   templateUrl: './movies.html',
   styleUrl: './movies.scss',
 })
@@ -59,15 +60,14 @@ export class Movies {
   }
 
   protected minhaNota(filme: Filme): number {
-    const email = this.auth.usuario()?.email ?? '';
-    return filme.avaliacoes[email] ?? 0;
+    return filme.avaliacoes[this.auth.usuario()?.id ?? ''] ?? 0;
   }
 
-  protected outrasNotas(filme: Filme): { email: string; nota: number }[] {
-    const meu = this.auth.usuario()?.email ?? '';
+  protected outrasNotas(filme: Filme): { pessoa: string; nota: number }[] {
+    const eu = this.auth.usuario()?.id ?? '';
     return Object.entries(filme.avaliacoes)
-      .filter(([email]) => email !== meu)
-      .map(([email, nota]) => ({ email, nota }));
+      .filter(([pessoa]) => pessoa !== eu)
+      .map(([pessoa, nota]) => ({ pessoa, nota }));
   }
 
   protected buscar(): void {

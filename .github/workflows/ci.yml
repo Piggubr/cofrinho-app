@@ -32,6 +32,17 @@ jobs:
       - name: Procurar segredos no historico
         run: '"$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --no-banner -v .'
 
+  backup:
+    name: Backup e restauracao
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck -x backend/scripts/*.sh backend/db/init/*.sh scripts/*.sh
+      # Postgres descartavel: backup cifrado, rotacao, restauracao testada e por cima.
+      - run: backend/scripts/teste-do-backup.sh
+      # Um usuario do Postgres por servico, isolado, e a atualizacao de instalacao antiga.
+      - run: backend/scripts/teste-dos-usuarios.sh
+
   backend:
     name: Backend (mvn verify)
     runs-on: ubuntu-latest
@@ -68,4 +79,34 @@ jobs:
       - run: npm run build
       # A demonstracao (dados de exemplo) so pode existir no build "demo".
       - run: "! grep -rq token-da-demonstracao dist/frontend/browser"
-      - run: npx ng test --watch=false
+      # O piso de cobertura fica no angular.json (coverageThresholds) e so sobe.
+      - run: npx ng test --watch=false --coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura-do-front
+          path: frontend/coverage/
+          retention-days: 14
+
+  e2e:
+    name: Ponta a ponta (Playwright na demo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-do-playwright
+          path: frontend/playwright-report/
+          retention-days: 14

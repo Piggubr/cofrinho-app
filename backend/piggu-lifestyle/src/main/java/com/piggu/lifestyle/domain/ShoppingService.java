@@ -42,7 +42,7 @@ public class ShoppingService {
     }
 
     @Transactional
-    public ShoppingItemResponse criar(ShoppingItemRequest pedido, String emailUsuario) {
+    public ShoppingItemResponse criar(ShoppingItemRequest pedido, UUID usuarioId) {
         ShoppingItem item = new ShoppingItem(
                 Texto.limitar(pedido.item(), 150),
                 Texto.limitar(pedido.quantidade(), 50),
@@ -50,7 +50,7 @@ public class ShoppingService {
                 Texto.limitar(pedido.marca(), 100),
                 imagemSegura(pedido.imagem()),
                 somenteDigitos(pedido.codigo()),
-                emailUsuario
+                usuarioId
         );
         return ShoppingItemResponse.de(repositorio.save(item));
     }
@@ -65,7 +65,7 @@ public class ShoppingService {
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
         ShoppingItem item = buscar(id);
-        if (!usuario.podeGerenciar(item.getUserEmail())) {
+        if (!usuario.podeGerenciar(item.getUserId())) {
             throw new ForbiddenException("Voce nao pode apagar este item.");
         }
         repositorio.delete(item);

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.UUID;
 
 /**
  * Categorias de gasto.
@@ -38,7 +39,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("categoria criada entra na lista depois das de fabrica")
     void categoriaCriadaEntraNaLista() {
-        categorias.criar("Pets", "titular@piggu.test");
+        categorias.criar("Pets", UUID.randomUUID());
 
         assertThat(categorias.listar()).hasSize(Categorias.BASE.size() + 1).endsWith("Pets");
     }
@@ -61,20 +62,20 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("duplicata e recusada mesmo com caixa diferente")
     void duplicataRecusada() {
-        categorias.criar("Pets", "titular@piggu.test");
+        categorias.criar("Pets", UUID.randomUUID());
 
-        assertThatThrownBy(() -> categorias.criar("pets", "titular@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("pets", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Essa opcao ja existe.");
 
-        assertThatThrownBy(() -> categorias.criar("Lazer", "titular@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("Lazer", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class);
     }
 
     @Test
     @DisplayName("nome curto demais e recusado")
     void nomeCurtoRecusado() {
-        assertThatThrownBy(() -> categorias.criar("a", "titular@piggu.test"))
+        assertThatThrownBy(() -> categorias.criar("a", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Digite um nome valido.");
     }
@@ -82,7 +83,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("espacos repetidos no nome sao colapsados antes de gravar")
     void colapsaEspacos() {
-        assertThat(categorias.criar("Casa   e   Jardim", "titular@piggu.test"))
+        assertThat(categorias.criar("Casa   e   Jardim", UUID.randomUUID()))
                 .isEqualTo("Casa e Jardim");
     }
 }

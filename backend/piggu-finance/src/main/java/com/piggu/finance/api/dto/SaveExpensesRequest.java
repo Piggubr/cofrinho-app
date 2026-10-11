@@ -1,7 +1,6 @@
 package com.piggu.finance.api.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,7 +20,7 @@ import java.util.UUID;
  * @param origem   Manual, Foto ou Nota
  * @param contaId  conta ou cartao que pagou; opcional
  * @param parcelas 2 a 48 divide cada item em uma linha por mes; nulo ou 1 e a vista
- * @param dividirCom e-mails da familia que dividem o gasto em partes iguais (quem lancou pagou)
+ * @param dividirCom ids das pessoas da familia que dividem o gasto em partes iguais (quem lancou pagou)
  */
 public record SaveExpensesRequest(
         @NotNull(message = "A data do gasto e invalida.")
@@ -47,7 +46,7 @@ public record SaveExpensesRequest(
         Integer parcelas,
 
         @Size(max = 20, message = "Divisao com gente demais.")
-        List<@Email(message = "E-mail invalido na divisao.") @Size(max = 320) String> dividirCom
+        List<UUID> dividirCom
 ) {
 
     /** Lancamento a vista, sem conta: o caso de quase todo o codigo interno. */

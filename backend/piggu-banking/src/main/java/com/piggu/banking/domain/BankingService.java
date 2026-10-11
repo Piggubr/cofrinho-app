@@ -63,14 +63,14 @@ public class BankingService {
         }
 
         BankConnection conexao = conexoes.findByPluggyItemId(item.id())
-                .orElseGet(() -> conexoes.save(new BankConnection(item.id(), usuario.email())));
+                .orElseGet(() -> conexoes.save(new BankConnection(item.id(), usuario.id())));
         sincronizar(conexao, item);
         return listar(usuario);
     }
 
     @Transactional(readOnly = true)
     public List<BankAccountResponse> listar(CurrentUser usuario) {
-        return contas.listarDoUsuario(usuario.email()).stream().map(BankAccountResponse::de).toList();
+        return contas.listarDoUsuario(usuario.id()).stream().map(BankAccountResponse::de).toList();
     }
 
     /**
@@ -84,7 +84,7 @@ public class BankingService {
     @Transactional
     public List<BankAccountResponse> desconectar(UUID conexaoId, CurrentUser usuario) {
         BankConnection conexao = conexoes.findById(conexaoId)
-                .filter(encontrada -> encontrada.getUserEmail().equalsIgnoreCase(usuario.email()))
+                .filter(encontrada -> usuario.id().equals(encontrada.getUserId()))
                 .orElseThrow(() -> new NotFoundException("Banco conectado nao encontrado."));
         try {
             pluggy.apagarItem(conexao.getPluggyItemId());
@@ -100,7 +100,7 @@ public class BankingService {
     // banco agora exige PATCH /items/{id} e esperar o webhook; fazer quando pedirem.
     @Transactional
     public List<BankAccountResponse> sincronizarTudo(CurrentUser usuario) {
-        for (BankConnection conexao : conexoes.findByUserEmail(usuario.email())) {
+        for (BankConnection conexao : conexoes.findByUserId(usuario.id())) {
             sincronizar(conexao, pluggy.buscarItem(conexao.getPluggyItemId()));
         }
         return listar(usuario);

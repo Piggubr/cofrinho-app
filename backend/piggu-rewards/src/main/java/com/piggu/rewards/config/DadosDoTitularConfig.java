@@ -21,9 +21,9 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                Tabela.compartilhada("redemptions", "user_email"),
-                Tabela.compartilhada("coin_ledger", "actor_email"),
-                Tabela.compartilhada("prizes", "updated_by")
+                Tabela.compartilhada("redemptions", "user_id"),
+                Tabela.compartilhada("coin_ledger", "actor_id"),
+                Tabela.compartilhada("prizes", "updated_by_id")
         ), extras.orderedStream().toList());
     }
 }

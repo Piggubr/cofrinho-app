@@ -32,7 +32,7 @@ class MigracaoParaFamiliasTest extends PostgresIntegrationTest {
         jdbc.update("INSERT INTO legado.monthly_goals (reference_month, limit_amount, user_email) VALUES ('2026-09', 800, 'a@legado.test')");
         jdbc.update("INSERT INTO legado.product_memory (product_key, name, user_email) VALUES ('pao', 'Pao', 'a@legado.test')");
 
-        flyway(null).migrate();
+        flyway("12").migrate();
 
         for (String tabela : new String[]{"expenses", "monthly_goals", "product_memory"}) {
             assertThat(jdbc.queryForList("SELECT DISTINCT household_id::text FROM legado." + tabela, String.class))

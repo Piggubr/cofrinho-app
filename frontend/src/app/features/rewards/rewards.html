@@ -13,7 +13,7 @@
     <span class="saldo">{{ saldo()?.saldo ?? 0 }}</span>
   </div>
 
-  @if (auth.ehTitular()) {
+  @if (auth.podeLancar()) {
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="ajusteValor">Quantidade</label>
@@ -52,7 +52,7 @@
   }
 </section>
 
-@if (auth.ehTitular()) {
+@if (auth.podeLancar()) {
   <section class="cartao">
     <div class="cartao-titulo">
       <h2 i18n>Novo prêmio</h2>
@@ -108,7 +108,7 @@
             } @else {
               <span class="etiqueta">Desativado</span>
             }
-            @if (auth.ehTitular() && premio.ativo) {
+            @if (auth.podeLancar() && premio.ativo) {
               <button type="button" class="botao icone-so perigo" (click)="desativar(premio)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
             }
           </div>
@@ -129,7 +129,7 @@
     <div class="linha">
       <div>
         <p class="linha-titulo">{{ resgate.premio }}</p>
-        <p class="linha-detalhe">{{ resgate.usuario }} · {{ resgate.status }}</p>
+        <p class="linha-detalhe">{{ resgate.usuario | pessoa }} · {{ resgate.status }}</p>
       </div>
       <span class="linha-valor">{{ resgate.preco }}</span>
     </div>

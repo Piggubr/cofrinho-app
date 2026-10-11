@@ -41,7 +41,7 @@ public class PlaceService {
     }
 
     @Transactional
-    public PlaceResponse criar(PlaceRequest pedido, String emailUsuario) {
+    public PlaceResponse criar(PlaceRequest pedido, UUID usuarioId) {
         Place lugar = new Place(
                 Texto.limitar(pedido.nome(), 120),
                 Texto.limitarOuPadrao(pedido.categoria(), 50, "Outros"),
@@ -51,7 +51,7 @@ public class PlaceService {
                 pedido.data(),
                 marcadores.filtrarValidos(pedido.marcacoes()),
                 pedido.valor() == null ? BigDecimal.ZERO : pedido.valor(),
-                emailUsuario
+                usuarioId
         );
 
         if (temFoto(pedido)) {
@@ -65,7 +65,7 @@ public class PlaceService {
     public PlaceResponse atualizar(UUID id, PlaceRequest pedido, CurrentUser usuario) {
         Place lugar = buscar(id);
 
-        if (!usuario.podeGerenciar(lugar.getUserEmail())) {
+        if (!usuario.podeGerenciar(lugar.getUserId())) {
             throw new ForbiddenException("Voce nao pode editar este lugar.");
         }
 
@@ -94,7 +94,7 @@ public class PlaceService {
     public void excluir(UUID id, CurrentUser usuario) {
         Place lugar = buscar(id);
 
-        if (!usuario.podeGerenciar(lugar.getUserEmail())) {
+        if (!usuario.podeGerenciar(lugar.getUserId())) {
             throw new ForbiddenException("Voce nao pode excluir este lugar.");
         }
 

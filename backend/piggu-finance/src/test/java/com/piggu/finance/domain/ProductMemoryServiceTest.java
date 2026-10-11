@@ -128,6 +128,6 @@ class ProductMemoryServiceTest extends PostgresIntegrationTest {
         gastos.salvar(new SaveExpensesRequest(
                 data, "Mercado", null, "Manual",
                 List.of(new ExpenseItemRequest(item, "Alimentação", new BigDecimal(valor), "Variavel"))
-        ), TITULAR.email());
+        ), TITULAR.id());
     }
 }

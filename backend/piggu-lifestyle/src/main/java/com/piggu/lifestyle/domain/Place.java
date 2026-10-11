@@ -58,8 +58,8 @@ public class Place {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount = BigDecimal.ZERO;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -68,10 +68,10 @@ public class Place {
     }
 
     public Place(String name, String category, String location, short rating, String comment,
-                 LocalDate visitDate, List<String> tags, BigDecimal amount, String userEmail) {
+                 LocalDate visitDate, List<String> tags, BigDecimal amount, UUID userId) {
         this.id = UUID.randomUUID();
         aplicar(name, category, location, rating, comment, visitDate, tags, amount);
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -138,8 +138,8 @@ public class Place {
         return amount;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public Instant getCreatedAt() {

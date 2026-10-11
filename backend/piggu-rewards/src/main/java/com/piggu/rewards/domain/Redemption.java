@@ -37,8 +37,8 @@ public class Redemption {
     @Column(nullable = false)
     private int price;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(nullable = false, length = 30)
     private String status = "Resgatado";
@@ -52,12 +52,12 @@ public class Redemption {
     protected Redemption() {
     }
 
-    public Redemption(Prize premio, String userEmail, UUID ledgerId) {
+    public Redemption(Prize premio, UUID userId, UUID ledgerId) {
         this.id = UUID.randomUUID();
         this.prizeId = premio.getId();
         this.prizeName = premio.getName();
         this.price = premio.getPrice();
-        this.userEmail = userEmail;
+        this.userId = userId;
         this.ledgerId = ledgerId;
     }
 
@@ -81,8 +81,8 @@ public class Redemption {
         return price;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public String getStatus() {

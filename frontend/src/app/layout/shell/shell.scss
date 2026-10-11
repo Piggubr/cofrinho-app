@@ -146,6 +146,24 @@
   gap: 0.15rem;
 }
 
+.menu-grupo + .menu-grupo {
+  margin-top: 0.9rem;
+}
+
+.menu-grupo-titulo {
+  display: block;
+  padding: 0 0.75rem 0.3rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lancar-flutuante {
+  display: none;
+}
+
 .menu-item {
   display: flex;
   align-items: center;
@@ -301,21 +319,22 @@
     box-shadow: inset 0 0.5px 0 var(--vidro-brilho);
   }
 
-  .aba-lancar {
-    padding: 0;
-  }
-
-  .aba-lancar-botao {
+  /* "+" de lancar gasto, flutuando acima da barra de abas em todas as telas. */
+  .lancar-flutuante {
+    position: fixed;
+    right: 1rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px);
+    z-index: 31;
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     background: linear-gradient(160deg, color-mix(in srgb, var(--primaria) 82%, #fff) 0%, var(--primaria) 55%);
     color: var(--primaria-contraste);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.45),
-      0 6px 16px color-mix(in srgb, var(--primaria) 35%, transparent);
+      0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   }
 
   /* "Mais": folha que sobe de baixo, por cima de tudo e com a propria area segura. */
@@ -463,6 +482,10 @@
 :host(.abas-nativas) {
   .abas {
     display: none;
+  }
+
+  .lancar-flutuante {
+    bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem);
   }
 
   @media (max-width: 899px) {

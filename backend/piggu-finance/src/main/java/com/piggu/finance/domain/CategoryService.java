@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Categorias validas do sistema: as oito de fabrica mais as criadas pelo usuario.
@@ -51,7 +52,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public String criar(String nomeBruto, String emailUsuario) {
+    public String criar(String nomeBruto, UUID usuarioId) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 50);
         if (nome.length() < 2) {
             throw new BusinessException("Digite um nome valido.");
@@ -61,7 +62,7 @@ public class CategoryService {
         if (jaExiste) {
             throw new BusinessException("Essa opcao ja existe.");
         }
-        repositorio.save(new CustomCategory(nome, emailUsuario));
+        repositorio.save(new CustomCategory(nome, usuarioId));
         return nome;
     }
 }

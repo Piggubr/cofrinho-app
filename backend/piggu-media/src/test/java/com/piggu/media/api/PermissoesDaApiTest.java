@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.UUID;
 
 /**
  * Quem alcanca fotos e o feed.
@@ -39,7 +40,7 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     /** Gravada fora de uma requisicao: diz explicitamente de qual familia e. */
     private Asset fotoDaFamilia() {
         return FamiliaAtual.como(TokensDeTeste.FAMILIA,
-                () -> assets.guardar(PNG, "image/png", "feed", null, TokensDeTeste.EMAIL_TITULAR));
+                () -> assets.guardar(PNG, "image/png", "feed", null, TokensDeTeste.idDe(TokensDeTeste.EMAIL_TITULAR)));
     }
 
     @Test

@@ -10,7 +10,7 @@ import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
 
 /**
- * Contas fixas: o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
+ * Contas do mes (as contas fixas): o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
  * com o automatico ligado, o Piggu lanca sozinho no dia do vencimento.
  */
 @Component({

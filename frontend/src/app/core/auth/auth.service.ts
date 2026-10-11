@@ -37,6 +37,8 @@ export class AuthService {
   readonly ehMembro = computed(() => this.usuarioAtual()?.role === 'MEMBRO');
   /** Titular da familia; o ADMIN vale como titular dentro da propria familia. */
   readonly ehTitular = computed(() => this.usuarioAtual()?.role === 'TITULAR' || this.ehAdmin());
+  /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
+  readonly podeLancar = computed(() => this.ehTitular() || this.usuarioAtual()?.role === 'PARCEIRO');
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;

@@ -50,8 +50,8 @@ class MeusDadosTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("quem sai leva o banco que conectou; o banco de quem fica nao e tocado")
     void pessoaSaiLevaOBanco() throws Exception {
-        conectar("item-sai-" + familia, quemSai);
-        conectar("item-fica-" + familia, quemFica);
+        conectar("item-sai-" + familia, TokensDeTeste.idDe(quemSai));
+        conectar("item-fica-" + familia, TokensDeTeste.idDe(quemFica));
 
         mockMvc.perform(delete("/api/meus-dados")
                         .with(TokensDeTeste.exclusao(familia, quemSai, PigguRole.MEMBRO, "PESSOA")))
@@ -59,29 +59,29 @@ class MeusDadosTest extends PostgresIntegrationTest {
 
         verify(pluggy).apagarItem("item-sai-" + familia);
         verify(pluggy, never()).apagarItem("item-fica-" + familia);
-        assertThat(conexoesDe(quemSai)).isZero();
-        assertThat(conexoesDe(quemFica)).isEqualTo(1);
+        assertThat(conexoesDe(TokensDeTeste.idDe(quemSai))).isZero();
+        assertThat(conexoesDe(TokensDeTeste.idDe(quemFica))).isEqualTo(1);
     }
 
     @Test
     @DisplayName("se a Pluggy falha, nada e apagado aqui")
     void pluggyFalha() throws Exception {
-        conectar("item-falha-" + familia, quemSai);
+        conectar("item-falha-" + familia, TokensDeTeste.idDe(quemSai));
         willThrow(new com.piggu.common.error.UpstreamException("fora")).given(pluggy).apagarItem(anyString());
 
         mockMvc.perform(delete("/api/meus-dados")
                         .with(TokensDeTeste.exclusao(familia, quemSai, PigguRole.TITULAR, "FAMILIA")))
                 .andExpect(status().is5xxServerError());
 
-        assertThat(conexoesDe(quemSai)).isEqualTo(1);
+        assertThat(conexoesDe(TokensDeTeste.idDe(quemSai))).isEqualTo(1);
     }
 
-    private void conectar(String item, String email) {
+    private void conectar(String item, UUID email) {
         FamiliaAtual.como(familia, () -> transacao.executeWithoutResult(status ->
                 conexoes.save(new BankConnection(item, email))));
     }
 
-    private int conexoesDe(String email) {
-        return FamiliaAtual.como(familia, () -> transacao.execute(status -> conexoes.findByUserEmail(email).size()));
+    private int conexoesDe(UUID email) {
+        return FamiliaAtual.como(familia, () -> transacao.execute(status -> conexoes.findByUserId(email).size()));
     }
 }

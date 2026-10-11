@@ -47,8 +47,8 @@ class RetencaoDeBancosTest extends PostgresIntegrationTest {
 
     private String conexao(String desdeQuando) {
         String item = "item-" + UUID.randomUUID();
-        jdbc.update("INSERT INTO bank_connections (pluggy_item_id, user_email, household_id, synced_at)"
-                + " VALUES (?, ?, ?, now() - CAST(? AS interval))", item, "a@x.test", UUID.randomUUID(), desdeQuando);
+        jdbc.update("INSERT INTO bank_connections (pluggy_item_id, user_id, household_id, synced_at)"
+                + " VALUES (?, ?, ?, now() - CAST(? AS interval))", item, UUID.randomUUID(), UUID.randomUUID(), desdeQuando);
         return item;
     }
 

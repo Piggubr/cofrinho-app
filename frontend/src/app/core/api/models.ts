@@ -6,7 +6,7 @@
  */
 
 /** ADMIN opera a instalacao; TITULAR e o dono da familia; MEMBRO foi convidado. */
-export type PigguRole = 'ADMIN' | 'TITULAR' | 'MEMBRO';
+export type PigguRole = 'ADMIN' | 'TITULAR' | 'PARCEIRO' | 'MEMBRO';
 
 export interface Usuario {
   id: string;
@@ -41,6 +41,29 @@ export interface MembroDaFamilia {
   email: string;
   foto: string | null;
   papel: PigguRole;
+}
+
+/** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */
+export interface EventoDeAuditoria {
+  id: number;
+  /** Id de quem fez; o id zero e o proprio Piggu (job agendado); nulo, conta excluida. */
+  autor: string | null;
+  acao:
+    | 'CRIOU'
+    | 'EDITOU'
+    | 'APAGOU'
+    | 'IMPORTOU'
+    | 'PAGOU'
+    | 'MUDOU_PAPEL'
+    | 'REMOVEU'
+    | 'ENTROU'
+    | 'SAIU'
+    | 'CONVIDOU';
+  entidade: string;
+  entidadeId: string | null;
+  antes: string | null;
+  depois: string | null;
+  quando: string;
 }
 
 export interface ConviteDaFamilia {
@@ -85,7 +108,11 @@ export interface Preferencias {
   fuso?: string;
   /** Idioma da interface; hoje so pt-BR. */
   idioma?: string;
+  /** Telas de estilo de vida ligadas no menu; ausente (conta antiga, demo) liga todas. */
+  modulos?: ModuloDeEstiloDeVida[];
 }
+
+export type ModuloDeEstiloDeVida = 'compras' | 'lugares' | 'filmes' | 'fotos' | 'premios';
 
 export interface MoedaDisponivel {
   codigo: string;
@@ -117,7 +144,8 @@ export interface Gasto {
   valor: number;
   tipo: string;
   origem: string;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
   registradoEm: string;
   contaId?: string | null;
   /** Parcela N de M; ausentes quando o gasto e a vista. */
@@ -147,6 +175,7 @@ export interface NovoLancamento {
   /** 2 a 48 divide cada item em uma linha por mes. */
   parcelas?: number | null;
   /** E-mails da familia que dividem em partes iguais; quem lanca e quem pagou. */
+  /** Ids das pessoas da familia que dividem o gasto. */
   dividirCom?: string[] | null;
 }
 
@@ -175,7 +204,8 @@ export interface Deposito {
   id: string;
   data: string;
   valor: number;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
   registradoEm: string;
 }
 
@@ -194,7 +224,8 @@ export interface Nota {
   valor: number;
   categoria: string;
   gastoId: string | null;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
   criadoEm: string;
 }
 
@@ -231,6 +262,7 @@ export interface MovimentoDeMoedas {
   data: string;
   valor: number;
   motivo: string;
+  /** Dono das moedas; hoje sempre "USUARIA", como na planilha. */
   usuario: string;
 }
 
@@ -246,7 +278,8 @@ export interface Resgate {
   id: string;
   premio: string;
   preco: number;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
   status: string;
   data: string;
   saldo: number;
@@ -264,7 +297,8 @@ export interface Lugar {
   fotoAssetId: string | null;
   temFoto: boolean;
   valor: number;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
 }
 
 export interface NovoLugar {
@@ -290,7 +324,8 @@ export interface Filme {
   sinopse: string;
   assistido: boolean;
   avaliacoes: Record<string, number>;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
 }
 
 /** Filme vindo do TMDB, ainda fora da lista. */
@@ -312,7 +347,8 @@ export interface ItemDeCompra {
   marca: string;
   imagem: string;
   codigo: string;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
 }
 
 export interface NovoItemDeCompra {
@@ -337,7 +373,8 @@ export interface FotoDoFeed {
   mesKey: string;
   assetId: string;
   legenda: string;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
   criadoEm: string;
 }
 
@@ -376,7 +413,8 @@ export interface Receita {
   descricao: string;
   categoria: string;
   valor: number;
-  usuario: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
 }
 
 /** Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca. */
@@ -458,7 +496,8 @@ export interface ContaOuCartao {
 
 /** Acerto dos gastos divididos: saldo positivo tem a receber; negativo deve. */
 export interface AcertoDeDivisao {
-  email: string;
+  /** Id da pessoa; nulo quando a conta foi excluida. */
+  pessoa: string | null;
   pagou: number;
   parte: number;
   saldo: number;

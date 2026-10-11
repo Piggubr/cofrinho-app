@@ -15,6 +15,7 @@ import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
+import { PessoaPipe } from '../../core/api/pessoas-da-familia';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -31,7 +32,16 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ResumoDoMesCard, AvisosDoMes],
+  imports: [
+    Icone,
+    FormsModule,
+    RouterLink,
+    MoedaPipe,
+    DataBrPipe,
+    PessoaPipe,
+    ResumoDoMesCard,
+    AvisosDoMes,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class MovieServiceTest extends PostgresIntegrationTest {
 
-    private static final String TITULAR = "titular@piggu.test";
-    private static final String EDUARDO = "eduardo@piggu.test";
+    private static final UUID TITULAR = UUID.nameUUIDFromBytes("titular@piggu.test".getBytes());
+    private static final UUID EDUARDO = UUID.nameUUIDFromBytes("eduardo@piggu.test".getBytes());
 
     @Autowired
     private MovieService filmes;
@@ -95,7 +95,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
         filmes.avaliar(filme.id(), 5, TITULAR);
         MovieResponse depois = filmes.avaliar(filme.id(), 4, EDUARDO);
 
-        assertThat(depois.avaliacoes()).containsEntry(TITULAR, 5).containsEntry(EDUARDO, 4);
+        assertThat(depois.avaliacoes()).containsEntry(TITULAR.toString(), 5).containsEntry(EDUARDO.toString(), 4);
         assertThat(filmes.listar().get(0).avaliacoes()).hasSize(2);
     }
 
@@ -107,7 +107,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
         filmes.avaliar(filme.id(), 3, TITULAR);
         MovieResponse depois = filmes.avaliar(filme.id(), 5, TITULAR);
 
-        assertThat(depois.avaliacoes()).hasSize(1).containsEntry(TITULAR, 5);
+        assertThat(depois.avaliacoes()).hasSize(1).containsEntry(TITULAR.toString(), 5);
     }
 
     @Test
@@ -123,7 +123,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
     @DisplayName("membro nao apaga filme de outra pessoa, mas o titular e o admin apagam")
     void exclusaoRespeitaDono() {
         MovieResponse filme = adicionar("603", "Matrix");
-        CurrentUser outra = new CurrentUser(UUID.randomUUID(), EDUARDO, PigguRole.MEMBRO);
+        CurrentUser outra = new CurrentUser(EDUARDO, "eduardo@piggu.test", PigguRole.MEMBRO);
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         assertThatThrownBy(() -> filmes.excluir(filme.id(), outra)).isInstanceOf(ForbiddenException.class);

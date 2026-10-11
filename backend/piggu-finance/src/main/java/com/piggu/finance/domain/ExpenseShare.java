@@ -25,8 +25,8 @@ public class ExpenseShare {
     @Column(name = "expense_id", nullable = false)
     private UUID expenseId;
 
-    @Column(name = "member_email", nullable = false, length = 320)
-    private String memberEmail;
+    @Column(name = "member_id")
+    private UUID memberId;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
@@ -34,10 +34,10 @@ public class ExpenseShare {
     protected ExpenseShare() {
     }
 
-    public ExpenseShare(UUID expenseId, String memberEmail, BigDecimal amount) {
+    public ExpenseShare(UUID expenseId, UUID memberId, BigDecimal amount) {
         this.id = UUID.randomUUID();
         this.expenseId = expenseId;
-        this.memberEmail = memberEmail;
+        this.memberId = memberId;
         this.amount = amount;
     }
 }

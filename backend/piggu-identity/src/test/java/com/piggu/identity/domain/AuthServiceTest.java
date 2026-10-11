@@ -228,7 +228,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
         TokenResponse acesso = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
         assertThat(acesso.usuario().preferencias())
-                .isEqualTo(new UserResponse.Preferencias("BRL", "USD", true, "America/Sao_Paulo", "pt-BR"));
+                .isEqualTo(new UserResponse.Preferencias("BRL", "USD", true, "America/Sao_Paulo", "pt-BR", java.util.List.of()));
     }
 
     @Test
@@ -240,7 +240,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
         auth.salvarPreferencias(id, new PreferencesRequest("usd", "jpy", false, "Europe/Lisbon"));
 
         assertThat(auth.perfil(id).preferencias())
-                .isEqualTo(new UserResponse.Preferencias("USD", "JPY", false, "Europe/Lisbon", "pt-BR"));
+                .isEqualTo(new UserResponse.Preferencias("USD", "JPY", false, "Europe/Lisbon", "pt-BR", java.util.List.of()));
         assertThatThrownBy(() -> auth.salvarPreferencias(id, new PreferencesRequest("BRL", "USD", true, "Marte/Base")))
                 .isInstanceOf(BusinessException.class);
     }

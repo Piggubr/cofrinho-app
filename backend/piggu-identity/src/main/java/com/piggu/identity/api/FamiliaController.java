@@ -2,11 +2,13 @@ package com.piggu.identity.api;
 
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.PigguRole;
 import com.piggu.identity.api.dto.FamiliaResponse;
 import com.piggu.identity.domain.FamiliaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,6 +71,17 @@ public class FamiliaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse removerMembro(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.removerMembro(usuario, id);
+    }
+
+    public record PapelRequest(@NotNull(message = "Escolha o papel.") PigguRole papel) {
+    }
+
+    /** Promove a parceiro ou volta a membro. */
+    @PutMapping("/members/{id}/role")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    public FamiliaResponse mudarPapel(@PathVariable UUID id, @Valid @RequestBody PapelRequest pedido,
+                                      @AuthUser CurrentUser usuario) {
+        return servico.mudarPapel(usuario, id, pedido.papel());
     }
 
     /** Convites de outras familias para o e-mail de quem esta logado. */

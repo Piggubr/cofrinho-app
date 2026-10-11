@@ -10,6 +10,6 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, UUID> 
 
     List<BankAccount> findByConnection(BankConnection connection);
 
-    @Query("SELECT a FROM BankAccount a JOIN FETCH a.connection c WHERE c.userEmail = ?1 ORDER BY c.institution, a.name")
-    List<BankAccount> listarDoUsuario(String userEmail);
+    @Query("SELECT a FROM BankAccount a JOIN FETCH a.connection c WHERE c.userId = ?1 ORDER BY c.institution, a.name")
+    List<BankAccount> listarDoUsuario(UUID userId);
 }

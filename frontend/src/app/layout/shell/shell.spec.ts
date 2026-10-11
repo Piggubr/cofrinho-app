@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
-import { AuthFalso } from '../../testing/auth-falso';
+import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Shell } from './shell';
 
 /** A cotacao do topo segue as preferencias de moeda da pessoa. */
@@ -98,19 +98,67 @@ describe('Shell', () => {
     });
   });
 
-  it('a barra de baixo tem os atalhos e o "Mais" abre o menu com todas as telas', () => {
+  it('cinco abas embaixo, o "+" flutuando e o "Mais" abre o menu em grupos', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
 
     const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
-    expect(abas).toEqual(['Painel', 'Gastos', '', 'Relatórios', 'Mais']);
+    expect(abas).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar', 'Mais']);
+    expect(pagina.querySelector('a.lancar-flutuante')!.getAttribute('href')).toBe('/gastos');
     expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
 
     (pagina.querySelector('nav.abas button') as HTMLButtonElement).click();
     tela.detectChanges();
     expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
     expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(16);
+    expect([...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim())).toEqual([
+      'Dia a dia',
+      'Planejar',
+      'Cartões e datas',
+      'Estilo de vida',
+      'Família e plano',
+    ]);
+  });
+
+  it('so os modulos de estilo de vida ligados no perfil aparecem; sem nenhum, o grupo some', () => {
+    const usuario = usuarioDeTeste();
+    auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: ['filmes'] } });
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const itens = () => [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) => a.textContent?.trim());
+
+    expect(itens()).toContain('Filmes');
+    expect(itens()).not.toContain('Compras');
+    expect(itens()).not.toContain('Fotos');
+
+    auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: [] } });
+    tela.detectChanges();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    expect(itens()).not.toContain('Filmes');
+    expect(pagina.textContent).not.toContain('Estilo de vida');
+  });
+
+  it('o membro nao tem o "+" de lancar', () => {
+    auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    expect((tela.nativeElement as HTMLElement).querySelector('a.lancar-flutuante')).toBeNull();
+  });
+
+  it('o parceiro ve as telas de dinheiro, mas nao o Premium, que e do titular', () => {
+    auth.usuario.set(usuarioDeTeste({ role: 'PARCEIRO' }));
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const itens = [...(tela.nativeElement as HTMLElement).querySelectorAll('nav.menu .menu-itens a')].map((a) =>
+      a.textContent?.trim(),
+    );
+
+    expect(itens).toContain('Gastos');
+    expect(itens).toContain('Receitas');
+    expect(itens).not.toContain('Premium');
+    expect(itens.length).toBe(15);
   });
 
   it('no app iOS com o plugin, troca a barra HTML pelas abas nativas', () => {
@@ -137,8 +185,8 @@ describe('Shell', () => {
     expect(configuradas.at(-1)!.map((aba) => aba.id)).toEqual([
       '/painel',
       '/gastos',
-      'lancar',
       '/relatorios',
+      '/planejar',
       'mais',
     ]);
 

@@ -57,7 +57,7 @@ class LeitorDeRecibosTest {
         when(gemini.habilitado()).thenReturn(true);
         when(memoria.findByProductKey(anyString())).thenReturn(Optional.empty());
         when(memoria.findByProductKey("leite ninho")).thenReturn(Optional.of(new ProductMemory(
-                "leite ninho", "Leite Ninho 400g", "Alimentação", BigDecimal.ONE, LocalDate.now(), "b@piggu.test")));
+                "leite ninho", "Leite Ninho 400g", "Alimentação", BigDecimal.ONE, LocalDate.now(), UUID.randomUUID())));
 
         ReceiptParseResponse resposta = leitor.ler(FOTO, USUARIO);
 

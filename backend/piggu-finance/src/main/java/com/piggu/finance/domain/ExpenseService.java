@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -45,19 +47,22 @@ public class ExpenseService {
     private final RegrasDeCategoria regras;
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
+    private final TrilhaDeAuditoria trilha;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
                           ProductMemoryService memoriaDeProdutos,
                           RegrasDeCategoria regras,
                           PaymentAccountRepository contas,
-                          DivisaoDeGastos divisao) {
+                          DivisaoDeGastos divisao,
+                          TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
         this.regras = regras;
         this.contas = contas;
         this.divisao = divisao;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +89,7 @@ public class ExpenseService {
      * perto disso.</p>
      */
     @Transactional
-    public List<ExpenseResponse> salvar(SaveExpensesRequest pedido, String emailUsuario) {
+    public List<ExpenseResponse> salvar(SaveExpensesRequest pedido, UUID usuarioId) {
         UUID reciboId = pedido.reciboId() == null ? UUID.randomUUID() : pedido.reciboId();
         String estabelecimento = Texto.limitar(pedido.estabelecimento(), 200);
         String origem = Texto.limitarOuPadrao(pedido.origem(), 30, ORIGEM_PADRAO);
@@ -96,7 +101,7 @@ public class ExpenseService {
         int parcelas = pedido.parcelas() == null ? 1 : pedido.parcelas();
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
-                .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, emailUsuario,
+                .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, usuarioId,
                         regrasDaFamilia, parcelas).stream())
                 .toList();
         gastos.forEach(gasto -> gasto.pagarCom(pedido.contaId()));
@@ -104,12 +109,13 @@ public class ExpenseService {
         List<Expense> salvos = repositorio.saveAll(gastos);
         if (pedido.dividirCom() != null) {
             divisao.dividir(salvos, pedido.dividirCom().stream()
-                    .map(email -> email.trim().toLowerCase(Locale.ROOT)).distinct().toList());
+                    .filter(Objects::nonNull).distinct().toList());
         }
         // ponytail: parcela nao entra na memoria de precos (o valor seria o da parcela, nao o do produto).
         if (parcelas == 1) {
             memoriaDeProdutos.registrar(salvos);
         }
+        salvos.forEach(gasto -> trilha.criou("gasto", gasto.getId(), Resumos.gasto(gasto)));
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
@@ -150,7 +156,7 @@ public class ExpenseService {
      * @return quantas entraram
      */
     @Transactional
-    public int importar(List<LinhaImportada> linhas, UUID contaId, String emailUsuario) {
+    public int importar(List<LinhaImportada> linhas, UUID contaId, UUID usuarioId) {
         if (contaId != null && !contas.existsById(contaId)) {
             throw new NotFoundException("Conta ou cartao nao encontrado.");
         }
@@ -166,13 +172,17 @@ public class ExpenseService {
                     String origem = Texto.vazio(l.categoria()) ? ORIGEM_EXTRATO : ORIGEM_PADRAO;
                     Expense gasto = new Expense(l.data(), lote, "", Texto.limitar(l.descricao(), 200),
                             categoriaDe(item, "", origem, regrasDaFamilia), l.valor(), TIPO_PADRAO, ORIGEM_EXTRATO,
-                            emailUsuario);
+                            usuarioId);
                     gasto.importadoDe(l.idExterno());
                     gasto.pagarCom(contaId);
                     return gasto;
                 })
                 .toList();
         memoriaDeProdutos.registrar(repositorio.saveAll(novos));
+        if (!novos.isEmpty()) {
+            trilha.registrar(TrilhaDeAuditoria.Acao.IMPORTOU, "gasto", lote, null,
+                    novos.size() + " gastos do extrato");
+        }
         log.info("Extrato importado: linhas={} novas={}", linhas.size(), novos.size());
         return novos.size();
     }
@@ -188,15 +198,14 @@ public class ExpenseService {
                 ? repositorio.findAllByOrderByExpenseDateDescCreatedAtDesc()
                 : repositorio.findByExpenseDateBetweenOrderByExpenseDateDesc(
                         YearMonth.parse(mes).atDay(1), YearMonth.parse(mes).atEndOfMonth());
-        StringBuilder csv = new StringBuilder("data;item;categoria;valor;estabelecimento;origem;quem lancou\n");
+        StringBuilder csv = new StringBuilder("data;item;categoria;valor;estabelecimento;origem\n");
         for (Expense g : gastos) {
             csv.append(g.getExpenseDate()).append(';')
                     .append(celulaCsv(g.getItem())).append(';')
                     .append(celulaCsv(g.getCategory())).append(';')
                     .append(g.getAmount().toPlainString().replace('.', ',')).append(';')
                     .append(celulaCsv(g.getMerchant())).append(';')
-                    .append(celulaCsv(g.getSource())).append(';')
-                    .append(celulaCsv(g.getUserEmail())).append('\n');
+                    .append(celulaCsv(g.getSource())).append('\n');
         }
         return csv.toString();
     }
@@ -216,18 +225,23 @@ public class ExpenseService {
     @Transactional
     public ExpenseResponse atualizar(UUID id, UpdateExpenseRequest pedido) {
         Expense gasto = buscar(id);
+        String antes = Resumos.gasto(gasto);
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
         log.info("Gasto editado: id={}", id);
-        return ExpenseResponse.de(repositorio.save(gasto));
+        Expense salvo = repositorio.save(gasto);
+        trilha.editou("gasto", id, antes, Resumos.gasto(salvo));
+        return ExpenseResponse.de(salvo);
     }
 
     @Transactional
     public void excluir(UUID id) {
-        repositorio.delete(buscar(id));
+        Expense gasto = buscar(id);
+        repositorio.delete(gasto);
+        trilha.apagou("gasto", id, Resumos.gasto(gasto));
         log.info("Gasto apagado: id={}", id);
     }
 
@@ -235,7 +249,10 @@ public class ExpenseService {
     @Transactional
     public void excluirSeExistir(UUID id) {
         if (id != null) {
-            repositorio.findById(id).ifPresent(repositorio::delete);
+            repositorio.findById(id).ifPresent(gasto -> {
+                repositorio.delete(gasto);
+                trilha.apagou("gasto", id, Resumos.gasto(gasto));
+            });
         }
     }
 
@@ -264,7 +281,7 @@ public class ExpenseService {
 
     /** Um item vira uma linha; parcelado, uma linha por mes com o valor dividido (o centavo que sobra vai na ultima). */
     private List<Expense> montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
-                                 String estabelecimento, String origem, String emailUsuario,
+                                 String estabelecimento, String origem, UUID usuarioId,
                                  List<CategoryRule> regrasDaFamilia, int parcelas) {
         if ((item.moedaOriginal() == null) != (item.valorOriginal() == null)) {
             throw new BusinessException("Informe a moeda e o valor original juntos.");
@@ -282,7 +299,7 @@ public class ExpenseService {
                     i == parcelas - 1 ? ultima : parcela,
                     Texto.limitarOuPadrao(item.tipo(), 30, TIPO_PADRAO),
                     origem,
-                    emailUsuario
+                    usuarioId
             );
             if (parcelas > 1) {
                 gasto.parcela(i + 1, parcelas);

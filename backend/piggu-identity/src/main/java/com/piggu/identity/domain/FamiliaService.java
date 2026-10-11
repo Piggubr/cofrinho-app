@@ -1,5 +1,7 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
+import com.piggu.common.auditoria.TrilhaDeAuditoria.Acao;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.error.BusinessException;
@@ -38,25 +40,31 @@ public class FamiliaService {
 
     private static final Logger log = LoggerFactory.getLogger(FamiliaService.class);
 
+    /** Entidade dos eventos de auditoria do identity: a pessoa na familia. */
+    private static final String PESSOA = "pessoa";
+
     private final HouseholdRepository familias;
     private final HouseholdInviteRepository convites;
     private final UserAccountRepository usuarios;
     private final RefreshSessionRepository sessoes;
     private final CascataDeDados cascata;
     private final TokenService tokens;
+    private final TrilhaDeAuditoria trilha;
 
     public FamiliaService(HouseholdRepository familias,
                           HouseholdInviteRepository convites,
                           UserAccountRepository usuarios,
                           RefreshSessionRepository sessoes,
                           CascataDeDados cascata,
-                          TokenService tokens) {
+                          TokenService tokens,
+                          TrilhaDeAuditoria trilha) {
         this.familias = familias;
         this.convites = convites;
         this.usuarios = usuarios;
         this.sessoes = sessoes;
         this.cascata = cascata;
         this.tokens = tokens;
+        this.trilha = trilha;
     }
 
     /**
@@ -191,6 +199,8 @@ public class FamiliaService {
         Optional<Household> vazia = sairDeOndeEsta(conta);
         conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
         usuarios.saveAndFlush(conta);
+        trilha.registrar(convite.getHouseholdId(), conta.getId(), Acao.ENTROU, PESSOA, conta.getId(), null,
+                pessoa(conta));
         vazia.ifPresent(familias::delete);
         convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(conta.getEmail()));
         sessoes.apagarPorUsuario(conta.getId());
@@ -213,15 +223,23 @@ public class FamiliaService {
         EscopoDeExclusao escopo = outros.isEmpty() ? EscopoDeExclusao.FAMILIA : EscopoDeExclusao.PESSOA;
 
         cascata.apagar(tokens.gerarTokenDeExclusao(conta, familia, escopo));
+        trilha.esquecer(familia.getId(), conta.getId(), escopo == EscopoDeExclusao.FAMILIA);
 
         if (escopo == EscopoDeExclusao.FAMILIA) {
             convites.deleteAll(convites.findByHouseholdIdOrderByCreatedAtDesc(familia.getId()));
             return Optional.of(familia);
         }
-        boolean semTitular = outros.stream().noneMatch(outro -> outro.getRole() != PigguRole.MEMBRO);
+        boolean semTitular = outros.stream().noneMatch(FamiliaService::cuidaDaFamilia);
         if (semTitular) {
-            UserAccount novoTitular = outros.get(0);
+            // O parceiro mais antigo assume; sem parceiro, o membro mais antigo.
+            UserAccount novoTitular = outros.stream()
+                    .filter(outro -> outro.getRole() == PigguRole.PARCEIRO)
+                    .findFirst()
+                    .orElse(outros.get(0));
+            String antes = pessoa(novoTitular);
             novoTitular.setRole(PigguRole.TITULAR);
+            trilha.registrar(familia.getId(), TrilhaDeAuditoria.SISTEMA, Acao.MUDOU_PAPEL, PESSOA, novoTitular.getId(),
+                    antes, pessoa(novoTitular));
             usuarios.save(novoTitular);
             sessoes.apagarPorUsuario(novoTitular.getId());
             log.info("Titularidade passada: familia={} novoTitular={}", familia.getId(), novoTitular.getId());
@@ -239,21 +257,50 @@ public class FamiliaService {
         UserAccount membro = usuarios.findById(membroId)
                 .filter(encontrado -> encontrado.getHouseholdId().equals(usuario.familia()))
                 .orElseThrow(() -> new NotFoundException("Pessoa nao encontrada na familia."));
-        if (membro.getRole() != PigguRole.MEMBRO) {
-            throw new ForbiddenException("So da para remover membros.");
+        if (cuidaDaFamilia(membro)) {
+            throw new ForbiddenException("So da para remover membros e parceiros.");
         }
+        trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
         mudarParaFamiliaPropria(membro);
         log.info("Membro removido da familia: conta={} familia={}", membroId, usuario.familia());
         return ver(usuario);
     }
 
-    /** O membro sai por conta propria e passa a ter uma familia so dele. */
+    /**
+     * O titular promove um membro a parceiro, ou volta o parceiro a membro. A pessoa
+     * entra de novo para o papel novo valer no token.
+     */
+    @Transactional
+    public FamiliaResponse mudarPapel(CurrentUser usuario, UUID membroId, PigguRole papel) {
+        exigirTitular(usuario);
+        if (papel != PigguRole.PARCEIRO && papel != PigguRole.MEMBRO) {
+            throw new BusinessException("O papel deve ser parceiro ou membro.");
+        }
+        UserAccount membro = usuarios.findById(membroId)
+                .filter(encontrado -> encontrado.getHouseholdId().equals(usuario.familia()))
+                .orElseThrow(() -> new NotFoundException("Pessoa nao encontrada na familia."));
+        if (cuidaDaFamilia(membro)) {
+            throw new ForbiddenException("O papel do titular nao muda por aqui.");
+        }
+        if (membro.getRole() != papel) {
+            String antes = pessoa(membro);
+            membro.setRole(papel);
+            trilha.registrar(usuario.familia(), usuario.id(), Acao.MUDOU_PAPEL, PESSOA, membroId, antes, pessoa(membro));
+            usuarios.save(membro);
+            sessoes.apagarPorUsuario(membro.getId());
+            log.info("Papel alterado na familia: conta={} familia={} papel={}", membroId, usuario.familia(), papel);
+        }
+        return ver(usuario);
+    }
+
+    /** O membro (ou parceiro) sai por conta propria e passa a ter uma familia so dele. */
     @Transactional
     public void sair(CurrentUser usuario) {
         UserAccount conta = conta(usuario);
-        if (conta.getRole() != PigguRole.MEMBRO) {
+        if (cuidaDaFamilia(conta)) {
             throw new BusinessException("O titular nao sai da propria familia.");
         }
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
         mudarParaFamiliaPropria(conta);
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }
@@ -268,6 +315,16 @@ public class FamiliaService {
     private UserAccount conta(CurrentUser usuario) {
         return usuarios.findById(usuario.id())
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+    }
+
+    /** "Bia · PARCEIRO": o primeiro nome basta para a familia saber quem e. */
+    private static String pessoa(UserAccount conta) {
+        return conta.primeiroNomeExibicao() + " · " + conta.getRole().name();
+    }
+
+    /** Titular ou ADMIN: quem responde pela familia e nao sai nem e removido dela. */
+    private static boolean cuidaDaFamilia(UserAccount conta) {
+        return conta.getRole() == PigguRole.TITULAR || conta.getRole() == PigguRole.ADMIN;
     }
 
     private static void exigirTitular(CurrentUser usuario) {

@@ -31,6 +31,7 @@ export class AuthFalso {
   readonly ehMembro = computed(() => this.usuario()?.role === 'MEMBRO');
   readonly ehAdmin = computed(() => this.usuario()?.role === 'ADMIN');
   readonly ehTitular = computed(() => this.usuario()?.role === 'TITULAR' || this.ehAdmin());
+  readonly podeLancar = computed(() => this.ehTitular() || this.usuario()?.role === 'PARCEIRO');
   readonly ehPremium = computed(
     () => this.usuario()?.role === 'ADMIN' || this.usuario()?.plano === 'PREMIUM',
   );

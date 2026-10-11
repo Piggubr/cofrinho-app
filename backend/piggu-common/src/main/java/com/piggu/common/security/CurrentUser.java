@@ -9,7 +9,8 @@ import java.util.UUID;
  * Usuario autenticado, montado a partir das claims do JWT.
  *
  * @param id      identificador no servico de identidade
- * @param email   e-mail normalizado em minusculas; marca o autor nas tabelas de dominio
+ * @param email   e-mail normalizado em minusculas; so o identity guarda, os outros servicos
+ *                marcam o autor pelo {@code id}
  * @param role    papel de acesso
  * @param plano   plano da familia quando o token foi emitido; GRATUITO quando o token nao diz
  * @param familia familia (household) da pessoa; todo dado de dominio pertence a uma
@@ -38,6 +39,11 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
         return role == PigguRole.TITULAR || isAdmin();
     }
 
+    /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
+    public boolean podeLancar() {
+        return isTitular() || role == PigguRole.PARCEIRO;
+    }
+
     /** O ADMIN opera a instalacao e usa tudo; os demais dependem do plano da familia. */
     public boolean isPremium() {
         return isAdmin() || plano == Plano.PREMIUM;
@@ -52,10 +58,10 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
     }
 
     /**
-     * Autor do registro ou titular da familia. Registro de outra familia nem chega aqui:
+     * Autor do registro, titular ou parceiro da familia. Registro de outra familia nem chega aqui:
      * o filtro por familia ({@link FamiliaAtual}) ja o deixou fora da consulta.
      */
-    public boolean podeGerenciar(String emailDono) {
-        return isTitular() || (emailDono != null && emailDono.equalsIgnoreCase(email));
+    public boolean podeGerenciar(UUID dono) {
+        return podeLancar() || (dono != null && dono.equals(id));
     }
 }

@@ -58,7 +58,7 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"data\":\"2026-09-01\",\"valor\":100}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.usuario").value(TokensDeTeste.EMAIL_MEMBRO));
+                .andExpect(jsonPath("$.usuario").value(TokensDeTeste.idDe(TokensDeTeste.EMAIL_MEMBRO).toString()));
 
         mockMvc.perform(get("/api/piggy-bank").with(TokensDeTeste.membro()))
                 .andExpect(status().isOk());
@@ -70,6 +70,20 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/expenses").with(TokensDeTeste.titular())).andExpect(status().isOk());
         mockMvc.perform(get("/api/expenses").with(TokensDeTeste.admin())).andExpect(status().isOk());
         mockMvc.perform(get("/api/categories").with(TokensDeTeste.titular())).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("parceiro lanca e consulta gastos, receitas, orcamentos e contas como o titular")
+    void parceiroLanca() throws Exception {
+        mockMvc.perform(post("/api/expenses")
+                        .with(TokensDeTeste.parceiro())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Pao\",\"valor\":12.5}]}"))
+                .andExpect(status().isCreated());
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/incomes").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/budgets").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/bills").with(TokensDeTeste.parceiro())).andExpect(status().isOk());
     }
 
     @Test

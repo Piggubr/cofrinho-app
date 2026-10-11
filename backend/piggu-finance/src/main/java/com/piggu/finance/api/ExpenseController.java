@@ -47,7 +47,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/expenses")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ExpenseController {
 
     private final ExpenseService servico;
@@ -94,7 +94,7 @@ public class ExpenseController {
     public Map<String, Integer> importar(@Valid @RequestBody ImportRequest pedido, @AuthUser CurrentUser usuario) {
         int novas = servico.importar(pedido.linhas().stream()
                 .map(l -> new ExpenseService.LinhaImportada(l.data(), l.descricao(), l.valor(), l.idExterno(), l.categoria()))
-                .toList(), pedido.contaId(), usuario.email());
+                .toList(), pedido.contaId(), usuario.id());
         return Map.of("importados", novas, "pulados", pedido.linhas().size() - novas);
     }
 
@@ -127,7 +127,7 @@ public class ExpenseController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<ExpenseResponse> salvar(@Valid @RequestBody SaveExpensesRequest pedido,
                                         @AuthUser CurrentUser usuario) {
-        return servico.salvar(pedido, usuario.email());
+        return servico.salvar(pedido, usuario.id());
     }
 
     @PutMapping("/{id}")

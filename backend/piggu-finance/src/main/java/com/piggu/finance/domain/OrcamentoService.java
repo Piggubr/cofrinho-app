@@ -1,5 +1,6 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import org.springframework.stereotype.Service;
@@ -34,11 +35,14 @@ public class OrcamentoService {
     private final CategoryBudgetRepository orcamentos;
     private final ExpenseRepository gastos;
     private final CategoryService categorias;
+    private final TrilhaDeAuditoria trilha;
 
-    public OrcamentoService(CategoryBudgetRepository orcamentos, ExpenseRepository gastos, CategoryService categorias) {
+    public OrcamentoService(CategoryBudgetRepository orcamentos, ExpenseRepository gastos, CategoryService categorias,
+                            TrilhaDeAuditoria trilha) {
         this.orcamentos = orcamentos;
         this.gastos = gastos;
         this.categorias = categorias;
+        this.trilha = trilha;
     }
 
     @Transactional(readOnly = true)
@@ -63,13 +67,23 @@ public class OrcamentoService {
         usuario.exigirPremium("Orçamento por categoria");
         String normalizada = categorias.normalizar(categoria);
         orcamentos.findByCategory(normalizada).ifPresentOrElse(
-                orcamento -> orcamento.alterarLimite(limite, usuario.email()),
-                () -> orcamentos.save(new CategoryBudget(normalizada, limite, usuario.email())));
+                orcamento -> {
+                    String antes = Resumos.orcamento(normalizada, orcamento.getLimitAmount());
+                    orcamento.alterarLimite(limite, usuario.id());
+                    trilha.editou("orcamento", orcamento.getId(), antes, Resumos.orcamento(normalizada, limite));
+                },
+                () -> {
+                    CategoryBudget novo = orcamentos.save(new CategoryBudget(normalizada, limite, usuario.id()));
+                    trilha.criou("orcamento", novo.getId(), Resumos.orcamento(normalizada, limite));
+                });
     }
 
     /** Apagar e livre, inclusive com o Premium vencido. */
     @Transactional
     public void excluir(UUID id) {
-        orcamentos.delete(orcamentos.findById(id).orElseThrow(() -> new NotFoundException("Orcamento nao encontrado.")));
+        CategoryBudget orcamento = orcamentos.findById(id)
+                .orElseThrow(() -> new NotFoundException("Orcamento nao encontrado."));
+        orcamentos.delete(orcamento);
+        trilha.apagou("orcamento", id, Resumos.orcamento(orcamento.getCategory(), orcamento.getLimitAmount()));
     }
 }

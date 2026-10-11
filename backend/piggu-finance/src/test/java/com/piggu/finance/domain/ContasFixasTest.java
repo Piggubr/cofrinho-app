@@ -82,7 +82,7 @@ class ContasFixasTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/expenses").param("mes", "2026-10").with(casa))
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].item").value("Internet"))
-                .andExpect(jsonPath("$[0].usuario").value("auto-" + familia + "@piggu.test"));
+                .andExpect(jsonPath("$[0].usuario").value(TokensDeTeste.idDe("auto-" + familia + "@piggu.test").toString()));
     }
 
     private void criarConta(RequestPostProcessor quem, String descricao, int dia, boolean automatico) throws Exception {

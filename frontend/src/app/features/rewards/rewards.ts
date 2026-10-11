@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Premio, Resgate, SaldoDeMoedas } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
+import { PessoaPipe } from '../../core/api/pessoas-da-familia';
 
 /**
  * Fofocoins e premios.
@@ -16,7 +17,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [Icone, FormsModule],
+  imports: [Icone, FormsModule, PessoaPipe],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })
@@ -126,7 +127,7 @@ export class Rewards {
   }
 
   private recarregarPremios(): void {
-    this.rewards.listarPremios(this.auth.ehTitular()).subscribe({
+    this.rewards.listarPremios(this.auth.podeLancar()).subscribe({
       next: (premios) => this.premios.set(premios),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });
@@ -136,7 +137,7 @@ export class Rewards {
     this.carregando.set(true);
     forkJoin({
       saldo: this.rewards.consultarSaldo(),
-      premios: this.rewards.listarPremios(this.auth.ehTitular()),
+      premios: this.rewards.listarPremios(this.auth.podeLancar()),
       resgates: this.rewards.listarResgates(),
     }).subscribe({
       next: ({ saldo, premios, resgates }) => {

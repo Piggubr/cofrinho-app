@@ -37,8 +37,8 @@ public class Income {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -46,13 +46,13 @@ public class Income {
     protected Income() {
     }
 
-    public Income(LocalDate incomeDate, String description, String category, BigDecimal amount, String userEmail) {
+    public Income(LocalDate incomeDate, String description, String category, BigDecimal amount, UUID userId) {
         this.id = UUID.randomUUID();
         this.incomeDate = incomeDate;
         this.description = description;
         this.category = category;
         this.amount = amount;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -87,7 +87,7 @@ public class Income {
         return amount;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 }
