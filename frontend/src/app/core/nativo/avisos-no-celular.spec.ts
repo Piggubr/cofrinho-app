@@ -3,19 +3,14 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { UsersService } from '../api/users.service';
 
-const plugin = vi.hoisted(() => ({
+const plugin = {
   requestPermissions: vi.fn(),
   checkPermissions: vi.fn(),
   register: vi.fn(async () => undefined),
   addListener: vi.fn(),
-}));
+};
 
-vi.mock('@capacitor/core', () => ({
-  Capacitor: { getPlatform: () => 'ios', isPluginAvailable: () => true },
-}));
-vi.mock('@capacitor/push-notifications', () => ({ PushNotifications: plugin }));
-
-import { AvisosNoCelular } from './avisos-no-celular';
+import { AvisosNoCelular, PUSH_NATIVO } from './avisos-no-celular';
 
 /** Push no iPhone: permissao primeiro, e o token que o sistema der vai para o backend. */
 describe('AvisosNoCelular', () => {
@@ -24,7 +19,10 @@ describe('AvisosNoCelular', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     TestBed.configureTestingModule({
-      providers: [{ provide: UsersService, useValue: { registrarAparelho } }],
+      providers: [
+        { provide: UsersService, useValue: { registrarAparelho } },
+        { provide: PUSH_NATIVO, useValue: { disponivel: true, plugin } },
+      ],
     });
   });
 
