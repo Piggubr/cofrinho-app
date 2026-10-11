@@ -10,6 +10,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
+| [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
@@ -39,7 +40,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   versão, retenção automática e sessão com refresh token em cookie HttpOnly.
 - **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
   (Ctrl+K). Há um modo demo, sem backend, para mostrar o app
-  ([app iOS de demonstração](docs/app-ios-demo.md)).
+  ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
+  `android-demo`).
 
 ## Subindo tudo
 

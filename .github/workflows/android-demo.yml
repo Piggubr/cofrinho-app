@@ -1,0 +1,56 @@
+name: Android demo (APK de debug)
+
+# App Android da demonstracao (dados de exemplo, sem backend) para instalar no celular
+# direto pelo APK. Roda em push para branches demo/**, na mao (workflow_dispatch) e nos
+# pull requests que mexem no projeto Android, para ele nao quebrar calado.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['demo/**']
+  pull_request:
+    paths:
+      - 'frontend/android/**'
+      - 'frontend/package.json'
+      - 'frontend/capacitor.config.ts'
+      - '.github/workflows/android-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    name: Gerar Piggu-demo.apk
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - run: npm ci
+      - run: npm run build:demo
+      - run: npx cap sync android
+
+      - name: Compilar o APK de debug
+        working-directory: frontend/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Renomear o APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Piggu-demo.apk
+          ls -lh Piggu-demo.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Piggu-demo-apk
+          path: frontend/Piggu-demo.apk
+          retention-days: 30

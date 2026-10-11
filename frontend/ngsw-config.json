@@ -21,7 +21,7 @@
   "dataGroups": [
     {
       "name": "listas-para-lancar-sem-sinal",
-      "urls": ["/api/categories", "/api/accounts", "/api/family", "/api/auth/me"],
+      "urls": ["/api/categories", "/api/accounts"],
       "cacheConfig": {
         "strategy": "freshness",
         "maxSize": 20,
