@@ -193,10 +193,66 @@ describe('Expenses', () => {
     http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
   });
 
+  it('lançamento rápido: o resto fica em Mais opções e a última conta vira a padrão', () => {
+    localStorage.setItem('piggu_conta_padrao', 'c2');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(
+      tela,
+      [],
+      [],
+      [
+        {
+          id: 'c1',
+          nome: 'Conta',
+          tipo: 'CONTA',
+          fechamento: null,
+          vencimento: null,
+          faturaAberta: null,
+        },
+        {
+          id: 'c2',
+          nome: 'Nubank',
+          tipo: 'CARTAO',
+          fechamento: 3,
+          vencimento: 10,
+          faturaAberta: null,
+        },
+      ],
+    );
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    const opcoes = pagina.querySelector<HTMLDetailsElement>('details.mais-opcoes')!;
+    expect(opcoes.open).toBe(false);
+    expect(opcoes.querySelector('summary')?.textContent).toContain('Hoje · Nubank · à vista');
+
+    const t = tela.componentInstance as unknown as {
+      novoItem: { set(v: string): void };
+      novoValor: { set(v: number): void };
+      novaConta: { set(v: string): void };
+      novasParcelas: { set(v: number): void };
+      lancar(): void;
+    };
+    t.novaConta.set('c1');
+    t.novasParcelas.set(3);
+    tela.detectChanges();
+    expect(opcoes.querySelector('summary')?.textContent).toContain('Conta · 3x');
+    t.novoItem.set('Mercado');
+    t.novoValor.set(90);
+    t.lancar();
+    const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
+    expect(pedido.request.body.contaId).toBe('c1');
+    pedido.flush([]);
+    http.expectOne((r) => r.url === '/api/expenses').flush([]);
+    http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
+    expect(localStorage.getItem('piggu_conta_padrao')).toBe('c1');
+    localStorage.removeItem('piggu_conta_padrao');
+  });
+
   function abrirCom(
     tela: ReturnType<typeof TestBed.createComponent<Expenses>>,
     membros: unknown[] = [],
     acerto: unknown[] = [],
+    contas: unknown[] = [],
   ): void {
     tela.detectChanges();
     http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
@@ -206,7 +262,7 @@ describe('Expenses', () => {
       .expectOne('/api/family')
       .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] });
     http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush([]);
+    http.expectOne('/api/accounts').flush(contas);
     http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
   }
 });

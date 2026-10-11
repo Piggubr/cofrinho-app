@@ -9,8 +9,17 @@
 @if (sugestaoDeRegra(); as s) {
   <p class="aviso sucesso">
     <span i18n>Sempre usar {{ s.categoria }} para "{{ s.termo }}"?</span>
-    <button i18n type="button" class="botao contorno pequeno" (click)="criarRegra(s.termo, s.categoria)">Criar regra</button>
-    <button i18n type="button" class="botao contorno pequeno" (click)="sugestaoDeRegra.set(null)">Agora não</button>
+    <button
+      i18n
+      type="button"
+      class="botao contorno pequeno"
+      (click)="criarRegra(s.termo, s.categoria)"
+    >
+      Criar regra
+    </button>
+    <button i18n type="button" class="botao contorno pequeno" (click)="sugestaoDeRegra.set(null)">
+      Agora não
+    </button>
   </p>
 }
 
@@ -19,17 +28,8 @@
     <h2 i18n>Lançar gasto</h2>
   </div>
 
+  <!-- Lancamento rapido: valor, categoria e descricao; o resto ja vem preenchido. -->
   <div class="linha-de-campos">
-    <div class="campo">
-      <label i18n for="item">Item</label>
-      <input i18n-placeholder
-        id="item" maxlength="200"
-        type="text"
-        [ngModel]="novoItem()"
-        (ngModelChange)="novoItem.set($event)"
-        placeholder="Ex.: Leite"
-      />
-    </div>
     <div class="campo">
       <label i18n for="valor">Valor ({{ moeda.simbolo() }})</label>
       <input
@@ -45,19 +45,9 @@
       />
       @if (precoAcima(); as p) {
         <p i18n class="linha-detalhe alerta-preco" role="status">
-          <app-icone nome="alerta" [tamanho]="14" /> {{ p.percentual }}% acima da média deste item ({{ p.media | moeda }})
+          <app-icone nome="alerta" [tamanho]="14" /> {{ p.percentual }}% acima da média deste item
+          ({{ p.media | moeda }})
         </p>
-      }
-    </div>
-    <div class="campo">
-      <label i18n for="moeda-compra">Moeda da compra</label>
-      <select id="moeda-compra" [ngModel]="moedaDaCompra()" (ngModelChange)="trocarMoeda($event)">
-        @for (codigo of moedasDaCompra(); track codigo) {
-          <option [value]="codigo">{{ codigo }}</option>
-        }
-      </select>
-      @if (convertido() !== null) {
-        <p i18n class="linha-detalhe">≈ {{ convertido() | moeda }} (cotação de hoje)</p>
       }
     </div>
     <div class="campo">
@@ -74,66 +64,117 @@
       </select>
     </div>
     <div class="campo">
-      <label i18n for="data">Data</label>
-      <input id="data" type="date" [ngModel]="novaData()" (ngModelChange)="novaData.set($event)" />
-    </div>
-    @if (contas().length) {
-      <div class="campo">
-        <label i18n for="conta">Pago com</label>
-        <select id="conta" [ngModel]="novaConta()" (ngModelChange)="novaConta.set($event)">
-          <option i18n value="">Não informar</option>
-          @for (conta of contas(); track conta.id) {
-            <option [value]="conta.id">{{ conta.nome }}</option>
-          }
-        </select>
-      </div>
-    }
-    @if (membros().length > 1) {
-      <fieldset class="campo dividir">
-        <legend i18n>Dividir com</legend>
-        @for (membro of membros(); track membro.id) {
-          <label>
-            <input
-              type="checkbox"
-              [checked]="dividirCom().includes(membro.id)"
-              (change)="alternarDivisao(membro.id)"
-            />
-            {{ membro.nome }}
-          </label>
-        }
-      </fieldset>
-    }
-    <div class="campo">
-      <label i18n for="parcelas">Parcelas</label>
+      <label i18n for="item">Descrição</label>
       <input
-        id="parcelas"
-        type="number"
-        min="1"
-        max="48"
-        step="1"
-        [ngModel]="novasParcelas()"
-        (ngModelChange)="novasParcelas.set($event)"
+        i18n-placeholder
+        id="item"
+        maxlength="200"
+        type="text"
+        [ngModel]="novoItem()"
+        (ngModelChange)="novoItem.set($event)"
+        placeholder="Ex.: Leite"
       />
-    </div>
-    <div class="campo">
-      <label i18n for="tipo">Tipo</label>
-      <select id="tipo" [ngModel]="novoTipo()" (ngModelChange)="novoTipo.set($event)">
-        <option i18n value="Variavel">Variável</option>
-        <option i18n value="Fixo">Fixo</option>
-      </select>
     </div>
   </div>
 
+  <details
+    class="mais-opcoes"
+    [open]="maisOpcoes()"
+    (toggle)="maisOpcoes.set($any($event.target).open)"
+  >
+    <summary>
+      <span i18n>Mais opções</span>
+      <span class="linha-detalhe">{{ resumoDasOpcoes() }}</span>
+    </summary>
+    <div class="linha-de-campos">
+      <div class="campo">
+        <label i18n for="data">Data</label>
+        <input
+          id="data"
+          type="date"
+          [ngModel]="novaData()"
+          (ngModelChange)="novaData.set($event)"
+        />
+      </div>
+      @if (contas().length) {
+        <div class="campo">
+          <label i18n for="conta">Pago com</label>
+          <select id="conta" [ngModel]="novaConta()" (ngModelChange)="novaConta.set($event)">
+            <option i18n value="">Não informar</option>
+            @for (conta of contas(); track conta.id) {
+              <option [value]="conta.id">{{ conta.nome }}</option>
+            }
+          </select>
+        </div>
+      }
+      <div class="campo">
+        <label i18n for="moeda-compra">Moeda da compra</label>
+        <select id="moeda-compra" [ngModel]="moedaDaCompra()" (ngModelChange)="trocarMoeda($event)">
+          @for (codigo of moedasDaCompra(); track codigo) {
+            <option [value]="codigo">{{ codigo }}</option>
+          }
+        </select>
+        @if (convertido() !== null) {
+          <p i18n class="linha-detalhe">≈ {{ convertido() | moeda }} (cotação de hoje)</p>
+        }
+      </div>
+      <div class="campo">
+        <label i18n for="parcelas">Parcelas</label>
+        <input
+          id="parcelas"
+          type="number"
+          min="1"
+          max="48"
+          step="1"
+          [ngModel]="novasParcelas()"
+          (ngModelChange)="novasParcelas.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="tipo">Tipo</label>
+        <select id="tipo" [ngModel]="novoTipo()" (ngModelChange)="novoTipo.set($event)">
+          <option i18n value="Variavel">Variável</option>
+          <option i18n value="Fixo">Fixo</option>
+        </select>
+      </div>
+      @if (membros().length > 1) {
+        <fieldset class="campo dividir">
+          <legend i18n>Dividir com</legend>
+          @for (membro of membros(); track membro.id) {
+            <label>
+              <input
+                type="checkbox"
+                [checked]="dividirCom().includes(membro.id)"
+                (change)="alternarDivisao(membro.id)"
+              />
+              {{ membro.nome }}
+            </label>
+          }
+        </fieldset>
+      }
+    </div>
+  </details>
+
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
-      @if (salvando()) {Guardando...} @else {Lançar}
+      @if (salvando()) {
+        Guardando...
+      } @else {
+        Lançar
+      }
     </button>
 
     @if (leiturasRestantes() === 0) {
-      <a i18n routerLink="/plano" class="botao contorno"><app-icone nome="camera" [tamanho]="18" /> Ler recibo por foto · Premium</a>
+      <a i18n routerLink="/plano" class="botao contorno"
+        ><app-icone nome="camera" [tamanho]="18" /> Ler recibo por foto · Premium</a
+      >
     } @else {
       <label i18n class="botao secundario arquivo">
-        @if (lendoRecibo()) {Lendo recibo...} @else {Ler recibo por foto}
+        @if (lendoRecibo()) {
+          Lendo recibo...
+        } @else {
+          Ler recibo por foto
+        }
         <input
           type="file"
           accept="image/*"
@@ -147,8 +188,8 @@
   @if (leiturasRestantes() !== null) {
     <p i18n class="linha-detalhe">
       @if (leiturasRestantes() === 0) {
-        As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode
-        lançar os itens à mão.
+        As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode lançar
+        os itens à mão.
       } @else {
         Restam {{ leiturasRestantes() }} leituras de nota grátis neste mês.
       }
@@ -161,8 +202,8 @@
     <h2 i18n id="titulo-ia">Ler com a IA do Google?</h2>
     <p>{{ pedido.mensagem }}</p>
     <p i18n class="linha-detalhe">
-      A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os
-      itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no
+      A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os itens.
+      Sua autorização fica registrada e vale para as próximas fotos. Detalhes no
       <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
     </p>
     <div class="acoes">
@@ -199,7 +240,8 @@
           <input
             [id]="'confItem' + $index"
             type="text"
-            [value]="item.item" maxlength="200"
+            [value]="item.item"
+            maxlength="200"
             (input)="atualizarItemDoRecibo($index, 'item', $any($event.target).value)"
           />
         </div>
@@ -227,7 +269,17 @@
           />
         </div>
         <div class="campo alinhado">
-          <button type="button" class="botao icone-so perigo" (click)="removerItemDoRecibo($index)" aria-label="Remover" i18n-aria-label title="Remover" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="removerItemDoRecibo($index)"
+            aria-label="Remover"
+            i18n-aria-label
+            title="Remover"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
         </div>
       </div>
     }
@@ -236,7 +288,9 @@
       <button i18n type="button" class="botao" (click)="confirmarRecibo()" [disabled]="salvando()">
         Lançar {{ itensEmConferencia().length }} item(ns)
       </button>
-      <button i18n type="button" class="botao contorno" (click)="cancelarRecibo()">Descartar</button>
+      <button i18n type="button" class="botao contorno" (click)="cancelarRecibo()">
+        Descartar
+      </button>
     </div>
   </section>
 }
@@ -248,8 +302,24 @@
       <p i18n class="linha-detalhe">Total de {{ totalDoMes() | moeda }}</p>
     </div>
     <div class="cabecalho-mes">
-      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
-      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
+      <button
+        type="button"
+        class="botao contorno icone-so"
+        (click)="trocarMes(-1)"
+        aria-label="Mês anterior"
+        i18n-aria-label
+      >
+        <app-icone nome="esquerda" [tamanho]="18" />
+      </button>
+      <button
+        type="button"
+        class="botao contorno icone-so"
+        (click)="trocarMes(1)"
+        aria-label="Próximo mês"
+        i18n-aria-label
+      >
+        <app-icone nome="direita" [tamanho]="18" />
+      </button>
     </div>
   </div>
 
@@ -264,7 +334,8 @@
             <input
               [id]="'ed' + gasto.id"
               type="text"
-              [ngModel]="itemEditado()" maxlength="200"
+              [ngModel]="itemEditado()"
+              maxlength="200"
               (ngModelChange)="itemEditado.set($event)"
             />
           </div>
@@ -322,8 +393,28 @@
           </div>
           <div class="linha-acoes">
             <span class="linha-valor">{{ gasto.valor | moeda }}</span>
-            <button type="button" class="botao icone-so fantasma" (click)="abrirEdicao(gasto)" aria-label="Editar" i18n-aria-label title="Editar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
-            <button type="button" class="botao icone-so perigo" (click)="excluir(gasto)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+            <button
+              type="button"
+              class="botao icone-so fantasma"
+              (click)="abrirEdicao(gasto)"
+              aria-label="Editar"
+              i18n-aria-label
+              title="Editar"
+              i18n-title
+            >
+              <app-icone nome="lapis" [tamanho]="18" />
+            </button>
+            <button
+              type="button"
+              class="botao icone-so perigo"
+              (click)="excluir(gasto)"
+              aria-label="Apagar"
+              i18n-aria-label
+              title="Apagar"
+              i18n-title
+            >
+              <app-icone nome="lixeira" [tamanho]="18" />
+            </button>
           </div>
         </div>
       }
@@ -342,7 +433,9 @@
       <div class="linha">
         <div>
           <p class="linha-titulo">{{ nomeDe(pessoa.pessoa) }}</p>
-          <p i18n class="linha-detalhe">Pagou {{ pessoa.pagou | moeda }} · parte {{ pessoa.parte | moeda }}</p>
+          <p i18n class="linha-detalhe">
+            Pagou {{ pessoa.pagou | moeda }} · parte {{ pessoa.parte | moeda }}
+          </p>
         </div>
         <span class="linha-valor">
           @if (pessoa.saldo > 0) {
@@ -370,25 +463,47 @@
     <h2 i18n id="titulo-regras">Regras de categoria</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Com a categoria em "Automática", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e
-    depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto.
+    Com a categoria em "Automática", o Piggu usa estas regras pelo nome do item ou do
+    estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as
+    notas lidas por foto.
   </p>
   @for (regra of regras(); track regra.id) {
     <div class="linha">
       <p class="linha-titulo">{{ regra.termo }} → {{ regra.categoria }}</p>
-      <button type="button" class="botao icone-so perigo" (click)="excluirRegra(regra)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+      <button
+        type="button"
+        class="botao icone-so perigo"
+        (click)="excluirRegra(regra)"
+        aria-label="Apagar"
+        i18n-aria-label
+        title="Apagar"
+        i18n-title
+      >
+        <app-icone nome="lixeira" [tamanho]="18" />
+      </button>
     </div>
   } @empty {
-    <p i18n class="vazio">Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</p>
+    <p i18n class="vazio">
+      Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.
+    </p>
   }
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="termo-regra">Quando tiver</label>
-      <input id="termo-regra" maxlength="100" [ngModel]="termoDaRegra()" (ngModelChange)="termoDaRegra.set($event)" />
+      <input
+        id="termo-regra"
+        maxlength="100"
+        [ngModel]="termoDaRegra()"
+        (ngModelChange)="termoDaRegra.set($event)"
+      />
     </div>
     <div class="campo">
       <label i18n for="categoria-regra">Usar</label>
-      <select id="categoria-regra" [ngModel]="categoriaDaRegra()" (ngModelChange)="categoriaDaRegra.set($event)">
+      <select
+        id="categoria-regra"
+        [ngModel]="categoriaDaRegra()"
+        (ngModelChange)="categoriaDaRegra.set($event)"
+      >
         @for (categoria of categorias(); track categoria) {
           <option [value]="categoria">{{ categoria }}</option>
         }
@@ -396,6 +511,13 @@
     </div>
   </div>
   <div class="acoes">
-    <button i18n type="button" class="botao" (click)="criarRegra(termoDaRegra(), categoriaDaRegra())">Salvar regra</button>
+    <button
+      i18n
+      type="button"
+      class="botao"
+      (click)="criarRegra(termoDaRegra(), categoriaDaRegra())"
+    >
+      Salvar regra
+    </button>
   </div>
 </section>

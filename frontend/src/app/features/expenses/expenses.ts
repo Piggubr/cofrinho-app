@@ -20,7 +20,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
-import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { dataCurta, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
@@ -89,6 +89,8 @@ export class Expenses {
   protected readonly regras = signal<RegraDeCategoria[]>([]);
   protected readonly contas = signal<ContaOuCartao[]>([]);
   protected readonly novaConta = signal('');
+  /** Lancamento rapido: data, conta, moeda, parcelas e divisao ficam recolhidos. */
+  protected readonly maisOpcoes = signal(false);
   protected readonly novasParcelas = signal<number | null>(1);
 
   /** Compra em outra moeda: converte pela cotacao do dia antes de gravar. */
@@ -120,11 +122,33 @@ export class Expenses {
   protected readonly totalEmConferencia = computed(() =>
     this.itensEmConferencia().reduce((soma, item) => soma + Number(item.valor || 0), 0),
   );
+  /** O que esta escolhido em "Mais opções", para conferir sem abrir. */
+  protected readonly resumoDasOpcoes = computed(() => {
+    const data = this.novaData() === hojeIso() ? $localize`Hoje` : dataCurta(this.novaData());
+    const conta = this.contas().find((c) => c.id === this.novaConta());
+    const parcelas = this.novasParcelas() ?? 1;
+    const partes = [
+      data,
+      conta ? conta.nome : $localize`sem conta`,
+      parcelas > 1 ? `${parcelas}x` : $localize`à vista`,
+    ];
+    if (this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo()) {
+      partes.push(this.moedaDaCompra());
+    }
+    if (this.dividirCom().length) partes.push($localize`dividido`);
+    return partes.join(' · ');
+  });
 
   constructor() {
     this.carregar();
     this.carregarRegras();
-    this.finance.contas().subscribe({ next: (lista) => this.contas.set(lista) });
+    this.finance.contas().subscribe({
+      next: (lista) => {
+        this.contas.set(lista);
+        const padrao = lerContaPadrao();
+        if (padrao && lista.some((conta) => conta.id === padrao)) this.novaConta.set(padrao);
+      },
+    });
     this.familia.ver().subscribe({ next: (familia) => this.membros.set(familia.membros) });
     this.moedaDaCompra.set(this.moeda.codigo());
     if (!this.auth.ehPremium()) {
@@ -211,6 +235,7 @@ export class Expenses {
       })
       .subscribe({
         next: (salvos) => {
+          guardarContaPadrao(this.novaConta());
           this.novoItem.set('');
           this.novoValor.set(null);
           this.novasParcelas.set(1);
@@ -484,5 +509,25 @@ export class Expenses {
         this.carregando.set(false);
       },
     });
+  }
+}
+
+const CONTA_PADRAO = 'piggu_conta_padrao';
+
+/** A ultima conta usada vira a padrao do proximo lancamento, neste aparelho. */
+function lerContaPadrao(): string {
+  try {
+    return localStorage.getItem(CONTA_PADRAO) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function guardarContaPadrao(conta: string): void {
+  try {
+    if (conta) localStorage.setItem(CONTA_PADRAO, conta);
+    else localStorage.removeItem(CONTA_PADRAO);
+  } catch {
+    // Sem armazenamento (aba privada): segue sem lembrar.
   }
 }
