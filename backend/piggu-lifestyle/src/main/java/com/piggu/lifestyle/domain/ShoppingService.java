@@ -23,7 +23,9 @@ import java.util.regex.Pattern;
 public class ShoppingService {
 
     private static final Pattern SOMENTE_DIGITOS = Pattern.compile("\\D");
-    private static final Pattern URL_SEGURA = Pattern.compile("^https://.+");
+    /** So fotos do catalogo (Open Food Facts), o mesmo host que a CSP do site libera. */
+    private static final Pattern URL_SEGURA =
+            Pattern.compile("^https://(images|static)[.]openfoodfacts[.]org/[^\\s\"'<>]+$");
 
     private final ShoppingItemRepository repositorio;
 
@@ -81,10 +83,11 @@ public class ShoppingService {
     }
 
     /**
-     * So aceita imagem servida por HTTPS.
+     * So aceita imagem do catalogo.
      *
-     * <p>A URL vem do catalogo externo e acaba dentro de uma tag img: um endereco
-     * http ou javascript aqui seria conteudo de terceiro dentro da pagina.</p>
+     * <p>A URL chega do navegador e acaba numa tag img que a familia inteira abre: um
+     * host qualquer receberia o IP de todos. Ficam so as fotos do Open Food Facts, que
+     * o aviso de privacidade lista e a CSP libera.</p>
      */
     private String imagemSegura(String url) {
         String limpo = Texto.limitar(url, 1000);

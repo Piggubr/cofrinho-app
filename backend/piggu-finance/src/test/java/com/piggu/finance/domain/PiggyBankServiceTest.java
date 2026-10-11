@@ -31,10 +31,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class PiggyBankServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
-    private static final CurrentUser FAMILIAR =
-            new CurrentUser(UUID.randomUUID(), "familiar@piggu.test", PigguRole.FAMILIAR);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
+    private static final CurrentUser MEMBRO =
+            new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
 
     @Autowired
     private PiggyBankService cofrinho;
@@ -58,9 +58,9 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @DisplayName("gasto anterior ao primeiro deposito nao entra na conta")
     void gastoAnteriorNaoDesconta() {
         lancarGasto("Cafe antigo", "20");
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), BEATRIZ.email());
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), TITULAR.email());
 
-        PiggyBankResponse resposta = cofrinho.consultar(BEATRIZ);
+        PiggyBankResponse resposta = cofrinho.consultar(TITULAR);
 
         assertThat(resposta.totalDepositos()).isEqualByComparingTo("100");
         assertThat(resposta.totalGastos()).isEqualByComparingTo("0");
@@ -70,10 +70,10 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("gasto posterior ao primeiro deposito desconta do saldo")
     void gastoPosteriorDesconta() {
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), BEATRIZ.email());
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), TITULAR.email());
         lancarGasto("Cafe novo", "30");
 
-        PiggyBankResponse resposta = cofrinho.consultar(BEATRIZ);
+        PiggyBankResponse resposta = cofrinho.consultar(TITULAR);
 
         assertThat(resposta.totalGastos()).isEqualByComparingTo("30");
         assertThat(resposta.saldo()).isEqualByComparingTo("70");
@@ -82,20 +82,20 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("saldo soma depositos de todas as pessoas")
     void somaDepositosDeTodos() {
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), FAMILIAR.email());
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), BEATRIZ.email());
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), MEMBRO.email());
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), TITULAR.email());
 
-        assertThat(cofrinho.consultar(BEATRIZ).totalDepositos()).isEqualByComparingTo("150");
+        assertThat(cofrinho.consultar(TITULAR).totalDepositos()).isEqualByComparingTo("150");
     }
 
     @Test
-    @DisplayName("perfil familiar ve so os proprios depositos, sem desconto de gastos")
-    void familiarVeApenasOProprio() {
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), FAMILIAR.email());
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), BEATRIZ.email());
+    @DisplayName("perfil membro ve so os proprios depositos, sem desconto de gastos")
+    void membroVeApenasOProprio() {
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), MEMBRO.email());
+        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), TITULAR.email());
         lancarGasto("Mercado", "40");
 
-        PiggyBankResponse resposta = cofrinho.consultar(FAMILIAR);
+        PiggyBankResponse resposta = cofrinho.consultar(MEMBRO);
 
         assertThat(resposta.depositos()).hasSize(1);
         assertThat(resposta.totalDepositos()).isEqualByComparingTo("100");
@@ -106,7 +106,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("cofrinho vazio responde zero em vez de falhar")
     void cofrinhoVazio() {
-        PiggyBankResponse resposta = cofrinho.consultar(BEATRIZ);
+        PiggyBankResponse resposta = cofrinho.consultar(TITULAR);
 
         assertThat(resposta.depositos()).isEmpty();
         assertThat(resposta.saldo()).isEqualByComparingTo("0");
@@ -116,7 +116,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @DisplayName("deposito sem data usa o dia de hoje")
     void depositoSemDataUsaHoje() {
         DepositResponse deposito =
-                cofrinho.depositar(new DepositRequest(null, new BigDecimal("10")), BEATRIZ.email());
+                cofrinho.depositar(new DepositRequest(null, new BigDecimal("10")), TITULAR.email());
 
         assertThat(deposito.data()).isEqualTo(LocalDate.now());
     }
@@ -125,9 +125,9 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @DisplayName("ninguem apaga deposito de outra pessoa")
     void naoApagaDepositoAlheio() {
         DepositResponse alheio =
-                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), BEATRIZ.email());
+                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), TITULAR.email());
 
-        assertThatThrownBy(() -> cofrinho.excluir(alheio.id(), FAMILIAR))
+        assertThatThrownBy(() -> cofrinho.excluir(alheio.id(), MEMBRO))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessageContaining("nao pode apagar");
     }
@@ -136,7 +136,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     @DisplayName("administrador apaga deposito de qualquer pessoa")
     void adminApagaQualquerDeposito() {
         DepositResponse deposito =
-                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), BEATRIZ.email());
+                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), TITULAR.email());
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         cofrinho.excluir(deposito.id(), admin);
@@ -148,6 +148,6 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
         gastos.salvar(new SaveExpensesRequest(
                 LocalDate.now(), "Loja", null, "Manual",
                 List.of(new ExpenseItemRequest(item, "Lazer", new BigDecimal(valor), "Variavel"))
-        ), BEATRIZ.email());
+        ), TITULAR.email());
     }
 }

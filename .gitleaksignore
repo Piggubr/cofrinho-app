@@ -1,0 +1,6 @@
+# Achados revisados e liberados pelo fingerprint (commit:arquivo:regra:linha), para nao
+# esconder um segredo de verdade que apareca depois no mesmo arquivo.
+# JWT falso do teste do TMDB ({"alg":"HS256"}.{"sub":"teste"}.assinatura), nao assina nada.
+e3f5c7ccc679861d8fea0d08a8a45622cbfbfb38:backend/piggu-lifestyle/src/test/java/com/piggu/lifestyle/integration/TmdbClientTest.java:jwt:22
+# Cabecalho PEM de uma chave EC gerada na hora pelo teste do push (CanalDePushTest); nao e chave real.
+6baa19117bba8f58f173abd50ceb6dfb20079bd0:backend/piggu-identity/src/test/java/com/piggu/identity/avisos/CanalDePushTest.java:private-key:36

@@ -10,23 +10,23 @@ import { ParDeTokens, Usuario } from '../api/models';
 
 const usuario: Usuario = {
   id: '11111111-1111-1111-1111-111111111111',
-  email: 'beatriz@piggu.test',
-  nome: 'Beatriz',
-  primeiroNome: 'Beatriz',
+  email: 'titular@piggu.test',
+  nome: 'Titular',
+  primeiroNome: 'Titular',
   apelido: null,
   foto: null,
-  role: 'BEATRIZ',
+  role: 'TITULAR',
   ativo: true,
   permissoes: {},
   preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
   plano: 'GRATUITO',
   premiumAte: null,
+  familia: '22222222-2222-2222-2222-222222222222',
 };
 
 function par(sufixo: string): ParDeTokens {
   return {
     accessToken: `access-${sufixo}`,
-    refreshToken: `refresh-${sufixo}`,
     expiresIn: 1800,
     usuario,
   };
@@ -66,7 +66,7 @@ describe('authInterceptor', () => {
   afterEach(() => servidor.verify());
 
   it('anexa o token de acesso nas chamadas da API', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
 
     http.get('/api/expenses').subscribe();
 
@@ -76,7 +76,7 @@ describe('authInterceptor', () => {
   });
 
   it('nao anexa token nas rotas que servem para obter um', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
 
     http.post('/api/auth/google', { idToken: 'x' }).subscribe();
 
@@ -86,7 +86,7 @@ describe('authInterceptor', () => {
   });
 
   it('nao mexe em chamadas para fora da nossa API', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
 
     http.get('https://outro.servico.test/dados').subscribe();
 
@@ -96,7 +96,7 @@ describe('authInterceptor', () => {
   });
 
   it('renova e repete a chamada quando o token venceu', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
     let resposta: unknown;
 
     http.get('/api/expenses').subscribe((dados) => (resposta = dados));
@@ -104,7 +104,9 @@ describe('authInterceptor', () => {
     servidor.expectOne('/api/expenses').flush(null, { status: 401, statusText: 'Unauthorized' });
 
     const renovacao = servidor.expectOne('/api/auth/refresh');
-    expect(renovacao.request.body).toEqual({ refreshToken: 'refresh-1' });
+    // O refresh vai no cookie, que o navegador manda sozinho: o corpo segue vazio.
+    expect(renovacao.request.body).toEqual({});
+    expect(renovacao.request.withCredentials).toBe(true);
     renovacao.flush(par('2'));
 
     const repetida = servidor.expectOne('/api/expenses');
@@ -116,7 +118,7 @@ describe('authInterceptor', () => {
   });
 
   it('uma renovacao so atende varias chamadas que venceram juntas', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
 
     http.get('/api/expenses').subscribe();
     http.get('/api/notes').subscribe();
@@ -134,7 +136,7 @@ describe('authInterceptor', () => {
   });
 
   it('erro que nao seja 401 passa direto, sem tentar renovar', () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
     let status = 0;
 
     http.get('/api/expenses').subscribe({ error: (falha) => (status = falha.status) });
@@ -145,7 +147,7 @@ describe('authInterceptor', () => {
   });
 
   it('renovacao recusada encerra a sessao guardada', async () => {
-    storage.guardar(par('1'), true);
+    storage.guardar(par('1'));
     let falhou = false;
 
     http.get('/api/expenses').subscribe({ error: () => (falhou = true) });

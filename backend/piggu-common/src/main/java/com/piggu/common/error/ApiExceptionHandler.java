@@ -16,6 +16,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -91,7 +92,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> tratarInesperado(Exception erro, HttpServletRequest pedido) {
-        log.error("Falha inesperada em {} {}", pedido.getMethod(), pedido.getRequestURI(), erro);
+        // O padrao da rota (/api/users/{id}), nunca o caminho concreto: o caminho pode
+        // levar e-mail ou outro dado pessoal para o log.
+        Object rota = pedido.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        log.error("Falha inesperada em {} {}", pedido.getMethod(), rota == null ? "(rota desconhecida)" : rota, erro);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.de("Ocorreu um erro. Tente novamente.", "ERRO_INTERNO"));
     }

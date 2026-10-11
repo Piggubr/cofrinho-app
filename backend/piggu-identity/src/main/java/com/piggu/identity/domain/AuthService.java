@@ -1,22 +1,25 @@
 package com.piggu.identity.domain;
 
-import com.piggu.common.web.Moedas;
-import com.piggu.identity.api.dto.PreferencesRequest;
-
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Moedas;
 import com.piggu.common.web.Texto;
+import com.piggu.identity.api.dto.PreferencesRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Entrada, renovacao e saida da conta.
@@ -32,44 +35,60 @@ public class AuthService {
 
     private final GoogleIdTokenVerifier verificador;
     private final UserAccountRepository usuarios;
-    private final AuthorizedEmailRepository autorizados;
+    private final FamiliaService familias;
     private final RefreshSessionRepository sessoes;
     private final SessionRevoker revogador;
     private final TokenService tokens;
+    private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
                        UserAccountRepository usuarios,
-                       AuthorizedEmailRepository autorizados,
+                       FamiliaService familias,
                        RefreshSessionRepository sessoes,
                        SessionRevoker revogador,
-                       TokenService tokens) {
+                       TokenService tokens,
+                       @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.usuarios = usuarios;
-        this.autorizados = autorizados;
+        this.familias = familias;
         this.sessoes = sessoes;
         this.revogador = revogador;
         this.tokens = tokens;
+        this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
+                .collect(Collectors.toSet());
     }
 
     /**
      * Troca o ID token do Google por um par de tokens do Piggu.
-     * Cria a conta no primeiro acesso, desde que o e-mail esteja liberado.
+     * Cria a conta (e a familia, ou entra na que convidou) no primeiro acesso.
      */
     @Transactional
-    public TokenResponse entrarComGoogle(String idToken, String userAgent) {
+    public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, String userAgent) {
+        return entrarComGoogle(idToken, versaoDosTermos, true, userAgent);
+    }
+
+    /** @param lembrar continuar conectado: o cookie do refresh sobrevive a fechar o navegador */
+    @Transactional
+    public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, boolean lembrar, String userAgent) {
         GoogleProfile perfil = verificador.verificar(idToken);
-        UserAccount conta = obterOuCriar(perfil);
+        UserAccount conta = usuarios.findByEmail(perfil.email())
+                .orElseGet(() -> familias.criarConta(perfil.email(), perfil.givenName(), versaoDosTermos));
 
         if (!conta.isActive()) {
             log.warn("Login recusado: conta desativada id={}", conta.getId());
-            throw new ForbiddenException("Este e-mail nao esta autorizado.");
+            throw new ForbiddenException("Esta conta foi desativada.");
         }
 
         conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
+        // Promove, nunca rebaixa: tirar alguem da lista nao derruba um ADMIN por engano.
+        if (emailsDeAdmin.contains(conta.getEmail()) && conta.getRole() != PigguRole.ADMIN) {
+            conta.setRole(PigguRole.ADMIN);
+            log.info("Conta promovida a ADMIN pela PIGGU_ADMIN_EMAILS: conta={}", conta.getId());
+        }
         usuarios.save(conta);
         log.info("Login: conta={}", conta.getId());
 
-        return emitirPar(conta, userAgent);
+        return emitirPar(conta, userAgent, lembrar);
     }
 
     /** Renova o acesso e rotaciona a sessao longa: o refresh usado e' descartado. */
@@ -91,11 +110,11 @@ public class AuthService {
         if (!conta.isActive()) {
             log.warn("Renovacao recusada: conta desativada id={}", conta.getId());
             revogador.revogarTodasDe(conta.getId());
-            throw new ForbiddenException("Este e-mail nao esta autorizado.");
+            throw new ForbiddenException("Esta conta foi desativada.");
         }
 
         sessoes.delete(sessao);
-        return emitirPar(conta, userAgent);
+        return emitirPar(conta, userAgent, sessao.isRemember());
     }
 
     @Transactional
@@ -106,7 +125,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse perfil(java.util.UUID usuarioId) {
         return usuarios.findById(usuarioId)
-                .map(UserResponse::de)
+                .map(conta -> UserResponse.de(conta, familias.daConta(conta)))
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
     }
 
@@ -116,11 +135,22 @@ public class AuthService {
         String conversao = Moedas.validar(pedido.moedaConversao());
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
-        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao());
-        return UserResponse.de(conta);
+        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao(), fusoValido(pedido.fuso()));
+        return UserResponse.de(conta, familias.daConta(conta));
     }
 
-    private TokenResponse emitirPar(UserAccount conta, String userAgent) {
+    private static String fusoValido(String fuso) {
+        if (fuso == null || fuso.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.ZoneId.of(fuso.trim()).getId();
+        } catch (java.time.DateTimeException invalido) {
+            throw new com.piggu.common.error.BusinessException("Fuso horario desconhecido: " + Texto.limitar(fuso, 50));
+        }
+    }
+
+    private TokenResponse emitirPar(UserAccount conta, String userAgent, boolean lembrar) {
         limparSessoesVencidas();
 
         String refresh = tokens.gerarRefreshToken();
@@ -128,31 +158,18 @@ public class AuthService {
                 conta.getId(),
                 tokens.hash(refresh),
                 Texto.limitar(userAgent, 300),
-                tokens.expiracaoDaSessao()
+                tokens.expiracaoDaSessao(),
+                lembrar
         ));
 
+        Household familia = familias.daConta(conta);
         return new TokenResponse(
-                tokens.gerarAccessToken(conta),
+                tokens.gerarAccessToken(conta, familia),
                 refresh,
                 tokens.segundosDeAcesso(),
-                UserResponse.de(conta)
+                UserResponse.de(conta, familia),
+                lembrar
         );
-    }
-
-    private UserAccount obterOuCriar(GoogleProfile perfil) {
-        return usuarios.findByEmail(perfil.email()).orElseGet(() -> {
-            PigguRole role = autorizados.findByEmail(perfil.email())
-                    .map(AuthorizedEmail::getRole)
-                    .orElseThrow(() -> {
-                        // Sem o e-mail: quem nao foi liberado nao autorizou guardar nada.
-                        log.warn("Login recusado: e-mail fora da lista de liberados");
-                        return new ForbiddenException("Este e-mail nao esta autorizado.");
-                    });
-            UserAccount nova = usuarios.save(new UserAccount(perfil.email(), role));
-            // Id, nunca o e-mail: log e copia de dado pessoal que ninguem apaga.
-            log.info("Conta criada id={} perfil={}", nova.getId(), role);
-            return nova;
-        });
     }
 
     private void limparSessoesVencidas() {

@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -12,6 +13,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "custom_categories")
 public class CustomCategory {
+
+    /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
+    @TenantId
+    @Column(name = "household_id", nullable = false, updatable = false)
+    private UUID householdId;
 
     @Id
     private UUID id;

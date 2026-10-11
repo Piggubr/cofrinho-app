@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.TenantId;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -19,6 +20,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "places")
 public class Place {
+
+    /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
+    @TenantId
+    @Column(name = "household_id", nullable = false, updatable = false)
+    private UUID householdId;
 
     @Id
     private UUID id;

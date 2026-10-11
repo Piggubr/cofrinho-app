@@ -1,26 +1,31 @@
-<h1>Olá, {{ auth.usuario()?.primeiroNome }}</h1>
+<h1 i18n>Olá, {{ auth.usuario()?.primeiroNome }}</h1>
 
 @if (erro()) {
   <p class="aviso erro" role="alert">{{ erro() }}</p>
 }
 
 @if (carregando()) {
-  <p class="carregando">Carregando seus dados...</p>
+  <p i18n class="carregando">Carregando seus dados...</p>
 } @else {
+  @if (!auth.ehMembro()) {
+    <app-resumo-do-mes [mes]="mesAtual()" />
+    <app-avisos-do-mes [mes]="mesAtual()" />
+  }
+
   <section class="cartao">
     <div class="cartao-titulo">
-      <h2>Cofrinho</h2>
+      <h2 i18n>Cofrinho</h2>
       <span class="etiqueta">{{ cofrinho()?.saldo | moeda }}</span>
     </div>
 
     <div class="resumo-cofrinho">
       <div>
-        <p class="linha-detalhe">Depositado</p>
+        <p i18n class="linha-detalhe">Depositado</p>
         <p class="numero">{{ cofrinho()?.totalDepositos | moeda }}</p>
       </div>
-      @if (!auth.ehFamiliar()) {
+      @if (!auth.ehMembro()) {
         <div>
-          <p class="linha-detalhe">Gasto desde o início</p>
+          <p i18n class="linha-detalhe">Gasto desde o início</p>
           <p class="numero">{{ cofrinho()?.totalGastos | moeda }}</p>
         </div>
       }
@@ -28,7 +33,7 @@
 
     <div class="linha-de-campos deposito">
       <div class="campo">
-        <label for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
+        <label i18n for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
         <input
           id="valorDeposito"
           type="number"
@@ -41,8 +46,8 @@
         />
       </div>
       <div class="campo alinhado">
-        <button type="button" class="botao" (click)="depositar()" [disabled]="salvandoDeposito()">
-          {{ salvandoDeposito() ? 'Guardando...' : 'Depositar' }}
+        <button i18n type="button" class="botao" (click)="depositar()" [disabled]="salvandoDeposito()">
+          @if (salvandoDeposito()) {Guardando...} @else {Depositar}
         </button>
       </div>
     </div>
@@ -55,34 +60,32 @@
               <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
               <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario }}</p>
             </div>
-            <button type="button" class="botao perigo" (click)="excluirDeposito(deposito.id)">
-              Apagar
-            </button>
+            <button type="button" class="botao icone-so perigo" (click)="excluirDeposito(deposito.id)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         }
       </div>
     } @else {
-      <p class="vazio">Nenhum depósito ainda.</p>
+      <p i18n class="vazio">Nenhum depósito ainda.</p>
     }
   </section>
 
-  @if (!auth.ehFamiliar()) {
+  @if (!auth.ehMembro()) {
     <section class="cartao">
       <div class="cartao-titulo">
         <h2>{{ rotuloDoMes() }}</h2>
         <div class="navegacao-de-mes">
-          <button type="button" class="botao contorno pequeno" (click)="trocarMes(-1)">‹</button>
-          <button type="button" class="botao contorno pequeno" (click)="trocarMes(1)">›</button>
+          <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+          <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
         </div>
       </div>
 
       <div class="resumo-cofrinho">
         <div>
-          <p class="linha-detalhe">Gasto no mês</p>
+          <p i18n class="linha-detalhe">Gasto no mês</p>
           <p class="numero">{{ totalGastoNoMes() | moeda }}</p>
         </div>
         <div>
-          <p class="linha-detalhe">Meta do mês</p>
+          <p i18n class="linha-detalhe">Meta do mês</p>
           <p class="numero">
             {{ metaDoMes() > 0 ? (metaDoMes() | moeda) : '—' }}
           </p>
@@ -93,26 +96,26 @@
         <div class="progresso" [class.estourado]="estourouAMeta()">
           <span [style.width.%]="progressoDaMeta()"></span>
         </div>
-        <p class="linha-detalhe progresso-texto">
+        <p i18n class="linha-detalhe progresso-texto">
           {{ progressoDaMeta() }}% da meta
           @if (estourouAMeta()) {
             <strong> · meta ultrapassada</strong>
           }
         </p>
       } @else {
-        <p class="vazio">Sem meta definida para este mês.</p>
+        <p i18n class="vazio">Sem meta definida para este mês.</p>
       }
 
       <div class="acoes">
-        <a class="botao secundario" routerLink="/metas">Definir meta</a>
-        <a class="botao contorno" routerLink="/gastos">Ver gastos</a>
+        <a i18n class="botao secundario" routerLink="/metas">Definir meta</a>
+        <a i18n class="botao contorno" routerLink="/gastos">Ver gastos</a>
       </div>
     </section>
 
     @if (openFinance()) {
       <section class="cartao" aria-labelledby="titulo-bancos">
         <div class="cartao-titulo">
-          <h2 id="titulo-bancos">Contas bancárias</h2>
+          <h2 i18n id="titulo-bancos">Contas bancárias</h2>
           @for (total of saldoPorMoeda(); track total.moeda) {
             <span class="etiqueta">{{ total.total | moeda: total.moeda }}</span>
           }
@@ -120,6 +123,24 @@
 
         @if (erroBancos()) {
           <p class="aviso erro" role="alert">{{ erroBancos() }}</p>
+        }
+
+        @if (pedindoAutorizacaoBanco()) {
+          <div i18n-aria-label class="aviso" role="alertdialog" aria-label="Autorizar conexão com o banco">
+            <p i18n>
+              Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance.
+              Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e
+              autoriza o compartilhamento das contas e saldos. Você pode desconectar quando
+              quiser, de graça. Detalhes no
+              <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+            </p>
+            <div class="acoes">
+              <button i18n type="button" class="botao" (click)="autorizarBanco()">Autorizo, continuar</button>
+              <button i18n type="button" class="botao contorno" (click)="pedindoAutorizacaoBanco.set(false)">
+                Cancelar
+              </button>
+            </div>
+          </div>
         }
 
         @if (contas().length) {
@@ -140,13 +161,13 @@
             </div>
           }
         } @else {
-          <p class="vazio">Nenhum banco conectado.</p>
+          <p i18n class="vazio">Nenhum banco conectado.</p>
         }
 
         @for (banco of bancos(); track banco.conexaoId) {
           <div class="linha sem-borda">
-            <p class="linha-detalhe">{{ banco.instituicao }} conectado</p>
-            <button
+            <p i18n class="linha-detalhe">{{ banco.instituicao }} conectado</p>
+            <button i18n
               type="button"
               class="botao contorno pequeno"
               (click)="desconectarBanco(banco.conexaoId, banco.instituicao)"
@@ -159,18 +180,18 @@
 
         <div class="acoes" aria-live="polite">
           @if (!auth.ehPremium()) {
-            <a routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
+            <a i18n routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
           } @else {
-            <button
+            <button i18n
               type="button"
               class="botao secundario"
               (click)="conectarBanco()"
               [disabled]="ocupadoComBancos()"
             >
-              {{ ocupadoComBancos() ? 'Aguarde...' : 'Conectar banco' }}
+              @if (ocupadoComBancos()) {Aguarde...} @else {Conectar banco}
             </button>
             @if (contas().length) {
-              <button
+              <button i18n
                 type="button"
                 class="botao contorno"
                 (click)="sincronizarBancos()"
@@ -186,7 +207,7 @@
 
     <section class="cartao">
       <div class="cartao-titulo">
-        <h2>Por categoria</h2>
+        <h2 i18n>Por categoria</h2>
       </div>
 
       @if (porCategoria().length) {
@@ -202,7 +223,7 @@
           </div>
         }
       } @else {
-        <p class="vazio">Nenhum gasto lançado neste mês.</p>
+        <p i18n class="vazio">Nenhum gasto lançado neste mês.</p>
       }
     </section>
   }

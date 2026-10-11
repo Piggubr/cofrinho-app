@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ProductMemoryServiceTest extends PostgresIntegrationTest {
 
-    private static final CurrentUser BEATRIZ =
-            new CurrentUser(UUID.randomUUID(), "beatriz@piggu.test", PigguRole.BEATRIZ);
+    private static final CurrentUser TITULAR =
+            new CurrentUser(UUID.randomUUID(), "titular@piggu.test", PigguRole.TITULAR);
 
     @Autowired
     private ExpenseService gastos;
@@ -128,6 +128,6 @@ class ProductMemoryServiceTest extends PostgresIntegrationTest {
         gastos.salvar(new SaveExpensesRequest(
                 data, "Mercado", null, "Manual",
                 List.of(new ExpenseItemRequest(item, "Alimentação", new BigDecimal(valor), "Variavel"))
-        ), BEATRIZ.email());
+        ), TITULAR.email());
     }
 }

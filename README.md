@@ -7,10 +7,32 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 
 | Pasta | O que é |
 |---|---|
-| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 3.5 e PostgreSQL |
+| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
+| [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
+| [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
+
+## O que o app faz
+
+- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR e MEMBRO,
+  com os dados de cada família isolados no banco.
+- **Dinheiro:** gastos (inclusive em outra moeda e divididos na família), receitas,
+  contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
+  metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
+  relatório do mês e do ano, importação de OFX/CSV sem duplicar e exportação em CSV.
+- **Bancos:** saldo pelo Open Finance (Pluggy), sempre com consentimento e com
+  desconexão grátis.
+- **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
+- **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
+- **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste
+  ([planos](docs/planos-premium.md)).
+- **Privacidade:** exportar e excluir a conta, aceite dos termos gravado com data e
+  versão, retenção automática e sessão com refresh token em cookie HttpOnly.
+- **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
+  (Ctrl+K). Há um modo demo, sem backend, para mostrar o app
+  ([app iOS de demonstração](docs/app-ios-demo.md)).
 
 ## Subindo tudo
 
@@ -48,6 +70,9 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # 204 testes (precisa de Docker)
-cd frontend && npm test     # 41 testes
+cd backend && mvn verify    # 333 testes (precisa de Docker)
+cd frontend && npm test     # 72 testes
+bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
 ```
+
+O CI roda os três a cada pull request.

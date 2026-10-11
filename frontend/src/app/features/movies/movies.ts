@@ -4,18 +4,19 @@ import { LifestyleService } from '../../core/api/lifestyle.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Filme, FilmeDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
 
 /** Generos do TMDB que cabem em um sorteio de noite de filme. */
 const GENEROS: { id: string; nome: string }[] = [
-  { id: '', nome: 'Qualquer gênero' },
-  { id: '28', nome: 'Ação' },
-  { id: '35', nome: 'Comédia' },
-  { id: '18', nome: 'Drama' },
-  { id: '27', nome: 'Terror' },
-  { id: '10749', nome: 'Romance' },
-  { id: '878', nome: 'Ficção científica' },
-  { id: '16', nome: 'Animação' },
-  { id: '53', nome: 'Suspense' },
+  { id: '', nome: $localize`Qualquer gênero` },
+  { id: '28', nome: $localize`Ação` },
+  { id: '35', nome: $localize`Comédia` },
+  { id: '18', nome: $localize`Drama` },
+  { id: '27', nome: $localize`Terror` },
+  { id: '10749', nome: $localize`Romance` },
+  { id: '878', nome: $localize`Ficção científica` },
+  { id: '16', nome: $localize`Animação` },
+  { id: '53', nome: $localize`Suspense` },
 ];
 
 /**
@@ -27,7 +28,7 @@ const GENEROS: { id: string; nome: string }[] = [
  */
 @Component({
   selector: 'app-movies',
-  imports: [FormsModule],
+  imports: [Icone, FormsModule],
   templateUrl: './movies.html',
   styleUrl: './movies.scss',
 })
@@ -72,7 +73,7 @@ export class Movies {
   protected buscar(): void {
     const termo = this.busca().trim();
     if (termo.length < 2) {
-      this.erro.set('Digite pelo menos duas letras.');
+      this.erro.set($localize`Digite pelo menos duas letras.`);
       return;
     }
 
@@ -133,7 +134,7 @@ export class Movies {
   }
 
   protected excluir(filme: Filme): void {
-    if (!confirm(`Tirar "${filme.titulo}" da lista?`)) {
+    if (!confirm($localize`Tirar "${filme.titulo}" da lista?`)) {
       return;
     }
     this.lifestyle.excluirFilme(filme.id).subscribe({

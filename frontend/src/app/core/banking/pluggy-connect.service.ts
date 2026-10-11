@@ -36,15 +36,15 @@ export class PluggyConnectService {
   private carregamento?: Promise<NonNullable<Window['PluggyConnect']>>;
 
   /**
-   * Fluxo completo: pede o token, abre o widget e registra o banco conectado.
+   * Fluxo completo, depois que a pessoa autorizou: pede o token (gravando a
+   * autorizacao), abre o widget e registra o banco conectado.
    *
    * @returns as contas atualizadas, ou null se o usuario fechou sem conectar
    */
-  async conectar(): Promise<ContaBancaria[] | null> {
-    const [token, PluggyConnect] = await Promise.all([
-      firstValueFrom(this.banking.gerarConnectToken()),
-      this.carregar(),
-    ]);
+  async conectar(versaoDoAviso: string): Promise<ContaBancaria[] | null> {
+    // O script da Pluggy so carrega depois que o backend aceitou a autorizacao.
+    const token = await firstValueFrom(this.banking.gerarConnectToken(versaoDoAviso));
+    const PluggyConnect = await this.carregar();
 
     const itemId = await new Promise<string | null>((resolver, rejeitar) => {
       const widget = new PluggyConnect({
@@ -52,7 +52,7 @@ export class PluggyConnectService {
         includeSandbox: token.sandbox,
         onSuccess: (dados) => resolver(dados.item.id),
         onError: (erro) =>
-          rejeitar(new Error(erro?.message || 'Nao foi possivel conectar o banco.')),
+          rejeitar(new Error(erro?.message || $localize`Nao foi possivel conectar o banco.`)),
         onClose: () => resolver(null),
       });
       widget.init();
@@ -80,10 +80,10 @@ export class PluggyConnectService {
       script.onload = () =>
         window.PluggyConnect
           ? resolver(window.PluggyConnect)
-          : rejeitar(new Error('O widget da Pluggy carregou incompleto.'));
+          : rejeitar(new Error($localize`O widget da Pluggy carregou incompleto.`));
       script.onerror = () => {
         this.carregamento = undefined;
-        rejeitar(new Error('Nao consegui carregar o widget da Pluggy.'));
+        rejeitar(new Error($localize`Nao consegui carregar o widget da Pluggy.`));
       };
       document.head.appendChild(script);
     });

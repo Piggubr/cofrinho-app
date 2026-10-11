@@ -25,12 +25,14 @@ spring:
           # Chave publica do piggu-identity. Baixada uma vez e mantida em cache.
           jwk-set-uri: ${JWKS_URI:http://localhost:8081/.well-known/jwks.json}
   http:
-    client:
+    clients:
       # Vale para o RestClient da Pluggy: uma instituicao lenta nao segura a thread.
       connect-timeout: 5s
       read-timeout: 30s
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   pluggy:
     # So por variavel de ambiente. Vazio desliga as rotas de banco com aviso claro.
     client-id: ${PLUGGY_CLIENT_ID:}

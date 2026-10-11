@@ -41,6 +41,11 @@ describe('Dashboard', () => {
       .flush({ depositos: [], totalDepositos: 100, totalGastos: 0, saldo: 100 });
     http.expectOne((req) => req.url === '/api/expenses').flush([]);
     http.expectOne('/api/monthly-goals').flush({});
+    // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
+    tela.detectChanges();
+    for (const extra of http.match((req) => /\/api\/(reports|bills|budgets|accounts)/.test(req.url))) {
+      extra.flush(extra.request.url.includes('reports') ? null : []);
+    }
     return tela;
   }
 

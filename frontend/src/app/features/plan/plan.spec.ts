@@ -6,12 +6,14 @@ import { APP_CONFIG } from '../../core/config/app-config';
 import { InfoDoPlano } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
-import { Plan } from './plan';
+import { Plan, ehDaStripe } from './plan';
 
 const GRATUITO: InfoDoPlano = {
   plano: 'GRATUITO',
   premiumAte: null,
   origem: null,
+  reembolsoAte: null,
+  diasDeTeste: 7,
   assinaturaDisponivel: true,
   site: { mensal: '19,90', anual: '199,00' },
   app: { mensal: '22,89', anual: '228,85' },
@@ -60,6 +62,7 @@ describe('Plan', () => {
 
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('R$ 19,90');
+    expect(pagina.textContent).toContain('7 dias grátis');
     expect(pagina.textContent).not.toContain('22,89');
 
     [...pagina.querySelectorAll('button')]
@@ -80,5 +83,43 @@ describe('Plan', () => {
     http.expectOne('/api/billing/plan').flush(GRATUITO);
 
     expect(auth.renovacoes()).toBe(1);
+  });
+
+  it('nos 7 dias do arrependimento mostra o reembolso e, confirmado, cancela', async () => {
+    const tela = montar();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    tela.detectChanges();
+    const premium: InfoDoPlano = {
+      ...GRATUITO,
+      plano: 'PREMIUM',
+      premiumAte: '2026-11-08T00:00:00Z',
+      origem: 'WEB',
+      reembolsoAte: '2026-10-15T00:00:00Z',
+    };
+    http.expectOne('/api/billing/plan').flush(premium);
+    await tela.whenStable();
+    tela.detectChanges();
+
+    const botao = [...(tela.nativeElement as HTMLElement).querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Cancelar e pedir reembolso'),
+    )!;
+    botao.click();
+    http.expectOne('/api/billing/refund').flush(null);
+    await vi.waitFor(() => http.expectOne('/api/billing/plan').flush({ ...premium, plano: 'GRATUITO', reembolsoAte: null }));
+    await tela.whenStable();
+    tela.detectChanges();
+
+    expect(auth.renovacoes()).toBe(1);
+    expect(tela.nativeElement.textContent).toContain('reembolso aparece');
+  });
+});
+
+describe('ehDaStripe', () => {
+  it('so aceita https na stripe.com', () => {
+    expect(ehDaStripe('https://checkout.stripe.com/c/pay/cs_1')).toBe(true);
+    expect(ehDaStripe('https://billing.stripe.com/p/session/x')).toBe(true);
+    expect(ehDaStripe('http://checkout.stripe.com/c')).toBe(false);
+    expect(ehDaStripe('https://stripe.com.golpe.io/c')).toBe(false);
+    expect(ehDaStripe('javascript:alert(1)')).toBe(false);
   });
 });

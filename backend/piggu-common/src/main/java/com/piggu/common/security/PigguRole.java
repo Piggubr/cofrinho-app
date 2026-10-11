@@ -3,19 +3,19 @@ package com.piggu.common.security;
 import java.util.Locale;
 
 /**
- * Perfis de acesso, herdados direto do Apps Script.
+ * Papeis de acesso. Cada pessoa tem conta propria e pertence a uma familia.
  *
  * <ul>
- *   <li>{@link #ADMIN} — administra premios, Fofocoins e pode apagar conteudo alheio.</li>
- *   <li>{@link #BEATRIZ} — usuaria principal; acesso completo ao proprio conteudo.</li>
- *   <li>{@link #FAMILIAR} — convidado; so consulta o painel e deposita no cofrinho.</li>
+ *   <li>{@link #ADMIN} — opera a instalacao; dentro da propria familia vale como titular.</li>
+ *   <li>{@link #TITULAR} — dono da familia: convida membros, assina o Premium e gerencia tudo dela.</li>
+ *   <li>{@link #MEMBRO} — convidado; so consulta o painel e deposita no cofrinho.</li>
  * </ul>
  */
 public enum PigguRole {
 
     ADMIN,
-    BEATRIZ,
-    FAMILIAR;
+    TITULAR,
+    MEMBRO;
 
     public static final String AUTHORITY_PREFIX = "ROLE_";
 
@@ -23,15 +23,18 @@ public enum PigguRole {
         return AUTHORITY_PREFIX + name();
     }
 
-    /** Converte texto vindo do banco ou do token, caindo em {@link #FAMILIAR} quando nao reconhece. */
+    /**
+     * Converte texto vindo do banco ou do token, caindo em {@link #MEMBRO} quando nao reconhece.
+     * Os nomes antigos (BEATRIZ, FAMILIAR) ainda chegam em tokens emitidos antes da troca.
+     */
     public static PigguRole of(String valor) {
         if (valor == null || valor.isBlank()) {
-            return FAMILIAR;
+            return MEMBRO;
         }
-        try {
-            return valueOf(valor.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException erro) {
-            return FAMILIAR;
-        }
+        return switch (valor.trim().toUpperCase(Locale.ROOT)) {
+            case "ADMIN" -> ADMIN;
+            case "TITULAR", "BEATRIZ" -> TITULAR;
+            default -> MEMBRO;
+        };
     }
 }

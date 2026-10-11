@@ -15,19 +15,28 @@ spring:
               '[/**]':
                 allowedOrigins: ${CORS_ORIGINS:http://localhost:4200}
                 allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-                allowedHeaders: '*'
+                # So o que o front manda de fato. Credenciais ligadas por um motivo so: o
+                # cookie HttpOnly do refresh (/api/auth). Origem e lista fixa (CORS_ORIGINS).
+                allowedHeaders: [Authorization, Content-Type, X-Request-Id]
+                exposedHeaders: [X-Request-Id, Retry-After, Content-Disposition]
                 allowCredentials: true
                 maxAge: 3600
+          # Teto de corpo na porta de entrada; cada servico ainda confere o proprio limite
+          # (LimiteDeRequisicoes) e o Caddy limita o corpo mesmo sem Content-Length.
+          default-filters:
+            - name: RequestSize
+              args:
+                maxSize: 10MB
           routes:
             - id: identity
               uri: ${IDENTITY_URL:http://localhost:8081}
               predicates:
-                - Path=/api/auth/**,/api/users/**,/api/billing/**,/.well-known/**
+                - Path=/api/auth/**,/api/me/**,/api/users/**,/api/family/**,/api/billing/**,/.well-known/**
 
             - id: finance
               uri: ${FINANCE_URL:http://localhost:8082}
               predicates:
-                - Path=/api/expenses/**,/api/monthly-goals/**,/api/piggy-bank/**,/api/notes/**,/api/products/**,/api/categories/**,/api/receipts/**,/api/exchange-rate/**
+                - Path=/api/expenses/**,/api/monthly-goals/**,/api/piggy-bank/**,/api/notes/**,/api/products/**,/api/categories/**,/api/receipts/**,/api/exchange-rate/**,/api/incomes/**,/api/reports/**,/api/bills/**,/api/budgets/**,/api/accounts/**
 
             - id: rewards
               uri: ${REWARDS_URL:http://localhost:8083}
@@ -60,3 +69,7 @@ management:
 logging:
   level:
     com.piggu: ${LOG_LEVEL:INFO}
+
+piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}

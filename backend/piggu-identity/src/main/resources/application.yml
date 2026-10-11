@@ -21,6 +21,8 @@ spring:
     locations: classpath:db/migration
 
 piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
   google:
     # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
@@ -35,6 +37,30 @@ piggu:
     public-key: ${JWT_PUBLIC_KEY:}
     access-ttl: PT30M
     refresh-ttl: P30D
+
+  # Quem opera a instalacao: ao entrar, essas contas viram ADMIN. Lista separada por
+  # virgula, so por variavel de ambiente; nenhum e-mail fica no repositorio.
+  admin-emails: ${PIGGU_ADMIN_EMAILS:}
+
+  dados:
+    # Servicos que guardam dado de pessoas: exportar e apagar a conta passa por todos.
+    # Servico novo com dado pessoal entra aqui, senao a exclusao fica incompleta.
+    servicos:
+      finance: ${FINANCE_URL:http://localhost:8082}
+      rewards: ${REWARDS_URL:http://localhost:8083}
+      lifestyle: ${LIFESTYLE_URL:http://localhost:8084}
+      media: ${MEDIA_URL:http://localhost:8085}
+      # Vazio quando o Open Finance esta desligado.
+      banking: ${BANKING_URL:}
+
+  assinatura:
+    # Teste gratis do Premium ao assinar pelo site, uma vez por conta. 0 desliga.
+    dias-de-teste: ${PIGGU_DIAS_DE_TESTE:7}
+
+  revenuecat:
+    # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
+    # Vazio deixa a compra pelos apps em 501.
+    webhook-secret: ${REVENUECAT_WEBHOOK_SECRET:}
 
   stripe:
     # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.

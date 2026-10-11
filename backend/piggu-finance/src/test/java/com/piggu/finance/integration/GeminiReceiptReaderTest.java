@@ -1,6 +1,5 @@
 package com.piggu.finance.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
@@ -14,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

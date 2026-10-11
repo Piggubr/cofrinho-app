@@ -1,0 +1,55 @@
+name: iOS demo (IPA sem assinatura)
+
+# App iOS da demonstracao (dados de exemplo, sem backend) para instalar no iPhone pelo
+# Sideloadly, que assina com o Apple ID na hora da instalacao. Roda em push para
+# branches demo/** ou na mao (workflow_dispatch, quando o arquivo estiver na main).
+on:
+  workflow_dispatch:
+  push:
+    branches: ['demo/**']
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    name: Gerar Piggu-demo.ipa
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build:demo
+      - run: npx cap sync ios
+
+      - name: Compilar para iPhone, sem assinatura
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empacotar o IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry Piggu-demo.ipa Payload
+          ls -lh Piggu-demo.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Piggu-demo-ipa
+          path: frontend/Piggu-demo.ipa
+          retention-days: 30

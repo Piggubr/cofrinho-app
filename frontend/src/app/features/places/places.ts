@@ -9,6 +9,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
+import { Icone } from '../../core/ui/icone';
 
 /**
  * Lugares visitados e avaliados.
@@ -19,7 +20,7 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
  */
 @Component({
   selector: 'app-places',
-  imports: [FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })
@@ -113,7 +114,7 @@ export class Places {
       return;
     }
     if (!imagemCabeNoLimite(arquivo)) {
-      this.erro.set('A foto é grande demais. O limite é de 5 MB.');
+      this.erro.set($localize`A foto é grande demais. O limite é de 5 MB.`);
       return;
     }
 
@@ -124,17 +125,17 @@ export class Places {
       this.previaDaFoto.set(dataUrl);
       this.erro.set('');
     } catch (falha) {
-      this.erro.set(mensagemDeErro(falha, 'Não consegui ler essa imagem.'));
+      this.erro.set(mensagemDeErro(falha, $localize`Não consegui ler essa imagem.`));
     }
   }
 
   protected salvar(): void {
     if (!this.nome().trim()) {
-      this.erro.set('Digite o nome do lugar.');
+      this.erro.set($localize`Digite o nome do lugar.`);
       return;
     }
     if (!this.data()) {
-      this.erro.set('Escolha a data da visita.');
+      this.erro.set($localize`Escolha a data da visita.`);
       return;
     }
 
@@ -175,7 +176,7 @@ export class Places {
   }
 
   protected excluir(lugar: Lugar): void {
-    if (!confirm(`Apagar "${lugar.nome}"?`)) {
+    if (!confirm($localize`Apagar "${lugar.nome}"?`)) {
       return;
     }
     this.lifestyle.excluirLugar(lugar.id).subscribe({
@@ -187,7 +188,7 @@ export class Places {
   protected criarMarcador(): void {
     const nome = this.novoMarcador().trim();
     if (nome.length < 2) {
-      this.erro.set('Digite um nome válido.');
+      this.erro.set($localize`Digite um nome válido.`);
       return;
     }
     this.lifestyle.criarMarcador(nome).subscribe({

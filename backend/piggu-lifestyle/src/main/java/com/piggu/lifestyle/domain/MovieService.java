@@ -61,12 +61,21 @@ public class MovieService {
                 tmdbId,
                 titulo,
                 Texto.limitar(filme.ano(), 4),
-                Texto.limitar(filme.poster(), 500),
+                posterDoTmdb(filme.poster()),
                 filme.nota() == null ? BigDecimal.ZERO : filme.nota(),
                 Texto.limitar(filme.sinopse(), 1000),
                 emailUsuario
         );
         return MovieResponse.de(repositorio.save(novo));
+    }
+
+    /**
+     * O poster chega do navegador e vira tag img para a familia inteira: so a capa do
+     * TMDB passa, senao um host qualquer receberia o IP de todos.
+     */
+    static String posterDoTmdb(String url) {
+        String limpo = Texto.limitar(url, 500);
+        return limpo.startsWith("https://image.tmdb.org/") && !limpo.matches(".*[\\s\"'<>].*") ? limpo : "";
     }
 
     @Transactional

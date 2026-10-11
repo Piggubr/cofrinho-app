@@ -40,6 +40,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static final String CLAIM_EMAIL = "email";
         public static final String CLAIM_ROLE = "role";
         public static final String CLAIM_PLANO = "plano";
+        public static final String CLAIM_FAMILIA = "familia";
 
         private JwtClaims() {
         }
@@ -53,7 +54,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                     UUID.fromString(jwt.getSubject()),
                     email.toLowerCase(),
                     PigguRole.of(jwt.getClaimAsString(CLAIM_ROLE)),
-                    Plano.de(jwt.getClaimAsString(CLAIM_PLANO))
+                    Plano.de(jwt.getClaimAsString(CLAIM_PLANO)),
+                    FamiliaAtual.de(jwt)
             );
         }
     }

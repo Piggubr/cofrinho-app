@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Cotacao entre duas moedas. Substitui a acao getExchangeRate, que so fazia EUR
  * para BRL; sem parametros continua sendo esse o par.
- * Aberto a todos os perfis, inclusive FAMILIAR.
+ * Aberto a todos os perfis, inclusive MEMBRO.
  */
 @RestController
 @RequestMapping("/api/exchange-rate")

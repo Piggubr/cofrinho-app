@@ -6,17 +6,18 @@ import { Preferencias, Usuario } from '../core/api/models';
 export function usuarioDeTeste(mudancas: Partial<Usuario> = {}): Usuario {
   return {
     id: '11111111-1111-1111-1111-111111111111',
-    email: 'beatriz@piggu.test',
-    nome: 'Beatriz',
-    primeiroNome: 'Beatriz',
+    email: 'titular@piggu.test',
+    nome: 'Titular',
+    primeiroNome: 'Titular',
     apelido: null,
     foto: null,
-    role: 'BEATRIZ',
+    role: 'TITULAR',
     ativo: true,
     permissoes: {},
     preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: true },
     plano: 'PREMIUM',
     premiumAte: '2026-12-31T00:00:00Z',
+    familia: '22222222-2222-2222-2222-222222222222',
     ...mudancas,
   };
 }
@@ -27,8 +28,9 @@ export function usuarioDeTeste(mudancas: Partial<Usuario> = {}): Usuario {
  */
 export class AuthFalso {
   readonly usuario = signal<Usuario | null>(usuarioDeTeste());
-  readonly ehFamiliar = computed(() => this.usuario()?.role === 'FAMILIAR');
+  readonly ehMembro = computed(() => this.usuario()?.role === 'MEMBRO');
   readonly ehAdmin = computed(() => this.usuario()?.role === 'ADMIN');
+  readonly ehTitular = computed(() => this.usuario()?.role === 'TITULAR' || this.ehAdmin());
   readonly ehPremium = computed(
     () => this.usuario()?.role === 'ADMIN' || this.usuario()?.plano === 'PREMIUM',
   );
@@ -49,4 +51,8 @@ export class AuthFalso {
   }
 
   async sair(): Promise<void> {}
+
+  async encerrarLocalmente(): Promise<void> {
+    this.usuario.set(null);
+  }
 }

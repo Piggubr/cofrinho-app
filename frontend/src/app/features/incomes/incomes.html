@@ -1,0 +1,100 @@
+<h1 i18n>Receitas</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
+
+<app-resumo-do-mes [mes]="mesAtual()" />
+
+<section class="cartao" aria-labelledby="titulo-nova-receita">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-nova-receita">Nova receita</h2>
+  </div>
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="data-receita">Data</label>
+      <input id="data-receita" type="date" [ngModel]="data()" (ngModelChange)="data.set($event)" />
+    </div>
+    <div class="campo">
+      <label i18n for="descricao-receita">Descrição</label>
+      <input
+        id="descricao-receita"
+        maxlength="200"
+        [ngModel]="descricao()"
+        (ngModelChange)="descricao.set($event)"
+        placeholder="Salário de outubro"
+        i18n-placeholder
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="categoria-receita">Categoria</label>
+      <select
+        id="categoria-receita"
+        [ngModel]="categoria()"
+        (ngModelChange)="categoria.set($event)"
+      >
+        @for (opcao of categorias(); track opcao) {
+          <option [value]="opcao">{{ opcao }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label i18n for="valor-receita">Valor</label>
+      <input
+        id="valor-receita"
+        type="number"
+        min="0.01"
+        step="0.01"
+        [ngModel]="valor()"
+        (ngModelChange)="valor.set($event)"
+      />
+    </div>
+  </div>
+  <div class="acoes">
+    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
+      Lançar receita
+    </button>
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-receitas-mes">
+  <div class="cartao-titulo">
+    <button
+      type="button"
+      class="botao contorno icone-so"
+      (click)="trocarMes(-1)"
+      aria-label="Mês anterior"
+      i18n-aria-label
+    >
+      <app-icone nome="esquerda" [tamanho]="18" />
+    </button>
+    <h2 id="titulo-receitas-mes">{{ rotuloDoMes() }}</h2>
+    <button
+      type="button"
+      class="botao contorno icone-so"
+      (click)="trocarMes(1)"
+      aria-label="Próximo mês"
+      i18n-aria-label
+    >
+      <app-icone nome="direita" [tamanho]="18" />
+    </button>
+  </div>
+  <p i18n class="linha-detalhe">Total: {{ total() | moeda }}</p>
+  @for (receita of receitas(); track receita.id) {
+    <div class="linha">
+      <div>
+        <p class="linha-titulo">{{ receita.descricao }}</p>
+        <p class="linha-detalhe">{{ receita.data | dataBr }} · {{ receita.categoria }}</p>
+      </div>
+      <div class="linha-acoes">
+        <strong>{{ receita.valor | moeda }}</strong>
+        <button type="button" class="botao icone-so perigo" (click)="excluir(receita)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+      </div>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Nenhuma receita neste mês.</p>
+  }
+</section>

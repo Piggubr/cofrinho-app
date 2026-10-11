@@ -67,7 +67,7 @@ class CorrelacaoFilterTest {
     @DisplayName("usuario entra no log so pelo id, e o MDC e limpo no fim")
     void usuarioPorIdEMdcLimpo() throws Exception {
         Jwt jwt = Jwt.withTokenValue("t").header("alg", "none").subject("1111-2222")
-                .claim("email", "beatriz@piggu.test").build();
+                .claim("email", "titular@piggu.test").build();
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
 
         Map<String, String> mdc = executar(new MockHttpServletRequest("GET", "/api/x"), new MockHttpServletResponse());

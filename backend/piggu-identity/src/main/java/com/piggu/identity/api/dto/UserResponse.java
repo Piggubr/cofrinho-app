@@ -2,6 +2,7 @@ package com.piggu.identity.api.dto;
 
 import com.piggu.common.security.PigguRole;
 import com.piggu.common.security.Plano;
+import com.piggu.identity.domain.Household;
 import com.piggu.identity.domain.UserAccount;
 
 import java.time.Instant;
@@ -24,14 +25,21 @@ public record UserResponse(
         Map<String, Object> permissoes,
         Preferencias preferencias,
         Plano plano,
-        Instant premiumAte
+        Instant premiumAte,
+        UUID familia
 ) {
 
-    /** Moeda dos valores, moeda da cotacao e se a cotacao aparece no topo. */
-    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
+    /** Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso e idioma. */
+    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao, String fuso,
+                               String idioma) {
+
+        public Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
+            this(moeda, moedaConversao, mostrarCotacao, null, null);
+        }
     }
 
-    public static UserResponse de(UserAccount conta) {
+    /** O plano vem da familia: o titular assina e todos usam. */
+    public static UserResponse de(UserAccount conta, Household familia) {
         return new UserResponse(
                 conta.getId(),
                 conta.getEmail(),
@@ -42,9 +50,11 @@ public record UserResponse(
                 conta.getRole(),
                 conta.isActive(),
                 conta.getPermissions(),
-                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate()),
-                conta.planoVigente(),
-                conta.planoVigente() == Plano.PREMIUM ? conta.getPremiumUntil() : null
+                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate(),
+                        conta.getTimezone(), conta.getLocale()),
+                familia.planoVigente(),
+                familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
+                familia.getId()
         );
     }
 }

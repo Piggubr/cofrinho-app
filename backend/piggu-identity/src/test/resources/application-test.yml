@@ -15,6 +15,14 @@ logging:
     com.piggu: WARN
 
 piggu:
+  # Os testes fazem muitas escritas seguidas com a mesma conta; o limite em si tem
+  # teste proprio (LimiteDeRequisicoesTest).
+  limite:
+    login: 100000
+    publico: 100000
+    escrita: 100000
+    envio: 100000
+  admin-emails: operador@exemplo.test, Outra.Operadora@Exemplo.test
   google:
     client-ids:
       - client-de-teste.apps.googleusercontent.com
@@ -24,3 +32,11 @@ piggu:
     public-key: classpath:keys/piggu-test-public.pem
     access-ttl: PT30M
     refresh-ttl: P30D
+  # Sem servicos de dominio nos testes: a cascata e simulada onde importa.
+  dados:
+    servicos:
+      finance: ""
+      rewards: ""
+      lifestyle: ""
+      media: ""
+      banking: ""

@@ -1,0 +1,81 @@
+<h1 i18n>Orçamentos</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao" aria-labelledby="titulo-orcamentos">
+  <div class="cartao-titulo">
+    <h2 id="titulo-orcamentos">{{ rotuloDoMes }}</h2>
+  </div>
+  @for (orcamento of orcamentos(); track orcamento.id) {
+    <div class="linha orcamento">
+      <div>
+        <p class="linha-titulo">{{ orcamento.categoria }}</p>
+        <p i18n class="linha-detalhe">
+          {{ orcamento.gasto | moeda }} de {{ orcamento.limite | moeda }} · {{ orcamento.percentual }}%
+        </p>
+        <div
+          class="progresso"
+          [class.atencao]="orcamento.alerta === 'ATENCAO'"
+          [class.estourado]="orcamento.alerta === 'ESTOUROU'"
+          role="progressbar"
+          [attr.aria-valuenow]="orcamento.percentual"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-label]="orcamento.categoria"
+        >
+          <span [style.width.%]="largura(orcamento)"></span>
+        </div>
+      </div>
+      <div class="linha-acoes">
+        @if (auth.ehPremium()) {
+          <button type="button" class="botao icone-so fantasma" (click)="editar(orcamento)" aria-label="Mudar" i18n-aria-label title="Mudar" i18n-title><app-icone nome="lapis" [tamanho]="18" /></button>
+        }
+        <button type="button" class="botao icone-so perigo" (click)="excluir(orcamento)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+      </div>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Nenhum orçamento ainda.</p>
+  }
+</section>
+
+<section class="cartao" aria-labelledby="titulo-novo-orcamento">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-novo-orcamento">Limite por categoria</h2>
+    <span class="etiqueta premium"><app-icone nome="estrela" [tamanho]="12" [traco]="2.4" /> Premium</span>
+  </div>
+  @if (auth.ehPremium()) {
+    <p i18n class="linha-detalhe">Você recebe um aviso quando a categoria chega a 80% e a 100% do limite no mês.</p>
+    <div class="linha-de-campos">
+      <div class="campo">
+        <label i18n for="categoria-orcamento">Categoria</label>
+        <select id="categoria-orcamento" [ngModel]="categoria()" (ngModelChange)="categoria.set($event)">
+          <option value="" disabled i18n>Escolha</option>
+          @for (opcao of categorias(); track opcao) {
+            <option [value]="opcao">{{ opcao }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label i18n for="limite-orcamento">Limite no mês</label>
+        <input
+          id="limite-orcamento"
+          type="number"
+          min="0.01"
+          step="0.01"
+          [ngModel]="limite()"
+          (ngModelChange)="limite.set($event)"
+        />
+      </div>
+    </div>
+    <div class="acoes">
+      <button i18n type="button" class="botao" (click)="salvar()" [disabled]="ocupado()">Salvar limite</button>
+    </div>
+  } @else {
+    <p i18n class="linha-detalhe">
+      Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do
+      <a routerLink="/plano">Piggu Premium</a>.
+    </p>
+  }
+</section>

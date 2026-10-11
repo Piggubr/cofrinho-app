@@ -9,6 +9,29 @@ permissions:
   contents: read
 
 jobs:
+  segredos:
+    name: Segredos (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Historico inteiro: segredo apagado num commit continua no Git.
+          fetch-depth: 0
+      # Binario do gitleaks direto: e gratis e, ao contrario da action, nao pede
+      # GITLEAKS_LICENSE em repositorio de organizacao. Versao e hash fixos.
+      - name: Instalar gitleaks
+        env:
+          VERSAO: 8.28.0
+          SHA256: a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb
+        run: |
+          curl -sSfL -o gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VERSAO}/gitleaks_${VERSAO}_linux_x64.tar.gz"
+          echo "${SHA256}  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz -C "$RUNNER_TEMP" gitleaks
+          rm gitleaks.tgz
+      - name: Procurar segredos no historico
+        run: '"$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --no-banner -v .'
+
   backend:
     name: Backend (mvn verify)
     runs-on: ubuntu-latest
@@ -40,5 +63,9 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      # Falha com vulnerabilidade alta ou critica conhecida nas dependencias.
+      - run: npm audit --audit-level=high
       - run: npm run build
+      # A demonstracao (dados de exemplo) so pode existir no build "demo".
+      - run: "! grep -rq token-da-demonstracao dist/frontend/browser"
       - run: npx ng test --watch=false
