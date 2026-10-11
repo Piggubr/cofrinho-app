@@ -13,7 +13,11 @@ describe('Shell', () => {
   let http: HttpTestingController;
   let auth: AuthFalso;
 
+  const CHAVE_DO_TOUR = `piggu_tutorial_${usuarioDeTeste().id}`;
+
   beforeEach(() => {
+    // O tour do primeiro acesso tem testes proprios no fim; nos outros ele ja foi visto.
+    localStorage.setItem(CHAVE_DO_TOUR, '1');
     auth = new AuthFalso();
     TestBed.configureTestingModule({
       imports: [Shell],
@@ -27,7 +31,10 @@ describe('Shell', () => {
     });
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    localStorage.removeItem(CHAVE_DO_TOUR);
+  });
 
   function abrir() {
     http = TestBed.inject(HttpTestingController);
@@ -208,5 +215,81 @@ describe('Shell', () => {
     tela.detectChanges();
     expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
     expect(selecionadas.at(-1)).toBe('mais');
+  });
+
+  describe('tour do primeiro acesso', () => {
+    beforeEach(() => localStorage.removeItem(CHAVE_DO_TOUR));
+
+    function primeiroAcesso() {
+      const tela = abrir();
+      http.match(() => true).forEach((pedido) => pedido.flush(null));
+      return { tela, pagina: tela.nativeElement as HTMLElement };
+    }
+
+    const titulo = (pagina: HTMLElement) => pagina.querySelector('#titulo-tour')?.textContent?.trim();
+    const botao = (pagina: HTMLElement, texto: string) =>
+      [...pagina.querySelectorAll<HTMLButtonElement>('.cartao-tour button')].find(
+        (b) => b.textContent?.trim() === texto,
+      )!;
+
+    it('abre na primeira vez, destaca o "+" e nao volta depois de pular', () => {
+      const { tela, pagina } = primeiroAcesso();
+      expect(titulo(pagina)).toBe('Bem-vindo ao Piggu');
+
+      botao(pagina, 'Próximo').click();
+      tela.detectChanges();
+      expect(titulo(pagina)).toBe('Lance pelo +');
+      expect(pagina.querySelector('.lancar-flutuante')!.classList).toContain('destaque');
+
+      botao(pagina, 'Pular').click();
+      tela.detectChanges();
+      expect(pagina.querySelector('app-tutorial')).toBeNull();
+      expect(localStorage.getItem(CHAVE_DO_TOUR)).toBe('1');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [Shell],
+        providers: [
+          provideRouter([]),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+          { provide: AuthService, useValue: auth },
+        ],
+      });
+      const { pagina: deNovo } = primeiroAcesso();
+      expect(deNovo.querySelector('app-tutorial')).toBeNull();
+    });
+
+    it('no fim, "Lançar meu primeiro gasto" fecha o tour e abre o painel do "+"', () => {
+      const { tela, pagina } = primeiroAcesso();
+      for (let i = 0; i < 6; i++) {
+        botao(pagina, 'Próximo').click();
+        tela.detectChanges();
+      }
+      expect(titulo(pagina)).toBe('Assistente e busca');
+
+      botao(pagina, 'Lançar meu primeiro gasto').click();
+      tela.detectChanges();
+      http.match(() => true).forEach((pedido) => pedido.flush(null));
+
+      expect(pagina.querySelector('app-tutorial')).toBeNull();
+      expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
+    });
+
+    it('o membro ve um tour curto, sem o "+"', () => {
+      auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
+      const { tela, pagina } = primeiroAcesso();
+      expect(pagina.querySelectorAll('.cartao-tour .ponto').length).toBe(3);
+
+      for (let i = 0; i < 2; i++) {
+        botao(pagina, 'Próximo').click();
+        tela.detectChanges();
+      }
+      expect(titulo(pagina)).toBe('Família');
+      botao(pagina, 'Começar').click();
+      tela.detectChanges();
+      expect(pagina.querySelector('app-tutorial')).toBeNull();
+    });
   });
 });

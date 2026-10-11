@@ -8,6 +8,7 @@ import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Tutorial } from '../../core/ui/tutorial';
 
 /**
  * Perfil e, para o administrador, as contas da instalacao.
@@ -24,6 +25,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 export class Profile {
   private readonly users = inject(UsersService);
   protected readonly auth = inject(AuthService);
+  protected readonly tutorial = inject(Tutorial);
 
   protected readonly erro = signal('');
   protected readonly aviso = signal('');

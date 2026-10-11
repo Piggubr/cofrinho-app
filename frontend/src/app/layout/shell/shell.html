@@ -128,6 +128,7 @@
       type="button"
       class="lancar-flutuante"
       [class.aberto]="lancamentoAberto()"
+      [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
       [attr.aria-expanded]="lancamentoAberto()"
       aria-label="Lançar gasto ou receita"
       i18n-aria-label
@@ -135,6 +136,10 @@
     >
       <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
     </button>
+  }
+
+  @if (tutorial.aberto()) {
+    <app-tutorial (lancar)="abrirLancamento()" />
   }
 
   <!-- Barra de abas do celular. -->

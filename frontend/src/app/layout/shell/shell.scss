@@ -184,6 +184,28 @@
   transform: rotate(45deg);
 }
 
+/* Passo do "+" no tour: o botao fica por cima do fundo escuro e pulsa. */
+.lancar-flutuante.destaque {
+  z-index: 42;
+  animation: pulsar 1.4s ease-out infinite;
+}
+
+@keyframes pulsar {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primaria) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lancar-flutuante.destaque {
+    animation: none;
+    box-shadow: 0 0 0 4px var(--surface), 0 0 0 7px var(--primaria);
+  }
+}
+
 .painel-rapido {
   position: fixed;
   right: 1.5rem;

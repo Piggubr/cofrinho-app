@@ -83,3 +83,23 @@ test('o "+" abre o lancamento por cima da tela, sem sair dela', async ({ page })
   await painel.getByRole('button', { name: 'Lançar receita' }).click();
   await expect(painel.getByText('Receita lançada.')).toBeVisible();
 });
+
+test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ page }) => {
+  await page.goto('/perfil');
+  await page.getByRole('button', { name: 'Ver o tour de novo' }).click();
+
+  const tour = page.getByRole('dialog', { name: 'Bem-vindo ao Piggu' });
+  await expect(tour).toBeVisible();
+  await tour.getByRole('button', { name: 'Próximo' }).click();
+  await expect(page.getByRole('dialog', { name: 'Lance pelo +' })).toBeVisible();
+  await expect(page.locator('button.lancar-flutuante')).toHaveClass(/destaque/);
+
+  for (let i = 0; i < 5; i++) {
+    await page.getByRole('dialog').getByRole('button', { name: 'Próximo' }).click();
+  }
+  await page.getByRole('button', { name: 'Lançar meu primeiro gasto' }).click();
+
+  await expect(page.locator('app-tutorial')).toHaveCount(0);
+  await expect(page.locator('#valor-rapido')).toBeVisible();
+  await expect(page).toHaveURL(/\/perfil$/);
+});

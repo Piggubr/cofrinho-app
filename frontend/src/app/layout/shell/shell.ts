@@ -15,6 +15,8 @@ import { MODO_DEMO } from '../../demo/modo-demo';
 import { BuscaGlobal } from './busca-global';
 import { Assistente } from './assistente';
 import { LancamentoRapido } from './lancamento-rapido';
+import { TutorialDePrimeiroAcesso } from './tutorial';
+import { Tutorial } from '../../core/ui/tutorial';
 
 type Grupo = 'dia-a-dia' | 'planejar' | 'contas' | 'estilo' | 'conta';
 
@@ -72,7 +74,7 @@ export interface GrupoDeMenu {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone, LancamentoRapido],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone, LancamentoRapido, TutorialDePrimeiroAcesso],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: { '[class.abas-nativas]': 'usaAbasNativas' },
@@ -85,6 +87,7 @@ export class Shell {
   private readonly avisosNoCelular = inject(AvisosNoCelular);
   private readonly filaDeGastos = inject(FilaDeGastos);
   private readonly atalhosDoApp = inject(Atalhos);
+  protected readonly tutorial = inject(Tutorial);
 
   protected readonly modoDemo = MODO_DEMO;
   protected readonly menuAberto = signal(false);
@@ -140,6 +143,11 @@ export class Shell {
 
     if (this.usaAbasNativas) {
       this.ligarAbasNativas();
+    }
+
+    // Tour das funcoes principais no primeiro acesso. A demo ja abre com dados e a faixa.
+    if (!this.modoDemo) {
+      this.tutorial.abrirSeNovo();
     }
 
     // Refaz a consulta quando a pessoa troca as moedas ou liga a cotacao no perfil.
@@ -250,8 +258,19 @@ export class Shell {
   }
 
   protected alternarLancamento(): void {
+    // Tocar no "+" destacado pelo tour encerra o tour e ja abre o painel.
+    if (this.tutorial.aberto()) {
+      this.tutorial.concluir();
+      this.lancamentoAberto.set(true);
+      return;
+    }
     this.fecharMenu();
     this.lancamentoAberto.update((aberto) => !aberto);
+  }
+
+  protected abrirLancamento(): void {
+    this.fecharMenu();
+    this.lancamentoAberto.set(true);
   }
 
   protected fecharLancamento(): void {
