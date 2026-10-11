@@ -2,11 +2,17 @@ name: iOS demo (IPA sem assinatura)
 
 # App iOS da demonstracao (dados de exemplo, sem backend) para instalar no iPhone pelo
 # Sideloadly, que assina com o Apple ID na hora da instalacao. Roda em push para
-# branches demo/** ou na mao (workflow_dispatch, quando o arquivo estiver na main).
+# branches demo/**, na mao (workflow_dispatch, quando o arquivo estiver na main) e nos
+# PRs que mexem no projeto iOS.
 on:
   workflow_dispatch:
   push:
     branches: ['demo/**']
+  # PR que mexe no projeto iOS compila aqui: o Swift nao tem como ser conferido no Linux.
+  pull_request:
+    paths:
+      - 'frontend/ios/**'
+      - '.github/workflows/ios-demo.yml'
 
 permissions:
   contents: read

@@ -7,6 +7,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { Cotacao, ModuloDeEstiloDeVida } from '../../core/api/models';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
+import { Atalhos } from '../../core/nativo/atalhos';
 import { FilaDeGastos } from '../../core/offline/fila-de-gastos';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
@@ -82,6 +83,7 @@ export class Shell {
   private readonly abasNativas = inject(AbasNativas);
   private readonly avisosNoCelular = inject(AvisosNoCelular);
   private readonly filaDeGastos = inject(FilaDeGastos);
+  private readonly atalhosDoApp = inject(Atalhos);
 
   protected readonly modoDemo = MODO_DEMO;
   protected readonly menuAberto = signal(false);
@@ -124,6 +126,9 @@ export class Shell {
 
     // Gastos lancados sem sinal vao assim que o app abre com rede (e no evento online).
     void this.filaDeGastos.enviar();
+
+    // "Lançar gasto" pelo icone, pela Siri ou por um link piggu:// (so no app instalado).
+    void this.atalhosDoApp.ligar();
 
     // O token do aparelho muda quando o sistema quer: renova a cada abertura do app.
     if (this.auth.usuario()?.avisos?.push) {

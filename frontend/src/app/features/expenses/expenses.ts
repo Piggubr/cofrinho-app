@@ -1,4 +1,13 @@
-import { Component, afterNextRender, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Focar } from '../../core/ui/focar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -64,6 +73,7 @@ export class Expenses {
   protected readonly categorias = signal<string[]>([]);
   /** A busca global abre os gastos no mes do resultado (?mes=AAAA-MM). */
   private readonly rota = inject(ActivatedRoute).snapshot;
+  private readonly injetor = inject(Injector);
   private readonly mesPedido = this.rota.queryParamMap.get('mes') ?? '';
   protected readonly mesAtual = signal(
     /^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()),
@@ -154,6 +164,22 @@ export class Expenses {
         this.carregarGastos();
       }
     });
+    // Atalho "Lançar gasto" (icone, Siri, link piggu://): cursor no valor, ja preenchido se veio.
+    // Pela assinatura, e nao pelo snapshot: o atalho pode chegar com esta tela ja aberta.
+    inject(ActivatedRoute)
+      .queryParamMap.pipe(takeUntilDestroyed())
+      .subscribe((parametros) => {
+        if (parametros.get('rapido') !== '1') {
+          return;
+        }
+        const valor = Number(parametros.get('valor'));
+        if (valor > 0) {
+          this.novoValor.set(valor);
+        }
+        afterNextRender(() => document.getElementById('valor')?.focus(), {
+          injector: this.injetor,
+        });
+      });
     // Vindo do guia de primeiro uso por "Importar extrato".
     if (this.rota.fragment === 'importar') {
       afterNextRender(() =>

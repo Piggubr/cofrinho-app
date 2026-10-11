@@ -37,6 +37,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 - **Assistente de IA (Premium):** perguntas como "quanto gastei com mercado?" ou
   "vou estourar algum orçamento?", respondidas com os números da família pelo Gemini.
   Só lê, pede autorização no primeiro uso, não guarda a conversa e tem limite mensal.
+- **Atalhos:** "Lançar gasto" no toque longo do ícone (iPhone e Android), pela Siri
+  ("Lançar gasto no Piggu", com ou sem o valor) e por links `piggu://gastos?rapido=1`.
 - **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
 - **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
 - **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste

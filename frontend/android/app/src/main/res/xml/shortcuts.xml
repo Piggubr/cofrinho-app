@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Toque longo no icone: "Lancar gasto" abre o lancamento rapido. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="lancar-gasto"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/atalho_gasto"
+        android:shortcutLongLabel="@string/atalho_gasto">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="piggu://gastos?rapido=1"
+            android:targetPackage="br.com.piggu.app"
+            android:targetClass="br.com.piggu.app.MainActivity" />
+    </shortcut>
+</shortcuts>
