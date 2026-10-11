@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # feature/nova-arquitetura e a branch do servidor do alpha: o push nela (o merge de
+    # um PR) roda o CI e, se tudo passar, o job "publicar" atualiza o servidor.
+    branches: [main, feature/nova-arquitetura]
   pull_request:
 
 permissions:
@@ -119,3 +121,39 @@ jobs:
           name: relatorio-do-playwright
           path: frontend/playwright-report/
           retention-days: 14
+
+  # Atualiza o servidor do alpha depois que todos os jobs acima passam num push na
+  # branch de producao. Desligado ate a variavel DEPLOY_LIGADO=true existir no
+  # repositorio (Settings > Secrets and variables > Actions > Variables); os segredos
+  # ficam no ambiente "producao". Passo a passo em docs/implantacao-producao.md, secao 8.
+  publicar:
+    name: Publicar no servidor
+    needs: [segredos, backup, backend, frontend, e2e]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/feature/nova-arquitetura' &&
+      vars.DEPLOY_LIGADO == 'true'
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 40
+    concurrency:
+      group: publicar-producao
+      cancel-in-progress: false
+    steps:
+      - name: Preparar a chave SSH
+        env:
+          CHAVE: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          # A identidade do servidor vem do segredo: sem ela o ssh recusa (nada de
+          # aceitar a primeira chave que aparecer).
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+      # No servidor, a chave so roda deploy/atualizar.sh, que confere se o commit esta
+      # na branch de producao, compila, sobe e espera os servicos ficarem saudaveis.
+      - name: Atualizar o servidor
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o BatchMode=yes "ubuntu@$HOST" "$GITHUB_SHA"
