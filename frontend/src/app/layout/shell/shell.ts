@@ -38,7 +38,7 @@ const SIMBOLOS: Record<string, string> = {
 const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
   { id: 'dia-a-dia', titulo: $localize`Dia a dia` },
   { id: 'planejar', titulo: $localize`Planejar` },
-  { id: 'contas', titulo: $localize`Cartões e contas` },
+  { id: 'contas', titulo: $localize`Cartões e datas` },
   { id: 'estilo', titulo: $localize`Estilo de vida` },
   { id: 'conta', titulo: $localize`Família e plano` },
 ];
@@ -92,10 +92,9 @@ export class Shell {
     { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia', somenteCompleto: true },
     { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia', somenteCompleto: true },
     { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/orcamentos', rotulo: $localize`Orçamentos`, icone: 'pizza', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/metas', rotulo: $localize`Metas`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/contas-fixas', rotulo: $localize`Contas fixas`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/contas-e-cartoes', rotulo: $localize`Contas e cartões`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
+    { rota: '/orcamentos', rotulo: $localize`Orçamento`, icone: 'pizza', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
     { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', grupo: 'contas', somenteCompleto: true },
     { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo', modulo: 'compras', somenteCompleto: true },
     { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo', modulo: 'lugares', somenteCompleto: true },

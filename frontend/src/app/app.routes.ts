@@ -112,11 +112,8 @@ export const routes: Routes = [
         canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/plan-hub/plan-hub').then((m) => m.PlanHub),
       },
-      {
-        path: 'metas',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
-        loadComponent: () => import('./features/goals/goals').then((m) => m.Goals),
-      },
+      // O limite do mes agora fica no topo do Orcamento; o endereco antigo leva para la.
+      { path: 'metas', redirectTo: 'orcamentos' },
     ],
   },
   { path: '**', redirectTo: '' },

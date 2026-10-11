@@ -68,7 +68,7 @@ describe('Goals', () => {
     await tela.whenStable();
 
     expect(pagina.textContent).toContain('40% usado');
-    expect(pagina.textContent).not.toContain('meta ultrapassada');
+    expect(pagina.textContent).not.toContain('limite ultrapassado');
     expect(pagina.querySelector<HTMLInputElement>('#limite')!.value).toBe('1000');
   });
 
@@ -77,7 +77,7 @@ describe('Goals', () => {
     const pagina: HTMLElement = tela.nativeElement;
 
     expect(pagina.textContent).toContain('100% usado');
-    expect(pagina.textContent).toContain('meta ultrapassada');
+    expect(pagina.textContent).toContain('limite ultrapassado');
     expect(pagina.querySelector('.progresso')!.classList).toContain('estourado');
   });
 
@@ -85,8 +85,8 @@ describe('Goals', () => {
     const tela = abrir({}, [gasto(80)]);
     const pagina: HTMLElement = tela.nativeElement;
 
-    expect(pagina.textContent).toContain('Nenhuma meta definida para este mês ainda.');
-    expect(pagina.textContent).toContain('Nenhuma meta cadastrada.');
+    expect(pagina.textContent).toContain('Nenhum limite definido para este mês ainda.');
+    expect(pagina.textContent).toContain('Nenhum limite cadastrado.');
   });
 
   it('valor vazio ou zero nao vai para o backend', async () => {
@@ -95,7 +95,7 @@ describe('Goals', () => {
     await tela.whenStable();
 
     digitarLimite(pagina, '0');
-    clicar(pagina, 'Salvar meta');
+    clicar(pagina, 'Salvar limite');
     tela.detectChanges();
 
     expect(pagina.querySelector('[role=alert]')?.textContent).toContain('Digite um valor válido');
@@ -108,7 +108,7 @@ describe('Goals', () => {
     await tela.whenStable();
 
     digitarLimite(pagina, '500');
-    clicar(pagina, 'Salvar meta');
+    clicar(pagina, 'Salvar limite');
     const pedido = http.expectOne((r) => r.url === '/api/monthly-goals' && r.method === 'PUT');
     expect(pedido.request.body).toEqual({ mes: mesAtual, limite: 500 });
     pedido.flush({ [mesAtual]: 500 });
@@ -124,7 +124,7 @@ describe('Goals', () => {
     await tela.whenStable();
 
     digitarLimite(pagina, '500');
-    clicar(pagina, 'Salvar meta');
+    clicar(pagina, 'Salvar limite');
     http
       .expectOne((r) => r.method === 'PUT')
       .flush({ erro: 'Limite fora do permitido.' }, { status: 400, statusText: 'Bad Request' });
@@ -134,7 +134,7 @@ describe('Goals', () => {
       'Limite fora do permitido.',
     );
     const botao = [...pagina.querySelectorAll('button')].find((b) =>
-      b.textContent?.includes('Salvar meta'),
+      b.textContent?.includes('Salvar limite'),
     )!;
     expect(botao.disabled).toBe(false);
   });

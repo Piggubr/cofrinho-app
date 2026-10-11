@@ -15,10 +15,11 @@ interface MetaNaTela {
 }
 
 /**
- * Metas de gasto por mes.
+ * Limite total de gastos do mes (a "meta" da API), no topo da tela de Orcamento.
  *
- * <p>Definir a meta do mes que ja esta em curso mostra de imediato quanto dele ja
- * foi consumido, que e a pergunta que a tela realmente responde.</p>
+ * <p>Definir o limite do mes que ja esta em curso mostra de imediato quanto dele ja
+ * foi consumido, que e a pergunta que a tela realmente responde. Os limites por
+ * categoria ficam logo abaixo, na mesma tela.</p>
  */
 @Component({
   selector: 'app-goals',
@@ -86,7 +87,7 @@ export class Goals {
   protected salvar(): void {
     const limite = this.limite();
     if (!limite || limite <= 0) {
-      this.erro.set($localize`Digite um valor válido para a meta.`);
+      this.erro.set($localize`Digite um valor válido para o limite.`);
       return;
     }
 

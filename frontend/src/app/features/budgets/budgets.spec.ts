@@ -36,10 +36,22 @@ describe('Budgets', () => {
   function abrirTela() {
     const tela = TestBed.createComponent(Budgets);
     tela.detectChanges();
+    // O limite do mes (no topo) tem o proprio teste em goals.spec.ts.
+    http.expectOne('/api/monthly-goals').flush({});
+    http.expectOne((r) => r.url === '/api/expenses').flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Lazer', 'Mercado'] });
-    http.expectOne((r) => r.url === '/api/budgets').flush([
-      { id: 'o1', categoria: 'Mercado', limite: 100, gasto: 120, percentual: 120, alerta: 'ESTOUROU' },
-    ]);
+    http
+      .expectOne((r) => r.url === '/api/budgets')
+      .flush([
+        {
+          id: 'o1',
+          categoria: 'Mercado',
+          limite: 100,
+          gasto: 120,
+          percentual: 120,
+          alerta: 'ESTOUROU',
+        },
+      ]);
     tela.detectChanges();
     return tela;
   }
@@ -64,9 +76,9 @@ describe('Budgets', () => {
   it('todas as categorias aparecem para escolher, inclusive a que ja tem limite', async () => {
     const tela = abrirTela();
     await tela.whenStable();
-    const opcoes = [...(tela.nativeElement as HTMLElement).querySelectorAll('#categoria-orcamento option')].map(
-      (o) => o.textContent?.trim(),
-    );
+    const opcoes = [
+      ...(tela.nativeElement as HTMLElement).querySelectorAll('#categoria-orcamento option'),
+    ].map((o) => o.textContent?.trim());
     expect(opcoes).toEqual(['Escolha', 'Lazer', 'Mercado']);
   });
 
@@ -74,7 +86,7 @@ describe('Budgets', () => {
     const tela = abrirTela();
     const pagina: HTMLElement = tela.nativeElement;
 
-    clicar(pagina, 'Salvar limite');
+    clicar(pagina, 'Salvar categoria');
     tela.detectChanges();
 
     expect(pagina.querySelector('[role=alert]')?.textContent).toContain('Escolha a categoria');
@@ -93,13 +105,22 @@ describe('Budgets', () => {
     const limite = pagina.querySelector<HTMLInputElement>('#limite-orcamento')!;
     limite.value = '150';
     limite.dispatchEvent(new Event('input'));
-    clicar(pagina, 'Salvar limite');
+    clicar(pagina, 'Salvar categoria');
     const pedido = http.expectOne((r) => r.method === 'PUT' && r.url === '/api/budgets');
     expect(pedido.request.body).toEqual({ categoria: 'Mercado', limite: 150 });
     pedido.flush(null);
     http
       .expectOne((r) => r.url === '/api/budgets' && r.method === 'GET')
-      .flush([{ id: 'o1', categoria: 'Mercado', limite: 150, gasto: 120, percentual: 80, alerta: 'ATENCAO' }]);
+      .flush([
+        {
+          id: 'o1',
+          categoria: 'Mercado',
+          limite: 150,
+          gasto: 120,
+          percentual: 80,
+          alerta: 'ATENCAO',
+        },
+      ]);
     tela.detectChanges();
 
     expect(pagina.querySelector('.progresso.atencao')).not.toBeNull();
@@ -113,16 +134,22 @@ describe('Budgets', () => {
     tela.detectChanges();
     await tela.whenStable();
 
-    clicar(pagina, 'Salvar limite');
+    clicar(pagina, 'Salvar categoria');
     http
       .expectOne((r) => r.method === 'PUT')
-      .flush({ erro: 'Recurso do Piggu Premium.' }, { status: 402, statusText: 'Payment Required' });
+      .flush(
+        { erro: 'Recurso do Piggu Premium.' },
+        { status: 402, statusText: 'Payment Required' },
+      );
     tela.detectChanges();
 
-    expect(pagina.querySelector('[role=alert]')?.textContent).toContain('Recurso do Piggu Premium.');
-    expect([...pagina.querySelectorAll('button')].find((b) => b.textContent?.includes('Salvar limite'))!.disabled).toBe(
-      false,
+    expect(pagina.querySelector('[role=alert]')?.textContent).toContain(
+      'Recurso do Piggu Premium.',
     );
+    expect(
+      [...pagina.querySelectorAll('button')].find((b) => b.textContent?.includes('Salvar categoria'))!
+        .disabled,
+    ).toBe(false);
   });
 
   it('apagar segue livre no gratuito e recarrega a lista', () => {
@@ -135,6 +162,6 @@ describe('Budgets', () => {
     http.expectOne((r) => r.url === '/api/budgets' && r.method === 'GET').flush([]);
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Nenhum orçamento ainda.');
+    expect(pagina.textContent).toContain('Nenhuma categoria com limite ainda.');
   });
 });

@@ -111,11 +111,11 @@ describe('Shell', () => {
     (pagina.querySelector('nav.abas button') as HTMLButtonElement).click();
     tela.detectChanges();
     expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
-    expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(17);
+    expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(16);
     expect([...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim())).toEqual([
       'Dia a dia',
       'Planejar',
-      'Cartões e contas',
+      'Cartões e datas',
       'Estilo de vida',
       'Família e plano',
     ]);
@@ -158,7 +158,7 @@ describe('Shell', () => {
     expect(itens).toContain('Gastos');
     expect(itens).toContain('Receitas');
     expect(itens).not.toContain('Premium');
-    expect(itens.length).toBe(16);
+    expect(itens.length).toBe(15);
   });
 
   it('no app iOS com o plugin, troca a barra HTML pelas abas nativas', () => {
