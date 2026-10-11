@@ -47,7 +47,7 @@ public class FeedController {
     public FeedPhotoResponse publicar(@Valid @RequestBody FeedPhotoRequest pedido,
                                       @AuthUser CurrentUser usuario) {
         usuario.exigirPremium("O mural de fotos");
-        return servico.publicar(pedido, usuario.email());
+        return servico.publicar(pedido, usuario.id());
     }
 
     @PatchMapping("/{id}/caption")

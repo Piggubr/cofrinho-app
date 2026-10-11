@@ -16,7 +16,7 @@ public record MovieResponse(
         String sinopse,
         boolean assistido,
         Map<String, Integer> avaliacoes,
-        String usuario
+        UUID usuario
 ) {
 
     public static MovieResponse de(Movie filme) {
@@ -30,7 +30,7 @@ public record MovieResponse(
                 filme.getSynopsis(),
                 filme.isWatched(),
                 filme.getRatings(),
-                filme.getUserEmail()
+                filme.getUserId()
         );
     }
 }

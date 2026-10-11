@@ -47,7 +47,7 @@ public class AssetController {
     public AssetResponse enviar(@Valid @RequestBody AssetUploadRequest pedido,
                                 @AuthUser CurrentUser usuario) {
         return AssetResponse.de(servico.guardar(
-                pedido.imageBase64(), pedido.mimeType(), pedido.contexto(), null, usuario.email()));
+                pedido.imageBase64(), pedido.mimeType(), pedido.contexto(), null, usuario.id()));
     }
 
     /**

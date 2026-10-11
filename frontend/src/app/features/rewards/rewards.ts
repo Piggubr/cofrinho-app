@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Premio, Resgate, SaldoDeMoedas } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
+import { PessoaPipe } from '../../core/api/pessoas-da-familia';
 
 /**
  * Fofocoins e premios.
@@ -16,7 +17,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [Icone, FormsModule],
+  imports: [Icone, FormsModule, PessoaPipe],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })

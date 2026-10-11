@@ -28,9 +28,6 @@ public class CoinEntry {
     /** Dono das moedas. A planilha usava esta constante em todas as linhas. */
     public static final String USUARIA = "USUARIA";
 
-    /** Autor de lancamentos feitos pelo proprio sistema, como um resgate. */
-    public static final String SISTEMA = "SISTEMA";
-
     @Id
     private UUID id;
 
@@ -43,8 +40,8 @@ public class CoinEntry {
     @Column(name = "subject_user", nullable = false, length = 320)
     private String subjectUser = USUARIA;
 
-    @Column(name = "actor_email", nullable = false, length = 320)
-    private String actorEmail;
+    @Column(name = "actor_id")
+    private UUID actorId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -52,11 +49,11 @@ public class CoinEntry {
     protected CoinEntry() {
     }
 
-    public CoinEntry(int amount, String reason, String actorEmail) {
+    public CoinEntry(int amount, String reason, UUID actorId) {
         this.id = UUID.randomUUID();
         this.amount = amount;
         this.reason = reason;
-        this.actorEmail = actorEmail;
+        this.actorId = actorId;
     }
 
     @PrePersist

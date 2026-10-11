@@ -58,7 +58,7 @@
           <div class="linha">
             <div>
               <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
-              <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario }}</p>
+              <p class="linha-detalhe">{{ deposito.data | dataBr }} · {{ deposito.usuario | pessoa }}</p>
             </div>
             <button type="button" class="botao icone-so perigo" (click)="excluirDeposito(deposito.id)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>

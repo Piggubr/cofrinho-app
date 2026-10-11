@@ -10,5 +10,5 @@ public interface BankConnectionRepository extends JpaRepository<BankConnection, 
 
     Optional<BankConnection> findByPluggyItemId(String pluggyItemId);
 
-    List<BankConnection> findByUserEmail(String userEmail);
+    List<BankConnection> findByUserId(UUID userId);
 }

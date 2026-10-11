@@ -13,7 +13,7 @@ public record FeedPhotoResponse(
         String mesKey,
         UUID assetId,
         String legenda,
-        String usuario,
+        UUID usuario,
         Instant criadoEm
 ) {
 
@@ -23,7 +23,7 @@ public record FeedPhotoResponse(
                 foto.getMonthKey(),
                 foto.getAssetId(),
                 foto.getCaption(),
-                foto.getUserEmail(),
+                foto.getUserId(),
                 foto.getCreatedAt()
         );
     }

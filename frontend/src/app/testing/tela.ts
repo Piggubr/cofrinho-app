@@ -3,14 +3,29 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { EnvironmentProviders, Provider } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../core/config/app-config';
-import { Gasto } from '../core/api/models';
+import { Gasto, MembroDaFamilia } from '../core/api/models';
+import { PessoasDaFamilia, nomeNaFamilia } from '../core/api/pessoas-da-familia';
 
-/** O basico de toda tela que fala com a API: HttpClient de teste, rotas e a config. */
+/** Id da titular de teste (o mesmo do usuarioDeTeste) e de uma segunda pessoa da familia. */
+export const ID_DA_TITULAR = '11111111-1111-1111-1111-111111111111';
+export const ID_DA_BIA = '33333333-3333-3333-3333-333333333333';
+
+const MEMBROS_DE_TESTE: MembroDaFamilia[] = [
+  { id: ID_DA_TITULAR, nome: 'Titular', email: 'titular@piggu.test', foto: null, papel: 'TITULAR' },
+  { id: ID_DA_BIA, nome: 'Bia', email: 'bia@piggu.test', foto: null, papel: 'MEMBRO' },
+];
+
+/** O basico de toda tela que fala com a API: HttpClient de teste, rotas, a config e os nomes. */
 export const PROVEDORES_DE_TELA: (Provider | EnvironmentProviders)[] = [
   provideHttpClient(),
   provideHttpClientTesting(),
   provideRouter([]),
   { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+  // Nomes sem ir a API: cada tela testa o proprio pedido, nao o da familia.
+  {
+    provide: PessoasDaFamilia,
+    useValue: { nome: (id: string | null) => nomeNaFamilia(MEMBROS_DE_TESTE, id) },
+  },
 ];
 
 /** Escreve num campo e avisa o Angular, como a pessoa digitando. */
@@ -48,7 +63,7 @@ export function gastoDeTeste(mudancas: Partial<Gasto> = {}): Gasto {
     valor: 10,
     tipo: 'Variável',
     origem: 'MANUAL',
-    usuario: 'titular@piggu.test',
+    usuario: ID_DA_TITULAR,
     registradoEm: '2026-10-01T10:00:00Z',
     ...mudancas,
   };

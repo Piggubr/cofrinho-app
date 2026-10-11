@@ -19,15 +19,17 @@ const TAMANHO_MAXIMO = 2_000_000;
         <h2 i18n id="titulo-extrato">Importar e exportar</h2>
       </div>
       <p i18n class="linha-detalhe">
-        Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere antes de
-        gravar, e o que já foi importado fica de fora.
+        Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere
+        antes de gravar, e o que já foi importado fica de fora.
       </p>
       <div class="acoes">
         <label i18n class="botao secundario arquivo">
           Escolher extrato
           <input type="file" accept=".ofx,.csv,.txt,text/csv" (change)="escolher($event)" hidden />
         </label>
-        <button i18n type="button" class="botao contorno" (click)="exportar()">Exportar CSV do mês</button>
+        <button i18n type="button" class="botao contorno" (click)="exportar()">
+          Exportar CSV do mês
+        </button>
       </div>
       @if (erro()) {
         <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -80,10 +82,18 @@ const TAMANHO_MAXIMO = 2_000_000;
           </div>
         }
         <div class="acoes">
-          <button i18n type="button" class="botao" (click)="importar()" [disabled]="ocupado() || !marcadas().length">
+          <button
+            i18n
+            type="button"
+            class="botao"
+            (click)="importar()"
+            [disabled]="ocupado() || !marcadas().length"
+          >
             Importar marcados
           </button>
-          <button i18n type="button" class="botao contorno" (click)="linhas.set([])">Cancelar</button>
+          <button i18n type="button" class="botao contorno" (click)="linhas.set([])">
+            Cancelar
+          </button>
         </div>
       }
     </section>
@@ -117,7 +127,9 @@ export class ImportarExtrato {
   protected readonly resultado = signal('');
   protected readonly ocupado = signal(false);
   protected readonly marcadas = computed(() => this.linhas().filter((l) => l.marcada));
-  protected readonly totalMarcado = computed(() => this.marcadas().reduce((soma, l) => soma + l.valor, 0));
+  protected readonly totalMarcado = computed(() =>
+    this.marcadas().reduce((soma, l) => soma + l.valor, 0),
+  );
 
   protected async escolher(evento: Event): Promise<void> {
     const campo = evento.target as HTMLInputElement;
@@ -145,7 +157,9 @@ export class ImportarExtrato {
   }
 
   protected alternar(i: number): void {
-    this.linhas.update((lista) => lista.map((l, j) => (j === i ? { ...l, marcada: !l.marcada } : l)));
+    this.linhas.update((lista) =>
+      lista.map((l, j) => (j === i ? { ...l, marcada: !l.marcada } : l)),
+    );
   }
 
   protected mudarCategoria(i: number, categoria: string): void {

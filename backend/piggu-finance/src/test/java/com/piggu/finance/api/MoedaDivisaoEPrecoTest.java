@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +27,9 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
 
     @Autowired
     private ObjectMapper json;
+
+    private static final String ANA = UUID.randomUUID().toString();
+    private static final String BETO = UUID.randomUUID().toString();
 
     private DuasFamilias casas;
 
@@ -48,17 +53,17 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("100 dividido entre duas pessoas: quem pagou tem 50 a receber, a outra deve 50")
+    @DisplayName("100 dividido entre duas pessoas (repetida conta uma vez): quem pagou tem 50 a receber, a outra deve 50")
     void divisao() throws Exception {
         casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-09-10\",\"dividirCom\":"
-                + "[\"titular@piggu.test\",\"Ana@Piggu.test\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":100}]}");
+                + "[\"" + ANA + "\",\"" + ANA + "\",\"" + BETO + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":100}]}");
         String quemPagou = json.readTree(mockMvc.perform(get("/api/expenses").param("mes", "2026-09").with(casas.casaA))
                 .andReturn().getResponse().getContentAsString()).get(0).path("usuario").asString();
 
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-09").with(casas.casaA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.email=='ana@piggu.test')].saldo").value(-50.0))
-                .andExpect(jsonPath("$[?(@.email=='" + quemPagou + "')].pagou").value(100.0));
+                .andExpect(jsonPath("$[?(@.pessoa=='" + BETO + "')].saldo").value(-50.0))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + quemPagou + "')].pagou").value(100.0));
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-09").with(casas.casaB))
                 .andExpect(jsonPath("$.length()").value(0));
     }

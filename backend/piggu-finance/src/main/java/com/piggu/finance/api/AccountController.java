@@ -55,7 +55,7 @@ public class AccountController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ContasECartoes.Conta criar(@Valid @RequestBody AccountRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido.nome(), pedido.tipo(), pedido.fechamento(), pedido.vencimento(), usuario.email());
+        return servico.criar(pedido.nome(), pedido.tipo(), pedido.fechamento(), pedido.vencimento(), usuario.id());
     }
 
     @DeleteMapping("/{id}")

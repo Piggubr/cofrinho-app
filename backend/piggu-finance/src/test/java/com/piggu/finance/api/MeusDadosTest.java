@@ -72,7 +72,7 @@ class MeusDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("quando a pessoa sai e a familia fica, o que ela lancou fica anonimizado")
+    @DisplayName("quando a pessoa sai e a familia fica, o que ela lancou fica sem dono")
     void pessoaSaiFamiliaFica() throws Exception {
         mockMvc.perform(delete("/api/meus-dados")
                         .with(TokensDeTeste.exclusao(familia, emailMembro, PigguRole.MEMBRO, "PESSOA")))
@@ -80,9 +80,9 @@ class MeusDadosTest extends PostgresIntegrationTest {
 
         mockMvc.perform(get("/api/piggy-bank").with(titular))
                 .andExpect(jsonPath("$.depositos.length()").value(1))
-                .andExpect(jsonPath("$.depositos[0].usuario").value("conta-excluida"));
+                .andExpect(jsonPath("$.depositos[0].usuario").isEmpty());
         mockMvc.perform(get("/api/expenses").with(titular))
-                .andExpect(jsonPath("$[0].usuario").value(emailTitular));
+                .andExpect(jsonPath("$[0].usuario").value(TokensDeTeste.idDe(emailTitular).toString()));
     }
 
     @Test

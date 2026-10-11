@@ -199,7 +199,7 @@ public class FamiliaService {
         Optional<Household> vazia = sairDeOndeEsta(conta);
         conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
         usuarios.saveAndFlush(conta);
-        trilha.registrar(convite.getHouseholdId(), conta.getEmail(), Acao.ENTROU, PESSOA, conta.getId(), null,
+        trilha.registrar(convite.getHouseholdId(), conta.getId(), Acao.ENTROU, PESSOA, conta.getId(), null,
                 pessoa(conta));
         vazia.ifPresent(familias::delete);
         convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(conta.getEmail()));
@@ -223,7 +223,7 @@ public class FamiliaService {
         EscopoDeExclusao escopo = outros.isEmpty() ? EscopoDeExclusao.FAMILIA : EscopoDeExclusao.PESSOA;
 
         cascata.apagar(tokens.gerarTokenDeExclusao(conta, familia, escopo));
-        trilha.esquecer(familia.getId(), conta.getEmail(), escopo == EscopoDeExclusao.FAMILIA);
+        trilha.esquecer(familia.getId(), conta.getId(), escopo == EscopoDeExclusao.FAMILIA);
 
         if (escopo == EscopoDeExclusao.FAMILIA) {
             convites.deleteAll(convites.findByHouseholdIdOrderByCreatedAtDesc(familia.getId()));
@@ -260,7 +260,7 @@ public class FamiliaService {
         if (cuidaDaFamilia(membro)) {
             throw new ForbiddenException("So da para remover membros e parceiros.");
         }
-        trilha.registrar(usuario.familia(), usuario.email(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
+        trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
         mudarParaFamiliaPropria(membro);
         log.info("Membro removido da familia: conta={} familia={}", membroId, usuario.familia());
         return ver(usuario);
@@ -285,7 +285,7 @@ public class FamiliaService {
         if (membro.getRole() != papel) {
             String antes = pessoa(membro);
             membro.setRole(papel);
-            trilha.registrar(usuario.familia(), usuario.email(), Acao.MUDOU_PAPEL, PESSOA, membroId, antes, pessoa(membro));
+            trilha.registrar(usuario.familia(), usuario.id(), Acao.MUDOU_PAPEL, PESSOA, membroId, antes, pessoa(membro));
             usuarios.save(membro);
             sessoes.apagarPorUsuario(membro.getId());
             log.info("Papel alterado na familia: conta={} familia={} papel={}", membroId, usuario.familia(), papel);
@@ -300,7 +300,7 @@ public class FamiliaService {
         if (cuidaDaFamilia(conta)) {
             throw new BusinessException("O titular nao sai da propria familia.");
         }
-        trilha.registrar(conta.getHouseholdId(), conta.getEmail(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
         mudarParaFamiliaPropria(conta);
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }

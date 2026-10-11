@@ -53,7 +53,7 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.CREATED)
     public CategoriesResponse criar(@Valid @RequestBody CategoryRequest pedido,
                                     @AuthUser CurrentUser usuario) {
-        servico.criar(pedido.nome(), usuario.email());
+        servico.criar(pedido.nome(), usuario.id());
         return new CategoriesResponse(servico.listar());
     }
 
@@ -65,7 +65,7 @@ public class CategoryController {
     /** Cria a regra; se o termo ja tem uma, troca a categoria. */
     @PutMapping("/rules")
     public RegrasDeCategoria.Regra definirRegra(@Valid @RequestBody RuleRequest pedido, @AuthUser CurrentUser usuario) {
-        return regras.definir(pedido.termo(), pedido.categoria(), usuario.email());
+        return regras.definir(pedido.termo(), pedido.categoria(), usuario.id());
     }
 
     @DeleteMapping("/rules/{id}")

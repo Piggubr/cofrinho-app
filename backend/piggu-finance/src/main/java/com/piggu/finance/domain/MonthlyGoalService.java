@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Limites de gasto por mes.
@@ -38,18 +39,18 @@ public class MonthlyGoalService {
 
     /** Cria ou substitui a meta do mes. */
     @Transactional
-    public MonthlyGoal definir(String mes, BigDecimal limite, String emailUsuario) {
+    public MonthlyGoal definir(String mes, BigDecimal limite, UUID usuarioId) {
         log.info("Meta do mes definida: mes={}", mes);
         return repositorio.findByReferenceMonth(mes)
                 .map(existente -> {
                     String antes = Resumos.meta(mes, existente.getLimitAmount());
-                    existente.atualizar(limite, emailUsuario);
+                    existente.atualizar(limite, usuarioId);
                     trilha.editou("meta", mes, antes, Resumos.meta(mes, limite));
                     return repositorio.save(existente);
                 })
                 .orElseGet(() -> {
                     trilha.criou("meta", mes, Resumos.meta(mes, limite));
-                    return repositorio.save(new MonthlyGoal(mes, limite, emailUsuario));
+                    return repositorio.save(new MonthlyGoal(mes, limite, usuarioId));
                 });
     }
 }

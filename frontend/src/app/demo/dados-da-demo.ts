@@ -221,7 +221,7 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
       valor,
       tipo: 'Variavel',
       origem: 'Manual',
-      usuario: ana.email,
+      usuario: ana.id,
       registradoEm: `${data}T12:00:00Z`,
       contaId: null,
       parcela: null,
@@ -242,15 +242,15 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
 
     estado.metas[mes] = 4500;
     estado.depositos.push({
-      id: novoId('deposito'), data: dia(1), valor: 4000, usuario: ana.email, registradoEm: `${dia(1)}T09:00:00Z`,
+      id: novoId('deposito'), data: dia(1), valor: 4000, usuario: ana.id, registradoEm: `${dia(1)}T09:00:00Z`,
     });
     estado.receitas.push(
-      { id: novoId('receita'), data: dia(5), descricao: 'Salário Ana', categoria: 'Salário', valor: 6500, usuario: ana.email },
-      { id: novoId('receita'), data: dia(5), descricao: 'Salário Beto', categoria: 'Salário', valor: 4200, usuario: beto.email },
+      { id: novoId('receita'), data: dia(5), descricao: 'Salário Ana', categoria: 'Salário', valor: 6500, usuario: ana.id },
+      { id: novoId('receita'), data: dia(5), descricao: 'Salário Beto', categoria: 'Salário', valor: 4200, usuario: beto.id },
     );
     if (deslocamento === -1) {
       estado.receitas.push({
-        id: novoId('receita'), data: dia(18), descricao: 'Freela de design', categoria: 'Extra', valor: 800, usuario: ana.email,
+        id: novoId('receita'), data: dia(18), descricao: 'Freela de design', categoria: 'Extra', valor: 800, usuario: ana.id,
       });
     }
 
@@ -271,11 +271,11 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
       estabelecimento: 'Cantina da Nonna', contaId: 'conta-nubank',
     });
     if (jantar) {
-      estado.partes[jantar.id] = { [ana.email]: jantar.valor / 2, [beto.email]: jantar.valor / 2 };
+      estado.partes[jantar.id] = { [ana.id]: jantar.valor / 2, [beto.id]: jantar.valor / 2 };
     }
     gasto(dia(17), 'Feira e hortifruti', 'Alimentação', round(187.45 * f), { estabelecimento: 'Feira da Praça' });
-    gasto(dia(20), 'Combustível', 'Transporte', round(250 * f), { estabelecimento: 'Posto Shell', contaId: 'conta-nubank', usuario: beto.email });
-    gasto(dia(23), 'Cinema', 'Lazer', round(64 * f), { contaId: 'conta-nubank', usuario: beto.email });
+    gasto(dia(20), 'Combustível', 'Transporte', round(250 * f), { estabelecimento: 'Posto Shell', contaId: 'conta-nubank', usuario: beto.id });
+    gasto(dia(23), 'Cinema', 'Lazer', round(64 * f), { contaId: 'conta-nubank', usuario: beto.id });
     gasto(dia(26), 'Padaria', 'Alimentação', round(38.5 * f), { estabelecimento: 'Padaria Pão Quente' });
     gasto(dia(28), 'Ração do Thor', 'Pets', round(129.9 * f), { estabelecimento: 'Pet Shop Amigo' });
 
@@ -291,20 +291,20 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
   });
 
   estado.notas.push(
-    nota(diaDoMes(hoje, 0, 15), 'Aniversário da Bia', 'Comprar presente até sexta', 0, 'Outros', ana.email),
-    nota(diaDoMes(hoje, 0, 25), 'Revisão do carro', 'Agendada na oficina do bairro', 450, 'Transporte', beto.email),
-    nota(diaDoMes(hoje, 1, 2), 'IPVA', 'Primeira parcela', 380, 'Transporte', ana.email),
+    nota(diaDoMes(hoje, 0, 15), 'Aniversário da Bia', 'Comprar presente até sexta', 0, 'Outros', ana.id),
+    nota(diaDoMes(hoje, 0, 25), 'Revisão do carro', 'Agendada na oficina do bairro', 450, 'Transporte', beto.id),
+    nota(diaDoMes(hoje, 1, 2), 'IPVA', 'Primeira parcela', 380, 'Transporte', ana.id),
   );
 
   estado.lugares.push(
-    lugar('Cantina da Nonna', 'Restaurante', 'Vila Madalena, São Paulo', 5, 'Melhor lasanha da cidade', diaDoMes(hoje, -1, 14), ['Romântico'], 156, ana.email),
-    lugar('Parque Ibirapuera', 'Passeio', 'São Paulo', 4, 'Piquenique no domingo', diaDoMes(hoje, -2, 9), ['Barato', 'Com as crianças'], 0, beto.email),
-    lugar('Café do Mirante', 'Café', 'Campos do Jordão', 5, 'Vista incrível no fim de tarde', diaDoMes(hoje, -2, 22), ['Vista bonita'], 48, ana.email),
+    lugar('Cantina da Nonna', 'Restaurante', 'Vila Madalena, São Paulo', 5, 'Melhor lasanha da cidade', diaDoMes(hoje, -1, 14), ['Romântico'], 156, ana.id),
+    lugar('Parque Ibirapuera', 'Passeio', 'São Paulo', 4, 'Piquenique no domingo', diaDoMes(hoje, -2, 9), ['Barato', 'Com as crianças'], 0, beto.id),
+    lugar('Café do Mirante', 'Café', 'Campos do Jordão', 5, 'Vista incrível no fim de tarde', diaDoMes(hoje, -2, 22), ['Vista bonita'], 48, ana.id),
   );
 
   estado.filmes.push(
-    filme('Divertida Mente 2', '2024', 'A Riley entra na adolescência e novas emoções aparecem.', true, { 'Ana': 5, 'Beto': 4 }),
-    filme('Duna: Parte Dois', '2024', 'Paul Atreides se une aos Fremen.', true, { 'Beto': 5 }),
+    filme('Divertida Mente 2', '2024', 'A Riley entra na adolescência e novas emoções aparecem.', true, { 'u-ana': 5, 'u-beto': 4 }),
+    filme('Duna: Parte Dois', '2024', 'Paul Atreides se une aos Fremen.', true, { 'u-beto': 5 }),
     filme('Ainda Estou Aqui', '2024', 'A história de Eunice Paiva.', false, {}),
   );
 
@@ -326,18 +326,18 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     estado.imagens[assetId] = fotoDeExemplo(c1, c2, emoji, legenda);
     estado.fotos.push({
       id: novoId('feed'), mesKey: diaDoMes(hoje, deslocamento, 1).slice(0, 7), assetId, legenda,
-      usuario: ana.email, criadoEm: `${diaDoMes(hoje, deslocamento, 10)}T18:00:00Z`,
+      usuario: ana.id, criadoEm: `${diaDoMes(hoje, deslocamento, 10)}T18:00:00Z`,
     });
   }
 
   estado.movimentos.push(
-    { id: novoId('moeda'), data: diaDoMes(hoje, -1, 28), valor: 50, motivo: 'Meta do mês cumprida', usuario: ana.email },
-    { id: novoId('moeda'), data: diaDoMes(hoje, -1, 30), valor: -40, motivo: 'Resgate: Dia sem louça', usuario: beto.email },
-    { id: novoId('moeda'), data: diaDoMes(hoje, 0, 2), valor: 110, motivo: 'Cofrinho do mês', usuario: ana.email },
+    { id: novoId('moeda'), data: diaDoMes(hoje, -1, 28), valor: 50, motivo: 'Meta do mês cumprida', usuario: ana.id },
+    { id: novoId('moeda'), data: diaDoMes(hoje, -1, 30), valor: -40, motivo: 'Resgate: Dia sem louça', usuario: beto.id },
+    { id: novoId('moeda'), data: diaDoMes(hoje, 0, 2), valor: 110, motivo: 'Cofrinho do mês', usuario: ana.id },
   );
   estado.moedas = estado.movimentos.reduce((s, m) => s + m.valor, 0);
   estado.resgates.push({
-    id: novoId('resgate'), premio: 'Dia sem louça', preco: 40, usuario: beto.email, status: 'RESGATADO',
+    id: novoId('resgate'), premio: 'Dia sem louça', preco: 40, usuario: beto.id, status: 'RESGATADO',
     data: diaDoMes(hoje, -1, 30), saldo: 10,
   });
 
@@ -360,11 +360,11 @@ function lugar(
 }
 
 function filme(titulo: string, ano: string, sinopse: string, assistido: boolean, avaliacoes: Record<string, number>): Filme {
-  return { id: novoId('filme'), tmdbId: novoId('tmdb'), titulo, ano, poster: '', nota: 7.8, sinopse, assistido, avaliacoes, usuario: 'ana@demo.piggu.app' };
+  return { id: novoId('filme'), tmdbId: novoId('tmdb'), titulo, ano, poster: '', nota: 7.8, sinopse, assistido, avaliacoes, usuario: 'u-ana' };
 }
 
 function compra(item: string, quantidade: string, lista: 'Compras' | 'Desejos', comprado: boolean, marca: string): ItemDeCompra {
-  return { id: novoId('compra'), item, quantidade, lista, comprado, marca, imagem: '', codigo: '', usuario: 'ana@demo.piggu.app' };
+  return { id: novoId('compra'), item, quantidade, lista, comprado, marca, imagem: '', codigo: '', usuario: 'u-ana' };
 }
 
 /** Catalogo de filmes para a busca da demo (o TMDB nao e chamado). */

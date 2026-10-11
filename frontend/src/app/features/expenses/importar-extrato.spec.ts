@@ -29,7 +29,9 @@ describe('ImportarExtrato', () => {
     tela.componentRef.setInput('mes', '2026-09');
     tela.detectChanges();
 
-    const arquivo = new File(['data;descricao;valor\n10/09/2026;Uber;-23,50\n'], 'extrato.csv', { type: 'text/csv' });
+    const arquivo = new File(['data;descricao;valor\n10/09/2026;Uber;-23,50\n'], 'extrato.csv', {
+      type: 'text/csv',
+    });
     const campo = tela.nativeElement.querySelector('input[type="file"]') as HTMLInputElement;
     Object.defineProperty(campo, 'files', { value: [arquivo] });
     campo.dispatchEvent(new Event('change'));
@@ -38,8 +40,22 @@ describe('ImportarExtrato', () => {
     const previa = http.expectOne('/api/expenses/import/preview');
     expect(previa.request.body.conteudo).toContain('Uber');
     previa.flush([
-      { data: '2026-09-10', descricao: 'Uber', valor: 23.5, idExterno: 'h1', categoria: 'Transporte', jaImportada: false },
-      { data: '2026-09-09', descricao: 'Velho', valor: 5, idExterno: 'h0', categoria: 'Outros', jaImportada: true },
+      {
+        data: '2026-09-10',
+        descricao: 'Uber',
+        valor: 23.5,
+        idExterno: 'h1',
+        categoria: 'Transporte',
+        jaImportada: false,
+      },
+      {
+        data: '2026-09-09',
+        descricao: 'Velho',
+        valor: 5,
+        idExterno: 'h0',
+        categoria: 'Outros',
+        jaImportada: true,
+      },
     ]);
     tela.detectChanges();
     expect(tela.nativeElement.textContent).toContain('1 de 2 marcados');
@@ -50,7 +66,13 @@ describe('ImportarExtrato', () => {
     botao.click();
     const envio = http.expectOne('/api/expenses/import');
     expect(envio.request.body.linhas).toEqual([
-      { data: '2026-09-10', descricao: 'Uber', valor: 23.5, idExterno: 'h1', categoria: 'Transporte' },
+      {
+        data: '2026-09-10',
+        descricao: 'Uber',
+        valor: 23.5,
+        idExterno: 'h1',
+        categoria: 'Transporte',
+      },
     ]);
     envio.flush({ importados: 1, pulados: 0 });
     tela.detectChanges();

@@ -17,7 +17,7 @@ function gasto(valor: number): Gasto {
     valor,
     tipo: 'DEBITO',
     origem: 'MANUAL',
-    usuario: 'titular@piggu.test',
+    usuario: '11111111-1111-1111-1111-111111111111',
     registradoEm: '2026-10-01T10:00:00Z',
   };
 }

@@ -41,7 +41,7 @@ public class NoteController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public NoteResponse criar(@Valid @RequestBody NoteRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido, usuario.email());
+        return servico.criar(pedido, usuario.id());
     }
 
     @DeleteMapping("/{id}")

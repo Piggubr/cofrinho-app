@@ -33,8 +33,8 @@ public class MonthlyGoal {
     @Column(name = "limit_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal limitAmount;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
@@ -42,15 +42,15 @@ public class MonthlyGoal {
     protected MonthlyGoal() {
     }
 
-    public MonthlyGoal(String referenceMonth, BigDecimal limitAmount, String userEmail) {
+    public MonthlyGoal(String referenceMonth, BigDecimal limitAmount, UUID userId) {
         this.referenceMonth = referenceMonth;
         this.limitAmount = limitAmount;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
-    public void atualizar(BigDecimal limitAmount, String userEmail) {
+    public void atualizar(BigDecimal limitAmount, UUID userId) {
         this.limitAmount = limitAmount;
-        this.userEmail = userEmail;
+        this.userId = userId;
         this.updatedAt = Instant.now();
     }
 

@@ -27,20 +27,20 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                Tabela.compartilhada("notes", "user_email"),
-                Tabela.compartilhada("expense_shares", "member_email"),
-                Tabela.compartilhada("expenses", "user_email"),
-                Tabela.compartilhada("incomes", "user_email"),
-                Tabela.compartilhada("recurring_bills", "user_email"),
-                Tabela.compartilhada("category_budgets", "user_email"),
-                Tabela.compartilhada("category_rules", "user_email"),
-                Tabela.compartilhada("payment_accounts", "user_email"),
-                Tabela.compartilhada("piggy_deposits", "user_email"),
-                Tabela.compartilhada("monthly_goals", "user_email"),
-                Tabela.compartilhada("product_memory", "user_email"),
-                Tabela.compartilhada("custom_categories", "created_by"),
-                Tabela.compartilhada("eventos_de_auditoria", "autor_email"),
-                Tabela.pessoal("consents", "user_email"),
+                Tabela.compartilhada("notes", "user_id"),
+                Tabela.compartilhada("expense_shares", "member_id"),
+                Tabela.compartilhada("expenses", "user_id"),
+                Tabela.compartilhada("incomes", "user_id"),
+                Tabela.compartilhada("recurring_bills", "user_id"),
+                Tabela.compartilhada("category_budgets", "user_id"),
+                Tabela.compartilhada("category_rules", "user_id"),
+                Tabela.compartilhada("payment_accounts", "user_id"),
+                Tabela.compartilhada("piggy_deposits", "user_id"),
+                Tabela.compartilhada("monthly_goals", "user_id"),
+                Tabela.compartilhada("product_memory", "user_id"),
+                Tabela.compartilhada("custom_categories", "created_by_id"),
+                Tabela.compartilhada("eventos_de_auditoria", "autor_id"),
+                Tabela.pessoal("consents", "user_id"),
                 new Tabela("receipt_usage", null, false)
         ), extras.orderedStream().toList());
     }

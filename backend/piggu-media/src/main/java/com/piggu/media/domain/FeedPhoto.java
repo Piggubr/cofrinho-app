@@ -37,8 +37,8 @@ public class FeedPhoto {
     @Column(nullable = false, length = 300)
     private String caption = "";
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -46,11 +46,11 @@ public class FeedPhoto {
     protected FeedPhoto() {
     }
 
-    public FeedPhoto(String monthKey, UUID assetId, String userEmail) {
+    public FeedPhoto(String monthKey, UUID assetId, UUID userId) {
         this.id = UUID.randomUUID();
         this.monthKey = monthKey;
         this.assetId = assetId;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -81,8 +81,8 @@ public class FeedPhoto {
         return caption;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public Instant getCreatedAt() {

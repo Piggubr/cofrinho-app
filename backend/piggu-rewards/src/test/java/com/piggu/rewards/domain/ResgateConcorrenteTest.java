@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.UUID;
 
 /**
  * Gasto duplo no resgate de premios.
@@ -35,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResgateConcorrenteTest extends PostgresIntegrationTest {
 
-    private static final String ADMIN = "admin@piggu.test";
+    private static final UUID ADMIN = UUID.nameUUIDFromBytes("admin@piggu.test".getBytes());
 
     @Autowired
     private RewardsService recompensas;
@@ -69,7 +70,7 @@ class ResgateConcorrenteTest extends PostgresIntegrationTest {
         Callable<Void> tentarResgatar = () -> {
             largada.await(10, TimeUnit.SECONDS);
             try {
-                recompensas.resgatar(premio.id(), "quem@piggu.test");
+                recompensas.resgatar(premio.id(), UUID.randomUUID());
                 sucessos.incrementAndGet();
             } catch (RuntimeException erro) {
                 falhas.incrementAndGet();

@@ -52,8 +52,8 @@ public class ShoppingItem {
     @Column(nullable = false, length = 20)
     private String barcode = "";
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -62,7 +62,7 @@ public class ShoppingItem {
     }
 
     public ShoppingItem(String item, String quantity, String listName, String brand,
-                        String imageUrl, String barcode, String userEmail) {
+                        String imageUrl, String barcode, UUID userId) {
         this.id = UUID.randomUUID();
         this.item = item;
         this.quantity = quantity;
@@ -70,7 +70,7 @@ public class ShoppingItem {
         this.brand = brand;
         this.imageUrl = imageUrl;
         this.barcode = barcode;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -117,7 +117,7 @@ public class ShoppingItem {
         return barcode;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 }

@@ -31,8 +31,8 @@ public class PiggyDeposit {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -40,11 +40,11 @@ public class PiggyDeposit {
     protected PiggyDeposit() {
     }
 
-    public PiggyDeposit(LocalDate depositDate, BigDecimal amount, String userEmail) {
+    public PiggyDeposit(LocalDate depositDate, BigDecimal amount, UUID userId) {
         this.id = UUID.randomUUID();
         this.depositDate = depositDate;
         this.amount = amount;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -67,8 +67,8 @@ public class PiggyDeposit {
         return amount;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public Instant getCreatedAt() {

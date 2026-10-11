@@ -76,7 +76,7 @@ public class ContasFixasService {
 
     @Transactional
     public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
-                               String autor) {
+                               UUID autor) {
         RecurringBill conta = repositorio.save(new RecurringBill(Texto.limitar(descricao, 200),
                 categorias.normalizar(categoria), valor, dia, automatico, autor));
         trilha.criou("conta-fixa", conta.getId(), Resumos.contaFixa(conta));
@@ -102,7 +102,7 @@ public class ContasFixasService {
 
     /** Lanca o gasto do mes no vencimento, uma vez so por mes. */
     @Transactional
-    public ExpenseResponse pagar(UUID id, YearMonth mes, String autor) {
+    public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
         RecurringBill conta = buscar(id);
         if (conta.pagaEm(mes)) {
             throw new BusinessException("Esta conta já foi lançada em " + mes + ".", HttpStatus.CONFLICT, "JA_PAGA");
@@ -131,14 +131,14 @@ public class ContasFixasService {
         YearMonth mes = YearMonth.from(hoje);
         int ateODia = hoje.getDayOfMonth() == mes.lengthOfMonth() ? 31 : hoje.getDayOfMonth();
         List<Map<String, Object>> devidas = jdbc.queryForList("""
-                SELECT id, household_id, user_email FROM recurring_bills
+                SELECT id, household_id, user_id FROM recurring_bills
                 WHERE active AND auto_launch AND due_day <= ? AND (last_paid_month IS NULL OR last_paid_month < ?)
                 """, ateODia, mes.toString());
         int lancadas = 0;
         for (Map<String, Object> devida : devidas) {
             try {
                 FamiliaAtual.como((UUID) devida.get("household_id"), () -> transacao.executeWithoutResult(status ->
-                        pagar((UUID) devida.get("id"), mes, (String) devida.get("user_email"))));
+                        pagar((UUID) devida.get("id"), mes, (UUID) devida.get("user_id"))));
                 lancadas++;
             } catch (RuntimeException erro) {
                 log.warn("Conta fixa {} nao lancada automaticamente", devida.get("id"), erro);

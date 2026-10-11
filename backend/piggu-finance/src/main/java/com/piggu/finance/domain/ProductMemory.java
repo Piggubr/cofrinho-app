@@ -62,8 +62,8 @@ public class ProductMemory {
     @Column(name = "last_variation", nullable = false, precision = 12, scale = 2)
     private BigDecimal lastVariation = BigDecimal.ZERO;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
@@ -72,7 +72,7 @@ public class ProductMemory {
     }
 
     public ProductMemory(String productKey, String name, String category,
-                         BigDecimal price, LocalDate purchaseDate, String userEmail) {
+                         BigDecimal price, LocalDate purchaseDate, UUID userId) {
         this.productKey = productKey;
         this.name = name;
         this.category = category;
@@ -83,7 +83,7 @@ public class ProductMemory {
         this.purchases = 1;
         this.lastPurchase = purchaseDate;
         this.lastVariation = BigDecimal.ZERO;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     /**
@@ -93,7 +93,7 @@ public class ProductMemory {
      * media_nova = (media_antiga * (n - 1) + preco) / n.</p>
      */
     public void registrarCompra(String nome, String categoria, BigDecimal preco,
-                                LocalDate dataCompra, String email) {
+                                LocalDate dataCompra, UUID pessoa) {
         BigDecimal anterior = this.lastPrice;
         this.purchases = this.purchases + 1;
         this.avgPrice = this.avgPrice
@@ -107,7 +107,7 @@ public class ProductMemory {
         this.name = nome;
         this.category = categoria;
         this.lastPurchase = dataCompra;
-        this.userEmail = email;
+        this.userId = pessoa;
         this.updatedAt = Instant.now();
     }
 

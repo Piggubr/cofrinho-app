@@ -58,7 +58,7 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"data\":\"2026-09-01\",\"valor\":100}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.usuario").value(TokensDeTeste.EMAIL_MEMBRO));
+                .andExpect(jsonPath("$.usuario").value(TokensDeTeste.idDe(TokensDeTeste.EMAIL_MEMBRO).toString()));
 
         mockMvc.perform(get("/api/piggy-bank").with(TokensDeTeste.membro()))
                 .andExpect(status().isOk());

@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
+import { nomeNaFamilia } from '../../core/api/pessoas-da-familia';
 import { HistoryService } from '../../core/api/history.service';
 import {
   ConviteDaFamilia,
@@ -101,14 +102,9 @@ export class Family {
     this.historicoDaApi.daFamilia().subscribe((eventos) => this.historico.set(eventos));
   }
 
-  /** "Bia apagou gasto" com o nome de quem esta na familia; quem saiu aparece pelo e-mail. */
+  /** "Bia apagou gasto" com o nome de quem esta na familia; quem saiu aparece como ex-membro. */
   protected descrever(evento: EventoDeAuditoria): string {
-    const autor =
-      evento.autor === 'sistema'
-        ? 'Piggu'
-        : evento.autor === 'conta-excluida'
-          ? $localize`Conta excluída`
-          : (this.familia()?.membros.find((m) => m.email === evento.autor)?.nome ?? evento.autor);
+    const autor = nomeNaFamilia(this.familia()?.membros ?? [], evento.autor);
     const entidade = ENTIDADES[evento.entidade] ?? evento.entidade;
     return [autor, ACOES[evento.acao] ?? evento.acao, entidade].filter(Boolean).join(' ');
   }

@@ -67,13 +67,13 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].acao").value("APAGOU"))
-                .andExpect(jsonPath("$[0].autor").value(emailParceiro))
+                .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(emailParceiro).toString()))
                 .andExpect(jsonPath("$[0].antes").value("2026-09-10 · Pao · Lazer · 15.00"))
                 .andExpect(jsonPath("$[1].acao").value("EDITOU"))
                 .andExpect(jsonPath("$[1].antes").value("2026-09-10 · Pao · Lazer · 12.50"))
                 .andExpect(jsonPath("$[1].depois").value("2026-09-10 · Pao · Lazer · 15.00"))
                 .andExpect(jsonPath("$[2].acao").value("CRIOU"))
-                .andExpect(jsonPath("$[2].autor").value(emailTitular))
+                .andExpect(jsonPath("$[2].autor").value(TokensDeTeste.idDe(emailTitular).toString()))
                 .andExpect(jsonPath("$[2].entidadeId").value(id));
     }
 
@@ -115,9 +115,9 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("passado o prazo de retencao, o evento sai; pessoa excluida vira conta-excluida no historico")
+    @DisplayName("passado o prazo de retencao, o evento sai; pessoa excluida fica sem autor no historico")
     void retencaoEExclusao() throws Exception {
-        trilha.registrar(familia, emailParceiro, TrilhaDeAuditoria.Acao.CRIOU, "gasto", "velho", null,
+        trilha.registrar(familia, TokensDeTeste.idDe(emailParceiro), TrilhaDeAuditoria.Acao.CRIOU, "gasto", "velho", null,
                 "de muito tempo atras");
         jdbc.update("UPDATE eventos_de_auditoria SET criado_em = ? WHERE entidade_id = 'velho'",
                 Timestamp.from(Instant.now().minus(TrilhaDeAuditoria.RETENCAO_PADRAO).minus(Duration.ofDays(1))));
@@ -131,6 +131,6 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
 
         mockMvc.perform(get("/api/history").with(titular))
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].autor").value("conta-excluida"));
+                .andExpect(jsonPath("$[0].autor").isEmpty());
     }
 }

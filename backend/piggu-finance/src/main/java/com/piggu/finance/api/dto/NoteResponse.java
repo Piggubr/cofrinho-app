@@ -15,7 +15,7 @@ public record NoteResponse(
         BigDecimal valor,
         String categoria,
         UUID gastoId,
-        String usuario,
+        UUID usuario,
         Instant criadoEm
 ) {
 
@@ -28,7 +28,7 @@ public record NoteResponse(
                 nota.getAmount(),
                 nota.getCategory(),
                 nota.getExpenseId(),
-                nota.getUserEmail(),
+                nota.getUserId(),
                 nota.getCreatedAt()
         );
     }

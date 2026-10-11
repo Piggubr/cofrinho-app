@@ -1,6 +1,5 @@
 package com.piggu.common.auditoria;
 
-import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.CurrentUserArgumentResolver;
 import com.piggu.common.security.FamiliaAtual;
@@ -37,15 +36,19 @@ public class TrilhaDeAuditoria {
     /** Um ano e um mes: cobre a pergunta do mes passado e o fechamento do ano. */
     public static final Duration RETENCAO_PADRAO = Duration.ofDays(400);
 
-    /** Autor de mudanca feita por job agendado (conta fixa automatica, retencao). */
-    public static final String SISTEMA = "sistema";
+    /** Autor de mudanca feita por job agendado (conta fixa automatica, resgate). */
+    public static final UUID SISTEMA = new UUID(0L, 0L);
 
     private static final int LIMITE_DO_RESUMO = 300;
     private static final Logger log = LoggerFactory.getLogger(TrilhaDeAuditoria.class);
 
     public enum Acao { CRIOU, EDITOU, APAGOU, IMPORTOU, PAGOU, MUDOU_PAPEL, REMOVEU, ENTROU, SAIU, CONVIDOU }
 
-    public record Evento(long id, String autor, Acao acao, String entidade, String entidadeId,
+    /**
+     * @param autor id de quem fez; {@link #SISTEMA} quando foi um job agendado; nulo quando
+     *              a conta de quem fez foi excluida depois
+     */
+    public record Evento(long id, UUID autor, Acao acao, String entidade, String entidadeId,
                          String antes, String depois, Instant quando) {
     }
 
@@ -89,10 +92,10 @@ public class TrilhaDeAuditoria {
     }
 
     /** Para quando a familia ou o autor nao sao os da requisicao (o identity muda a familia da pessoa). */
-    public void registrar(UUID familia, String autor, Acao acao, String entidade, Object id, String antes, String depois) {
+    public void registrar(UUID familia, UUID autor, Acao acao, String entidade, Object id, String antes, String depois) {
         jdbc.update("""
                 INSERT INTO eventos_de_auditoria
-                    (household_id, autor_email, acao, entidade, entidade_id, antes, depois, criado_em)
+                    (household_id, autor_id, acao, entidade, entidade_id, antes, depois, criado_em)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 familia, autor, acao.name(), entidade, id == null ? null : id.toString(),
@@ -103,7 +106,7 @@ public class TrilhaDeAuditoria {
     /** Os mais recentes da familia, para a tela de historico. SQL puro: filtra a familia a mao. */
     public List<Evento> recentes(UUID familia, String entidade, int limite) {
         String sql = """
-                SELECT id, autor_email, acao, entidade, entidade_id, antes, depois, criado_em
+                SELECT id, autor_id, acao, entidade, entidade_id, antes, depois, criado_em
                 FROM eventos_de_auditoria WHERE household_id = ?
                 """ + (entidade == null ? "" : " AND entidade = ?") + " ORDER BY id DESC LIMIT ?";
         Object[] parametros = entidade == null
@@ -111,7 +114,7 @@ public class TrilhaDeAuditoria {
                 : new Object[]{familia, entidade, limite};
         return jdbc.query(sql, (linha, n) -> new Evento(
                 linha.getLong("id"),
-                linha.getString("autor_email"),
+                linha.getObject("autor_id", UUID.class),
                 Acao.valueOf(linha.getString("acao")),
                 linha.getString("entidade"),
                 linha.getString("entidade_id"),
@@ -122,14 +125,14 @@ public class TrilhaDeAuditoria {
 
     /**
      * Para o servico que nao usa o {@code DadosDaFamilia} (o identity): a familia sumiu,
-     * os eventos dela saem; a pessoa saiu, o nome dela vira {@code DadosDaFamilia.ANONIMO}.
+     * os eventos dela saem; a pessoa saiu, os eventos ficam sem autor.
      */
-    public void esquecer(UUID familia, String email, boolean familiaInteira) {
+    public void esquecer(UUID familia, UUID pessoa, boolean familiaInteira) {
         if (familiaInteira) {
             jdbc.update("DELETE FROM eventos_de_auditoria WHERE household_id = ?", familia);
         } else {
-            jdbc.update("UPDATE eventos_de_auditoria SET autor_email = ? WHERE household_id = ? AND autor_email = ?",
-                    DadosDaFamilia.ANONIMO, familia, email);
+            jdbc.update("UPDATE eventos_de_auditoria SET autor_id = NULL WHERE household_id = ? AND autor_id = ?",
+                    familia, pessoa);
         }
     }
 
@@ -148,12 +151,12 @@ public class TrilhaDeAuditoria {
         return resumo == null ? null : Texto.limitar(resumo, LIMITE_DO_RESUMO);
     }
 
-    /** E-mail de quem esta na requisicao; sem requisicao (job agendado), o {@link #SISTEMA}. */
-    public static String autorDaRequisicao() {
+    /** Id de quem esta na requisicao; sem requisicao (job agendado), o {@link #SISTEMA}. */
+    public static UUID autorDaRequisicao() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao != null && autenticacao.getPrincipal() instanceof Jwt jwt) {
             CurrentUser usuario = CurrentUserArgumentResolver.JwtClaims.toCurrentUser(jwt);
-            return usuario.email();
+            return usuario.id();
         }
         return SISTEMA;
     }

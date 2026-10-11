@@ -48,8 +48,8 @@ public class Note {
     @Column(name = "expense_id")
     private UUID expenseId;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -58,7 +58,7 @@ public class Note {
     }
 
     public Note(String title, String body, LocalDate noteDate, BigDecimal amount,
-                String category, UUID expenseId, String userEmail) {
+                String category, UUID expenseId, UUID userId) {
         this.id = UUID.randomUUID();
         this.title = title;
         this.body = body;
@@ -66,7 +66,7 @@ public class Note {
         this.amount = amount;
         this.category = category;
         this.expenseId = expenseId;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -105,8 +105,8 @@ public class Note {
         return expenseId;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public Instant getCreatedAt() {

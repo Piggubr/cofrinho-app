@@ -91,12 +91,12 @@
     @if (membros().length > 1) {
       <fieldset class="campo dividir">
         <legend i18n>Dividir com</legend>
-        @for (membro of membros(); track membro.email) {
+        @for (membro of membros(); track membro.id) {
           <label>
             <input
               type="checkbox"
-              [checked]="dividirCom().includes(membro.email)"
-              (change)="alternarDivisao(membro.email)"
+              [checked]="dividirCom().includes(membro.id)"
+              (change)="alternarDivisao(membro.id)"
             />
             {{ membro.nome }}
           </label>
@@ -338,10 +338,10 @@
     <div class="cartao-titulo">
       <h2 i18n id="titulo-acerto">Divisão do mês</h2>
     </div>
-    @for (pessoa of acerto(); track pessoa.email) {
+    @for (pessoa of acerto(); track pessoa.pessoa) {
       <div class="linha">
         <div>
-          <p class="linha-titulo">{{ nomeDe(pessoa.email) }}</p>
+          <p class="linha-titulo">{{ nomeDe(pessoa.pessoa) }}</p>
           <p i18n class="linha-detalhe">Pagou {{ pessoa.pagou | moeda }} · parte {{ pessoa.parte | moeda }}</p>
         </div>
         <span class="linha-valor">

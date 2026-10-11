@@ -169,10 +169,6 @@ function categoriaAutomatica(item: string, estabelecimento: string): string {
   return anterior?.categoria ?? 'Outros';
 }
 
-function usuarioPorEmail(email: string): Usuario {
-  return email === estado.membro.email ? estado.membro : estado.titular;
-}
-
 // ---------- Calculos ----------
 
 function resumo(mes: string): ResumoDoMes {
@@ -295,17 +291,18 @@ function acerto(mes: string): AcertoDeDivisao[] {
     if (!partes) {
       continue;
     }
-    for (const [email, valor] of Object.entries(partes)) {
-      parte[email] = arredondar((parte[email] ?? 0) + valor);
-      pagou[g.usuario] = arredondar((pagou[g.usuario] ?? 0) + valor);
+    for (const [pessoa, valor] of Object.entries(partes)) {
+      parte[pessoa] = arredondar((parte[pessoa] ?? 0) + valor);
+      const quem = g.usuario ?? '';
+      pagou[quem] = arredondar((pagou[quem] ?? 0) + valor);
     }
   }
-  const emails = [...new Set([...Object.keys(pagou), ...Object.keys(parte)])];
-  return emails
-    .map((email) => {
-      const p = pagou[email] ?? 0;
-      const d = parte[email] ?? 0;
-      return { email, pagou: p, parte: d, saldo: arredondar(p - d) };
+  const pessoas = [...new Set([...Object.keys(pagou), ...Object.keys(parte)])];
+  return pessoas
+    .map((pessoa) => {
+      const p = pagou[pessoa] ?? 0;
+      const d = parte[pessoa] ?? 0;
+      return { pessoa, pagou: p, parte: d, saldo: arredondar(p - d) };
     })
     .sort((a, b) => b.saldo - a.saldo);
 }
@@ -450,7 +447,7 @@ function lancar(corpo: Corpo): Gasto[] {
         valor: i === parcelas - 1 ? arredondar(valor - parcela * (parcelas - 1)) : parcela,
         tipo: item['tipo'] ?? 'Variavel',
         origem: corpo['origem'] ?? 'Manual',
-        usuario: estado.titular.email,
+        usuario: estado.titular.id,
         registradoEm: new Date().toISOString(),
         contaId: corpo['contaId'] ?? null,
         parcela: parcelas > 1 ? i + 1 : null,
@@ -463,7 +460,7 @@ function lancar(corpo: Corpo): Gasto[] {
   const dividir = (corpo['dividirCom'] ?? []) as string[];
   for (const gasto of novos) {
     if (dividir.length) {
-      estado.partes[gasto.id] = Object.fromEntries(dividir.map((email) => [email, arredondar(gasto.valor / dividir.length)]));
+      estado.partes[gasto.id] = Object.fromEntries(dividir.map((pessoa) => [pessoa, arredondar(gasto.valor / dividir.length)]));
     }
   }
   estado.gastos.push(...novos);
@@ -586,7 +583,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/incomes\/categories$/, () => CATEGORIAS_DE_RECEITA],
   ['GET', /^\/incomes$/, (p) => estado.receitas.filter((r) => r.data.startsWith(mesDe(p))).sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/incomes$/, (_p, _x, c) => {
-    const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.email };
+    const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.id };
     estado.receitas.push(receita);
     return receita;
   }],
@@ -653,14 +650,14 @@ const ROTAS: Rota[] = [
   ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
   ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
-    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.email, registradoEm: new Date().toISOString() };
+    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.id, registradoEm: new Date().toISOString() };
     estado.depositos.push(deposito);
     return deposito;
   }],
   ['DELETE', new RegExp(`^/piggy-bank/deposits/${ID}$`), (_p, [id]) => remover(estado.depositos, id)],
   ['GET', /^\/notes$/, () => estado.notas],
   ['POST', /^\/notes$/, (_p, _x, c) => {
-    const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.email, criadoEm: new Date().toISOString() };
+    const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.id, criadoEm: new Date().toISOString() };
     estado.notas.push(nota);
     return nota;
   }],
@@ -723,7 +720,7 @@ const ROTAS: Rota[] = [
     if (estado.filmes.some((f) => f.tmdbId === c['tmdbId'])) {
       throw new ErroDaDemo(422, 'Esse filme já está na lista.');
     }
-    const filme = { id: novoId('filme'), tmdbId: c['tmdbId'], titulo: c['titulo'], ano: c['ano'] ?? '', poster: '', nota: Number(c['nota'] ?? 0), sinopse: c['sinopse'] ?? '', assistido: false, avaliacoes: {}, usuario: estado.titular.email };
+    const filme = { id: novoId('filme'), tmdbId: c['tmdbId'], titulo: c['titulo'], ano: c['ano'] ?? '', poster: '', nota: Number(c['nota'] ?? 0), sinopse: c['sinopse'] ?? '', assistido: false, avaliacoes: {}, usuario: estado.titular.id };
     estado.filmes.push(filme);
     return filme;
   }],
@@ -734,7 +731,7 @@ const ROTAS: Rota[] = [
   }],
   ['PUT', new RegExp(`^/movies/${ID}/rating$`), (_p, [id], c) => {
     const filme = exigir(estado.filmes.find((f) => f.id === id));
-    filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.primeiroNome]: Number(c['nota']) };
+    filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.id]: Number(c['nota']) };
     return filme;
   }],
   ['DELETE', new RegExp(`^/movies/${ID}$`), (_p, [id]) => remover(estado.filmes, id)],
@@ -749,7 +746,7 @@ const ROTAS: Rota[] = [
     return estado.compras.filter((c) => !lista || c.lista === lista);
   }],
   ['POST', /^\/shopping\/items$/, (_p, _x, c) => {
-    const item = { id: novoId('compra'), item: c['item'], quantidade: c['quantidade'] ?? '', lista: c['lista'] === 'Desejos' ? 'Desejos' as const : 'Compras' as const, comprado: false, marca: c['marca'] ?? '', imagem: c['imagem'] ?? '', codigo: c['codigo'] ?? '', usuario: estado.titular.email };
+    const item = { id: novoId('compra'), item: c['item'], quantidade: c['quantidade'] ?? '', lista: c['lista'] === 'Desejos' ? 'Desejos' as const : 'Compras' as const, comprado: false, marca: c['marca'] ?? '', imagem: c['imagem'] ?? '', codigo: c['codigo'] ?? '', usuario: estado.titular.id };
     estado.compras.push(item);
     return item;
   }],
@@ -767,7 +764,7 @@ const ROTAS: Rota[] = [
   }],
   ['POST', /^\/feed$/, (_p, _x, c) => {
     const assetId = guardarImagem(c);
-    const foto = { id: novoId('feed'), mesKey: c['mesKey'] || mesAtual(), assetId, legenda: '', usuario: estado.titular.email, criadoEm: new Date().toISOString() };
+    const foto = { id: novoId('feed'), mesKey: c['mesKey'] || mesAtual(), assetId, legenda: '', usuario: estado.titular.id, criadoEm: new Date().toISOString() };
     estado.fotos.push(foto);
     return foto;
   }],
@@ -786,7 +783,7 @@ const ROTAS: Rota[] = [
   ['POST', /^\/coins\/adjustments$/, (_p, _x, c) => {
     const valor = Number(c['valor']);
     estado.moedas += valor;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor, motivo: String(c['motivo'] ?? ''), usuario: estado.titular.email });
+    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor, motivo: String(c['motivo'] ?? ''), usuario: estado.titular.id });
     return { saldo: estado.moedas, historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)) };
   }],
   ['GET', /^\/prizes\/redemptions$/, () => estado.resgates],
@@ -796,8 +793,8 @@ const ROTAS: Rota[] = [
       throw new ErroDaDemo(422, 'Moedas insuficientes para esse prêmio.', 'SALDO_INSUFICIENTE');
     }
     estado.moedas -= premio.preco;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor: -premio.preco, motivo: `Resgate: ${premio.nome}`, usuario: estado.titular.email });
-    const resgate = { id: novoId('resgate'), premio: premio.nome, preco: premio.preco, usuario: estado.titular.email, status: 'RESGATADO', data: hojeIso(), saldo: estado.moedas };
+    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor: -premio.preco, motivo: `Resgate: ${premio.nome}`, usuario: estado.titular.id });
+    const resgate = { id: novoId('resgate'), premio: premio.nome, preco: premio.preco, usuario: estado.titular.id, status: 'RESGATADO', data: hojeIso(), saldo: estado.moedas };
     estado.resgates.unshift(resgate);
     return resgate;
   }],
@@ -836,7 +833,7 @@ function salvarLugar(id: string | null, c: Corpo) {
     fotoAssetId,
     temFoto: fotoAssetId !== null,
     valor: Number(c['valor'] ?? 0),
-    usuario: existente?.usuario ?? usuarioPorEmail(estado.titular.email).email,
+    usuario: existente?.usuario ?? estado.titular.id,
   };
   if (existente) {
     Object.assign(existente, lugar);

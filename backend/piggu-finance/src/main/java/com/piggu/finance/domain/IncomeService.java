@@ -37,8 +37,8 @@ public class IncomeService {
     }
 
     @Transactional
-    public Income criar(LocalDate data, String descricao, String categoria, BigDecimal valor, String emailUsuario) {
-        Income receita = repositorio.save(new Income(data, Texto.limitar(descricao, 200), categoria(categoria), valor, emailUsuario));
+    public Income criar(LocalDate data, String descricao, String categoria, BigDecimal valor, UUID usuarioId) {
+        Income receita = repositorio.save(new Income(data, Texto.limitar(descricao, 200), categoria(categoria), valor, usuarioId));
         trilha.criou("receita", receita.getId(), Resumos.receita(receita));
         log.info("Receita lancada: id={}", receita.getId());
         return receita;

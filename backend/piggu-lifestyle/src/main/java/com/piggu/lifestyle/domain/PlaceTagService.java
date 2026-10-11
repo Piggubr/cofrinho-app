@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Marcadores de lugar: os quatro de fabrica mais os criados pelo usuario.
@@ -45,7 +46,7 @@ public class PlaceTagService {
     }
 
     @Transactional
-    public String criar(String nomeBruto, String emailUsuario) {
+    public String criar(String nomeBruto, UUID usuarioId) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 50);
         if (nome.length() < 2) {
             throw new BusinessException("Digite um nome valido.");
@@ -53,7 +54,7 @@ public class PlaceTagService {
         if (listar().stream().anyMatch(nome::equalsIgnoreCase)) {
             throw new BusinessException("Essa opcao ja existe.");
         }
-        repositorio.save(new CustomPlaceTag(nome, emailUsuario));
+        repositorio.save(new CustomPlaceTag(nome, usuarioId));
         return nome;
     }
 }

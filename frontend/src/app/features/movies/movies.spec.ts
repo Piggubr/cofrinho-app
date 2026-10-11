@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Filme } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso } from '../../testing/auth-falso';
-import { PROVEDORES_DE_TELA, clicar, digitar } from '../../testing/tela';
+import { ID_DA_BIA, ID_DA_TITULAR, PROVEDORES_DE_TELA, clicar, digitar } from '../../testing/tela';
 import { Movies } from './movies';
 
 const CATALOGO = {
@@ -21,7 +21,7 @@ function filme(mudancas: Partial<Filme> = {}): Filme {
     id: 'f1',
     assistido: false,
     avaliacoes: {},
-    usuario: 'titular@piggu.test',
+    usuario: ID_DA_TITULAR,
     ...mudancas,
   };
 }
@@ -104,19 +104,17 @@ describe('Movies', () => {
 
   it('cada pessoa da sua nota e ve a dos outros', () => {
     const tela = abrir([
-      filme({ assistido: true, avaliacoes: { 'titular@piggu.test': 2, 'bia@piggu.test': 5 } }),
+      filme({ assistido: true, avaliacoes: { [ID_DA_TITULAR]: 2, [ID_DA_BIA]: 5 } }),
     ]);
     const pagina: HTMLElement = tela.nativeElement;
 
     expect(pagina.querySelectorAll('.estrela.marcada').length).toBe(2);
-    expect(pagina.textContent).toContain('bia@piggu.test: 5 ★');
+    expect(pagina.textContent).toContain('Bia: 5 ★');
 
     pagina.querySelector<HTMLButtonElement>('[aria-label="Dar nota 4"]')!.click();
     const pedido = http.expectOne((r) => r.method === 'PUT' && r.url === '/api/movies/f1/rating');
     expect(pedido.request.body).toEqual({ nota: 4 });
-    pedido.flush(
-      filme({ assistido: true, avaliacoes: { 'titular@piggu.test': 4, 'bia@piggu.test': 5 } }),
-    );
+    pedido.flush(filme({ assistido: true, avaliacoes: { [ID_DA_TITULAR]: 4, [ID_DA_BIA]: 5 } }));
     tela.detectChanges();
 
     expect(pagina.querySelectorAll('.estrela.marcada').length).toBe(4);

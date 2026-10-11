@@ -64,7 +64,7 @@ public class ContasECartoes {
 
     @Transactional
     public Conta criar(String nomeBruto, PaymentAccount.Tipo tipo, Integer fechamento, Integer vencimento,
-                       String email) {
+                       UUID pessoa) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 60);
         if (nome.length() < 2) {
             throw new BusinessException("Digite o nome da conta ou do cartao.");
@@ -77,7 +77,7 @@ public class ContasECartoes {
             throw new BusinessException("Informe o dia de fechamento e o de vencimento do cartao.");
         }
         PaymentAccount conta = contas.save(new PaymentAccount(nome, tipo,
-                cartao ? fechamento.shortValue() : null, cartao ? vencimento.shortValue() : null, email));
+                cartao ? fechamento.shortValue() : null, cartao ? vencimento.shortValue() : null, pessoa));
         return new Conta(conta.getId(), conta.getName(), conta.getKind(), conta.getClosingDay(), conta.getDueDay(),
                 null, null);
     }

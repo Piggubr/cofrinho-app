@@ -51,7 +51,7 @@ public class PlaceController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlaceResponse criar(@Valid @RequestBody PlaceRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido, usuario.email());
+        return servico.criar(pedido, usuario.id());
     }
 
     @PutMapping("/{id}")
@@ -76,7 +76,7 @@ public class PlaceController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<String> criarMarcador(@Valid @RequestBody PlaceTagRequest pedido,
                                       @AuthUser CurrentUser usuario) {
-        marcadores.criar(pedido.nome(), usuario.email());
+        marcadores.criar(pedido.nome(), usuario.id());
         return marcadores.listar();
     }
 }

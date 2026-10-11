@@ -7,14 +7,14 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record DepositResponse(UUID id, LocalDate data, BigDecimal valor, String usuario, Instant registradoEm) {
+public record DepositResponse(UUID id, LocalDate data, BigDecimal valor, UUID usuario, Instant registradoEm) {
 
     public static DepositResponse de(PiggyDeposit deposito) {
         return new DepositResponse(
                 deposito.getId(),
                 deposito.getDepositDate(),
                 deposito.getAmount(),
-                deposito.getUserEmail(),
+                deposito.getUserId(),
                 deposito.getCreatedAt()
         );
     }
