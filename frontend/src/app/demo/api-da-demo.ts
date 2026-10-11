@@ -14,6 +14,7 @@ import {
   Fatura,
   Gasto,
   InfoDoPlano,
+  GastoDoBanco,
   LinhaDoExtrato,
   Orcamento,
   ParDeTokens,
@@ -371,6 +372,21 @@ function tokens(): ParDeTokens {
   return { accessToken: 'token-da-demonstracao', expiresIn: 1800, usuario: estado.titular };
 }
 
+/** Alguns debitos recentes do banco de exemplo, sempre os mesmos ids para a reimportacao pular. */
+function gastosDoBanco(): GastoDoBanco[] {
+  const dia = (atras: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - atras);
+    return d.toISOString().slice(0, 10);
+  };
+  const conta = 'Banco Exemplo · Conta corrente';
+  return [
+    { data: dia(1), descricao: 'Padaria Pão Quente', valor: 18.9, idExterno: 'pluggy:demo-1', conta, moeda: 'BRL' },
+    { data: dia(3), descricao: 'Uber', valor: 27.5, idExterno: 'pluggy:demo-2', conta, moeda: 'BRL' },
+    { data: dia(6), descricao: 'Farmácia', valor: 64.3, idExterno: 'pluggy:demo-3', conta, moeda: 'BRL' },
+  ];
+}
+
 /** Le o CSV da importacao do jeito mais simples: data, descricao, valor (debito negativo). */
 function previaDoExtrato(conteudo: string): LinhaDoExtrato[] {
   if (/<OFX>/i.test(conteudo)) {
@@ -513,6 +529,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/banking\/status$/, () => ({ habilitado: true })],
   ['GET', /^\/banking\/accounts$/, () => estado.bancos],
   ['POST', /^\/banking\/sync$/, () => estado.bancos],
+  ['GET', /^\/banking\/transactions$/, () => gastosDoBanco()],
   ['POST', /^\/banking\/(connect-token|items)$/, () => { throw new ErroDaDemo(422, 'Conectar banco (Pluggy) fica indisponível na demonstração. As contas abaixo são de exemplo.'); }],
   ['DELETE', new RegExp(`^/banking/connections/${ID}$`), (_p, [id]) => { estado.bancos = estado.bancos.filter((b) => b.conexaoId !== id); return estado.bancos; }],
 
@@ -527,6 +544,8 @@ const ROTAS: Rota[] = [
   ['GET', /^\/expenses\/splits$/, (p) => acerto(mesDe(p))],
   ['GET', /^\/expenses\/export$/, (p) => csvDoMes(mesDe(p))],
   ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
+  ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
+    (c['linhas'] as LinhaDoExtrato[]).map((l) => linha(l.data, l.descricao, l.valor, l.idExterno))],
   ['POST', /^\/expenses\/import$/, (_p, _x, c) => {
     const linhas = (c['linhas'] ?? []) as Corpo[];
     let importados = 0;

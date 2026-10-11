@@ -121,7 +121,9 @@ export class FinanceService extends ApiBase {
     return this.http.get<ContaFixa[]>(this.url('/bills'), { params: { mes } });
   }
 
-  criarContaFixa(conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>): Observable<void> {
+  criarContaFixa(
+    conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>,
+  ): Observable<void> {
     return this.http.post<void>(this.url('/bills'), conta);
   }
 
@@ -162,6 +164,13 @@ export class FinanceService extends ApiBase {
     return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview'), { conteudo });
   }
 
+  /** Mesma previa para linhas ja separadas, como os gastos lidos do banco conectado. */
+  previaDeLinhas(
+    linhas: Pick<LinhaDoExtrato, 'data' | 'descricao' | 'valor' | 'idExterno'>[],
+  ): Observable<LinhaDoExtrato[]> {
+    return this.http.post<LinhaDoExtrato[]>(this.url('/expenses/import/preview-lines'), { linhas });
+  }
+
   importarExtrato(
     linhas: Omit<LinhaDoExtrato, 'jaImportada'>[],
     contaId: string | null,
@@ -191,7 +200,9 @@ export class FinanceService extends ApiBase {
     return this.http.get<ContaOuCartao[]>(this.url('/accounts'));
   }
 
-  criarConta(conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>): Observable<ContaOuCartao> {
+  criarConta(
+    conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>,
+  ): Observable<ContaOuCartao> {
     return this.http.post<ContaOuCartao>(this.url('/accounts'), conta);
   }
 
@@ -201,9 +212,12 @@ export class FinanceService extends ApiBase {
 
   /** Fatura do cartao que fecha no mes (AAAA-MM), com os gastos. */
   fatura(id: string, mes: string): Observable<{ fatura: Fatura; gastos: Gasto[] }> {
-    return this.http.get<{ fatura: Fatura; gastos: Gasto[] }>(this.url(`/accounts/${id}/statement`), {
-      params: { mes },
-    });
+    return this.http.get<{ fatura: Fatura; gastos: Gasto[] }>(
+      this.url(`/accounts/${id}/statement`),
+      {
+        params: { mes },
+      },
+    );
   }
 
   regrasDeCategoria(): Observable<RegraDeCategoria[]> {

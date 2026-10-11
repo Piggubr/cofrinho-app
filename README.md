@@ -22,8 +22,9 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
   metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
   relatório do mês e do ano, importação de OFX/CSV sem duplicar e exportação em CSV.
-- **Bancos:** saldo pelo Open Finance (Pluggy), sempre com consentimento e com
-  desconexão grátis.
+- **Bancos:** saldo pelo Open Finance (Pluggy) e os débitos dos últimos 30 dias
+  trazidos como gastos, revistos antes de gravar e sem repetir; sempre com
+  consentimento e com desconexão grátis.
 - **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
 - **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
 - **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste
@@ -71,7 +72,7 @@ e [`frontend/`](frontend/README.md).
 
 ```bash
 cd backend && mvn verify    # mais de 340 testes (precisa de Docker)
-cd frontend && npm test     # 268 testes
+cd frontend && npm test     # 270 testes
 cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)

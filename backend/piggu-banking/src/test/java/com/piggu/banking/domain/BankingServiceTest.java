@@ -2,6 +2,7 @@ package com.piggu.banking.domain;
 
 import com.piggu.banking.api.dto.BankAccountResponse;
 import com.piggu.banking.integration.PluggyClient;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UpstreamException;
@@ -16,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -185,6 +187,47 @@ class BankingServiceTest extends PostgresIntegrationTest {
         doThrow(new NotFoundException("sumiu")).when(pluggy).apagarItem("item-9");
         servico.desconectar(conexao, titular);
         assertThat(conexoes.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("gastos do banco: so debitos confirmados, de todas as contas da pessoa, do mais novo ao mais velho")
+    void gastosDoBanco() {
+        item("item-g", titular, "Nubank");
+        when(pluggy.listarContas("item-g")).thenReturn(List.of(conta("cg1", "Conta", "10"), conta("cg2", "Cartao", "0")));
+        servico.registrar("item-g", titular);
+        LocalDate desde = LocalDate.now().minusDays(10);
+        when(pluggy.listarTransacoes("cg1", desde)).thenReturn(List.of(
+                transacao("a", desde.plusDays(1), "Padaria", "12.50", true, true),
+                transacao("b", desde.plusDays(2), "Salario", "5000", false, true),
+                transacao("c", desde.plusDays(3), "Pendente", "8", true, false)));
+        when(pluggy.listarTransacoes("cg2", desde)).thenReturn(List.of(
+                transacao("d", desde.plusDays(4), "Cinema", "60", true, true)));
+
+        List<BankingService.GastoDoBanco> gastos = servico.gastosDesde(desde, titular);
+
+        assertThat(gastos).extracting(BankingService.GastoDoBanco::idExterno).containsExactly("pluggy:d", "pluggy:a");
+        assertThat(gastos.get(0).conta()).isEqualTo("Nubank · Cartao");
+        assertThat(gastos.get(1).valor()).isEqualByComparingTo("12.50");
+    }
+
+    @Test
+    @DisplayName("gastos do banco: so ate 90 dias para tras e nunca no futuro; banco de outra pessoa nao entra")
+    void gastosDoBancoNoPrazo() {
+        item("item-h", admin, "Itau");
+        when(pluggy.listarContas("item-h")).thenReturn(List.of(conta("ch1", "Conta", "10")));
+        servico.registrar("item-h", admin);
+
+        assertThatThrownBy(() -> servico.gastosDesde(LocalDate.now().minusDays(91), titular))
+                .isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> servico.gastosDesde(LocalDate.now().plusDays(1), titular))
+                .isInstanceOf(BusinessException.class);
+        assertThat(servico.gastosDesde(LocalDate.now().minusDays(5), titular)).isEmpty();
+        verify(pluggy, never()).listarTransacoes(anyString(), org.mockito.ArgumentMatchers.any());
+    }
+
+    private static PluggyClient.Transacao transacao(String id, LocalDate data, String descricao, String valor,
+                                                    boolean debito, boolean confirmada) {
+        return new PluggyClient.Transacao(id, data, descricao, new BigDecimal(valor), debito, confirmada, "BRL");
     }
 
     private void item(String id, CurrentUser dono, String instituicao) {

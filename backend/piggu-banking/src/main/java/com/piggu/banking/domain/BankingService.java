@@ -4,14 +4,20 @@ import com.piggu.banking.api.dto.BankAccountResponse;
 import com.piggu.banking.api.dto.ConnectTokenResponse;
 import com.piggu.banking.config.PluggyProperties;
 import com.piggu.banking.integration.PluggyClient;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Texto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +100,41 @@ public class BankingService {
         conexoes.delete(conexao);
         log.info("Banco desconectado: conexao={}", conexao.getId());
         return listar(usuario);
+    }
+
+    /** Quanto para tras se pode buscar de uma vez; a Pluggy guarda bem mais, a revisao nao. */
+    public static final int MAXIMO_DE_DIAS = 90;
+
+    /** Debito de um banco conectado, no formato da previa do importador de extrato. */
+    public record GastoDoBanco(LocalDate data, String descricao, BigDecimal valor, String idExterno,
+                               String conta, String moeda) {
+    }
+
+    /**
+     * Debitos confirmados das contas da pessoa desde a data pedida, para revisar e importar
+     * como gastos. Nada e gravado aqui: o financeiro recebe as linhas escolhidas e pula as
+     * que ja entraram pelo id externo ("pluggy:" + id do lancamento).
+     */
+    @Transactional(readOnly = true)
+    public List<GastoDoBanco> gastosDesde(LocalDate desde, CurrentUser usuario) {
+        LocalDate hoje = LocalDate.now();
+        if (desde.isAfter(hoje) || desde.isBefore(hoje.minusDays(MAXIMO_DE_DIAS))) {
+            throw new BusinessException("Escolha uma data dos ultimos " + MAXIMO_DE_DIAS + " dias.");
+        }
+        List<GastoDoBanco> gastos = new ArrayList<>();
+        List<BankAccount> doUsuario = contas.listarDoUsuario(usuario.id());
+        for (BankAccount conta : doUsuario) {
+            String nome = conta.getConnection().getInstitution() + " · " + conta.getName();
+            for (PluggyClient.Transacao t : pluggy.listarTransacoes(conta.getPluggyAccountId(), desde)) {
+                if (t.debito() && t.confirmada() && t.valor().signum() > 0) {
+                    gastos.add(new GastoDoBanco(t.data(), Texto.limitar(t.descricao(), 200), t.valor(),
+                            "pluggy:" + t.id(), nome, t.moeda()));
+                }
+            }
+        }
+        gastos.sort(Comparator.comparing(GastoDoBanco::data).reversed());
+        log.info("Gastos lidos dos bancos: contas={} gastos={}", doUsuario.size(), gastos.size());
+        return gastos;
     }
 
     // ponytail: le o que a Pluggy ja tem (ela atualiza sozinha todo dia). Forcar ida ao

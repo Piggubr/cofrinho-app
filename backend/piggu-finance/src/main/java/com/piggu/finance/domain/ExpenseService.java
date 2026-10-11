@@ -140,7 +140,15 @@ public class ExpenseService {
     /** Le o extrato e mostra o que entraria, sem gravar nada. */
     @Transactional(readOnly = true)
     public List<LinhaDaPrevia> previaDoExtrato(String conteudo) {
-        List<LeitorDeExtrato.Linha> linhas = LeitorDeExtrato.ler(conteudo);
+        return previa(LeitorDeExtrato.ler(conteudo));
+    }
+
+    /**
+     * Mesma previa para linhas que ja chegam separadas, como os debitos que o servico de
+     * bancos le da Pluggy: categoria pelas regras e marca do que ja foi importado.
+     */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previa(List<LeitorDeExtrato.Linha> linhas) {
         Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
                 linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList()));
         List<CategoryRule> regrasDaFamilia = regras.carregar();

@@ -89,6 +89,19 @@ public class ExpenseController {
         return servico.previaDoExtrato(pedido.conteudo());
     }
 
+    public record LinhasRequest(
+            @NotEmpty(message = "Nenhum lancamento para revisar.")
+            @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas) {
+    }
+
+    /** Previa de linhas ja separadas (gastos lidos do banco conectado), sem gravar. */
+    @PostMapping("/import/preview-lines")
+    public List<ExpenseService.LinhaDaPrevia> previaDeLinhas(@Valid @RequestBody LinhasRequest pedido) {
+        return servico.previa(pedido.linhas().stream()
+                .map(l -> new LeitorDeExtrato.Linha(l.data(), l.descricao(), l.valor(), l.idExterno()))
+                .toList());
+    }
+
     /** Grava as linhas escolhidas; as ja importadas sao puladas pelo id externo. */
     @PostMapping("/import")
     public Map<String, Integer> importar(@Valid @RequestBody ImportRequest pedido, @AuthUser CurrentUser usuario) {

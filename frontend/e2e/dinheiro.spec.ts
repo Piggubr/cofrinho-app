@@ -29,7 +29,9 @@ test('lancar um gasto: aparece na lista e soma no mes', async ({ page }) => {
   await expect(page.getByText(/R\$\s42,50/).first()).toBeVisible();
 });
 
-test('definir o limite do mes no Orcamento (o endereco antigo de Metas leva para la)', async ({ page }) => {
+test('definir o limite do mes no Orcamento (o endereco antigo de Metas leva para la)', async ({
+  page,
+}) => {
   await abrirPainel(page);
   await page.goto('/metas');
   await expect(page).toHaveURL(/\/orcamentos$/);
@@ -56,4 +58,20 @@ test('Planejar leva ao Orcamento e as Contas do mes', async ({ page }) => {
   await conteudo.getByRole('link', { name: /Contas do mês/ }).click();
   await expect(page).toHaveURL(/\/contas-fixas$/);
   await expect(page.getByRole('heading', { name: 'Contas do mês' })).toBeVisible();
+});
+
+test('trazer os gastos do banco conectado, revisar e importar; de novo, nada repete', async ({
+  page,
+}) => {
+  await abrirPainel(page);
+  await page.goto('/gastos');
+
+  await page.getByRole('button', { name: 'Trazer do banco' }).click();
+  await expect(page.getByText('Padaria Pão Quente')).toBeVisible();
+  await expect(page.getByText('Banco Exemplo · Conta corrente').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Importar marcados' }).click();
+  await expect(page.getByText('Importados: 3.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Trazer do banco' }).click();
+  await expect(page.getByText(/já está no Piggu/)).toBeVisible();
 });

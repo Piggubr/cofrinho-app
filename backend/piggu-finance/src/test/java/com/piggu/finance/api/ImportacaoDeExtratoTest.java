@@ -61,6 +61,34 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("\"Uber Centro\";\"Transporte\";23,50")));
     }
 
+    @Test
+    @DisplayName("gastos do banco conectado: previa por linhas, com regra, e o que ja entrou fica marcado")
+    void previaDeLinhasDoBanco() throws Exception {
+        String linhas = """
+                {"linhas":[{"data":"2026-09-12","descricao":"Uber Centro","valor":18.4,"idExterno":"pluggy:t1"},
+                           {"data":"2026-09-13","descricao":"Padaria","valor":9.9,"idExterno":"pluggy:t2"}]}
+                """;
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/categories/rules")
+                .with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"termo\":\"uber\",\"categoria\":\"Transporte\"}")).andExpect(status().isOk());
+
+        JsonNode previa = previaDeLinhas(linhas);
+        assertThat(previa.get(0).path("categoria").asString()).isEqualTo("Transporte");
+        importar(casas.casaA, previa).andExpect(jsonPath("$.importados").value(2));
+        assertThat(previaDeLinhas(linhas).findValuesAsString("jaImportada")).containsOnly("true");
+
+        mockMvc.perform(post("/api/expenses/import/preview-lines").with(casas.casaA)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"linhas\":[]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    private JsonNode previaDeLinhas(String corpo) throws Exception {
+        return json.readTree(mockMvc.perform(post("/api/expenses/import/preview-lines").with(casas.casaA)
+                        .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+    }
+
     private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem) throws Exception {
         return json.readTree(mockMvc.perform(post("/api/expenses/import/preview").with(quem)
                         .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("conteudo", CSV))))

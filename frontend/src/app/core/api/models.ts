@@ -511,6 +511,17 @@ export interface ConferenciaDePreco {
   acima: boolean;
 }
 
+/** Debito lido de um banco conectado, antes de virar gasto. */
+export interface GastoDoBanco {
+  data: string;
+  descricao: string;
+  valor: number;
+  idExterno: string;
+  /** Banco e conta de onde saiu, para conferir na revisao. */
+  conta: string;
+  moeda: string;
+}
+
 /** Linha do extrato na previa da importacao. */
 export interface LinhaDoExtrato {
   data: string;

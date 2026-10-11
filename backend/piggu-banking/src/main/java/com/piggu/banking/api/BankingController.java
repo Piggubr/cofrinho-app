@@ -9,6 +9,7 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -79,6 +82,15 @@ public class BankingController {
     @DeleteMapping("/connections/{id}")
     public List<BankAccountResponse> desconectar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.desconectar(id, usuario);
+    }
+
+    /** Debitos dos bancos conectados desde a data, para revisar e importar como gastos. */
+    @GetMapping("/transactions")
+    public List<BankingService.GastoDoBanco> gastos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @AuthUser CurrentUser usuario) {
+        usuario.exigirPremium("Importar os gastos do banco");
+        return servico.gastosDesde(desde == null ? LocalDate.now().minusDays(30) : desde, usuario);
     }
 
     @PostMapping("/sync")
