@@ -93,6 +93,9 @@ sql piggu_finance "DELETE FROM registros; DROP SCHEMA legado CASCADE;"
 test "$(sql piggu_finance "SELECT count(*) FROM registros")" -eq 25
 test "$(sql piggu_finance "SELECT sum(valor) FROM legado.gastos")" -eq 30
 test "$(sql piggu_identity "SELECT count(*) FROM registros")" -eq 25
+# Volta com o dono certo: o usuario do servico, nao o superusuario que restaurou.
+test "$(sql piggu_finance "SELECT pg_get_userbyid(relowner) FROM pg_class WHERE relname = 'registros'")" = piggu_finance
+test "$(sql postgres "SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = 'piggu_finance'")" = piggu_finance
 
 passo "Fotos perdidas voltam"
 docker run --rm -v "$PIGGU_BACKUP_VOLUME_FOTOS:/fotos" --entrypoint sh postgres:16-alpine -c 'rm -rf /fotos/* && echo nova > /fotos/intrusa.jpg'

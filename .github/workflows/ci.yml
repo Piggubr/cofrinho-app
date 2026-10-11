@@ -40,6 +40,8 @@ jobs:
       - run: shellcheck -x backend/scripts/*.sh backend/db/init/*.sh scripts/*.sh
       # Postgres descartavel: backup cifrado, rotacao, restauracao testada e por cima.
       - run: backend/scripts/teste-do-backup.sh
+      # Um usuario do Postgres por servico, isolado, e a atualizacao de instalacao antiga.
+      - run: backend/scripts/teste-dos-usuarios.sh
 
   backend:
     name: Backend (mvn verify)
