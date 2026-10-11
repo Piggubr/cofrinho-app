@@ -228,7 +228,7 @@ describe('Shell', () => {
 
     const titulo = (pagina: HTMLElement) => pagina.querySelector('#titulo-tour')?.textContent?.trim();
     const botao = (pagina: HTMLElement, texto: string) =>
-      [...pagina.querySelectorAll<HTMLButtonElement>('.cartao-tour button')].find(
+      [...pagina.querySelectorAll<HTMLButtonElement>('.balao button')].find(
         (b) => b.textContent?.trim() === texto,
       )!;
 
@@ -263,11 +263,11 @@ describe('Shell', () => {
 
     it('no fim, "Lançar meu primeiro gasto" fecha o tour e abre o painel do "+"', () => {
       const { tela, pagina } = primeiroAcesso();
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 7; i++) {
         botao(pagina, 'Próximo').click();
         tela.detectChanges();
       }
-      expect(titulo(pagina)).toBe('Assistente e busca');
+      expect(titulo(pagina)).toBe('Assistente');
 
       botao(pagina, 'Lançar meu primeiro gasto').click();
       tela.detectChanges();
@@ -280,7 +280,7 @@ describe('Shell', () => {
     it('o membro ve um tour curto, sem o "+"', () => {
       auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
       const { tela, pagina } = primeiroAcesso();
-      expect(pagina.querySelectorAll('.cartao-tour .ponto').length).toBe(3);
+      expect(pagina.querySelector('.balao .contagem')?.textContent?.trim()).toBe('1/3');
 
       for (let i = 0; i < 2; i++) {
         botao(pagina, 'Próximo').click();

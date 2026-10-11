@@ -93,8 +93,11 @@ test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ pa
   await tour.getByRole('button', { name: 'Próximo' }).click();
   await expect(page.getByRole('dialog', { name: 'Lance pelo +' })).toBeVisible();
   await expect(page.locator('button.lancar-flutuante')).toHaveClass(/destaque/);
+  // O balao sai do proprio botao: o recorte fica em volta do "+".
+  await expect(page.locator('app-tutorial .recorte')).toBeVisible();
+  await expect(page.locator('app-tutorial .balao')).toHaveClass(/acima/);
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     await page.getByRole('dialog').getByRole('button', { name: 'Próximo' }).click();
   }
   await page.getByRole('button', { name: 'Lançar meu primeiro gasto' }).click();

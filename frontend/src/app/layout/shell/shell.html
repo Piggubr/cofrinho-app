@@ -20,9 +20,9 @@
     }
 
     <div class="cabecalho-acoes">
-      <app-busca-global [telas]="itensVisiveis()" />
+      <app-busca-global data-tour="busca" [telas]="itensVisiveis()" />
       @if (auth.podeLancar()) {
-        <app-assistente />
+        <app-assistente data-tour="assistente" />
       }
 
       @if (auth.usuario(); as pessoa) {
@@ -95,6 +95,7 @@
               [routerLink]="item.rota"
               routerLinkActive="ativo"
               class="menu-item"
+              [attr.data-tour]="item.rota"
               (click)="fecharMenu()"
             >
               <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
@@ -127,6 +128,7 @@
     <button
       type="button"
       class="lancar-flutuante"
+      data-tour="lancar"
       [class.aberto]="lancamentoAberto()"
       [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
       [attr.aria-expanded]="lancamentoAberto()"
@@ -145,7 +147,13 @@
   <!-- Barra de abas do celular. -->
   <nav class="abas" aria-label="Atalhos" i18n-aria-label>
     @for (item of atalhos(); track item.rota) {
-      <a [routerLink]="item.rota" routerLinkActive="ativo" class="aba" (click)="fecharMenu()">
+      <a
+        [routerLink]="item.rota"
+        routerLinkActive="ativo"
+        class="aba"
+        [attr.data-tour]="item.rota"
+        (click)="fecharMenu()"
+      >
         <app-icone [nome]="item.icone" [tamanho]="22" />
         <span>{{ item.rotulo }}</span>
       </a>
@@ -153,6 +161,7 @@
     <button
       type="button"
       class="aba"
+      data-tour="mais"
       [class.ativo]="menuAberto()"
       (click)="alternarMenu()"
       [attr.aria-expanded]="menuAberto()"
