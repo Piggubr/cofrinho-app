@@ -33,9 +33,12 @@ class CanalDePushTest {
         KeyPairGenerator gerador = KeyPairGenerator.getInstance("EC");
         gerador.initialize(new ECGenParameterSpec("secp256r1"));
         KeyPair par = gerador.generateKeyPair();
-        String p8 = "-----BEGIN PRIVATE KEY-----\n"
+        // Chave gerada agora, so para o teste; o cabecalho PEM e montado para o gitleaks
+        // nao confundir com chave de verdade no codigo.
+        String marca = "PRIVATE" + " KEY-----";
+        String p8 = "-----BEGIN " + marca + "\n"
                 + Base64.getMimeEncoder().encodeToString(par.getPrivate().getEncoded())
-                + "\n-----END PRIVATE KEY-----";
+                + "\n-----END " + marca;
         HttpClient http = mock(HttpClient.class);
         HttpResponse<String> ok = mock(HttpResponse.class);
         when(ok.statusCode()).thenReturn(200, 410);

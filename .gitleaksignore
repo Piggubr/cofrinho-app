@@ -2,3 +2,5 @@
 # esconder um segredo de verdade que apareca depois no mesmo arquivo.
 # JWT falso do teste do TMDB ({"alg":"HS256"}.{"sub":"teste"}.assinatura), nao assina nada.
 910af3f5e90e99609f26cee723a61fdca1b114e7:backend/piggu-lifestyle/src/test/java/com/piggu/lifestyle/integration/TmdbClientTest.java:jwt:22
+# Cabecalho PEM de uma chave EC gerada na hora pelo teste do push (CanalDePushTest); nao e chave real.
+2dae8180d014604559a06d519fb944f5f32d7362:backend/piggu-identity/src/test/java/com/piggu/identity/avisos/CanalDePushTest.java:private-key:36
