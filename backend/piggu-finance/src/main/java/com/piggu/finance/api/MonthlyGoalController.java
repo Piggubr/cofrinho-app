@@ -36,7 +36,7 @@ public class MonthlyGoalController {
     @PutMapping
     public Map<String, BigDecimal> definir(@Valid @RequestBody MonthlyGoalRequest pedido,
                                            @AuthUser CurrentUser usuario) {
-        servico.definir(pedido.mes(), pedido.limite(), usuario.email());
+        servico.definir(pedido.mes(), pedido.limite(), usuario.id());
         return servico.listar();
     }
 }

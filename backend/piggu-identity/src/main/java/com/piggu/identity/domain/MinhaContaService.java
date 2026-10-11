@@ -72,7 +72,7 @@ public class MinhaContaService {
                 .toList());
         // O titular leva o historico da familia; os demais, o que eles mesmos fizeram.
         arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE).stream()
-                .filter(evento -> usuario.isTitular() || evento.autor().equals(usuario.email()))
+                .filter(evento -> usuario.isTitular() || usuario.id().equals(evento.autor()))
                 .toList());
         Map<String, JsonNode> servicos = cascata.exportar(token);
         arquivo.put("dados", servicos);

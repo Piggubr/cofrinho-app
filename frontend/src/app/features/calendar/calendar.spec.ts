@@ -14,7 +14,7 @@ function nota(mudancas: Partial<Nota> = {}): Nota {
     valor: 0,
     categoria: '',
     gastoId: null,
-    usuario: 'titular@piggu.test',
+    usuario: '11111111-1111-1111-1111-111111111111',
     criadoEm: '2026-10-01T10:00:00Z',
     ...mudancas,
   };

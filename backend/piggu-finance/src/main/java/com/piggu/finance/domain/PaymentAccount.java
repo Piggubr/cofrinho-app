@@ -40,8 +40,8 @@ public class PaymentAccount {
     @Column(name = "due_day")
     private Short dueDay;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -49,13 +49,13 @@ public class PaymentAccount {
     protected PaymentAccount() {
     }
 
-    public PaymentAccount(String name, Tipo kind, Short closingDay, Short dueDay, String userEmail) {
+    public PaymentAccount(String name, Tipo kind, Short closingDay, Short dueDay, UUID userId) {
         this.id = UUID.randomUUID();
         this.name = name;
         this.kind = kind;
         this.closingDay = closingDay;
         this.dueDay = dueDay;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist

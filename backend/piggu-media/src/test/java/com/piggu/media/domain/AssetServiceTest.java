@@ -81,7 +81,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         String base64 = Base64.getEncoder().encodeToString(png(9, 8, 7));
 
         Asset asset = assets.guardar(
-                "data:image/png;base64," + base64, "image/png", "FEED", null, TITULAR.email());
+                "data:image/png;base64," + base64, "image/png", "FEED", null, TITULAR.id());
 
         assertThat(assets.baixar(asset.getId()).conteudo()).isEqualTo(png(9, 8, 7));
     }
@@ -92,7 +92,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         String base64 = Base64.getEncoder().encodeToString(png(4, 5, 6));
         String comQuebras = base64.substring(0, 2) + "\n" + base64.substring(2);
 
-        Asset asset = assets.guardar(comQuebras, "image/png", "FEED", null, TITULAR.email());
+        Asset asset = assets.guardar(comQuebras, "image/png", "FEED", null, TITULAR.id());
 
         assertThat(assets.baixar(asset.getId()).conteudo()).isEqualTo(png(4, 5, 6));
     }
@@ -100,7 +100,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("base64 invalido vira erro de negocio, nao falha interna")
     void base64InvalidoViraErroDeNegocio() {
-        assertThatThrownBy(() -> assets.guardar("nao@@e@@base64", "image/png", "FEED", null, TITULAR.email()))
+        assertThatThrownBy(() -> assets.guardar("nao@@e@@base64", "image/png", "FEED", null, TITULAR.id()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("formato que nao consegui ler");
     }
@@ -120,7 +120,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @DisplayName("contexto ausente cai no padrao")
     void contextoPadrao() {
         Asset asset = assets.guardar(
-                Base64.getEncoder().encodeToString(png()), "image/png", null, null, TITULAR.email());
+                Base64.getEncoder().encodeToString(png()), "image/png", null, null, TITULAR.id());
 
         assertThat(asset.getContext()).isEqualTo(Asset.CONTEXTO_PADRAO);
     }
@@ -148,7 +148,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
 
     private Asset guardar(byte[] conteudo, String tipo) {
         return assets.guardar(
-                Base64.getEncoder().encodeToString(conteudo), tipo, "FEED", null, TITULAR.email());
+                Base64.getEncoder().encodeToString(conteudo), tipo, "FEED", null, TITULAR.id());
     }
 
     private static byte[] png(int... resto) {

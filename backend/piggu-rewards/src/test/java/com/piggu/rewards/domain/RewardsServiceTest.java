@@ -31,8 +31,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class RewardsServiceTest extends PostgresIntegrationTest {
 
-    private static final String ADMIN = "admin@piggu.test";
-    private static final String TITULAR = "titular@piggu.test";
+    private static final UUID ADMIN = UUID.nameUUIDFromBytes("admin@piggu.test".getBytes());
+    private static final UUID TITULAR = UUID.nameUUIDFromBytes("titular@piggu.test".getBytes());
 
     @Autowired
     private RewardsService recompensas;

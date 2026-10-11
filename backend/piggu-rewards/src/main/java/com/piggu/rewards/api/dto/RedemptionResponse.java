@@ -12,7 +12,7 @@ public record RedemptionResponse(
         UUID id,
         String premio,
         int preco,
-        String usuario,
+        UUID usuario,
         String status,
         Instant data,
         int saldo
@@ -23,7 +23,7 @@ public record RedemptionResponse(
                 resgate.getId(),
                 resgate.getPrizeName(),
                 resgate.getPrice(),
-                resgate.getUserEmail(),
+                resgate.getUserId(),
                 resgate.getStatus(),
                 resgate.getCreatedAt(),
                 saldo

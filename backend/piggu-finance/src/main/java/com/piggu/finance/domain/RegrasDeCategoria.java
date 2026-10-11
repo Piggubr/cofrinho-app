@@ -40,7 +40,7 @@ public class RegrasDeCategoria {
 
     /** Cria a regra, ou troca a categoria se o termo ja tem uma. */
     @Transactional
-    public Regra definir(String termoBruto, String categoria, String email) {
+    public Regra definir(String termoBruto, String categoria, UUID pessoa) {
         String termo = ChaveProduto.de(termoBruto);
         if (termo.length() < 2 || termo.length() > 100) {
             throw new BusinessException("Digite um termo valido para a regra.");
@@ -48,10 +48,10 @@ public class RegrasDeCategoria {
         String valida = categorias.normalizar(categoria);
         CategoryRule regra = regras.findByTerm(termo)
                 .map(existente -> {
-                    existente.alterarCategoria(valida, email);
+                    existente.alterarCategoria(valida, pessoa);
                     return existente;
                 })
-                .orElseGet(() -> regras.save(new CategoryRule(termo, valida, email)));
+                .orElseGet(() -> regras.save(new CategoryRule(termo, valida, pessoa)));
         return new Regra(regra.getId(), regra.getTerm(), regra.getCategory());
     }
 

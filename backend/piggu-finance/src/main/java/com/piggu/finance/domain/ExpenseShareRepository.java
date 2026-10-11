@@ -11,12 +11,12 @@ import java.util.UUID;
 public interface ExpenseShareRepository extends JpaRepository<ExpenseShare, UUID> {
 
     /** Parte de cada pessoa nos gastos divididos do periodo. */
-    @Query("SELECT s.memberEmail, SUM(s.amount) FROM ExpenseShare s, Expense e "
-            + "WHERE s.expenseId = e.id AND e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY s.memberEmail")
+    @Query("SELECT s.memberId, SUM(s.amount) FROM ExpenseShare s, Expense e "
+            + "WHERE s.expenseId = e.id AND e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY s.memberId")
     List<Object[]> partesNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
     /** Quanto cada pessoa pagou de gastos divididos no periodo (a soma das partes do que ela lancou). */
-    @Query("SELECT e.userEmail, SUM(s.amount) FROM ExpenseShare s, Expense e "
-            + "WHERE s.expenseId = e.id AND e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.userEmail")
+    @Query("SELECT e.userId, SUM(s.amount) FROM ExpenseShare s, Expense e "
+            + "WHERE s.expenseId = e.id AND e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.userId")
     List<Object[]> pagoNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

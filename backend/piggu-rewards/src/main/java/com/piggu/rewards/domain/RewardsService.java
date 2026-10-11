@@ -1,5 +1,6 @@
 package com.piggu.rewards.domain;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.web.Texto;
@@ -64,7 +65,7 @@ public class RewardsService {
      * de quebrar a contabilidade do resgate.</p>
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public CoinBalanceResponse ajustar(CoinAdjustRequest pedido, String emailResponsavel) {
+    public CoinBalanceResponse ajustar(CoinAdjustRequest pedido, UUID responsavel) {
         int valor = pedido.valor();
         if (valor == 0) {
             throw new BusinessException("Digite uma quantidade valida de Fofocoins.");
@@ -75,7 +76,7 @@ public class RewardsService {
             throw new BusinessException("O saldo nao pode ficar negativo.");
         }
 
-        lancamentos.save(new CoinEntry(valor, Texto.limitar(pedido.motivo(), 200), emailResponsavel));
+        lancamentos.save(new CoinEntry(valor, Texto.limitar(pedido.motivo(), 200), responsavel));
         log.info("Fofocoins ajustados: valor={} saldoAnterior={}", valor, atual);
         return saldo();
     }
@@ -89,19 +90,19 @@ public class RewardsService {
     }
 
     @Transactional
-    public PrizeResponse criarPremio(PrizeRequest pedido, String emailResponsavel) {
+    public PrizeResponse criarPremio(PrizeRequest pedido, UUID responsavel) {
         Prize premio = new Prize(
                 Texto.limitar(pedido.nome(), 100),
                 Texto.limitar(pedido.descricao(), 300),
                 pedido.preco(),
                 pedido.ativo() == null || pedido.ativo(),
-                emailResponsavel
+                responsavel
         );
         return PrizeResponse.de(premios.save(premio));
     }
 
     @Transactional
-    public PrizeResponse atualizarPremio(UUID id, PrizeRequest pedido, String emailResponsavel) {
+    public PrizeResponse atualizarPremio(UUID id, PrizeRequest pedido, UUID responsavel) {
         Prize premio = premios.findById(id)
                 .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
         premio.atualizar(
@@ -109,7 +110,7 @@ public class RewardsService {
                 Texto.limitar(pedido.descricao(), 300),
                 pedido.preco(),
                 pedido.ativo() == null || pedido.ativo(),
-                emailResponsavel
+                responsavel
         );
         return PrizeResponse.de(premios.save(premio));
     }
@@ -120,7 +121,7 @@ public class RewardsService {
                 .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
         // Resgates apontam para o premio, entao ele nunca e apagado de verdade:
         // desativar preserva o historico e some da lista de resgate do mesmo jeito.
-        premio.atualizar(premio.getName(), premio.getDescription(), premio.getPrice(), false, "SISTEMA");
+        premio.atualizar(premio.getName(), premio.getDescription(), premio.getPrice(), false, TrilhaDeAuditoria.SISTEMA);
         premios.save(premio);
         log.info("Premio desativado: id={}", id);
     }
@@ -132,7 +133,7 @@ public class RewardsService {
      * eles debitava as moedas sem entregar o premio.</p>
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public RedemptionResponse resgatar(UUID premioId, String emailUsuario) {
+    public RedemptionResponse resgatar(UUID premioId, UUID usuarioId) {
         Prize premio = premios.findById(premioId)
                 .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
 
@@ -148,10 +149,10 @@ public class RewardsService {
         CoinEntry debito = lancamentos.save(new CoinEntry(
                 -premio.getPrice(),
                 "Resgate: " + premio.getName(),
-                CoinEntry.SISTEMA
+                TrilhaDeAuditoria.SISTEMA
         ));
 
-        Redemption resgate = resgates.save(new Redemption(premio, emailUsuario, debito.getId()));
+        Redemption resgate = resgates.save(new Redemption(premio, usuarioId, debito.getId()));
         log.info("Premio resgatado: premio={} preco={} resgate={}", premioId, premio.getPrice(), resgate.getId());
         return RedemptionResponse.de(resgate, saldoAtual - premio.getPrice());
     }

@@ -34,8 +34,8 @@ public class Prize {
     @Column(nullable = false)
     private boolean active = true;
 
-    @Column(name = "updated_by", nullable = false, length = 320)
-    private String updatedBy;
+    @Column(name = "updated_by_id")
+    private UUID updatedBy;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
@@ -43,7 +43,7 @@ public class Prize {
     protected Prize() {
     }
 
-    public Prize(String name, String description, int price, boolean active, String updatedBy) {
+    public Prize(String name, String description, int price, boolean active, UUID updatedBy) {
         this.id = UUID.randomUUID();
         this.name = name;
         this.description = description;
@@ -52,7 +52,7 @@ public class Prize {
         this.updatedBy = updatedBy;
     }
 
-    public void atualizar(String name, String description, int price, boolean active, String updatedBy) {
+    public void atualizar(String name, String description, int price, boolean active, UUID updatedBy) {
         this.name = name;
         this.description = description;
         this.price = price;

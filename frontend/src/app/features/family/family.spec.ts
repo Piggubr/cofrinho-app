@@ -141,7 +141,7 @@ describe('Family', () => {
       .flush([
         {
           id: 7,
-          autor: 'bia@piggu.test',
+          autor: 'u2',
           acao: 'APAGOU',
           entidade: 'gasto',
           entidadeId: 'g1',
@@ -155,7 +155,7 @@ describe('Family', () => {
       .flush([
         {
           id: 3,
-          autor: 'ana@piggu.test',
+          autor: 'u1',
           acao: 'MUDOU_PAPEL',
           entidade: 'pessoa',
           entidadeId: 'u2',

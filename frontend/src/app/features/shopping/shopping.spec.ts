@@ -14,7 +14,7 @@ function item(mudancas: Partial<ItemDeCompra> = {}): ItemDeCompra {
     marca: '',
     imagem: '',
     codigo: '',
-    usuario: 'titular@piggu.test',
+    usuario: '11111111-1111-1111-1111-111111111111',
     ...mudancas,
   };
 }

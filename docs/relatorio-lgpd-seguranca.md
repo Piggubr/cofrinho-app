@@ -236,6 +236,10 @@ commit por item (B1 a B12); o detalhe de cada um está na seção "Segunda rodad
   alterada e revogada, e-mail liberado (sem o e-mail), gastos lançados/editados/apagados,
   depósito, meta, Fofocoins, resgate, prêmio desativado, banco sincronizado e item Pluggy de
   outra conta recusado. Falhas de integração externa já eram registradas.
+- Fora do identity, nenhuma tabela guarda e-mail: quem lançou, dividiu, avaliou ou fez
+  cada mudança é o id da conta (S3). Na exclusão da conta, o que fica com a família perde
+  o dono (o id vira nulo) e a tela mostra "Ex-membro"; o que o Piggu faz sozinho tem o id
+  zero.
 
 ---
 

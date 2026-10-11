@@ -47,7 +47,7 @@ public class NoteService {
     }
 
     @Transactional
-    public NoteResponse criar(NoteRequest pedido, String emailUsuario) {
+    public NoteResponse criar(NoteRequest pedido, UUID usuarioId) {
         BigDecimal valor = pedido.valor() == null ? BigDecimal.ZERO : pedido.valor();
         boolean eventoPago = valor.compareTo(BigDecimal.ZERO) > 0;
 
@@ -66,7 +66,7 @@ public class NoteService {
                     null,
                     ORIGEM_NOTA,
                     List.of(new ExpenseItemRequest(titulo, categoria, valor, "Variavel"))
-            ), emailUsuario);
+            ), usuarioId);
             gastoId = criados.get(0).id();
         }
 
@@ -77,7 +77,7 @@ public class NoteService {
                 valor,
                 eventoPago ? categoria : "",
                 gastoId,
-                emailUsuario
+                usuarioId
         );
         return NoteResponse.de(repositorio.save(nota));
     }
@@ -87,7 +87,7 @@ public class NoteService {
         Note nota = repositorio.findById(id)
                 .orElseThrow(() -> new NotFoundException("Nota nao encontrada."));
 
-        if (!usuario.podeGerenciar(nota.getUserEmail())) {
+        if (!usuario.podeGerenciar(nota.getUserId())) {
             throw new ForbiddenException("Voce nao pode apagar esta nota.");
         }
 

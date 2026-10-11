@@ -70,6 +70,20 @@ docker compose up -d
 O script cria os usuários e passa para eles os bancos e as tabelas que eram do `piggu`.
 Sem ele, os serviços não conseguem entrar no banco.
 
+**Instalação que já tinha dados antes da troca do e-mail pelo id.** Desde esta versão,
+os serviços marcam quem lançou pelo id da conta; o e-mail fica só no identity. Antes de
+subir a versão nova, com o Postgres de pé:
+
+```bash
+backend/scripts/migrar-emails-para-ids.sh
+docker compose up -d
+```
+
+O script copia o de-para (id e e-mail das contas) do identity para os outros bancos; na
+subida, cada serviço troca o e-mail pelo id e apaga o de-para. Se esquecer o script, o
+serviço com dados não sobe e o erro diz para rodá-lo; nada é perdido. Banco novo, vazio,
+não precisa.
+
 Em produção o banco não fica publicado: tire a linha `ports` do serviço `postgres` no
 `docker-compose.yml` (os serviços falam com ele pela rede interna).
 

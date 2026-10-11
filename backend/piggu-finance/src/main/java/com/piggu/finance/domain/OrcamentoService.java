@@ -69,11 +69,11 @@ public class OrcamentoService {
         orcamentos.findByCategory(normalizada).ifPresentOrElse(
                 orcamento -> {
                     String antes = Resumos.orcamento(normalizada, orcamento.getLimitAmount());
-                    orcamento.alterarLimite(limite, usuario.email());
+                    orcamento.alterarLimite(limite, usuario.id());
                     trilha.editou("orcamento", orcamento.getId(), antes, Resumos.orcamento(normalizada, limite));
                 },
                 () -> {
-                    CategoryBudget novo = orcamentos.save(new CategoryBudget(normalizada, limite, usuario.email()));
+                    CategoryBudget novo = orcamentos.save(new CategoryBudget(normalizada, limite, usuario.id()));
                     trilha.criou("orcamento", novo.getId(), Resumos.orcamento(normalizada, limite));
                 });
     }

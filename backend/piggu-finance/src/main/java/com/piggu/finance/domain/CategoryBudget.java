@@ -30,8 +30,8 @@ public class CategoryBudget {
     @Column(name = "limit_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal limitAmount;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -39,11 +39,11 @@ public class CategoryBudget {
     protected CategoryBudget() {
     }
 
-    public CategoryBudget(String category, BigDecimal limitAmount, String userEmail) {
+    public CategoryBudget(String category, BigDecimal limitAmount, UUID userId) {
         this.id = UUID.randomUUID();
         this.category = category;
         this.limitAmount = limitAmount;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -51,9 +51,9 @@ public class CategoryBudget {
         createdAt = Instant.now();
     }
 
-    public void alterarLimite(BigDecimal limitAmount, String userEmail) {
+    public void alterarLimite(BigDecimal limitAmount, UUID userId) {
         this.limitAmount = limitAmount;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     public UUID getId() {

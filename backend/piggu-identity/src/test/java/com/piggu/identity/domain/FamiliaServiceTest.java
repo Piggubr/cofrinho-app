@@ -191,11 +191,11 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
                 .extracting(TrilhaDeAuditoria.Evento::acao, TrilhaDeAuditoria.Evento::autor,
                         TrilhaDeAuditoria.Evento::antes, TrilhaDeAuditoria.Evento::depois)
                 .containsExactly(
-                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.SAIU, "membro@familia.test",
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.SAIU, membro.getId(),
                                 "membro · PARCEIRO", null),
-                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.REMOVEU, "titular@familia.test",
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.REMOVEU, titular.getId(),
                                 "caio · MEMBRO", null),
-                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, "titular@familia.test",
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, titular.getId(),
                                 "membro · MEMBRO", "membro · PARCEIRO"));
         assertThat(trilha.recentes(vizinho.getHouseholdId(), null, 10)).isEmpty();
     }

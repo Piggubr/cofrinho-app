@@ -30,8 +30,8 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                Tabela.compartilhada("feed_photos", "user_email"),
-                Tabela.compartilhada("assets", "owner_email")
+                Tabela.compartilhada("feed_photos", "user_id"),
+                Tabela.compartilhada("assets", "owner_id")
         ), extras.orderedStream().toList());
     }
 
@@ -41,7 +41,7 @@ public class DadosDoTitularConfig {
      */
     @Bean
     DadosDaFamilia.AoApagar arquivosDaFamilia(JdbcTemplate jdbc, StoragePort armazenamento) {
-        return (familia, email, escopo) -> {
+        return (familia, pessoa, escopo) -> {
             if (escopo != EscopoDeExclusao.FAMILIA) {
                 return;
             }

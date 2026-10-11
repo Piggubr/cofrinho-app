@@ -17,7 +17,7 @@ function lugar(mudancas: Partial<Lugar> = {}): Lugar {
     fotoAssetId: 'a1',
     temFoto: true,
     valor: 80,
-    usuario: 'titular@piggu.test',
+    usuario: '11111111-1111-1111-1111-111111111111',
     ...mudancas,
   };
 }

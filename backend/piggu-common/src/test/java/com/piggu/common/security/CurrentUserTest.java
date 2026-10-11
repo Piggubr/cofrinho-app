@@ -11,39 +11,40 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Regra de quem pode mexer no que.
  *
- * <p>O Apps Script repetia a comparacao de e-mail em lugares, notas e depositos.
- * Agora ela vive aqui, entao vale testar a borda: dono, terceiro e administrador.</p>
+ * <p>O Apps Script repetia a comparacao de dono em lugares, notas e depositos.
+ * Agora ela vive aqui (pelo id da pessoa), entao vale testar a borda: dono, terceiro e administrador.</p>
  */
 class CurrentUserTest {
 
     private static final UUID ID = UUID.randomUUID();
+    private static final UUID OUTRA = UUID.randomUUID();
 
     @Test
     @DisplayName("dono do registro pode gerenciar")
     void donoPodeGerenciar() {
         CurrentUser dona = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
-        assertThat(dona.podeGerenciar("titular@piggu.test")).isTrue();
+        assertThat(dona.podeGerenciar(ID)).isTrue();
     }
 
     @Test
-    @DisplayName("comparacao de dono ignora maiusculas")
-    void comparacaoIgnoraCaixa() {
-        CurrentUser dona = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
-        assertThat(dona.podeGerenciar("Titular@Piggu.TEST")).isTrue();
+    @DisplayName("membro gerencia o que ele mesmo lancou, pelo id")
+    void membroDono() {
+        CurrentUser membro = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
+        assertThat(membro.podeGerenciar(ID)).isTrue();
     }
 
     @Test
     @DisplayName("titular gerencia o que qualquer pessoa da familia lancou")
     void titularGerencia() {
         CurrentUser titular = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
-        assertThat(titular.podeGerenciar("membro@piggu.test")).isTrue();
+        assertThat(titular.podeGerenciar(OUTRA)).isTrue();
     }
 
     @Test
     @DisplayName("quem nao e dono nem titular nao pode")
     void terceiroNaoPode() {
         CurrentUser outra = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
-        assertThat(outra.podeGerenciar("titular@piggu.test")).isFalse();
+        assertThat(outra.podeGerenciar(OUTRA)).isFalse();
     }
 
     @Test
@@ -51,7 +52,7 @@ class CurrentUserTest {
     void adminPodeTudo() {
         CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
         assertThat(admin.isAdmin()).isTrue();
-        assertThat(admin.podeGerenciar("titular@piggu.test")).isTrue();
+        assertThat(admin.podeGerenciar(OUTRA)).isTrue();
     }
 
     @Test

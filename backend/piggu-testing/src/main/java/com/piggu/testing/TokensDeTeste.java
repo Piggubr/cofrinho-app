@@ -29,23 +29,28 @@ public final class TokensDeTeste {
     private TokensDeTeste() {
     }
 
+    /** O id que o token de teste da a quem tem este e-mail: e ele que marca o autor nas tabelas. */
+    public static UUID idDe(String email) {
+        return UUID.nameUUIDFromBytes(email.getBytes());
+    }
+
     public static RequestPostProcessor admin() {
         return como(EMAIL_ADMIN, PigguRole.ADMIN);
     }
 
     /** Titular com Premium: o caso comum dos testes de permissao. */
     public static RequestPostProcessor titular() {
-        return como(EMAIL_TITULAR, PigguRole.TITULAR, UUID.nameUUIDFromBytes(EMAIL_TITULAR.getBytes()), "PREMIUM");
+        return como(EMAIL_TITULAR, PigguRole.TITULAR, idDe(EMAIL_TITULAR), "PREMIUM");
     }
 
     /** Titular no plano gratuito, para conferir o que o Premium barra. */
     public static RequestPostProcessor titularGratuita() {
-        return como(EMAIL_TITULAR, PigguRole.TITULAR, UUID.nameUUIDFromBytes(EMAIL_TITULAR.getBytes()), "GRATUITO");
+        return como(EMAIL_TITULAR, PigguRole.TITULAR, idDe(EMAIL_TITULAR), "GRATUITO");
     }
 
     /** Parceiro da familia do titular, no Premium como ela. */
     public static RequestPostProcessor parceiro() {
-        return como(EMAIL_PARCEIRO, PigguRole.PARCEIRO, UUID.nameUUIDFromBytes(EMAIL_PARCEIRO.getBytes()), "PREMIUM");
+        return como(EMAIL_PARCEIRO, PigguRole.PARCEIRO, idDe(EMAIL_PARCEIRO), "PREMIUM");
     }
 
     public static RequestPostProcessor membro() {
@@ -54,14 +59,14 @@ public final class TokensDeTeste {
 
     /** Pessoa de outra familia, com Premium para nada ser barrado pelo plano. */
     public static RequestPostProcessor da(UUID familia, String email, PigguRole role) {
-        return token(email, role, UUID.nameUUIDFromBytes(email.getBytes()), "PREMIUM", familia);
+        return token(email, role, idDe(email), "PREMIUM", familia);
     }
 
     /** Token de exclusao que so o identity emite, com o escopo PESSOA ou FAMILIA. */
     public static RequestPostProcessor exclusao(UUID familia, String email, PigguRole role, String escopo) {
         return SecurityMockMvcRequestPostProcessors.jwt()
                 .jwt(token -> token
-                        .subject(UUID.nameUUIDFromBytes(email.getBytes()).toString())
+                        .subject(idDe(email).toString())
                         .claim("email", email)
                         .claim("role", role.name())
                         .claim("familia", familia.toString())
@@ -70,7 +75,7 @@ public final class TokensDeTeste {
     }
 
     public static RequestPostProcessor como(String email, PigguRole role) {
-        return como(email, role, UUID.nameUUIDFromBytes(email.getBytes()));
+        return como(email, role, idDe(email));
     }
 
     /** Permite fixar o id, para testes que comparam dono de registro. */

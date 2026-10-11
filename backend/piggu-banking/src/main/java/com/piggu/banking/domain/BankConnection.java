@@ -26,8 +26,8 @@ public class BankConnection {
     @Column(name = "pluggy_item_id", nullable = false, unique = true, length = 100)
     private String pluggyItemId;
 
-    @Column(name = "user_email", nullable = false, length = 320)
-    private String userEmail;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(nullable = false, length = 200)
     private String institution = "";
@@ -44,10 +44,10 @@ public class BankConnection {
     protected BankConnection() {
     }
 
-    public BankConnection(String pluggyItemId, String userEmail) {
+    public BankConnection(String pluggyItemId, UUID userId) {
         this.id = UUID.randomUUID();
         this.pluggyItemId = pluggyItemId;
-        this.userEmail = userEmail;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -69,8 +69,8 @@ public class BankConnection {
         return pluggyItemId;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public UUID getUserId() {
+        return userId;
     }
 
     public String getInstitution() {

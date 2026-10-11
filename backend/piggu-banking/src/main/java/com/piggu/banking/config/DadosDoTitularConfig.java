@@ -28,8 +28,8 @@ public class DadosDoTitularConfig {
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
                 new Tabela("bank_accounts", null, true),
-                Tabela.pessoal("bank_connections", "user_email"),
-                Tabela.pessoal("consents", "user_email")
+                Tabela.pessoal("bank_connections", "user_id"),
+                Tabela.pessoal("consents", "user_id")
         ), extras.orderedStream().toList());
     }
 
@@ -41,12 +41,12 @@ public class DadosDoTitularConfig {
     /** Falha na Pluggy aborta a exclusao: item vivo la sem registro aqui ninguem mais apaga. */
     @Bean
     DadosDaFamilia.AoApagar conexoesNaPluggy(JdbcTemplate jdbc, PluggyClient pluggy) {
-        return (familia, email, escopo) -> {
+        return (familia, pessoa, escopo) -> {
             List<String> itens = escopo == EscopoDeExclusao.FAMILIA
                     ? jdbc.queryForList("SELECT pluggy_item_id FROM bank_connections WHERE household_id = ?",
                             String.class, familia)
-                    : jdbc.queryForList("SELECT pluggy_item_id FROM bank_connections WHERE household_id = ? AND user_email = ?",
-                            String.class, familia, email);
+                    : jdbc.queryForList("SELECT pluggy_item_id FROM bank_connections WHERE household_id = ? AND user_id = ?",
+                            String.class, familia, pessoa);
             for (String item : itens) {
                 try {
                     pluggy.apagarItem(item);

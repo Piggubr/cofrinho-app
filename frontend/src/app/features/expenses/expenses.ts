@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { FamilyService } from '../../core/api/family.service';
+import { nomeNaFamilia } from '../../core/api/pessoas-da-familia';
 import { FinanceService } from '../../core/api/finance.service';
 import {
   AcertoDeDivisao,
@@ -59,7 +60,9 @@ export class Expenses {
   protected readonly categorias = signal<string[]>([]);
   /** A busca global abre os gastos no mes do resultado (?mes=AAAA-MM). */
   private readonly mesPedido = inject(ActivatedRoute).snapshot.queryParamMap.get('mes') ?? '';
-  protected readonly mesAtual = signal(/^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()));
+  protected readonly mesAtual = signal(
+    /^\d{4}-\d{2}$/.test(this.mesPedido) ? this.mesPedido : mesKey(new Date()),
+  );
 
   protected readonly novoItem = signal('');
   protected readonly novoValor = signal<number | null>(null);
@@ -68,9 +71,11 @@ export class Expenses {
   protected readonly novoTipo = signal('Variavel');
 
   /** Foto que so a IA consegue ler, esperando a pessoa autorizar o envio. */
-  protected readonly pedidoDeIa = signal<{ base64: string; mimeType: string; mensagem: string } | null>(
-    null,
-  );
+  protected readonly pedidoDeIa = signal<{
+    base64: string;
+    mimeType: string;
+    mensagem: string;
+  } | null>(null);
   protected readonly lendoRecibo = signal(false);
   /** Leituras gratis que sobram no mes; nulo no Premium ou antes de saber. */
   protected readonly leiturasRestantes = signal<number | null>(null);
@@ -140,9 +145,13 @@ export class Expenses {
       next: (orcamentos) => {
         const orcamento = orcamentos.find((o) => o.categoria === categoria && o.alerta !== 'OK');
         if (orcamento?.alerta === 'ESTOUROU') {
-          this.aviso.set($localize`Gasto lançado. ${categoria} passou do limite do mês (${orcamento.percentual}%).`);
+          this.aviso.set(
+            $localize`Gasto lançado. ${categoria} passou do limite do mês (${orcamento.percentual}%).`,
+          );
         } else if (orcamento) {
-          this.aviso.set($localize`Gasto lançado. ${categoria} já usou ${orcamento.percentual}% do limite do mês.`);
+          this.aviso.set(
+            $localize`Gasto lançado. ${categoria} já usou ${orcamento.percentual}% do limite do mês.`,
+          );
         }
       },
       // O aviso de orcamento e extra: sem ele o lancamento ja deu certo.
@@ -381,14 +390,14 @@ export class Expenses {
     });
   }
 
-  protected alternarDivisao(email: string): void {
+  protected alternarDivisao(pessoa: string): void {
     this.dividirCom.update((lista) =>
-      lista.includes(email) ? lista.filter((e) => e !== email) : [...lista, email],
+      lista.includes(pessoa) ? lista.filter((p) => p !== pessoa) : [...lista, pessoa],
     );
   }
 
-  protected nomeDe(email: string): string {
-    return this.membros().find((m) => m.email.toLowerCase() === email)?.nome ?? email;
+  protected nomeDe(pessoa: string | null): string {
+    return nomeNaFamilia(this.membros(), pessoa);
   }
 
   /** Ao sair do valor: avisa se o preco passou da media do item (so na moeda da pessoa). */
@@ -453,7 +462,9 @@ export class Expenses {
   }
 
   private carregarAcerto(): void {
-    this.finance.acertoDoMes(this.mesAtual()).subscribe({ next: (lista) => this.acerto.set(lista) });
+    this.finance
+      .acertoDoMes(this.mesAtual())
+      .subscribe({ next: (lista) => this.acerto.set(lista) });
   }
 
   private carregar(): void {

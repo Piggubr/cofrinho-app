@@ -52,7 +52,7 @@ public class PiggyBankService {
     @Transactional(readOnly = true)
     public PiggyBankResponse consultar(CurrentUser usuario) {
         if (usuario.role() == PigguRole.MEMBRO) {
-            return consultarComoMembro(usuario.email());
+            return consultarComoMembro(usuario.id());
         }
 
         List<DepositResponse> lista = depositos.findAllByOrderByDepositDateDesc().stream()
@@ -70,9 +70,9 @@ public class PiggyBankService {
     }
 
     @Transactional
-    public DepositResponse depositar(DepositRequest pedido, String emailUsuario) {
+    public DepositResponse depositar(DepositRequest pedido, UUID usuarioId) {
         LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
-        PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), emailUsuario));
+        PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), usuarioId));
         trilha.criou("deposito", deposito.getId(), Resumos.deposito(deposito));
         log.info("Deposito no cofrinho: id={} data={}", deposito.getId(), data);
         return DepositResponse.de(deposito);
@@ -83,7 +83,7 @@ public class PiggyBankService {
         PiggyDeposit deposito = depositos.findById(id)
                 .orElseThrow(() -> new NotFoundException("Deposito nao encontrado."));
 
-        if (!usuario.podeGerenciar(deposito.getUserEmail())) {
+        if (!usuario.podeGerenciar(deposito.getUserId())) {
             log.warn("Tentativa de apagar deposito alheio recusada: id={}", id);
             throw new ForbiddenException("Voce nao pode apagar este deposito.");
         }
@@ -92,11 +92,11 @@ public class PiggyBankService {
         log.info("Deposito apagado: id={}", id);
     }
 
-    private PiggyBankResponse consultarComoMembro(String email) {
-        List<DepositResponse> proprios = depositos.findByUserEmailOrderByDepositDateDesc(email).stream()
+    private PiggyBankResponse consultarComoMembro(UUID pessoa) {
+        List<DepositResponse> proprios = depositos.findByUserIdOrderByDepositDateDesc(pessoa).stream()
                 .map(DepositResponse::de)
                 .toList();
-        BigDecimal total = depositos.somarDoUsuario(email);
+        BigDecimal total = depositos.somarDoUsuario(pessoa);
         return new PiggyBankResponse(proprios, total, BigDecimal.ZERO, total);
     }
 

@@ -13,7 +13,7 @@ public record ShoppingItemResponse(
         String marca,
         String imagem,
         String codigo,
-        String usuario
+        UUID usuario
 ) {
 
     public static ShoppingItemResponse de(ShoppingItem item) {
@@ -26,7 +26,7 @@ public record ShoppingItemResponse(
                 item.getBrand(),
                 item.getImageUrl(),
                 item.getBarcode(),
-                item.getUserEmail()
+                item.getUserId()
         );
     }
 }

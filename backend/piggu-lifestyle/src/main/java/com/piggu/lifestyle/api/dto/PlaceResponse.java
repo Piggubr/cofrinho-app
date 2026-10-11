@@ -23,7 +23,7 @@ public record PlaceResponse(
         UUID fotoAssetId,
         boolean temFoto,
         BigDecimal valor,
-        String usuario
+        UUID usuario
 ) {
 
     public static PlaceResponse de(Place lugar) {
@@ -39,7 +39,7 @@ public record PlaceResponse(
                 lugar.getPhotoAssetId(),
                 lugar.getPhotoAssetId() != null,
                 lugar.getAmount(),
-                lugar.getUserEmail()
+                lugar.getUserId()
         );
     }
 }

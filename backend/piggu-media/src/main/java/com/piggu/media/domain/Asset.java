@@ -43,8 +43,8 @@ public class Asset {
     @Column(nullable = false, length = 30)
     private String context = CONTEXTO_PADRAO;
 
-    @Column(name = "owner_email", nullable = false, length = 320)
-    private String ownerEmail;
+    @Column(name = "owner_id")
+    private UUID ownerId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -52,13 +52,13 @@ public class Asset {
     protected Asset() {
     }
 
-    public Asset(String driveFileId, String contentType, long sizeBytes, String context, String ownerEmail) {
+    public Asset(String driveFileId, String contentType, long sizeBytes, String context, UUID ownerId) {
         this.id = UUID.randomUUID();
         this.driveFileId = driveFileId;
         this.contentType = contentType;
         this.sizeBytes = sizeBytes;
         this.context = context;
-        this.ownerEmail = ownerEmail;
+        this.ownerId = ownerId;
     }
 
     @PrePersist
@@ -89,8 +89,8 @@ public class Asset {
         return context;
     }
 
-    public String getOwnerEmail() {
-        return ownerEmail;
+    public UUID getOwnerId() {
+        return ownerId;
     }
 
     public Instant getCreatedAt() {

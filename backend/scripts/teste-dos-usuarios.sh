@@ -86,5 +86,17 @@ if como piggu_rewards senha-rewards piggu_rewards "SELECT 1" 2> /dev/null; then
   falhar "a senha antiga ainda entra"
 fi
 
+passo "O de-para de e-mail para id chega a cada banco, com o servico como dono"
+admin piggu_identity "CREATE TABLE users (id UUID PRIMARY KEY, email VARCHAR(320) NOT NULL);
+                      INSERT INTO users VALUES (gen_random_uuid(), 'Ana@Piggu.test'), (gen_random_uuid(), 'beto@piggu.test');"
+PIGGU_PG_CONTAINER=$NOME "$AQUI/migrar-emails-para-ids.sh" > /dev/null
+PIGGU_PG_CONTAINER=$NOME "$AQUI/migrar-emails-para-ids.sh" > /dev/null
+for servico in finance lifestyle media banking; do
+  como "piggu_$servico" "senha-$servico" "piggu_$servico" "SELECT email FROM de_para_usuarios ORDER BY 1" \
+    | tr '\n' ' ' | grep -qx "ana@piggu.test beto@piggu.test " || falhar "de-para errado em piggu_$servico"
+  como "piggu_$servico" "senha-$servico" "piggu_$servico" "DROP TABLE de_para_usuarios" > /dev/null
+done
+como piggu_rewards senha-nova piggu_rewards "DROP TABLE de_para_usuarios" > /dev/null
+
 echo
-echo "OK: um usuario por servico, isolado, e a atualizacao de uma instalacao antiga funciona."
+echo "OK: um usuario por servico, isolado, a atualizacao de uma instalacao antiga e o de-para funcionam."
