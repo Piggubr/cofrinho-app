@@ -98,6 +98,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
 | `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo) |
 | `GEMINI_API_KEY`, `PLUGGY_*`, `STRIPE_*`, `TMDB_READ_TOKEN`, `DRIVE_*` | integrações; vazias, o recurso fica desligado |
+| `PIGGU_ASSISTENTE_PERGUNTAS_POR_MES` | perguntas ao assistente de IA por pessoa no mês (padrão 150); o assistente usa a mesma `GEMINI_API_KEY` |
 | `PIGGU_EMAIL_API_KEY`, `PIGGU_EMAIL_REMETENTE` | avisos por e-mail (fatura, orçamento, conta do mês), pela API da Resend; o remetente precisa ser de um domínio verificado lá (ex.: `Piggu <avisos@piggu.app>`) |
 | `APNS_TEAM_ID`, `APNS_KEY_ID`, `APNS_CHAVE`, `APNS_BUNDLE_ID` | push no iPhone: a chave `.p8` de "Apple Push Notifications service" criada em developer.apple.com (Keys), o Team ID, o Key ID e o bundle do app. `APNS_SANDBOX=true` para o app instalado pelo Xcode |
 

@@ -363,6 +363,48 @@ function situacaoDoObjetivo(objetivo: ObjetivoDemo): ObjetivoDoCofrinho {
   return { ...objetivo, guardado, falta, percentual, mesesRestantes, porMes, concluido, atrasado };
 }
 
+const LIMITE_DO_ASSISTENTE = 150;
+
+function situacaoDoAssistente() {
+  return {
+    habilitado: true,
+    autorizado: estado.assistenteAutorizado,
+    limite: LIMITE_DO_ASSISTENTE,
+    restantes: LIMITE_DO_ASSISTENTE - estado.perguntasAoAssistente,
+  };
+}
+
+/** Na demo nao ha IA: tres respostas de exemplo, escolhidas pelo assunto da pergunta. */
+function respostaDoAssistente(pergunta: string): { texto: string; tela: string | null } {
+  const real = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const assunto = semAcento(pergunta);
+  const mes = mesAtual();
+  if (/objetivo|cofrinho|guardar|viagem/.test(assunto)) {
+    const linhas = estado.objetivos.map(situacaoDoObjetivo).map((o) =>
+      o.concluido
+        ? `${o.nome}: concluído!`
+        : `${o.nome}: faltam ${real(o.falta)}` + (o.porMes !== null ? `, guardando ${real(o.porMes)} por mês.` : '.'),
+    );
+    return { texto: linhas.length ? linhas.join('\n') : 'Você ainda não tem cofrinho por objetivo.', tela: 'painel' };
+  }
+  if (/orcamento|estour|limite/.test(assunto)) {
+    const atencao = orcamentos(mes).filter((o) => o.alerta !== 'OK');
+    const texto = atencao.length
+      ? atencao.map((o) => `${o.categoria}: ${o.percentual}% do limite (${real(o.gasto)} de ${real(o.limite)}).`).join('\n')
+      : 'Neste mês nenhuma categoria passou de 80% do limite.';
+    return { texto, tela: 'orcamentos' };
+  }
+  const r = resumo(mes);
+  const maior = r.porCategoria[0];
+  return {
+    texto:
+      `Neste mês você gastou ${real(r.gastos)} e recebeu ${real(r.receitas)}.` +
+      (maior ? ` A maior categoria é ${maior.categoria}, com ${real(maior.total)}.` : '') +
+      ' (Na demonstração as respostas são de exemplo; no app, a IA responde a sua pergunta.)',
+    tela: 'relatorios',
+  };
+}
+
 function familia(): Familia {
   const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role });
   return {
@@ -385,7 +427,7 @@ function plano(): InfoDoPlano {
     site: { mensal: '19,90', anual: '199,00' },
     app: { mensal: '22,89', anual: '228,85' },
     gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
-    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo'],
+    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo', 'Assistente de IA'],
   };
 }
 
@@ -716,6 +758,18 @@ const ROTAS: Rota[] = [
   ['DELETE', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id]) => {
     remover(estado.objetivos, id);
     estado.depositos.filter((d) => d.objetivo === id).forEach((d) => (d.objetivo = null));
+  }],
+  // Assistente: respostas montadas aqui, sem IA, a partir dos dados de exemplo.
+  ['GET', /^\/assistant$/, () => situacaoDoAssistente()],
+  ['POST', /^\/assistant\/ask$/, (_p, _x, c) => {
+    if (c['autorizoIa'] === true) {
+      estado.assistenteAutorizado = true;
+    }
+    if (!estado.assistenteAutorizado) {
+      throw new ErroDaDemo(422, 'Autorize o envio ao assistente para continuar.', 'CONSENTIMENTO_NECESSARIO');
+    }
+    estado.perguntasAoAssistente++;
+    return { ...respostaDoAssistente(String(c['pergunta'] ?? '')), restantes: situacaoDoAssistente().restantes };
   }],
   ['GET', /^\/notes$/, () => estado.notas],
   ['POST', /^\/notes$/, (_p, _x, c) => {

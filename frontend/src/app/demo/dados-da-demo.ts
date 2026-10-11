@@ -61,6 +61,9 @@ export interface EstadoDaDemo {
   metas: Record<string, number>;
   depositos: Deposito[];
   objetivos: ObjetivoDemo[];
+  /** Assistente: a autorizacao do envio a IA e as perguntas feitas no mes. */
+  assistenteAutorizado: boolean;
+  perguntasAoAssistente: number;
   notas: Nota[];
   lugares: Lugar[];
   marcadores: string[];
@@ -180,6 +183,8 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     metas: {},
     depositos: [],
     objetivos: [{ id: 'objetivo-viagem', nome: 'Viagem de férias', alvo: 6000, prazo: diaDoMes(hoje, 8, 15) }],
+    assistenteAutorizado: false,
+    perguntasAoAssistente: 0,
     notas: [],
     lugares: [],
     marcadores: ['Romântico', 'Barato', 'Com as crianças', 'Vista bonita'],

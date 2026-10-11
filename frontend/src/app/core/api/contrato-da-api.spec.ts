@@ -123,6 +123,15 @@ const CASOS: Caso[] = [
     { valor: 50, data: '2026-10-01', objetivo: 'o1' },
   ],
   ['objetivos', (s) => s.finance.listarObjetivos(), 'GET', '/piggy-bank/goals'],
+  ['assistente', (s) => s.finance.situacaoDoAssistente(), 'GET', '/assistant'],
+  [
+    'perguntar ao assistente',
+    (s) => s.finance.perguntarAoAssistente({ pergunta: 'Oi', historico: [], moeda: 'BRL' }),
+    'POST',
+    '/assistant/ask',
+    {},
+    { pergunta: 'Oi', historico: [], moeda: 'BRL' },
+  ],
   [
     'criar objetivo',
     (s) => s.finance.criarObjetivo({ nome: 'Viagem', alvo: 900, prazo: null }),

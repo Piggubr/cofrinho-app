@@ -86,3 +86,15 @@ test('cofrinho por objetivo: guardar na viagem soma nela', async ({ page }) => {
   await viagem.getByRole('button', { name: 'Guardar' }).click();
   await expect(viagem.getByText(/R\$\s1\.750,00 de R\$\s6\.000,00/)).toBeVisible();
 });
+
+test('assistente: autorizar, perguntar e abrir a tela sugerida', async ({ page }) => {
+  await abrirPainel(page);
+  await page.getByRole('button', { name: 'Perguntar ao assistente' }).click();
+  await page.getByRole('button', { name: 'Autorizo e quero perguntar' }).click();
+  await page.getByRole('button', { name: 'Vou estourar algum orçamento?' }).click();
+
+  const painel = page.getByRole('dialog', { name: 'Assistente' });
+  await expect(painel.getByText('149 de 150 perguntas')).toBeVisible();
+  await painel.getByRole('link', { name: 'Abrir Orçamento' }).click();
+  await expect(page).toHaveURL(/\/orcamentos$/);
+});

@@ -18,13 +18,16 @@ import {
   NovoLancamento,
   ObjetivoDoCofrinho,
   Orcamento,
+  PedidoAoAssistente,
   PedidoDeObjetivo,
   Produto,
   Receita,
   ReciboLido,
   RegraDeCategoria,
   RelatorioDoAno,
+  RespostaDoAssistente,
   ResumoDoMes,
+  SituacaoDoAssistente,
   UsoDeLeituras,
 } from './models';
 
@@ -67,6 +70,14 @@ export class FinanceService extends ApiBase {
   /** @param objetivo cofrinho por objetivo; sem ele o deposito vai para o cofrinho geral */
   depositar(valor: number, data?: string, objetivo?: string): Observable<Deposito> {
     return this.http.post<Deposito>(this.url('/piggy-bank/deposits'), { valor, data, objetivo });
+  }
+
+  situacaoDoAssistente(): Observable<SituacaoDoAssistente> {
+    return this.http.get<SituacaoDoAssistente>(this.url('/assistant'));
+  }
+
+  perguntarAoAssistente(pedido: PedidoAoAssistente): Observable<RespostaDoAssistente> {
+    return this.http.post<RespostaDoAssistente>(this.url('/assistant/ask'), pedido);
   }
 
   listarObjetivos(): Observable<ObjetivoDoCofrinho[]> {

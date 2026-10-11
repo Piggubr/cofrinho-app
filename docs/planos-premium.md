@@ -23,6 +23,7 @@ o botão e mostra o convite.
 | **Leitura de nota além de 10 por mês, e a reserva pela IA (Gemini)** | **Premium** | Custo por chamada de IA |
 | **Mural de fotos** (feed) | **Premium** | Custo de armazenamento |
 | **Vários cofrinhos por objetivo** | **Premium** | Planejamento de quem já guarda para mais de uma coisa |
+| **Assistente de IA** (perguntas sobre gastos, orçamento, contas e cofrinho; só leitura; 150 por pessoa no mês) | **Premium** | Custo por chamada de IA; é o recurso pago mais visível |
 | Ver, apagar e desconectar o que já existe | Sempre grátis | Premium vencido nunca prende dado da pessoa (LGPD) |
 
 O Premium é da família: o titular assina e todos da família usam. O ADMIN usa tudo

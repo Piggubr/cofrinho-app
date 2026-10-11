@@ -21,6 +21,9 @@
 
     <div class="cabecalho-acoes">
       <app-busca-global [telas]="itensVisiveis()" />
+      @if (auth.podeLancar()) {
+        <app-assistente />
+      }
 
       @if (auth.usuario(); as pessoa) {
         <a

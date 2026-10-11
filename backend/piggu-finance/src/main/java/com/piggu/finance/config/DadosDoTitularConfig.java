@@ -42,6 +42,7 @@ public class DadosDoTitularConfig {
                 Tabela.compartilhada("custom_categories", "created_by_id"),
                 Tabela.compartilhada("eventos_de_auditoria", "autor_id"),
                 Tabela.pessoal("consents", "user_id"),
+                Tabela.pessoal("assistant_usage", "user_id"),
                 new Tabela("receipt_usage", null, false)
         ), extras.orderedStream().toList());
     }

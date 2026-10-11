@@ -235,6 +235,35 @@ export interface PedidoDeObjetivo {
   prazo: string | null;
 }
 
+/** Assistente de IA: se esta ligado, se a pessoa ja autorizou o envio e quanto sobra no mes. */
+export interface SituacaoDoAssistente {
+  habilitado: boolean;
+  autorizado: boolean;
+  limite: number;
+  restantes: number;
+}
+
+/** Uma fala da conversa, que so o aparelho guarda; {@code pessoa} falso e a resposta. */
+export interface FalaDoAssistente {
+  pessoa: boolean;
+  texto: string;
+}
+
+export interface PedidoAoAssistente {
+  pergunta: string;
+  historico: FalaDoAssistente[];
+  moeda: string;
+  autorizoIa?: boolean;
+  versaoDoAviso?: string;
+}
+
+export interface RespostaDoAssistente {
+  texto: string;
+  /** Rota que o assistente sugere abrir (gastos, orcamentos...); nula quando nenhuma. */
+  tela: string | null;
+  restantes: number;
+}
+
 export interface Cofrinho {
   depositos: Deposito[];
   totalDepositos: number;

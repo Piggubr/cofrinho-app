@@ -109,6 +109,7 @@ services:
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      PIGGU_ASSISTENTE_PERGUNTAS_POR_MES: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:-150}
     depends_on:
       postgres:
         condition: service_healthy

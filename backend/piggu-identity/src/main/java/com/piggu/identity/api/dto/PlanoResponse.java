@@ -59,7 +59,8 @@ public record PlanoResponse(
             "Contas bancárias pelo Open Finance, com saldo atualizado",
             "Leitura de nota fiscal sem limite, com a IA quando a foto é difícil",
             "Mural de fotos",
-            "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês"
+            "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês",
+            "Assistente de IA que responde sobre os seus gastos"
     );
 
     public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste) {

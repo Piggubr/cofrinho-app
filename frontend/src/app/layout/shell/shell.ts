@@ -12,6 +12,7 @@ import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
 import { MODO_DEMO } from '../../demo/modo-demo';
 import { BuscaGlobal } from './busca-global';
+import { Assistente } from './assistente';
 
 type Grupo = 'dia-a-dia' | 'planejar' | 'contas' | 'estilo' | 'conta';
 
@@ -69,7 +70,7 @@ export interface GrupoDeMenu {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Icone],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: { '[class.abas-nativas]': 'usaAbasNativas' },
