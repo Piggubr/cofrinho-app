@@ -71,7 +71,7 @@ e [`frontend/`](frontend/README.md).
 
 ```bash
 cd backend && mvn verify    # mais de 340 testes (precisa de Docker)
-cd frontend && npm test     # 215 testes
+cd frontend && npm test     # 259 testes
 cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
