@@ -23,7 +23,7 @@ falhar() { echo "$*" >&2; exit 1; }
 premium=false
 if [ "${1:-}" = "--premium" ]; then premium=true; shift; fi
 email=${1:-}
-[ -n "$email" ] && [ $# -eq 1 ] || falhar "Uso: $0 [--premium] email-da-conta"
+if [ -z "$email" ] || [ $# -ne 1 ]; then falhar "Uso: $0 [--premium] email-da-conta"; fi
 
 ambiente=${PIGGU_AMBIENTE:-}
 if [ -z "$ambiente" ] && [ -f "$AQUI/../.env" ]; then
