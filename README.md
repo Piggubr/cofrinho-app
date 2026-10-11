@@ -12,7 +12,6 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
 | [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
-| `Code.gs` | Backend original em Apps Script, mantido como referência das regras de negócio |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
 
 ## O que o app faz

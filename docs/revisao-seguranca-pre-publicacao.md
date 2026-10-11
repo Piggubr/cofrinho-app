@@ -146,9 +146,9 @@ Commit: `5537408`.
 - CORS com lista fixa de origens (em produção, só `https://`).
 
 ### Dados sensíveis expostos — **atenção**
-1. **`Code.gs`** (Apps Script original, mantido como referência) tem **9 e-mails reais** e
-   o **ID da planilha** do controle antigo. Não é chave de acesso, mas aponta para dados
-   financeiros pessoais.
+1. **`Code.gs`** (Apps Script original) tem **9 e-mails reais** e o **ID da planilha** do
+   controle antigo. Não é chave de acesso, mas aponta para dados financeiros pessoais. Saiu
+   da raiz das branches novas; segue na `main` e na `develop`, que ainda rodam o Apps Script.
 2. **`V1__esquema_inicial.sql`** (identity) tem **5 e-mails reais** na carga inicial. A
    migração não pode ser editada (o Flyway confere o checksum em bancos já criados).
 3. Os dois arquivos também estão no **histórico do Git** (12 commits).
