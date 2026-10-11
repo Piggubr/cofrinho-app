@@ -106,6 +106,29 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBeNull();
   });
 
+  it('sem sinal e com "manter conectado": abre com o perfil guardado', async () => {
+    localStorage.setItem('piggu_perfil_offline', JSON.stringify(tokens().usuario));
+    const restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').error(new ProgressEvent('error'), { status: 0 });
+
+    expect(await restaurada).toBe(true);
+    expect(auth.usuario()?.email).toBe('titular@piggu.test');
+
+    // Entrar sem "manter conectado" esquece o perfil guardado.
+    const entrada = auth.entrarComGoogle('id', false);
+    http.expectOne('/api/auth/google').flush(tokens());
+    await entrada;
+    expect(localStorage.getItem('piggu_perfil_offline')).toBeNull();
+  });
+
+  it('sem sinal e sem perfil guardado volta para o login', async () => {
+    localStorage.removeItem('piggu_perfil_offline');
+    const restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').error(new ProgressEvent('error'), { status: 0 });
+
+    expect(await restaurada).toBe(false);
+  });
+
   it('varias renovacoes ao mesmo tempo viram um so pedido', () => {
     const recebidos: string[] = [];
     auth.renovar().subscribe((t) => recebidos.push(t.accessToken));

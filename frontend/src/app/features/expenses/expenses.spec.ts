@@ -248,6 +248,29 @@ describe('Expenses', () => {
     localStorage.removeItem('piggu_conta_padrao');
   });
 
+  it('sem internet o gasto fica na fila deste aparelho e o formulario limpa', () => {
+    localStorage.removeItem('piggu_fila_de_gastos');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(tela);
+    const t = tela.componentInstance as unknown as {
+      novoItem: { set(v: string): void; (): string };
+      novoValor: { set(v: number): void };
+      lancar(): void;
+    };
+    t.novoItem.set('Pao');
+    t.novoValor.set(8);
+    t.lancar();
+    http
+      .expectOne((r) => r.url === '/api/expenses' && r.method === 'POST')
+      .error(new ProgressEvent('error'), { status: 0 });
+    tela.detectChanges();
+
+    expect(t.novoItem()).toBe('');
+    expect(tela.nativeElement.textContent).toContain('ficou guardado neste aparelho');
+    expect(tela.nativeElement.textContent).toContain('1 gasto esperando conexão');
+    localStorage.removeItem('piggu_fila_de_gastos');
+  });
+
   function abrirCom(
     tela: ReturnType<typeof TestBed.createComponent<Expenses>>,
     membros: unknown[] = [],

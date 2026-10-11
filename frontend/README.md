@@ -154,8 +154,6 @@ npm test
 
 ## O que ainda falta
 
-- **PWA.** O app antigo tinha `manifest.webmanifest` e era instalável no iPhone.
-  Isso não foi portado ainda.
 - **Academia e metas pessoais.** Duas funcionalidades do app antigo viviam só no
   `localStorage`, sem backend (`js/piggu-features.js`). Como não há endpoint para
   elas, ficaram de fora — precisam primeiro existir na API.

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, firstValueFrom, shareReplay, tap } from 'rxjs';
@@ -6,6 +6,9 @@ import { APP_CONFIG } from '../config/app-config';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
+
+/** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */
+const CHAVE_DO_PERFIL_OFFLINE = 'piggu_perfil_offline';
 
 /**
  * Entrada e saida da conta.
@@ -38,7 +41,9 @@ export class AuthService {
   /** Titular da familia; o ADMIN vale como titular dentro da propria familia. */
   readonly ehTitular = computed(() => this.usuarioAtual()?.role === 'TITULAR' || this.ehAdmin());
   /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
-  readonly podeLancar = computed(() => this.ehTitular() || this.usuarioAtual()?.role === 'PARCEIRO');
+  readonly podeLancar = computed(
+    () => this.ehTitular() || this.usuarioAtual()?.role === 'PARCEIRO',
+  );
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;
@@ -47,7 +52,11 @@ export class AuthService {
 
   /** Troca o ID token do Google por um par de tokens do Piggu. */
   /** @param versaoDosTermos so para conta nova: o backend pede quando a conta ainda nao existe */
-  async entrarComGoogle(idToken: string, lembrar: boolean, versaoDosTermos?: string): Promise<void> {
+  async entrarComGoogle(
+    idToken: string,
+    lembrar: boolean,
+    versaoDosTermos?: string,
+  ): Promise<void> {
     // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
     const tokens = await firstValueFrom(
       this.http.post<ParDeTokens>(
@@ -58,6 +67,11 @@ export class AuthService {
     );
     this.storage.guardar(tokens);
     this.usuarioAtual.set(tokens.usuario);
+    if (lembrar) {
+      guardarPerfilOffline(tokens.usuario);
+    } else {
+      esquecerPerfilOffline();
+    }
   }
 
   /**
@@ -70,8 +84,16 @@ export class AuthService {
     try {
       await firstValueFrom(this.renovar());
       return true;
-    } catch {
+    } catch (erro) {
       this.storage.limpar();
+      // Sem sinal (status 0) nao e sessao vencida: abre com o perfil guardado, e o
+      // primeiro pedido com rede renova o token pelo cookie.
+      const perfil =
+        erro instanceof HttpErrorResponse && erro.status === 0 ? lerPerfilOffline() : null;
+      if (perfil) {
+        this.usuarioAtual.set(perfil);
+        return true;
+      }
       return false;
     }
   }
@@ -96,6 +118,9 @@ export class AuthService {
           next: (tokens) => {
             this.storage.guardar(tokens);
             this.usuarioAtual.set(tokens.usuario);
+            if (lerPerfilOffline()) {
+              guardarPerfilOffline(tokens.usuario);
+            }
             this.renovacaoEmCurso = undefined;
           },
           error: () => {
@@ -111,6 +136,9 @@ export class AuthService {
   /** Reflete na sessao uma mudanca no proprio perfil, como as preferencias de moeda. */
   atualizarUsuario(usuario: Usuario): void {
     this.usuarioAtual.set(usuario);
+    if (lerPerfilOffline()) {
+      guardarPerfilOffline(usuario);
+    }
   }
 
   async sair(): Promise<void> {
@@ -125,8 +153,34 @@ export class AuthService {
   /** Descarta a sessao local e volta para o login, sem falar com o servidor. */
   async encerrarLocalmente(): Promise<void> {
     this.storage.limpar();
+    esquecerPerfilOffline();
     this.usuarioAtual.set(null);
     await this.google.esquecerConta();
     await this.router.navigate(['/entrar']);
+  }
+}
+
+function lerPerfilOffline(): Usuario | null {
+  try {
+    const guardado = localStorage.getItem(CHAVE_DO_PERFIL_OFFLINE);
+    return guardado ? (JSON.parse(guardado) as Usuario) : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarPerfilOffline(usuario: Usuario): void {
+  try {
+    localStorage.setItem(CHAVE_DO_PERFIL_OFFLINE, JSON.stringify(usuario));
+  } catch {
+    // Sem armazenamento: o app so abre com sinal.
+  }
+}
+
+function esquecerPerfilOffline(): void {
+  try {
+    localStorage.removeItem(CHAVE_DO_PERFIL_OFFLINE);
+  } catch {
+    // Nada guardado.
   }
 }

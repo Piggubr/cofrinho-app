@@ -176,7 +176,6 @@ export interface NovoLancamento {
   contaId?: string | null;
   /** 2 a 48 divide cada item em uma linha por mes. */
   parcelas?: number | null;
-  /** E-mails da familia que dividem em partes iguais; quem lanca e quem pagou. */
   /** Ids das pessoas da familia que dividem o gasto. */
   dividirCom?: string[] | null;
 }

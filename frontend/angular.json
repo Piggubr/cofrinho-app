@@ -28,6 +28,7 @@
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
+            "serviceWorker": "ngsw-config.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {

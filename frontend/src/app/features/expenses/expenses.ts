@@ -1,4 +1,4 @@
-import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
+import { Component, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Focar } from '../../core/ui/focar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,6 +14,7 @@ import {
   Gasto,
   ItemDeGasto,
   MembroDaFamilia,
+  NovoLancamento,
   ReciboLido,
   RegraDeCategoria,
 } from '../../core/api/models';
@@ -25,6 +26,7 @@ import { dataCurta, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../cor
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
+import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -50,6 +52,7 @@ export class Expenses {
   protected readonly moeda = inject(MoedaService);
   protected readonly auth = inject(AuthService);
   private readonly finance = inject(FinanceService);
+  protected readonly fila = inject(FilaDeGastos);
   private readonly familia = inject(FamilyService);
 
   protected readonly carregando = signal(true);
@@ -142,6 +145,15 @@ export class Expenses {
   });
 
   constructor() {
+    // O que ficou guardado sem sinal vai agora; quando chega, a lista recarrega.
+    void this.fila.enviar();
+    effect(() => {
+      const enviados = this.fila.enviados();
+      if (enviados > 0) {
+        this.aviso.set($localize`Enviados ${enviados} gastos guardados sem conexão.`);
+        this.carregarGastos();
+      }
+    });
     // Vindo do guia de primeiro uso por "Importar extrato".
     if (this.rota.fragment === 'importar') {
       afterNextRender(() =>
@@ -223,42 +235,58 @@ export class Expenses {
 
     this.salvando.set(true);
     this.erro.set('');
-    this.finance
-      .lancarGastos({
-        data: this.novaData(),
-        origem: 'Manual',
-        itens: [
-          {
-            item,
-            categoria: this.novaCategoria() || null,
-            valor: outraMoeda ? convertido! : valor,
-            tipo: this.novoTipo(),
-            moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
-            valorOriginal: outraMoeda ? valor : null,
-          },
-        ],
-        contaId: this.novaConta() || null,
-        parcelas: parcelas > 1 ? parcelas : null,
-        dividirCom: this.dividirCom().length ? this.dividirCom() : null,
-      })
-      .subscribe({
-        next: (salvos) => {
-          guardarContaPadrao(this.novaConta());
-          this.novoItem.set('');
-          this.novoValor.set(null);
-          this.novasParcelas.set(1);
-          this.precoAcima.set(null);
-          this.dividirCom.set([]);
-          this.aviso.set($localize`Gasto lançado.`);
-          this.salvando.set(false);
-          this.carregarGastos();
-          this.avisarOrcamento(salvos[0]?.categoria, this.novaData().slice(0, 7));
+    const pedido: NovoLancamento = {
+      data: this.novaData(),
+      origem: 'Manual',
+      itens: [
+        {
+          item,
+          categoria: this.novaCategoria() || null,
+          valor: outraMoeda ? convertido! : valor,
+          tipo: this.novoTipo(),
+          moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
+          valorOriginal: outraMoeda ? valor : null,
         },
-        error: (falha) => {
-          this.erro.set(mensagemDeErro(falha));
-          this.salvando.set(false);
-        },
-      });
+      ],
+      contaId: this.novaConta() || null,
+      parcelas: parcelas > 1 ? parcelas : null,
+      dividirCom: this.dividirCom().length ? this.dividirCom() : null,
+    };
+    this.finance.lancarGastos(pedido).subscribe({
+      next: (salvos) => {
+        this.limparLancamento();
+        this.aviso.set($localize`Gasto lançado.`);
+        this.carregarGastos();
+        this.avisarOrcamento(salvos[0]?.categoria, this.novaData().slice(0, 7));
+      },
+      error: (falha) => {
+        if (semConexao(falha)) {
+          // Na fila do mercado, sem sinal: guarda e manda quando a conexao voltar.
+          this.fila.guardar(pedido);
+          this.limparLancamento();
+          this.aviso.set(
+            $localize`Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar.`,
+          );
+          return;
+        }
+        this.erro.set(mensagemDeErro(falha));
+        this.salvando.set(false);
+      },
+    });
+  }
+
+  private limparLancamento(): void {
+    guardarContaPadrao(this.novaConta());
+    this.novoItem.set('');
+    this.novoValor.set(null);
+    this.novasParcelas.set(1);
+    this.precoAcima.set(null);
+    this.dividirCom.set([]);
+    this.salvando.set(false);
+  }
+
+  protected enviarFila(): void {
+    void this.fila.enviar();
   }
 
   protected async escolherFoto(evento: Event): Promise<void> {

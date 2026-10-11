@@ -6,6 +6,23 @@
 @if (aviso()) {
   <p class="aviso sucesso">{{ aviso() }}</p>
 }
+@if (fila.pendentes().length; as pendentes) {
+  <p class="aviso">
+    <span i18n>{pendentes, plural,
+      =1 {1 gasto esperando conexão}
+      other {{{pendentes}} gastos esperando conexão}
+    }</span>
+    <button i18n type="button" class="botao contorno pequeno" (click)="enviarFila()">
+      Enviar agora
+    </button>
+  </p>
+}
+@if (fila.recusados()) {
+  <p i18n class="aviso erro" role="alert">
+    {{ fila.recusados() }} gasto(s) guardado(s) sem conexão foram recusados pelo servidor; lance de
+    novo.
+  </p>
+}
 @if (sugestaoDeRegra(); as s) {
   <p class="aviso sucesso">
     <span i18n>Sempre usar {{ s.categoria }} para "{{ s.termo }}"?</span>
