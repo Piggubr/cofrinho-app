@@ -53,9 +53,13 @@ public class AssetService {
         return repositorio.save(new Asset(idNoProvedor, tipo, conteudo.length, rotulo, usuarioId));
     }
 
+    /** @param quem quem pede; foto privada de outra pessoa responde como inexistente */
     @Transactional(readOnly = true)
-    public StoragePort.ArquivoGuardado baixar(UUID id) {
+    public StoragePort.ArquivoGuardado baixar(UUID id, UUID quem) {
         Asset asset = buscar(id);
+        if (asset.escondidaDe(quem)) {
+            throw naoEncontrada();
+        }
         return armazenamento.ler(asset.getDriveFileId());
     }
 
@@ -67,6 +71,9 @@ public class AssetService {
     @Transactional
     public void apagar(UUID id, CurrentUser usuario) {
         Asset asset = buscar(id);
+        if (asset.escondidaDe(usuario.id())) {
+            throw naoEncontrada();
+        }
         if (!usuario.podeGerenciar(asset.getOwnerId())) {
             throw new ForbiddenException("Voce nao pode apagar esta foto.");
         }
@@ -81,8 +88,11 @@ public class AssetService {
     }
 
     private Asset buscar(UUID id) {
-        return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Foto nao encontrada."));
+        return repositorio.findById(id).orElseThrow(AssetService::naoEncontrada);
+    }
+
+    private static NotFoundException naoEncontrada() {
+        return new NotFoundException("Foto nao encontrada.");
     }
 
     private byte[] decodificar(String imageBase64) {

@@ -14,7 +14,12 @@ export interface Usuario {
   nome: string;
   primeiroNome: string;
   apelido: string | null;
+  /** A que o app mostra: a escolhida pela pessoa, senao a do Google; nula mostra as iniciais. */
   foto: string | null;
+  /** A pessoa escolheu uma foto propria (o Perfil oferece voltar a do Google). Ausente na demo antiga. */
+  fotoPropria?: boolean;
+  /** A conta Google tem foto, para oferecer usar ela. */
+  temFotoDoGoogle?: boolean;
   role: PigguRole;
   ativo: boolean;
   permissoes: Record<string, unknown>;
@@ -35,6 +40,8 @@ export interface Familia {
   id: string;
   nome: string;
   plano: Plano;
+  /** A assinatura da casa e o plano familia; no individual so quem assinou e Premium. */
+  planoFamilia: boolean;
   membros: MembroDaFamilia[];
   convites: ConviteDaFamilia[];
 }
@@ -45,6 +52,7 @@ export interface MembroDaFamilia {
   email: string;
   foto: string | null;
   papel: PigguRole;
+  premium: boolean;
 }
 
 /** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */
@@ -79,7 +87,7 @@ export interface ConviteDaFamilia {
 }
 
 export type Plano = 'GRATUITO' | 'PREMIUM';
-export type Periodo = 'MENSAL' | 'ANUAL';
+export type Periodo = 'MENSAL' | 'ANUAL' | 'FAMILIA_MENSAL' | 'FAMILIA_ANUAL';
 
 /** Precos em reais, ja formatados ("19,90"). */
 export interface Precos {
@@ -101,6 +109,16 @@ export interface InfoDoPlano {
   app: Precos;
   gratuito: string[];
   premium: string[];
+  /** A assinatura da casa e o plano familia (vale para todos). */
+  planoFamilia: boolean;
+  /** Foi esta conta que assinou: so ela gerencia e pede reembolso. */
+  voceAssinou: boolean;
+  familiaDisponivel: boolean;
+  siteFamilia: Precos;
+  appFamilia: Precos;
+  pessoasNoFamilia: number;
+  /** Ha assinatura vigente na casa, talvez individual de outra pessoa. */
+  casaTemAssinatura: boolean;
 }
 
 /** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */

@@ -148,4 +148,97 @@ describe('Profile', () => {
     expect(localStorage.getItem('piggu_tema')).toBe('rosa');
     localStorage.removeItem('piggu_tema');
   });
+
+  describe('foto de perfil', () => {
+    function abrir() {
+      const tela = TestBed.createComponent(Profile);
+      tela.detectChanges();
+      http.expectOne('/api/exchange-rate/currencies').flush([]);
+      tela.detectChanges();
+      return tela;
+    }
+
+    function botao(pagina: HTMLElement, texto: string): HTMLButtonElement | undefined {
+      return [...pagina.querySelectorAll<HTMLButtonElement>('.acoes-da-foto button')].find((b) =>
+        b.textContent?.includes(texto),
+      );
+    }
+
+    it('sem foto: mostra a inicial e oferece colocar uma, sem botao de remover', () => {
+      const pagina: HTMLElement = abrir().nativeElement;
+
+      expect(pagina.querySelector('.foto-do-perfil .avatar-inicial')?.textContent).toBe('T');
+      expect(pagina.querySelector('.acoes-da-foto')?.textContent).toContain('Colocar foto');
+      expect(botao(pagina, 'Remover foto')).toBeUndefined();
+      expect(pagina.querySelectorAll('input[type="file"][accept="image/*"]').length).toBe(1);
+    });
+
+    it('foto do Google: remover apaga e a sessao fica com as iniciais', () => {
+      auth.usuario.set(
+        usuarioDeTeste({
+          foto: 'https://lh3.googleusercontent.com/t',
+          temFotoDoGoogle: true,
+          fotoPropria: false,
+        }),
+      );
+      const tela = abrir();
+      const pagina: HTMLElement = tela.nativeElement;
+      expect(pagina.querySelector<HTMLImageElement>('.foto-do-perfil img')?.src).toContain(
+        'googleusercontent',
+      );
+      expect(botao(pagina, 'Usar foto do Google')).toBeUndefined();
+
+      botao(pagina, 'Remover foto')!.click();
+      const pedido = http.expectOne('/api/me/foto');
+      expect(pedido.request.method).toBe('DELETE');
+      pedido.flush(usuarioDeTeste({ foto: null, temFotoDoGoogle: true, fotoPropria: false }));
+      tela.detectChanges();
+
+      expect(auth.usuario()?.foto).toBeNull();
+      expect(pagina.textContent).toContain('Foto removida.');
+      expect(pagina.querySelector('.foto-do-perfil .avatar-inicial')).not.toBeNull();
+      expect(botao(pagina, 'Usar foto do Google')).toBeDefined();
+    });
+
+    it('foto propria: oferece voltar para a do Google', () => {
+      auth.usuario.set(
+        usuarioDeTeste({
+          foto: 'data:image/jpeg;base64,AAAA',
+          temFotoDoGoogle: true,
+          fotoPropria: true,
+        }),
+      );
+      const tela = abrir();
+
+      botao(tela.nativeElement, 'Usar foto do Google')!.click();
+      const pedido = http.expectOne('/api/me/foto/google');
+      expect(pedido.request.method).toBe('PUT');
+      pedido.flush(
+        usuarioDeTeste({
+          foto: 'https://lh3.googleusercontent.com/t',
+          temFotoDoGoogle: true,
+          fotoPropria: false,
+        }),
+      );
+      tela.detectChanges();
+
+      expect(auth.usuario()?.foto).toContain('googleusercontent');
+      expect(tela.nativeElement.textContent).toContain('Voltamos para a foto do Google.');
+    });
+
+    it('arquivo que nao e imagem: avisa e nao envia nada', async () => {
+      const tela = abrir();
+      const campo = tela.nativeElement.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(campo, 'files', {
+        value: [new File(['oi'], 'nota.txt', { type: 'text/plain' })],
+      });
+
+      campo.dispatchEvent(new Event('change'));
+      await tela.whenStable();
+      tela.detectChanges();
+
+      http.expectNone('/api/me/foto');
+      expect(tela.nativeElement.textContent).toContain('Não consegui ler essa imagem.');
+    });
+  });
 });

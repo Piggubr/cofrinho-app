@@ -44,6 +44,10 @@
 			<string>UIApplicationShortcutIconTypeAdd</string>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>O Piggu usa a câmera para fotografar notas fiscais e a sua foto de perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>O Piggu abre as suas fotos só para você escolher a imagem que quer enviar, como a foto de perfil ou a de uma nota fiscal.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

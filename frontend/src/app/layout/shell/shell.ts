@@ -1,5 +1,24 @@
-import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
+import { Location } from '@angular/common';
+import {
+  NavigationEnd,
+  NavigationStart,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
@@ -17,6 +36,8 @@ import { Assistente } from './assistente';
 import { LancamentoRapido } from './lancamento-rapido';
 import { TutorialDePrimeiroAcesso } from './tutorial';
 import { Tutorial } from '../../core/ui/tutorial';
+import { toqueNaTela } from '../../core/ui/focar';
+import { animarEntrada, caminhoDe, direcaoDaTroca } from './transicao-de-tela';
 
 type Grupo = 'dia-a-dia' | 'planejar' | 'contas' | 'estilo' | 'conta';
 
@@ -77,7 +98,10 @@ export interface GrupoDeMenu {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone, LancamentoRapido, TutorialDePrimeiroAcesso],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
-  host: { '[class.abas-nativas]': 'usaAbasNativas' },
+  host: {
+    '[class.abas-nativas]': 'usaAbasNativas',
+    '(document:keydown.escape)': 'fecharOpcoes()',
+  },
 })
 export class Shell {
   private readonly finance = inject(FinanceService);
@@ -87,15 +111,24 @@ export class Shell {
   private readonly avisosNoCelular = inject(AvisosNoCelular);
   private readonly filaDeGastos = inject(FilaDeGastos);
   private readonly atalhosDoApp = inject(Atalhos);
+  private readonly location = inject(Location);
+  private readonly elemento: HTMLElement = inject(ElementRef).nativeElement;
+  private readonly injetor = inject(Injector);
   protected readonly tutorial = inject(Tutorial);
 
   protected readonly modoDemo = MODO_DEMO;
   protected readonly menuAberto = signal(false);
+  /** Balao do "+": "Lançar gasto" e "Foto do recibo". */
+  protected readonly opcoesAbertas = signal(false);
   /** Painel do "+": lanca gasto ou receita por cima da tela aberta. */
   protected readonly lancamentoAberto = signal(false);
+  /** Foto escolhida no balao, entregue ao painel para ja ler o recibo. */
+  protected readonly fotoDoRecibo = signal<File | null>(null);
   protected readonly cotacao = signal<Cotacao | null>(null);
   protected readonly usaAbasNativas = this.abasNativas.disponivel;
   private readonly rotaAtual = signal(this.router.url);
+  /** Trocas de tela dentro do app: sem nenhuma, o voltar do cabecalho leva ao Painel. */
+  private trocasDeTela = 0;
 
   /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
   // prettier-ignore
@@ -121,15 +154,36 @@ export class Shell {
   ];
 
   constructor() {
-    // Fecha a folha do "Mais" a cada troca de tela, inclusive pelo voltar do navegador.
+    // Fecha a folha do "Mais" a cada troca de tela, inclusive pelo voltar do navegador, e
+    // anima a entrada da tela nova para ficar claro que ela mudou.
+    let voltando = false;
     this.router.events
       .pipe(
-        filter((evento) => evento instanceof NavigationEnd),
+        filter((evento) => evento instanceof NavigationStart || evento instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
       .subscribe((evento) => {
+        if (evento instanceof NavigationStart) {
+          voltando = evento.navigationTrigger === 'popstate';
+          return;
+        }
+        const anterior = this.rotaAtual();
         this.rotaAtual.set(evento.urlAfterRedirects);
         this.fecharMenu();
+        this.fecharOpcoes();
+        const direcao = direcaoDaTroca(
+          anterior,
+          evento.urlAfterRedirects,
+          this.atalhos().map((item) => item.rota),
+          voltando,
+        );
+        if (direcao) {
+          this.trocasDeTela++;
+          const conteudo = this.elemento.querySelector<HTMLElement>('main.conteudo');
+          if (conteudo) {
+            animarEntrada(conteudo, direcao);
+          }
+        }
       });
 
     // Gastos lancados sem sinal vao assim que o app abre com rede (e no evento online).
@@ -191,6 +245,32 @@ export class Shell {
     abas.push({ id: 'mais', titulo: $localize`Mais`, simbolo: 'square.grid.2x2' });
     return abas;
   });
+
+  /**
+   * Tela de dentro (Perfil, itens do "Mais"): no celular o cabecalho troca a marca pelo
+   * voltar e pelo nome da tela, para a pessoa saber onde esta sem procurar.
+   */
+  protected readonly telaInterna = computed(() => {
+    const rota = caminhoDe(this.rotaAtual());
+    return !this.atalhos().some((item) => rota === item.rota || rota.startsWith(item.rota + '/'));
+  });
+
+  protected readonly tituloDaTela = computed(() => {
+    const rota = caminhoDe(this.rotaAtual());
+    if (rota.startsWith('/perfil')) {
+      return $localize`Perfil`;
+    }
+    return this.itens.find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rotulo ?? '';
+  });
+
+  /** Volta pelo historico; se a pessoa abriu direto nesta tela, vai para o Painel. */
+  protected voltar(): void {
+    if (this.trocasDeTela > 0) {
+      this.location.back();
+      return;
+    }
+    void this.router.navigateByUrl('/painel');
+  }
 
   /** "Mais" enquanto a folha esta aberta; senao o atalho da tela atual, se houver. */
   private readonly abaSelecionada = computed(() => {
@@ -259,24 +339,58 @@ export class Shell {
     this.menuAberto.set(false);
   }
 
+  /**
+   * O "+" vira um balao com as duas formas de lancar. Com o balao ou o painel aberto, o
+   * mesmo botao (agora um "x") fecha.
+   */
   protected alternarLancamento(): void {
-    // Tocar no "+" destacado pelo tour encerra o tour e ja abre o painel.
+    // Tocar no "+" destacado pelo tour encerra o tour e ja mostra as opcoes.
     if (this.tutorial.aberto()) {
       this.tutorial.concluir();
-      this.lancamentoAberto.set(true);
-      return;
     }
     this.fecharMenu();
-    this.lancamentoAberto.update((aberto) => !aberto);
+    if (this.lancamentoAberto() || this.opcoesAbertas()) {
+      this.fecharLancamento();
+      this.fecharOpcoes();
+      return;
+    }
+    this.opcoesAbertas.set(true);
+    // Teclado fisico: o foco vai para a primeira opcao. No toque, nada de anel de foco.
+    if (!toqueNaTela()) {
+      afterNextRender(
+        () => this.elemento.querySelector<HTMLElement>('.opcoes-do-lancar .opcao')?.focus(),
+        { injector: this.injetor },
+      );
+    }
+  }
+
+  protected fecharOpcoes(): void {
+    this.opcoesAbertas.set(false);
   }
 
   protected abrirLancamento(): void {
     this.fecharMenu();
+    this.fecharOpcoes();
+    this.fotoDoRecibo.set(null);
+    this.lancamentoAberto.set(true);
+  }
+
+  /** "Foto do recibo" no balao: a camera abre direto e o painel ja chega lendo a foto. */
+  protected escolherFotoDoRecibo(evento: Event): void {
+    const campo = evento.target as HTMLInputElement;
+    const arquivo = campo.files?.[0] ?? null;
+    campo.value = '';
+    if (!arquivo) {
+      return;
+    }
+    this.fecharOpcoes();
+    this.fotoDoRecibo.set(arquivo);
     this.lancamentoAberto.set(true);
   }
 
   protected fecharLancamento(): void {
     this.lancamentoAberto.set(false);
+    this.fotoDoRecibo.set(null);
   }
 
   /** "Mais opções" do painel: parcelas, moeda e divisao ficam na tela de Gastos. */

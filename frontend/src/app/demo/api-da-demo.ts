@@ -406,11 +406,12 @@ function respostaDoAssistente(pergunta: string): { texto: string; tela: string |
 }
 
 function familia(): Familia {
-  const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role });
+  const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role, premium: true });
   return {
     id: 'familia-demo',
     nome: estado.nomeDaFamilia,
     plano: 'PREMIUM',
+    planoFamilia: true,
     membros: [membro(estado.titular), membro(estado.membro)],
     convites: estado.convites.map((c) => ({ ...c, familia: estado.nomeDaFamilia })),
   };
@@ -428,6 +429,13 @@ function plano(): InfoDoPlano {
     app: { mensal: '22,89', anual: '228,85' },
     gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
     premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo', 'Assistente de IA'],
+    planoFamilia: true,
+    voceAssinou: true,
+    familiaDisponivel: false,
+    siteFamilia: { mensal: '39,99', anual: '399,90' },
+    appFamilia: { mensal: '45,99', anual: '459,89' },
+    pessoasNoFamilia: 5,
+    casaTemAssinatura: true,
   };
 }
 
@@ -568,6 +576,19 @@ const ROTAS: Rota[] = [
   ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
     const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };
+    return estado.titular;
+  }],
+  // Foto de perfil: so nesta aba, como o resto da demo.
+  ['PUT', /^\/me\/foto$/, (_p, _x, c) => {
+    estado.titular = { ...estado.titular, foto: `data:image/jpeg;base64,${String(c['imagemBase64'])}`, fotoPropria: true };
+    return estado.titular;
+  }],
+  ['DELETE', /^\/me\/foto$/, () => {
+    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
+    return estado.titular;
+  }],
+  ['PUT', /^\/me\/foto\/google$/, () => {
+    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
     return estado.titular;
   }],
   ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],

@@ -71,7 +71,8 @@ Commit: `93daf35`.
 | Convites | 10 esperando resposta por família |
 
 Só há login com Google: não existe cadastro por senha para robô criar conta em massa.
-O app não manda e-mail, então não pode ser usado para disparar spam.
+O único e-mail que o app manda é o aviso do dia (N2), só para o e-mail da própria conta Google,
+só se a pessoa ligar no perfil e no máximo um por dia: não serve para disparar spam a terceiros.
 
 Limite conhecido: o contador é em memória por instância (com várias réplicas, o limite
 real multiplica). Mover para Redis quando houver mais de uma réplica por serviço.

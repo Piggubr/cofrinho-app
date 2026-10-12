@@ -5,6 +5,7 @@ import {
   afterNextRender,
   computed,
   inject,
+  input,
   output,
   signal,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { hojeIso } from '../../core/ui/datas';
+import { toqueNaTela } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
 import { Lancamentos } from '../../core/ui/lancamentos';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -57,6 +59,9 @@ export class LancamentoRapido {
   private readonly injetor = inject(Injector);
   protected readonly auth = inject(AuthService);
   protected readonly moeda = inject(MoedaService);
+
+  /** Foto escolhida no balao do "+": o painel ja abre lendo o recibo. */
+  readonly foto = input<File | null>(null);
 
   readonly fechar = output<void>();
   /** "Mais opções": leva para a tela de Gastos (parcelas, moeda, divisao). */
@@ -101,7 +106,17 @@ export class LancamentoRapido {
       next: (lista) => this.categoriasDeReceita.set(lista ?? []),
     });
     this.finance.contas().subscribe({ next: (lista) => this.contas.set(lista ?? []) });
-    afterNextRender(() => this.focarValor());
+    afterNextRender(() => {
+      const foto = this.foto();
+      if (foto) {
+        void this.lerArquivo(foto);
+        return;
+      }
+      // No celular o teclado so sobe quando a pessoa toca no valor.
+      if (!toqueNaTela()) {
+        this.focarValor();
+      }
+    });
   }
 
   protected trocarTipo(tipo: Tipo): void {
@@ -110,7 +125,9 @@ export class LancamentoRapido {
     this.erro.set('');
     this.aviso.set('');
     this.cancelarRecibo();
-    afterNextRender(() => this.focarValor(), { injector: this.injetor });
+    if (!toqueNaTela()) {
+      afterNextRender(() => this.focarValor(), { injector: this.injetor });
+    }
   }
 
   protected salvar(): void {
@@ -169,9 +186,12 @@ export class LancamentoRapido {
     const campo = evento.target as HTMLInputElement;
     const arquivo = campo.files?.[0];
     campo.value = '';
-    if (!arquivo) {
-      return;
+    if (arquivo) {
+      await this.lerArquivo(arquivo);
     }
+  }
+
+  private async lerArquivo(arquivo: File): Promise<void> {
     if (!imagemCabeNoLimite(arquivo)) {
       this.erro.set($localize`A foto é grande demais. O limite é de 5 MB.`);
       return;

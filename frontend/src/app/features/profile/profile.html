@@ -10,20 +10,80 @@
 @if (auth.usuario(); as pessoa) {
   <section class="cartao">
     <div class="identidade">
-      @if (pessoa.foto) {
-        <img
-          [src]="pessoa.foto"
-          [alt]="pessoa.nome"
-          class="avatar-grande"
-          referrerpolicy="no-referrer"
-        />
-      }
+      <button
+        type="button"
+        class="foto-do-perfil"
+        [class.enviando]="salvandoFoto()"
+        [disabled]="salvandoFoto()"
+        (click)="seletorDeFoto.click()"
+      >
+        @if (pessoa.foto) {
+          <img
+            [src]="pessoa.foto"
+            [alt]="pessoa.nome"
+            class="avatar-grande"
+            referrerpolicy="no-referrer"
+          />
+        } @else {
+          <span class="avatar-grande avatar-inicial" aria-hidden="true">{{ inicial() }}</span>
+        }
+        <span class="selo-da-camera" aria-hidden="true"><app-icone nome="camera" /></span>
+        <span i18n class="so-leitor">Escolher foto de perfil</span>
+      </button>
+      <input
+        #seletorDeFoto
+        type="file"
+        accept="image/*"
+        class="so-leitor"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="escolherFoto($event)"
+      />
       <div>
         <h2>{{ pessoa.nome }}</h2>
         <p class="linha-detalhe">{{ pessoa.email }}</p>
         <span class="etiqueta">{{ pessoa.role }}</span>
         <p class="linha-detalhe"><a i18n routerLink="/familia">Ver minha família</a></p>
       </div>
+    </div>
+
+    <div class="acoes-da-foto">
+      <button
+        type="button"
+        class="botao contorno pequeno"
+        [disabled]="salvandoFoto()"
+        (click)="seletorDeFoto.click()"
+      >
+        @if (salvandoFoto()) {
+          <ng-container i18n>Salvando…</ng-container>
+        } @else if (pessoa.foto) {
+          <ng-container i18n>Trocar foto</ng-container>
+        } @else {
+          <ng-container i18n>Colocar foto</ng-container>
+        }
+      </button>
+      @if (pessoa.temFotoDoGoogle && (pessoa.fotoPropria || !pessoa.foto)) {
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          [disabled]="salvandoFoto()"
+          (click)="usarFotoDoGoogle()"
+        >
+          Usar foto do Google
+        </button>
+      }
+      @if (pessoa.foto) {
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          [disabled]="salvandoFoto()"
+          (click)="removerFoto()"
+        >
+          Remover foto
+        </button>
+      }
     </div>
 
     <div class="acoes">
@@ -167,11 +227,7 @@
     @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {
       <li>
         <label class="caixa">
-          <input
-            type="checkbox"
-            [checked]="bloco.visivel"
-            (change)="painel.alternar(bloco.id)"
-          />
+          <input type="checkbox" [checked]="bloco.visivel" (change)="painel.alternar(bloco.id)" />
           {{ bloco.nome }}
         </label>
         <div class="setas">
@@ -239,6 +295,15 @@
     </button>
   </div>
 </section>
+
+@if (!auth.ehMembro()) {
+  <section class="cartao" aria-labelledby="titulo-ia">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-ia">Autorizações da IA</h2>
+    </div>
+    <app-autorizacoes-de-ia />
+  </section>
+}
 
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">

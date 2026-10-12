@@ -19,6 +19,13 @@ const GRATUITO: InfoDoPlano = {
   app: { mensal: '22,89', anual: '228,85' },
   gratuito: ['Gastos'],
   premium: ['Open Finance'],
+  planoFamilia: false,
+  voceAssinou: false,
+  familiaDisponivel: true,
+  siteFamilia: { mensal: '39,99', anual: '399,90' },
+  appFamilia: { mensal: '45,99', anual: '459,89' },
+  pessoasNoFamilia: 5,
+  casaTemAssinatura: false,
 };
 
 /** Assinar leva para a pagina do provedor; voltar de la renova o token antes de ler o plano. */
@@ -76,6 +83,43 @@ describe('Plan', () => {
     expect(irPara).toHaveBeenCalledWith('https://checkout.stripe.test/s');
   });
 
+  it('plano familia: mostra o preco e assina o periodo do familia', async () => {
+    const tela = montar();
+    vi.spyOn(
+      tela.componentInstance as unknown as { irPara: (url: string) => void },
+      'irPara',
+    ).mockImplementation(() => undefined);
+    tela.detectChanges();
+    http.expectOne('/api/billing/plan').flush(GRATUITO);
+    await tela.whenStable();
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('R$ 39,99');
+    expect(pagina.textContent).toContain('até 5 pessoas');
+    [...pagina.querySelectorAll('button')]
+      .find((b) => b.textContent?.includes('Assinar família anual'))!
+      .click();
+    const pedido = http.expectOne('/api/billing/checkout');
+    expect(pedido.request.body).toEqual({ periodo: 'FAMILIA_ANUAL' });
+    pedido.flush({ url: 'https://checkout.stripe.test/s' });
+    await tela.whenStable();
+  });
+
+  it('com o individual de outra pessoa da casa explica e nao oferece outra assinatura', async () => {
+    const tela = montar();
+    tela.detectChanges();
+    http.expectOne('/api/billing/plan').flush({ ...GRATUITO, casaTemAssinatura: true });
+    await tela.whenStable();
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('vale só para essa pessoa');
+    expect(
+      [...pagina.querySelectorAll('button')].some((b) => b.textContent?.includes('Assinar')),
+    ).toBe(false);
+  });
+
   it('ao voltar do pagamento renova o token antes de consultar o plano', async () => {
     const tela = montar('ok');
     tela.detectChanges();
@@ -95,6 +139,8 @@ describe('Plan', () => {
       premiumAte: '2026-11-08T00:00:00Z',
       origem: 'WEB',
       reembolsoAte: '2026-10-15T00:00:00Z',
+      voceAssinou: true,
+      casaTemAssinatura: true,
     };
     http.expectOne('/api/billing/plan').flush(premium);
     await tela.whenStable();
@@ -105,7 +151,11 @@ describe('Plan', () => {
     )!;
     botao.click();
     http.expectOne('/api/billing/refund').flush(null);
-    await vi.waitFor(() => http.expectOne('/api/billing/plan').flush({ ...premium, plano: 'GRATUITO', reembolsoAte: null }));
+    await vi.waitFor(() =>
+      http
+        .expectOne('/api/billing/plan')
+        .flush({ ...premium, plano: 'GRATUITO', reembolsoAte: null }),
+    );
     await tela.whenStable();
     tela.detectChanges();
 

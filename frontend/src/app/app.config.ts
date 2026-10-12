@@ -18,8 +18,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      // "Personalizar o Painel" leva direto ao cartao no Perfil.
-      withInMemoryScrolling({ anchorScrolling: 'enabled' }),
+      // "Personalizar o Painel" leva direto ao cartao no Perfil. Tela nova abre no topo;
+      // o voltar devolve a pessoa onde ela estava.
+      withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }),
     ),
     // Na demo (build "demo"), a API falsa responde antes de qualquer chamada sair.
     provideHttpClient(withInterceptors([...INTERCEPTORES_DA_DEMO, authInterceptor])),

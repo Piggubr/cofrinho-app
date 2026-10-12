@@ -57,8 +57,8 @@ public class AssetController {
      * foto gera um id novo.</p>
      */
     @GetMapping("/{id}/content")
-    public ResponseEntity<byte[]> baixar(@PathVariable UUID id) {
-        StoragePort.ArquivoGuardado arquivo = servico.baixar(id);
+    public ResponseEntity<byte[]> baixar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        StoragePort.ArquivoGuardado arquivo = servico.baixar(id, usuario.id());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(arquivo.contentType()))
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePrivate())

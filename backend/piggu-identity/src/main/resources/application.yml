@@ -94,6 +94,9 @@ piggu:
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     price-mensal: ${STRIPE_PRICE_MENSAL:}
     price-anual: ${STRIPE_PRICE_ANUAL:}
+    # Plano familia (ate 5 pessoas): R$ 39,99/mes e R$ 399,90/ano. Vazio esconde o familia.
+    price-familia-mensal: ${STRIPE_PRICE_FAMILIA_MENSAL:}
+    price-familia-anual: ${STRIPE_PRICE_FAMILIA_ANUAL:}
     site-url: ${SITE_URL:http://localhost:4200}
 
 management:

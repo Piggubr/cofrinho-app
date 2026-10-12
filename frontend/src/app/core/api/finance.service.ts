@@ -80,6 +80,11 @@ export class FinanceService extends ApiBase {
     return this.http.post<RespostaDoAssistente>(this.url('/assistant/ask'), pedido);
   }
 
+  /** Retira a autorizacao de enviar perguntas e totais ao Gemini (LGPD art. 8, par. 5). */
+  retirarAutorizacaoDoAssistente(): Observable<void> {
+    return this.http.delete<void>(this.url('/assistant/consent'));
+  }
+
   listarObjetivos(): Observable<ObjetivoDoCofrinho[]> {
     return this.http.get<ObjetivoDoCofrinho[]>(this.url('/piggy-bank/goals'));
   }
@@ -271,6 +276,11 @@ export class FinanceService extends ApiBase {
   /** Quantas notas a familia leu pela foto no mes e quantas sobram no gratuito. */
   usoDeLeituras(): Observable<UsoDeLeituras> {
     return this.http.get<UsoDeLeituras>(this.url('/receipts/usage'));
+  }
+
+  /** Retira a autorizacao de enviar a foto da nota ao Gemini (LGPD art. 8, par. 5). */
+  retirarAutorizacaoDaLeituraDeNota(): Observable<void> {
+    return this.http.delete<void>(this.url('/receipts/consent'));
   }
 
   /** @param versaoDoAviso so quando a pessoa autorizou, agora, o envio da foto a IA */

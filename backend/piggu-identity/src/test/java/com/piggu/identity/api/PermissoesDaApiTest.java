@@ -28,6 +28,8 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/.well-known/jwks.json")).andExpect(status().isOk());
         mockMvc.perform(get("/api/users")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
+        mockMvc.perform(put("/api/me/foto")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/me/foto")).andExpect(status().isUnauthorized());
     }
 
     @Test

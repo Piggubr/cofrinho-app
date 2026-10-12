@@ -80,10 +80,18 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     @Override
+    public boolean familiaHabilitado() {
+        return propriedades.familiaHabilitado();
+    }
+
+    @Override
     public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("mode", "subscription");
-        form.add("line_items[0][price]", periodo == Periodo.ANUAL ? propriedades.priceAnual() : propriedades.priceMensal());
+        if (periodo.familia() && !propriedades.familiaHabilitado()) {
+            throw new BusinessException("O plano família ainda não está disponível.");
+        }
+        form.add("line_items[0][price]", propriedades.precoDe(periodo));
         form.add("line_items[0][quantity]", "1");
         form.add("client_reference_id", conta.getId().toString());
         form.add("subscription_data[metadata][userId]", conta.getId().toString());
@@ -194,7 +202,11 @@ public class StripePagamentos implements ProvedorDePagamento {
                 paga ? fimDoPeriodo(assinaturaStripe) : null,
                 Instant.ofEpochSecond(evento.path("created").asLong()),
                 inicio == 0 ? null : Instant.ofEpochSecond(inicio),
-                "trialing".equals(assinaturaStripe.path("status").asString())));
+                "trialing".equals(assinaturaStripe.path("status").asString()),
+                // O tipo sai do preco cobrado, nao do metadata: trocar de plano pelo portal
+                // muda o preco e nao o metadata.
+                propriedades.ehPrecoDoFamilia(
+                        assinaturaStripe.path("items").path("data").path(0).path("price").path("id").asString(""))));
     }
 
     /** Nas versoes novas da API o fim do periodo mora no item, nao na assinatura. */
