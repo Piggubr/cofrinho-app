@@ -81,7 +81,9 @@ public class RevenueCatLoja implements LojaDeApps {
                 new EventoDeAssinatura(conta, null, ate,
                         Instant.ofEpochMilli(evento.path("event_timestamp_ms").asLong()),
                         comprou == 0 ? null : Instant.ofEpochMilli(comprou),
-                        "TRIAL".equals(evento.path("period_type").asString("")))));
+                        "TRIAL".equals(evento.path("period_type").asString("")),
+                        // Produtos do familia nas lojas tem "familia" no id (ex.: piggu_familia_mensal).
+                        evento.path("product_id").asString("").toLowerCase(java.util.Locale.ROOT).contains("familia"))));
     }
 
     /** Aceita o segredo puro ou "Bearer segredo", como o painel do RevenueCat permite configurar. */

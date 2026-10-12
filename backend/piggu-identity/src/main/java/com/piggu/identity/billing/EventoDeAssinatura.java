@@ -12,11 +12,17 @@ import java.util.UUID;
  * @param momento           quando o provedor gerou o evento, para ignorar os atrasados
  * @param inicio            quando a assinatura comecou, para o prazo de arrependimento; pode ser nulo
  * @param emTeste           a assinatura esta no teste gratis
+ * @param familia           plano familia (a casa toda); falso e o individual (so quem assinou)
  */
 public record EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
-                                 Instant inicio, boolean emTeste) {
+                                 Instant inicio, boolean emTeste, boolean familia) {
+
+    public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
+                              Instant inicio, boolean emTeste) {
+        this(usuarioId, clienteNoProvedor, premiumAte, momento, inicio, emTeste, false);
+    }
 
     public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, null, false);
+        this(usuarioId, clienteNoProvedor, premiumAte, momento, null, false, false);
     }
 }

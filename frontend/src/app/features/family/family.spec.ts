@@ -11,9 +11,17 @@ const FAMILIA: Familia = {
   id: 'f1',
   nome: 'Familia de Ana',
   plano: 'GRATUITO',
+  planoFamilia: false,
   membros: [
-    { id: 'u1', nome: 'Ana', email: 'ana@piggu.test', foto: null, papel: 'TITULAR' },
-    { id: 'u2', nome: 'Bia', email: 'bia@piggu.test', foto: null, papel: 'MEMBRO' },
+    {
+      id: 'u1',
+      nome: 'Ana',
+      email: 'ana@piggu.test',
+      foto: null,
+      papel: 'TITULAR',
+      premium: false,
+    },
+    { id: 'u2', nome: 'Bia', email: 'bia@piggu.test', foto: null, papel: 'MEMBRO', premium: false },
   ],
   convites: [
     {

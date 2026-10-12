@@ -24,7 +24,9 @@
           <span i18n class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
         }
       </div>
-      @if (plano.origem === 'WEB') {
+      @if (!plano.voceAssinou) {
+        <p i18n class="linha-detalhe">Quem assinou o plano família da sua casa cuida da assinatura.</p>
+      } @else if (plano.origem === 'WEB') {
         <p i18n class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
         <div class="acoes">
           <button i18n type="button" class="botao contorno" (click)="gerenciar()" [disabled]="ocupado()">
@@ -50,6 +52,11 @@
     </section>
   } @else if (auth.ehPremium()) {
     <p i18n class="aviso">Como administrador, você já usa tudo do Premium.</p>
+  } @else if (plano.casaTemAssinatura) {
+    <p i18n class="aviso">
+      Alguém da sua família assinou o Premium individual, que vale só para essa pessoa. Ela pode
+      trocar para o plano família em Gerenciar assinatura e liberar o Premium para a casa toda.
+    </p>
   }
 
   <div class="planos">
@@ -68,6 +75,7 @@
     <section i18n class="cartao destaque" aria-labelledby="titulo-premium">
       <div class="cartao-titulo">
         <h2 id="titulo-premium">Premium</h2>
+        <span class="etiqueta">só para você</span>
       </div>
       <p class="preco">
         R$ {{ plano.site.mensal }}<small>/mês</small>
@@ -79,7 +87,7 @@
         }
       </ul>
 
-      @if (plano.plano === 'GRATUITO' && !auth.ehAdmin()) {
+      @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura) {
         @if (plano.assinaturaDisponivel) {
           @if (plano.diasDeTeste > 0) {
             <p class="linha-detalhe">
@@ -105,6 +113,32 @@
         }
       }
     </section>
+    @if (plano.familiaDisponivel || plano.planoFamilia) {
+      <section i18n class="cartao destaque" aria-labelledby="titulo-familia">
+        <div class="cartao-titulo">
+          <h2 id="titulo-familia">Premium família</h2>
+          <span class="etiqueta">até {{ plano.pessoasNoFamilia }} pessoas</span>
+        </div>
+        <p class="preco">
+          R$ {{ plano.siteFamilia.mensal }}<small>/mês</small>
+          <span class="ou">ou R$ {{ plano.siteFamilia.anual }}/ano (2 meses grátis)</span>
+        </p>
+        <ul class="itens">
+          <li>Tudo do Premium para todas as pessoas da sua família</li>
+          <li>A família pode ter até {{ plano.pessoasNoFamilia }} pessoas, contando você</li>
+        </ul>
+        @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura && plano.assinaturaDisponivel) {
+          <div class="acoes">
+            <button type="button" class="botao" (click)="assinar('FAMILIA_MENSAL')" [disabled]="ocupado()">
+              Assinar família mensal
+            </button>
+            <button type="button" class="botao secundario" (click)="assinar('FAMILIA_ANUAL')" [disabled]="ocupado()">
+              Assinar família anual
+            </button>
+          </div>
+        }
+      </section>
+    }
   </div>
 
   <p i18n class="linha-detalhe letras-miudas">

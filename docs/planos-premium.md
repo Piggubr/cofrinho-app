@@ -67,8 +67,17 @@ confirmar, principalmente o contrato com a Pluggy.
 
 | | Mensal | Anual |
 |---|---|---|
-| Site (Stripe) | R$ 19,90 | R$ 199,00 (2 meses grátis) |
-| App iOS/Android (+15% pela taxa das lojas) | R$ 22,89 | R$ 228,85 |
+| Individual, site (Stripe) | R$ 19,90 | R$ 199,00 (2 meses grátis) |
+| Individual, app iOS/Android (+15% pela taxa das lojas) | R$ 22,89 | R$ 228,85 |
+| Família (até 5 pessoas), site | R$ 39,99 | R$ 399,90 |
+| Família (até 5 pessoas), app (+15%, arredondado para baixo) | R$ 45,99 | R$ 459,89 |
+
+**Individual x família (Eduardo, 2026-10-11).** O individual libera o Premium só para quem
+assinou; o família libera a casa inteira, que fica limitada a 5 pessoas (contando convites
+pendentes). Uma assinatura por casa. Assinaturas que já existiam viraram individuais de
+quem pagou, na hora (migration `V18`). O tipo vem do preço cobrado na Stripe
+(`STRIPE_PRICE_FAMILIA_*`) ou do produto da loja com "familia" no id, então trocar de
+plano pelo Portal do Cliente funciona sem código novo.
 
 Apple e Google exigem a compra dentro do app para assinatura digital vendida no app,
 por isso o preço do app é separado. A tela web mostra só o preço do site.
