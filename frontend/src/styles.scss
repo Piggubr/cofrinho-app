@@ -130,6 +130,196 @@
   }
 }
 
+/* Temas de cor (Perfil > Cor do Piggu). O rosa e o :root acima; os outros trocam so os
+ * tons da marca e das superficies. Cada tema define as mesmas chaves no claro e no
+ * escuro, para o escuro de um tema nunca herdar o claro dele. Receita, gasto, alerta e
+ * dourado ficam iguais em todos: sao cores de significado, nao de enfeite. */
+@mixin tema($nome, $claro, $escuro) {
+  :root[data-tema='#{$nome}'] {
+    @each $token, $valor in $claro {
+      --#{$token}: #{$valor};
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-tema='#{$nome}'] {
+      @each $token, $valor in $escuro {
+        --#{$token}: #{$valor};
+      }
+    }
+  }
+}
+
+@include tema(
+  'menta',
+  (
+    pink-bg: #d3f4e8,
+    rose: #5fae95,
+    rose-deep: #1f6b5a,
+    primaria: #1f6b5a,
+    primaria-hover: #185a4b,
+    primaria-contraste: #ffffff,
+    destaque-1: #2f8a73,
+    destaque-2: #1f6b5a,
+    destaque-3: #174f43,
+    destaque-brilho: rgba(190, 255, 230, 0.35),
+    anel: rgba(95, 174, 149, 0.2),
+    site-bg: #f7fbfa,
+    surface-sunken: #eef6f3,
+    border: #e1efe9,
+    border-strong: #cfe3db,
+    field-bg: #eef6f3,
+    button-bg: #eaf6f1,
+    track: #ddeee7,
+    rose-soft: #eaf6f1,
+    vidro-sombra: (
+      0 10px 34px rgba(23, 79, 67, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #1d3a32,
+    rose: #7fcfb3,
+    rose-deep: #9fe0c8,
+    primaria: #8fd6bd,
+    primaria-hover: #9fe0c8,
+    primaria-contraste: #0d2a22,
+    destaque-1: #2f8a73,
+    destaque-2: #1f6b5a,
+    destaque-3: #13473b,
+    destaque-brilho: rgba(150, 255, 215, 0.22),
+    anel: rgba(143, 214, 189, 0.28),
+    site-bg: #0f1513,
+    surface: #1a2220,
+    vidro-fundo: rgba(26, 36, 33, 0.66),
+    vidro-forte: rgba(26, 36, 33, 0.78),
+    surface-sunken: #222c29,
+    border: #2c3834,
+    border-strong: #3d4b46,
+    field-bg: #222c29,
+    button-bg: #20352e,
+    track: #2c3834,
+    rose-soft: #20352e,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'lilas',
+  (
+    pink-bg: #eadcfb,
+    rose: #a07cc5,
+    rose-deep: #6a3d94,
+    primaria: #6a3d94,
+    primaria-hover: #5a3280,
+    primaria-contraste: #ffffff,
+    destaque-1: #8558b0,
+    destaque-2: #6a3d94,
+    destaque-3: #4e2a70,
+    destaque-brilho: rgba(225, 200, 255, 0.35),
+    anel: rgba(160, 124, 197, 0.2),
+    site-bg: #faf8fc,
+    surface-sunken: #f3eff8,
+    border: #ebe4f2,
+    border-strong: #dccfe9,
+    field-bg: #f3eff8,
+    button-bg: #f3ecfb,
+    track: #e9e0f3,
+    rose-soft: #f3ecfb,
+    vidro-sombra: (
+      0 10px 34px rgba(78, 42, 112, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #2e2240,
+    rose: #b99ae0,
+    rose-deep: #d2b8f2,
+    primaria: #c4a5ec,
+    primaria-hover: #d2b8f2,
+    primaria-contraste: #1e1030,
+    destaque-1: #6a3d94,
+    destaque-2: #4e2a70,
+    destaque-3: #351c50,
+    destaque-brilho: rgba(210, 170, 255, 0.22),
+    anel: rgba(196, 165, 236, 0.28),
+    site-bg: #131017,
+    surface: #1e1a24,
+    vidro-fundo: rgba(32, 26, 40, 0.66),
+    vidro-forte: rgba(32, 26, 40, 0.78),
+    surface-sunken: #27222e,
+    border: #332c3b,
+    border-strong: #463d50,
+    field-bg: #27222e,
+    button-bg: #2c2238,
+    track: #332c3b,
+    rose-soft: #2c2238,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'azul',
+  (
+    pink-bg: #d4eafa,
+    rose: #6fa7cf,
+    rose-deep: #22608f,
+    primaria: #22608f,
+    primaria-hover: #1b5079,
+    primaria-contraste: #ffffff,
+    destaque-1: #3a7fb3,
+    destaque-2: #22608f,
+    destaque-3: #174a70,
+    destaque-brilho: rgba(190, 225, 255, 0.35),
+    anel: rgba(111, 167, 207, 0.2),
+    site-bg: #f7fafc,
+    surface-sunken: #eef4f8,
+    border: #e2ecf3,
+    border-strong: #cfdee9,
+    field-bg: #eef4f8,
+    button-bg: #eaf3fa,
+    track: #dde9f2,
+    rose-soft: #eaf3fa,
+    vidro-sombra: (
+      0 10px 34px rgba(23, 74, 112, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #1c2e3d,
+    rose: #8bbde0,
+    rose-deep: #a8d0ee,
+    primaria: #96c4e8,
+    primaria-hover: #a8d0ee,
+    primaria-contraste: #0b2033,
+    destaque-1: #2f6f9f,
+    destaque-2: #22608f,
+    destaque-3: #163f60,
+    destaque-brilho: rgba(160, 210, 255, 0.22),
+    anel: rgba(150, 196, 232, 0.28),
+    site-bg: #0f1317,
+    surface: #1a1f24,
+    vidro-fundo: rgba(26, 32, 38, 0.66),
+    vidro-forte: rgba(26, 32, 38, 0.78),
+    surface-sunken: #22292f,
+    border: #2c343b,
+    border-strong: #3d4750,
+    field-bg: #22292f,
+    button-bg: #1f2f3c,
+    track: #2c343b,
+    rose-soft: #1f2f3c,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
 * {
   box-sizing: border-box;
 }

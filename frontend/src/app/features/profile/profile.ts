@@ -8,6 +8,7 @@ import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { IdDoTema, TEMAS, Temas } from '../../core/ui/tema';
 import { Tutorial } from '../../core/ui/tutorial';
 
 /**
@@ -26,6 +27,9 @@ export class Profile {
   private readonly users = inject(UsersService);
   protected readonly auth = inject(AuthService);
   protected readonly tutorial = inject(Tutorial);
+  private readonly temasDoApp = inject(Temas);
+  protected readonly temas = TEMAS;
+  protected readonly temaAtual = this.temasDoApp.atual;
 
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
@@ -171,6 +175,10 @@ export class Profile {
         this.excluindo.set(false);
       },
     });
+  }
+
+  protected escolherTema(id: IdDoTema): void {
+    this.temasDoApp.escolher(id);
   }
 
   protected sair(): void {

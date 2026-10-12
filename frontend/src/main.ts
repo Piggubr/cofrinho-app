@@ -2,6 +2,9 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { Capacitor } from '@capacitor/core';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
+import { aplicarTemaSalvo } from './app/core/ui/tema';
+
+aplicarTemaSalvo();
 
 // No app iOS o zoom de pinça nao faz sentido e o WebView as vezes deixa a tela
 // ampliada depois que o teclado fecha. No navegador o zoom continua liberado.

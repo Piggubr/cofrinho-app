@@ -39,3 +39,49 @@
   gap: 0.4rem 1rem;
   margin-top: 0.6rem;
 }
+
+.temas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.tema {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.6rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 3px var(--anel);
+  }
+
+  strong {
+    font-size: 0.9rem;
+  }
+
+  small {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+}
+
+.amostra {
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
