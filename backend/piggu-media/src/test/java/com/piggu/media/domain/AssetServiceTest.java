@@ -48,7 +48,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         byte[] original = png(1, 2, 3, 4, 5);
 
         Asset asset = guardar(original, "image/png");
-        StoragePort.ArquivoGuardado lido = assets.baixar(asset.getId());
+        StoragePort.ArquivoGuardado lido = assets.baixar(asset.getId(), TITULAR.id());
 
         assertThat(asset.getContentType()).isEqualTo("image/png");
         assertThat(asset.getSizeBytes()).isEqualTo(original.length);
@@ -83,7 +83,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
         Asset asset = assets.guardar(
                 "data:image/png;base64," + base64, "image/png", "FEED", null, TITULAR.id());
 
-        assertThat(assets.baixar(asset.getId()).conteudo()).isEqualTo(png(9, 8, 7));
+        assertThat(assets.baixar(asset.getId(), TITULAR.id()).conteudo()).isEqualTo(png(9, 8, 7));
     }
 
     @Test
@@ -94,7 +94,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
 
         Asset asset = assets.guardar(comQuebras, "image/png", "FEED", null, TITULAR.id());
 
-        assertThat(assets.baixar(asset.getId()).conteudo()).isEqualTo(png(4, 5, 6));
+        assertThat(assets.baixar(asset.getId(), TITULAR.id()).conteudo()).isEqualTo(png(4, 5, 6));
     }
 
     @Test
@@ -128,7 +128,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("foto inexistente da erro claro")
     void fotoInexistente() {
-        assertThatThrownBy(() -> assets.baixar(UUID.randomUUID()))
+        assertThatThrownBy(() -> assets.baixar(UUID.randomUUID(), TITULAR.id()))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Foto nao encontrada.");
     }
@@ -143,6 +143,23 @@ class AssetServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> assets.apagar(asset.getId(), outra)).isInstanceOf(ForbiddenException.class);
 
         assets.apagar(asset.getId(), admin);
+        assertThat(repositorio.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("foto do Girls Math so a dona ve e apaga, nem o titular nem o admin")
+    void fotoPrivada() {
+        CurrentUser dona = new CurrentUser(UUID.randomUUID(), "dona@piggu.test", PigguRole.PARCEIRO);
+        CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
+        Asset asset = assets.guardar(Base64.getEncoder().encodeToString(png(1)), "image/png", "GIRLS_MATH", null,
+                dona.id());
+
+        assertThat(assets.baixar(asset.getId(), dona.id()).conteudo()).isEqualTo(png(1));
+        assertThatThrownBy(() -> assets.baixar(asset.getId(), TITULAR.id())).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> assets.apagar(asset.getId(), TITULAR)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> assets.apagar(asset.getId(), admin)).isInstanceOf(NotFoundException.class);
+
+        assets.apagar(asset.getId(), dona);
         assertThat(repositorio.count()).isZero();
     }
 

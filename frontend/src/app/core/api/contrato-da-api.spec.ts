@@ -235,6 +235,18 @@ const CASOS: Caso[] = [
   ['apagar regra', (s) => s.finance.excluirRegra('x1'), 'DELETE', '/categories/rules/x1'],
   ['uso de leituras', (s) => s.finance.usoDeLeituras(), 'GET', '/receipts/usage'],
   [
+    'retirar a autorizacao da leitura de nota',
+    (s) => s.finance.retirarAutorizacaoDaLeituraDeNota(),
+    'DELETE',
+    '/receipts/consent',
+  ],
+  [
+    'retirar a autorizacao do assistente',
+    (s) => s.finance.retirarAutorizacaoDoAssistente(),
+    'DELETE',
+    '/assistant/consent',
+  ],
+  [
     'ler recibo com o aceite da IA',
     (s) => s.finance.lerRecibo('b64', 'image/png', 'v1'),
     'POST',

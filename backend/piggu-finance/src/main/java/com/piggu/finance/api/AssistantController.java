@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.assistente.AssistenteService;
@@ -9,11 +10,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,9 +33,11 @@ import java.util.List;
 public class AssistantController {
 
     private final AssistenteService servico;
+    private final Consentimentos consentimentos;
 
-    public AssistantController(AssistenteService servico) {
+    public AssistantController(AssistenteService servico, Consentimentos consentimentos) {
         this.servico = servico;
+        this.consentimentos = consentimentos;
     }
 
     /** @param pessoa verdadeiro na fala da pessoa, falso na resposta do assistente */
@@ -65,5 +71,12 @@ public class AssistantController {
                 : pedido.historico().stream().map(f -> new ConversaComGemini.Fala(f.pessoa(), f.texto())).toList();
         return servico.perguntar(pedido.pergunta().strip(), historico,
                 pedido.moeda() == null ? "BRL" : pedido.moeda(), pedido.autorizoIa(), pedido.versaoDoAviso(), usuario);
+    }
+
+    /** Retira a autorizacao de enviar perguntas e totais ao Gemini; a proxima pergunta pede de novo. */
+    @DeleteMapping("/consent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retirarConsentimento(@AuthUser CurrentUser usuario) {
+        consentimentos.retirar(usuario, AssistenteService.FINALIDADE);
     }
 }

@@ -12,6 +12,7 @@ import { Icone } from '../../core/ui/icone';
 import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
 import { IdDoTema, TEMAS, Temas } from '../../core/ui/tema';
 import { Tutorial } from '../../core/ui/tutorial';
+import { AutorizacoesDeIa } from './autorizacoes-de-ia';
 
 /**
  * Perfil e, para o administrador, as contas da instalacao.
@@ -21,7 +22,7 @@ import { Tutorial } from '../../core/ui/tutorial';
  */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, RouterLink, Icone],
+  imports: [FormsModule, RouterLink, Icone, AutorizacoesDeIa],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })

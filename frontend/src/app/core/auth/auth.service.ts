@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, firstValueFrom, shareReplay, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
+import { esquecerListasGuardadas } from '../offline/listas-guardadas';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
 
@@ -158,6 +159,7 @@ export class AuthService {
     this.storage.limpar();
     esquecerPerfilOffline();
     this.usuarioAtual.set(null);
+    await esquecerListasGuardadas();
     await this.google.esquecerConta();
     await this.router.navigate(['/entrar']);
   }
