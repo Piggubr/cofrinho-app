@@ -1,14 +1,42 @@
 name: CI
 
+# Branches (regras em docs/branches.md):
+#   main     producao. O merge de um PR roda o CI e, se tudo passar, "publicar" atualiza
+#            o servidor. So recebe PR vindo da develop (ou hotfix/...).
+#   develop  onde as features se juntam. Roda o CI, nunca publica.
+#   outras   rodam o CI pelo PR ou na mao (Actions > CI > Run workflow): testes,
+#            cobertura e seguranca. O .ipa de teste sai pelo "iOS demo". Nao publicam.
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  # PR para a main so vem da develop ou de um hotfix/...: assim tudo que chega em
+  # producao passou antes pela develop (ou e uma correcao urgente com nome proprio).
+  # Este job e um "required status check" da regra da main (.github/rulesets/main.json).
+  origem-do-pr:
+    name: Origem do PR para a main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir a branch de origem
+        env:
+          BASE: ${{ github.base_ref }}
+          ORIGEM: ${{ github.head_ref }}
+        run: |
+          if [[ "$BASE" != "main" ]]; then
+            echo "PR para ${BASE:-nenhuma branch}: sem restricao de origem."
+          elif [[ "$ORIGEM" == "develop" || "$ORIGEM" == hotfix/* ]]; then
+            echo "PR de $ORIGEM para a main: ok."
+          else
+            echo "::error::PR para a main precisa vir da develop ou de hotfix/... (veio de $ORIGEM)."
+            exit 1
+          fi
+
   segredos:
     name: Segredos (gitleaks)
     runs-on: ubuntu-latest
@@ -119,3 +147,42 @@ jobs:
           name: relatorio-do-playwright
           path: frontend/playwright-report/
           retention-days: 14
+
+  # Atualiza o servidor depois que todos os jobs acima passam num push na main (a
+  # branch de producao). Desligado ate a variavel DEPLOY_LIGADO=true existir no
+  # repositorio (Settings > Secrets and variables > Actions > Variables); os segredos
+  # ficam no ambiente "producao", que so aceita a main. Passo a passo em
+  # docs/implantacao-producao.md, secao 8.
+  publicar:
+    name: Publicar no servidor
+    needs: [segredos, backup, backend, frontend, e2e]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      vars.DEPLOY_LIGADO == 'true'
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 40
+    concurrency:
+      group: publicar-producao
+      cancel-in-progress: false
+    steps:
+      - name: Preparar a chave SSH
+        env:
+          CHAVE: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST_KEY: ${{ secrets.DEPLOY_HOST_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$CHAVE" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          # A identidade do servidor vem do segredo: sem ela o ssh recusa (nada de
+          # aceitar a primeira chave que aparecer).
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+      # No servidor, a chave so roda deploy/atualizar.sh, que confere se o commit esta
+      # na branch de producao, compila, sobe e espera os servicos ficarem saudaveis.
+      - name: Atualizar o servidor
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          # Usuario do servidor; o guia cria o "ubuntu" em qualquer provedor.
+          USUARIO: ${{ vars.DEPLOY_USUARIO || 'ubuntu' }}
+        run: ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$HOST" "$GITHUB_SHA"

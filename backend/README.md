@@ -46,7 +46,7 @@ Para rodar um serviço isolado durante o desenvolvimento:
 
 ```bash
 mvn install -DskipTests
-SPRING_PROFILES_ACTIVE=dev java -jar piggu-identity/target/piggu-identity-1.0.0-SNAPSHOT.jar
+SPRING_PROFILES_ACTIVE=dev java -jar piggu-identity/target/piggu-identity-1.0.0.jar
 ```
 
 ## Decisões que valem explicação

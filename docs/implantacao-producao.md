@@ -206,3 +206,47 @@ Se um dia os logs forem para um serviço central (Grafana Loki, Better Stack, Ax
 configure lá a retenção de **30 dias** e mantenha a rotação local como está. Em um
 incidente, copie os arquivos antes de qualquer reinício (`docker compose up
 --force-recreate` apaga os logs do container): eles são a prova do que aconteceu.
+
+## 8. Deploy automático pelo GitHub Actions
+
+Depois da primeira subida feita à mão, cada merge na `main` atualiza o servidor
+sozinho (as regras das branches estão em `docs/branches.md`): o CI roda e, se **todos** os jobs passarem, o job "Publicar no
+servidor" entra por SSH e roda `deploy/atualizar.sh` com o commit do merge. O script
+confere que o commit está na branch, compila o site, sobe os serviços e espera todos
+ficarem saudáveis; se algum não ficar, o job fica vermelho e o log mostra qual.
+
+A chave que o Actions usa só consegue rodar esse script (`command=` no
+`authorized_keys`): quem a tivesse não abriria um terminal no servidor, só pediria para
+publicar um commit que já está na branch.
+
+**No servidor** (uma vez):
+
+```bash
+ssh-keygen -t ed25519 -f ~/actions-deploy -N "" -C github-actions
+echo "command=\"/opt/piggu/deploy/atualizar.sh\",restrict $(cat ~/actions-deploy.pub)" >> ~/.ssh/authorized_keys
+cat ~/actions-deploy                                          # segredo DEPLOY_SSH_KEY
+echo "IP_DO_SERVIDOR $(cut -d' ' -f1,2 /etc/ssh/ssh_host_ed25519_key.pub)"   # segredo DEPLOY_HOST_KEY
+rm ~/actions-deploy ~/actions-deploy.pub
+```
+
+(Troque `IP_DO_SERVIDOR` pelo IP público. A chave privada só existe no segredo do GitHub
+depois do `rm`.)
+
+**No GitHub:**
+
+1. *Settings > Environments > New environment* `producao`. Em *Deployment branches and
+   tags*, deixe só `main`. Se quiser aprovar cada publicação com um
+   clique, marque *Required reviewers* e ponha você.
+2. Nesse ambiente, três segredos: `DEPLOY_HOST` (o IP público), `DEPLOY_SSH_KEY` (o
+   arquivo inteiro do `cat ~/actions-deploy`, com as linhas BEGIN e END) e
+   `DEPLOY_HOST_KEY` (a linha do `echo`).
+3. *Settings > Secrets and variables > Actions > Variables*: `DEPLOY_LIGADO` = `true`.
+   Sem ela o job fica cinza (pulado), nunca vermelho.
+
+Publicar de novo o mesmo commit (por exemplo, depois de mudar o `.env`): no Actions, abra
+a última execução do CI na branch e use *Re-run all jobs*. Para publicar à mão, no
+servidor: `/opt/piggu/deploy/atualizar.sh <sha>`.
+
+Para voltar a uma versão anterior: `/opt/piggu/deploy/atualizar.sh <sha antigo>` (o sha
+precisa estar na branch). As migrações de banco não voltam sozinhas; se a versão nova
+mudou o banco, restaure o backup da noite (seção 6).
