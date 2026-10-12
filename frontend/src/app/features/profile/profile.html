@@ -156,6 +156,54 @@
   </section>
 }
 
+<section class="cartao" aria-labelledby="titulo-painel">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-painel">Organizar o Painel</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Escolha a ordem dos blocos da tela inicial e esconda o que não usa. Vale para este aparelho.
+  </p>
+  <ol class="ordem-do-painel">
+    @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {
+      <li>
+        <label class="caixa">
+          <input
+            type="checkbox"
+            [checked]="bloco.visivel"
+            (change)="painel.alternar(bloco.id)"
+          />
+          {{ bloco.nome }}
+        </label>
+        <div class="setas">
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            [disabled]="primeiro"
+            (click)="painel.mover(bloco.id, -1)"
+            [attr.aria-label]="'Subir ' + bloco.nome"
+          >
+            <app-icone nome="subir" [tamanho]="18" />
+          </button>
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            [disabled]="ultimo"
+            (click)="painel.mover(bloco.id, 1)"
+            [attr.aria-label]="'Descer ' + bloco.nome"
+          >
+            <app-icone nome="descer" [tamanho]="18" />
+          </button>
+        </div>
+      </li>
+    }
+  </ol>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno pequeno" (click)="painel.restaurar()">
+      Voltar ao padrão
+    </button>
+  </div>
+</section>
+
 <section class="cartao" aria-labelledby="titulo-tema">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-tema">Cor do Piggu</h2>

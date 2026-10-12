@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,6 +8,8 @@ import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Icone } from '../../core/ui/icone';
+import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
 import { IdDoTema, TEMAS, Temas } from '../../core/ui/tema';
 import { Tutorial } from '../../core/ui/tutorial';
 
@@ -19,7 +21,7 @@ import { Tutorial } from '../../core/ui/tutorial';
  */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Icone],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -30,6 +32,19 @@ export class Profile {
   private readonly temasDoApp = inject(Temas);
   protected readonly temas = TEMAS;
   protected readonly temaAtual = this.temasDoApp.atual;
+  protected readonly painel = inject(PainelOrganizado);
+
+  /** Na ordem escolhida; o membro so ve os blocos que aparecem para ele. */
+  protected readonly blocosDoPainel = computed(() => {
+    const doMembro: IdDoBloco[] = ['metas', 'cofrinho', 'girls-math'];
+    return this.painel
+      .blocos()
+      .filter((bloco) => !this.auth.ehMembro() || doMembro.includes(bloco.id))
+      .map((bloco) => ({
+        ...bloco,
+        nome: BLOCOS_DO_PAINEL.find((b) => b.id === bloco.id)?.nome ?? bloco.id,
+      }));
+  });
 
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
@@ -60,6 +75,7 @@ export class Profile {
     { id: 'filmes', nome: $localize`Filmes` },
     { id: 'fotos', nome: $localize`Fotos` },
     { id: 'premios', nome: $localize`Prêmios` },
+    { id: 'girls-math', nome: $localize`Girls Math` },
   ];
   protected readonly excluindo = signal(false);
 

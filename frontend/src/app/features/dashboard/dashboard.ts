@@ -20,6 +20,10 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
 import { PessoaPipe } from '../../core/api/pessoas-da-familia';
+import { IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
+import { GirlsMathDoPainel } from './girls-math-do-painel';
+import { MetasDoPainel } from './metas-do-painel';
+import { NotasDoPainel } from './notas-do-painel';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -48,6 +52,9 @@ interface TotalPorCategoria {
     PrimeirosPassos,
     AvisosDoMes,
     Objetivos,
+    MetasDoPainel,
+    GirlsMathDoPainel,
+    NotasDoPainel,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -58,6 +65,13 @@ export class Dashboard {
   protected readonly auth = inject(AuthService);
   private readonly banking = inject(BankingService);
   private readonly pluggy = inject(PluggyConnectService);
+  private readonly painel = inject(PainelOrganizado);
+
+  /** Girls Math so aparece com o modulo ligado no perfil (sem a lista, todos ligados). */
+  protected readonly girlsMathLigado = computed(() => {
+    const modulos = this.auth.usuario()?.preferencias?.modulos;
+    return !modulos || modulos.includes('girls-math');
+  });
 
   protected readonly carregando = signal(true);
   protected readonly erro = signal('');
@@ -82,6 +96,14 @@ export class Dashboard {
     }
     return [...totais.entries()].map(([moeda, total]) => ({ moeda, total }));
   });
+
+  protected mostra(bloco: IdDoBloco): boolean {
+    return this.painel.posicoes().has(bloco);
+  }
+
+  protected ordem(bloco: IdDoBloco): number {
+    return this.painel.posicoes().get(bloco) ?? 0;
+  }
 
   protected readonly rotuloDoMes = computed(() => mesPorExtenso(this.mesAtual()));
   protected readonly totalGastoNoMes = computed(() =>

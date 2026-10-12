@@ -66,6 +66,7 @@ interface FalaNaTela extends FalaDoAssistente {
         (keydown.escape)="fechar()"
       >
         <div class="topo">
+          <img class="avatar grande" src="ilustracoes/piggu-assistente.svg" alt="" />
           <h2 i18n id="titulo-assistente">Assistente</h2>
           @if (falas().length) {
             <button i18n type="button" class="botao fantasma pequeno" (click)="recomecar()">
@@ -110,17 +111,22 @@ interface FalaNaTela extends FalaDoAssistente {
         } @else {
           <div class="conversa" #conversa aria-live="polite">
             @for (fala of falas(); track $index) {
-              <div class="fala" [class.da-pessoa]="fala.pessoa">
-                <p>{{ fala.texto }}</p>
-                @if (fala.tela && nomeDaTela(fala.tela); as nome) {
-                  <a
-                    class="botao contorno pequeno"
-                    [routerLink]="'/' + fala.tela"
-                    (click)="fechar()"
-                    i18n
-                    >Abrir {{ nome }}</a
-                  >
+              <div class="vez" [class.da-pessoa]="fala.pessoa">
+                @if (!fala.pessoa) {
+                  <img class="avatar" src="ilustracoes/piggu-assistente.svg" alt="" />
                 }
+                <div class="fala" [class.da-pessoa]="fala.pessoa">
+                  <p>{{ fala.texto }}</p>
+                  @if (fala.tela && nomeDaTela(fala.tela); as nome) {
+                    <a
+                      class="botao contorno pequeno"
+                      [routerLink]="'/' + fala.tela"
+                      (click)="fechar()"
+                      i18n
+                      >Abrir {{ nome }}</a
+                    >
+                  }
+                </div>
               </div>
             } @empty {
               <p i18n class="linha-detalhe">Pergunte sobre gastos, orçamento, contas e cofrinho.</p>
@@ -137,7 +143,10 @@ interface FalaNaTela extends FalaDoAssistente {
               </div>
             }
             @if (pensando()) {
-              <p i18n class="fala pensando">Pensando...</p>
+              <div class="vez">
+                <img class="avatar" src="ilustracoes/piggu-assistente.svg" alt="" />
+                <p i18n class="fala pensando">Pensando...</p>
+              </div>
             }
           </div>
           @if (erro()) {
@@ -230,6 +239,30 @@ interface FalaNaTela extends FalaDoAssistente {
       flex-direction: column;
       gap: 0.5rem;
       min-height: 6rem;
+    }
+    .avatar {
+      flex: 0 0 30px;
+      width: 30px;
+      height: 30px;
+    }
+    .avatar.grande {
+      flex-basis: 36px;
+      width: 36px;
+      height: 36px;
+    }
+    /* Uma vez de falar: o avatar do Piggu ao lado da resposta. */
+    .vez {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.45rem;
+      max-width: 92%;
+    }
+    .vez.da-pessoa {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+    .vez .fala {
+      max-width: 100%;
     }
     .fala {
       align-self: flex-start;

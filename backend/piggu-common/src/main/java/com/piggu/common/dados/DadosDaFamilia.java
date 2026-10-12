@@ -20,7 +20,8 @@ import java.util.regex.Pattern;
  * <p>Cada servico declara as tabelas em que guarda dado de alguem e a coluna que diz
  * quem lancou. Isso basta para tres operacoes:</p>
  * <ul>
- *   <li><b>exportar</b>: o titular leva a familia inteira; o membro, o que ele lancou;</li>
+ *   <li><b>exportar</b>: o titular leva a familia inteira; o membro, o que ele lancou. Tabela
+ *       privada ({@link Tabela#privada()}) leva so o de quem pediu, para todos;</li>
  *   <li><b>apagar a familia</b>: quando a pessoa era a ultima da familia, tudo sai;</li>
  *   <li><b>apagar a pessoa</b>: a familia continua, entao o que era compartilhado fica,
  *       anonimizado, e o que era so dela ({@link Tabela#pessoal()}) sai.</li>
@@ -41,13 +42,22 @@ public class DadosDaFamilia {
      * @param autor   coluna com o id de quem lancou; nula quando a tabela nao tem autor. Na
      *                exclusao da pessoa ela vira nula: o lancamento fica com a familia, sem dono
      * @param pessoal verdadeiro quando o registro e so da pessoa e sai mesmo que a familia fique
+     * @param privada verdadeiro quando nem o titular ve o registro dos outros (metas pessoais,
+     *                Girls Math): a exportacao leva so o que e de quem pediu, titular ou nao
      */
-    public record Tabela(String nome, String autor, boolean pessoal) {
+    public record Tabela(String nome, String autor, boolean pessoal, boolean privada) {
 
         public Tabela {
             if (!NOME_SQL.matcher(nome).matches() || (autor != null && !NOME_SQL.matcher(autor).matches())) {
                 throw new IllegalArgumentException("Nome de tabela ou coluna invalido: " + nome);
             }
+            if (privada && autor == null) {
+                throw new IllegalArgumentException("Tabela privada precisa da coluna do autor: " + nome);
+            }
+        }
+
+        public Tabela(String nome, String autor, boolean pessoal) {
+            this(nome, autor, pessoal, false);
         }
 
         public static Tabela compartilhada(String nome, String autor) {
@@ -56,6 +66,11 @@ public class DadosDaFamilia {
 
         public static Tabela pessoal(String nome, String autor) {
             return new Tabela(nome, autor, true);
+        }
+
+        /** Pessoal e, alem disso, invisivel para o resto da familia, titular incluido. */
+        public static Tabela privada(String nome, String autor) {
+            return new Tabela(nome, autor, true, true);
         }
     }
 
@@ -85,7 +100,7 @@ public class DadosDaFamilia {
                 continue;
             }
             String sql = "SELECT coalesce(jsonb_agg(t), '[]'::jsonb)::text FROM " + tabela.nome() + " t WHERE household_id = ?";
-            String linhas = usuario.isTitular()
+            String linhas = usuario.isTitular() && !tabela.privada()
                     ? jdbc.queryForObject(sql, String.class, usuario.familia())
                     : jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,
                             usuario.familia(), usuario.id());

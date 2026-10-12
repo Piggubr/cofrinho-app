@@ -92,6 +92,10 @@ const MOEDAS_DO_GUIA = ['BRL', 'EUR', 'USD', 'GBP', 'ARS', 'CLP', 'UYU', 'JPY'];
     }
   `,
   styles: `
+    /* O espaco ate os blocos do Painel some junto com o guia. */
+    .guia {
+      margin-bottom: 0.9rem;
+    }
     .passos {
       list-style: none;
       margin: 0 0 0.6rem;

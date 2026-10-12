@@ -5,7 +5,9 @@ import {
   FotoDoFeed,
   Gasto,
   ItemDeCompra,
+  ItemDoGirlsMath,
   Lugar,
+  MetaDoMes,
   MovimentoDeMoedas,
   Nota,
   Premio,
@@ -65,6 +67,9 @@ export interface EstadoDaDemo {
   assistenteAutorizado: boolean;
   perguntasAoAssistente: number;
   notas: Nota[];
+  /** Minhas metas: so as do mes atual existem na demo. */
+  metasDoMes: MetaDoMes[];
+  girlsMath: ItemDoGirlsMath[];
   lugares: Lugar[];
   marcadores: string[];
   filmes: Filme[];
@@ -186,6 +191,15 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     assistenteAutorizado: false,
     perguntasAoAssistente: 0,
     notas: [],
+    metasDoMes: [
+      { id: 'meta-ler', titulo: 'Ler 2 livros', alvo: 2, atual: 1, mes: dataIso(hoje).slice(0, 7), concluida: false },
+      { id: 'meta-academia', titulo: 'Ir à academia 12 vezes', alvo: 12, atual: 12, mes: dataIso(hoje).slice(0, 7), concluida: true },
+      { id: 'meta-delivery', titulo: 'No máximo 4 deliveries', alvo: 4, atual: 1, mes: dataIso(hoje).slice(0, 7), concluida: false },
+    ],
+    girlsMath: [
+      { id: 'gm-bolsa', produto: 'Bolsa de couro', loja: 'Shopping Ibirapuera', valor: 349.9, data: diaDoMes(hoje, 0, 3), fotoAssetId: null, temFoto: false },
+      { id: 'gm-tenis', produto: 'Tênis de corrida', loja: 'Loja online', valor: 499, data: diaDoMes(hoje, -1, 18), fotoAssetId: null, temFoto: false },
+    ],
     lugares: [],
     marcadores: ['Romântico', 'Barato', 'Com as crianças', 'Vista bonita'],
     filmes: [],
