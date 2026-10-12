@@ -163,7 +163,9 @@ describe('Dashboard', () => {
 
       expect(ordemNaTela(tela, 'app-notas-do-painel')).toBe('0');
       expect(ordemNaTela(tela, '#titulo-notas-painel')).toBe('0');
-      expect(Number(ordemNaTela(tela, 'app-metas-do-painel'))).toBeGreaterThan(1);
+      expect(Number(ordemNaTela(tela, 'app-resumo-do-mes'))).toBeGreaterThan(1);
+      // Fora do que estava salvo e desligado no padrao: so aparece se a pessoa ligar.
+      expect(ordemNaTela(tela, 'app-metas-do-painel')).toBe('ausente');
       const titulos = [...tela.nativeElement.querySelectorAll('h2')].map(
         (h: HTMLElement) => h.textContent?.trim(),
       );

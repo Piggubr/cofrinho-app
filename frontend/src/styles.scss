@@ -132,8 +132,9 @@
 
 /* Temas de cor (Perfil > Cor do Piggu). O rosa e o :root acima; os outros trocam so os
  * tons da marca e das superficies. Cada tema define as mesmas chaves no claro e no
- * escuro, para o escuro de um tema nunca herdar o claro dele. Receita, gasto, alerta e
- * dourado ficam iguais em todos: sao cores de significado, nao de enfeite. */
+ * escuro, para o escuro de um tema nunca herdar o claro dele. A barra de gasto dos
+ * graficos segue o tema (rosa no Azul parecia erro); no Menta a receita vira cinza-azulado
+ * para nao confundir com o gasto verde. Alerta e dourado ficam iguais em todos. */
 @mixin tema($nome, $claro, $escuro) {
   :root[data-tema='#{$nome}'] {
     @each $token, $valor in $claro {
@@ -171,6 +172,8 @@
     button-bg: #eaf6f1,
     track: #ddeee7,
     rose-soft: #eaf6f1,
+    serie-gasto: #3f9a82,
+    serie-receita: #8a9bb8,
     vidro-sombra: (
       0 10px 34px rgba(23, 79, 67, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -199,6 +202,8 @@
     button-bg: #20352e,
     track: #2c3834,
     rose-soft: #20352e,
+    serie-gasto: #8fd6bd,
+    serie-receita: #a7b6cf,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -228,6 +233,7 @@
     button-bg: #f3ecfb,
     track: #e9e0f3,
     rose-soft: #f3ecfb,
+    serie-gasto: #a07cc5,
     vidro-sombra: (
       0 10px 34px rgba(78, 42, 112, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -256,6 +262,7 @@
     button-bg: #2c2238,
     track: #332c3b,
     rose-soft: #2c2238,
+    serie-gasto: #c4a5ec,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -285,6 +292,7 @@
     button-bg: #eaf3fa,
     track: #dde9f2,
     rose-soft: #eaf3fa,
+    serie-gasto: #5a95c4,
     vidro-sombra: (
       0 10px 34px rgba(23, 74, 112, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -313,6 +321,7 @@
     button-bg: #1f2f3c,
     track: #2c343b,
     rose-soft: #1f2f3c,
+    serie-gasto: #96c4e8,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),

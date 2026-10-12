@@ -156,12 +156,12 @@
   </section>
 }
 
-<section class="cartao" aria-labelledby="titulo-painel">
+<section class="cartao" id="organizar-painel" aria-labelledby="titulo-painel">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-painel">Organizar o Painel</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Escolha a ordem dos blocos da tela inicial e esconda o que não usa. Vale para este aparelho.
+    Marque os blocos que quer ver na tela inicial e escolha a ordem. Vale para este aparelho.
   </p>
   <ol class="ordem-do-painel">
     @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {

@@ -133,5 +133,12 @@ test('Girls Math: o que nao comprei soma no placar e aparece no Painel', async (
 
   // Pelo app, sem recarregar: na demo recarregar volta os dados ao inicio.
   await page.getByRole('link', { name: 'Painel', exact: true }).first().click();
+  // O cartao nao vem ligado: a pessoa liga em Personalizar o Painel.
+  await expect(page.locator('app-girls-math-do-painel')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Personalizar o Painel' }).click();
+  await expect(page).toHaveURL(/\/perfil#organizar-painel$/);
+  await page.locator('#organizar-painel').getByRole('checkbox', { name: 'Girls Math' }).check();
+
+  await page.getByRole('link', { name: 'Painel', exact: true }).first().click();
   await expect(page.locator('app-girls-math-do-painel')).toContainText(/R\$\s499,90/);
 });

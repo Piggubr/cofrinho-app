@@ -109,3 +109,8 @@
   display: flex;
   gap: 0.15rem;
 }
+
+/* "Personalizar o Painel" pula para ca: a margem deixa o titulo fora da barra fixa. */
+#organizar-painel {
+  scroll-margin-top: 6rem;
+}

@@ -17,24 +17,32 @@ export interface BlocoDoPainel {
   readonly visivel: boolean;
 }
 
-/** Nome de cada bloco na tela de organizar, na ordem padrao do Painel. */
-export const BLOCOS_DO_PAINEL: readonly { readonly id: IdDoBloco; readonly nome: string }[] = [
-  { id: 'resumo', nome: $localize`Resumo do mês` },
-  { id: 'avisos', nome: $localize`Para ficar de olho` },
-  { id: 'metas', nome: $localize`Minhas metas` },
-  { id: 'cofrinho', nome: $localize`Cofrinho` },
-  { id: 'objetivos', nome: $localize`Cofrinhos por objetivo` },
-  { id: 'mes', nome: $localize`Gasto e limite do mês` },
-  { id: 'girls-math', nome: $localize`Girls Math` },
-  { id: 'notas', nome: $localize`Suas notas` },
-  { id: 'categorias', nome: $localize`Por categoria` },
+/**
+ * Nome de cada bloco na tela de organizar, na ordem padrao do Painel. De inicio aparece
+ * so o que vive apenas no Painel (resumo, limite, cofrinho); o que ja tem tela propria
+ * (metas, Relatorios, Calendario, Girls Math) a pessoa liga no Perfil se quiser.
+ */
+export const BLOCOS_DO_PAINEL: readonly {
+  readonly id: IdDoBloco;
+  readonly nome: string;
+  readonly padrao: boolean;
+}[] = [
+  { id: 'resumo', nome: $localize`Resumo do mês`, padrao: true },
+  { id: 'avisos', nome: $localize`Para ficar de olho`, padrao: true },
+  { id: 'mes', nome: $localize`Gasto e limite do mês`, padrao: true },
+  { id: 'cofrinho', nome: $localize`Cofrinho`, padrao: true },
+  { id: 'objetivos', nome: $localize`Cofrinhos por objetivo`, padrao: true },
+  { id: 'metas', nome: $localize`Minhas metas`, padrao: false },
+  { id: 'categorias', nome: $localize`Por categoria`, padrao: false },
+  { id: 'notas', nome: $localize`Suas notas`, padrao: false },
+  { id: 'girls-math', nome: $localize`Girls Math`, padrao: false },
 ];
 
-const PADRAO: BlocoDoPainel[] = BLOCOS_DO_PAINEL.map(({ id }) => ({ id, visivel: true }));
+const PADRAO: BlocoDoPainel[] = BLOCOS_DO_PAINEL.map(({ id, padrao }) => ({ id, visivel: padrao }));
 
 /**
  * Junta o que estava salvo com a lista atual: bloco que deixou de existir sai, bloco
- * novo entra no fim e visivel. Assim uma versao nova do app nunca esconde nada.
+ * novo entra no fim, aparecendo ou nao como no padrao.
  */
 export function ordemValida(salva: unknown): BlocoDoPainel[] {
   if (!Array.isArray(salva)) {

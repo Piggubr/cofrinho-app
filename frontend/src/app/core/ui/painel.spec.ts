@@ -15,20 +15,29 @@ describe('PainelOrganizado', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('sem nada salvo, segue a ordem padrao com tudo visivel', () => {
+  it('sem nada salvo, mostra so os blocos principais e deixa o resto para ligar', () => {
     const painel = TestBed.inject(PainelOrganizado);
     expect(painel.blocos().map((b) => b.id)).toEqual(BLOCOS_DO_PAINEL.map((b) => b.id));
-    expect(painel.blocos().every((b) => b.visivel)).toBe(true);
+    expect([...painel.posicoes().keys()]).toEqual([
+      'resumo',
+      'avisos',
+      'mes',
+      'cofrinho',
+      'objetivos',
+    ]);
+
+    painel.alternar('notas');
+    expect(painel.posicoes().has('notas')).toBe(true);
   });
 
   it('subir, esconder e restaurar ficam guardados para a pessoa', () => {
     const painel = TestBed.inject(PainelOrganizado);
-    painel.mover('notas', -1);
-    painel.alternar('categorias');
+    painel.mover('girls-math', -1);
+    painel.alternar('cofrinho');
 
     const ids = painel.blocos().map((b) => b.id);
-    expect(ids.indexOf('notas')).toBe(ids.indexOf('girls-math') - 1);
-    expect(painel.posicoes().has('categorias')).toBe(false);
+    expect(ids.indexOf('girls-math')).toBe(ids.indexOf('notas') - 1);
+    expect(painel.posicoes().has('cofrinho')).toBe(false);
     expect(JSON.parse(localStorage.getItem(chave)!)).toEqual(painel.blocos());
 
     painel.restaurar();
@@ -39,7 +48,7 @@ describe('PainelOrganizado', () => {
     const painel = TestBed.inject(PainelOrganizado);
     const antes = painel.blocos();
     painel.mover('resumo', -1);
-    painel.mover('categorias', 1);
+    painel.mover('girls-math', 1);
     expect(painel.blocos()).toEqual(antes);
   });
 
@@ -59,6 +68,7 @@ describe('PainelOrganizado', () => {
     ]);
     expect(ordem[0]).toEqual({ id: 'categorias', visivel: false });
     expect(ordem.length).toBe(BLOCOS_DO_PAINEL.length);
-    expect(ordem.at(-1)!.id).not.toBe('categorias');
+    expect(ordem.at(-1)).toEqual({ id: 'girls-math', visivel: false });
+    expect(ordem.find((b) => b.id === 'resumo')!.visivel).toBe(true);
   });
 });
