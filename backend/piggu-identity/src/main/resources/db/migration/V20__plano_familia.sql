@@ -1,4 +1,4 @@
--- Plano individual x familia (Eduardo, 2026-10-11). O individual libera o Premium so para
+-- Plano individual x familia (Eduardo, 2026-10-11; V20 porque o V18 ficou com o CPF). O individual libera o Premium so para
 -- quem assinou; o familia libera a casa inteira, que fica limitada a 5 pessoas.
 ALTER TABLE households
     ADD COLUMN plan_kind     VARCHAR(20) NOT NULL DEFAULT 'INDIVIDUAL',
