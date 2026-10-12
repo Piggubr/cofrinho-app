@@ -1,12 +1,16 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { Router, provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Shell } from './shell';
+
+@Component({ template: '' })
+class TelaVazia {}
 
 /** A cotacao do topo segue as preferencias de moeda da pessoa. */
 describe('Shell', () => {
@@ -145,6 +149,80 @@ describe('Shell', () => {
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     expect(itens()).not.toContain('Filmes');
     expect(pagina.textContent).not.toContain('Estilo de vida');
+  });
+
+  it('tela de dentro mostra o voltar e o nome; a nova entra animada e o voltar retorna', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Shell],
+      providers: [
+        provideRouter([
+          { path: 'painel', component: TelaVazia },
+          { path: 'perfil', component: TelaVazia },
+          { path: 'calendario', component: TelaVazia },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+        { provide: AuthService, useValue: auth },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/painel');
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const conteudo = pagina.querySelector('main.conteudo') as HTMLElement;
+    const animacoes: Keyframe[][] = [];
+    conteudo.animate = ((quadros: Keyframe[]) => {
+      animacoes.push(quadros);
+      return {} as Animation;
+    }) as typeof conteudo.animate;
+
+    expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
+
+    // Sem troca nenhuma dentro do app, o voltar leva ao Painel.
+    await router.navigateByUrl('/perfil');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')?.textContent?.trim()).toBe('Perfil');
+    expect(pagina.querySelector('.usuario-link')!.classList).toContain('ativo');
+    expect(animacoes.at(-1)![0]['transform']).toBe('translateX(36px)');
+
+    await router.navigateByUrl('/calendario');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')?.textContent?.trim()).toBe('Calendário');
+
+    await router.navigateByUrl('/painel');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
+    expect(animacoes.at(-1)![0]['transform']).toBe('translateX(-36px)');
+    expect(animacoes.length).toBe(3);
+  });
+
+  it('o voltar do cabecalho vai ao Painel quando a pessoa abriu direto na tela', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Shell],
+      providers: [
+        provideRouter([
+          { path: 'painel', component: TelaVazia },
+          { path: 'perfil', component: TelaVazia },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+        { provide: AuthService, useValue: auth },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/perfil');
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+
+    (pagina.querySelector('button.voltar') as HTMLButtonElement).click();
+    await tela.whenStable();
+    expect(router.url).toBe('/painel');
   });
 
   it('o membro nao tem o "+" de lancar', () => {

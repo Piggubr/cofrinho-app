@@ -63,7 +63,8 @@ export function animarEntrada(elemento: HTMLElement, direcao: DirecaoDaTroca): v
   if (typeof elemento.animate !== 'function') {
     return;
   }
-  const semMovimento = matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const semMovimento =
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   elemento.getAnimations?.().forEach((animacao) => animacao.cancel());
   elemento.animate(semMovimento ? [{ opacity: 0 }, { opacity: 1 }] : QUADROS[direcao], {
     duration: semMovimento ? 160 : direcao === 'aba' ? 240 : 320,
