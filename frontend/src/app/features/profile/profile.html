@@ -120,13 +120,14 @@
     </div>
   </div>
 
-  <label i18n class="caixa">
+  <label class="caixa linha-chave">
+    <span i18n>Mostrar a cotação no topo do app</span>
     <input
       type="checkbox"
+      class="chave"
       [ngModel]="mostrarCotacao()"
       (ngModelChange)="mostrarCotacao.set($event)"
     />
-    Mostrar a cotação no topo do app
   </label>
   <p i18n class="linha-detalhe">
     Trocar a moeda muda só como os valores aparecem; os valores já lançados não são convertidos.
@@ -158,61 +159,29 @@
       Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app
       fechado. No máximo uma vez por dia, e só quando há novidade.
     </p>
-    <label i18n class="caixa">
+    <!-- Cada toque ja salva, como nos Ajustes do iPhone. -->
+    <label class="caixa linha-chave">
+      <span i18n>Por e-mail, para {{ auth.usuario()?.email }}</span>
       <input
         type="checkbox"
+        class="chave"
         [ngModel]="avisoPorEmail()"
-        (ngModelChange)="avisoPorEmail.set($event)"
+        [disabled]="salvandoAvisos()"
+        (ngModelChange)="avisoPorEmail.set($event); salvarAvisos()"
       />
-      Por e-mail, para {{ auth.usuario()?.email }}
     </label>
     @if (celular.disponivel) {
-      <label i18n class="caixa">
+      <label class="caixa linha-chave">
+        <span i18n>Notificação neste iPhone</span>
         <input
           type="checkbox"
+          class="chave"
           [ngModel]="avisoNoCelular()"
-          (ngModelChange)="avisoNoCelular.set($event)"
+          [disabled]="salvandoAvisos()"
+          (ngModelChange)="avisoNoCelular.set($event); salvarAvisos()"
         />
-        Notificação neste iPhone
       </label>
     }
-    <div class="acoes">
-      <button
-        i18n
-        type="button"
-        class="botao"
-        (click)="salvarAvisos()"
-        [disabled]="salvandoAvisos()"
-      >
-        @if (salvandoAvisos()) {
-          Salvando...
-        } @else {
-          Salvar avisos
-        }
-      </button>
-    </div>
-  </section>
-
-  <section class="cartao" aria-labelledby="titulo-modulos">
-    <div class="cartao-titulo">
-      <h2 i18n id="titulo-modulos">Telas do menu</h2>
-    </div>
-    <p i18n class="linha-detalhe">
-      Ligue só o que você usa. Desligar tira a tela do menu; nada do que está nela é apagado.
-    </p>
-    <div class="modulos">
-      @for (modulo of modulos; track modulo.id) {
-        <label class="caixa">
-          <input
-            type="checkbox"
-            [checked]="ligado(modulo.id)"
-            [disabled]="salvandoModulos()"
-            (change)="alternarModulo(modulo.id)"
-          />
-          {{ modulo.nome }}
-        </label>
-      }
-    </div>
   </section>
 }
 
@@ -221,15 +190,12 @@
     <h2 i18n id="titulo-painel">Organizar o Painel</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Marque os blocos que quer ver na tela inicial e escolha a ordem. Vale para este aparelho.
+    Ligue os blocos que quer ver na tela inicial e escolha a ordem. Vale para este aparelho.
   </p>
   <ol class="ordem-do-painel">
     @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {
       <li>
-        <label class="caixa">
-          <input type="checkbox" [checked]="bloco.visivel" (change)="painel.alternar(bloco.id)" />
-          {{ bloco.nome }}
-        </label>
+        <span class="nome-do-bloco">{{ bloco.nome }}</span>
         <div class="setas">
           <button
             type="button"
@@ -250,6 +216,13 @@
             <app-icone nome="descer" [tamanho]="18" />
           </button>
         </div>
+        <input
+          type="checkbox"
+          class="chave"
+          [checked]="bloco.visivel"
+          (change)="painel.alternar(bloco.id)"
+          [attr.aria-label]="'Mostrar ' + bloco.nome"
+        />
       </li>
     }
   </ol>

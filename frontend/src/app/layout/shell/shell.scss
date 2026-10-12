@@ -14,6 +14,11 @@
     'menu conteudo';
 }
 
+/* A faixa da demo gruda no alto do host, entao ele precisa ser um bloco. */
+:host {
+  display: block;
+}
+
 /* ---------- Cabecalho ---------- */
 
 .cabecalho {
@@ -385,10 +390,11 @@
       'conteudo';
   }
 
-  /* Cabecalho de vidro: o conteudo passa por baixo, desfocado. */
+  /* Cabecalho de vidro: o conteudo passa por baixo, desfocado. O vidro sobe ate o
+   * alto da tela e os botoes descem para logo abaixo da ilha do iPhone. */
   .cabecalho {
-    min-height: 56px;
-    padding: 0.5rem 1rem;
+    min-height: calc(56px + env(safe-area-inset-top, 0px));
+    padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
     background: color-mix(in srgb, var(--site-bg) 74%, transparent);
     backdrop-filter: var(--vidro-desfoque);
     -webkit-backdrop-filter: var(--vidro-desfoque);
@@ -676,9 +682,30 @@
   padding: calc(0.3rem + env(safe-area-inset-top, 0px)) 1rem 0.3rem;
   text-align: center;
   font-size: 0.75rem;
+  line-height: 0.9rem;
   font-weight: 500;
   background: var(--primaria);
   color: var(--primaria-contraste);
+}
+
+/* Na demo a faixa ocupa a area da ilha e fica grudada no alto; o cabecalho gruda
+ * logo abaixo dela, sem repetir o espaco da ilha. Uma linha so, para a altura ser
+ * conhecida. */
+@media (max-width: 899px) {
+  .faixa-demo {
+    position: sticky;
+    top: 0;
+    z-index: 21;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .cabecalho.com-faixa {
+    top: calc(1.5rem + env(safe-area-inset-top, 0px));
+    min-height: 56px;
+    padding-top: 0.5rem;
+  }
 }
 
 /* ---------- Abas nativas do app iOS ---------- */

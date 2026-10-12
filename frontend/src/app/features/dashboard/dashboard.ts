@@ -67,12 +67,6 @@ export class Dashboard {
   private readonly pluggy = inject(PluggyConnectService);
   private readonly painel = inject(PainelOrganizado);
 
-  /** Girls Math so aparece com o modulo ligado no perfil (sem a lista, todos ligados). */
-  protected readonly girlsMathLigado = computed(() => {
-    const modulos = this.auth.usuario()?.preferencias?.modulos;
-    return !modulos || modulos.includes('girls-math');
-  });
-
   protected readonly carregando = signal(true);
   protected readonly erro = signal('');
   protected readonly cofrinho = signal<Cofrinho | null>(null);

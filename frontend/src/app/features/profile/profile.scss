@@ -92,16 +92,14 @@
   margin: 0.75rem 0 0.25rem;
 }
 
-.caixa input {
+.caixa input:not(.chave) {
   width: auto;
   margin: 0;
 }
 
-.modulos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.4rem 1rem;
-  margin-top: 0.6rem;
+.linha-chave {
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .temas {
@@ -167,6 +165,11 @@
   li:last-child {
     border-bottom: 0;
   }
+}
+
+.nome-do-bloco {
+  flex: 1;
+  min-width: 0;
 }
 
 .setas {

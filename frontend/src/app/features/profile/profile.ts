@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
-import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
+import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
@@ -65,20 +65,11 @@ export class Profile {
     this.auth.usuario()?.preferencias?.mostrarCotacao ?? true,
   );
   protected readonly salvandoPreferencias = signal(false);
-  protected readonly salvandoModulos = signal(false);
   protected readonly celular = inject(AvisosNoCelular);
   protected readonly avisoPorEmail = signal(this.auth.usuario()?.avisos?.email ?? false);
   protected readonly avisoNoCelular = signal(this.auth.usuario()?.avisos?.push ?? false);
   protected readonly salvandoAvisos = signal(false);
 
-  protected readonly modulos: { id: ModuloDeEstiloDeVida; nome: string }[] = [
-    { id: 'compras', nome: $localize`Compras` },
-    { id: 'lugares', nome: $localize`Lugares` },
-    { id: 'filmes', nome: $localize`Filmes` },
-    { id: 'fotos', nome: $localize`Fotos` },
-    { id: 'premios', nome: $localize`Prêmios` },
-    { id: 'girls-math', nome: $localize`Girls Math` },
-  ];
   protected readonly excluindo = signal(false);
 
   protected readonly salvandoFoto = signal(false);
@@ -193,34 +184,11 @@ export class Profile {
         this.salvandoAvisos.set(false);
       },
       error: (falha) => {
+        // A chave volta para o que esta gravado: nao pode ficar ligada sem ter salvo.
+        this.avisoPorEmail.set(this.auth.usuario()?.avisos?.email ?? false);
+        this.avisoNoCelular.set(this.auth.usuario()?.avisos?.push ?? false);
         this.erro.set(mensagemDeErro(falha));
         this.salvandoAvisos.set(false);
-      },
-    });
-  }
-
-  /** Sem a lista (conta antiga, demo), todos estao ligados. */
-  protected ligado(modulo: ModuloDeEstiloDeVida): boolean {
-    const ligados = this.auth.usuario()?.preferencias?.modulos;
-    return !ligados || ligados.includes(modulo);
-  }
-
-  /** Cada toque ja salva: o menu muda na hora. */
-  protected alternarModulo(modulo: ModuloDeEstiloDeVida): void {
-    const ligados = this.modulos.map((m) => m.id).filter((id) => this.ligado(id));
-    const novos = ligados.includes(modulo)
-      ? ligados.filter((id) => id !== modulo)
-      : [...ligados, modulo];
-    this.salvandoModulos.set(true);
-    this.erro.set('');
-    this.users.salvarModulos(novos).subscribe({
-      next: (usuario) => {
-        this.auth.atualizarUsuario(usuario);
-        this.salvandoModulos.set(false);
-      },
-      error: (falha) => {
-        this.erro.set(mensagemDeErro(falha));
-        this.salvandoModulos.set(false);
       },
     });
   }
