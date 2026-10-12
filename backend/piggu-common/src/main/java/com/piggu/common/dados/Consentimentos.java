@@ -37,7 +37,8 @@ public class Consentimentos {
 
     public boolean jaAutorizou(CurrentUser usuario, String finalidade) {
         Integer vezes = jdbc.queryForObject(
-                "SELECT count(*) FROM consents WHERE household_id = ? AND user_id = ? AND purpose = ? AND notice_version = ?",
+                "SELECT count(*) FROM consents WHERE household_id = ? AND user_id = ? AND purpose = ? AND notice_version = ?"
+                        + " AND revoked_at IS NULL",
                 Integer.class, usuario.familia(), usuario.id(), finalidade, VERSAO_DO_AVISO);
         return vezes != null && vezes > 0;
     }
@@ -64,6 +65,19 @@ public class Consentimentos {
             throw new BusinessException(descricao, HttpStatus.UNPROCESSABLE_CONTENT, CODIGO_NECESSARIO);
         }
         gravar(usuario, finalidade, versaoDoAviso);
+    }
+
+    /**
+     * Retira o consentimento (LGPD art. 8, par. 5): marca a data e, dali em diante, o
+     * servico volta a pedir antes de enviar. A linha fica como prova do que valeu ate ali.
+     *
+     * @return quantas autorizacoes estavam valendo
+     */
+    public int retirar(CurrentUser usuario, String finalidade) {
+        int retiradas = jdbc.update("UPDATE consents SET revoked_at = now() WHERE household_id = ? AND user_id = ?"
+                + " AND purpose = ? AND revoked_at IS NULL", usuario.familia(), usuario.id(), finalidade);
+        log.info("Consentimento retirado: conta={} finalidade={} linhas={}", usuario.id(), finalidade, retiradas);
+        return retiradas;
     }
 
     private void gravar(CurrentUser usuario, String finalidade, String versaoDoAviso) {

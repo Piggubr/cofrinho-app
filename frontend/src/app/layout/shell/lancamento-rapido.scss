@@ -13,6 +13,29 @@
   backdrop-filter: var(--vidro-desfoque);
   box-shadow: var(--shadow-float);
   overscroll-behavior: contain;
+  transform-origin: bottom right;
+  animation: surgir 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Sai do "+" em vez de aparecer de uma vez. */
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    animation-name: aparecer;
+    animation-duration: 0.16s;
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
 }
 
 .cabecalho-rapido {

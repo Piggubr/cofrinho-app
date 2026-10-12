@@ -60,6 +60,12 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @Autowired
     private JwtDecoder decoder;
 
+    @Autowired
+    private com.piggu.identity.avisos.Aparelhos aparelhos;
+
+    @Autowired
+    private com.piggu.identity.avisos.AvisosEnviados avisosEnviados;
+
     private UserAccount titular;
     private UserAccount membro;
 
@@ -129,6 +135,70 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         contas.excluir(titular.getId());
 
         verify(pagamentos).encerrarCliente("cus_123");
+    }
+
+    @Test
+    @DisplayName("foto propria aparece no lugar da do Google, para a pessoa e para a familia")
+    void fotoPropria() {
+        titular.atualizarPerfilGoogle("Ana", "Ana", "https://lh3.googleusercontent.com/ana");
+        usuarios.save(titular);
+
+        var resposta = contas.trocarFoto(titular.getId(), pngVermelho(), "image/png");
+
+        assertThat(resposta.foto()).startsWith("data:image/jpeg;base64,");
+        assertThat(resposta.fotoPropria()).isTrue();
+        assertThat(resposta.temFotoDoGoogle()).isTrue();
+        assertThat(familias.ver(como(membro)).membros())
+                .filteredOn(pessoa -> pessoa.id().equals(titular.getId()))
+                .singleElement()
+                .satisfies(pessoa -> assertThat(pessoa.foto()).isEqualTo(resposta.foto()));
+    }
+
+    @Test
+    @DisplayName("o login seguinte com Google nao apaga a foto propria")
+    void loginMantemFotoPropria() {
+        contas.trocarFoto(titular.getId(), pngVermelho(), "image/png");
+        UserAccount recarregada = usuarios.findById(titular.getId()).orElseThrow();
+        recarregada.atualizarPerfilGoogle("Ana", "Ana", "https://lh3.googleusercontent.com/nova");
+        usuarios.save(recarregada);
+
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().fotoExibida()).startsWith("data:image/jpeg");
+    }
+
+    @Test
+    @DisplayName("remover tira tudo; voltar ao Google mostra a do Google de novo")
+    void removerEVoltarAoGoogle() {
+        titular.atualizarPerfilGoogle("Ana", "Ana", "https://lh3.googleusercontent.com/ana");
+        usuarios.save(titular);
+        contas.trocarFoto(titular.getId(), pngVermelho(), "image/png");
+
+        var semFoto = contas.removerFoto(titular.getId());
+        assertThat(semFoto.foto()).isNull();
+        assertThat(semFoto.fotoPropria()).isFalse();
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().temFotoPropria()).isFalse();
+
+        var doGoogle = contas.usarFotoDoGoogle(titular.getId());
+        assertThat(doGoogle.foto()).isEqualTo("https://lh3.googleusercontent.com/ana");
+    }
+
+    @Test
+    @DisplayName("arquivo que nao e imagem nao muda a foto")
+    void fotoInvalida() {
+        assertThatThrownBy(() -> contas.trocarFoto(titular.getId(), "bm9wZQ==", "image/png"))
+                .isInstanceOf(BusinessException.class);
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().temFotoPropria()).isFalse();
+    }
+
+    private static String pngVermelho() {
+        try {
+            java.awt.image.BufferedImage imagem = new java.awt.image.BufferedImage(40, 40,
+                    java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.io.ByteArrayOutputStream saida = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(imagem, "png", saida);
+            return java.util.Base64.getEncoder().encodeToString(saida.toByteArray());
+        } catch (java.io.IOException erro) {
+            throw new IllegalStateException(erro);
+        }
     }
 
     @Test
@@ -212,6 +282,20 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         contas.excluir(sozinho.getId());
 
         assertThat(contas.informarCpf(titular.getId(), "111.444.777-35").cpfInformado()).isTrue();
+    }
+
+    @Test
+    @DisplayName("a exportacao leva os aparelhos que recebem avisos e os avisos ja enviados, sem o token inteiro")
+    void exportaAvisos() {
+        String token = "ab".repeat(32);
+        aparelhos.registrar(titular.getId(), token, "IOS");
+        avisosEnviados.marcar(titular.getId(), java.util.List.of("fatura:2026-10"));
+
+        java.util.Map<String, Object> arquivo = contas.exportar(como(titular), "token");
+
+        assertThat(arquivo.get("aparelhosQueRecebemAvisos")).asString().contains("IOS", "...ababab")
+                .doesNotContain(token);
+        assertThat(arquivo.get("avisosEnviados")).asString().contains("fatura:2026-10");
     }
 
     private static CurrentUser como(UserAccount conta) {

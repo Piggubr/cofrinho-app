@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -122,6 +123,25 @@ class AssistenteTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.codigo").value("PLANO_PREMIUM"));
 
         perguntar(TokensDeTeste.membro(), true).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("retirar a autorizacao faz o assistente pedir de novo antes de enviar")
+    void retirarAutorizacao() throws Exception {
+        perguntar(casas.casaA, true).andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/assistant/consent").with(casas.casaA)).andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/assistant").with(casas.casaA)).andExpect(jsonPath("$.autorizado").value(false));
+        perguntar(casas.casaA, false)
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.codigo").value(Consentimentos.CODIGO_NECESSARIO));
+        // A prova do consentimento que valeu ate ali continua guardada.
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM consents WHERE purpose = 'ASSISTENTE' AND revoked_at IS NOT NULL",
+                Integer.class)).isPositive();
+
+        perguntar(casas.casaA, true).andExpect(status().isOk());
     }
 
     @Test

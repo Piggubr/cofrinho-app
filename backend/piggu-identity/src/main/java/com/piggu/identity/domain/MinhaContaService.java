@@ -5,6 +5,8 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
+import com.piggu.identity.avisos.Aparelhos;
+import com.piggu.identity.avisos.AvisosEnviados;
 import com.piggu.identity.billing.ProvedorDePagamento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,8 @@ public class MinhaContaService {
     private final ProvedorDePagamento pagamentos;
     private final TrilhaDeAuditoria trilha;
     private final CofreDeCpf cofre;
+    private final Aparelhos aparelhos;
+    private final AvisosEnviados avisosEnviados;
 
     public static final String CODIGO_CPF_EM_USO = "CPF_EM_USO";
 
@@ -49,8 +53,12 @@ public class MinhaContaService {
                              CascataDeDados cascata,
                              ProvedorDePagamento pagamentos,
                              TrilhaDeAuditoria trilha,
-                             CofreDeCpf cofre) {
+                             CofreDeCpf cofre,
+                             Aparelhos aparelhos,
+                             AvisosEnviados avisosEnviados) {
         this.cofre = cofre;
+        this.aparelhos = aparelhos;
+        this.avisosEnviados = avisosEnviados;
         this.usuarios = usuarios;
         this.sessoes = sessoes;
         this.familias = familias;
@@ -82,6 +90,8 @@ public class MinhaContaService {
                 .map(sessao -> Map.of("criadaEm", sessao.getCreatedAt(), "venceEm", sessao.getExpiresAt(),
                         "navegador", Optional.ofNullable(sessao.getUserAgent()).orElse("")))
                 .toList());
+        arquivo.put("aparelhosQueRecebemAvisos", aparelhos.paraExportar(conta.getId()));
+        arquivo.put("avisosEnviados", avisosEnviados.paraExportar(conta.getId()));
         // O titular leva o historico da familia; os demais, o que eles mesmos fizeram.
         arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE).stream()
                 .filter(evento -> usuario.isTitular() || usuario.id().equals(evento.autor()))
@@ -119,6 +129,38 @@ public class MinhaContaService {
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /** Grava a foto escolhida pela pessoa, ja reduzida e sem metadados. */
+    @Transactional
+    public UserResponse trocarFoto(UUID contaId, String base64, String mimeType) {
+        UserAccount conta = conta(contaId);
+        conta.trocarFoto(FotoDePerfil.preparar(base64, mimeType));
+        return fotoAlterada(conta, "Foto de perfil trocada");
+    }
+
+    /** Tira a foto: a propria e apagada e a do Google deixa de aparecer. */
+    @Transactional
+    public UserResponse removerFoto(UUID contaId) {
+        UserAccount conta = conta(contaId);
+        conta.removerFoto();
+        return fotoAlterada(conta, "Foto de perfil removida");
+    }
+
+    /** Apaga a foto propria e volta a mostrar a da conta Google. */
+    @Transactional
+    public UserResponse usarFotoDoGoogle(UUID contaId) {
+        UserAccount conta = conta(contaId);
+        conta.usarFotoDoGoogle();
+        return fotoAlterada(conta, "Foto do Google de volta no perfil");
+    }
+
+    private UserResponse fotoAlterada(UserAccount conta, String descricao) {
+        usuarios.save(conta);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, descricao);
+        log.info("{}: conta={}", descricao, conta.getId());
         return UserResponse.de(conta, familia.daConta(conta));
     }
 

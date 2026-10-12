@@ -45,6 +45,9 @@ public class LeitorDeRecibos {
     private static final Logger log = LoggerFactory.getLogger(LeitorDeRecibos.class);
     private static final Pattern PALAVRA = Pattern.compile("\\p{L}+");
 
+    /** Finalidade do consentimento de enviar a foto ao Gemini. */
+    public static final String FINALIDADE = "GEMINI";
+
     private final TesseractOcr ocr;
     private final GeminiReceiptReader gemini;
     private final ProductMemoryRepository memoria;
@@ -104,7 +107,7 @@ public class LeitorDeRecibos {
                     HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
         }
         if (gemini.habilitado()) {
-            consentimentos.exigir(usuario, "GEMINI",
+            consentimentos.exigir(usuario, FINALIDADE,
                     "Não consegui ler esta foto sozinho. Para tentar com a IA do Google (Gemini), autorize o envio da foto.",
                     pedido.autorizoIa(), pedido.versaoDoAviso());
             try {
@@ -129,7 +132,7 @@ public class LeitorDeRecibos {
         if (!gemini.habilitado()) {
             throw new BusinessException("A leitura de recibos pela foto está desligada. Adicione os itens à mão.");
         }
-        consentimentos.exigir(usuario, "GEMINI",
+        consentimentos.exigir(usuario, FINALIDADE,
                 "Para ler a foto, o Piggu envia a imagem para a IA do Google (Gemini). Autorize o envio para continuar.",
                 pedido.autorizoIa(), pedido.versaoDoAviso());
         log.info("Recibo segue direto para o Gemini (leitor proprio desligado)");

@@ -7,6 +7,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +28,14 @@ public class AvisosEnviados {
     public Set<String> jaMandados(UUID usuario) {
         return new HashSet<>(jdbc.queryForList("SELECT alert_key FROM alerts_sent WHERE user_id = ?", String.class,
                 usuario));
+    }
+
+    /** Para a exportacao dos dados: qual aviso e quando saiu. */
+    public List<Map<String, Object>> paraExportar(UUID usuario) {
+        return jdbc.query("SELECT alert_key, sent_at FROM alerts_sent WHERE user_id = ? ORDER BY sent_at",
+                (linha, n) -> Map.of("aviso", linha.getString("alert_key"),
+                        "enviadoEm", linha.getTimestamp("sent_at").toInstant()),
+                usuario);
     }
 
     public void marcar(UUID usuario, Collection<String> chaves) {

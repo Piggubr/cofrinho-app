@@ -43,3 +43,57 @@ export const TAMANHO_MAXIMO_DE_IMAGEM = 5 * 1024 * 1024;
 export function imagemCabeNoLimite(arquivo: File): boolean {
   return arquivo.size <= TAMANHO_MAXIMO_DE_IMAGEM;
 }
+
+/** Lado da foto de perfil enviada; o servidor ainda reduz para 256 px. */
+export const LADO_DA_FOTO_DE_PERFIL = 320;
+
+/**
+ * Recorta um quadrado no centro da foto escolhida e regrava em JPEG pequeno.
+ *
+ * <p>Regravar no canvas descarta o EXIF (onde o celular guarda a localizacao) ja no
+ * aparelho, e o envio fica em dezenas de kilobytes mesmo vindo de uma camera de 12 MP.</p>
+ */
+export function prepararFotoDePerfil(arquivo: File): Promise<{ base64: string; dataUrl: string }> {
+  return new Promise((resolver, rejeitar) => {
+    const falhou = () => rejeitar(new Error($localize`Nao consegui ler essa imagem.`));
+    if (!arquivo.type.startsWith('image/')) {
+      falhou();
+      return;
+    }
+    const endereco = URL.createObjectURL(arquivo);
+    const imagem = new Image();
+    imagem.onerror = () => {
+      URL.revokeObjectURL(endereco);
+      falhou();
+    };
+    imagem.onload = () => {
+      URL.revokeObjectURL(endereco);
+      const lado = Math.min(imagem.naturalWidth, imagem.naturalHeight);
+      const destino = Math.min(LADO_DA_FOTO_DE_PERFIL, lado);
+      const canvas = document.createElement('canvas');
+      canvas.width = destino;
+      canvas.height = destino;
+      const contexto = canvas.getContext('2d');
+      if (!contexto || !lado) {
+        falhou();
+        return;
+      }
+      contexto.fillStyle = '#ffffff';
+      contexto.fillRect(0, 0, destino, destino);
+      contexto.drawImage(
+        imagem,
+        (imagem.naturalWidth - lado) / 2,
+        (imagem.naturalHeight - lado) / 2,
+        lado,
+        lado,
+        0,
+        0,
+        destino,
+        destino,
+      );
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      resolver({ base64: dataUrl.slice(dataUrl.indexOf(',') + 1), dataUrl });
+    };
+    imagem.src = endereco;
+  });
+}

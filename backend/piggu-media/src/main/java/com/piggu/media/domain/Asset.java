@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -27,6 +28,12 @@ public class Asset {
     private UUID householdId;
 
     public static final String CONTEXTO_PADRAO = "GERAL";
+
+    /**
+     * Fotos que so a dona ve, nem o titular (Girls Math). Os outros recebem "nao encontrada",
+     * e elas saem com a pessoa quando ela exclui a conta, mesmo que a familia fique.
+     */
+    public static final Set<String> CONTEXTOS_PRIVADOS = Set.of("GIRLS_MATH");
 
     @Id
     private UUID id;
@@ -67,6 +74,11 @@ public class Asset {
             id = UUID.randomUUID();
         }
         createdAt = Instant.now();
+    }
+
+    /** Foto privada de outra pessoa: para quem pergunta, ela nao existe. */
+    public boolean escondidaDe(UUID quem) {
+        return CONTEXTOS_PRIVADOS.contains(context) && (ownerId == null || !ownerId.equals(quem));
     }
 
     public UUID getId() {

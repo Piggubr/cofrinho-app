@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /** Aparelhos que recebem push. O mesmo token trocando de conta fica com a ultima. */
@@ -35,5 +36,19 @@ public class Aparelhos {
     public List<String> doUsuario(UUID usuario) {
         return jdbc.queryForList("SELECT token FROM push_devices WHERE user_id = ? ORDER BY created_at", String.class,
                 usuario);
+    }
+
+    /** Para a exportacao dos dados: plataforma, quando entrou e o fim do token (o bastante para reconhecer). */
+    public List<Map<String, Object>> paraExportar(UUID usuario) {
+        return jdbc.query("SELECT token, platform, created_at FROM push_devices WHERE user_id = ? ORDER BY created_at",
+                (linha, n) -> Map.of(
+                        "plataforma", linha.getString("platform"),
+                        "cadastradoEm", linha.getTimestamp("created_at").toInstant(),
+                        "finalDoToken", fim(linha.getString("token"))),
+                usuario);
+    }
+
+    private static String fim(String token) {
+        return "..." + token.substring(Math.max(0, token.length() - 6));
     }
 }
