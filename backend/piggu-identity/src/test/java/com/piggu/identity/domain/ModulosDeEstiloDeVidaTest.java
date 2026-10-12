@@ -13,7 +13,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** Compras, lugares, filmes, fotos e premios: cada pessoa liga no perfil o que quer no menu. */
+/** Compras, lugares, filmes, fotos, premios e girls math: cada pessoa liga no perfil o que quer no menu. */
 class ModulosDeEstiloDeVidaTest extends PostgresIntegrationTest {
 
     @Autowired
@@ -35,6 +35,20 @@ class ModulosDeEstiloDeVidaTest extends PostgresIntegrationTest {
         assertThat(auth.escolherModulos(conta.getId(), List.of("Filmes", "compras", "filmes")).preferencias().modulos())
                 .containsExactly("compras", "filmes");
         assertThat(auth.escolherModulos(conta.getId(), List.of()).preferencias().modulos()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("girls math e o ultimo modulo do menu e pode ser ligado como os outros")
+    void girlsMath() {
+        assertThat(ModulosDeEstiloDeVida.TODOS)
+                .containsExactly("compras", "lugares", "filmes", "fotos", "premios", "girls-math");
+        assertThat(ModulosDeEstiloDeVida.gravar(List.of("Girls-Math", "compras"))).isEqualTo("compras,girls-math");
+        assertThat(ModulosDeEstiloDeVida.ler("girls-math,cassino")).containsExactly("girls-math");
+
+        UserAccount conta = familias.criarConta("girls-" + System.nanoTime() + "@piggu.test", "Duda",
+                Consentimentos.VERSAO_DO_AVISO);
+        assertThat(auth.escolherModulos(conta.getId(), List.of("girls-math")).preferencias().modulos())
+                .containsExactly("girls-math");
     }
 
     @Test

@@ -29,12 +29,9 @@ test('lancar um gasto: aparece na lista e soma no mes', async ({ page }) => {
   await expect(page.getByText(/R\$\s42,50/).first()).toBeVisible();
 });
 
-test('definir o limite do mes no Orcamento (o endereco antigo de Metas leva para la)', async ({
-  page,
-}) => {
+test('definir o limite do mes no Orcamento', async ({ page }) => {
   await abrirPainel(page);
-  await page.goto('/metas');
-  await expect(page).toHaveURL(/\/orcamentos$/);
+  await page.goto('/orcamentos');
   await expect(page.getByRole('heading', { name: 'Orçamento', exact: true })).toBeVisible();
   // Esperar a carga: ela preenche o limite com o atual e apagaria o que foi digitado.
   await expect(page.getByRole('button', { name: 'Editar' }).first()).toBeVisible();
@@ -104,4 +101,44 @@ test('atalho de lancamento rapido: valor preenchido e cursor no campo', async ({
   await page.goto('/gastos?rapido=1&valor=18.90');
   await expect(page.locator('#valor')).toHaveValue('18.9');
   await expect(page.locator('#valor')).toBeFocused();
+});
+
+test('Minhas metas: +1 enche o anel e a meta nova entra na lista', async ({ page }) => {
+  await abrirPainel(page);
+  await page.goto('/metas');
+
+  const anel = page.getByRole('meter', { name: 'Progresso das metas do mês' });
+  await expect(anel).toHaveAttribute('aria-valuenow', '33');
+  await page.getByRole('button', { name: 'Mais um em Ler 2 livros' }).click();
+  await expect(anel).toHaveAttribute('aria-valuenow', '67');
+
+  await page.getByRole('button', { name: '+ Criar meta' }).click();
+  await page.locator('#tituloMeta').fill('Caminhar 10 vezes');
+  await page.locator('#alvoMeta').fill('10');
+  await page.getByRole('button', { name: 'Salvar meta' }).click();
+  await expect(page.getByText('Caminhar 10 vezes')).toBeVisible();
+  await expect(anel).toHaveAttribute('aria-valuenow', '50');
+});
+
+test('Girls Math: o que nao comprei soma no placar e aparece no Painel', async ({ page }) => {
+  await abrirPainel(page);
+  await page.goto('/girls-math');
+
+  await page.locator('#produtoGm').fill('Jaqueta');
+  await page.locator('#lojaGm').fill('Loja do centro');
+  await page.locator('#valorGm').fill('150');
+  await page.getByRole('button', { name: 'Guardar no Girls Math' }).click();
+  await expect(page.getByText('Jaqueta')).toBeVisible();
+  await expect(page.locator('.valor-grande')).toHaveText(/R\$\s499,90/);
+
+  // Pelo app, sem recarregar: na demo recarregar volta os dados ao inicio.
+  await page.getByRole('link', { name: 'Painel', exact: true }).first().click();
+  // O cartao nao vem ligado: a pessoa liga em Personalizar o Painel.
+  await expect(page.locator('app-girls-math-do-painel')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Personalizar o Painel' }).click();
+  await expect(page).toHaveURL(/\/perfil#organizar-painel$/);
+  await page.locator('#organizar-painel').getByRole('checkbox', { name: 'Girls Math' }).check();
+
+  await page.getByRole('link', { name: 'Painel', exact: true }).first().click();
+  await expect(page.locator('app-girls-math-do-painel')).toContainText(/R\$\s499,90/);
 });

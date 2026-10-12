@@ -9,292 +9,331 @@
 } @else {
   @if (!auth.ehMembro()) {
     <app-primeiros-passos [temLimite]="temLimite()" [temGasto]="temGasto()" />
-    <app-resumo-do-mes [mes]="mesAtual()" />
-    <app-avisos-do-mes [mes]="mesAtual()" />
   }
 
-  <section class="cartao">
-    <div class="cartao-titulo">
-      <h2 i18n>Cofrinho</h2>
-      <span class="etiqueta">{{ cofrinho()?.saldo | moeda }}</span>
-    </div>
-
-    <div class="resumo-cofrinho">
-      <div>
-        <p i18n class="linha-detalhe">Depositado</p>
-        <p class="numero">{{ cofrinho()?.totalDepositos | moeda }}</p>
+  <!-- A ordem e o que aparece vem do Perfil (PainelOrganizado); o CSS order arruma. -->
+  <div class="blocos">
+    @if (!auth.ehMembro() && mostra('resumo')) {
+      <div class="bloco" [style.order]="ordem('resumo')">
+        <app-resumo-do-mes [mes]="mesAtual()" />
       </div>
-      @if (!auth.ehMembro()) {
-        <div>
-          <p i18n class="linha-detalhe">Gasto desde o início</p>
-          <p class="numero">{{ cofrinho()?.totalGastos | moeda }}</p>
-        </div>
-      }
-    </div>
-
-    <div class="linha-de-campos deposito">
-      <div class="campo">
-        <label i18n for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
-        <input
-          id="valorDeposito"
-          type="number"
-          min="0.01"
-          step="0.01"
-          inputmode="decimal"
-          [ngModel]="novoDeposito()"
-          (ngModelChange)="novoDeposito.set($event)"
-          placeholder="0,00"
-        />
-      </div>
-      <div class="campo alinhado">
-        <button
-          i18n
-          type="button"
-          class="botao"
-          (click)="depositar()"
-          [disabled]="salvandoDeposito()"
-        >
-          @if (salvandoDeposito()) {
-            Guardando...
-          } @else {
-            Depositar
-          }
-        </button>
-      </div>
-    </div>
-
-    @if (cofrinho()?.depositos?.length) {
-      <div class="lista-de-depositos">
-        @for (deposito of cofrinho()!.depositos; track deposito.id) {
-          <div class="linha">
-            <div>
-              <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
-              <p class="linha-detalhe">
-                {{ deposito.data | dataBr }} · {{ deposito.usuario | pessoa }}
-              </p>
-            </div>
-            <button
-              type="button"
-              class="botao icone-so perigo"
-              (click)="excluirDeposito(deposito.id)"
-              aria-label="Apagar"
-              i18n-aria-label
-              title="Apagar"
-              i18n-title
-            >
-              <app-icone nome="lixeira" [tamanho]="18" />
-            </button>
-          </div>
-        }
-      </div>
-    } @else {
-      <p i18n class="vazio">Nenhum depósito ainda.</p>
-      <p class="vazio-acao">
-        <button i18n class="botao contorno pequeno" appFocar="valorDeposito">
-          Fazer o primeiro depósito
-        </button>
-      </p>
     }
-  </section>
-
-  @if (auth.podeLancar()) {
-    <app-objetivos (depositou)="recarregarCofrinho()" />
-  }
-
-  @if (!auth.ehMembro()) {
-    <section class="cartao">
-      <div class="cartao-titulo">
-        <h2>{{ rotuloDoMes() }}</h2>
-        <div class="navegacao-de-mes">
-          <button
-            type="button"
-            class="botao contorno icone-so"
-            (click)="trocarMes(-1)"
-            aria-label="Mês anterior"
-            i18n-aria-label
-          >
-            <app-icone nome="esquerda" [tamanho]="18" />
-          </button>
-          <button
-            type="button"
-            class="botao contorno icone-so"
-            (click)="trocarMes(1)"
-            aria-label="Próximo mês"
-            i18n-aria-label
-          >
-            <app-icone nome="direita" [tamanho]="18" />
-          </button>
-        </div>
+    @if (!auth.ehMembro() && mostra('avisos')) {
+      <div class="bloco" [style.order]="ordem('avisos')">
+        <app-avisos-do-mes [mes]="mesAtual()" />
       </div>
-
-      <div class="resumo-cofrinho">
-        <div>
-          <p i18n class="linha-detalhe">Gasto no mês</p>
-          <p class="numero">{{ totalGastoNoMes() | moeda }}</p>
-        </div>
-        <div>
-          <p i18n class="linha-detalhe">Limite do mês</p>
-          <p class="numero">
-            {{ metaDoMes() > 0 ? (metaDoMes() | moeda) : '—' }}
-          </p>
-        </div>
+    }
+    @if (mostra('metas')) {
+      <div class="bloco" [style.order]="ordem('metas')">
+        <app-metas-do-painel />
       </div>
-
-      @if (metaDoMes() > 0) {
-        <div class="progresso" [class.estourado]="estourouAMeta()">
-          <span [style.width.%]="progressoDaMeta()"></span>
-        </div>
-        <p i18n class="linha-detalhe progresso-texto">
-          {{ progressoDaMeta() }}% do limite
-          @if (estourouAMeta()) {
-            <strong> · limite ultrapassado</strong>
-          }
-        </p>
-      } @else {
-        <p i18n class="vazio">Sem limite definido para este mês.</p>
-      }
-
-      <div class="acoes">
-        <a i18n class="botao secundario" routerLink="/orcamentos">Definir limite</a>
-        <a i18n class="botao contorno" routerLink="/gastos">Ver gastos</a>
+    }
+    @if (mostra('girls-math') && girlsMathLigado()) {
+      <div class="bloco" [style.order]="ordem('girls-math')">
+        <app-girls-math-do-painel />
       </div>
-    </section>
+    }
+    @if (!auth.ehMembro() && mostra('notas')) {
+      <div class="bloco" [style.order]="ordem('notas')">
+        <app-notas-do-painel />
+      </div>
+    }
 
-    @if (openFinance()) {
-      <section class="cartao" aria-labelledby="titulo-bancos">
+    @if (mostra('cofrinho')) {
+      <section class="cartao bloco" [style.order]="ordem('cofrinho')">
         <div class="cartao-titulo">
-          <h2 i18n id="titulo-bancos">Contas bancárias</h2>
-          @for (total of saldoPorMoeda(); track total.moeda) {
-            <span class="etiqueta">{{ total.total | moeda: total.moeda }}</span>
+          <h2 i18n>Cofrinho</h2>
+          <span class="etiqueta">{{ cofrinho()?.saldo | moeda }}</span>
+        </div>
+
+        <div class="resumo-cofrinho">
+          <div>
+            <p i18n class="linha-detalhe">Depositado</p>
+            <p class="numero">{{ cofrinho()?.totalDepositos | moeda }}</p>
+          </div>
+          @if (!auth.ehMembro()) {
+            <div>
+              <p i18n class="linha-detalhe">Gasto desde o início</p>
+              <p class="numero">{{ cofrinho()?.totalGastos | moeda }}</p>
+            </div>
           }
         </div>
 
-        @if (erroBancos()) {
-          <p class="aviso erro" role="alert">{{ erroBancos() }}</p>
-        }
-
-        @if (pedindoAutorizacaoBanco()) {
-          <div
-            i18n-aria-label
-            class="aviso"
-            role="alertdialog"
-            aria-label="Autorizar conexão com o banco"
-          >
-            <p i18n>
-              Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance.
-              Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e
-              autoriza o compartilhamento das contas e saldos. Você pode desconectar quando quiser,
-              de graça. Detalhes no
-              <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
-            </p>
-            <div class="acoes">
-              <button i18n type="button" class="botao" (click)="autorizarBanco()">
-                Autorizo, continuar
-              </button>
-              <button
-                i18n
-                type="button"
-                class="botao contorno"
-                (click)="pedindoAutorizacaoBanco.set(false)"
-              >
-                Cancelar
-              </button>
-            </div>
+        <div class="linha-de-campos deposito">
+          <div class="campo">
+            <label i18n for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
+            <input
+              id="valorDeposito"
+              type="number"
+              min="0.01"
+              step="0.01"
+              inputmode="decimal"
+              [ngModel]="novoDeposito()"
+              (ngModelChange)="novoDeposito.set($event)"
+              placeholder="0,00"
+            />
           </div>
-        }
-
-        @if (contas().length) {
-          @for (conta of contas(); track conta.id) {
-            <div class="linha">
-              <div>
-                <p class="linha-titulo">{{ conta.nome }}</p>
-                <p class="linha-detalhe">
-                  {{ conta.instituicao }}
-                  @if (conta.numero) {
-                    · {{ conta.numero }}
-                  }
-                </p>
-              </div>
-              <span class="linha-valor">
-                {{ conta.saldo | moeda: conta.moeda }}
-              </span>
-            </div>
-          }
-        } @else {
-          <p i18n class="vazio">Nenhum banco conectado.</p>
-        }
-
-        @for (banco of bancos(); track banco.conexaoId) {
-          <div class="linha sem-borda">
-            <p i18n class="linha-detalhe">{{ banco.instituicao }} conectado</p>
+          <div class="campo alinhado">
             <button
               i18n
               type="button"
-              class="botao contorno pequeno"
-              (click)="desconectarBanco(banco.conexaoId, banco.instituicao)"
-              [disabled]="ocupadoComBancos()"
+              class="botao"
+              (click)="depositar()"
+              [disabled]="salvandoDeposito()"
             >
-              Desconectar
-            </button>
-          </div>
-        }
-
-        <div class="acoes" aria-live="polite">
-          @if (!auth.ehPremium()) {
-            <a i18n routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
-          } @else {
-            <button
-              i18n
-              type="button"
-              class="botao secundario"
-              (click)="conectarBanco()"
-              [disabled]="ocupadoComBancos()"
-            >
-              @if (ocupadoComBancos()) {
-                Aguarde...
+              @if (salvandoDeposito()) {
+                Guardando...
               } @else {
-                Conectar banco
+                Depositar
               }
             </button>
-            @if (contas().length) {
-              <button
-                i18n
-                type="button"
-                class="botao contorno"
-                (click)="sincronizarBancos()"
-                [disabled]="ocupadoComBancos()"
-              >
-                Atualizar saldos
-              </button>
-            }
-          }
+          </div>
         </div>
+
+        @if (cofrinho()?.depositos?.length) {
+          <div class="lista-de-depositos">
+            @for (deposito of cofrinho()!.depositos; track deposito.id) {
+              <div class="linha">
+                <div>
+                  <p class="linha-titulo">{{ deposito.valor | moeda }}</p>
+                  <p class="linha-detalhe">
+                    {{ deposito.data | dataBr }} · {{ deposito.usuario | pessoa }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="botao icone-so perigo"
+                  (click)="excluirDeposito(deposito.id)"
+                  aria-label="Apagar"
+                  i18n-aria-label
+                  title="Apagar"
+                  i18n-title
+                >
+                  <app-icone nome="lixeira" [tamanho]="18" />
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p i18n class="vazio">Nenhum depósito ainda.</p>
+          <p class="vazio-acao">
+            <button i18n class="botao contorno pequeno" appFocar="valorDeposito">
+              Fazer o primeiro depósito
+            </button>
+          </p>
+        }
       </section>
     }
 
-    <section class="cartao">
-      <div class="cartao-titulo">
-        <h2 i18n>Por categoria</h2>
+    @if (auth.podeLancar() && mostra('objetivos')) {
+      <div class="bloco" [style.order]="ordem('objetivos')">
+        <app-objetivos (depositou)="recarregarCofrinho()" />
       </div>
+    }
 
-      @if (porCategoria().length) {
-        @for (item of porCategoria(); track item.categoria) {
-          <div class="categoria">
-            <div class="linha sem-borda">
-              <p class="linha-titulo">{{ item.categoria }}</p>
-              <span class="linha-valor">{{ item.total | moeda }}</span>
-            </div>
-            <div class="progresso">
-              <span [style.width.%]="item.fatia"></span>
+    @if (!auth.ehMembro()) {
+      @if (mostra('mes')) {
+        <section class="cartao bloco" [style.order]="ordem('mes')">
+          <div class="cartao-titulo">
+            <h2>{{ rotuloDoMes() }}</h2>
+            <div class="navegacao-de-mes">
+              <button
+                type="button"
+                class="botao contorno icone-so"
+                (click)="trocarMes(-1)"
+                aria-label="Mês anterior"
+                i18n-aria-label
+              >
+                <app-icone nome="esquerda" [tamanho]="18" />
+              </button>
+              <button
+                type="button"
+                class="botao contorno icone-so"
+                (click)="trocarMes(1)"
+                aria-label="Próximo mês"
+                i18n-aria-label
+              >
+                <app-icone nome="direita" [tamanho]="18" />
+              </button>
             </div>
           </div>
-        }
-      } @else {
-        <p i18n class="vazio">Nenhum gasto lançado neste mês.</p>
-        <p class="vazio-acao">
-          <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
-        </p>
+
+          <div class="resumo-cofrinho">
+            <div>
+              <p i18n class="linha-detalhe">Gasto no mês</p>
+              <p class="numero">{{ totalGastoNoMes() | moeda }}</p>
+            </div>
+            <div>
+              <p i18n class="linha-detalhe">Limite do mês</p>
+              <p class="numero">
+                {{ metaDoMes() > 0 ? (metaDoMes() | moeda) : '—' }}
+              </p>
+            </div>
+          </div>
+
+          @if (metaDoMes() > 0) {
+            <div class="progresso" [class.estourado]="estourouAMeta()">
+              <span [style.width.%]="progressoDaMeta()"></span>
+            </div>
+            <p i18n class="linha-detalhe progresso-texto">
+              {{ progressoDaMeta() }}% do limite
+              @if (estourouAMeta()) {
+                <strong> · limite ultrapassado</strong>
+              }
+            </p>
+          } @else {
+            <p i18n class="vazio">Sem limite definido para este mês.</p>
+          }
+
+          <div class="acoes">
+            <a i18n class="botao secundario" routerLink="/orcamentos">Definir limite</a>
+            <a i18n class="botao contorno" routerLink="/gastos">Ver gastos</a>
+          </div>
+        </section>
       }
-    </section>
-  }
+
+      @if (openFinance()) {
+        <section class="cartao bloco" [style.order]="ordem('mes')" aria-labelledby="titulo-bancos">
+          <div class="cartao-titulo">
+            <h2 i18n id="titulo-bancos">Contas bancárias</h2>
+            @for (total of saldoPorMoeda(); track total.moeda) {
+              <span class="etiqueta">{{ total.total | moeda: total.moeda }}</span>
+            }
+          </div>
+
+          @if (erroBancos()) {
+            <p class="aviso erro" role="alert">{{ erroBancos() }}</p>
+          }
+
+          @if (pedindoAutorizacaoBanco()) {
+            <div
+              i18n-aria-label
+              class="aviso"
+              role="alertdialog"
+              aria-label="Autorizar conexão com o banco"
+            >
+              <p i18n>
+                Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance.
+                Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e
+                autoriza o compartilhamento das contas e saldos. Você pode desconectar quando
+                quiser, de graça. Detalhes no
+                <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+              </p>
+              <div class="acoes">
+                <button i18n type="button" class="botao" (click)="autorizarBanco()">
+                  Autorizo, continuar
+                </button>
+                <button
+                  i18n
+                  type="button"
+                  class="botao contorno"
+                  (click)="pedindoAutorizacaoBanco.set(false)"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (contas().length) {
+            @for (conta of contas(); track conta.id) {
+              <div class="linha">
+                <div>
+                  <p class="linha-titulo">{{ conta.nome }}</p>
+                  <p class="linha-detalhe">
+                    {{ conta.instituicao }}
+                    @if (conta.numero) {
+                      · {{ conta.numero }}
+                    }
+                  </p>
+                </div>
+                <span class="linha-valor">
+                  {{ conta.saldo | moeda: conta.moeda }}
+                </span>
+              </div>
+            }
+          } @else {
+            <p i18n class="vazio">Nenhum banco conectado.</p>
+          }
+
+          @for (banco of bancos(); track banco.conexaoId) {
+            <div class="linha sem-borda">
+              <p i18n class="linha-detalhe">{{ banco.instituicao }} conectado</p>
+              <button
+                i18n
+                type="button"
+                class="botao contorno pequeno"
+                (click)="desconectarBanco(banco.conexaoId, banco.instituicao)"
+                [disabled]="ocupadoComBancos()"
+              >
+                Desconectar
+              </button>
+            </div>
+          }
+
+          <div class="acoes" aria-live="polite">
+            @if (!auth.ehPremium()) {
+              <a i18n routerLink="/plano" class="botao secundario">Conectar banco com o Premium</a>
+            } @else {
+              <button
+                i18n
+                type="button"
+                class="botao secundario"
+                (click)="conectarBanco()"
+                [disabled]="ocupadoComBancos()"
+              >
+                @if (ocupadoComBancos()) {
+                  Aguarde...
+                } @else {
+                  Conectar banco
+                }
+              </button>
+              @if (contas().length) {
+                <button
+                  i18n
+                  type="button"
+                  class="botao contorno"
+                  (click)="sincronizarBancos()"
+                  [disabled]="ocupadoComBancos()"
+                >
+                  Atualizar saldos
+                </button>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      @if (mostra('categorias')) {
+        <section class="cartao bloco" [style.order]="ordem('categorias')">
+          <div class="cartao-titulo">
+            <h2 i18n>Por categoria</h2>
+          </div>
+
+          @if (porCategoria().length) {
+            @for (item of porCategoria(); track item.categoria) {
+              <div class="categoria">
+                <div class="linha sem-borda">
+                  <p class="linha-titulo">{{ item.categoria }}</p>
+                  <span class="linha-valor">{{ item.total | moeda }}</span>
+                </div>
+                <div class="progresso">
+                  <span [style.width.%]="item.fatia"></span>
+                </div>
+              </div>
+            }
+          } @else {
+            <p i18n class="vazio">Nenhum gasto lançado neste mês.</p>
+            <p class="vazio-acao">
+              <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
+            </p>
+          }
+        </section>
+      }
+    }
+  </div>
+
+  <p class="personalizar">
+    <a i18n routerLink="/perfil" fragment="organizar-painel">Personalizar o Painel</a>
+  </p>
 }

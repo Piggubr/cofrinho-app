@@ -12,7 +12,7 @@ import java.util.Locale;
  */
 public final class ModulosDeEstiloDeVida {
 
-    public static final List<String> TODOS = List.of("compras", "lugares", "filmes", "fotos", "premios");
+    public static final List<String> TODOS = List.of("compras", "lugares", "filmes", "fotos", "premios", "girls-math");
 
     private ModulosDeEstiloDeVida() {
     }

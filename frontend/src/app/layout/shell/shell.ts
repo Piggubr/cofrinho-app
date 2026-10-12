@@ -62,8 +62,8 @@ export interface GrupoDeMenu {
  * <p>No computador o menu e uma coluna fixa a esquerda, em grupos. No celular ele vira
  * uma barra de cinco abas embaixo (Painel, Gastos, Relatorios, Planejar e Mais), com o
  * botao "+" de lancar gasto flutuando acima dela em todas as telas. O "Mais" abre uma
- * folha com as demais telas. As de estilo de vida (compras, lugares, filmes, fotos e
- * premios) so aparecem quando a pessoa as liga no perfil.</p>
+ * folha com as demais telas. As de estilo de vida (compras, lugares, filmes, fotos,
+ * premios e Girls Math) so aparecem quando a pessoa as liga no perfil.</p>
  *
  * <p>O app original tinha onze abas em um unico HTML, trocadas por classe CSS.
  * Aqui cada uma virou rota, o que traz historico de navegacao, link direto para
@@ -105,6 +105,7 @@ export class Shell {
     { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia', somenteCompleto: true },
     { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia', somenteCompleto: true },
     { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/metas', rotulo: $localize`Minhas metas`, icone: 'bandeira', grupo: 'planejar' },
     { rota: '/orcamentos', rotulo: $localize`Orçamento`, icone: 'pizza', grupo: 'planejar', somenteCompleto: true },
     { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
     { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
@@ -114,6 +115,7 @@ export class Shell {
     { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo', modulo: 'filmes', somenteCompleto: true },
     { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo', modulo: 'fotos', somenteCompleto: true },
     { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo', modulo: 'premios', somenteCompleto: true },
+    { rota: '/girls-math', rotulo: $localize`Girls Math`, icone: 'sacola', grupo: 'estilo', modulo: 'girls-math' },
     { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas', grupo: 'conta' },
     { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', grupo: 'conta', somenteCompleto: true, somenteTitular: true },
   ];

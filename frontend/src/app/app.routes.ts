@@ -120,8 +120,16 @@ export const routes: Routes = [
         canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/plan-hub/plan-hub').then((m) => m.PlanHub),
       },
-      // O limite do mes agora fica no topo do Orcamento; o endereco antigo leva para la.
-      { path: 'metas', redirectTo: 'orcamentos' },
+      // Minhas metas: pessoais, entao valem para todos os perfis, membro incluido.
+      {
+        path: 'metas',
+        loadComponent: () =>
+          import('./features/minhas-metas/minhas-metas').then((m) => m.MinhasMetas),
+      },
+      {
+        path: 'girls-math',
+        loadComponent: () => import('./features/girls-math/girls-math').then((m) => m.GirlsMath),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

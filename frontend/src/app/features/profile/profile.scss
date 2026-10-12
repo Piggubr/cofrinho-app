@@ -85,3 +85,32 @@
   border: 2px solid var(--surface);
   box-shadow: 0 0 0 1px var(--border-strong);
 }
+
+.ordem-do-painel {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  li:last-child {
+    border-bottom: 0;
+  }
+}
+
+.setas {
+  display: flex;
+  gap: 0.15rem;
+}
+
+/* "Personalizar o Painel" pula para ca: a margem deixa o titulo fora da barra fixa. */
+#organizar-painel {
+  scroll-margin-top: 6rem;
+}

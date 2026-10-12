@@ -44,7 +44,7 @@ describe('Dashboard', () => {
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
     for (const extra of http.match((req) =>
-      /\/api\/(reports|bills|budgets|accounts|piggy-bank\/goals)/.test(req.url),
+      /\/api\/(reports|bills|budgets|accounts|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
     )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
@@ -137,5 +137,40 @@ describe('Dashboard', () => {
     tela.detectChanges();
 
     expect(tela.nativeElement.textContent).toContain('Nenhum banco conectado');
+  });
+
+  describe('ordem dos blocos', () => {
+    const chave = `piggu_painel_${usuarioDeTeste().id}`;
+    afterEach(() => localStorage.removeItem(chave));
+
+    function ordemNaTela(tela: ReturnType<typeof abrir>, seletor: string): string {
+      const bloco = (tela.nativeElement as HTMLElement).querySelector(seletor)?.closest('.bloco');
+      return (bloco as HTMLElement | null)?.style.order ?? 'ausente';
+    }
+
+    it('segue a ordem do Perfil e some com o bloco escondido', () => {
+      localStorage.setItem(
+        chave,
+        JSON.stringify([
+          { id: 'notas', visivel: true },
+          { id: 'cofrinho', visivel: true },
+          { id: 'categorias', visivel: false },
+        ]),
+      );
+      const tela = abrir();
+      http.expectOne('/api/banking/status').flush({ habilitado: false });
+      tela.detectChanges();
+
+      expect(ordemNaTela(tela, 'app-notas-do-painel')).toBe('0');
+      expect(ordemNaTela(tela, '#titulo-notas-painel')).toBe('0');
+      expect(Number(ordemNaTela(tela, 'app-resumo-do-mes'))).toBeGreaterThan(1);
+      // Fora do que estava salvo e desligado no padrao: so aparece se a pessoa ligar.
+      expect(ordemNaTela(tela, 'app-metas-do-painel')).toBe('ausente');
+      const titulos = [...tela.nativeElement.querySelectorAll('h2')].map(
+        (h: HTMLElement) => h.textContent?.trim(),
+      );
+      expect(titulos).not.toContain('Por categoria');
+      expect(titulos).toContain('Cofrinho');
+    });
   });
 });

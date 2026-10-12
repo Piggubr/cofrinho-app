@@ -156,7 +156,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
      */
     private static boolean ehEnvioDeArquivo(String caminho) {
         return caminho.equals("/api/assets") || caminho.equals("/api/feed") || caminho.equals("/api/receipts/parse")
-                || caminho.startsWith("/api/places") || caminho.startsWith("/api/expenses/import")
+                || caminho.startsWith("/api/places") || caminho.equals("/api/girls-math") || caminho.startsWith("/api/expenses/import")
                 || caminho.equals("/api/assistant/ask");
     }
 

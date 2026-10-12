@@ -116,7 +116,13 @@ export interface Preferencias {
   modulos?: ModuloDeEstiloDeVida[];
 }
 
-export type ModuloDeEstiloDeVida = 'compras' | 'lugares' | 'filmes' | 'fotos' | 'premios';
+export type ModuloDeEstiloDeVida =
+  | 'compras'
+  | 'lugares'
+  | 'filmes'
+  | 'fotos'
+  | 'premios'
+  | 'girls-math';
 
 export interface MoedaDisponivel {
   codigo: string;
@@ -367,6 +373,43 @@ export interface NovoLugar {
   data: string;
   marcacoes?: string[];
   valor?: number | null;
+  imageBase64?: string | null;
+  mimeType?: string | null;
+}
+
+/** Meta pessoal do mes (Minhas metas). So a pessoa ve as proprias. */
+export interface MetaDoMes {
+  id: string;
+  titulo: string;
+  alvo: number;
+  atual: number;
+  /** AAAA-MM */
+  mes: string;
+  concluida: boolean;
+}
+
+export interface NovaMetaDoMes {
+  titulo: string;
+  alvo: number;
+  atual: number;
+}
+
+/** Algo que a pessoa deixou de comprar (Girls Math). So a pessoa ve os proprios. */
+export interface ItemDoGirlsMath {
+  id: string;
+  produto: string;
+  loja: string;
+  valor: number;
+  data: string;
+  fotoAssetId: string | null;
+  temFoto: boolean;
+}
+
+export interface NovoItemDoGirlsMath {
+  produto: string;
+  loja?: string | null;
+  valor: number;
+  data?: string | null;
   imageBase64?: string | null;
   mimeType?: string | null;
 }

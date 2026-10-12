@@ -817,6 +817,20 @@ const ROTAS: Rota[] = [
     return { de, para, taxa: Math.round(((COTACOES[de] ?? 1) / (COTACOES[para] ?? 1)) * 10000) / 10000, data: hojeIso(), fonte: 'Demonstração', estimativa: true, desatualizada: false };
   }],
 
+  // Minhas metas (so o mes atual) e Girls Math
+  ['GET', /^\/personal-goals$/, () => estado.metasDoMes],
+  ['POST', /^\/personal-goals$/, (_p, _x, c) => salvarMetaDoMes(null, c)],
+  ['PUT', new RegExp(`^/personal-goals/${ID}$`), (_p, [id], c) => salvarMetaDoMes(id, c)],
+  ['DELETE', new RegExp(`^/personal-goals/${ID}$`), (_p, [id]) => remover(estado.metasDoMes, id)],
+  ['GET', /^\/girls-math$/, () => [...estado.girlsMath].sort((a, b) => b.data.localeCompare(a.data))],
+  ['POST', /^\/girls-math$/, (_p, _x, c) => {
+    const fotoAssetId = c['imageBase64'] ? guardarImagem(c) : null;
+    const item = { id: novoId('gm'), produto: String(c['produto']), loja: String(c['loja'] ?? ''), valor: Number(c['valor']), data: String(c['data'] ?? hojeIso()), fotoAssetId, temFoto: fotoAssetId !== null };
+    estado.girlsMath.push(item);
+    return item;
+  }],
+  ['DELETE', new RegExp(`^/girls-math/${ID}$`), (_p, [id]) => remover(estado.girlsMath, id)],
+
   // Lugares
   ['GET', /^\/places\/tags$/, () => [...estado.marcadores]],
   ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return [...estado.marcadores]; }],
@@ -932,6 +946,19 @@ function guardarImagem(c: Corpo): string {
   const id = novoId('arquivo');
   estado.imagens[id] = `data:${c['mimeType'] ?? 'image/jpeg'};base64,${c['imageBase64']}`;
   return id;
+}
+
+function salvarMetaDoMes(id: string | null, c: Corpo) {
+  const existente = id ? exigir(estado.metasDoMes.find((m) => m.id === id), 'Meta não encontrada.') : null;
+  const alvo = Number(c['alvo']);
+  const atual = Number(c['atual'] ?? 0);
+  const meta = { id: existente?.id ?? novoId('meta'), titulo: String(c['titulo']), alvo, atual, mes: hojeIso().slice(0, 7), concluida: atual >= alvo };
+  if (existente) {
+    Object.assign(existente, meta);
+    return existente;
+  }
+  estado.metasDoMes.push(meta);
+  return meta;
 }
 
 function salvarLugar(id: string | null, c: Corpo) {
