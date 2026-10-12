@@ -240,6 +240,15 @@
   </div>
 </section>
 
+@if (!auth.ehMembro()) {
+  <section class="cartao" aria-labelledby="titulo-ia">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-ia">Autorizações da IA</h2>
+    </div>
+    <app-autorizacoes-de-ia />
+  </section>
+}
+
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-dados">Seus dados</h2>

@@ -60,6 +60,12 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @Autowired
     private JwtDecoder decoder;
 
+    @Autowired
+    private com.piggu.identity.avisos.Aparelhos aparelhos;
+
+    @Autowired
+    private com.piggu.identity.avisos.AvisosEnviados avisosEnviados;
+
     private UserAccount titular;
     private UserAccount membro;
 
@@ -212,6 +218,20 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         contas.excluir(sozinho.getId());
 
         assertThat(contas.informarCpf(titular.getId(), "111.444.777-35").cpfInformado()).isTrue();
+    }
+
+    @Test
+    @DisplayName("a exportacao leva os aparelhos que recebem avisos e os avisos ja enviados, sem o token inteiro")
+    void exportaAvisos() {
+        String token = "ab".repeat(32);
+        aparelhos.registrar(titular.getId(), token, "IOS");
+        avisosEnviados.marcar(titular.getId(), java.util.List.of("fatura:2026-10"));
+
+        java.util.Map<String, Object> arquivo = contas.exportar(como(titular), "token");
+
+        assertThat(arquivo.get("aparelhosQueRecebemAvisos")).asString().contains("IOS", "...ababab")
+                .doesNotContain(token);
+        assertThat(arquivo.get("avisosEnviados")).asString().contains("fatura:2026-10");
     }
 
     private static CurrentUser como(UserAccount conta) {
