@@ -2,7 +2,7 @@ import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from
 import { provideServiceWorker } from '@angular/service-worker';
 import { Capacitor } from '@capacitor/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { routes } from './app.routes';
@@ -15,7 +15,12 @@ registerLocaleData(localePt);
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      // "Personalizar o Painel" leva direto ao cartao no Perfil.
+      withInMemoryScrolling({ anchorScrolling: 'enabled' }),
+    ),
     // Na demo (build "demo"), a API falsa responde antes de qualquer chamada sair.
     provideHttpClient(withInterceptors([...INTERCEPTORES_DA_DEMO, authInterceptor])),
     { provide: APP_CONFIG, useValue: appConfigPadrao },

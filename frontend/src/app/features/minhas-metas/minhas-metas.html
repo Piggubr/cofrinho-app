@@ -1,0 +1,165 @@
+<p i18n class="sobretitulo">Seu plano do mês</p>
+<h1 i18n>Minhas metas</h1>
+<p class="linha-detalhe mes">{{ rotuloDoMes }}</p>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
+
+@if (carregando()) {
+  <p i18n class="carregando">Carregando...</p>
+} @else {
+  <section class="cartao orbita" aria-labelledby="titulo-orbita">
+    <app-anel-das-metas [percentual]="percentual()" />
+    <h2 i18n id="titulo-orbita">Metas para alcançar este mês</h2>
+    <p class="linha-detalhe">{{ mensagem() }}</p>
+  </section>
+
+  <section class="cartao resumo">
+    <p class="linha-titulo" i18n>{{ concluidas() }} de {{ metas().length }} concluídas</p>
+    <p class="linha-detalhe">{{ mensagem() }}</p>
+  </section>
+
+  @if (formularioAberto()) {
+    <section class="cartao" aria-labelledby="titulo-form-meta">
+      <div class="cartao-titulo">
+        <h2 id="titulo-form-meta">
+          @if (editandoId()) {
+            <ng-container i18n>Editar meta</ng-container>
+          } @else {
+            <ng-container i18n>Criar meta</ng-container>
+          }
+        </h2>
+      </div>
+      <div class="campo">
+        <label i18n for="tituloMeta">Nome da meta</label>
+        <input
+          id="tituloMeta"
+          type="text"
+          maxlength="80"
+          i18n-placeholder
+          placeholder="Ex.: Ler 2 livros"
+          [ngModel]="titulo()"
+          (ngModelChange)="titulo.set($event)"
+        />
+      </div>
+      <div class="linha-de-campos">
+        <div class="campo">
+          <label i18n for="alvoMeta">Quantidade desejada</label>
+          <input
+            id="alvoMeta"
+            type="number"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            [ngModel]="alvo()"
+            (ngModelChange)="alvo.set($event)"
+          />
+        </div>
+        <div class="campo">
+          <label i18n for="atualMeta">Progresso atual</label>
+          <input
+            id="atualMeta"
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            [ngModel]="atual()"
+            (ngModelChange)="atual.set($event)"
+          />
+        </div>
+      </div>
+      <div class="acoes">
+        <button type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
+          @if (salvando()) {
+            <ng-container i18n>Guardando...</ng-container>
+          } @else {
+            <ng-container i18n>Salvar meta</ng-container>
+          }
+        </button>
+        <button i18n type="button" class="botao contorno" (click)="fechar()">Cancelar</button>
+      </div>
+    </section>
+  }
+
+  @if (metas().length) {
+    <section class="cartao" aria-label="Metas do mês" i18n-aria-label>
+      @for (meta of metas(); track meta.id) {
+        <article class="meta" [class.feita]="meta.concluida">
+          <div class="linha">
+            <div>
+              <p class="linha-titulo">
+                @if (meta.concluida) {
+                  <app-icone nome="check" [tamanho]="16" [traco]="2.4" />
+                }
+                {{ meta.titulo }}
+              </p>
+              <p i18n class="linha-detalhe">{{ meta.atual }} de {{ meta.alvo }}</p>
+            </div>
+            <div class="linha-acoes">
+              @if (!meta.concluida) {
+                <button
+                  type="button"
+                  class="botao contorno pequeno"
+                  (click)="avancar(meta)"
+                  [disabled]="salvando()"
+                  [attr.aria-label]="'Mais um em ' + meta.titulo"
+                >
+                  +1
+                </button>
+              }
+              <button
+                type="button"
+                class="botao icone-so fantasma"
+                (click)="editar(meta)"
+                aria-label="Editar"
+                i18n-aria-label
+                title="Editar"
+                i18n-title
+              >
+                <app-icone nome="lapis" [tamanho]="18" />
+              </button>
+              <button
+                type="button"
+                class="botao icone-so perigo"
+                (click)="excluir(meta)"
+                aria-label="Apagar"
+                i18n-aria-label
+                title="Apagar"
+                i18n-title
+              >
+                <app-icone nome="lixeira" [tamanho]="18" />
+              </button>
+            </div>
+          </div>
+          <div class="progresso">
+            <span [style.width.%]="progresso(meta)"></span>
+          </div>
+        </article>
+      }
+    </section>
+  } @else if (!formularioAberto()) {
+    <section class="cartao">
+      <p i18n class="linha-titulo">Nenhuma meta criada.</p>
+      <p i18n class="linha-detalhe">Crie uma meta pequena para começar.</p>
+    </section>
+  }
+
+  <div class="acoes botoes-finais">
+    <button i18n type="button" class="botao" (click)="abrirNova()">+ Criar meta</button>
+    <button
+      type="button"
+      class="botao contorno"
+      (click)="compartilhar()"
+      [disabled]="!metas().length"
+    >
+      <app-icone nome="compartilhar" [tamanho]="16" />
+      <ng-container i18n>Compartilhar</ng-container>
+    </button>
+  </div>
+
+  <p i18n class="linha-detalhe rodape">As metas expiram automaticamente quando o mês muda.</p>
+}

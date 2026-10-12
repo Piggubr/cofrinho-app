@@ -5,13 +5,17 @@ import {
   Filme,
   FilmeDoCatalogo,
   ItemDeCompra,
+  ItemDoGirlsMath,
+  MetaDoMes,
+  NovaMetaDoMes,
+  NovoItemDoGirlsMath,
   Lugar,
   NovoItemDeCompra,
   NovoLugar,
   ProdutoDoCatalogo,
 } from './models';
 
-/** Lugares, filmes e listas de compras. */
+/** Lugares, filmes, listas de compras, metas do mes e Girls Math. */
 @Injectable({ providedIn: 'root' })
 export class LifestyleService extends ApiBase {
   listarLugares(): Observable<Lugar[]> {
@@ -98,5 +102,34 @@ export class LifestyleService extends ApiBase {
     return this.http.get<ProdutoDoCatalogo[]>(this.url('/shopping/catalog'), {
       params: this.params({ busca }),
     });
+  }
+
+  /** @param mes AAAA-MM; sem ele, o mes atual */
+  listarMetasDoMes(mes?: string): Observable<MetaDoMes[]> {
+    return this.http.get<MetaDoMes[]>(this.url('/personal-goals'), { params: this.params({ mes }) });
+  }
+
+  criarMetaDoMes(meta: NovaMetaDoMes): Observable<MetaDoMes> {
+    return this.http.post<MetaDoMes>(this.url('/personal-goals'), meta);
+  }
+
+  atualizarMetaDoMes(id: string, meta: NovaMetaDoMes): Observable<MetaDoMes> {
+    return this.http.put<MetaDoMes>(this.url(`/personal-goals/${id}`), meta);
+  }
+
+  excluirMetaDoMes(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/personal-goals/${id}`));
+  }
+
+  listarGirlsMath(): Observable<ItemDoGirlsMath[]> {
+    return this.http.get<ItemDoGirlsMath[]>(this.url('/girls-math'));
+  }
+
+  criarNoGirlsMath(item: NovoItemDoGirlsMath): Observable<ItemDoGirlsMath> {
+    return this.http.post<ItemDoGirlsMath>(this.url('/girls-math'), item);
+  }
+
+  excluirDoGirlsMath(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/girls-math/${id}`));
   }
 }

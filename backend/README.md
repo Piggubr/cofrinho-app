@@ -12,8 +12,8 @@ uma plataforma de microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL.
 | `piggu-identity` | 8081 | `piggu_identity` | Login Google, contas, perfis, sessões, JWKS |
 | `piggu-finance` | 8082 | `piggu_finance` | Gastos, metas, cofrinho, notas, memória de preços, câmbio, recibos |
 | `piggu-rewards` | 8083 | `piggu_rewards` | Fofocoins, prêmios, resgates |
-| `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras |
-| `piggu-media` | 8085 | `piggu_media` | Fotos do feed e imagens dos lugares |
+| `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras, metas do mês e Girls Math (pessoais) |
+| `piggu-media` | 8085 | `piggu_media` | Fotos do feed, dos lugares e do Girls Math |
 | `piggu-banking` | 8086 | `piggu_banking` | Open Finance via Pluggy: bancos conectados, contas e saldos |
 
 Mais o módulo `piggu-common`, uma biblioteca (não um serviço) com o tratamento
@@ -59,7 +59,7 @@ conjunto de microserviços virar um monolito distribuído sem ninguém perceber.
 
 ### Por que quase não há chamadas entre serviços
 
-Existe uma só: `lifestyle` chama `media` para guardar a foto de um lugar. Todo
+Existe uma só: `lifestyle` chama `media` para guardar a foto de um lugar (ou de um item do Girls Math). Todo
 o resto é independente. Isso não é acaso, é o critério que definiu as fronteiras:
 as operações que precisam de transação ficaram juntas.
 

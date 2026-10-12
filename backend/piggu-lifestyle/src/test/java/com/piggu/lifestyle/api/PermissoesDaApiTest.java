@@ -24,6 +24,8 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/places")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/movies")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/shopping/items")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/personal-goals")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/girls-math")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -32,6 +34,13 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/places").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/movies").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("metas do mes e girls math sao pessoais: membro tambem usa")
+    void membroUsaOsPessoais() throws Exception {
+        mockMvc.perform(get("/api/personal-goals").with(TokensDeTeste.membro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/girls-math").with(TokensDeTeste.membro())).andExpect(status().isOk());
     }
 
     @Test

@@ -46,7 +46,7 @@ spring:
             - id: lifestyle
               uri: ${LIFESTYLE_URL:http://localhost:8084}
               predicates:
-                - Path=/api/places/**,/api/movies/**,/api/shopping/**
+                - Path=/api/places/**,/api/movies/**,/api/shopping/**,/api/personal-goals/**,/api/girls-math/**
 
             - id: media
               uri: ${MEDIA_URL:http://localhost:8085}
