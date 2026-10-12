@@ -23,7 +23,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { FinanceService } from '../../core/api/finance.service';
-import { Cotacao, ModuloDeEstiloDeVida } from '../../core/api/models';
+import { Cotacao } from '../../core/api/models';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { Atalhos } from '../../core/nativo/atalhos';
@@ -46,8 +46,6 @@ interface ItemDeMenu {
   readonly rotulo: string;
   readonly icone: NomeDoIcone;
   readonly grupo: Grupo;
-  /** Tela de estilo de vida: so aparece com o modulo ligado no perfil. */
-  readonly modulo?: ModuloDeEstiloDeVida;
   /** Quando ausente, o item aparece para todos os perfis. */
   readonly somenteCompleto?: boolean;
   /** Assinar e cancelar o Premium e so do titular; o parceiro nao ve o item. */
@@ -143,12 +141,12 @@ export class Shell {
     { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
     { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
     { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', grupo: 'contas', somenteCompleto: true },
-    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo', modulo: 'compras', somenteCompleto: true },
-    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo', modulo: 'lugares', somenteCompleto: true },
-    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo', modulo: 'filmes', somenteCompleto: true },
-    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo', modulo: 'fotos', somenteCompleto: true },
-    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo', modulo: 'premios', somenteCompleto: true },
-    { rota: '/girls-math', rotulo: $localize`Girls Math`, icone: 'sacola', grupo: 'estilo', modulo: 'girls-math' },
+    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/girls-math', rotulo: $localize`Girls Math`, icone: 'sacola', grupo: 'estilo' },
     { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas', grupo: 'conta' },
     { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', grupo: 'conta', somenteCompleto: true, somenteTitular: true },
   ];
@@ -315,11 +313,7 @@ export class Shell {
     if (this.auth.ehMembro()) {
       return this.itens.filter((item) => !item.somenteCompleto);
     }
-    // Sem a lista (conta antiga, demo), todos os modulos ficam ligados.
-    const modulos = this.auth.usuario()?.preferencias?.modulos;
-    return this.itens
-      .filter((item) => this.auth.ehTitular() || !item.somenteTitular)
-      .filter((item) => !item.modulo || !modulos || modulos.includes(item.modulo));
+    return this.itens.filter((item) => this.auth.ehTitular() || !item.somenteTitular);
   }
 
   /** Menu do computador e folha do "Mais", em grupos; grupo vazio nao aparece. */

@@ -132,23 +132,17 @@ describe('Shell', () => {
     ]);
   });
 
-  it('so os modulos de estilo de vida ligados no perfil aparecem; sem nenhum, o grupo some', () => {
+  it('todas as telas de estilo de vida aparecem, mesmo com modulos desligados numa conta antiga', () => {
     const usuario = usuarioDeTeste();
-    auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: ['filmes'] } });
+    auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: [] } });
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
-    const itens = () => [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) => a.textContent?.trim());
+    const itens = [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) => a.textContent?.trim());
 
-    expect(itens()).toContain('Filmes');
-    expect(itens()).not.toContain('Compras');
-    expect(itens()).not.toContain('Fotos');
-
-    auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: [] } });
-    tela.detectChanges();
-    http.match(() => true).forEach((pedido) => pedido.flush(null));
-    expect(itens()).not.toContain('Filmes');
-    expect(pagina.textContent).not.toContain('Estilo de vida');
+    for (const nome of ['Compras', 'Lugares', 'Filmes', 'Fotos', 'Prêmios', 'Girls Math']) {
+      expect(itens).toContain(nome);
+    }
   });
 
   it('tela de dentro mostra o voltar e o nome; a nova entra animada e o voltar retorna', async () => {

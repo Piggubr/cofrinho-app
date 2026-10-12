@@ -505,6 +505,63 @@ input[type='radio'] {
   cursor: pointer;
 }
 
+/* Chave liga/desliga no padrao do iPhone: trilho em capsula e bolinha que desliza.
+ * Continua sendo um checkbox, entao teclado, leitor de tela e ngModel seguem iguais. */
+input[type='checkbox'].chave {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 51px;
+  height: 31px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition: background-color 0.2s ease;
+}
+
+input[type='checkbox'].chave::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.15),
+    0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.2s ease;
+}
+
+input[type='checkbox'].chave:checked {
+  background: var(--primaria);
+}
+
+input[type='checkbox'].chave:checked::before {
+  transform: translateX(20px);
+}
+
+input[type='checkbox'].chave:focus-visible {
+  outline: 2px solid var(--primaria);
+  outline-offset: 2px;
+}
+
+input[type='checkbox'].chave:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input[type='checkbox'].chave,
+  input[type='checkbox'].chave::before {
+    transition: none;
+  }
+}
+
 input[type='file'] {
   min-height: 0;
   padding: 0.5rem;

@@ -104,11 +104,10 @@ describe('Profile', () => {
       l.textContent?.includes('Por e-mail'),
     )!;
     expect(caixa.textContent).toContain('titular@piggu.test');
+    // A chave salva no toque, sem botao.
+    expect(pagina.textContent).not.toContain('Salvar avisos');
     caixa.querySelector('input')!.click();
     tela.detectChanges();
-    [...pagina.querySelectorAll('button')]
-      .find((b) => b.textContent?.includes('Salvar avisos'))!
-      .click();
     await tela.whenStable();
 
     const pedido = http.expectOne('/api/auth/me/alerts');

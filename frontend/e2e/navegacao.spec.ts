@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-/** As 5 abas do celular, o "+" de lancar e os modulos que a pessoa desliga. */
+/** As 5 abas do celular, o "+" de lancar e as telas que ficam sempre no menu. */
 
 test.describe('no celular', () => {
   test.skip(({ isMobile }) => !isMobile, 'a barra de abas e o "+" sao do celular');
@@ -39,16 +39,17 @@ test.describe('no celular', () => {
   });
 });
 
-test('desligar Filmes no perfil tira a tela do menu', async ({ page }) => {
+test('todas as telas de estilo de vida ficam sempre no menu; o perfil nao as desliga', async ({
+  page,
+}) => {
   await page.goto('/perfil');
   // No celular o menu fica fechado (oculto); conta os itens mesmo assim.
   const item = (tela: string) => page.locator('nav.menu a.menu-item', { hasText: tela });
-  await expect(item('Filmes')).toHaveCount(1);
-
-  await page.getByRole('checkbox', { name: 'Filmes' }).uncheck();
-
-  await expect(item('Filmes')).toHaveCount(0);
-  await expect(item('Lugares')).toHaveCount(1);
+  for (const tela of ['Compras', 'Lugares', 'Filmes', 'Fotos', 'Prêmios', 'Girls Math']) {
+    await expect(item(tela)).toHaveCount(1);
+  }
+  await expect(page.getByRole('heading', { name: 'Organizar o Painel' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Telas do menu' })).toHaveCount(0);
 });
 
 test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto', async ({
