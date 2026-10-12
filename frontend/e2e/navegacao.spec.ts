@@ -65,10 +65,12 @@ test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto'
   expect((await request.get('/icons/icon-192.png')).ok()).toBe(true);
 });
 
-test('o "+" abre o lancamento por cima da tela, sem sair dela', async ({ page }) => {
+test('o "+" abre o balao e o lancamento por cima da tela, sem sair dela', async ({ page }) => {
   await page.goto('/relatorios');
 
   await page.getByRole('button', { name: 'Lançar gasto ou receita' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Foto do recibo' })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'Lançar gasto' }).click();
   const painel = page.getByRole('dialog', { name: 'Lançar' });
   await painel.locator('#valor-rapido').fill('12.5');
   await painel.locator('#descricao-rapida').fill('Pão de queijo');

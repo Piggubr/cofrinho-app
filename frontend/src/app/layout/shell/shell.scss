@@ -3,6 +3,9 @@
 
 .moldura {
   min-height: 100vh;
+  /* A tela que entra deslizando nao pode alargar a pagina (no iPhone isso empurra a
+   * barra de abas e o "+"). Clip, e nao hidden, para o cabecalho continuar grudado. */
+  overflow-x: clip;
   display: grid;
   grid-template-columns: 248px 1fr;
   grid-template-rows: auto 1fr;
@@ -98,6 +101,18 @@
   object-fit: cover;
 }
 
+/* No Perfil o avatar do cabecalho fica marcado, como uma aba ativa. */
+.usuario-link.ativo .avatar {
+  box-shadow:
+    0 0 0 2px var(--site-bg),
+    0 0 0 4px var(--primaria);
+}
+
+/* Voltar e nome da tela: so no celular (no computador o menu lateral mostra onde se esta). */
+.onde-estou {
+  display: none;
+}
+
 .avatar-inicial {
   display: inline-grid;
   place-items: center;
@@ -177,7 +192,7 @@
   color: var(--primaria-contraste);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 .lancar-flutuante.aberto {
@@ -211,6 +226,94 @@
   right: 1.5rem;
   bottom: calc(1.5rem + 56px + 0.75rem);
   z-index: 32;
+}
+
+/* Balao do "+": as duas formas de lancar saem do botao, uma acima da outra. */
+.opcoes-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 31;
+  padding: 0;
+  border: none;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  cursor: default;
+  animation: aparecer 0.2s ease-out;
+}
+
+.opcoes-do-lancar {
+  position: fixed;
+  right: 1.5rem;
+  bottom: calc(1.5rem + 56px + 0.75rem);
+  z-index: 33;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 48px;
+  padding: 0.4rem 1.1rem 0.4rem 0.45rem;
+  border: 0.5px solid var(--vidro-borda);
+  border-radius: 999px;
+  background: var(--vidro-forte);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  backdrop-filter: var(--vidro-desfoque);
+  box-shadow:
+    inset 0 1px 0 var(--vidro-brilho),
+    var(--shadow-float);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transform-origin: bottom right;
+  animation: brotar 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+}
+
+/* A de baixo (mais perto do dedo) chega primeiro. */
+.opcao:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.opcao:hover {
+  background: var(--surface);
+}
+
+.opcao-icone {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+}
+
+@keyframes brotar {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.7);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opcao {
+    animation: aparecer 0.16s ease-out backwards;
+  }
+
+  .lancar-flutuante {
+    transition: none;
+  }
 }
 
 .menu-item {
@@ -294,6 +397,46 @@
 
   .cabecalho .marca {
     display: flex;
+  }
+
+  .cabecalho.tela-interna .marca {
+    display: none;
+  }
+
+  .onde-estou {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    margin-left: -0.5rem;
+    animation: aparecer 0.25s ease-out;
+  }
+
+  .voltar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--rose-deep);
+    cursor: pointer;
+  }
+
+  .voltar:active {
+    background: var(--surface-sunken);
+  }
+
+  .titulo-da-tela {
+    overflow: hidden;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .cotacao {
@@ -384,6 +527,11 @@
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.45),
       0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
+  }
+
+  .opcoes-do-lancar {
+    right: 1rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 54px + 0.75rem);
   }
 
   /* Painel do "+" no celular: folha larga logo acima do botao. */
@@ -548,6 +696,10 @@
 
   .painel-rapido {
     bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 0.6rem);
+  }
+
+  .opcoes-do-lancar {
+    bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 0.75rem);
   }
 
   @media (max-width: 899px) {

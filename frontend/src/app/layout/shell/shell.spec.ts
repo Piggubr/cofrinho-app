@@ -154,18 +154,70 @@ describe('Shell', () => {
     expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
   });
 
-  it('o "+" abre o painel de lancamento por cima da tela, sem trocar de rota', () => {
+  it('o "+" vira um balao com "Lançar gasto" e "Foto do recibo"; o gasto abre o painel', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
-    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
 
-    (pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement).click();
+    mais.click();
+    tela.detectChanges();
+    const opcoes = [...pagina.querySelectorAll('.opcoes-do-lancar .opcao')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(opcoes).toEqual(['Lançar gasto', 'Foto do recibo']);
+    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    expect(mais.getAttribute('aria-expanded')).toBe('true');
+
+    (pagina.querySelector('.opcoes-do-lancar .opcao') as HTMLButtonElement).click();
     tela.detectChanges();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
 
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
     expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
-    expect(pagina.querySelector('button.lancar-flutuante')!.getAttribute('aria-expanded')).toBe('true');
+
+    // O mesmo botao, agora um "x", fecha o painel.
+    mais.click();
+    tela.detectChanges();
+    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    expect(mais.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('tocar fora do balao ou apertar Esc fecha as opcoes', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
+
+    mais.click();
+    tela.detectChanges();
+    (pagina.querySelector('.opcoes-fundo') as HTMLButtonElement).click();
+    tela.detectChanges();
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+
+    mais.click();
+    tela.detectChanges();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    tela.detectChanges();
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+  });
+
+  it('"Foto do recibo" abre o painel ja lendo a foto escolhida', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    (pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement).click();
+    tela.detectChanges();
+
+    const campo = pagina.querySelector('.opcoes-do-lancar input[type=file]') as HTMLInputElement;
+    const foto = new File(['x'], 'nota.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(campo, 'files', { value: [foto] });
+    campo.dispatchEvent(new Event('change'));
+    tela.detectChanges();
+
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+    expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
   });
 
   it('o parceiro ve as telas de dinheiro, mas nao o Premium, que e do titular', () => {

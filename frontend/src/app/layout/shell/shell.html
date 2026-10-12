@@ -2,11 +2,21 @@
   <p i18n class="faixa-demo" role="status">Demonstração · dados de exemplo, nada é salvo</p>
 }
 <div class="moldura">
-  <header class="cabecalho">
+  <header class="cabecalho" [class.tela-interna]="telaInterna()">
     <a routerLink="/painel" class="marca" (click)="fecharMenu()">
       <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>
       <strong i18n>Piggu</strong>
     </a>
+
+    <!-- Celular, tela de dentro: voltar e o nome da tela no lugar da marca. -->
+    @if (telaInterna()) {
+      <div class="onde-estou">
+        <button i18n-aria-label type="button" class="voltar" aria-label="Voltar" (click)="voltar()">
+          <app-icone nome="esquerda" [tamanho]="22" [traco]="2.2" />
+        </button>
+        <strong class="titulo-da-tela">{{ tituloDaTela() }}</strong>
+      </div>
+    }
 
     @if (taxaFormatada(); as taxa) {
       <span
@@ -28,6 +38,7 @@
       @if (auth.usuario(); as pessoa) {
         <a
           routerLink="/perfil"
+          routerLinkActive="ativo"
           class="usuario-link"
           (click)="fecharMenu()"
           [attr.aria-label]="pessoa.nome"
@@ -116,11 +127,39 @@
     <router-outlet />
   </main>
 
-  <!-- Lancar gasto ou receita de qualquer tela: o painel abre no canto, sem trocar de tela. -->
+  <!-- Lancar de qualquer tela: o "+" vira um balao com as opcoes, e o painel abre no
+       canto, sem trocar de tela. -->
   @if (!auth.ehMembro()) {
+    @if (opcoesAbertas()) {
+      <button
+        i18n-aria-label
+        type="button"
+        class="opcoes-fundo"
+        aria-label="Fechar opções"
+        (click)="fecharOpcoes()"
+      ></button>
+      <div class="opcoes-do-lancar" role="menu" aria-label="Lançar" i18n-aria-label>
+        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento()">
+          <span class="opcao-icone"><app-icone nome="lapis" [tamanho]="18" /></span>
+          <span i18n>Lançar gasto</span>
+        </button>
+        <button type="button" class="opcao" role="menuitem" (click)="campoDaFoto.click()">
+          <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
+          <span i18n>Foto do recibo</span>
+        </button>
+        <input
+          #campoDaFoto
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="escolherFotoDoRecibo($event)"
+        />
+      </div>
+    }
     @if (lancamentoAberto()) {
       <app-lancamento-rapido
         class="painel-rapido"
+        [foto]="fotoDoRecibo()"
         (fechar)="fecharLancamento()"
         (abrirGastos)="abrirGastos()"
       />
@@ -129,9 +168,9 @@
       type="button"
       class="lancar-flutuante"
       data-tour="lancar"
-      [class.aberto]="lancamentoAberto()"
+      [class.aberto]="lancamentoAberto() || opcoesAbertas()"
       [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
-      [attr.aria-expanded]="lancamentoAberto()"
+      [attr.aria-expanded]="lancamentoAberto() || opcoesAbertas()"
       aria-label="Lançar gasto ou receita"
       i18n-aria-label
       (click)="alternarLancamento()"

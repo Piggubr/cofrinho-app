@@ -20,3 +20,11 @@ export class Focar {
     destino?.focus({ preventScroll: true });
   }
 }
+
+/**
+ * Celular ou tablet (dedo como ponteiro principal). Ai o app nao poe o cursor num campo
+ * sozinho: no iPhone isso sobe o teclado de surpresa, antes de a pessoa pedir.
+ */
+export function toqueNaTela(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+}
