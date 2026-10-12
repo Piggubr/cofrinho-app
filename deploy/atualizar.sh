@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Atualiza o Piggu no servidor para um commit da branch de producao.
 #
-# Quem chama e o GitHub Actions (.github/workflows/deploy.yml), por SSH, com uma chave
+# Quem chama e o GitHub Actions (job "publicar" do .github/workflows/ci.yml), por SSH, com uma chave
 # que o authorized_keys prende a este script:
 #
 #   command="/opt/piggu/deploy/atualizar.sh",restrict ssh-ed25519 AAAA... github-actions
@@ -10,13 +10,13 @@
 # estar na branch de producao. Tambem roda a mao:  deploy/atualizar.sh <sha>
 #
 # Variaveis (opcionais):
-#   PIGGU_RAMO   branch de producao (feature/nova-arquitetura)
+#   PIGGU_RAMO   branch de producao (main)
 set -euo pipefail
 
 # Tudo dentro de uma funcao: o bash le a funcao inteira antes de rodar, entao o
 # git checkout abaixo pode trocar este arquivo sem atrapalhar a execucao.
 main() {
-  local ramo=${PIGGU_RAMO:-feature/nova-arquitetura}
+  local ramo=${PIGGU_RAMO:-main}
   # Pela chave do Actions o sha chega em SSH_ORIGINAL_COMMAND; a mao, no argumento.
   local sha=${SSH_ORIGINAL_COMMAND:-${1:-}}
   if [[ ! $sha =~ ^[0-9a-f]{40}$ ]]; then

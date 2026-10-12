@@ -209,8 +209,8 @@ incidente, copie os arquivos antes de qualquer reinício (`docker compose up
 
 ## 8. Deploy automático pelo GitHub Actions
 
-Depois da primeira subida feita à mão, cada merge em `feature/nova-arquitetura` atualiza
-o servidor sozinho: o CI roda e, se **todos** os jobs passarem, o job "Publicar no
+Depois da primeira subida feita à mão, cada merge na `main` atualiza o servidor
+sozinho (as regras das branches estão em `docs/branches.md`): o CI roda e, se **todos** os jobs passarem, o job "Publicar no
 servidor" entra por SSH e roda `deploy/atualizar.sh` com o commit do merge. O script
 confere que o commit está na branch, compila o site, sobe os serviços e espera todos
 ficarem saudáveis; se algum não ficar, o job fica vermelho e o log mostra qual.
@@ -235,7 +235,7 @@ depois do `rm`.)
 **No GitHub:**
 
 1. *Settings > Environments > New environment* `producao`. Em *Deployment branches and
-   tags*, deixe só `feature/nova-arquitetura`. Se quiser aprovar cada publicação com um
+   tags*, deixe só `main`. Se quiser aprovar cada publicação com um
    clique, marque *Required reviewers* e ponha você.
 2. Nesse ambiente, três segredos: `DEPLOY_HOST` (o IP público), `DEPLOY_SSH_KEY` (o
    arquivo inteiro do `cat ~/actions-deploy`, com as linhas BEGIN e END) e
