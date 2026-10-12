@@ -30,7 +30,7 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, List<Membro> me
                 familia.planoVigente(),
                 membros.stream()
                         .map(conta -> new Membro(conta.getId(), conta.nomeExibicao(), conta.getEmail(),
-                                conta.getGooglePicture(), conta.getRole()))
+                                conta.fotoExibida(), conta.getRole()))
                         .toList(),
                 convites.stream()
                         .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),

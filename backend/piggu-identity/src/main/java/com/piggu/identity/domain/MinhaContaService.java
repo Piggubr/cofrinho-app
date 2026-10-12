@@ -132,6 +132,38 @@ public class MinhaContaService {
         return UserResponse.de(conta, familia.daConta(conta));
     }
 
+    /** Grava a foto escolhida pela pessoa, ja reduzida e sem metadados. */
+    @Transactional
+    public UserResponse trocarFoto(UUID contaId, String base64, String mimeType) {
+        UserAccount conta = conta(contaId);
+        conta.trocarFoto(FotoDePerfil.preparar(base64, mimeType));
+        return fotoAlterada(conta, "Foto de perfil trocada");
+    }
+
+    /** Tira a foto: a propria e apagada e a do Google deixa de aparecer. */
+    @Transactional
+    public UserResponse removerFoto(UUID contaId) {
+        UserAccount conta = conta(contaId);
+        conta.removerFoto();
+        return fotoAlterada(conta, "Foto de perfil removida");
+    }
+
+    /** Apaga a foto propria e volta a mostrar a da conta Google. */
+    @Transactional
+    public UserResponse usarFotoDoGoogle(UUID contaId) {
+        UserAccount conta = conta(contaId);
+        conta.usarFotoDoGoogle();
+        return fotoAlterada(conta, "Foto do Google de volta no perfil");
+    }
+
+    private UserResponse fotoAlterada(UserAccount conta, String descricao) {
+        usuarios.save(conta);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, descricao);
+        log.info("{}: conta={}", descricao, conta.getId());
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
     private static BusinessException cpfEmUso() {
         return new BusinessException("Este CPF já está ligado a outra conta do Piggu. Entre com a conta que você "
                 + "já tem; se não foi você quem a criou, escreva para o canal de privacidade.",

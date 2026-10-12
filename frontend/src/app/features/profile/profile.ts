@@ -1,12 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { ModuloDeEstiloDeVida, MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
-import { baixar } from '../../core/ui/arquivo';
+import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
@@ -80,6 +81,13 @@ export class Profile {
   ];
   protected readonly excluindo = signal(false);
 
+  protected readonly salvandoFoto = signal(false);
+
+  /** Primeira letra do nome, no lugar da foto quando nao ha nenhuma. */
+  protected readonly inicial = computed(() =>
+    (this.auth.usuario()?.nome ?? '?').trim().charAt(0).toUpperCase(),
+  );
+
   constructor() {
     this.finance.listarMoedas().subscribe({
       next: (moedas) => this.moedas.set(moedas),
@@ -111,6 +119,56 @@ export class Profile {
           this.salvandoPreferencias.set(false);
         },
       });
+  }
+
+  /** Le a foto escolhida, recorta e reduz no aparelho e envia. */
+  protected async escolherFoto(evento: Event): Promise<void> {
+    const campo = evento.target as HTMLInputElement;
+    const arquivo = campo.files?.[0];
+    campo.value = '';
+    if (!arquivo) {
+      return;
+    }
+    this.erro.set('');
+    this.aviso.set('');
+    this.salvandoFoto.set(true);
+    let base64: string;
+    try {
+      base64 = (await prepararFotoDePerfil(arquivo)).base64;
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha, $localize`Não consegui ler essa imagem.`));
+      this.salvandoFoto.set(false);
+      return;
+    }
+    this.gravarFoto(this.users.trocarFoto(base64), $localize`Foto trocada.`);
+  }
+
+  protected removerFoto(): void {
+    this.erro.set('');
+    this.aviso.set('');
+    this.salvandoFoto.set(true);
+    this.gravarFoto(this.users.removerFoto(), $localize`Foto removida.`);
+  }
+
+  protected usarFotoDoGoogle(): void {
+    this.erro.set('');
+    this.aviso.set('');
+    this.salvandoFoto.set(true);
+    this.gravarFoto(this.users.usarFotoDoGoogle(), $localize`Voltamos para a foto do Google.`);
+  }
+
+  private gravarFoto(pedido: Observable<Usuario>, sucesso: string): void {
+    pedido.subscribe({
+      next: (usuario) => {
+        this.auth.atualizarUsuario(usuario);
+        this.aviso.set(sucesso);
+        this.salvandoFoto.set(false);
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.salvandoFoto.set(false);
+      },
+    });
   }
 
   /** No celular, a permissao do sistema vem antes de gravar: sem ela o push fica desligado. */

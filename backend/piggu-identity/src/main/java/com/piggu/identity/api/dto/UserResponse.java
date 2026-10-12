@@ -18,6 +18,9 @@ import java.util.UUID;
  *
  * <p>{@code cpfInformado} falso faz o front pedir o CPF antes de liberar o app. O numero
  * nunca vem aqui; so na exportacao dos dados.</p>
+ *
+ * <p>{@code foto} e a que o app mostra (a propria, senao a do Google); {@code fotoPropria} e
+ * {@code temFotoDoGoogle} dizem quais botoes o Perfil oferece.</p>
  */
 public record UserResponse(
         UUID id,
@@ -34,7 +37,9 @@ public record UserResponse(
         Instant premiumAte,
         UUID familia,
         Avisos avisos,
-        boolean cpfInformado
+        boolean cpfInformado,
+        boolean fotoPropria,
+        boolean temFotoDoGoogle
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -61,7 +66,7 @@ public record UserResponse(
                 conta.nomeExibicao(),
                 conta.primeiroNomeExibicao(),
                 conta.getNickname(),
-                conta.getGooglePicture(),
+                conta.fotoExibida(),
                 conta.getRole(),
                 conta.isActive(),
                 conta.getPermissions(),
@@ -71,7 +76,9 @@ public record UserResponse(
                 familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId(),
                 new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
-                conta.temCpf()
+                conta.temCpf(),
+                conta.temFotoPropria(),
+                conta.getGooglePicture() != null
         );
     }
 }

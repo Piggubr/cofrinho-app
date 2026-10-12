@@ -35,6 +35,21 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/me/cpf'), { cpf });
   }
 
+  /** Foto de perfil propria, ja recortada e reduzida no aparelho (ver prepararFotoDePerfil). */
+  trocarFoto(imagemBase64: string): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/foto'), { imagemBase64, mimeType: 'image/jpeg' });
+  }
+
+  /** Sem foto: ficam as iniciais, nem a do Google aparece. */
+  removerFoto(): Observable<Usuario> {
+    return this.http.delete<Usuario>(this.url('/me/foto'));
+  }
+
+  /** Apaga a foto propria e volta a da conta Google. */
+  usarFotoDoGoogle(): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/foto/google'), {});
+  }
+
   /** Copia de tudo o que o Piggu guarda da pessoa (LGPD art. 18), em um JSON. */
   exportarMeusDados(): Observable<Blob> {
     return this.http.get(this.url('/me/export'), { responseType: 'blob' });

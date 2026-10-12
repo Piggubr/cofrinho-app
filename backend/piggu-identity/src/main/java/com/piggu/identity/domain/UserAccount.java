@@ -22,7 +22,8 @@ import java.util.UUID;
  * Conta de usuario — o equivalente a uma linha da aba "Usuarios".
  *
  * <p>Os dados vindos do Google (nome, foto, primeiro nome) sao atualizados a cada login,
- * como fazia {@code obterOuCriarUsuario_}. O apelido, quando preenchido, tem preferencia
+ * como fazia {@code obterOuCriarUsuario_}. A foto propria, quando a pessoa escolhe uma,
+ * aparece no lugar da do Google. O apelido, quando preenchido, tem preferencia
  * sobre o nome do Google na hora de exibir.</p>
  */
 @Entity
@@ -48,6 +49,14 @@ public class UserAccount {
 
     @Column(name = "google_picture", length = 1000)
     private String googlePicture;
+
+    /** Foto escolhida pela pessoa ({@link FotoDePerfil}); tem preferencia sobre a do Google. */
+    @Column(name = "foto_propria", columnDefinition = "text")
+    private String fotoPropria;
+
+    /** A pessoa tirou a foto: ficam as iniciais, nem a do Google aparece. */
+    @Column(name = "sem_foto", nullable = false)
+    private boolean semFoto;
 
     @Column(name = "first_name", length = 80)
     private String firstName;
@@ -212,6 +221,36 @@ public class UserAccount {
 
     public String getGooglePicture() {
         return googlePicture;
+    }
+
+    /** Foto que o app mostra: a escolhida pela pessoa, senao a do Google, senao nenhuma. */
+    public String fotoExibida() {
+        if (semFoto) {
+            return null;
+        }
+        return fotoPropria != null ? fotoPropria : googlePicture;
+    }
+
+    public boolean temFotoPropria() {
+        return fotoPropria != null;
+    }
+
+    /** @param dataUrl imagem ja preparada por {@link FotoDePerfil#preparar} */
+    public void trocarFoto(String dataUrl) {
+        this.fotoPropria = dataUrl;
+        this.semFoto = false;
+    }
+
+    /** Apaga a foto propria e esconde a do Google. */
+    public void removerFoto() {
+        this.fotoPropria = null;
+        this.semFoto = true;
+    }
+
+    /** Apaga a foto propria e volta a mostrar a do Google, que segue vindo a cada login. */
+    public void usarFotoDoGoogle() {
+        this.fotoPropria = null;
+        this.semFoto = false;
     }
 
     public boolean isActive() {
