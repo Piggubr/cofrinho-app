@@ -14,7 +14,12 @@ export interface Usuario {
   nome: string;
   primeiroNome: string;
   apelido: string | null;
+  /** A que o app mostra: a escolhida pela pessoa, senao a do Google; nula mostra as iniciais. */
   foto: string | null;
+  /** A pessoa escolheu uma foto propria (o Perfil oferece voltar a do Google). Ausente na demo antiga. */
+  fotoPropria?: boolean;
+  /** A conta Google tem foto, para oferecer usar ela. */
+  temFotoDoGoogle?: boolean;
   role: PigguRole;
   ativo: boolean;
   permissoes: Record<string, unknown>;

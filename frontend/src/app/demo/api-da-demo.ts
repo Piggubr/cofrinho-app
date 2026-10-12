@@ -570,6 +570,19 @@ const ROTAS: Rota[] = [
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };
     return estado.titular;
   }],
+  // Foto de perfil: so nesta aba, como o resto da demo.
+  ['PUT', /^\/me\/foto$/, (_p, _x, c) => {
+    estado.titular = { ...estado.titular, foto: `data:image/jpeg;base64,${String(c['imagemBase64'])}`, fotoPropria: true };
+    return estado.titular;
+  }],
+  ['DELETE', /^\/me\/foto$/, () => {
+    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
+    return estado.titular;
+  }],
+  ['PUT', /^\/me\/foto\/google$/, () => {
+    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
+    return estado.titular;
+  }],
   ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],
   ['DELETE', /^\/me$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/users$/, () => [estado.titular, estado.membro]],

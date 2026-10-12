@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/** CPF da conta, copia dos dados e exclusao da conta (LGPD art. 18). Gratis em qualquer plano e papel. */
+/** CPF e foto da conta, copia dos dados e exclusao da conta (LGPD art. 18). Gratis em qualquer plano e papel. */
 @RestController
 @RequestMapping("/api/me")
 public class MinhaContaController {
@@ -47,6 +47,28 @@ public class MinhaContaController {
     @PutMapping("/cpf")
     public UserResponse informarCpf(@Valid @RequestBody CpfRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.informarCpf(usuario.id(), pedido.cpf());
+    }
+
+    public record FotoRequest(@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,
+                              @NotBlank @Size(max = 40) String mimeType) {
+    }
+
+    /** Foto de perfil propria; o servidor reduz, recorta e regrava antes de guardar. */
+    @PutMapping("/foto")
+    public UserResponse trocarFoto(@Valid @RequestBody FotoRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.trocarFoto(usuario.id(), pedido.imagemBase64(), pedido.mimeType());
+    }
+
+    /** Sem foto nenhuma: ficam as iniciais. */
+    @DeleteMapping("/foto")
+    public UserResponse removerFoto(@AuthUser CurrentUser usuario) {
+        return servico.removerFoto(usuario.id());
+    }
+
+    /** Volta a foto da conta Google. */
+    @PutMapping("/foto/google")
+    public UserResponse usarFotoDoGoogle(@AuthUser CurrentUser usuario) {
+        return servico.usarFotoDoGoogle(usuario.id());
     }
 
     @DeleteMapping
