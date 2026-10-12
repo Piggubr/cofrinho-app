@@ -13,10 +13,15 @@ import java.util.UUID;
 /**
  * A familia de quem pergunta: nome, plano, quem faz parte e os convites pendentes
  * (estes so para o titular).
+ *
+ * @param plano        plano da casa: PREMIUM quando ha assinatura vigente, mesmo individual
+ * @param planoFamilia a assinatura vigente e o plano familia (vale para todos)
  */
-public record FamiliaResponse(UUID id, String nome, Plano plano, List<Membro> membros, List<Convite> convites) {
+public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFamilia, List<Membro> membros,
+                              List<Convite> convites) {
 
-    public record Membro(UUID id, String nome, String email, String foto, PigguRole papel) {
+    /** @param premium esta pessoa tem Premium (no individual, so quem assinou) */
+    public record Membro(UUID id, String nome, String email, String foto, PigguRole papel, boolean premium) {
     }
 
     /** @param familia nome da familia que convidou, para quem recebe o convite */
@@ -28,9 +33,11 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, List<Membro> me
                 familia.getId(),
                 familia.getName(),
                 familia.planoVigente(),
+                familia.planoVigente() == Plano.PREMIUM && familia.isFamilia(),
                 membros.stream()
                         .map(conta -> new Membro(conta.getId(), conta.nomeExibicao(), conta.getEmail(),
-                                conta.getGooglePicture(), conta.getRole()))
+                                conta.getGooglePicture(), conta.getRole(),
+                                familia.planoPara(conta.getId()) == Plano.PREMIUM))
                         .toList(),
                 convites.stream()
                         .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),

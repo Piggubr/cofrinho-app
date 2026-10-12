@@ -56,7 +56,8 @@ public class AssinaturaService {
     @Transactional(readOnly = true)
     public PlanoResponse plano(UUID usuarioId) {
         UserAccount conta = conta(usuarioId);
-        return PlanoResponse.de(familias.daConta(conta), pagamentos.habilitado(), diasDeTesteDe(conta));
+        return PlanoResponse.de(conta, familias.daConta(conta), pagamentos.habilitado(),
+                pagamentos.familiaHabilitado(), diasDeTesteDe(conta));
     }
 
     /** Teste gratis uma vez por conta. */
@@ -67,8 +68,16 @@ public class AssinaturaService {
     @Transactional(readOnly = true)
     public String checkout(UUID usuarioId, Periodo periodo) {
         UserAccount conta = conta(usuarioId);
-        if (familias.daConta(conta).planoVigente() == Plano.PREMIUM) {
-            throw new BusinessException("Sua família já é Premium.");
+        Household familia = familias.daConta(conta);
+        // Uma assinatura por casa: duas se sobreporiam na mesma familia.
+        if (familia.planoVigente() == Plano.PREMIUM) {
+            throw new BusinessException(conta.getId().equals(familia.getSubscriberId())
+                    ? "Você já é Premium. Para trocar de plano, use Gerenciar assinatura."
+                    : "Já há uma assinatura nesta família. Quem assinou pode trocar para o plano família.");
+        }
+        if (periodo.familia() && familias.pessoasNaCasa(familia.getId()) > Periodo.PESSOAS_NO_FAMILIA) {
+            throw new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
+                    + " pessoas. Tire alguém da família ou cancele convites antes de assinar.");
         }
         return pagamentos.abrirCheckout(conta, periodo, diasDeTesteDe(conta));
     }
@@ -92,7 +101,7 @@ public class AssinaturaService {
                     }
                     Household familia = familias.daConta(conta);
                     boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
-                            evento.inicio());
+                            evento.inicio(), evento.familia(), conta.getId());
                     log.info("Assinatura web: conta={} familia={} plano={} aplicado={}",
                             conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
                 }, () -> log.warn("Assinatura web de conta inexistente id={}", evento.usuarioId())));
@@ -106,6 +115,9 @@ public class AssinaturaService {
     public void cancelarComReembolso(UUID usuarioId) {
         UserAccount conta = conta(usuarioId);
         Household familia = familias.daConta(conta);
+        if (!conta.getId().equals(familia.getSubscriberId())) {
+            throw new BusinessException("Só quem assinou pode pedir o reembolso.");
+        }
         if (conta.getStripeCustomerId() == null || !"WEB".equals(familia.getPlanSource())) {
             throw new BusinessException("O reembolso pelo app vale para quem assinou pelo site.");
         }
@@ -140,7 +152,7 @@ public class AssinaturaService {
                 }
                 Household familia = familias.daConta(conta);
                 boolean aplicado = familia.aplicarAssinatura(aviso.origem(), evento.premiumAte(), evento.momento(),
-                        evento.inicio());
+                        evento.inicio(), evento.familia(), conta.getId());
                 log.info("Assinatura na loja: conta={} familia={} origem={} plano={} aplicado={}",
                         conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
             }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));

@@ -406,11 +406,12 @@ function respostaDoAssistente(pergunta: string): { texto: string; tela: string |
 }
 
 function familia(): Familia {
-  const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role });
+  const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role, premium: true });
   return {
     id: 'familia-demo',
     nome: estado.nomeDaFamilia,
     plano: 'PREMIUM',
+    planoFamilia: true,
     membros: [membro(estado.titular), membro(estado.membro)],
     convites: estado.convites.map((c) => ({ ...c, familia: estado.nomeDaFamilia })),
   };
@@ -428,6 +429,13 @@ function plano(): InfoDoPlano {
     app: { mensal: '22,89', anual: '228,85' },
     gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
     premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo', 'Assistente de IA'],
+    planoFamilia: true,
+    voceAssinou: true,
+    familiaDisponivel: false,
+    siteFamilia: { mensal: '39,99', anual: '399,90' },
+    appFamilia: { mensal: '45,99', anual: '459,89' },
+    pessoasNoFamilia: 5,
+    casaTemAssinatura: true,
   };
 }
 

@@ -14,7 +14,8 @@ import java.util.UUID;
 /**
  * Familia: o titular, os membros e tudo o que eles lancam.
  *
- * <p>O Premium mora aqui, e nao na conta: o titular assina e a familia inteira usa.</p>
+ * <p>A assinatura mora aqui. No plano individual o Premium vale so para quem assinou; no
+ * plano familia vale para a casa inteira, que fica limitada a 5 pessoas.</p>
  */
 @Entity
 @Table(name = "households")
@@ -37,6 +38,14 @@ public class Household {
 
     @Column(name = "premium_since")
     private Instant premiumSince;
+
+    /** INDIVIDUAL ou FAMILIA. */
+    @Column(name = "plan_kind", nullable = false, length = 20)
+    private String planKind = "INDIVIDUAL";
+
+    /** Conta que assinou: no individual, a unica com Premium. */
+    @Column(name = "subscriber_id")
+    private UUID subscriberId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -63,7 +72,23 @@ public class Household {
         updatedAt = Instant.now();
     }
 
-    /** Premium enquanto a data paga nao passou: vencer nao precisa de job. */
+    /** Plano de uma pessoa da casa: no individual so quem assinou e Premium. */
+    public Plano planoPara(UUID contaId) {
+        if (planoVigente() == Plano.GRATUITO) {
+            return Plano.GRATUITO;
+        }
+        return isFamilia() || contaId.equals(subscriberId) ? Plano.PREMIUM : Plano.GRATUITO;
+    }
+
+    public boolean isFamilia() {
+        return "FAMILIA".equals(planKind);
+    }
+
+    public UUID getSubscriberId() {
+        return subscriberId;
+    }
+
+    /** Premium da casa enquanto a data paga nao passou: vencer nao precisa de job. */
     public Plano planoVigente() {
         return premiumUntil != null && premiumUntil.isAfter(Instant.now()) ? Plano.PREMIUM : Plano.GRATUITO;
     }
@@ -77,6 +102,22 @@ public class Household {
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento) {
         return aplicarAssinatura(origem, ate, momento, null);
+    }
+
+    /**
+     * Assinatura com o tipo do plano e quem assinou.
+     *
+     * @param familia   plano familia (a casa toda) ou individual (so {@code assinante})
+     * @param assinante conta que pagou
+     */
+    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
+                                     boolean familia, UUID assinante) {
+        if (!aplicarAssinatura(origem, ate, momento, inicio)) {
+            return false;
+        }
+        this.planKind = familia ? "FAMILIA" : "INDIVIDUAL";
+        this.subscriberId = assinante;
+        return true;
     }
 
     /** @param inicio quando a assinatura comecou; nulo mantem o que ja se sabia */

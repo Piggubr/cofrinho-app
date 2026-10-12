@@ -1,5 +1,7 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.security.Plano;
+import com.piggu.identity.billing.Periodo;
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.auditoria.TrilhaDeAuditoria.Acao;
 import com.piggu.common.dados.Consentimentos;
@@ -102,6 +104,13 @@ public class FamiliaService {
         return nova;
     }
 
+    /** Pessoas da casa mais convites ainda validos: o que o plano familia precisa comportar. */
+    @Transactional(readOnly = true)
+    public long pessoasNaCasa(UUID familiaId) {
+        return usuarios.findByHouseholdIdOrderByCreatedAtAsc(familiaId).size()
+                + convites.countByHouseholdIdAndExpiresAtAfter(familiaId, Instant.now());
+    }
+
     @Transactional(readOnly = true)
     public Household daConta(UserAccount conta) {
         return familias.findById(conta.getHouseholdId())
@@ -152,6 +161,14 @@ public class FamiliaService {
                         throw new BusinessException("Ja ha " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
                                 + "Cancele algum para convidar outra pessoa.", HttpStatus.UNPROCESSABLE_CONTENT,
                                 "LIMITE_DE_CONVITES");
+                    }
+                    // No plano familia a casa tem ate 5 pessoas: e quanto o Premium cobre.
+                    Household casa = familias.findById(usuario.familia()).orElseThrow();
+                    if (casa.isFamilia() && casa.planoVigente() == Plano.PREMIUM
+                            && pessoasNaCasa(usuario.familia()) >= Periodo.PESSOAS_NO_FAMILIA) {
+                        throw new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
+                                + " pessoas, contando os convites pendentes.", HttpStatus.UNPROCESSABLE_CONTENT,
+                                "LIMITE_DO_FAMILIA");
                     }
                     convites.save(new HouseholdInvite(usuario.familia(), email, usuario.id(), vence));
                 });

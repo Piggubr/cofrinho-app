@@ -67,7 +67,7 @@ public class TokenService {
                 .claim("nome", conta.nomeExibicao())
                 // Plano no token: os outros servicos barram o Premium sem consultar o
                 // identity. Mudou o plano? Vale na proxima renovacao (ate 30 min).
-                .claim("plano", familia.planoVigente().name())
+                .claim("plano", familia.planoPara(conta.getId()).name())
                 // Familia no token: cada servico filtra os proprios dados por ela.
                 .claim("familia", familia.getId().toString());
         if (exclusao != null) {

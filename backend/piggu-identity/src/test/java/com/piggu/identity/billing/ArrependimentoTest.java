@@ -30,7 +30,7 @@ class ArrependimentoTest {
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer stripe = MockRestServiceServer.bindTo(builder).build();
     private final StripePagamentos pagamentos = new StripePagamentos(builder,
-            new StripeProperties(STRIPE, "sk_test_x", "whsec_x", "price_m", "price_a", null),
+            new StripeProperties(STRIPE, "sk_test_x", "whsec_x", "price_m", "price_a", null, null, null),
             new ObjectMapper(), Clock.fixed(AGORA, ZoneOffset.UTC));
 
     @Test

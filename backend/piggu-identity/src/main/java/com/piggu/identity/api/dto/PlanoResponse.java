@@ -2,7 +2,9 @@ package com.piggu.identity.api.dto;
 
 import com.piggu.common.security.Plano;
 import com.piggu.identity.billing.AssinaturaService;
+import com.piggu.identity.billing.Periodo;
 import com.piggu.identity.domain.Household;
+import com.piggu.identity.domain.UserAccount;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +21,13 @@ import java.util.List;
  * @param reembolsoAte         ate quando da para desistir com dinheiro de volta (7 dias, CDC
  *                             art. 49); nulo fora do prazo ou quando nao foi assinado pelo site
  * @param diasDeTeste          dias gratis que esta conta ainda tem ao assinar; 0 se ja usou
+ * @param planoFamilia         a assinatura vigente da casa e o plano familia
+ * @param voceAssinou          foi esta conta que assinou (so ela gerencia e pede reembolso)
+ * @param familiaDisponivel    o plano familia tem preco configurado
+ * @param siteFamilia          precos do plano familia no site
+ * @param appFamilia           precos do plano familia no app (+15%)
+ * @param pessoasNoFamilia     quantas pessoas o plano familia cobre
+ * @param casaTemAssinatura    ha assinatura vigente na casa (talvez de outra pessoa, no individual)
  */
 public record PlanoResponse(
         Plano plano,
@@ -30,7 +39,14 @@ public record PlanoResponse(
         Precos site,
         Precos app,
         List<String> gratuito,
-        List<String> premium
+        List<String> premium,
+        boolean planoFamilia,
+        boolean voceAssinou,
+        boolean familiaDisponivel,
+        Precos siteFamilia,
+        Precos appFamilia,
+        int pessoasNoFamilia,
+        boolean casaTemAssinatura
 ) {
 
     /** Em reais. */
@@ -39,6 +55,9 @@ public record PlanoResponse(
 
     public static final Precos PRECOS_SITE = new Precos("19,90", "199,00");
     public static final Precos PRECOS_APP = new Precos("22,89", "228,85");
+    /** Plano familia, ate 5 pessoas (Eduardo, 2026-10-11). App: +15%, arredondado para baixo. */
+    public static final Precos PRECOS_FAMILIA_SITE = new Precos("39,99", "399,90");
+    public static final Precos PRECOS_FAMILIA_APP = new Precos("45,99", "459,89");
 
     private static final List<String> GRATUITO = List.of(
             "Gastos, receitas, categorias, meta do mês e calendário",
@@ -63,14 +82,19 @@ public record PlanoResponse(
             "Assistente de IA que responde sobre os seus gastos"
     );
 
-    public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste) {
-        Plano vigente = familia.planoVigente();
-        Instant reembolsoAte = vigente == Plano.PREMIUM && "WEB".equals(familia.getPlanSource())
+    public static PlanoResponse de(UserAccount conta, Household familia, boolean assinaturaDisponivel,
+                                   boolean familiaDisponivel, int diasDeTeste) {
+        Plano vigente = familia.planoPara(conta.getId());
+        boolean voceAssinou = familia.planoVigente() == Plano.PREMIUM && conta.getId().equals(familia.getSubscriberId());
+        Instant reembolsoAte = voceAssinou && "WEB".equals(familia.getPlanSource())
                 && familia.getPremiumSince() != null
                 ? familia.getPremiumSince().plus(AssinaturaService.PRAZO_DE_ARREPENDIMENTO) : null;
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getPlanSource(),
                 reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null,
-                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM,
+                familia.planoVigente() == Plano.PREMIUM && familia.isFamilia(), voceAssinou,
+                familiaDisponivel, PRECOS_FAMILIA_SITE, PRECOS_FAMILIA_APP, Periodo.PESSOAS_NO_FAMILIA,
+                familia.planoVigente() == Plano.PREMIUM);
     }
 }

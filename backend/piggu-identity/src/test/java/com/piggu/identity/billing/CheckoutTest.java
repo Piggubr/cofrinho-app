@@ -26,7 +26,7 @@ class CheckoutTest {
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer stripe = MockRestServiceServer.bindTo(builder).build();
     private final StripePagamentos pagamentos = new StripePagamentos(builder,
-            new StripeProperties("https://stripe.test", "sk_test_x", "whsec_x", "price_m", "price_a", null),
+            new StripeProperties("https://stripe.test", "sk_test_x", "whsec_x", "price_m", "price_a", null, null, null),
             new ObjectMapper(), Clock.systemUTC());
     private final UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, UUID.randomUUID());
 

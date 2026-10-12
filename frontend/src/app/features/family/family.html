@@ -21,7 +21,7 @@
   <section class="cartao" aria-labelledby="titulo-familia">
     <div class="cartao-titulo">
       <h2 id="titulo-familia">{{ casa.nome }}</h2>
-      <span class="etiqueta">{{ casa.plano === 'PREMIUM' ? 'Premium' : 'Gratuito' }}</span>
+      <span class="etiqueta">{{ casa.plano !== 'PREMIUM' ? 'Gratuito' : casa.planoFamilia ? 'Premium família' : 'Premium individual' }}</span>
     </div>
 
     @if (auth.ehTitular()) {
