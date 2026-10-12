@@ -104,6 +104,17 @@ public class UserAccount {
     @Column(name = "terms_accepted_at")
     private Instant termsAcceptedAt;
 
+    /** CPF cifrado ({@link CofreDeCpf}); nulo ate a pessoa informar. */
+    @Column(name = "cpf_cifrado", length = 200)
+    private String cpfCifrado;
+
+    /** HMAC do CPF, unico entre as contas: uma pessoa, uma conta. */
+    @Column(name = "cpf_indice", length = 64)
+    private String cpfIndice;
+
+    @Column(name = "cpf_informado_em")
+    private Instant cpfInformadoEm;
+
     /** Quando a conta usou o teste gratis; nulo = ainda pode usar. */
     @Column(name = "trial_used_at")
     private Instant trialUsedAt;
@@ -326,5 +337,27 @@ public class UserAccount {
 
     public String getStripeCustomerId() {
         return stripeCustomerId;
+    }
+
+    public boolean temCpf() {
+        return cpfIndice != null;
+    }
+
+    /** O CPF fica preso a conta: so entra uma vez (trocar e pelo canal de privacidade). */
+    public void informarCpf(String cifrado, String indice) {
+        if (temCpf()) {
+            throw new IllegalStateException("A conta ja tem CPF");
+        }
+        this.cpfCifrado = cifrado;
+        this.cpfIndice = indice;
+        this.cpfInformadoEm = Instant.now();
+    }
+
+    public String getCpfCifrado() {
+        return cpfCifrado;
+    }
+
+    public Instant getCpfInformadoEm() {
+        return cpfInformadoEm;
     }
 }

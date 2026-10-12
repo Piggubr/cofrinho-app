@@ -15,6 +15,9 @@ import java.util.UUID;
 /**
  * Perfil publico do usuario — o mesmo formato que {@code usuarioPublico_} devolvia,
  * acrescido do id.
+ *
+ * <p>{@code cpfInformado} falso faz o front pedir o CPF antes de liberar o app. O numero
+ * nunca vem aqui; so na exportacao dos dados.</p>
  */
 public record UserResponse(
         UUID id,
@@ -30,7 +33,8 @@ public record UserResponse(
         Plano plano,
         Instant premiumAte,
         UUID familia,
-        Avisos avisos
+        Avisos avisos,
+        boolean cpfInformado
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -66,7 +70,8 @@ public record UserResponse(
                 familia.planoVigente(),
                 familia.planoVigente() == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId(),
-                new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush())
+                new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
+                conta.temCpf()
         );
     }
 }

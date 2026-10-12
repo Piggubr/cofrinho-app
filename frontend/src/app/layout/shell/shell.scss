@@ -160,8 +160,57 @@
   text-transform: uppercase;
 }
 
+/* "+" no canto: abre o painel de lancamento por cima da tela atual. */
 .lancar-flutuante {
-  display: none;
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 31;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primaria) 82%, #fff) 0%, var(--primaria) 55%);
+  color: var(--primaria-contraste);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.lancar-flutuante.aberto {
+  transform: rotate(45deg);
+}
+
+/* Passo do "+" no tour: o botao fica por cima do fundo escuro e pulsa. */
+.lancar-flutuante.destaque {
+  z-index: 42;
+  animation: pulsar 1.4s ease-out infinite;
+}
+
+@keyframes pulsar {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primaria) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lancar-flutuante.destaque {
+    animation: none;
+    box-shadow: 0 0 0 4px var(--surface), 0 0 0 7px var(--primaria);
+  }
+}
+
+.painel-rapido {
+  position: fixed;
+  right: 1.5rem;
+  bottom: calc(1.5rem + 56px + 0.75rem);
+  z-index: 32;
 }
 
 .menu-item {
@@ -337,6 +386,15 @@
       0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   }
 
+  /* Painel do "+" no celular: folha larga logo acima do botao. */
+  .painel-rapido {
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 54px + 0.6rem);
+    width: auto;
+    max-height: calc(100dvh - 76px - 54px - 6rem - env(safe-area-inset-bottom, 0px));
+  }
+
   /* "Mais": folha que sobe de baixo, por cima de tudo e com a propria area segura. */
   .menu {
     position: fixed;
@@ -486,6 +544,10 @@
 
   .lancar-flutuante {
     bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem);
+  }
+
+  .painel-rapido {
+    bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 0.6rem);
   }
 
   @media (max-width: 899px) {

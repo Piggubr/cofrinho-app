@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.dados.EscopoDeExclusao;
 import com.piggu.common.security.PigguRole;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +65,19 @@ class TokenServiceTest extends PostgresIntegrationTest {
 
         assertThat(token.getExpiresAt()).isNotNull().isAfter(Instant.now());
         assertThat(tokens.segundosDeAcesso()).isEqualTo(1800);
+    }
+
+    @Test
+    @DisplayName("sem CPF o access token diz cpf=false; o token de exclusao nao leva a claim")
+    void claimDoCpf() {
+        UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
+
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isFalse();
+        assertThat(decoder.decode(tokens.gerarTokenDeExclusao(conta, FAMILIA, EscopoDeExclusao.PESSOA))
+                .hasClaim("cpf")).isFalse();
+
+        conta.informarCpf("cifrado", "indice");
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
     }
 
     @Test

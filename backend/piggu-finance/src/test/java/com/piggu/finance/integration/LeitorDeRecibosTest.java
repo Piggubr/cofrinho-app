@@ -161,4 +161,35 @@ class LeitorDeRecibosTest {
         assertThatThrownBy(() -> leitor.ler(FOTO, USUARIO)).isInstanceOf(BusinessException.class);
         verify(gemini, never()).ler(any());
     }
+
+    @Test
+    @DisplayName("leitor proprio desligado: gratuito dentro da cota vai direto ao Gemini e conta na cota")
+    void soGeminiNoGratuito() {
+        LeitorDeRecibos soGemini = new LeitorDeRecibos(ocr, gemini, memoria, consentimentos, cota, false);
+        ReceiptParseResponse doGemini = new ReceiptParseResponse(UUID.randomUUID(), "Mercado", LocalDate.now(),
+                List.of(), "GEMINI", null);
+        when(gemini.habilitado()).thenReturn(true);
+        when(gemini.ler(FOTO)).thenReturn(doGemini);
+        when(cota.registrar(GRATUITA)).thenReturn(9);
+
+        ReceiptParseResponse resposta = soGemini.ler(FOTO, GRATUITA);
+
+        assertThat(resposta.origem()).isEqualTo("GEMINI");
+        assertThat(resposta.leiturasRestantes()).isEqualTo(9);
+        verify(cota).exigirDisponivel(GRATUITA);
+        verify(consentimentos).exigir(eq(GRATUITA), eq("GEMINI"), anyString(), isNull(), isNull());
+        verify(ocr, never()).ler(any());
+    }
+
+    @Test
+    @DisplayName("leitor proprio desligado e sem Gemini: avisa que a leitura esta desligada e nao gasta cota")
+    void soGeminiDesligado() {
+        LeitorDeRecibos soGemini = new LeitorDeRecibos(ocr, gemini, memoria, consentimentos, cota, false);
+        when(gemini.habilitado()).thenReturn(false);
+
+        assertThatThrownBy(() -> soGemini.ler(FOTO, USUARIO)).isInstanceOf(BusinessException.class)
+                .hasMessageContaining("desligada");
+        verify(ocr, never()).ler(any());
+        verify(cota, never()).registrar(any());
+    }
 }

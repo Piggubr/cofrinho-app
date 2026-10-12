@@ -12,6 +12,8 @@ import com.piggu.finance.domain.CotaDeLeituras;
 import com.piggu.finance.domain.ProductMemoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,11 @@ import java.util.regex.Pattern;
  * <p>O Gemini so e chamado quando a leitura propria nao fecha a conta (itens somados
  * diferentes do total impresso). Assim a maioria das fotos nao sai do servidor e nao
  * custa nada; o Gemini fica para foto torta, cupom sem total ou layout estranho.</p>
+ *
+ * <p>Com {@code piggu.leitura-de-nota.leitor-proprio=false} (padrao desde 11/10/2026, ate
+ * o leitor proprio ser testado com cupons reais) toda foto vai direto para o Gemini,
+ * dentro da mesma cota: 10 por mes no gratuito, sem limite no Premium. Para voltar,
+ * {@code PIGGU_LEITOR_PROPRIO=true}.</p>
  */
 @Service
 public class LeitorDeRecibos {
@@ -43,9 +50,18 @@ public class LeitorDeRecibos {
     private final ProductMemoryRepository memoria;
     private final Consentimentos consentimentos;
     private final CotaDeLeituras cota;
+    private final boolean leitorProprio;
 
     public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria,
                            Consentimentos consentimentos, CotaDeLeituras cota) {
+        this(ocr, gemini, memoria, consentimentos, cota, true);
+    }
+
+    @Autowired
+    public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria,
+                           Consentimentos consentimentos, CotaDeLeituras cota,
+                           @Value("${piggu.leitura-de-nota.leitor-proprio:false}") boolean leitorProprio) {
+        this.leitorProprio = leitorProprio;
         this.ocr = ocr;
         this.gemini = gemini;
         this.memoria = memoria;
@@ -66,6 +82,9 @@ public class LeitorDeRecibos {
     }
 
     private ReceiptParseResponse lerDentroDaCota(ReceiptParseRequest pedido, CurrentUser usuario) {
+        if (!leitorProprio) {
+            return soPeloGemini(pedido, usuario);
+        }
         LocalDate hoje = LocalDate.now();
         Optional<LeitorDeCupom.Leitura> propria = ocr.ler(imagem(pedido.imageBase64()))
                 .map(texto -> LeitorDeCupom.ler(texto, hoje));
@@ -103,6 +122,18 @@ public class LeitorDeRecibos {
         }
         throw new BusinessException("Não consegui ler este recibo. Tente uma foto mais reta e com boa luz, "
                 + "ou adicione os itens à mão.");
+    }
+
+    /** Leitor proprio desligado: a foto vai direto para o Gemini, com a autorizacao da pessoa. */
+    private ReceiptParseResponse soPeloGemini(ReceiptParseRequest pedido, CurrentUser usuario) {
+        if (!gemini.habilitado()) {
+            throw new BusinessException("A leitura de recibos pela foto está desligada. Adicione os itens à mão.");
+        }
+        consentimentos.exigir(usuario, "GEMINI",
+                "Para ler a foto, o Piggu envia a imagem para a IA do Google (Gemini). Autorize o envio para continuar.",
+                pedido.autorizoIa(), pedido.versaoDoAviso());
+        log.info("Recibo segue direto para o Gemini (leitor proprio desligado)");
+        return gemini.ler(pedido);
     }
 
     private ReceiptParseResponse resposta(LeitorDeCupom.Leitura leitura, String aviso) {

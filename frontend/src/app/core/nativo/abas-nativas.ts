@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
+import { Temas } from '../ui/tema';
 
 /** Uma aba da barra nativa. O simbolo e um nome de SF Symbol ("house", "chart.bar"...). */
 export interface AbaNativa {
@@ -33,10 +34,6 @@ interface PluginAbasNativas {
 
 const NOME_DO_PLUGIN = 'AbasNativas';
 
-/** Mesmo --rose-deep do styles.scss, no tema claro e no escuro. */
-const COR_DESTAQUE = '#8e2f58';
-const COR_DESTAQUE_ESCURA = '#f0a6c4';
-
 /**
  * Barra de abas nativa do app iOS (UITabBar, com Liquid Glass a partir do iOS 26).
  *
@@ -46,6 +43,7 @@ const COR_DESTAQUE_ESCURA = '#f0a6c4';
 @Injectable({ providedIn: 'root' })
 export class AbasNativas {
   private readonly plugin = registerPlugin<PluginAbasNativas>(NOME_DO_PLUGIN);
+  private readonly temas = inject(Temas);
 
   readonly disponivel =
     Capacitor.getPlatform() === 'ios' && Capacitor.isPluginAvailable(NOME_DO_PLUGIN);
@@ -55,8 +53,9 @@ export class AbasNativas {
       this.plugin.configurar({
         abas,
         selecionada,
-        corDestaque: COR_DESTAQUE,
-        corDestaqueEscura: COR_DESTAQUE_ESCURA,
+        // Le o tema dentro do effect do shell: trocar a cor no Perfil refaz a barra.
+        corDestaque: this.temas.atual().destaque,
+        corDestaqueEscura: this.temas.atual().destaqueEscuro,
       }),
     );
   }

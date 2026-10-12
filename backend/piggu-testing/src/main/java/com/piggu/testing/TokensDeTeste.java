@@ -67,6 +67,20 @@ public final class TokensDeTeste {
         return token(email, role, idDe(email), "GRATUITO", familia);
     }
 
+    /** Titular cuja conta ainda nao informou o CPF (claim cpf=false). */
+    public static RequestPostProcessor titularSemCpf() {
+        return SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(token -> token
+                        .subject(idDe(EMAIL_TITULAR).toString())
+                        .claim("email", EMAIL_TITULAR)
+                        .claim("role", PigguRole.TITULAR.name())
+                        .claim("plano", "PREMIUM")
+                        .claim("familia", FAMILIA.toString())
+                        .claim("cpf", false))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        PigguRole.TITULAR.authority()));
+    }
+
     /** Token de exclusao que so o identity emite, com o escopo PESSOA ou FAMILIA. */
     public static RequestPostProcessor exclusao(UUID familia, String email, PigguRole role, String escopo) {
         return SecurityMockMvcRequestPostProcessors.jwt()

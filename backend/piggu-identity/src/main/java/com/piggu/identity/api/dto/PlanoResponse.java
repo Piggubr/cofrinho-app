@@ -42,7 +42,7 @@ public record PlanoResponse(
 
     private static final List<String> GRATUITO = List.of(
             "Gastos, receitas, categorias, meta do mês e calendário",
-            "Leitura de nota fiscal pela foto: 10 por mês",
+            "Leitura de nota fiscal pela foto: 10 por mês por família",
             "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
             "Cofrinho com depósitos da família e um cofrinho por objetivo",
             "Lista de compras, lugares e filmes",
@@ -57,13 +57,19 @@ public record PlanoResponse(
             "Orçamento por categoria, com alerta em 80% e 100%",
             "Relatório do ano com gráficos",
             "Contas bancárias pelo Open Finance, com saldo atualizado",
-            "Leitura de nota fiscal sem limite, com a IA quando a foto é difícil",
+            "Leitura de nota fiscal pela foto sem limite",
             "Mural de fotos",
             "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês",
             "Assistente de IA que responde sobre os seus gastos"
     );
 
     public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste) {
+        return de(familia, assinaturaDisponivel, diasDeTeste, true);
+    }
+
+    /** @param openFinance falso esconde o Open Finance da lista (recurso desligado por enquanto) */
+    public static PlanoResponse de(Household familia, boolean assinaturaDisponivel, int diasDeTeste,
+                                   boolean openFinance) {
         Plano vigente = familia.planoVigente();
         Instant reembolsoAte = vigente == Plano.PREMIUM && "WEB".equals(familia.getPlanSource())
                 && familia.getPremiumSince() != null
@@ -71,6 +77,7 @@ public record PlanoResponse(
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getPlanSource(),
                 reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null,
-                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO, PREMIUM);
+                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO,
+                openFinance ? PREMIUM : PREMIUM.stream().filter(item -> !item.contains("Open Finance")).toList());
     }
 }

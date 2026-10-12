@@ -22,14 +22,6 @@ test.describe('no celular', () => {
     await expect(page).toHaveURL(/\/planejar$/);
   });
 
-  test('o "+" flutuante abre o lancamento de gasto', async ({ page }) => {
-    await page.goto('/relatorios');
-
-    await page.getByRole('link', { name: 'Lançar gasto' }).click();
-
-    await expect(page).toHaveURL(/\/gastos$/);
-    await expect(page.locator('#item')).toBeVisible();
-  });
 
   test('"Mais" abre o menu agrupado e fecha ao escolher uma tela', async ({ page }) => {
     await page.goto('/painel');
@@ -71,4 +63,46 @@ test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto'
   expect(manifesto.display).toBe('standalone');
   expect(manifesto.icons.some((i: { purpose?: string }) => i.purpose === 'maskable')).toBe(true);
   expect((await request.get('/icons/icon-192.png')).ok()).toBe(true);
+});
+
+test('o "+" abre o lancamento por cima da tela, sem sair dela', async ({ page }) => {
+  await page.goto('/relatorios');
+
+  await page.getByRole('button', { name: 'Lançar gasto ou receita' }).click();
+  const painel = page.getByRole('dialog', { name: 'Lançar' });
+  await painel.locator('#valor-rapido').fill('12.5');
+  await painel.locator('#descricao-rapida').fill('Pão de queijo');
+  await painel.getByRole('button', { name: 'Lançar gasto' }).click();
+
+  await expect(painel.getByText('Gasto lançado.')).toBeVisible();
+  await expect(page).toHaveURL(/\/relatorios$/);
+
+  await painel.getByRole('tab', { name: 'Receita' }).click();
+  await painel.locator('#valor-rapido').fill('300');
+  await painel.locator('#descricao-rapida').fill('Freela');
+  await painel.getByRole('button', { name: 'Lançar receita' }).click();
+  await expect(painel.getByText('Receita lançada.')).toBeVisible();
+});
+
+test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ page }) => {
+  await page.goto('/perfil');
+  await page.getByRole('button', { name: 'Ver o tour de novo' }).click();
+
+  const tour = page.getByRole('dialog', { name: 'Bem-vindo ao Piggu' });
+  await expect(tour).toBeVisible();
+  await tour.getByRole('button', { name: 'Próximo' }).click();
+  await expect(page.getByRole('dialog', { name: 'Lance pelo +' })).toBeVisible();
+  await expect(page.locator('button.lancar-flutuante')).toHaveClass(/destaque/);
+  // O balao sai do proprio botao: o recorte fica em volta do "+".
+  await expect(page.locator('app-tutorial .recorte')).toBeVisible();
+  await expect(page.locator('app-tutorial .balao')).toHaveClass(/acima/);
+
+  for (let i = 0; i < 6; i++) {
+    await page.getByRole('dialog').getByRole('button', { name: 'Próximo' }).click();
+  }
+  await page.getByRole('button', { name: 'Lançar meu primeiro gasto' }).click();
+
+  await expect(page.locator('app-tutorial')).toHaveCount(0);
+  await expect(page.locator('#valor-rapido')).toBeVisible();
+  await expect(page).toHaveURL(/\/perfil$/);
 });

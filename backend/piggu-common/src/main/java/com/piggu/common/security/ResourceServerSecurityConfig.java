@@ -1,5 +1,6 @@
 package com.piggu.common.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -23,6 +25,10 @@ import java.util.List;
 @Configuration
 @EnableMethodSecurity
 public class ResourceServerSecurityConfig implements WebMvcConfigurer {
+
+    /** Recusa quem ainda nao informou o CPF; o identity desliga (e la que se informa). */
+    @Value("${piggu.cpf.exigir:true}")
+    private boolean exigirCpf;
 
     @Bean
     @ConditionalOnMissingBean(SecurityFilterChain.class)
@@ -42,5 +48,12 @@ public class ResourceServerSecurityConfig implements WebMvcConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new CurrentUserArgumentResolver());
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registro) {
+        if (exigirCpf) {
+            registro.addInterceptor(new CpfObrigatorio());
+        }
     }
 }

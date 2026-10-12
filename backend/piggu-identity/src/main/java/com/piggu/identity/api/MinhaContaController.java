@@ -2,7 +2,11 @@ package com.piggu.identity.api;
 
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.domain.MinhaContaService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +14,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/** Copia dos dados e exclusao da conta (LGPD art. 18). Gratis em qualquer plano e papel. */
+/** CPF da conta, copia dos dados e exclusao da conta (LGPD art. 18). Gratis em qualquer plano e papel. */
 @RestController
 @RequestMapping("/api/me")
 public class MinhaContaController {
@@ -32,6 +38,15 @@ public class MinhaContaController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment().filename("piggu-meus-dados.json").build().toString())
                 .body(servico.exportar(usuario, token.getTokenValue()));
+    }
+
+    public record CpfRequest(@NotBlank(message = "Informe o CPF.") @Size(max = 20) String cpf) {
+    }
+
+    /** Uma vez por conta; depois de informado o CPF fica preso a ela. */
+    @PutMapping("/cpf")
+    public UserResponse informarCpf(@Valid @RequestBody CpfRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.informarCpf(usuario.id(), pedido.cpf());
     }
 
     @DeleteMapping

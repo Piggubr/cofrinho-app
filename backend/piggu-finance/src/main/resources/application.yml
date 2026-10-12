@@ -28,6 +28,12 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  leitura-de-nota:
+    # Notas lidas pela foto por familia no mes, no gratuito.
+    gratis-por-mes: ${PIGGU_LEITURAS_GRATIS_POR_MES:10}
+    # false: toda foto vai direto para o Gemini (padrao ate o leitor proprio ser testado
+    # com cupons reais). true: o Tesseract tenta primeiro e o Gemini fica de reserva.
+    leitor-proprio: ${PIGGU_LEITOR_PROPRIO:false}
   assistente:
     # Perguntas ao assistente de IA por pessoa no mes (Premium).
     perguntas-por-mes: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:150}

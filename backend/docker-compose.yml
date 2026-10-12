@@ -57,6 +57,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
       PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
+      # Cifra do CPF (32 bytes base64). Vazia so em desenvolvimento; em producao o identity recusa subir.
+      PIGGU_CPF_CHAVE: ${PIGGU_CPF_CHAVE:-}
       # Sem chave o identity recusa subir. O padrao aponta para o par gerado por
       # scripts/gerar-chaves-dev.sh; em producao defina as duas no .env.
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-file:/app/keys/piggu-dev-private.pem}
@@ -66,6 +68,8 @@ services:
       STRIPE_PRICE_MENSAL: ${STRIPE_PRICE_MENSAL:-}
       STRIPE_PRICE_ANUAL: ${STRIPE_PRICE_ANUAL:-}
       PIGGU_DIAS_DE_TESTE: ${PIGGU_DIAS_DE_TESTE:-7}
+      # Open Finance escondido por enquanto (some da lista do Premium). true volta.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
       REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
       # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
@@ -110,6 +114,8 @@ services:
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       PIGGU_ASSISTENTE_PERGUNTAS_POR_MES: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:-150}
+      # false (padrao): recibo lido so pelo Gemini. true volta o leitor proprio (Tesseract) primeiro.
+      PIGGU_LEITOR_PROPRIO: ${PIGGU_LEITOR_PROPRIO:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -199,6 +205,8 @@ services:
       PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
       PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
       PLUGGY_SANDBOX: ${PLUGGY_SANDBOX:-false}
+      # false (padrao): card de bancos escondido e novas conexoes recusadas. true volta.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
     depends_on:
       postgres:
         condition: service_healthy

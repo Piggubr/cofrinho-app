@@ -118,4 +118,34 @@ describe('Profile', () => {
     expect(auth.usuario()?.avisos?.email).toBe(true);
     expect(pagina.textContent).toContain('Avisos salvos.');
   });
+
+  it('cor do Piggu: escolher Menta pinta o app e fica guardada no aparelho', () => {
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    const opcoes = [...pagina.querySelectorAll<HTMLButtonElement>('.temas [role="radio"]')];
+    expect(opcoes.map((b) => b.querySelector('strong')?.textContent)).toEqual([
+      'Rosa Piggu',
+      'Menta',
+      'Lilás',
+      'Azul',
+    ]);
+    expect(opcoes[0].getAttribute('aria-checked')).toBe('true');
+
+    opcoes[1].click();
+    tela.detectChanges();
+
+    expect(opcoes[1].getAttribute('aria-checked')).toBe('true');
+    expect(opcoes[0].getAttribute('aria-checked')).toBe('false');
+    expect(document.documentElement.dataset['tema']).toBe('menta');
+    expect(localStorage.getItem('piggu_tema')).toBe('menta');
+
+    opcoes[0].click();
+    expect(document.documentElement.dataset['tema']).toBeUndefined();
+    expect(localStorage.getItem('piggu_tema')).toBe('rosa');
+    localStorage.removeItem('piggu_tema');
+  });
 });

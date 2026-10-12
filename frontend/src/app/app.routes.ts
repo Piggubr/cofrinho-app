@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { autenticadoGuard, perfilGuard } from './core/auth/auth.guard';
+import { autenticadoGuard, cpfGuard, perfilGuard } from './core/auth/auth.guard';
 
 /**
  * Mapa de telas.
@@ -24,9 +24,17 @@ export const routes: Routes = [
     path: 'termos',
     loadComponent: () => import('./features/legal/termos').then((m) => m.Termos),
   },
+  // Conta sem CPF para aqui antes de qualquer outra tela.
+  {
+    path: 'cpf',
+    canActivate: [autenticadoGuard],
+    loadComponent: () => import('./features/cpf/cpf').then((m) => m.Cpf),
+  },
   {
     path: '',
     canActivate: [autenticadoGuard],
+    // Filhos: roda depois de a sessao ser restaurada pelo guard acima.
+    canActivateChild: [cpfGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'painel' },

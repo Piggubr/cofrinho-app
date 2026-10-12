@@ -15,6 +15,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     List<UserAccount> findAllByOrderByEmailAsc();
 
+    boolean existsByCpfIndice(String cpfIndice);
+
     List<UserAccount> findByHouseholdIdOrderByCreatedAtAsc(UUID householdId);
 
     /** Sem nenhum acesso desde o limite (conta que nunca entrou conta pela criacao). */

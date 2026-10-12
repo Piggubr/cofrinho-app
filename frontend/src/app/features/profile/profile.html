@@ -156,6 +156,42 @@
   </section>
 }
 
+<section class="cartao" aria-labelledby="titulo-tema">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-tema">Cor do Piggu</h2>
+  </div>
+  <p i18n class="linha-detalhe">Vale para este aparelho e acompanha o modo claro ou escuro.</p>
+  <div class="temas" role="radiogroup" aria-labelledby="titulo-tema">
+    @for (tema of temas; track tema.id) {
+      <button
+        type="button"
+        role="radio"
+        class="tema"
+        [attr.aria-checked]="tema.id === temaAtual().id"
+        (click)="escolherTema(tema.id)"
+      >
+        <span class="amostra" [style.background]="tema.destaque" aria-hidden="true"></span>
+        <strong>{{ tema.nome }}</strong>
+        <small>{{ tema.descricao }}</small>
+      </button>
+    }
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-tour-perfil">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-tour-perfil">Tour do Piggu</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    O passo a passo das funções principais, o mesmo do primeiro acesso.
+  </p>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno" (click)="tutorial.abrir()">
+      Ver o tour de novo
+    </button>
+  </div>
+</section>
+
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-dados">Seus dados</h2>

@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
 import { PigguRole } from '../api/models';
 import { AuthService } from './auth.service';
 
@@ -14,6 +14,12 @@ export const autenticadoGuard: CanActivateFn = async () => {
 
   const restaurada = await auth.restaurarSessao();
   return restaurada ? true : router.createUrlTree(['/entrar']);
+};
+
+/** Conta sem CPF so passa pela tela de informar; o backend tambem recusa os dados. */
+export const cpfGuard: CanActivateChildFn = () => {
+  const auth = inject(AuthService);
+  return auth.cpfPendente() ? inject(Router).createUrlTree(['/cpf']) : true;
 };
 
 /**

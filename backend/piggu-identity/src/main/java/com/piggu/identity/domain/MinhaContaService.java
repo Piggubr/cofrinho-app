@@ -1,12 +1,15 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.billing.ProvedorDePagamento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -35,6 +38,9 @@ public class MinhaContaService {
     private final CascataDeDados cascata;
     private final ProvedorDePagamento pagamentos;
     private final TrilhaDeAuditoria trilha;
+    private final CofreDeCpf cofre;
+
+    public static final String CODIGO_CPF_EM_USO = "CPF_EM_USO";
 
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
@@ -42,7 +48,9 @@ public class MinhaContaService {
                              FamiliaService familia,
                              CascataDeDados cascata,
                              ProvedorDePagamento pagamentos,
-                             TrilhaDeAuditoria trilha) {
+                             TrilhaDeAuditoria trilha,
+                             CofreDeCpf cofre) {
+        this.cofre = cofre;
         this.usuarios = usuarios;
         this.sessoes = sessoes;
         this.familias = familias;
@@ -62,6 +70,10 @@ public class MinhaContaService {
         Map<String, Object> arquivo = new LinkedHashMap<>();
         arquivo.put("geradoEm", Instant.now());
         arquivo.put("conta", UserResponse.de(conta, familia.daConta(conta)));
+        if (conta.temCpf()) {
+            arquivo.put("cpf", Map.of("numero", cofre.decifrar(conta.getCpfCifrado()).formatado(),
+                    "informadoEm", conta.getCpfInformadoEm()));
+        }
         arquivo.put("familia", familia.ver(usuario));
         if (conta.getTermsVersion() != null) {
             arquivo.put("aceiteDosTermos", Map.of("versao", conta.getTermsVersion(), "em", conta.getTermsAcceptedAt()));
@@ -78,6 +90,42 @@ public class MinhaContaService {
         arquivo.put("dados", servicos);
         log.info("Dados exportados: conta={} servicos={}", conta.getId(), servicos.keySet());
         return arquivo;
+    }
+
+    /**
+     * Prende o CPF a conta. Um CPF so pode estar em uma conta: e o que impede a mesma
+     * pessoa de abrir varias. Depois de informado nao muda pelo app (correcao pelo canal
+     * de privacidade), senao trocar de CPF liberaria o antigo para outra conta.
+     */
+    @Transactional
+    public UserResponse informarCpf(UUID contaId, String digitado) {
+        UserAccount conta = conta(contaId);
+        if (conta.temCpf()) {
+            throw new BusinessException("Sua conta já tem um CPF. Para corrigir, escreva para o canal de privacidade.",
+                    HttpStatus.CONFLICT);
+        }
+        Cpf cpf = Cpf.de(digitado);
+        String indice = cofre.indice(cpf);
+        if (usuarios.existsByCpfIndice(indice)) {
+            throw cpfEmUso();
+        }
+        conta.informarCpf(cofre.cifrar(cpf), indice);
+        try {
+            usuarios.saveAndFlush(conta);
+        } catch (DataIntegrityViolationException corrida) {
+            // Duas contas informando o mesmo CPF ao mesmo tempo: o indice unico decide.
+            throw cpfEmUso();
+        }
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, "CPF informado");
+        log.info("CPF informado: conta={}", conta.getId());
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    private static BusinessException cpfEmUso() {
+        return new BusinessException("Este CPF já está ligado a outra conta do Piggu. Entre com a conta que você "
+                + "já tem; se não foi você quem a criou, escreva para o canal de privacidade.",
+                HttpStatus.CONFLICT, CODIGO_CPF_EM_USO);
     }
 
     /**
