@@ -1,12 +1,16 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { Router, provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Shell } from './shell';
+
+@Component({ template: '' })
+class TelaVazia {}
 
 /** A cotacao do topo segue as preferencias de moeda da pessoa. */
 describe('Shell', () => {
@@ -147,6 +151,80 @@ describe('Shell', () => {
     expect(pagina.textContent).not.toContain('Estilo de vida');
   });
 
+  it('tela de dentro mostra o voltar e o nome; a nova entra animada e o voltar retorna', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Shell],
+      providers: [
+        provideRouter([
+          { path: 'painel', component: TelaVazia },
+          { path: 'perfil', component: TelaVazia },
+          { path: 'calendario', component: TelaVazia },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+        { provide: AuthService, useValue: auth },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/painel');
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const conteudo = pagina.querySelector('main.conteudo') as HTMLElement;
+    const animacoes: Keyframe[][] = [];
+    conteudo.animate = ((quadros: Keyframe[]) => {
+      animacoes.push(quadros);
+      return {} as Animation;
+    }) as typeof conteudo.animate;
+
+    expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
+
+    // Sem troca nenhuma dentro do app, o voltar leva ao Painel.
+    await router.navigateByUrl('/perfil');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')?.textContent?.trim()).toBe('Perfil');
+    expect(pagina.querySelector('.usuario-link')!.classList).toContain('ativo');
+    expect(animacoes.at(-1)![0]['transform']).toBe('translateX(36px)');
+
+    await router.navigateByUrl('/calendario');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')?.textContent?.trim()).toBe('Calendário');
+
+    await router.navigateByUrl('/painel');
+    tela.detectChanges();
+    expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
+    expect(animacoes.at(-1)![0]['transform']).toBe('translateX(-36px)');
+    expect(animacoes.length).toBe(3);
+  });
+
+  it('o voltar do cabecalho vai ao Painel quando a pessoa abriu direto na tela', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Shell],
+      providers: [
+        provideRouter([
+          { path: 'painel', component: TelaVazia },
+          { path: 'perfil', component: TelaVazia },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+        { provide: AuthService, useValue: auth },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/perfil');
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+
+    (pagina.querySelector('button.voltar') as HTMLButtonElement).click();
+    await tela.whenStable();
+    expect(router.url).toBe('/painel');
+  });
+
   it('o membro nao tem o "+" de lancar', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
     const tela = abrir();
@@ -154,18 +232,70 @@ describe('Shell', () => {
     expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
   });
 
-  it('o "+" abre o painel de lancamento por cima da tela, sem trocar de rota', () => {
+  it('o "+" vira um balao com "Lançar gasto" e "Foto do recibo"; o gasto abre o painel', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
-    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
 
-    (pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement).click();
+    mais.click();
+    tela.detectChanges();
+    const opcoes = [...pagina.querySelectorAll('.opcoes-do-lancar .opcao')].map((o) =>
+      o.textContent?.trim(),
+    );
+    expect(opcoes).toEqual(['Lançar gasto', 'Foto do recibo']);
+    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    expect(mais.getAttribute('aria-expanded')).toBe('true');
+
+    (pagina.querySelector('.opcoes-do-lancar .opcao') as HTMLButtonElement).click();
     tela.detectChanges();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
 
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
     expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
-    expect(pagina.querySelector('button.lancar-flutuante')!.getAttribute('aria-expanded')).toBe('true');
+
+    // O mesmo botao, agora um "x", fecha o painel.
+    mais.click();
+    tela.detectChanges();
+    expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
+    expect(mais.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('tocar fora do balao ou apertar Esc fecha as opcoes', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
+
+    mais.click();
+    tela.detectChanges();
+    (pagina.querySelector('.opcoes-fundo') as HTMLButtonElement).click();
+    tela.detectChanges();
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+
+    mais.click();
+    tela.detectChanges();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    tela.detectChanges();
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+  });
+
+  it('"Foto do recibo" abre o painel ja lendo a foto escolhida', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    (pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement).click();
+    tela.detectChanges();
+
+    const campo = pagina.querySelector('.opcoes-do-lancar input[type=file]') as HTMLInputElement;
+    const foto = new File(['x'], 'nota.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(campo, 'files', { value: [foto] });
+    campo.dispatchEvent(new Event('change'));
+    tela.detectChanges();
+
+    expect(pagina.querySelector('.opcoes-do-lancar')).toBeNull();
+    expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
   });
 
   it('o parceiro ve as telas de dinheiro, mas nao o Premium, que e do titular', () => {
