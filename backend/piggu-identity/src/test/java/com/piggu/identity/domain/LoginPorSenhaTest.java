@@ -218,8 +218,12 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("documento e opcional; se vier, precisa ser valido. O celular fica em E.164")
+    @DisplayName("no Brasil o CPF e obrigatorio e valido; fora, o documento e opcional. O celular fica em E.164")
     void cpfNoCadastro() {
+        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", " ", CELULAR,
+                Consentimentos.VERSAO_DO_AVISO, true, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("CPF_NECESSARIO"));
         assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", "529.982.247-26", CELULAR,
                 Consentimentos.VERSAO_DO_AVISO, true, null))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("CPF");
@@ -259,6 +263,10 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         TokenResponse acesso = cadastrar(EMAIL);
         UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
         assertThat(conta.isEmailVerified()).isFalse();
+        assertThatThrownBy(() -> confirmacao.reenviar(acesso.usuario().id()))
+                .as("um link por minuto")
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("LINK_RECENTE"));
 
         // O token em claro so existe no e-mail; aqui pedimos um com hash conhecido.
         conta.pedirConfirmacaoDeEmail(tokens.hash("link-1"), java.time.Instant.now().plusSeconds(60));
@@ -281,15 +289,14 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("CPF que ja esta em outra conta barra o cadastro: uma conta por pessoa")
+    @DisplayName("CPF que ja esta em outra conta nao barra o cadastro")
     void cpfRepetido() {
         cadastrar(EMAIL);
 
-        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725", CELULAR,
-                Consentimentos.VERSAO_DO_AVISO, true, null))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo(MinhaContaService.CODIGO_CPF_EM_USO));
-        assertThat(usuarios.findByEmail("outra@exemplo.test")).isEmpty();
+        TokenResponse outra = auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725", CELULAR,
+                Consentimentos.VERSAO_DO_AVISO, true, null);
+
+        assertThat(outra.usuario().cpfInformado()).isTrue();
     }
 
     @Test

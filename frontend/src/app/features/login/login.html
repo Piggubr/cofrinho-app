@@ -146,15 +146,31 @@
           </div>
           <div class="campo">
             <label i18n for="telefone-cadastro">Celular</label>
+            <div class="telefone">
+            <select
+              id="ddi-cadastro"
+              name="ddi"
+              i18n-aria-label
+              aria-label="Código do país (DDI)"
+              autocomplete="tel-country-code"
+              [ngModel]="paisDoDdi()"
+              (ngModelChange)="paisDoDdi.set($event)"
+            >
+              @for (opcao of paises; track opcao.codigo) {
+                <option [value]="opcao.codigo">{{ opcao.nome }} +{{ ddi(opcao.codigo) }}</option>
+              }
+            </select>
             <input
               id="telefone-cadastro"
               name="telefone"
               type="tel"
-              autocomplete="tel"
+              autocomplete="tel-national"
+              inputmode="tel"
               placeholder="(11) 99999-8888"
               [ngModel]="telefone()"
               (ngModelChange)="telefone.set($event)"
             />
+            </div>
           </div>
           <div class="campo">
             <label i18n for="pais-cadastro">País onde você mora</label>
@@ -172,7 +188,7 @@
           </div>
           @if (documentoPedido(); as doc) {
             <div class="campo">
-              <label for="documento-cadastro">{{ doc.nome }} <ng-container i18n>(opcional)</ng-container></label>
+              <label for="documento-cadastro">{{ doc.nome }}@if (pais() !== 'BR') { <ng-container i18n>(opcional)</ng-container>}</label>
               <input
                 #campoDocumento
                 id="documento-cadastro"
@@ -187,7 +203,7 @@
                 (input)="digitarDocumento(campoDocumento.value, campoDocumento)"
               />
               <p i18n id="dica-do-documento" class="dica">
-                Uma conta por pessoa: o documento fica preso à sua conta, guardado cifrado.
+                Fica guardado cifrado e não aparece para a sua família.
               </p>
             </div>
           }

@@ -1,7 +1,13 @@
-import { BRASIL, documentoDoPais, listaDePaises } from './documentos';
+import { BRASIL, ddiDoPais, documentoDoPais, listaDePaises } from './documentos';
 
 /** Mesmos casos do DocumentosDeIdentidadeTest no identity: os dois lados concordam. */
 describe('documentos por pais', () => {
+  it('todo pais da lista tem DDI', () => {
+    expect(listaDePaises().filter((pais) => !/^[1-9]\d{0,2}$/.test(ddiDoPais(pais.codigo)))).toEqual([]);
+    expect(ddiDoPais('BR')).toBe('55');
+    expect(ddiDoPais('PT')).toBe('351');
+  });
+
   it('lista os paises em portugues, com o Brasil primeiro e o resto em ordem', () => {
     const paises = listaDePaises();
     expect(paises[0]).toEqual({ codigo: BRASIL, nome: 'Brasil' });

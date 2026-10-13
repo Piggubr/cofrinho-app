@@ -46,7 +46,6 @@ public class MinhaContaService {
     private final Aparelhos aparelhos;
     private final AvisosEnviados avisosEnviados;
 
-    public static final String CODIGO_CPF_EM_USO = "CPF_EM_USO";
 
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
@@ -80,6 +79,9 @@ public class MinhaContaService {
         Map<String, Object> arquivo = new LinkedHashMap<>();
         arquivo.put("geradoEm", Instant.now());
         arquivo.put("conta", UserResponse.de(conta, familia.daConta(conta)));
+        if (conta.getPhone() != null) {
+            arquivo.put("celular", conta.getPhone());
+        }
         if (conta.temCpf()) {
             arquivo.put("cpf", Map.of("numero", cofre.decifrar(conta.getCpfCifrado()).formatado(),
                     "informadoEm", conta.getCpfInformadoEm()));
@@ -126,33 +128,28 @@ public class MinhaContaService {
             throw new BusinessException("Sua conta já tem um CPF. Para corrigir, escreva para o canal de privacidade.",
                     HttpStatus.CONFLICT);
         }
-        prenderCpf(conta, conferirCpfLivre(digitado));
+        prenderCpf(conta, conferirCpf(digitado));
         return UserResponse.de(conta, familia.daConta(conta));
     }
 
     /**
-     * Confere o CPF (digitos e formato) e se nenhuma conta ja o usa; o cadastro chama
-     * antes de criar a conta, para nao nascer conta com CPF repetido.
+     * Confere o CPF (digitos e formato). CPF ja usado em outra conta nao barra (Eduardo,
+     * 2026-10-13): so fica no log, para investigar abuso se precisar.
      */
     @Transactional(readOnly = true)
-    public Cpf conferirCpfLivre(String digitado) {
+    public Cpf conferirCpf(String digitado) {
         Cpf cpf = Cpf.de(digitado);
         if (usuarios.existsByCpfIndice(cofre.indice(cpf))) {
-            throw cpfEmUso();
+            log.warn("CPF repetido: ja ligado a outra conta");
         }
         return cpf;
     }
 
-    /** Grava o CPF ja conferido; o indice unico do banco decide uma corrida entre contas. */
+    /** Grava o CPF ja conferido. */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
         conta.informarCpf(cofre.cifrar(cpf), cofre.indice(cpf));
-        try {
-            usuarios.saveAndFlush(conta);
-        } catch (DataIntegrityViolationException corrida) {
-            // Duas contas informando o mesmo CPF ao mesmo tempo: o indice unico decide.
-            throw cpfEmUso();
-        }
+        usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
@@ -169,7 +166,7 @@ public class MinhaContaService {
         String pais = DocumentosDeIdentidade.pais(paisDigitado);
         if (!Texto.vazio(documento) && !conta.temCpf() && !conta.temDocumento()) {
             if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
-                prenderCpf(conta, conferirCpfLivre(documento));
+                prenderCpf(conta, conferirCpf(documento));
             } else {
                 DocumentosDeIdentidade.pedidoEm(pais).ifPresent(tipo ->
                         prenderDocumento(conta, tipo, conferirDocumentoLivre(tipo, documento)));
@@ -261,12 +258,6 @@ public class MinhaContaService {
                 conta.getId(), null, descricao);
         log.info("{}: conta={}", descricao, conta.getId());
         return UserResponse.de(conta, familia.daConta(conta));
-    }
-
-    private static BusinessException cpfEmUso() {
-        return new BusinessException("Este CPF já está ligado a outra conta do Piggu. Entre com a conta que você "
-                + "já tem; se não foi você quem a criou, escreva para o canal de privacidade.",
-                HttpStatus.CONFLICT, CODIGO_CPF_EM_USO);
     }
 
     /**

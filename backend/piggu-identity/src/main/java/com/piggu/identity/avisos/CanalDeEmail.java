@@ -33,12 +33,16 @@ public class CanalDeEmail {
 
     /** @return se o provedor aceitou; falha so vai para o log, o aviso tenta no dia seguinte */
     public boolean enviar(String para, Mensagem mensagem) {
+        return enviar(para, mensagem.titulo(), mensagem.texto());
+    }
+
+    public boolean enviar(String para, String assunto, String texto) {
         try {
             cliente.post().uri(config.apiUrl())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + config.apiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("from", config.remetente(), "to", List.of(para),
-                            "subject", mensagem.titulo(), "text", mensagem.texto()))
+                            "subject", assunto, "text", texto))
                     .retrieve()
                     .toBodilessEntity();
             return true;

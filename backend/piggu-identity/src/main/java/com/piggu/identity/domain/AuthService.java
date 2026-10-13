@@ -126,9 +126,9 @@ public class AuthService {
      * {@link ConfirmacaoDeEmail} (ou entrar pelo Google com ele): por isso nao usa convite de
      * familia nem vira ADMIN pela lista.
      *
-     * <p>O documento e opcional. Se vier, e conferido antes de a conta nascer: no Brasil o
-     * CPF, nos paises de {@link DocumentosDeIdentidade} o de la; ja usado em outra conta
-     * barra o cadastro. O celular e obrigatorio e fica em E.164.</p>
+     * <p>No Brasil o CPF e obrigatorio e conferido (digitos), mas CPF repetido nao barra.
+     * Fora, o documento de {@link DocumentosDeIdentidade} e opcional; se vier, e conferido
+     * e ja usado em outra conta barra. O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
     public TokenResponse cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
@@ -149,10 +149,13 @@ public class AuthService {
         Cpf cpf = null;
         DocumentosDeIdentidade.Tipo tipo = DocumentosDeIdentidade.pedidoEm(pais).orElse(null);
         String numero = null;
-        if (Texto.vazio(documento)) {
-            // Sem documento: segue, e o Perfil oferece informar depois.
-        } else if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
-            cpf = minhaConta.conferirCpfLivre(documento);
+        if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
+            if (Texto.vazio(documento)) {
+                throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+            }
+            cpf = minhaConta.conferirCpf(documento);
+        } else if (Texto.vazio(documento)) {
+            // Fora do Brasil o documento e opcional; o Perfil oferece informar depois.
         } else if (tipo != null) {
             numero = minhaConta.conferirDocumentoLivre(tipo, documento);
         }

@@ -4,7 +4,6 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.CanalDeEmail;
-import com.piggu.identity.avisos.Mensagem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -28,20 +26,24 @@ public class ConfirmacaoDeEmail {
     private static final Logger log = LoggerFactory.getLogger(ConfirmacaoDeEmail.class);
 
     static final Duration VALIDADE = Duration.ofHours(24);
+    static final Duration INTERVALO = Duration.ofMinutes(1);
 
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
     private final TokenService tokens;
     private final CanalDeEmail email;
     private final String site;
+    private final boolean producao;
 
     public ConfirmacaoDeEmail(UserAccountRepository usuarios, FamiliaService familias, TokenService tokens,
-                              CanalDeEmail email, @Value("${SITE_URL:http://localhost:4200}") String site) {
+                              CanalDeEmail email, @Value("${SITE_URL:http://localhost:4200}") String site,
+                              @Value("${piggu.ambiente:dev}") String ambiente) {
         this.usuarios = usuarios;
         this.familias = familias;
         this.tokens = tokens;
         this.email = email;
         this.site = site.endsWith("/") ? site.substring(0, site.length() - 1) : site;
+        this.producao = "producao".equals(ambiente);
     }
 
     /** Gera o link e manda; e-mail ja confirmado nao recebe nada. */
@@ -55,17 +57,29 @@ public class ConfirmacaoDeEmail {
         usuarios.save(conta);
         String link = site + "/confirmar-email?token=" + token;
         if (!email.ligado()) {
-            log.info("E-mail desligado; link de confirmacao da conta {}: {}", conta.getId(), link);
+            // O link confirma a conta: em producao nao vai para o log, onde mais gente le.
+            if (producao) {
+                log.warn("E-mail desligado em producao; link de confirmacao nao enviado: conta={}", conta.getId());
+            } else {
+                log.info("E-mail desligado; link de confirmacao da conta {}: {}", conta.getId(), link);
+            }
             return;
         }
-        email.enviar(conta.getEmail(), new Mensagem("Piggu: confirme seu e-mail",
-                List.of("Para confirmar seu e-mail no Piggu, abra o link (vale 24 horas): " + link)));
+        email.enviar(conta.getEmail(), "Piggu: confirme seu e-mail",
+                "Para confirmar seu e-mail no Piggu, abra o link abaixo. Ele vale por 24 horas.\n\n" + link
+                        + "\n\nSe nao foi voce quem criou a conta, ignore este e-mail.");
     }
 
+    /** Um link por minuto, no maximo: o botao nao vira disparador de e-mail. */
     @Transactional
     public void reenviar(UUID usuarioId) {
-        enviar(usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente.")));
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        if (conta.linkDeEmailValido(Instant.now().plus(VALIDADE).minus(INTERVALO))) {
+            throw new BusinessException("Acabamos de mandar um link. Espere um minuto para pedir outro.",
+                    HttpStatus.TOO_MANY_REQUESTS, "LINK_RECENTE");
+        }
+        enviar(conta);
     }
 
     @Transactional

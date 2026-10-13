@@ -15,7 +15,7 @@ import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
-import { BRASIL, documentoDoPais, listaDePaises } from '../../core/ui/documentos';
+import { BRASIL, ddiDoPais, documentoDoPais, listaDePaises } from '../../core/ui/documentos';
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -23,8 +23,8 @@ type Modo = 'entrar' | 'cadastro';
  * Entrada no app.
  *
  * <p>Duas portas para a mesma conta: e-mail e senha, ou o Google. O cadastro por e-mail
- * pede nome, e-mail, senha (duas vezes), celular, o pais onde mora, o documento de la, opcional (o CPF no
- * Brasil; veja {@link documentoDoPais}) e o aceite dos termos. Pelo Google, na primeira
+ * pede nome, e-mail, senha (duas vezes), celular, o pais onde mora, o documento de la (o CPF, obrigatorio, no
+ * Brasil; fora e opcional; veja {@link documentoDoPais}) e o aceite dos termos. Pelo Google, na primeira
  * vez o backend so cria a conta com o aceite, pedido aqui depois que o Google confirma.</p>
  */
 @Component({
@@ -56,7 +56,10 @@ export class Login {
   protected readonly paises = listaDePaises();
   protected readonly pais = signal(BRASIL);
   protected readonly documento = signal('');
+  /** Pais do DDI do celular; segue o pais onde mora ate a pessoa escolher outro. */
+  protected readonly paisDoDdi = signal(BRASIL);
   protected readonly telefone = signal('');
+  protected readonly ddi = ddiDoPais;
   /** O documento que o pais escolhido pede; nulo nos paises onde nao se pede nenhum. */
   protected readonly documentoPedido = computed(() => documentoDoPais(this.pais()));
 
@@ -122,7 +125,7 @@ export class Login {
             senha: this.senha(),
             pais: this.pais(),
             documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
-            telefone: this.telefone().trim(),
+            telefone: `+${ddiDoPais(this.paisDoDdi())} ${this.telefone().trim()}`,
           },
           this.lembrar(),
         ),
@@ -145,12 +148,15 @@ export class Login {
     if (this.senha() !== this.confirmacao()) {
       return $localize`As duas senhas nao sao iguais.`;
     }
-    if (this.telefone().replace(/\D/g, '').length < 10) {
-      return $localize`Informe seu celular com DDD (fora do Brasil, com + e o código do país).`;
+    if (this.telefone().replace(/\D/g, '').length < 6) {
+      return $localize`Informe seu celular.`;
     }
     const doc = this.documentoPedido();
-    if (doc && this.documento().trim() && !doc.valido(this.documento())) {
-      return $localize`${doc.nome}:nome: inválido. Confira o número.`;
+    const obrigatorio = this.pais() === BRASIL;
+    if (doc && (obrigatorio || this.documento().trim()) && !doc.valido(this.documento())) {
+      return this.documento().trim()
+        ? $localize`${doc.nome}:nome: inválido. Confira o número.`
+        : $localize`Informe o número do seu documento (${doc.nome}:nome:).`;
     }
     if (!this.aceitou()) {
       return $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`;
@@ -161,6 +167,7 @@ export class Login {
   /** Outro pais pede outro documento: o numero digitado para o anterior nao serve. */
   protected trocarPais(pais: string): void {
     this.pais.set(pais);
+    this.paisDoDdi.set(pais);
     this.documento.set('');
   }
 

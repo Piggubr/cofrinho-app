@@ -155,3 +155,19 @@ h1 {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* DDI e numero na mesma linha; o DDI encolhe ate o texto do pais. */
+.telefone {
+  display: flex;
+  gap: 8px;
+
+  select {
+    flex: 0 1 40%;
+    min-width: 0;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+}

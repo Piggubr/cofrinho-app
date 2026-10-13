@@ -299,14 +299,11 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("o mesmo CPF nao entra em outra conta, nem com outra pontuacao")
-    void cpfUnico() {
+    @DisplayName("o mesmo CPF pode estar em duas contas")
+    void cpfRepetido() {
         contas.informarCpf(titular.getId(), "529.982.247-25");
 
-        assertThatThrownBy(() -> contas.informarCpf(membro.getId(), "52998224725"))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo(MinhaContaService.CODIGO_CPF_EM_USO));
-        assertThat(usuarios.findById(membro.getId()).orElseThrow().temCpf()).isFalse();
+        assertThat(contas.informarCpf(membro.getId(), "52998224725").cpfInformado()).isTrue();
     }
 
     @Test
