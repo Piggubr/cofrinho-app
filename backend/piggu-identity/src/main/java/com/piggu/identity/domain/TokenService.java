@@ -1,7 +1,6 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.dados.EscopoDeExclusao;
-import com.piggu.common.security.CurrentUserArgumentResolver;
 import com.piggu.identity.config.JwtProperties;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -40,13 +39,11 @@ public class TokenService {
     }
 
     /**
-     * O token de uso diario leva a claim {@code cpf}: sem CPF informado (de quem mora no
-     * Brasil; quem mora fora nao precisa), os outros servicos
-     * recusam os dados (ver CurrentUserArgumentResolver). Os tokens internos (exclusao,
-     * lembrete) ficam sem ela, para apagar a conta funcionar mesmo sem CPF.
+     * O token de uso diario. Ja nao leva a claim {@code cpf}: o documento virou opcional
+     * (Eduardo, 2026-10-13), entao nenhum servico barra quem nao informou.
      */
     public String gerarAccessToken(UserAccount conta, Household familia) {
-        return gerar(conta, familia, propriedades.accessTtl(), null, conta.documentoEmDia());
+        return gerar(conta, familia, propriedades.accessTtl(), null);
     }
 
     /**
@@ -54,16 +51,15 @@ public class TokenService {
      * Token comum nao tem a claim {@code exclusao}, entao nao apaga nada.
      */
     public String gerarTokenDeExclusao(UserAccount conta, Household familia, EscopoDeExclusao escopo) {
-        return gerar(conta, familia, Duration.ofMinutes(5), escopo, null);
+        return gerar(conta, familia, Duration.ofMinutes(5), escopo);
     }
 
     /** Token de cinco minutos para o lembrete diario ler os avisos da pessoa no financeiro. */
     public String gerarTokenDoLembrete(UserAccount conta, Household familia) {
-        return gerar(conta, familia, Duration.ofMinutes(5), null, null);
+        return gerar(conta, familia, Duration.ofMinutes(5), null);
     }
 
-    private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
-                         Boolean cpf) {
+    private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao) {
         Instant agora = Instant.now();
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .issuer(propriedades.issuer())
@@ -80,9 +76,6 @@ public class TokenService {
                 .claim("familia", familia.getId().toString());
         if (exclusao != null) {
             claims.claim(EscopoDeExclusao.CLAIM, exclusao.name());
-        }
-        if (cpf != null) {
-            claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_CPF, cpf);
         }
 
         JwsHeader cabecalho = JwsHeader.with(SignatureAlgorithm.RS256).keyId("piggu-signing-key").build();

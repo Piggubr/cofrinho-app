@@ -12,8 +12,10 @@ import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
+import com.piggu.identity.domain.ConfirmacaoDeEmail;
 import com.piggu.identity.domain.DocumentosDeIdentidade;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpHeaders;
@@ -47,10 +49,12 @@ public class AuthController {
     public static final String COOKIE = "piggu_refresh";
 
     private final AuthService servico;
+    private final ConfirmacaoDeEmail confirmacao;
     private final Duration validadeDaSessao;
 
-    public AuthController(AuthService servico, JwtProperties jwt) {
+    public AuthController(AuthService servico, ConfirmacaoDeEmail confirmacao, JwtProperties jwt) {
         this.servico = servico;
+        this.confirmacao = confirmacao;
         this.validadeDaSessao = jwt.refreshTtl();
     }
 
@@ -68,7 +72,23 @@ public class AuthController {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
         String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
         return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
-                pedido.versaoDosTermos(), lembrar, userAgent));
+                pedido.telefone(), pedido.versaoDosTermos(), lembrar, userAgent));
+    }
+
+    public record ConfirmarEmailRequest(@NotBlank @Size(max = 100) String token) {
+    }
+
+    /** Aberto: quem clica no link pode estar sem sessao, em outro aparelho. */
+    @PostMapping("/confirmar-email")
+    public UserResponse confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
+        return confirmacao.confirmar(pedido.token());
+    }
+
+    /** Manda outro link; o anterior deixa de valer. */
+    @PostMapping("/me/email/reenviar")
+    public ResponseEntity<Void> reenviarConfirmacao(@AuthUser CurrentUser usuario) {
+        confirmacao.reenviar(usuario.id());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/entrar")

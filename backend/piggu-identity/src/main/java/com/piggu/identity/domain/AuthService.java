@@ -50,6 +50,7 @@ public class AuthService {
     private final TokenService tokens;
     private final Senhas senhas;
     private final MinhaContaService minhaConta;
+    private final ConfirmacaoDeEmail confirmacao;
     private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
@@ -60,6 +61,7 @@ public class AuthService {
                        TokenService tokens,
                        Senhas senhas,
                        MinhaContaService minhaConta,
+                       ConfirmacaoDeEmail confirmacao,
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.usuarios = usuarios;
@@ -69,6 +71,7 @@ public class AuthService {
         this.tokens = tokens;
         this.senhas = senhas;
         this.minhaConta = minhaConta;
+        this.confirmacao = confirmacao;
         this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
                 .collect(Collectors.toSet());
     }
@@ -119,16 +122,17 @@ public class AuthService {
     }
 
     /**
-     * Cadastro por e-mail e senha. O e-mail fica sem prova ate o primeiro login Google
-     * nele: por isso nao usa convite de familia nem vira ADMIN pela lista.
+     * Cadastro por e-mail e senha. O e-mail fica sem prova ate a pessoa abrir o link de
+     * {@link ConfirmacaoDeEmail} (ou entrar pelo Google com ele): por isso nao usa convite de
+     * familia nem vira ADMIN pela lista.
      *
-     * <p>O documento do pais onde a pessoa mora vem aqui mesmo e e conferido antes de a
-     * conta nascer: no Brasil o CPF, nos paises de {@link DocumentosDeIdentidade} o de la.
-     * Documento ja usado em outra conta barra o cadastro. Nos outros paises segue sem.</p>
+     * <p>O documento e opcional. Se vier, e conferido antes de a conta nascer: no Brasil o
+     * CPF, nos paises de {@link DocumentosDeIdentidade} o de la; ja usado em outra conta
+     * barra o cadastro. O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
     public TokenResponse cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
-                                   String documento, String versaoDosTermos, boolean lembrar, String userAgent) {
+                                   String documento, String telefone, String versaoDosTermos, boolean lembrar, String userAgent) {
         String email = Texto.email(emailBruto);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         if (nomeLimpo.isEmpty()) {
@@ -141,14 +145,13 @@ public class AuthService {
         }
         senhas.validar(senha, email);
         String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        String celular = e164(telefone, pais);
         Cpf cpf = null;
         DocumentosDeIdentidade.Tipo tipo = DocumentosDeIdentidade.pedidoEm(pais).orElse(null);
         String numero = null;
-        if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
-            if (Texto.vazio(documento)) {
-                throw new BusinessException("Informe seu CPF. Ele garante uma conta por pessoa.",
-                        HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
-            }
+        if (Texto.vazio(documento)) {
+            // Sem documento: segue, e o Perfil oferece informar depois.
+        } else if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
             cpf = minhaConta.conferirCpfLivre(documento);
         } else if (tipo != null) {
             numero = minhaConta.conferirDocumentoLivre(tipo, documento);
@@ -157,6 +160,7 @@ public class AuthService {
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
         conta.setNickname(nomeLimpo);
         conta.declararPais(pais);
+        conta.setPhone(celular);
         conta.definirSenha(senhas.hash(senha));
         conta.registrarAcesso();
         usuarios.save(conta);
@@ -166,6 +170,9 @@ public class AuthService {
         if (numero != null) {
             minhaConta.prenderDocumento(conta, tipo, numero);
         }
+        confirmacao.enviar(conta);
+        // TODO: confirmar o celular por SMS. Precisa de um provedor externo (Twilio, Zenvia,
+        // AWS SNS); por ora o numero so fica guardado.
         log.info("Cadastro por senha: conta={}", conta.getId());
 
         return emitirPar(conta, userAgent, lembrar);
@@ -310,6 +317,25 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
         conta.escolherAvisos(porEmail, porPush);
         return UserResponse.de(conta, familias.daConta(conta));
+    }
+
+    /**
+     * Celular em E.164. Com "+" vale o codigo do pais digitado; sem ele, no Brasil
+     * entende DDD + numero e poe o +55.
+     */
+    static String e164(String digitado, String pais) {
+        String bruto = digitado == null ? "" : digitado.trim();
+        boolean comCodigo = bruto.startsWith("+");
+        String digitos = bruto.replaceAll("\\D", "");
+        if (!comCodigo && DocumentosDeIdentidade.BRASIL.equals(pais) && (digitos.length() == 10 || digitos.length() == 11)) {
+            digitos = "55" + digitos;
+        }
+        String numero = "+" + digitos;
+        if ((!comCodigo && !DocumentosDeIdentidade.BRASIL.equals(pais)) || !numero.matches("\\+[1-9]\\d{7,14}")) {
+            throw new BusinessException("Confira o celular. Fora do Brasil, comece com + e o codigo do pais.",
+                    HttpStatus.UNPROCESSABLE_CONTENT, "TELEFONE_INVALIDO");
+        }
+        return numero;
     }
 
     private static String fusoValido(String fuso) {

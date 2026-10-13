@@ -94,6 +94,7 @@ export class Profile {
   protected readonly avisoDaSenha = signal('');
 
   protected readonly salvandoFoto = signal(false);
+  protected readonly reenviando = signal(false);
 
   /** Primeira letra do nome, no lugar da foto quando nao ha nenhuma. */
   protected readonly inicial = computed(() =>
@@ -107,6 +108,21 @@ export class Profile {
     });
     if (this.auth.ehAdmin()) {
       this.carregarAdmin();
+    }
+  }
+
+  /** Manda outro link de confirmacao do e-mail; o aviso aparece no cartao da senha. */
+  protected async reenviarConfirmacao(): Promise<void> {
+    this.erroDaSenha.set('');
+    this.avisoDaSenha.set('');
+    this.reenviando.set(true);
+    try {
+      await this.auth.reenviarConfirmacao();
+      this.avisoDaSenha.set($localize`Mandamos um link novo. Ele vale por 24 horas.`);
+    } catch (falha) {
+      this.erroDaSenha.set(mensagemDeErro(falha));
+    } finally {
+      this.reenviando.set(false);
     }
   }
 

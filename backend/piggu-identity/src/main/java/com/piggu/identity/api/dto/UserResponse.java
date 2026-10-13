@@ -16,7 +16,7 @@ import java.util.UUID;
  * Perfil publico do usuario — o mesmo formato que {@code usuarioPublico_} devolvia,
  * acrescido do id.
  *
- * <p>{@code cpfInformado} falso faz o front pedir o documento antes de liberar o app: o
+ * <p>{@code cpfInformado} falso faz o Perfil oferecer informar o documento (opcional): o
  * CPF de quem mora no Brasil, ou o documento do pais ({@code pais}) quando la se pede um
  * (veja {@code DocumentosDeIdentidade}). O nome ficou do tempo em que so havia CPF. O
  * numero nunca vem aqui; so na exportacao dos dados.</p>

@@ -145,6 +145,18 @@
             />
           </div>
           <div class="campo">
+            <label i18n for="telefone-cadastro">Celular</label>
+            <input
+              id="telefone-cadastro"
+              name="telefone"
+              type="tel"
+              autocomplete="tel"
+              placeholder="(11) 99999-8888"
+              [ngModel]="telefone()"
+              (ngModelChange)="telefone.set($event)"
+            />
+          </div>
+          <div class="campo">
             <label i18n for="pais-cadastro">País onde você mora</label>
             <select
               id="pais-cadastro"
@@ -160,7 +172,7 @@
           </div>
           @if (documentoPedido(); as doc) {
             <div class="campo">
-              <label for="documento-cadastro">{{ doc.nome }}</label>
+              <label for="documento-cadastro">{{ doc.nome }} <ng-container i18n>(opcional)</ng-container></label>
               <input
                 #campoDocumento
                 id="documento-cadastro"

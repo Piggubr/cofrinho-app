@@ -8,7 +8,8 @@ import jakarta.validation.constraints.Size;
  * Cadastro por e-mail e senha.
  *
  * @param pais            onde mora (ISO 3166, duas letras); nulo conta como Brasil
- * @param documento       CPF no Brasil, o documento de la nos paises que pedem um
+ * @param documento       opcional: CPF no Brasil, o documento de la nos paises que pedem um
+ * @param telefone        celular; sem "+" e no Brasil vale DDD + numero
  * @param versaoDosTermos versao dos termos e do aviso que a pessoa aceitou ao se cadastrar
  * @param lembrar         continuar conectado; falso deixa o cookie so ate fechar o navegador
  */
@@ -17,6 +18,7 @@ public record CadastroRequest(@NotBlank(message = "Conte como podemos te chamar.
                               @NotBlank(message = "Crie uma senha.") @Size(max = 200, message = "Senha longa demais.") String senha,
                               @Size(max = 2) String pais,
                               @Size(max = 40) String documento,
+                              @NotBlank(message = "Informe seu celular.") @Size(max = 30) String telefone,
                               @Size(max = 20) String versaoDosTermos,
                               Boolean lembrar) {
 }

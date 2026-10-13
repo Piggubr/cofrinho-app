@@ -84,6 +84,7 @@ describe('AuthService', () => {
         senha: 'cofrinho123',
         pais: 'BR',
         documento: '52998224725',
+        telefone: '11999998888',
       },
       true,
     );
@@ -94,6 +95,7 @@ describe('AuthService', () => {
       senha: 'cofrinho123',
       pais: 'BR',
       documento: '52998224725',
+      telefone: '11999998888',
       versaoDosTermos: VERSAO_DO_AVISO,
       lembrar: true,
     });

@@ -220,7 +220,7 @@ describe('Login', () => {
     expect(pagina.querySelector<HTMLElement>('.area-do-botao')?.hidden).toBe(false);
   });
 
-  it('cadastro confere senha, confirmacao, CPF e aceite antes de chamar o backend', async () => {
+  it('cadastro confere senha, confirmacao, celular, CPF (se vier) e aceite antes de chamar o backend', async () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     preencher(tela, 'nome-cadastro', 'Ana');
@@ -240,7 +240,9 @@ describe('Login', () => {
 
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
     await enviar(tela);
-    expect(alerta()).toContain('Informe o número do seu documento (CPF)');
+    expect(alerta()).toContain('Informe seu celular');
+
+    preencher(tela, 'telefone-cadastro', '(11) 99999-8888');
 
     preencher(tela, 'documento-cadastro', '529.982.247-26');
     await enviar(tela);
@@ -270,6 +272,7 @@ describe('Login', () => {
           senha: 'cofrinho123',
           pais: 'BR',
           documento: '52998224725',
+          telefone: '(11) 99999-8888',
         },
         true,
       ],
@@ -290,7 +293,7 @@ describe('Login', () => {
     preencher(tela, 'email-cadastro', 'ana@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
-    preencher(tela, 'documento-cadastro', '52998224725');
+    preencher(tela, 'telefone-cadastro', '11999998888');
     const aceite = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       '.aceite-do-cadastro input[type=checkbox]',
     )!;
@@ -327,6 +330,7 @@ describe('Login', () => {
     preencher(tela, 'email-cadastro', 'rita@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
+    preencher(tela, 'telefone-cadastro', '+351 912 345 678');
     const aceite = pagina.querySelector<HTMLInputElement>(
       '.aceite-do-cadastro input[type=checkbox]',
     )!;
@@ -344,6 +348,7 @@ describe('Login', () => {
       senha: 'cofrinho123',
       pais: 'PT',
       documento: '123456789',
+      telefone: '+351 912 345 678',
     });
 
     await escolher('US');

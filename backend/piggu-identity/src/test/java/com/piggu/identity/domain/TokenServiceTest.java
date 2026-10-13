@@ -68,29 +68,13 @@ class TokenServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("sem CPF o access token diz cpf=false; o token de exclusao nao leva a claim")
-    void claimDoCpf() {
+    @DisplayName("documento e opcional: nenhum token leva a claim cpf")
+    void semClaimDoCpf() {
         UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).hasClaim("cpf")).isFalse();
         assertThat(decoder.decode(tokens.gerarTokenDeExclusao(conta, FAMILIA, EscopoDeExclusao.PESSOA))
                 .hasClaim("cpf")).isFalse();
-
-        conta.informarCpf("cifrado", "indice");
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
-    }
-
-    @Test
-    @DisplayName("quem mora num pais que nao pede documento sai com cpf=true; onde pede, so depois de informar")
-    void claimDoCpfForaDoBrasil() {
-        UserAccount conta = new UserAccount("fora@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
-        conta.declararPais("US");
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
-
-        conta.declararPais("PT");
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isFalse();
-        conta.informarDocumento(DocumentosDeIdentidade.Tipo.PT_NIF, "cifrado", "indice");
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
     }
 
     @Test

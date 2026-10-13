@@ -49,7 +49,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     void cadastroEEntrada() throws Exception {
         String cadastro = mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuario.temSenha").value(true))
                 .andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE);
@@ -67,7 +67,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
 
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("EMAIL_JA_CADASTRADO"));
     }

@@ -154,6 +154,17 @@ public class UserAccount {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
+    /** SHA-256 do link de confirmacao do e-mail ainda nao usado. */
+    @Column(name = "email_token_hash", length = 64)
+    private String emailTokenHash;
+
+    @Column(name = "email_token_expires_at")
+    private Instant emailTokenExpiresAt;
+
+    /** Celular em E.164 (+5511999998888), pedido no cadastro por senha; ainda sem prova por SMS. */
+    @Column(name = "phone", length = 16)
+    private String phone;
+
     /** Senhas erradas seguidas; ao chegar no limite a entrada por senha trava um tempo. */
     @Column(name = "password_failures", nullable = false)
     private int passwordFailures;
@@ -239,6 +250,26 @@ public class UserAccount {
 
     public void confirmarEmail() {
         this.emailVerified = true;
+        this.emailTokenHash = null;
+        this.emailTokenExpiresAt = null;
+    }
+
+    /** Guarda o hash do link novo; o anterior deixa de valer. */
+    public void pedirConfirmacaoDeEmail(String hash, Instant validoAte) {
+        this.emailTokenHash = hash;
+        this.emailTokenExpiresAt = validoAte;
+    }
+
+    public boolean linkDeEmailValido(Instant agora) {
+        return emailTokenExpiresAt != null && agora.isBefore(emailTokenExpiresAt);
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     /** A entrada por senha esta travada por excesso de tentativas erradas. */

@@ -23,18 +23,6 @@ export const termosGuard: CanActivateFn & CanActivateChildFn = () => {
 };
 
 /**
- * Conta sem CPF so passa pela tela de informar; o backend tambem recusa os dados. Antes
- * disso, os Termos novos precisam estar aceitos.
- */
-export const cpfGuard: CanActivateChildFn = (rota, estado) => {
-  const auth = inject(AuthService);
-  if (auth.termosPendentes()) {
-    return termosGuard(rota, estado);
-  }
-  return auth.cpfPendente() ? inject(Router).createUrlTree(['/cpf']) : true;
-};
-
-/**
  * Restringe uma rota a perfis especificos.
  *
  * <p>Isto e conveniencia de navegacao, nao seguranca: quem decide de verdade e o

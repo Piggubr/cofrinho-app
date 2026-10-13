@@ -344,8 +344,17 @@
     }
     @if (pessoa.emailConfirmado === false) {
       <p i18n class="linha-detalhe">
-        Seu e-mail ainda não foi confirmado. Entrar uma vez pelo Google com ele confirma, e só então
-        dá para aceitar convite de família.
+        Seu e-mail ainda não foi confirmado. Abra o link que mandamos para {{ pessoa.email }} (ou entre
+        uma vez pelo Google com ele); só então dá para aceitar convite de família.
+      </p>
+      <button i18n type="button" class="botao contorno pequeno" [disabled]="reenviando()" (click)="reenviarConfirmacao()">
+        Reenviar e-mail de confirmação
+      </button>
+    }
+    @if (pessoa.cpfInformado === false) {
+      <p class="linha-detalhe">
+        <ng-container i18n>Documento ainda não informado (opcional).</ng-container>
+        <a i18n routerLink="/cpf">Informar agora</a>
       </p>
     }
     @if (erroDaSenha()) {

@@ -16,8 +16,10 @@ export interface DadosDoCadastro {
   senha: string;
   /** ISO 3166, duas letras. */
   pais: string;
-  /** CPF no Brasil, o documento de la nos paises que pedem um. */
+  /** Opcional: CPF no Brasil, o documento de la nos paises que pedem um. */
   documento?: string;
+  /** Celular; no Brasil pode vir so com DDD, fora comeca com + e o codigo do pais. */
+  telefone: string;
 }
 
 /** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */
@@ -59,7 +61,6 @@ export class AuthService {
   );
 
   /** Conta ainda sem CPF: o app so abre a tela de informar. */
-  readonly cpfPendente = computed(() => this.usuarioAtual()?.cpfInformado === false);
 
   /** Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo. */
   readonly termosPendentes = computed(() => {
@@ -109,6 +110,21 @@ export class AuthService {
       ),
     );
     this.atualizarUsuario(usuario);
+  }
+
+  /** Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. */
+  async confirmarEmail(token: string): Promise<void> {
+    const usuario = await firstValueFrom(
+      this.http.post<Usuario>(`${this.config.apiUrl}/auth/confirmar-email`, { token }),
+    );
+    if (this.usuarioAtual()?.id === usuario.id) {
+      this.atualizarUsuario(usuario);
+    }
+  }
+
+  /** Manda outro link de confirmacao; o anterior deixa de valer. */
+  async reenviarConfirmacao(): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/me/email/reenviar`, {}));
   }
 
   private async abrirSessao(rota: string, corpo: object, lembrar: boolean): Promise<void> {

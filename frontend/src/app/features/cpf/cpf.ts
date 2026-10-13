@@ -9,7 +9,7 @@ import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
 /**
- * Primeira entrada (ou conta antiga) sem documento: o app so abre depois daqui.
+ * Informar o documento, opcional; o Perfil oferece esta tela a quem ainda nao informou.
  *
  * <p>O documento prende a conta a uma pessoa: o mesmo numero nao entra em outra conta. A
  * pessoa escolhe o pais onde mora e o campo vira o documento de la (o CPF no Brasil; veja

@@ -23,7 +23,7 @@ type Modo = 'entrar' | 'cadastro';
  * Entrada no app.
  *
  * <p>Duas portas para a mesma conta: e-mail e senha, ou o Google. O cadastro por e-mail
- * pede nome, e-mail, senha (duas vezes), o pais onde mora, o documento de la (o CPF no
+ * pede nome, e-mail, senha (duas vezes), celular, o pais onde mora, o documento de la, opcional (o CPF no
  * Brasil; veja {@link documentoDoPais}) e o aceite dos termos. Pelo Google, na primeira
  * vez o backend so cria a conta com o aceite, pedido aqui depois que o Google confirma.</p>
  */
@@ -56,6 +56,7 @@ export class Login {
   protected readonly paises = listaDePaises();
   protected readonly pais = signal(BRASIL);
   protected readonly documento = signal('');
+  protected readonly telefone = signal('');
   /** O documento que o pais escolhido pede; nulo nos paises onde nao se pede nenhum. */
   protected readonly documentoPedido = computed(() => documentoDoPais(this.pais()));
 
@@ -120,7 +121,8 @@ export class Login {
             email: this.email().trim(),
             senha: this.senha(),
             pais: this.pais(),
-            documento: this.documentoPedido()?.limpar(this.documento()),
+            documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
+            telefone: this.telefone().trim(),
           },
           this.lembrar(),
         ),
@@ -143,11 +145,12 @@ export class Login {
     if (this.senha() !== this.confirmacao()) {
       return $localize`As duas senhas nao sao iguais.`;
     }
+    if (this.telefone().replace(/\D/g, '').length < 10) {
+      return $localize`Informe seu celular com DDD (fora do Brasil, com + e o código do país).`;
+    }
     const doc = this.documentoPedido();
-    if (doc && !doc.valido(this.documento())) {
-      return this.documento().trim()
-        ? $localize`${doc.nome}:nome: inválido. Confira o número.`
-        : $localize`Informe o número do seu documento (${doc.nome}:nome:).`;
+    if (doc && this.documento().trim() && !doc.valido(this.documento())) {
+      return $localize`${doc.nome}:nome: inválido. Confira o número.`;
     }
     if (!this.aceitou()) {
       return $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`;
