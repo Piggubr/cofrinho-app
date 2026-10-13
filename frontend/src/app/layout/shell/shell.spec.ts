@@ -286,6 +286,40 @@ describe('Shell', () => {
     expect(mais.getAttribute('aria-expanded')).toBe('false');
   });
 
+  it('o "+" se recolhe ao rolar para baixo, fica com o balao aberto e volta no topo', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
+    const rolar = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+      tela.detectChanges();
+    };
+
+    try {
+      rolar(40);
+      expect(mais.classList).not.toContain('recolhido');
+      rolar(300);
+      expect(mais.classList).toContain('recolhido');
+
+      // A pontinha traz o botao de volta e abre o balao; rolar com ele aberto nao recolhe.
+      mais.click();
+      tela.detectChanges();
+      expect(mais.classList).not.toContain('recolhido');
+      rolar(600);
+      expect(mais.classList).not.toContain('recolhido');
+
+      mais.click();
+      rolar(900);
+      expect(mais.classList).toContain('recolhido');
+      rolar(0);
+      expect(mais.classList).not.toContain('recolhido');
+    } finally {
+      Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    }
+  });
+
   it('tocar fora do balao ou apertar Esc fecha as opcoes', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
