@@ -297,7 +297,16 @@
 
 /* A de baixo (mais perto do dedo) chega primeiro. */
 .opcao:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.opcao:nth-child(2) {
   animation-delay: 0.04s;
+}
+
+/* Aviso curto depois de lancar (o visual fica no styles.scss): acima do "+". */
+.aviso-do-lancamento {
+  bottom: calc(1.5rem + 56px + 0.75rem);
 }
 
 .opcao:hover {
@@ -554,9 +563,22 @@
       0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   }
 
+  /* Rolando para baixo o "+" sai pela direita e deixa uma pontinha para o toque. */
+  .lancar-flutuante.recolhido {
+    transform: translateX(calc(100% + 1rem - 18px));
+    opacity: 0.85;
+    transition:
+      transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.3s ease;
+  }
+
   .opcoes-do-lancar {
     right: 1rem;
     bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 54px + 0.75rem);
+  }
+
+  .aviso-do-lancamento {
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 0.5rem);
   }
 
   /* Painel do "+" no celular: folha larga logo acima do botao. */
@@ -769,6 +791,10 @@
 
   .opcoes-do-lancar {
     bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 0.75rem);
+  }
+
+  .aviso-do-lancamento {
+    bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem);
   }
 
   @media (max-width: 899px) {

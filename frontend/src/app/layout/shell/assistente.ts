@@ -5,6 +5,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { FalaDoAssistente, SituacaoDoAssistente } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
+import { toqueNaTela } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaService } from '../../core/ui/moeda';
@@ -421,7 +422,11 @@ export class Assistente {
       });
   }
 
+  /** No toque o cursor nao vai sozinho para o campo: subiria o teclado de surpresa. */
   private focar(): void {
+    if (toqueNaTela()) {
+      return;
+    }
     setTimeout(() => this.campo()?.nativeElement.focus());
   }
 

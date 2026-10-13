@@ -39,10 +39,12 @@ describe('LancamentoRapido', () => {
     botao.click();
   }
 
-  it('lanca um gasto e avisa as telas abertas, sem fechar o painel', async () => {
+  it('lanca um gasto, avisa as telas abertas e entrega a mensagem para fechar', async () => {
     const tela = await abrir();
     const pagina: HTMLElement = tela.nativeElement;
     const versao = TestBed.inject(Lancamentos).versao();
+    const lancados: string[] = [];
+    tela.componentInstance.lancado.subscribe((mensagem) => lancados.push(mensagem));
 
     digitar(pagina, '#valor-rapido', '23.9');
     digitar(pagina, '#descricao-rapida', 'Padaria');
@@ -58,7 +60,7 @@ describe('LancamentoRapido', () => {
     tela.detectChanges();
     await tela.whenStable();
 
-    expect(pagina.textContent).toContain('Gasto lançado.');
+    expect(lancados).toEqual(['Gasto lançado.']);
     expect(TestBed.inject(Lancamentos).versao()).toBe(versao + 1);
     expect((pagina.querySelector('#valor-rapido') as HTMLInputElement).value).toBe('');
   });
@@ -66,6 +68,8 @@ describe('LancamentoRapido', () => {
   it('na aba Receita lanca uma receita com a categoria escolhida', async () => {
     const tela = await abrir();
     const pagina: HTMLElement = tela.nativeElement;
+    const lancados: string[] = [];
+    tela.componentInstance.lancado.subscribe((mensagem) => lancados.push(mensagem));
 
     clicar(pagina, 'Receita');
     tela.detectChanges();
@@ -85,7 +89,18 @@ describe('LancamentoRapido', () => {
     );
     pedido.flush({});
     tela.detectChanges();
-    expect(pagina.textContent).toContain('Receita lançada.');
+    expect(lancados).toEqual(['Receita lançada.']);
+  });
+
+  it('abre direto na aba Receita quando pedido pelo balao', async () => {
+    const tela = TestBed.createComponent(LancamentoRapido);
+    tela.componentRef.setInput('tipoInicial', 'receita');
+    tela.detectChanges();
+    http.match(() => true).forEach((pedido) => pedido.flush([]));
+    tela.detectChanges();
+
+    const ativa = (tela.nativeElement as HTMLElement).querySelector('.alternador .ativo');
+    expect(ativa?.textContent?.trim()).toBe('Receita');
   });
 
   it('sem valor nao manda nada e diz o que falta', async () => {

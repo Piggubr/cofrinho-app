@@ -154,9 +154,13 @@
         (click)="fecharOpcoes()"
       ></button>
       <div class="opcoes-do-lancar" role="menu" aria-label="Lançar" i18n-aria-label>
-        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento()">
+        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('gasto')">
           <span class="opcao-icone"><app-icone nome="lapis" [tamanho]="18" /></span>
           <span i18n>Lançar gasto</span>
+        </button>
+        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('receita')">
+          <span class="opcao-icone"><app-icone nome="entrada" [tamanho]="18" /></span>
+          <span i18n>Lançar receita</span>
         </button>
         <button type="button" class="opcao" role="menuitem" (click)="campoDaFoto.click()">
           <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
@@ -175,6 +179,8 @@
       <app-lancamento-rapido
         class="painel-rapido"
         [foto]="fotoDoRecibo()"
+        [tipoInicial]="tipoDoLancamento()"
+        (lancado)="aoLancar($event)"
         (fechar)="fecharLancamento()"
         (abrirGastos)="abrirGastos()"
       />
@@ -184,6 +190,7 @@
       class="lancar-flutuante"
       data-tour="lancar"
       [class.aberto]="lancamentoAberto() || opcoesAbertas()"
+      [class.recolhido]="maisRecolhido() && !tutorial.aberto()"
       [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
       [attr.aria-expanded]="lancamentoAberto() || opcoesAbertas()"
       aria-label="Lançar gasto ou receita"
@@ -192,6 +199,10 @@
     >
       <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
     </button>
+  }
+
+  @if (avisoDoLancamento()) {
+    <p class="aviso-do-lancamento" role="status">{{ avisoDoLancamento() }}</p>
   }
 
   @if (tutorial.aberto()) {

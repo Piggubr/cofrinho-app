@@ -120,6 +120,7 @@ export interface GrupoDeMenu {
   host: {
     '[class.abas-nativas]': 'usaAbasNativas',
     '(document:keydown.escape)': 'fecharOpcoes()',
+    '(window:scroll)': 'aoRolar()',
   },
 })
 export class Shell {
@@ -141,6 +142,17 @@ export class Shell {
   protected readonly opcoesAbertas = signal(false);
   /** Painel do "+": lanca gasto ou receita por cima da tela aberta. */
   protected readonly lancamentoAberto = signal(false);
+  /** Gasto ou receita: a aba com que o painel abre, conforme a opcao do balao. */
+  protected readonly tipoDoLancamento = signal<'gasto' | 'receita'>('gasto');
+  /** Aviso curto depois de lancar ("Gasto lançado."), ja com o painel fechado. */
+  protected readonly avisoDoLancamento = signal('');
+  private temporizadorDoAviso?: ReturnType<typeof setTimeout>;
+  /**
+   * O "+" se recolhe para a direita ao rolar para baixo, deixando uma pontinha na borda,
+   * e volta inteiro no alto da tela ou quando a pessoa toca na pontinha.
+   */
+  protected readonly maisRecolhido = signal(false);
+  private ultimaRolagem = 0;
   /** Foto escolhida no balao, entregue ao painel para ja ler o recibo. */
   protected readonly fotoDoRecibo = signal<File | null>(null);
   protected readonly cotacao = signal<Cotacao | null>(null);
@@ -426,6 +438,8 @@ export class Shell {
       this.tutorial.concluir();
     }
     this.fecharMenu();
+    // Tocar na pontinha do "+" recolhido traz o botao de volta e ja abre o balao.
+    this.maisRecolhido.set(false);
     if (this.lancamentoAberto() || this.opcoesAbertas()) {
       this.fecharLancamento();
       this.fecharOpcoes();
@@ -445,11 +459,30 @@ export class Shell {
     this.opcoesAbertas.set(false);
   }
 
-  protected abrirLancamento(): void {
+  protected abrirLancamento(tipo: 'gasto' | 'receita' = 'gasto'): void {
     this.fecharMenu();
     this.fecharOpcoes();
     this.fotoDoRecibo.set(null);
+    this.tipoDoLancamento.set(tipo);
     this.lancamentoAberto.set(true);
+  }
+
+  /** Lancou: o painel fecha e um aviso curto confirma. */
+  protected aoLancar(mensagem: string): void {
+    this.fecharLancamento();
+    this.avisoDoLancamento.set(mensagem);
+    clearTimeout(this.temporizadorDoAviso);
+    this.temporizadorDoAviso = setTimeout(() => this.avisoDoLancamento.set(''), 2500);
+  }
+
+  protected aoRolar(): void {
+    const y = window.scrollY;
+    if (y <= 8) {
+      this.maisRecolhido.set(false);
+    } else if (y > this.ultimaRolagem + 4 && y > 80 && !this.lancamentoAberto() && !this.opcoesAbertas()) {
+      this.maisRecolhido.set(true);
+    }
+    this.ultimaRolagem = y;
   }
 
   /** "Foto do recibo" no balao: a camera abre direto e o painel ja chega lendo a foto. */
@@ -462,6 +495,7 @@ export class Shell {
     }
     this.fecharOpcoes();
     this.fotoDoRecibo.set(arquivo);
+    this.tipoDoLancamento.set('gasto');
     this.lancamentoAberto.set(true);
   }
 

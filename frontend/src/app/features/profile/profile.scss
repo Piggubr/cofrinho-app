@@ -181,3 +181,10 @@
 #organizar-painel {
   scroll-margin-top: 6rem;
 }
+
+/* No toque, 16px: menos que isso o iPhone da zoom ao focar o campo. */
+@media (pointer: coarse) {
+  .linha-acoes select {
+    font-size: 16px;
+  }
+}

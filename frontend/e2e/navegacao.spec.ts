@@ -44,6 +44,27 @@ test.describe('no celular', () => {
     await expect(menu).not.toHaveClass(/aberto/);
   });
 
+  test('o "+" se recolhe ao rolar para baixo, volta no topo e a pontinha abre o balao', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    const mais = page.locator('button.lancar-flutuante');
+    await expect(page.getByRole('heading', { name: 'Contas bancárias' })).toBeVisible();
+
+    await page.mouse.wheel(0, 600);
+    await expect(mais).toHaveClass(/recolhido/);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(mais).not.toHaveClass(/recolhido/);
+
+    await page.mouse.wheel(0, 600);
+    await expect(mais).toHaveClass(/recolhido/);
+    await expect(mais).toHaveCSS('opacity', '0.85');
+    const pontinha = (await mais.boundingBox())!;
+    await page.mouse.click(pontinha.x + 6, pontinha.y + pontinha.height / 2);
+    await expect(mais).not.toHaveClass(/recolhido/);
+    await expect(page.getByRole('menuitem', { name: 'Lançar receita' })).toBeVisible();
+  });
+
   test('a folha do "Mais" volta ao lugar se puxada para cima e fecha se puxada para baixo', async ({
     page,
   }) => {
@@ -117,25 +138,33 @@ test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto'
   expect((await request.get('/icons/icon-192.png')).ok()).toBe(true);
 });
 
-test('o "+" abre o balao e o lancamento por cima da tela, sem sair dela', async ({ page }) => {
+test('o "+" abre o balao e o lancamento por cima da tela; lancou, o painel fecha e avisa', async ({
+  page,
+}) => {
   await page.goto('/relatorios');
+  const mais = page.getByRole('button', { name: 'Lançar gasto ou receita' });
+  const painel = page.getByRole('dialog', { name: 'Lançar' });
 
-  await page.getByRole('button', { name: 'Lançar gasto ou receita' }).click();
+  await mais.click();
   await expect(page.getByRole('menuitem', { name: 'Foto do recibo' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Lançar gasto' }).click();
-  const painel = page.getByRole('dialog', { name: 'Lançar' });
   await painel.locator('#valor-rapido').fill('12.5');
   await painel.locator('#descricao-rapida').fill('Pão de queijo');
   await painel.getByRole('button', { name: 'Lançar gasto' }).click();
 
-  await expect(painel.getByText('Gasto lançado.')).toBeVisible();
+  await expect(painel).toBeHidden();
+  await expect(page.getByRole('status').getByText('Gasto lançado.')).toBeVisible();
   await expect(page).toHaveURL(/\/relatorios$/);
 
-  await painel.getByRole('tab', { name: 'Receita' }).click();
+  // "Lançar receita" no balao ja abre o painel na aba Receita.
+  await mais.click();
+  await page.getByRole('menuitem', { name: 'Lançar receita' }).click();
+  await expect(painel.getByRole('tab', { name: 'Receita' })).toHaveAttribute('aria-selected', 'true');
   await painel.locator('#valor-rapido').fill('300');
   await painel.locator('#descricao-rapida').fill('Freela');
   await painel.getByRole('button', { name: 'Lançar receita' }).click();
-  await expect(painel.getByText('Receita lançada.')).toBeVisible();
+  await expect(painel).toBeHidden();
+  await expect(page.getByRole('status').getByText('Receita lançada.')).toBeVisible();
 });
 
 test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ page }) => {

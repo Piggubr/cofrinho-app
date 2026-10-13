@@ -257,7 +257,7 @@ describe('Shell', () => {
     expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
   });
 
-  it('o "+" vira um balao com "Lançar gasto" e "Foto do recibo"; o gasto abre o painel', () => {
+  it('o "+" vira um balao com gasto, receita e foto; o gasto abre o painel', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
@@ -268,7 +268,7 @@ describe('Shell', () => {
     const opcoes = [...pagina.querySelectorAll('.opcoes-do-lancar .opcao')].map((o) =>
       o.textContent?.trim(),
     );
-    expect(opcoes).toEqual(['Lançar gasto', 'Foto do recibo']);
+    expect(opcoes).toEqual(['Lançar gasto', 'Lançar receita', 'Foto do recibo']);
     expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
     expect(mais.getAttribute('aria-expanded')).toBe('true');
 
