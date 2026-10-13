@@ -8,24 +8,8 @@
   <div class="cartao-titulo">
     <h2>{{ rotuloDoMes() }}</h2>
     <div class="navegacao-de-mes">
-      <button
-        type="button"
-        class="botao contorno icone-so"
-        (click)="trocarMes(-1)"
-        aria-label="Mês anterior"
-        i18n-aria-label
-      >
-        <app-icone nome="esquerda" [tamanho]="18" />
-      </button>
-      <button
-        type="button"
-        class="botao contorno icone-so"
-        (click)="trocarMes(1)"
-        aria-label="Próximo mês"
-        i18n-aria-label
-      >
-        <app-icone nome="direita" [tamanho]="18" />
-      </button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
+      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
     </div>
   </div>
 
@@ -92,17 +76,7 @@
             @if (nota.valor > 0) {
               <span class="linha-valor">{{ nota.valor | moeda }}</span>
             }
-            <button
-              type="button"
-              class="botao icone-so perigo"
-              (click)="excluirNota(nota)"
-              aria-label="Apagar"
-              i18n-aria-label
-              title="Apagar"
-              i18n-title
-            >
-              <app-icone nome="lixeira" [tamanho]="18" />
-            </button>
+            <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
           </div>
         </div>
       }
@@ -122,44 +96,20 @@
   <div class="linha-de-campos">
     <div class="campo">
       <label i18n for="tituloNota">Título</label>
-      <input
-        id="tituloNota"
-        maxlength="150"
-        type="text"
-        [ngModel]="titulo()"
-        (ngModelChange)="titulo.set($event)"
-      />
+      <input id="tituloNota" maxlength="150" type="text" [ngModel]="titulo()" (ngModelChange)="titulo.set($event)" />
     </div>
     <div class="campo">
       <label i18n for="dataNota">Data</label>
-      <input
-        id="dataNota"
-        type="date"
-        [ngModel]="dataDaNota()"
-        (ngModelChange)="dataDaNota.set($event)"
-      />
+      <input id="dataNota" type="date" [ngModel]="dataDaNota()" (ngModelChange)="dataDaNota.set($event)" />
     </div>
     <div class="campo">
       <label i18n for="valorNota">Valor do evento ({{ moeda.simbolo() }})</label>
-      <input
-        i18n-placeholder
-        id="valorNota"
-        type="number"
-        min="0"
-        step="0.01"
-        [ngModel]="valorDaNota()"
-        (ngModelChange)="valorDaNota.set($event)"
-        placeholder="Deixe vazio se não for pago"
-      />
+      <input i18n-placeholder id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
     </div>
     @if (viraGasto()) {
       <div class="campo">
         <label i18n for="categoriaNota">Categoria</label>
-        <select
-          id="categoriaNota"
-          [ngModel]="categoriaDaNota()"
-          (ngModelChange)="categoriaDaNota.set($event)"
-        >
+        <select id="categoriaNota" [ngModel]="categoriaDaNota()" (ngModelChange)="categoriaDaNota.set($event)">
           @for (categoria of categorias(); track categoria) {
             <option [value]="categoria">{{ categoria }}</option>
           }
@@ -170,12 +120,7 @@
 
   <div class="campo">
     <label i18n for="textoNota">Detalhes</label>
-    <textarea
-      id="textoNota"
-      maxlength="1500"
-      [ngModel]="texto()"
-      (ngModelChange)="texto.set($event)"
-    ></textarea>
+    <textarea id="textoNota" maxlength="1500" [ngModel]="texto()" (ngModelChange)="texto.set($event)"></textarea>
   </div>
 
   @if (viraGasto()) {
@@ -186,11 +131,7 @@
 
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="criarNota()" [disabled]="salvando()">
-      @if (salvando()) {
-        Guardando...
-      } @else {
-        Criar nota
-      }
+      @if (salvando()) {Guardando...} @else {Criar nota}
     </button>
   </div>
 </section>
@@ -211,17 +152,7 @@
             <p class="linha-detalhe">{{ nota.texto }}</p>
           }
         </div>
-        <button
-          type="button"
-          class="botao icone-so perigo"
-          (click)="excluirNota(nota)"
-          aria-label="Apagar"
-          i18n-aria-label
-          title="Apagar"
-          i18n-title
-        >
-          <app-icone nome="lixeira" [tamanho]="18" />
-        </button>
+        <button type="button" class="botao icone-so perigo" (click)="excluirNota(nota)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
       </div>
     }
   } @else {

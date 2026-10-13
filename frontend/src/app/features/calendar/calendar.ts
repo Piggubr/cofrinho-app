@@ -6,14 +6,7 @@ import { Gasto, Nota } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
-import {
-  dataIso,
-  gradeDoMes,
-  hojeIso,
-  mesKey,
-  mesPorExtenso,
-  somarMeses,
-} from '../../core/ui/datas';
+import { dataIso, gradeDoMes, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
 
 /** Um dia da grade, com o que acontece nele. */

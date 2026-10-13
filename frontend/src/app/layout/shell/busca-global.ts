@@ -49,13 +49,7 @@ function normalizar(texto: string): string {
     </button>
     @if (aberta()) {
       <div class="fundo" (click)="fechar()"></div>
-      <div
-        class="busca"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Buscar no Piggu"
-        i18n-aria-label
-      >
+      <div class="busca" role="dialog" aria-modal="true" aria-label="Buscar no Piggu" i18n-aria-label>
         <input
           #campo
           type="search"
@@ -196,11 +190,7 @@ export class BuscaGlobal {
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo');
 
   private readonly gastos = signal<Gasto[]>([]);
-  private readonly listas = signal<{
-    lugares: Lugar[];
-    filmes: Filme[];
-    compras: ItemDeCompra[];
-  } | null>(null);
+  private readonly listas = signal<{ lugares: Lugar[]; filmes: Filme[]; compras: ItemDeCompra[] } | null>(null);
   private readonly digitado = new Subject<string>();
 
   protected readonly resultados = computed<Resultado[]>(() => {
@@ -208,17 +198,10 @@ export class BuscaGlobal {
     if (!termo) {
       return [];
     }
-    const tem = (...textos: (string | null | undefined)[]) =>
-      textos.some((t) => t && normalizar(t).includes(termo));
+    const tem = (...textos: (string | null | undefined)[]) => textos.some((t) => t && normalizar(t).includes(termo));
     const telas = this.telas()
       .filter((t) => tem(t.rotulo))
-      .map((t) => ({
-        grupo: $localize`Telas`,
-        icone: t.icone,
-        titulo: t.rotulo,
-        detalhe: '',
-        rota: t.rota,
-      }));
+      .map((t) => ({ grupo: $localize`Telas`, icone: t.icone, titulo: t.rotulo, detalhe: '', rota: t.rota }));
     if (termo.length < 2) {
       return telas;
     }
@@ -234,33 +217,15 @@ export class BuscaGlobal {
     const lugares = (listas?.lugares ?? [])
       .filter((l) => tem(l.nome, l.localizacao, l.categoria))
       .slice(0, 8)
-      .map((l) => ({
-        grupo: $localize`Lugares`,
-        icone: 'local' as const,
-        titulo: l.nome,
-        detalhe: l.localizacao,
-        rota: '/lugares',
-      }));
+      .map((l) => ({ grupo: $localize`Lugares`, icone: 'local' as const, titulo: l.nome, detalhe: l.localizacao, rota: '/lugares' }));
     const filmes = (listas?.filmes ?? [])
       .filter((f) => tem(f.titulo))
       .slice(0, 8)
-      .map((f) => ({
-        grupo: $localize`Filmes`,
-        icone: 'filme' as const,
-        titulo: f.titulo,
-        detalhe: f.ano,
-        rota: '/filmes',
-      }));
+      .map((f) => ({ grupo: $localize`Filmes`, icone: 'filme' as const, titulo: f.titulo, detalhe: f.ano, rota: '/filmes' }));
     const compras = (listas?.compras ?? [])
       .filter((c) => tem(c.item, c.marca))
       .slice(0, 8)
-      .map((c) => ({
-        grupo: $localize`Compras`,
-        icone: 'carrinho' as const,
-        titulo: c.item,
-        detalhe: c.lista,
-        rota: '/compras',
-      }));
+      .map((c) => ({ grupo: $localize`Compras`, icone: 'carrinho' as const, titulo: c.item, detalhe: c.lista, rota: '/compras' }));
     return [...telas, ...gastos, ...lugares, ...filmes, ...compras];
   });
 

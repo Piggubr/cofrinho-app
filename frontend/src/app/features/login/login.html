@@ -16,23 +16,13 @@
       <div class="aceite">
         <p i18n>Falta pouco para criar sua conta.</p>
         <label class="lembrar">
-          <input
-            type="checkbox"
-            [checked]="aceitou()"
-            (change)="aceitou.set($any($event.target).checked)"
-          />
+          <input type="checkbox" [checked]="aceitou()" (change)="aceitou.set($any($event.target).checked)" />
           <span i18n>
             Li e aceito os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
             <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
           </span>
         </label>
-        <button
-          i18n
-          type="button"
-          class="botao"
-          (click)="criarConta()"
-          [disabled]="!aceitou() || entrando()"
-        >
+        <button i18n type="button" class="botao" (click)="criarConta()" [disabled]="!aceitou() || entrando()">
           Criar minha conta
         </button>
       </div>
@@ -50,8 +40,7 @@
     </label>
 
     <p class="nota">
-      <a i18n routerLink="/termos">Termos de Uso</a> ·
-      <a i18n routerLink="/privacidade">Aviso de Privacidade</a>
+      <a i18n routerLink="/termos">Termos de Uso</a> · <a i18n routerLink="/privacidade">Aviso de Privacidade</a>
     </p>
   </section>
 </div>

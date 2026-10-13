@@ -193,11 +193,7 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--primaria) 82%, #fff) 0%,
-    var(--primaria) 55%
-  );
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primaria) 82%, #fff) 0%, var(--primaria) 55%);
   color: var(--primaria-contraste);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   cursor: pointer;
@@ -226,9 +222,7 @@
 @media (prefers-reduced-motion: reduce) {
   .lancar-flutuante.destaque {
     animation: none;
-    box-shadow:
-      0 0 0 4px var(--surface),
-      0 0 0 7px var(--primaria);
+    box-shadow: 0 0 0 4px var(--surface), 0 0 0 7px var(--primaria);
   }
 }
 
@@ -534,11 +528,7 @@
     width: 54px;
     height: 54px;
     border-radius: 50%;
-    background: linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--primaria) 82%, #fff) 0%,
-      var(--primaria) 55%
-    );
+    background: linear-gradient(160deg, color-mix(in srgb, var(--primaria) 82%, #fff) 0%, var(--primaria) 55%);
     color: var(--primaria-contraste);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.45),

@@ -123,9 +123,13 @@ describe('Shell', () => {
     tela.detectChanges();
     expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
     expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(18);
-    expect(
-      [...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim()),
-    ).toEqual(['Dia a dia', 'Planejar', 'Cartões e datas', 'Estilo de vida', 'Família e plano']);
+    expect([...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim())).toEqual([
+      'Dia a dia',
+      'Planejar',
+      'Cartões e datas',
+      'Estilo de vida',
+      'Família e plano',
+    ]);
   });
 
   it('todas as telas de estilo de vida aparecem, mesmo com modulos desligados numa conta antiga', () => {
@@ -134,9 +138,7 @@ describe('Shell', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
-    const itens = [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) =>
-      a.textContent?.trim(),
-    );
+    const itens = [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) => a.textContent?.trim());
 
     for (const nome of ['Compras', 'Lugares', 'Filmes', 'Fotos', 'Prêmios', 'Girls Math']) {
       expect(itens).toContain(nome);
@@ -294,9 +296,9 @@ describe('Shell', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'PARCEIRO' }));
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
-    const itens = [
-      ...(tela.nativeElement as HTMLElement).querySelectorAll('nav.menu .menu-itens a'),
-    ].map((a) => a.textContent?.trim());
+    const itens = [...(tela.nativeElement as HTMLElement).querySelectorAll('nav.menu .menu-itens a')].map((a) =>
+      a.textContent?.trim(),
+    );
 
     expect(itens).toContain('Gastos');
     expect(itens).toContain('Receitas');
@@ -348,8 +350,7 @@ describe('Shell', () => {
       return { tela, pagina: tela.nativeElement as HTMLElement };
     }
 
-    const titulo = (pagina: HTMLElement) =>
-      pagina.querySelector('#titulo-tour')?.textContent?.trim();
+    const titulo = (pagina: HTMLElement) => pagina.querySelector('#titulo-tour')?.textContent?.trim();
     const botao = (pagina: HTMLElement, texto: string) =>
       [...pagina.querySelectorAll<HTMLButtonElement>('.balao button')].find(
         (b) => b.textContent?.trim() === texto,

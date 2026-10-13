@@ -106,9 +106,7 @@ export class LifestyleService extends ApiBase {
 
   /** @param mes AAAA-MM; sem ele, o mes atual */
   listarMetasDoMes(mes?: string): Observable<MetaDoMes[]> {
-    return this.http.get<MetaDoMes[]>(this.url('/personal-goals'), {
-      params: this.params({ mes }),
-    });
+    return this.http.get<MetaDoMes[]>(this.url('/personal-goals'), { params: this.params({ mes }) });
   }
 
   criarMetaDoMes(meta: NovaMetaDoMes): Observable<MetaDoMes> {

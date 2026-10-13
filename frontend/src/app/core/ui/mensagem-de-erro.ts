@@ -8,10 +8,7 @@ import { ApiError } from '../api/models';
  * portugues e pronto para a tela. O resto e rede fora do ar ou algo que nao veio
  * da nossa API, e entao precisa de um texto generico.</p>
  */
-export function mensagemDeErro(
-  erro: unknown,
-  padrao = $localize`Nao foi possivel concluir.`,
-): string {
+export function mensagemDeErro(erro: unknown, padrao = $localize`Nao foi possivel concluir.`): string {
   if (!(erro instanceof HttpErrorResponse)) {
     return padrao;
   }

@@ -20,49 +20,103 @@ const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
  */
 const ICONES = {
   padrao: {
-    porquinho: { contorno: '#810d49', corpo: '#f8dde6', focinho: '#efa5c7', orelha: '#c9a8b4', sombra: '#f3cfdc' },
+    porquinho: {
+      contorno: '#810d49',
+      corpo: '#f8dde6',
+      focinho: '#efa5c7',
+      orelha: '#c9a8b4',
+      sombra: '#f3cfdc',
+    },
     claro: ['#fff5f8', '#f7d7e3'],
     escuro: ['#3a1428', '#1c0a14'],
   },
   azul: {
-    porquinho: { contorno: '#174a70', corpo: '#dcebf7', focinho: '#9cc6e6', orelha: '#a9bccb', sombra: '#cfe2f1' },
+    porquinho: {
+      contorno: '#174a70',
+      corpo: '#dcebf7',
+      focinho: '#9cc6e6',
+      orelha: '#a9bccb',
+      sombra: '#cfe2f1',
+    },
     claro: ['#f4f9fd', '#cfe4f5'],
     escuro: ['#163450', '#0a1724'],
   },
   menta: {
-    porquinho: { contorno: '#174f43', corpo: '#d8f2e8', focinho: '#93d4bd', orelha: '#a8c4ba', sombra: '#c8eadd' },
+    porquinho: {
+      contorno: '#174f43',
+      corpo: '#d8f2e8',
+      focinho: '#93d4bd',
+      orelha: '#a8c4ba',
+      sombra: '#c8eadd',
+    },
     claro: ['#f3fbf8', '#cdeee2'],
     escuro: ['#173a31', '#0a1915'],
   },
   lilas: {
-    porquinho: { contorno: '#4e2a70', corpo: '#ebe0f8', focinho: '#c3a6e6', orelha: '#b8aac6', sombra: '#dfd0f2' },
+    porquinho: {
+      contorno: '#4e2a70',
+      corpo: '#ebe0f8',
+      focinho: '#c3a6e6',
+      orelha: '#b8aac6',
+      sombra: '#dfd0f2',
+    },
     claro: ['#faf6fe', '#e3d4f6'],
     escuro: ['#2e1f45', '#150e21'],
   },
   coral: {
-    porquinho: { contorno: '#7e3020', corpo: '#fbe1d9', focinho: '#f0a993', orelha: '#cdb0a7', sombra: '#f5d2c7' },
+    porquinho: {
+      contorno: '#7e3020',
+      corpo: '#fbe1d9',
+      focinho: '#f0a993',
+      orelha: '#cdb0a7',
+      sombra: '#f5d2c7',
+    },
     claro: ['#fff7f4', '#f9d3c7'],
     escuro: ['#45211a', '#1d0e0b'],
   },
   mel: {
-    porquinho: { contorno: '#5e3f06', corpo: '#f9ebcc', focinho: '#ecc778', orelha: '#c9b896', sombra: '#f1dfb5' },
+    porquinho: {
+      contorno: '#5e3f06',
+      corpo: '#f9ebcc',
+      focinho: '#ecc778',
+      orelha: '#c9b896',
+      sombra: '#f1dfb5',
+    },
     claro: ['#fffaf0', '#f6dfa8'],
     escuro: ['#3f3010', '#1a1407'],
   },
   vinho: {
-    porquinho: { contorno: '#561520', corpo: '#f6e1e4', focinho: '#e3a0aa', orelha: '#c8aab0', sombra: '#ecd0d5' },
+    porquinho: {
+      contorno: '#561520',
+      corpo: '#f6e1e4',
+      focinho: '#e3a0aa',
+      orelha: '#c8aab0',
+      sombra: '#ecd0d5',
+    },
     claro: ['#9a3242', '#5e1723'],
     escuro: ['#3d1018', '#16070a'],
   },
   grafite: {
-    porquinho: { contorno: '#262b35', corpo: '#e8ebef', focinho: '#b5bfcc', orelha: '#a3abb6', sombra: '#d8dde3' },
+    porquinho: {
+      contorno: '#262b35',
+      corpo: '#e8ebef',
+      focinho: '#b5bfcc',
+      orelha: '#a3abb6',
+      sombra: '#d8dde3',
+    },
     claro: ['#f7f8fa', '#d3d8df'],
     escuro: ['#2c313a', '#111317'],
   },
   namorados: {
     vetor: 'porquinho-namorados.svg',
     coracoes: true,
-    porquinho: { contorno: '#810d49', corpo: '#f8dde6', focinho: '#efa5c7', orelha: '#c9a8b4', sombra: '#f8dce5' },
+    porquinho: {
+      contorno: '#810d49',
+      corpo: '#f8dde6',
+      focinho: '#efa5c7',
+      orelha: '#c9a8b4',
+      sombra: '#f8dce5',
+    },
     claro: ['#ffe3ec', '#ff9fbf'],
     escuro: ['#5a1634', '#240816'],
   },
@@ -73,7 +127,9 @@ const MOEDA = '#fbefa9';
 function porquinho(icone) {
   const svg = readFileSync(join(raiz, 'resources/icones', icone.vetor ?? 'porquinho.svg'), 'utf8');
   const cores = { ...icone.porquinho, moeda: MOEDA };
-  const vars = Object.entries(cores).map(([papel, cor]) => `--${papel}:${cor}`).join(';');
+  const vars = Object.entries(cores)
+    .map(([papel, cor]) => `--${papel}:${cor}`)
+    .join(';');
   return `data:image/svg+xml;base64,${Buffer.from(svg.replace('<svg ', `<svg style="${vars}" `)).toString('base64')}`;
 }
 
@@ -175,11 +231,30 @@ async function main() {
     for (const [pasta, fator] of Object.entries(densidades)) {
       const dir = join(res, `mipmap-${pasta}`);
       await desenhar(icone, 'claro', 'inteiro', Math.round(48 * fator), join(dir, `${nome}.png`));
-      await desenhar(icone, 'claro', 'inteiro', Math.round(48 * fator), join(dir, `${nome}_round.png`), {
-        redondo: true,
-      });
-      await desenhar(icone, 'claro', 'fundo', Math.round(108 * fator), join(dir, `${nome}_background.png`));
-      await desenhar(icone, 'claro', 'frente', Math.round(108 * fator), join(dir, `${nome}_foreground.png`));
+      await desenhar(
+        icone,
+        'claro',
+        'inteiro',
+        Math.round(48 * fator),
+        join(dir, `${nome}_round.png`),
+        {
+          redondo: true,
+        },
+      );
+      await desenhar(
+        icone,
+        'claro',
+        'fundo',
+        Math.round(108 * fator),
+        join(dir, `${nome}_background.png`),
+      );
+      await desenhar(
+        icone,
+        'claro',
+        'frente',
+        Math.round(108 * fator),
+        join(dir, `${nome}_foreground.png`),
+      );
     }
     const adaptavel =
       '<?xml version="1.0" encoding="utf-8"?>\n' +

@@ -95,16 +95,7 @@ export interface GrupoDeMenu {
  */
 @Component({
   selector: 'app-shell',
-  imports: [
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    BuscaGlobal,
-    Assistente,
-    Icone,
-    LancamentoRapido,
-    TutorialDePrimeiroAcesso,
-  ],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone, LancamentoRapido, TutorialDePrimeiroAcesso],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: {
@@ -273,10 +264,7 @@ export class Shell {
     if (rota.startsWith('/perfil')) {
       return $localize`Perfil`;
     }
-    return (
-      this.itens.find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rotulo ??
-      ''
-    );
+    return this.itens.find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rotulo ?? '';
   });
 
   /** Volta pelo historico; se a pessoa abriu direto nesta tela, vai para o Painel. */

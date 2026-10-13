@@ -27,11 +27,7 @@ export class Accounts {
   protected readonly vencimento = signal<number | null>(null);
 
   /** Fatura aberta na tela: um cartao por vez. */
-  protected readonly aberta = signal<{
-    cartao: ContaOuCartao;
-    fatura: Fatura;
-    gastos: Gasto[];
-  } | null>(null);
+  protected readonly aberta = signal<{ cartao: ContaOuCartao; fatura: Fatura; gastos: Gasto[] } | null>(null);
 
   constructor() {
     this.carregar();
