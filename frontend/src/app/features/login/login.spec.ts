@@ -6,13 +6,15 @@ import { GoogleIdentityService } from '../../core/auth/google-identity.service';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { Login } from './login';
 
-/** Entrada pelo Google, com o aceite dos termos na primeira vez. */
+/** Entrada por e-mail e senha ou pelo Google, com o aceite dos termos na primeira vez. */
 describe('Login', () => {
   let credencial: (idToken: string) => void;
   let botaoFalha: boolean;
   let sessaoGuardada: boolean;
   let entradas: [string, boolean, string | undefined][];
   let respostaDaEntrada: () => Promise<void>;
+  let entradasComSenha: [string, string, boolean][];
+  let cadastros: [{ nome: string; email: string; senha: string }, boolean][];
   let navegar: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -20,6 +22,8 @@ describe('Login', () => {
     sessaoGuardada = false;
     entradas = [];
     respostaDaEntrada = async () => {};
+    entradasComSenha = [];
+    cadastros = [];
     TestBed.configureTestingModule({
       imports: [Login],
       providers: [
@@ -30,6 +34,17 @@ describe('Login', () => {
             restaurarSessao: async () => sessaoGuardada,
             entrarComGoogle: (idToken: string, lembrar: boolean, versao?: string) => {
               entradas.push([idToken, lembrar, versao]);
+              return respostaDaEntrada();
+            },
+            entrarComSenha: (email: string, senha: string, lembrar: boolean) => {
+              entradasComSenha.push([email, senha, lembrar]);
+              return respostaDaEntrada();
+            },
+            cadastrar: (
+              dados: { nome: string; email: string; senha: string },
+              lembrar: boolean,
+            ) => {
+              cadastros.push([dados, lembrar]);
               return respostaDaEntrada();
             },
           },
@@ -143,6 +158,130 @@ describe('Login', () => {
 
     expect(
       (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
-    ).toContain('Recarregue a pagina');
+    ).toContain('recarregue a pagina');
+  });
+
+  function preencher(tela: Awaited<ReturnType<typeof abrir>>, id: string, valor: string) {
+    const campo = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(`#${id}`)!;
+    campo.value = valor;
+    campo.dispatchEvent(new Event('input'));
+  }
+
+  function botao(tela: Awaited<ReturnType<typeof abrir>>, texto: string) {
+    return [...(tela.nativeElement as HTMLElement).querySelectorAll('button')].find((b) =>
+      b.textContent?.includes(texto),
+    )!;
+  }
+
+  async function irParaCadastro(tela: Awaited<ReturnType<typeof abrir>>) {
+    botao(tela, 'Criar conta').click();
+    tela.detectChanges();
+    await tela.whenStable();
+  }
+
+  async function enviar(tela: Awaited<ReturnType<typeof abrir>>) {
+    (tela.nativeElement as HTMLElement).querySelector('form')!.dispatchEvent(new Event('submit'));
+    await esperar(tela);
+  }
+
+  it('entra com e-mail e senha, sem passar pelo Google', async () => {
+    const tela = await abrir();
+    preencher(tela, 'email-entrar', ' ana@piggu.test ');
+    preencher(tela, 'senha-entrar', 'cofrinho123');
+
+    await enviar(tela);
+
+    expect(entradasComSenha).toEqual([['ana@piggu.test', 'cofrinho123', true]]);
+    expect(navegar).toHaveBeenCalledWith(['/painel']);
+  });
+
+  it('senha errada mostra o erro do backend e fica na tela', async () => {
+    respostaDaEntrada = async () => {
+      throw new HttpErrorResponse({ status: 401, error: { erro: 'E-mail ou senha incorretos.' } });
+    };
+    const tela = await abrir();
+    preencher(tela, 'email-entrar', 'ana@piggu.test');
+    preencher(tela, 'senha-entrar', 'errada123');
+
+    await enviar(tela);
+
+    expect(
+      (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
+    ).toContain('E-mail ou senha incorretos.');
+    expect(navegar).not.toHaveBeenCalled();
+  });
+
+  it('o botao do Google continua na tela como alternativa ao formulario', async () => {
+    const tela = await abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+
+    expect(pagina.querySelector('#senha-entrar')).not.toBeNull();
+    expect(pagina.querySelector<HTMLElement>('.area-do-botao')?.hidden).toBe(false);
+    botao(tela, 'Criar conta').click();
+    tela.detectChanges();
+    expect(pagina.querySelector('#confirmacao-cadastro')).not.toBeNull();
+    expect(pagina.querySelector<HTMLElement>('.area-do-botao')?.hidden).toBe(false);
+  });
+
+  it('cadastro confere senha, confirmacao e aceite antes de chamar o backend', async () => {
+    const tela = await abrir();
+    await irParaCadastro(tela);
+    preencher(tela, 'nome-cadastro', 'Ana');
+    preencher(tela, 'email-cadastro', 'ana@piggu.test');
+    preencher(tela, 'senha-cadastro', 'curta');
+    preencher(tela, 'confirmacao-cadastro', 'curta');
+    const alerta = () =>
+      (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent ?? '';
+
+    await enviar(tela);
+    expect(alerta()).toContain('pelo menos 8');
+
+    preencher(tela, 'senha-cadastro', 'cofrinho123');
+    preencher(tela, 'confirmacao-cadastro', 'cofrinho124');
+    await enviar(tela);
+    expect(alerta()).toContain('nao sao iguais');
+
+    preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
+    await enviar(tela);
+    expect(alerta()).toContain('aceite os Termos');
+    expect(cadastros).toEqual([]);
+
+    const aceite = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '.aceite-do-cadastro input[type=checkbox]',
+    )!;
+    aceite.checked = true;
+    aceite.dispatchEvent(new Event('change'));
+    await enviar(tela);
+
+    expect(cadastros).toEqual([
+      [{ nome: 'Ana', email: 'ana@piggu.test', senha: 'cofrinho123' }, true],
+    ]);
+    expect(navegar).toHaveBeenCalledWith(['/painel']);
+  });
+
+  it('e-mail que ja tem conta mostra a mensagem do backend', async () => {
+    respostaDaEntrada = async () => {
+      throw new HttpErrorResponse({
+        status: 409,
+        error: { erro: 'Este e-mail ja tem conta no Piggu.', codigo: 'EMAIL_JA_CADASTRADO' },
+      });
+    };
+    const tela = await abrir();
+    await irParaCadastro(tela);
+    preencher(tela, 'nome-cadastro', 'Ana');
+    preencher(tela, 'email-cadastro', 'ana@piggu.test');
+    preencher(tela, 'senha-cadastro', 'cofrinho123');
+    preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
+    const aceite = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '.aceite-do-cadastro input[type=checkbox]',
+    )!;
+    aceite.checked = true;
+    aceite.dispatchEvent(new Event('change'));
+
+    await enviar(tela);
+
+    expect(
+      (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
+    ).toContain('ja tem conta');
   });
 });

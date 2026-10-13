@@ -25,7 +25,8 @@ public class IdentitySecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
-                        .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/refresh", "/api/auth/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/cadastro", "/api/auth/entrar",
+                                "/api/auth/refresh", "/api/auth/logout").permitAll()
                         // A Stripe nao manda token: o aviso e conferido pela assinatura HMAC.
                         .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
                         // Idem para o RevenueCat: a prova e o segredo no Authorization.

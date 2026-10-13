@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.PigguRole;
@@ -13,9 +14,11 @@ import com.piggu.identity.google.GoogleProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -33,12 +36,19 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
+    /** Senhas erradas seguidas antes de travar a entrada por senha da conta. */
+    static final int TENTATIVAS_DE_SENHA = 5;
+    static final Duration TRAVA_DA_SENHA = Duration.ofMinutes(15);
+
+    private static final String SENHA_ERRADA = "E-mail ou senha incorretos.";
+
     private final GoogleIdTokenVerifier verificador;
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
     private final RefreshSessionRepository sessoes;
     private final SessionRevoker revogador;
     private final TokenService tokens;
+    private final Senhas senhas;
     private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
@@ -47,6 +57,7 @@ public class AuthService {
                        RefreshSessionRepository sessoes,
                        SessionRevoker revogador,
                        TokenService tokens,
+                       Senhas senhas,
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.usuarios = usuarios;
@@ -54,6 +65,7 @@ public class AuthService {
         this.sessoes = sessoes;
         this.revogador = revogador;
         this.tokens = tokens;
+        this.senhas = senhas;
         this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
                 .collect(Collectors.toSet());
     }
@@ -79,6 +91,18 @@ public class AuthService {
             throw new ForbiddenException("Esta conta foi desativada.");
         }
 
+        if (!conta.isEmailVerified()) {
+            // Alguem cadastrou este e-mail por senha antes, sem provar que era dele. O Google
+            // acabou de provar quem e o dono: a senha de quem cadastrou deixa de valer e as
+            // sessoes abertas com ela caem. Se foi o proprio dono, ele cria outra no Perfil.
+            if (conta.temSenha()) {
+                conta.apagarSenha();
+                sessoes.apagarPorUsuario(conta.getId());
+                log.warn("Senha apagada no primeiro login Google de conta sem e-mail confirmado: conta={}",
+                        conta.getId());
+            }
+            conta.confirmarEmail();
+        }
         conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
         // Promove, nunca rebaixa: tirar alguem da lista nao derruba um ADMIN por engano.
         if (emailsDeAdmin.contains(conta.getEmail()) && conta.getRole() != PigguRole.ADMIN) {
@@ -91,17 +115,123 @@ public class AuthService {
         return emitirPar(conta, userAgent, lembrar);
     }
 
+    /**
+     * Cadastro por e-mail e senha. O e-mail fica sem prova ate o primeiro login Google
+     * nele: por isso nao usa convite de familia nem vira ADMIN pela lista.
+     */
+    @Transactional
+    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String versaoDosTermos,
+                                   boolean lembrar, String userAgent) {
+        String email = Texto.email(emailBruto);
+        String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
+        if (nomeLimpo.isEmpty()) {
+            throw new BusinessException("Conte como podemos te chamar.");
+        }
+        if (usuarios.findByEmail(email).isPresent()) {
+            throw new BusinessException("Este e-mail ja tem conta no Piggu. Entre com ele; se a conta foi criada"
+                    + " pelo Google, entre com o Google e crie uma senha no Perfil.",
+                    HttpStatus.CONFLICT, "EMAIL_JA_CADASTRADO");
+        }
+        senhas.validar(senha, email);
+
+        UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
+        conta.setNickname(nomeLimpo);
+        conta.definirSenha(senhas.hash(senha));
+        conta.registrarAcesso();
+        usuarios.save(conta);
+        log.info("Cadastro por senha: conta={}", conta.getId());
+
+        return emitirPar(conta, userAgent, lembrar);
+    }
+
+    /**
+     * Entrada por e-mail e senha. A mesma mensagem serve para e-mail sem conta e senha
+     * errada; cinco erros seguidos travam a entrada por senha da conta por 15 minutos
+     * (o Google continua entrando).
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent) {
+        Instant agora = Instant.now();
+        UserAccount conta = usuarios.findByEmail(Texto.email(emailBruto)).orElse(null);
+        if (conta == null) {
+            senhas.confere(senha, null);
+            throw new UnauthorizedException(SENHA_ERRADA);
+        }
+        if (conta.senhaTravada(agora)) {
+            throw new BusinessException("Muitas tentativas erradas. Espere alguns minutos ou entre com o Google.",
+                    HttpStatus.TOO_MANY_REQUESTS, "SENHA_TRAVADA");
+        }
+        if (!conta.temSenha()) {
+            senhas.confere(senha, null);
+            throw new BusinessException("Esta conta ainda nao tem senha. Entre com o Google e crie uma senha no Perfil.",
+                    HttpStatus.UNAUTHORIZED, "CONTA_SEM_SENHA");
+        }
+        if (!senhas.confere(senha, conta.getPasswordHash())) {
+            conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
+            usuarios.save(conta);
+            throw new UnauthorizedException(SENHA_ERRADA);
+        }
+        if (!conta.isActive()) {
+            log.warn("Login por senha recusado: conta desativada id={}", conta.getId());
+            throw new ForbiddenException("Esta conta foi desativada.");
+        }
+
+        conta.registrarSenhaCerta();
+        conta.registrarAcesso();
+        usuarios.save(conta);
+        log.info("Login por senha: conta={}", conta.getId());
+        return emitirPar(conta, userAgent, lembrar);
+    }
+
+    /**
+     * Cria a senha (conta que so entrava pelo Google) ou troca a atual, que entao precisa
+     * ser informada. Trocar derruba as outras sessoes; a deste aparelho continua.
+     *
+     * @param refreshAtual cookie da sessao deste aparelho, que nao cai; pode ser nulo
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public UserResponse definirSenha(java.util.UUID usuarioId, String senhaAtual, String novaSenha, String refreshAtual) {
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        Instant agora = Instant.now();
+        if (conta.temSenha()) {
+            if (conta.senhaTravada(agora)) {
+                throw new BusinessException("Muitas tentativas erradas. Espere alguns minutos.",
+                        HttpStatus.TOO_MANY_REQUESTS, "SENHA_TRAVADA");
+            }
+            if (!senhas.confere(senhaAtual, conta.getPasswordHash())) {
+                conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
+                usuarios.save(conta);
+                throw new BusinessException("A senha atual nao confere.", HttpStatus.UNPROCESSABLE_CONTENT,
+                        "SENHA_ATUAL_ERRADA");
+            }
+        }
+        senhas.validar(novaSenha, conta.getEmail());
+
+        boolean trocou = conta.temSenha();
+        conta.definirSenha(senhas.hash(novaSenha));
+        usuarios.save(conta);
+        if (trocou) {
+            String manter = refreshAtual == null || refreshAtual.isBlank() ? null : tokens.hash(refreshAtual);
+            sessoes.findByUserId(conta.getId()).stream()
+                    .filter(sessao -> !sessao.getTokenHash().equals(manter))
+                    .forEach(sessoes::delete);
+        }
+        log.info("Senha {}: conta={}", trocou ? "trocada" : "criada", conta.getId());
+        return UserResponse.de(conta, familias.daConta(conta));
+    }
+
     /** Renova o acesso e rotaciona a sessao longa: o refresh usado e' descartado. */
     @Transactional
     public TokenResponse renovar(String refreshToken, String userAgent) {
         RefreshSession sessao = sessoes.findByTokenHash(tokens.hash(refreshToken))
-                .orElseThrow(() -> new UnauthorizedException("Sua sessao venceu. Entre novamente com Google."));
+                .orElseThrow(() -> new UnauthorizedException("Sua sessao venceu. Entre novamente."));
 
         if (!sessao.estaValida()) {
             // Revogacao em transacao propria: a excecao abaixo desfaz esta transacao,
             // e um DELETE feito aqui dentro seria desfeito junto.
             revogador.revogar(sessao.getId());
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente com Google.");
+            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
         }
 
         UserAccount conta = usuarios.findById(sessao.getUserId())

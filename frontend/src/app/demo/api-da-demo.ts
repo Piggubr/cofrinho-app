@@ -562,7 +562,11 @@ const ID = '([^/]+)';
 
 const ROTAS: Rota[] = [
   // Sessao: sempre a Ana, titular Premium.
-  ['POST', /^\/auth\/(google|refresh)$/, () => tokens()],
+  ['POST', /^\/auth\/(google|entrar|cadastro|refresh)$/, () => tokens()],
+  ['PUT', /^\/auth\/me\/senha$/, () => {
+    estado.titular = { ...estado.titular, temSenha: true };
+    return estado.titular;
+  }],
   ['POST', /^\/auth\/logout$/, () => undefined],
   ['GET', /^\/auth\/me$/, () => estado.titular],
   ['PUT', /^\/auth\/me\/preferences$/, (_p, _x, c) => {

@@ -38,6 +38,10 @@ export interface Usuario {
    * pede o aceite de novo. Ausente (demo, perfil antigo) conta como aceita.
    */
   termosAceitos?: string | null;
+  /** A conta tambem entra por e-mail e senha. Ausente (demo, perfil antigo) conta como sem senha. */
+  temSenha?: boolean;
+  /** Falso enquanto a conta criada por senha nao entrou nenhuma vez pelo Google. */
+  emailConfirmado?: boolean;
 }
 
 /** Familia de quem esta logado; convites so chegam para o titular. */

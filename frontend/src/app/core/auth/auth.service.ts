@@ -68,13 +68,45 @@ export class AuthService {
     lembrar: boolean,
     versaoDosTermos?: string,
   ): Promise<void> {
-    // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
-    const tokens = await firstValueFrom(
-      this.http.post<ParDeTokens>(
-        `${this.config.apiUrl}/auth/google`,
-        { idToken, versaoDosTermos, lembrar },
+    await this.abrirSessao('/auth/google', { idToken, versaoDosTermos, lembrar }, lembrar);
+  }
+
+  /** Entrada por e-mail e senha, sem passar pelo Google. */
+  async entrarComSenha(email: string, senha: string, lembrar: boolean): Promise<void> {
+    await this.abrirSessao('/auth/entrar', { email, senha, lembrar }, lembrar);
+  }
+
+  /** Conta nova por e-mail e senha; o aceite dos termos vai junto. */
+  async cadastrar(
+    dados: { nome: string; email: string; senha: string },
+    lembrar: boolean,
+  ): Promise<void> {
+    await this.abrirSessao(
+      '/auth/cadastro',
+      { ...dados, versaoDosTermos: VERSAO_DO_AVISO, lembrar },
+      lembrar,
+    );
+  }
+
+  /**
+   * Cria a senha de quem so entrava pelo Google, ou troca a atual (que entao e pedida).
+   * O cookie vai junto para o backend manter a sessao deste aparelho.
+   */
+  async definirSenha(novaSenha: string, senhaAtual?: string): Promise<void> {
+    const usuario = await firstValueFrom(
+      this.http.put<Usuario>(
+        `${this.config.apiUrl}/auth/me/senha`,
+        { senhaAtual, novaSenha },
         { withCredentials: true },
       ),
+    );
+    this.atualizarUsuario(usuario);
+  }
+
+  private async abrirSessao(rota: string, corpo: object, lembrar: boolean): Promise<void> {
+    // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
+    const tokens = await firstValueFrom(
+      this.http.post<ParDeTokens>(`${this.config.apiUrl}${rota}`, corpo, { withCredentials: true }),
     );
     this.storage.guardar(tokens);
     this.usuarioAtual.set(tokens.usuario);

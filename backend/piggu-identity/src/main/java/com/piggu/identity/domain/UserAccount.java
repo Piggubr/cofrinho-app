@@ -124,6 +124,21 @@ public class UserAccount {
     @Column(name = "cpf_informado_em")
     private Instant cpfInformadoEm;
 
+    /** BCrypt da senha ({@link Senhas}); nulo = a conta so entra pelo Google. */
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
+
+    /** O e-mail ja foi provado (pelo Google); o cadastro por senha nasce sem prova. */
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    /** Senhas erradas seguidas; ao chegar no limite a entrada por senha trava um tempo. */
+    @Column(name = "password_failures", nullable = false)
+    private int passwordFailures;
+
+    @Column(name = "password_locked_until")
+    private Instant passwordLockedUntil;
+
     /** Quando a conta usou o teste gratis; nulo = ainda pode usar. */
     @Column(name = "trial_used_at")
     private Instant trialUsedAt;
@@ -169,6 +184,61 @@ public class UserAccount {
         this.firstName = primeiroNome;
         this.googlePicture = foto;
         this.lastLoginAt = Instant.now();
+    }
+
+    /** Entrou de novo (por senha); o Google atualiza isto em {@link #atualizarPerfilGoogle}. */
+    public void registrarAcesso() {
+        this.lastLoginAt = Instant.now();
+    }
+
+    public boolean temSenha() {
+        return passwordHash != null;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    /** @param hash ja calculado por {@link Senhas#hash}; zera as tentativas erradas */
+    public void definirSenha(String hash) {
+        this.passwordHash = hash;
+        this.passwordFailures = 0;
+        this.passwordLockedUntil = null;
+    }
+
+    /** Tira a senha: a conta volta a entrar so pelo Google. */
+    public void apagarSenha() {
+        definirSenha(null);
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void confirmarEmail() {
+        this.emailVerified = true;
+    }
+
+    /** A entrada por senha esta travada por excesso de tentativas erradas. */
+    public boolean senhaTravada(Instant agora) {
+        return passwordLockedUntil != null && passwordLockedUntil.isAfter(agora);
+    }
+
+    /**
+     * Conta uma senha errada; no limite trava a entrada por senha ate {@code agora + trava}
+     * e recomeca a contagem.
+     */
+    public void registrarSenhaErrada(int limite, java.time.Duration trava, Instant agora) {
+        passwordFailures++;
+        if (passwordFailures >= limite) {
+            passwordLockedUntil = agora.plus(trava);
+            passwordFailures = 0;
+        }
+    }
+
+    public void registrarSenhaCerta() {
+        this.passwordFailures = 0;
+        this.passwordLockedUntil = null;
     }
 
     /** Nome de exibicao: apelido, senao nome do Google, senao o primeiro nome. */

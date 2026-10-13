@@ -49,6 +49,15 @@ class LimiteDeRequisicoesTest {
     }
 
     @Test
+    @DisplayName("entrar com senha e cadastrar contam no mesmo limite por IP do login pelo Google")
+    void senhaECadastroTemLimite() throws Exception {
+        assertThat(login("203.0.113.9", "/api/auth/entrar").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/cadastro").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/google").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/entrar").getStatus()).isEqualTo(429);
+    }
+
+    @Test
     @DisplayName("a janela de um minuto passa e o login volta a responder")
     void janelaPassa() throws Exception {
         for (int i = 0; i < 4; i++) {
@@ -125,7 +134,11 @@ class LimiteDeRequisicoesTest {
     }
 
     private MockHttpServletResponse login(String xForwardedFor) throws Exception {
-        MockHttpServletRequest pedido = new MockHttpServletRequest("POST", "/api/auth/google");
+        return login(xForwardedFor, "/api/auth/google");
+    }
+
+    private MockHttpServletResponse login(String xForwardedFor, String rota) throws Exception {
+        MockHttpServletRequest pedido = new MockHttpServletRequest("POST", rota);
         pedido.addHeader("X-Forwarded-For", xForwardedFor);
         MockHttpServletResponse resposta = new MockHttpServletResponse();
         antes.doFilter(pedido, resposta, new MockFilterChain());

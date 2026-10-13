@@ -73,6 +73,10 @@ public class RefreshSession {
         return id;
     }
 
+    public String getTokenHash() {
+        return tokenHash;
+    }
+
     public UUID getUserId() {
         return userId;
     }

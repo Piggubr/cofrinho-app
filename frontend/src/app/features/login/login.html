@@ -16,16 +16,152 @@
       <div class="aceite">
         <p i18n>Falta pouco para criar sua conta.</p>
         <label class="lembrar">
-          <input type="checkbox" [checked]="aceitou()" (change)="aceitou.set($any($event.target).checked)" />
+          <input
+            type="checkbox"
+            [checked]="aceitou()"
+            (change)="aceitou.set($any($event.target).checked)"
+          />
           <span i18n>
             Li e aceito os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
             <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
           </span>
         </label>
-        <button i18n type="button" class="botao" (click)="criarConta()" [disabled]="!aceitou() || entrando()">
+        <button
+          i18n
+          type="button"
+          class="botao"
+          (click)="criarContaGoogle()"
+          [disabled]="!aceitou() || entrando()"
+        >
           Criar minha conta
         </button>
+        <button i18n type="button" class="botao-link" (click)="voltarDoAceite()">Voltar</button>
       </div>
+    } @else {
+      <div class="abas" role="tablist" aria-label="Entrar ou criar conta" i18n-aria-label>
+        <button
+          i18n
+          type="button"
+          role="tab"
+          class="aba"
+          [class.ativa]="modo() === 'entrar'"
+          [attr.aria-selected]="modo() === 'entrar'"
+          (click)="trocarModo('entrar')"
+        >
+          Entrar
+        </button>
+        <button
+          i18n
+          type="button"
+          role="tab"
+          class="aba"
+          [class.ativa]="modo() === 'cadastro'"
+          [attr.aria-selected]="modo() === 'cadastro'"
+          (click)="trocarModo('cadastro')"
+        >
+          Criar conta
+        </button>
+      </div>
+
+      @if (modo() === 'entrar') {
+        <form class="formulario" (ngSubmit)="entrarComSenha()" novalidate>
+          <div class="campo">
+            <label i18n for="email-entrar">E-mail</label>
+            <input
+              id="email-entrar"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              autocapitalize="off"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+            />
+          </div>
+          <div class="campo">
+            <label i18n for="senha-entrar">Senha</label>
+            <input
+              id="senha-entrar"
+              name="senha"
+              type="password"
+              autocomplete="current-password"
+              [ngModel]="senha()"
+              (ngModelChange)="senha.set($event)"
+            />
+          </div>
+          <button i18n type="submit" class="botao largo" [disabled]="entrando()">Entrar</button>
+        </form>
+      } @else {
+        <form class="formulario" (ngSubmit)="cadastrar()" novalidate>
+          <div class="campo">
+            <label i18n for="nome-cadastro">Como podemos te chamar?</label>
+            <input
+              id="nome-cadastro"
+              name="nome"
+              autocomplete="name"
+              maxlength="120"
+              [ngModel]="nome()"
+              (ngModelChange)="nome.set($event)"
+            />
+          </div>
+          <div class="campo">
+            <label i18n for="email-cadastro">E-mail</label>
+            <input
+              id="email-cadastro"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              autocapitalize="off"
+              maxlength="320"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+            />
+          </div>
+          <div class="campo">
+            <label i18n for="senha-cadastro">Senha</label>
+            <input
+              id="senha-cadastro"
+              name="senha"
+              type="password"
+              autocomplete="new-password"
+              aria-describedby="dica-da-senha"
+              [ngModel]="senha()"
+              (ngModelChange)="senha.set($event)"
+            />
+            <p i18n id="dica-da-senha" class="dica">
+              Pelo menos 8 caracteres, com letras e números.
+            </p>
+          </div>
+          <div class="campo">
+            <label i18n for="confirmacao-cadastro">Repita a senha</label>
+            <input
+              id="confirmacao-cadastro"
+              name="confirmacao"
+              type="password"
+              autocomplete="new-password"
+              [ngModel]="confirmacao()"
+              (ngModelChange)="confirmacao.set($event)"
+            />
+          </div>
+          <label class="lembrar aceite-do-cadastro">
+            <input
+              type="checkbox"
+              [checked]="aceitou()"
+              (change)="aceitou.set($any($event.target).checked)"
+            />
+            <span i18n>
+              Li e aceito os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
+              <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
+            </span>
+          </label>
+          <button i18n type="submit" class="botao largo" [disabled]="entrando()">
+            Criar minha conta
+          </button>
+        </form>
+      }
+
+      <p class="separador"><span i18n>ou</span></p>
     }
 
     <div #botaoGoogle class="area-do-botao" [hidden]="aguardandoAceite()"></div>
@@ -40,7 +176,8 @@
     </label>
 
     <p class="nota">
-      <a i18n routerLink="/termos">Termos de Uso</a> · <a i18n routerLink="/privacidade">Aviso de Privacidade</a>
+      <a i18n routerLink="/termos">Termos de Uso</a> ·
+      <a i18n routerLink="/privacidade">Aviso de Privacidade</a>
     </p>
   </section>
 </div>

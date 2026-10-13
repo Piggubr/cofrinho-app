@@ -3,8 +3,11 @@ package com.piggu.identity.api;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.identity.api.dto.CadastroRequest;
+import com.piggu.identity.api.dto.DefinirSenhaRequest;
 import com.piggu.identity.api.dto.GoogleLoginRequest;
 import com.piggu.identity.api.dto.PreferencesRequest;
+import com.piggu.identity.api.dto.SenhaLoginRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
@@ -57,11 +60,27 @@ public class AuthController {
         return comCookie(servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), lembrar, userAgent));
     }
 
+    /** Conta nova por e-mail e senha; o aceite dos termos vem junto. */
+    @PostMapping("/cadastro")
+    public ResponseEntity<TokenResponse> cadastrar(@Valid @RequestBody CadastroRequest pedido,
+                                                   @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
+        boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
+        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pedido.versaoDosTermos(),
+                lembrar, userAgent));
+    }
+
+    @PostMapping("/entrar")
+    public ResponseEntity<TokenResponse> entrarComSenha(@Valid @RequestBody SenhaLoginRequest pedido,
+                                                        @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
+        boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
+        return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> renovar(@CookieValue(name = COOKIE, required = false) String refresh,
                                                  @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         if (refresh == null || refresh.isBlank()) {
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente com Google.");
+            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
         }
         return comCookie(servico.renovar(refresh, userAgent));
     }
@@ -104,6 +123,17 @@ public class AuthController {
     public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
                                      @AuthUser CurrentUser usuario) {
         return servico.salvarPreferencias(usuario.id(), pedido);
+    }
+
+    /**
+     * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
+     * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica.
+     */
+    @PutMapping("/me/senha")
+    public UserResponse definirSenha(@Valid @RequestBody DefinirSenhaRequest pedido,
+                                     @AuthUser CurrentUser usuario,
+                                     @CookieValue(name = COOKIE, required = false) String refresh) {
+        return servico.definirSenha(usuario.id(), pedido.senhaAtual(), pedido.novaSenha(), refresh);
     }
 
     public record ModulosRequest(@NotNull(message = "Escolha os modulos.") @Size(max = 10) List<String> modulos) {

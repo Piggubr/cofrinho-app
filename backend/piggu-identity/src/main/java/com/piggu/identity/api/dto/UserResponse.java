@@ -25,6 +25,10 @@ import java.util.UUID;
  * <p>{@code termosAceitos} e a versao dos Termos que a pessoa aceitou por ultimo (nula em
  * conta antiga, da lista fechada). Diferente da vigente, o front pede o aceite de novo
  * antes de liberar o app.</p>
+ *
+ * <p>{@code temSenha} diz se a conta tambem entra por e-mail e senha (o Perfil oferece
+ * criar ou trocar); {@code emailConfirmado} e falso enquanto a conta, criada por senha,
+ * nao entrou nenhuma vez pelo Google.</p>
  */
 public record UserResponse(
         UUID id,
@@ -44,7 +48,9 @@ public record UserResponse(
         boolean cpfInformado,
         boolean fotoPropria,
         boolean temFotoDoGoogle,
-        String termosAceitos
+        String termosAceitos,
+        boolean temSenha,
+        boolean emailConfirmado
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -84,7 +90,9 @@ public record UserResponse(
                 conta.temCpf(),
                 conta.temFotoPropria(),
                 conta.getGooglePicture() != null,
-                conta.getTermsVersion()
+                conta.getTermsVersion(),
+                conta.temSenha(),
+                conta.isEmailVerified()
         );
     }
 }

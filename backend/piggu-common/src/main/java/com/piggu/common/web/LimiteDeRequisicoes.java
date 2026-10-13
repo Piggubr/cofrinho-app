@@ -47,7 +47,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     public enum Etapa { ANTES_DO_LOGIN, DEPOIS_DO_LOGIN }
 
     /**
-     * @param login           chamadas por minuto, por IP, em /api/auth/google e /api/auth/refresh
+     * @param login           chamadas por minuto, por IP, no login (Google ou senha), no cadastro e na renovacao
      * @param publico         chamadas por minuto, por IP, nas demais rotas abertas (webhooks)
      * @param escrita         POST/PUT/PATCH/DELETE por minuto, por conta
      * @param envio           envios de foto ou extrato por minuto, por conta
@@ -145,7 +145,8 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     }
 
     private static boolean ehRotaAberta(String caminho) {
-        return caminho.equals("/api/auth/google") || caminho.equals("/api/auth/refresh")
+        return caminho.equals("/api/auth/google") || caminho.equals("/api/auth/entrar")
+                || caminho.equals("/api/auth/cadastro") || caminho.equals("/api/auth/refresh")
                 || caminho.equals("/api/auth/logout") || caminho.startsWith("/api/billing/webhooks/")
                 || caminho.startsWith("/api/billing/stores/");
     }

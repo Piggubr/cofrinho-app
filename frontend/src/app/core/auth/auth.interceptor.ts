@@ -6,7 +6,13 @@ import { AuthService } from './auth.service';
 import { TokenStorage } from './token-storage';
 
 /** Rotas que nao levam token: sao justamente as que servem para obter um. */
-const ROTAS_ABERTAS = ['/auth/google', '/auth/refresh', '/auth/logout'];
+const ROTAS_ABERTAS = [
+  '/auth/google',
+  '/auth/entrar',
+  '/auth/cadastro',
+  '/auth/refresh',
+  '/auth/logout',
+];
 
 /**
  * Anexa o token em cada chamada e renova quando ele vence.
