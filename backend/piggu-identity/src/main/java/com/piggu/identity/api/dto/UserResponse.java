@@ -21,6 +21,10 @@ import java.util.UUID;
  *
  * <p>{@code foto} e a que o app mostra (a propria, senao a do Google); {@code fotoPropria} e
  * {@code temFotoDoGoogle} dizem quais botoes o Perfil oferece.</p>
+ *
+ * <p>{@code termosAceitos} e a versao dos Termos que a pessoa aceitou por ultimo (nula em
+ * conta antiga, da lista fechada). Diferente da vigente, o front pede o aceite de novo
+ * antes de liberar o app.</p>
  */
 public record UserResponse(
         UUID id,
@@ -39,7 +43,8 @@ public record UserResponse(
         Avisos avisos,
         boolean cpfInformado,
         boolean fotoPropria,
-        boolean temFotoDoGoogle
+        boolean temFotoDoGoogle,
+        String termosAceitos
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -78,7 +83,8 @@ public record UserResponse(
                 new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
                 conta.temCpf(),
                 conta.temFotoPropria(),
-                conta.getGooglePicture() != null
+                conta.getGooglePicture() != null,
+                conta.getTermsVersion()
         );
     }
 }

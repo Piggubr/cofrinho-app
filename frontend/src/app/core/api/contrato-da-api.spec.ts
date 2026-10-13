@@ -516,6 +516,14 @@ const CASOS: Caso[] = [
     { modulos: ['filmes', 'fotos'] },
   ],
   ['excluir conta', (s) => s.users.excluirConta(), 'DELETE', '/me'],
+  [
+    'aceitar termos novos',
+    (s) => s.users.aceitarTermos('2026-10-13'),
+    'PUT',
+    '/me/termos',
+    {},
+    { versao: '2026-10-13' },
+  ],
   ['contas da instalacao', (s) => s.users.listar(), 'GET', '/users'],
   [
     'ADMIN muda papel',

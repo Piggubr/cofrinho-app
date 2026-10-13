@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { autenticadoGuard, cpfGuard, perfilGuard } from './core/auth/auth.guard';
+import { autenticadoGuard, cpfGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
 
 /**
  * Mapa de telas.
@@ -24,10 +24,16 @@ export const routes: Routes = [
     path: 'termos',
     loadComponent: () => import('./features/legal/termos').then((m) => m.Termos),
   },
+  // Termos novos ainda nao aceitos param aqui antes de qualquer outra tela.
+  {
+    path: 'aceite',
+    canActivate: [autenticadoGuard],
+    loadComponent: () => import('./features/aceite/aceite').then((m) => m.Aceite),
+  },
   // Conta sem CPF para aqui antes de qualquer outra tela.
   {
     path: 'cpf',
-    canActivate: [autenticadoGuard],
+    canActivate: [autenticadoGuard, termosGuard],
     loadComponent: () => import('./features/cpf/cpf').then((m) => m.Cpf),
   },
   {

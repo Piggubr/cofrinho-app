@@ -242,6 +242,25 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("conta antiga sem aceite aceita a versao vigente dos termos; versao velha e recusada")
+    void reaceiteDosTermos() {
+        titular.aceitarTermos("2026-09");
+        usuarios.save(titular);
+        assertThat(contas.exportar(como(titular), "token")).extractingByKey("conta")
+                .extracting("termosAceitos").isEqualTo("2026-09");
+
+        assertThatThrownBy(() -> contas.aceitarTermos(titular.getId(), "2026-09"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("codigo").isEqualTo(Consentimentos.CODIGO_AVISO_MUDOU);
+
+        assertThat(contas.aceitarTermos(titular.getId(), Consentimentos.VERSAO_DO_AVISO).termosAceitos())
+                .isEqualTo(Consentimentos.VERSAO_DO_AVISO);
+        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(salvo.getTermsVersion()).isEqualTo(Consentimentos.VERSAO_DO_AVISO);
+        assertThat(salvo.getTermsAcceptedAt()).isNotNull();
+    }
+
+    @Test
     @DisplayName("CPF fica preso a conta: guardado cifrado, sai inteiro so na exportacao")
     void cpfInformado() {
         assertThat(contas.informarCpf(titular.getId(), "529.982.247-25").cpfInformado()).isTrue();

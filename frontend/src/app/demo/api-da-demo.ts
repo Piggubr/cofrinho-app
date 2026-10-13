@@ -591,6 +591,10 @@ const ROTAS: Rota[] = [
     estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
     return estado.titular;
   }],
+  ['PUT', /^\/me\/termos$/, (_p, _x, c) => {
+    estado.titular = { ...estado.titular, termosAceitos: String(c['versao']) };
+    return estado.titular;
+  }],
   ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],
   ['DELETE', /^\/me$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/users$/, () => [estado.titular, estado.membro]],
