@@ -19,7 +19,7 @@
 		A1B2C3D42F00000200ABCDEF /* AbasNativasPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000100ABCDEF /* AbasNativasPlugin.swift */; };
 		A1B2C3D42F00000400ABCDEF /* ViewControllerDoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000300ABCDEF /* ViewControllerDoApp.swift */; };
 		A1B2C3D42F00000600ABCDEF /* AtalhosPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000500ABCDEF /* AtalhosPlugin.swift */; };
-		A1B2C3D42F00000800ABCDEF /* IconeDoAppPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000700ABCDEF /* IconeDoAppPlugin.swift */; };
+		A1B2C3D42F00000A00ABCDEF /* IconeDoAppPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000900ABCDEF /* IconeDoAppPlugin.swift */; };
 		A1B2C3D42F00000800ABCDEF /* LancarGastoIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F00000700ABCDEF /* LancarGastoIntent.swift */; };
 /* End PBXBuildFile section */
 
@@ -38,7 +38,7 @@
 		A1B2C3D42F00000100ABCDEF /* AbasNativasPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbasNativasPlugin.swift; sourceTree = "<group>"; };
 		A1B2C3D42F00000300ABCDEF /* ViewControllerDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerDoApp.swift; sourceTree = "<group>"; };
 		A1B2C3D42F00000500ABCDEF /* AtalhosPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtalhosPlugin.swift; sourceTree = "<group>"; };
-		A1B2C3D42F00000700ABCDEF /* IconeDoAppPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconeDoAppPlugin.swift; sourceTree = "<group>"; };
+		A1B2C3D42F00000900ABCDEF /* IconeDoAppPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconeDoAppPlugin.swift; sourceTree = "<group>"; };
 		A1B2C3D42F00000700ABCDEF /* LancarGastoIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LancarGastoIntent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -78,7 +78,7 @@
 				A1B2C3D42F00000300ABCDEF /* ViewControllerDoApp.swift */,
 				A1B2C3D42F00000100ABCDEF /* AbasNativasPlugin.swift */,
 				A1B2C3D42F00000500ABCDEF /* AtalhosPlugin.swift */,
-				A1B2C3D42F00000700ABCDEF /* IconeDoAppPlugin.swift */,
+				A1B2C3D42F00000900ABCDEF /* IconeDoAppPlugin.swift */,
 				A1B2C3D42F00000700ABCDEF /* LancarGastoIntent.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -177,7 +177,7 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				A1B2C3D42F00000400ABCDEF /* ViewControllerDoApp.swift in Sources */,
 				A1B2C3D42F00000600ABCDEF /* AtalhosPlugin.swift in Sources */,
-				A1B2C3D42F00000800ABCDEF /* IconeDoAppPlugin.swift in Sources */,
+				A1B2C3D42F00000A00ABCDEF /* IconeDoAppPlugin.swift in Sources */,
 				A1B2C3D42F00000800ABCDEF /* LancarGastoIntent.swift in Sources */,
 				A1B2C3D42F00000200ABCDEF /* AbasNativasPlugin.swift in Sources */,
 			);
