@@ -233,26 +233,75 @@
   </div>
 </section>
 
-<section class="cartao" aria-labelledby="titulo-tema">
+<section class="cartao" aria-labelledby="titulo-tema" id="personalizar">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-tema">Cor do Piggu</h2>
+    @if (!auth.ehPremium()) {
+      <span i18n class="etiqueta premium">Mais cores no Premium</span>
+    }
   </div>
   <p i18n class="linha-detalhe">Vale para este aparelho e acompanha o modo claro ou escuro.</p>
+  @if (voltouAoPadrao()) {
+    <p class="aviso aviso-do-padrao" role="status">
+      <ng-container i18n>
+        O Premium acabou, então a cor e o ícone voltaram para o Rosa.
+      </ng-container>
+      <button i18n type="button" class="botao fantasma pequeno" (click)="dispensarAvisoDoPadrao()">
+        Entendi
+      </button>
+    </p>
+  }
   <div class="temas" role="radiogroup" aria-labelledby="titulo-tema">
     @for (tema of temas; track tema.id) {
       <button
         type="button"
         role="radio"
         class="tema"
+        [class.travado]="tema.premium && !auth.ehPremium()"
         [attr.aria-checked]="tema.id === temaAtual().id"
         (click)="escolherTema(tema.id)"
       >
         <span class="amostra" [style.background]="tema.destaque" aria-hidden="true"></span>
         <strong>{{ tema.nome }}</strong>
-        <small>{{ tema.descricao }}</small>
+        <small>
+          @if (tema.premium && !auth.ehPremium()) {
+            <app-icone nome="estrela" [tamanho]="12" />
+            <ng-container i18n>Premium</ng-container>
+          } @else {
+            {{ tema.descricao }}
+          }
+        </small>
       </button>
     }
   </div>
+
+  @if (iconesDoApp.disponivel) {
+    <h3 i18n id="titulo-icone" class="subtitulo-icone">Ícone do app</h3>
+    <p i18n class="linha-detalhe">
+      No modo escuro o iPhone usa a versão escura de cada ícone. O sistema avisa a cada troca.
+    </p>
+    <div class="icones-do-app" role="radiogroup" aria-labelledby="titulo-icone">
+      @for (icone of icones; track icone.id) {
+        <button
+          type="button"
+          role="radio"
+          class="icone-do-app"
+          [class.travado]="icone.id !== 'padrao' && !auth.ehPremium()"
+          [attr.aria-checked]="icone.id === iconeAtual()"
+          [attr.aria-label]="icone.nome"
+          (click)="escolherIcone(icone.id)"
+        >
+          <img [src]="icone.previa" alt="" width="56" height="56" />
+          <small>{{ icone.nome }}</small>
+          @if (icone.id !== 'padrao' && !auth.ehPremium()) {
+            <span class="selo-premium" aria-hidden="true"
+              ><app-icone nome="estrela" [tamanho]="11"
+            /></span>
+          }
+        </button>
+      }
+    </div>
+  }
 </section>
 
 <section class="cartao" aria-labelledby="titulo-tour-perfil">
