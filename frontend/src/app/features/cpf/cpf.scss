@@ -14,3 +14,10 @@
 .nota {
   margin-bottom: 1rem;
 }
+
+.acoes-do-cpf {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}

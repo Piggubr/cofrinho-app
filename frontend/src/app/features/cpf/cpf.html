@@ -36,6 +36,17 @@
       CPF ou quer corrigir? Escreva para {{ contato }}.
     </p>
 
-    <button i18n type="button" class="botao contorno pequeno" (click)="sair()">Sair</button>
+    <div class="acoes-do-cpf">
+      <button
+        i18n
+        type="button"
+        class="botao contorno pequeno"
+        [disabled]="salvando()"
+        (click)="moroForaDoBrasil()"
+      >
+        Não moro no Brasil
+      </button>
+      <button i18n type="button" class="botao contorno pequeno" (click)="sair()">Sair</button>
+    </div>
   </section>
 </div>

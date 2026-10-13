@@ -1,6 +1,7 @@
 package com.piggu.identity.api;
 
 import com.piggu.common.dados.Consentimentos;
+import com.piggu.identity.domain.HouseholdInviteRepository;
 import com.piggu.identity.domain.RefreshSessionRepository;
 import com.piggu.identity.domain.UserAccountRepository;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -32,10 +33,15 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     @Autowired
     private RefreshSessionRepository sessoes;
 
+    @Autowired
+    private HouseholdInviteRepository convites;
+
     @BeforeEach
     void limpar() {
+        // Tudo: o CPF do cadastro abaixo pode estar numa conta deixada por outro teste.
         sessoes.deleteAll();
-        usuarios.findByEmail("api@exemplo.test").ifPresent(usuarios::delete);
+        convites.deleteAll();
+        usuarios.deleteAll();
     }
 
     @Test
@@ -43,7 +49,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     void cadastroEEntrada() throws Exception {
         String cadastro = mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"cpf\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuario.temSenha").value(true))
                 .andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE);
@@ -61,7 +67,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
 
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"cpf\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("EMAIL_JA_CADASTRADO"));
     }
@@ -73,6 +79,14 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
                         .content("{\"nome\":\"Api\",\"email\":\"nao-e-email\",\"senha\":\"cofrinho123\"}"))
                 .andExpect(status().is4xxClientError());
         assertThat(usuarios.findByEmail("nao-e-email")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("declarar onde mora pede login")
+    void residenciaPedeToken() throws Exception {
+        mockMvc.perform(put("/api/me/residencia").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"moraNoBrasil\":false}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

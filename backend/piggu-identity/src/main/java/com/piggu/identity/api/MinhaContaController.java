@@ -6,6 +6,7 @@ import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.domain.MinhaContaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +48,15 @@ public class MinhaContaController {
     @PutMapping("/cpf")
     public UserResponse informarCpf(@Valid @RequestBody CpfRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.informarCpf(usuario.id(), pedido.cpf());
+    }
+
+    public record ResidenciaRequest(@NotNull(message = "Diga se mora no Brasil.") Boolean moraNoBrasil) {
+    }
+
+    /** No Brasil o CPF e obrigatorio; quem mora fora segue sem ele. */
+    @PutMapping("/residencia")
+    public UserResponse declararResidencia(@Valid @RequestBody ResidenciaRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.declararResidencia(usuario.id(), pedido.moraNoBrasil());
     }
 
     public record FotoRequest(@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,

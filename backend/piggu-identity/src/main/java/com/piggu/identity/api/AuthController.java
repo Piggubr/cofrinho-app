@@ -65,8 +65,9 @@ public class AuthController {
     public ResponseEntity<TokenResponse> cadastrar(@Valid @RequestBody CadastroRequest pedido,
                                                    @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
-        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pedido.versaoDosTermos(),
-                lembrar, userAgent));
+        boolean noBrasil = !Boolean.FALSE.equals(pedido.moraNoBrasil());
+        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pedido.cpf(), noBrasil,
+                pedido.versaoDosTermos(), lembrar, userAgent));
     }
 
     @PostMapping("/entrar")

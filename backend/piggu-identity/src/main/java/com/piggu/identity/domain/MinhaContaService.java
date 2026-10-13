@@ -115,12 +115,27 @@ public class MinhaContaService {
             throw new BusinessException("Sua conta já tem um CPF. Para corrigir, escreva para o canal de privacidade.",
                     HttpStatus.CONFLICT);
         }
+        prenderCpf(conta, conferirCpfLivre(digitado));
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /**
+     * Confere o CPF (digitos e formato) e se nenhuma conta ja o usa; o cadastro chama
+     * antes de criar a conta, para nao nascer conta com CPF repetido.
+     */
+    @Transactional(readOnly = true)
+    public Cpf conferirCpfLivre(String digitado) {
         Cpf cpf = Cpf.de(digitado);
-        String indice = cofre.indice(cpf);
-        if (usuarios.existsByCpfIndice(indice)) {
+        if (usuarios.existsByCpfIndice(cofre.indice(cpf))) {
             throw cpfEmUso();
         }
-        conta.informarCpf(cofre.cifrar(cpf), indice);
+        return cpf;
+    }
+
+    /** Grava o CPF ja conferido; o indice unico do banco decide uma corrida entre contas. */
+    @Transactional
+    public void prenderCpf(UserAccount conta, Cpf cpf) {
+        conta.informarCpf(cofre.cifrar(cpf), cofre.indice(cpf));
         try {
             usuarios.saveAndFlush(conta);
         } catch (DataIntegrityViolationException corrida) {
@@ -130,6 +145,22 @@ public class MinhaContaService {
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
+    }
+
+    /**
+     * Onde a pessoa mora. No Brasil o CPF e obrigatorio (o app pede ate ser informado);
+     * fora dele a conta segue sem CPF. Quem ja informou o CPF continua com ele.
+     */
+    @Transactional
+    public UserResponse declararResidencia(UUID contaId, boolean noBrasil) {
+        UserAccount conta = conta(contaId);
+        if (conta.moraNoBrasil() != noBrasil) {
+            conta.declararResidencia(noBrasil);
+            usuarios.save(conta);
+            trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                    conta.getId(), null, noBrasil ? "Mora no Brasil" : "Mora fora do Brasil");
+            log.info("Residencia: conta={} noBrasil={}", conta.getId(), noBrasil);
+        }
         return UserResponse.de(conta, familia.daConta(conta));
     }
 

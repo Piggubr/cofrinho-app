@@ -144,6 +144,38 @@
               (ngModelChange)="confirmacao.set($event)"
             />
           </div>
+          <div class="campo">
+            <label i18n for="pais-cadastro">Onde você mora?</label>
+            <select
+              id="pais-cadastro"
+              name="pais"
+              [ngModel]="moraNoBrasil()"
+              (ngModelChange)="moraNoBrasil.set($event)"
+            >
+              <option i18n [ngValue]="true">No Brasil</option>
+              <option i18n [ngValue]="false">Fora do Brasil</option>
+            </select>
+          </div>
+          @if (moraNoBrasil()) {
+            <div class="campo">
+              <label i18n for="cpf-cadastro">CPF</label>
+              <input
+                #campoCpf
+                id="cpf-cadastro"
+                name="cpf"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="000.000.000-00"
+                maxlength="14"
+                aria-describedby="dica-do-cpf"
+                [value]="cpf()"
+                (input)="digitarCpf(campoCpf.value, campoCpf)"
+              />
+              <p i18n id="dica-do-cpf" class="dica">
+                Uma conta por pessoa: o CPF fica preso à sua conta, guardado cifrado.
+              </p>
+            </div>
+          }
           <label class="lembrar aceite-do-cadastro">
             <input
               type="checkbox"

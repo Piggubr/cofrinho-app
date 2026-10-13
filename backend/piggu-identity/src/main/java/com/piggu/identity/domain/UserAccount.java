@@ -124,6 +124,10 @@ public class UserAccount {
     @Column(name = "cpf_informado_em")
     private Instant cpfInformadoEm;
 
+    /** Mora no Brasil: o CPF e obrigatorio. Quem mora fora segue sem CPF. */
+    @Column(name = "lives_in_brazil", nullable = false)
+    private boolean livesInBrazil = true;
+
     /** BCrypt da senha ({@link Senhas}); nulo = a conta so entra pelo Google. */
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
@@ -450,6 +454,19 @@ public class UserAccount {
 
     public boolean temCpf() {
         return cpfIndice != null;
+    }
+
+    public boolean moraNoBrasil() {
+        return livesInBrazil;
+    }
+
+    public void declararResidencia(boolean noBrasil) {
+        this.livesInBrazil = noBrasil;
+    }
+
+    /** Nada falta de CPF: ja informou, ou mora fora do Brasil e nao precisa. */
+    public boolean cpfEmDia() {
+        return temCpf() || !livesInBrazil;
     }
 
     /** O CPF fica preso a conta: so entra uma vez (trocar e pelo canal de privacidade). */

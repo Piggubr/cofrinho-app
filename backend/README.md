@@ -123,6 +123,10 @@ cria uma senha no Perfil (`PUT /api/auth/me/senha`), que também serve para troc
 - A senha fica em BCrypt (custo 12): pelo menos 8 caracteres, com letra e número, até
   72 bytes. Cinco erros seguidos travam a entrada por senha da conta por 15 minutos; o
   Google continua entrando. O limite por IP do login vale também para senha e cadastro.
+- Quem mora no Brasil informa o CPF no próprio cadastro (obrigatório; o mesmo CPF não
+  entra em duas contas). Quem mora fora do Brasil segue sem CPF: a conta guarda
+  `lives_in_brazil` e o app não pede. Pelo Google, a tela do CPF depois da entrada
+  oferece "Não moro no Brasil" (`PUT /api/me/residencia`).
 - O cadastro por senha ainda não confirma o e-mail (`email_verified` falso). Enquanto
   isso, a conta não vira `ADMIN` pela `PIGGU_ADMIN_EMAILS`, não usa convite de família e
   não aceita convite. O primeiro login Google nesse e-mail confirma; se a conta tinha

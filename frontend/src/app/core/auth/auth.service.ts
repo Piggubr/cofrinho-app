@@ -9,6 +9,15 @@ import { esquecerListasGuardadas } from '../offline/listas-guardadas';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
 
+/** O CPF so vai (e e obrigatorio) para quem mora no Brasil. */
+export interface DadosDoCadastro {
+  nome: string;
+  email: string;
+  senha: string;
+  moraNoBrasil: boolean;
+  cpf?: string;
+}
+
 /** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */
 const CHAVE_DO_PERFIL_OFFLINE = 'piggu_perfil_offline';
 
@@ -76,11 +85,8 @@ export class AuthService {
     await this.abrirSessao('/auth/entrar', { email, senha, lembrar }, lembrar);
   }
 
-  /** Conta nova por e-mail e senha; o aceite dos termos vai junto. */
-  async cadastrar(
-    dados: { nome: string; email: string; senha: string },
-    lembrar: boolean,
-  ): Promise<void> {
+  /** Conta nova por e-mail e senha; o aceite dos termos (e o CPF, no Brasil) vai junto. */
+  async cadastrar(dados: DadosDoCadastro, lembrar: boolean): Promise<void> {
     await this.abrirSessao(
       '/auth/cadastro',
       { ...dados, versaoDosTermos: VERSAO_DO_AVISO, lembrar },

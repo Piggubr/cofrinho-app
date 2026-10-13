@@ -40,12 +40,13 @@ public class TokenService {
     }
 
     /**
-     * O token de uso diario leva a claim {@code cpf}: sem CPF informado, os outros servicos
+     * O token de uso diario leva a claim {@code cpf}: sem CPF informado (de quem mora no
+     * Brasil; quem mora fora nao precisa), os outros servicos
      * recusam os dados (ver CurrentUserArgumentResolver). Os tokens internos (exclusao,
      * lembrete) ficam sem ela, para apagar a conta funcionar mesmo sem CPF.
      */
     public String gerarAccessToken(UserAccount conta, Household familia) {
-        return gerar(conta, familia, propriedades.accessTtl(), null, conta.temCpf());
+        return gerar(conta, familia, propriedades.accessTtl(), null, conta.cpfEmDia());
     }
 
     /**

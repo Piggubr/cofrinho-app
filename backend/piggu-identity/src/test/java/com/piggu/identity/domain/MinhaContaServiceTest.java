@@ -1,5 +1,7 @@
 package com.piggu.identity.domain;
 
+import com.piggu.identity.api.dto.UserResponse;
+
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
@@ -270,6 +272,21 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         assertThat(salvo.getCpfCifrado()).doesNotContain("52998224725");
         assertThat(contas.exportar(como(salvo), "token")).extractingByKey("cpf")
                 .asString().contains("529.982.247-25");
+    }
+
+    @Test
+    @DisplayName("CPF so e cobrado de quem mora no Brasil; voltar ao Brasil sem CPF volta a cobrar")
+    void cpfSoNoBrasil() {
+        assertThat(contas.declararResidencia(titular.getId(), true).cpfInformado()).as("no Brasil, sem CPF").isFalse();
+
+        UserResponse fora = contas.declararResidencia(titular.getId(), false);
+        assertThat(fora.moraNoBrasil()).isFalse();
+        assertThat(fora.cpfInformado()).as("fora do Brasil nada fica pendente").isTrue();
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().cpfEmDia()).isTrue();
+
+        assertThat(contas.declararResidencia(titular.getId(), true).cpfInformado()).isFalse();
+        contas.informarCpf(titular.getId(), "529.982.247-25");
+        assertThat(contas.declararResidencia(titular.getId(), false).cpfInformado()).isTrue();
     }
 
     @Test

@@ -49,6 +49,7 @@ public class AuthService {
     private final SessionRevoker revogador;
     private final TokenService tokens;
     private final Senhas senhas;
+    private final MinhaContaService minhaConta;
     private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
@@ -58,6 +59,7 @@ public class AuthService {
                        SessionRevoker revogador,
                        TokenService tokens,
                        Senhas senhas,
+                       MinhaContaService minhaConta,
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.usuarios = usuarios;
@@ -66,6 +68,7 @@ public class AuthService {
         this.revogador = revogador;
         this.tokens = tokens;
         this.senhas = senhas;
+        this.minhaConta = minhaConta;
         this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
                 .collect(Collectors.toSet());
     }
@@ -118,10 +121,14 @@ public class AuthService {
     /**
      * Cadastro por e-mail e senha. O e-mail fica sem prova ate o primeiro login Google
      * nele: por isso nao usa convite de familia nem vira ADMIN pela lista.
+     *
+     * <p>Quem mora no Brasil informa o CPF aqui mesmo, e ele e conferido antes de a conta
+     * nascer: CPF ja usado em outra conta barra o cadastro. Quem mora fora segue sem CPF
+     * (se informar um, ele vale igual).</p>
      */
     @Transactional
-    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String versaoDosTermos,
-                                   boolean lembrar, String userAgent) {
+    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String cpfDigitado,
+                                   boolean moraNoBrasil, String versaoDosTermos, boolean lembrar, String userAgent) {
         String email = Texto.email(emailBruto);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         if (nomeLimpo.isEmpty()) {
@@ -133,12 +140,22 @@ public class AuthService {
                     HttpStatus.CONFLICT, "EMAIL_JA_CADASTRADO");
         }
         senhas.validar(senha, email);
+        boolean semCpf = Texto.vazio(cpfDigitado);
+        if (moraNoBrasil && semCpf) {
+            throw new BusinessException("Informe seu CPF. Ele garante uma conta por pessoa.",
+                    HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+        }
+        Cpf cpf = semCpf ? null : minhaConta.conferirCpfLivre(cpfDigitado);
 
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
         conta.setNickname(nomeLimpo);
+        conta.declararResidencia(moraNoBrasil);
         conta.definirSenha(senhas.hash(senha));
         conta.registrarAcesso();
         usuarios.save(conta);
+        if (cpf != null) {
+            minhaConta.prenderCpf(conta, cpf);
+        }
         log.info("Cadastro por senha: conta={}", conta.getId());
 
         return emitirPar(conta, userAgent, lembrar);

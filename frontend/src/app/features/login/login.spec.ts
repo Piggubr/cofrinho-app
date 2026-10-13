@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService, DadosDoCadastro } from '../../core/auth/auth.service';
 import { GoogleIdentityService } from '../../core/auth/google-identity.service';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { Login } from './login';
@@ -14,7 +14,7 @@ describe('Login', () => {
   let entradas: [string, boolean, string | undefined][];
   let respostaDaEntrada: () => Promise<void>;
   let entradasComSenha: [string, string, boolean][];
-  let cadastros: [{ nome: string; email: string; senha: string }, boolean][];
+  let cadastros: [DadosDoCadastro, boolean][];
   let navegar: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -40,10 +40,7 @@ describe('Login', () => {
               entradasComSenha.push([email, senha, lembrar]);
               return respostaDaEntrada();
             },
-            cadastrar: (
-              dados: { nome: string; email: string; senha: string },
-              lembrar: boolean,
-            ) => {
+            cadastrar: (dados: DadosDoCadastro, lembrar: boolean) => {
               cadastros.push([dados, lembrar]);
               return respostaDaEntrada();
             },
@@ -223,7 +220,7 @@ describe('Login', () => {
     expect(pagina.querySelector<HTMLElement>('.area-do-botao')?.hidden).toBe(false);
   });
 
-  it('cadastro confere senha, confirmacao e aceite antes de chamar o backend', async () => {
+  it('cadastro confere senha, confirmacao, CPF e aceite antes de chamar o backend', async () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     preencher(tela, 'nome-cadastro', 'Ana');
@@ -243,6 +240,17 @@ describe('Login', () => {
 
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
     await enviar(tela);
+    expect(alerta()).toContain('Informe seu CPF');
+
+    preencher(tela, 'cpf-cadastro', '529.982.247-26');
+    await enviar(tela);
+    expect(alerta()).toContain('CPF inválido');
+
+    preencher(tela, 'cpf-cadastro', '52998224725');
+    expect(
+      (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#cpf-cadastro')!.value,
+    ).toBe('529.982.247-25');
+    await enviar(tela);
     expect(alerta()).toContain('aceite os Termos');
     expect(cadastros).toEqual([]);
 
@@ -254,7 +262,16 @@ describe('Login', () => {
     await enviar(tela);
 
     expect(cadastros).toEqual([
-      [{ nome: 'Ana', email: 'ana@piggu.test', senha: 'cofrinho123' }, true],
+      [
+        {
+          nome: 'Ana',
+          email: 'ana@piggu.test',
+          senha: 'cofrinho123',
+          moraNoBrasil: true,
+          cpf: '52998224725',
+        },
+        true,
+      ],
     ]);
     expect(navegar).toHaveBeenCalledWith(['/painel']);
   });
@@ -272,6 +289,7 @@ describe('Login', () => {
     preencher(tela, 'email-cadastro', 'ana@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
+    preencher(tela, 'cpf-cadastro', '52998224725');
     const aceite = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       '.aceite-do-cadastro input[type=checkbox]',
     )!;
@@ -283,5 +301,35 @@ describe('Login', () => {
     expect(
       (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
     ).toContain('ja tem conta');
+  });
+
+  it('quem mora fora do Brasil cadastra sem CPF', async () => {
+    const tela = await abrir();
+    await irParaCadastro(tela);
+    const pagina: HTMLElement = tela.nativeElement;
+    const pais = pagina.querySelector<HTMLSelectElement>('#pais-cadastro')!;
+    pais.value = pais.options[1].value;
+    pais.dispatchEvent(new Event('change'));
+    tela.detectChanges();
+    expect(pagina.querySelector('#cpf-cadastro')).toBeNull();
+
+    preencher(tela, 'nome-cadastro', 'Ana');
+    preencher(tela, 'email-cadastro', 'ana@piggu.test');
+    preencher(tela, 'senha-cadastro', 'cofrinho123');
+    preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
+    const aceite = pagina.querySelector<HTMLInputElement>(
+      '.aceite-do-cadastro input[type=checkbox]',
+    )!;
+    aceite.checked = true;
+    aceite.dispatchEvent(new Event('change'));
+    await enviar(tela);
+
+    expect(cadastros[0][0]).toEqual({
+      nome: 'Ana',
+      email: 'ana@piggu.test',
+      senha: 'cofrinho123',
+      moraNoBrasil: false,
+      cpf: undefined,
+    });
   });
 });

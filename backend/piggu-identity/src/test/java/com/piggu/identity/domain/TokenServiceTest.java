@@ -81,6 +81,15 @@ class TokenServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("quem mora fora do Brasil nao precisa de CPF: o access token sai com cpf=true")
+    void claimDoCpfForaDoBrasil() {
+        UserAccount conta = new UserAccount("fora@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
+        conta.declararResidencia(false);
+
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
+    }
+
+    @Test
     @DisplayName("cada refresh token e diferente do anterior")
     void refreshSempreDiferente() {
         assertThat(tokens.gerarRefreshToken()).isNotEqualTo(tokens.gerarRefreshToken());

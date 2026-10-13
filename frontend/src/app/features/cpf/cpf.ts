@@ -11,8 +11,9 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 /**
  * Primeira entrada (ou conta antiga) sem CPF: o app so abre depois daqui.
  *
- * <p>O CPF prende a conta a uma pessoa: o mesmo CPF nao entra em outra conta. Depois de
- * gravar, renova o token para os outros servicos verem a conta como completa.</p>
+ * <p>O CPF prende a conta a uma pessoa: o mesmo CPF nao entra em outra conta. So quem mora
+ * no Brasil precisa: quem mora fora diz isso aqui e segue sem CPF. Depois de gravar,
+ * renova o token para os outros servicos verem a conta como completa.</p>
  */
 @Component({
   selector: 'app-cpf',
@@ -53,6 +54,21 @@ export class Cpf {
       const usuario = await firstValueFrom(this.usuarios.informarCpf(digitosDoCpf(this.cpf())));
       this.auth.atualizarUsuario(usuario);
       // Token novo, ja com a conta completa: sem isso os outros servicos recusam ate renovar.
+      await firstValueFrom(this.auth.renovar());
+      await this.router.navigateByUrl('/painel');
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha));
+      this.salvando.set(false);
+    }
+  }
+
+  /** Quem mora fora do Brasil nao tem CPF: a conta segue sem ele. */
+  protected async moroForaDoBrasil(): Promise<void> {
+    this.salvando.set(true);
+    this.erro.set('');
+    try {
+      const usuario = await firstValueFrom(this.usuarios.declararResidencia(false));
+      this.auth.atualizarUsuario(usuario);
       await firstValueFrom(this.auth.renovar());
       await this.router.navigateByUrl('/painel');
     } catch (falha) {

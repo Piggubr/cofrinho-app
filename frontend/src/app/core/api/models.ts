@@ -31,7 +31,10 @@ export interface Usuario {
   premiumAte: string | null;
   /** Familia a que a conta pertence. */
   familia: string;
-  /** Falso: o app pede o CPF antes de liberar o resto. Ausente (demo, perfil antigo) conta como informado. */
+  /**
+   * Falso: o app pede o CPF antes de liberar o resto (so acontece com quem mora no Brasil).
+   * Ausente (demo, perfil antigo) conta como informado.
+   */
   cpfInformado?: boolean;
   /**
    * Versao dos Termos aceita por ultimo; nula em conta antiga. Diferente da vigente, o app
@@ -42,6 +45,8 @@ export interface Usuario {
   temSenha?: boolean;
   /** Falso enquanto a conta criada por senha nao entrou nenhuma vez pelo Google. */
   emailConfirmado?: boolean;
+  /** No Brasil o CPF e obrigatorio; fora dele a conta segue sem. Ausente conta como Brasil. */
+  moraNoBrasil?: boolean;
 }
 
 /** Familia de quem esta logado; convites so chegam para o titular. */

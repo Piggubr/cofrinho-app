@@ -7,6 +7,7 @@ import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
+import { cpfValido, digitosDoCpf, formatarCpf } from '../../core/ui/cpf';
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -14,7 +15,8 @@ type Modo = 'entrar' | 'cadastro';
  * Entrada no app.
  *
  * <p>Duas portas para a mesma conta: e-mail e senha, ou o Google. O cadastro por e-mail
- * pede nome, e-mail, senha (duas vezes) e o aceite dos termos. Pelo Google, na primeira
+ * pede nome, e-mail, senha (duas vezes), o aceite dos termos e, de quem mora no Brasil, o
+ * CPF (uma conta por pessoa; quem mora fora segue sem). Pelo Google, na primeira
  * vez o backend so cria a conta com o aceite, pedido aqui depois que o Google confirma.</p>
  */
 @Component({
@@ -43,6 +45,8 @@ export class Login {
   protected readonly email = signal('');
   protected readonly senha = signal('');
   protected readonly confirmacao = signal('');
+  protected readonly moraNoBrasil = signal(true);
+  protected readonly cpf = signal('');
 
   constructor() {
     afterNextRender(() => void this.prepararBotao());
@@ -100,7 +104,13 @@ export class Login {
     await this.tentar(
       () =>
         this.auth.cadastrar(
-          { nome: this.nome().trim(), email: this.email().trim(), senha: this.senha() },
+          {
+            nome: this.nome().trim(),
+            email: this.email().trim(),
+            senha: this.senha(),
+            moraNoBrasil: this.moraNoBrasil(),
+            cpf: this.moraNoBrasil() ? digitosDoCpf(this.cpf()) : undefined,
+          },
           this.lembrar(),
         ),
       $localize`Nao foi possivel criar sua conta.`,
@@ -122,10 +132,22 @@ export class Login {
     if (this.senha() !== this.confirmacao()) {
       return $localize`As duas senhas nao sao iguais.`;
     }
+    if (this.moraNoBrasil() && !cpfValido(this.cpf())) {
+      return digitosDoCpf(this.cpf()).length === 11
+        ? $localize`CPF inválido. Confira os números.`
+        : $localize`Informe seu CPF (11 números).`;
+    }
     if (!this.aceitou()) {
       return $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`;
     }
     return '';
+  }
+
+  /** Mascara do CPF enquanto digita, como na tela do CPF. */
+  protected digitarCpf(texto: string, campo: HTMLInputElement): void {
+    const formatado = formatarCpf(texto);
+    this.cpf.set(formatado);
+    campo.value = formatado;
   }
 
   /** Cria a conta Google com o aceite, reaproveitando a confirmacao que ja chegou. */

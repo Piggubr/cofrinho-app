@@ -76,9 +76,15 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBe('acesso');
   });
 
-  it('cadastro manda nome, e-mail, senha e o aceite da versao vigente dos termos', async () => {
+  it('cadastro manda nome, e-mail, senha, CPF e o aceite da versao vigente dos termos', async () => {
     const cadastro = auth.cadastrar(
-      { nome: 'Ana', email: 'ana@piggu.test', senha: 'cofrinho123' },
+      {
+        nome: 'Ana',
+        email: 'ana@piggu.test',
+        senha: 'cofrinho123',
+        moraNoBrasil: true,
+        cpf: '52998224725',
+      },
       true,
     );
     const pedido = http.expectOne('/api/auth/cadastro');
@@ -86,6 +92,8 @@ describe('AuthService', () => {
       nome: 'Ana',
       email: 'ana@piggu.test',
       senha: 'cofrinho123',
+      moraNoBrasil: true,
+      cpf: '52998224725',
       versaoDosTermos: VERSAO_DO_AVISO,
       lembrar: true,
     });

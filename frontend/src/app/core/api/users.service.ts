@@ -35,6 +35,11 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/me/cpf'), { cpf });
   }
 
+  /** No Brasil o CPF e obrigatorio; quem mora fora segue sem ele. */
+  declararResidencia(moraNoBrasil: boolean): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/residencia'), { moraNoBrasil });
+  }
+
   /** Aceite da versao nova dos Termos e do Aviso por quem ja tem conta. */
   aceitarTermos(versao: string): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/me/termos'), { versao });
