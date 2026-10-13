@@ -320,6 +320,53 @@ describe('Shell', () => {
     }
   });
 
+  it('a folha do "Mais" no celular: puxar para cima volta ao lugar, para baixo fecha', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    try {
+      const tela = abrir();
+      http.match(() => true).forEach((pedido) => pedido.flush(null));
+      const pagina: HTMLElement = tela.nativeElement;
+      const menu = pagina.querySelector('nav.menu') as HTMLElement;
+      const topo = pagina.querySelector('.menu-topo') as HTMLElement;
+      const dedo = (tipo: string, y: number, alvo: Element = topo) => {
+        const evento = new MouseEvent(tipo, { clientY: y, bubbles: true });
+        alvo.dispatchEvent(evento);
+        tela.detectChanges();
+      };
+
+      // Fechada, a alca nao arrasta nada.
+      dedo('pointerdown', 100);
+      dedo('pointermove', 200);
+      expect(menu.style.transform).toBe('');
+
+      (pagina.querySelector('.aba[data-tour="mais"]') as HTMLButtonElement).click();
+      tela.detectChanges();
+      expect(menu.classList).toContain('aberto');
+
+      // Para cima: cede so um pouco e volta ao soltar.
+      dedo('pointerdown', 300);
+      dedo('pointermove', 100);
+      const subiu = Number(/-?[\d.]+/.exec(menu.style.transform)![0]);
+      expect(subiu).toBeLessThan(0);
+      expect(subiu).toBeGreaterThan(-24);
+      expect((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity).toBe('');
+      dedo('pointerup', 100);
+      expect(menu.classList).toContain('aberto');
+      expect(menu.style.transform).toBe('');
+
+      // Para baixo: o fundo clareia e, passado um terco, fecha.
+      dedo('pointerdown', 100);
+      dedo('pointermove', 300);
+      expect(Number((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity)).toBeLessThan(1);
+      dedo('pointerup', 600);
+      expect(menu.classList).not.toContain('aberto');
+      // Soltar sem ter comecado nao faz nada.
+      dedo('pointerup', 600);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('tocar fora do balao ou apertar Esc fecha as opcoes', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
