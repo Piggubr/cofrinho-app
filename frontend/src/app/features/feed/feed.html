@@ -8,14 +8,34 @@
   <div class="cartao-titulo">
     <h2>{{ rotuloDoMes() }}</h2>
     <div class="navegacao-de-mes">
-      <button type="button" class="botao contorno icone-so" (click)="trocarMes(-1)" aria-label="Mês anterior" i18n-aria-label><app-icone nome="esquerda" [tamanho]="18" /></button>
-      <button type="button" class="botao contorno icone-so" (click)="trocarMes(1)" aria-label="Próximo mês" i18n-aria-label><app-icone nome="direita" [tamanho]="18" /></button>
+      <button
+        type="button"
+        class="botao contorno icone-so"
+        (click)="trocarMes(-1)"
+        aria-label="Mês anterior"
+        i18n-aria-label
+      >
+        <app-icone nome="esquerda" [tamanho]="18" />
+      </button>
+      <button
+        type="button"
+        class="botao contorno icone-so"
+        (click)="trocarMes(1)"
+        aria-label="Próximo mês"
+        i18n-aria-label
+      >
+        <app-icone nome="direita" [tamanho]="18" />
+      </button>
     </div>
   </div>
 
   @if (auth.ehPremium()) {
     <label i18n class="botao secundario arquivo">
-      @if (enviando()) {Enviando...} @else {Adicionar foto}
+      @if (enviando()) {
+        Enviando...
+      } @else {
+        Adicionar foto
+      }
       <input
         type="file"
         accept="image/*"
@@ -25,7 +45,9 @@
       />
     </label>
   } @else {
-    <a i18n routerLink="/plano" class="botao contorno"><app-icone nome="camera" [tamanho]="18" /> Adicionar fotos · Premium</a>
+    <a i18n routerLink="/plano" class="botao contorno"
+      ><app-icone nome="camera" [tamanho]="18" /> Adicionar fotos · Premium</a
+    >
   }
 </section>
 
@@ -37,14 +59,27 @@
       <figure class="cartao foto-do-feed">
         <img [src]="urlDaFoto(foto)" [alt]="foto.legenda || 'Foto do mês'" loading="lazy" />
         <figcaption>
-          <input i18n-placeholder i18n-aria-label
+          <input
+            i18n-placeholder
+            i18n-aria-label
             type="text"
-            [value]="foto.legenda" maxlength="300"
+            [value]="foto.legenda"
+            maxlength="300"
             (change)="legendar(foto, $any($event.target).value)"
             placeholder="Escreva uma legenda"
             aria-label="Legenda da foto"
           />
-          <button type="button" class="botao icone-so perigo" (click)="excluir(foto)" aria-label="Apagar" i18n-aria-label title="Apagar" i18n-title><app-icone nome="lixeira" [tamanho]="18" /></button>
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="excluir(foto)"
+            aria-label="Apagar"
+            i18n-aria-label
+            title="Apagar"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
         </figcaption>
       </figure>
     }

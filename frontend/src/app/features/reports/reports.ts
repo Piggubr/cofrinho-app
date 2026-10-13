@@ -9,7 +9,20 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
 
-const MESES_CURTOS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MESES_CURTOS = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+];
 
 /** Area do grafico anual, em unidades do viewBox. */
 const LARGURA = 600;
@@ -26,8 +39,10 @@ function barra(x: number, altura: number): string {
   const r = Math.min(4, altura, LARGURA_DA_BARRA / 2);
   const topo = BASE - altura;
   const direita = x + LARGURA_DA_BARRA;
-  return `M${x},${BASE}V${topo + r}Q${x},${topo} ${x + r},${topo}H${direita - r}`
-    + `Q${direita},${topo} ${direita},${topo + r}V${BASE}Z`;
+  return (
+    `M${x},${BASE}V${topo + r}Q${x},${topo} ${x + r},${topo}H${direita - r}` +
+    `Q${direita},${topo} ${direita},${topo + r}V${BASE}Z`
+  );
 }
 
 /**

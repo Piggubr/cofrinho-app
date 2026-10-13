@@ -1,4 +1,9 @@
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  provideHttpClient,
+  withInterceptors,
+} from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { Gasto, ParDeTokens, ResumoDoMes } from '../core/api/models';
@@ -12,11 +17,14 @@ describe('API da demonstracao', () => {
 
   beforeEach(() => {
     reiniciarDemo();
-    TestBed.configureTestingModule({ providers: [provideHttpClient(withInterceptors([apiDaDemo]))] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(withInterceptors([apiDaDemo]))],
+    });
     http = TestBed.inject(HttpClient);
   });
 
-  const get = <T>(url: string, params: Record<string, string> = {}) => firstValueFrom(http.get<T>(url, { params }));
+  const get = <T>(url: string, params: Record<string, string> = {}) =>
+    firstValueFrom(http.get<T>(url, { params }));
   const post = <T>(url: string, corpo: unknown, params: Record<string, string> = {}) =>
     firstValueFrom(http.post<T>(url, corpo, { params }));
 
@@ -31,7 +39,10 @@ describe('API da demonstracao', () => {
     const antes = await get<ResumoDoMes>('/api/reports/month', { mes });
     expect(antes.sobra).toBeCloseTo(antes.receitas - antes.gastos, 2);
 
-    await post<Gasto[]>('/api/expenses', { data: `${mes}-01`, itens: [{ item: 'Teste', valor: 100 }] });
+    await post<Gasto[]>('/api/expenses', {
+      data: `${mes}-01`,
+      itens: [{ item: 'Teste', valor: 100 }],
+    });
     const depois = await get<ResumoDoMes>('/api/reports/month', { mes });
     expect(depois.gastos).toBeCloseTo(antes.gastos + 100, 2);
   });
@@ -49,7 +60,10 @@ describe('API da demonstracao', () => {
   it('o ano tem 12 meses e o cartao tem fatura com o fone parcelado', async () => {
     const ano = await get<{ meses: unknown[] }>('/api/reports/year', { ano: mes.slice(0, 4) });
     expect(ano.meses.length).toBe(12);
-    const contas = await get<{ id: string; tipo: string; faturaAberta: { total: number } | null }[]>('/api/accounts');
+    const contas =
+      await get<{ id: string; tipo: string; faturaAberta: { total: number } | null }[]>(
+        '/api/accounts',
+      );
     expect(contas.find((c) => c.tipo === 'CARTAO')?.faturaAberta).not.toBeNull();
   });
 
@@ -62,7 +76,9 @@ describe('API da demonstracao', () => {
       expect(depois.find((c) => c.id === pendente.id)?.situacao).toBe('PAGA');
     }
 
-    const falha = await post('/api/billing/checkout', { periodo: 'MENSAL' }).catch((e: HttpErrorResponse) => e);
+    const falha = await post('/api/billing/checkout', { periodo: 'MENSAL' }).catch(
+      (e: HttpErrorResponse) => e,
+    );
     expect((falha as HttpErrorResponse).status).toBe(422);
     expect((falha as HttpErrorResponse).error.erro).toContain('demonstração');
     const pluggy = await post('/api/banking/connect-token', {}).catch((e: HttpErrorResponse) => e);

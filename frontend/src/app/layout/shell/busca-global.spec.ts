@@ -39,7 +39,9 @@ describe('BuscaGlobal', () => {
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
     tela.detectChanges();
-    http.expectOne('/api/places').flush([{ id: 'l1', nome: 'Café da Praça', localizacao: 'Centro', categoria: '' }]);
+    http
+      .expectOne('/api/places')
+      .flush([{ id: 'l1', nome: 'Café da Praça', localizacao: 'Centro', categoria: '' }]);
     http.expectOne('/api/movies').flush([{ id: 'f1', titulo: 'Cafe Society', ano: '2016' }]);
     http.expectOne((r) => r.url === '/api/shopping/items').flush([]);
 
@@ -47,9 +49,9 @@ describe('BuscaGlobal', () => {
     campo.value = 'cafe';
     campo.dispatchEvent(new Event('input'));
     vi.advanceTimersByTime(300);
-    http.expectOne((r) => r.url === '/api/expenses/search' && r.params.get('q') === 'cafe').flush([
-      { id: 'g1', item: 'Café 500g', data: '2026-08-03', valor: 20 },
-    ]);
+    http
+      .expectOne((r) => r.url === '/api/expenses/search' && r.params.get('q') === 'cafe')
+      .flush([{ id: 'g1', item: 'Café 500g', data: '2026-08-03', valor: 20 }]);
     tela.detectChanges();
 
     const texto = tela.nativeElement.textContent as string;

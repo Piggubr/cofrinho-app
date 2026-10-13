@@ -44,7 +44,9 @@ describe('Dashboard', () => {
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
     for (const extra of http.match((req) =>
-      /\/api\/(reports|bills|budgets|accounts|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
+      /\/api\/(reports|bills|budgets|accounts|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(
+        req.url,
+      ),
     )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
@@ -166,8 +168,8 @@ describe('Dashboard', () => {
       expect(Number(ordemNaTela(tela, 'app-resumo-do-mes'))).toBeGreaterThan(1);
       // Fora do que estava salvo e desligado no padrao: so aparece se a pessoa ligar.
       expect(ordemNaTela(tela, 'app-metas-do-painel')).toBe('ausente');
-      const titulos = [...tela.nativeElement.querySelectorAll('h2')].map(
-        (h: HTMLElement) => h.textContent?.trim(),
+      const titulos = [...tela.nativeElement.querySelectorAll('h2')].map((h: HTMLElement) =>
+        h.textContent?.trim(),
       );
       expect(titulos).not.toContain('Por categoria');
       expect(titulos).toContain('Cofrinho');

@@ -76,8 +76,6 @@
   border: 0;
 }
 
-
-
 .linha-acoes select {
   width: auto;
   min-width: 120px;
@@ -139,6 +137,74 @@
   }
 }
 
+.tema.travado {
+  small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--ouro-ink);
+  }
+}
+
+.subtitulo-icone {
+  margin-top: 1.1rem;
+}
+
+.icones-do-app {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.icone-do-app {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.55rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 3px var(--anel);
+  }
+
+  img {
+    width: 56px;
+    height: 56px;
+    border-radius: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  small {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  &.travado img {
+    opacity: 0.75;
+  }
+}
+
+.selo-premium {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
+}
+
 .amostra {
   grid-row: span 2;
   width: 28px;
@@ -180,4 +246,15 @@
 /* "Personalizar o Painel" pula para ca: a margem deixa o titulo fora da barra fixa. */
 #organizar-painel {
   scroll-margin-top: 6rem;
+}
+
+.aviso-do-padrao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
 }

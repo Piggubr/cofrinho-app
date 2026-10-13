@@ -92,7 +92,8 @@ export class GoogleIdentityService {
           rejeitar(new Error($localize`O cliente do Google carregou incompleto.`));
         }
       };
-      script.onerror = () => rejeitar(new Error($localize`Nao consegui carregar o login do Google.`));
+      script.onerror = () =>
+        rejeitar(new Error($localize`Nao consegui carregar o login do Google.`));
       document.head.appendChild(script);
     });
 

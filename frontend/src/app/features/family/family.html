@@ -12,7 +12,9 @@
     <p i18n class="linha-titulo">Convite para entrar na {{ convite.familia }}</p>
     <p i18n class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
     <div class="acoes">
-      <button i18n type="button" class="botao" (click)="aceitar(convite)">Entrar nessa família</button>
+      <button i18n type="button" class="botao" (click)="aceitar(convite)">
+        Entrar nessa família
+      </button>
     </div>
   </section>
 }
@@ -21,7 +23,13 @@
   <section class="cartao" aria-labelledby="titulo-familia">
     <div class="cartao-titulo">
       <h2 id="titulo-familia">{{ casa.nome }}</h2>
-      <span class="etiqueta">{{ casa.plano !== 'PREMIUM' ? 'Gratuito' : casa.planoFamilia ? 'Premium família' : 'Premium individual' }}</span>
+      <span class="etiqueta">{{
+        casa.plano !== 'PREMIUM'
+          ? 'Gratuito'
+          : casa.planoFamilia
+            ? 'Premium família'
+            : 'Premium individual'
+      }}</span>
     </div>
 
     @if (auth.ehTitular()) {
@@ -36,7 +44,13 @@
           />
         </div>
         <div class="campo alinhado">
-          <button i18n type="button" class="botao contorno" (click)="renomear()" [disabled]="ocupado()">
+          <button
+            i18n
+            type="button"
+            class="botao contorno"
+            (click)="renomear()"
+            [disabled]="ocupado()"
+          >
             Salvar nome
           </button>
         </div>
@@ -101,7 +115,9 @@
       } @else {
         <p i18n class="linha-detalhe">Quem lançou, alterou ou apagou cada coisa, e quando.</p>
         <div class="acoes">
-          <button i18n type="button" class="botao contorno" (click)="verHistorico()">Ver histórico</button>
+          <button i18n type="button" class="botao contorno" (click)="verHistorico()">
+            Ver histórico
+          </button>
         </div>
       }
     </section>
@@ -120,7 +136,8 @@
       <div class="linha-de-campos">
         <div class="campo">
           <label i18n for="email-convite">E-mail</label>
-          <input i18n-placeholder
+          <input
+            i18n-placeholder
             id="email-convite"
             type="email"
             maxlength="320"
@@ -143,7 +160,12 @@
             <p class="linha-titulo">{{ convite.email }}</p>
             <p i18n class="linha-detalhe">Vale até {{ convite.venceEm | dataBr }}</p>
           </div>
-          <button i18n type="button" class="botao contorno pequeno" (click)="cancelarConvite(convite.id)">
+          <button
+            i18n
+            type="button"
+            class="botao contorno pequeno"
+            (click)="cancelarConvite(convite.id)"
+          >
             Cancelar
           </button>
         </div>
@@ -155,7 +177,9 @@
     <section class="cartao">
       <p i18n class="linha-detalhe">Só o titular convida e remove pessoas e cuida do plano.</p>
       <div class="acoes">
-        <button i18n type="button" class="botao contorno" (click)="sairDaFamilia()">Sair da família</button>
+        <button i18n type="button" class="botao contorno" (click)="sairDaFamilia()">
+          Sair da família
+        </button>
       </div>
     </section>
   }

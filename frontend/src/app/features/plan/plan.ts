@@ -63,7 +63,9 @@ export class Plan {
       await firstValueFrom(this.billing.reembolso());
       await firstValueFrom(this.auth.renovar());
       this.info.set(await firstValueFrom(this.billing.plano()));
-      this.aviso.set($localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`);
+      this.aviso.set(
+        $localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`,
+      );
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     } finally {
@@ -104,7 +106,10 @@ export class Plan {
 export function ehDaStripe(url: string): boolean {
   try {
     const endereco = new URL(url);
-    return endereco.protocol === 'https:' && (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'));
+    return (
+      endereco.protocol === 'https:' &&
+      (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'))
+    );
   } catch {
     return false;
   }

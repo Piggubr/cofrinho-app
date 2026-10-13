@@ -135,12 +135,7 @@ export interface Preferencias {
 }
 
 export type ModuloDeEstiloDeVida =
-  | 'compras'
-  | 'lugares'
-  | 'filmes'
-  | 'fotos'
-  | 'premios'
-  | 'girls-math';
+  'compras' | 'lugares' | 'filmes' | 'fotos' | 'premios' | 'girls-math';
 
 export interface MoedaDisponivel {
   codigo: string;

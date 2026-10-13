@@ -60,7 +60,11 @@ class ErroDaDemo extends Error {
 const INDISPONIVEL = 'Indisponível na demonstração: aqui os dados são de exemplo.';
 
 type Corpo = Record<string, any>;
-type Rota = [string, RegExp, (pedido: HttpRequest<unknown>, partes: string[], corpo: Corpo) => unknown];
+type Rota = [
+  string,
+  RegExp,
+  (pedido: HttpRequest<unknown>, partes: string[], corpo: Corpo) => unknown,
+];
 
 let estado: EstadoDaDemo = criarEstado();
 
@@ -93,12 +97,17 @@ function responder(pedido: HttpRequest<unknown>, caminho: string): Observable<Ht
     try {
       const resposta = tratar(pedido, achou.slice(1), corpo);
       if (resposta instanceof Promise) {
-        return from(resposta).pipe(map((dado) => new HttpResponse({ status: 200, body: dado, url: pedido.url })));
+        return from(resposta).pipe(
+          map((dado) => new HttpResponse({ status: 200, body: dado, url: pedido.url })),
+        );
       }
       const status = resposta === undefined ? 204 : pedido.method === 'POST' ? 201 : 200;
       return of(new HttpResponse({ status, body: resposta ?? null, url: pedido.url }));
     } catch (erro) {
-      return falhar(pedido, erro instanceof ErroDaDemo ? erro : new ErroDaDemo(500, 'Ocorreu um erro na demonstração.'));
+      return falhar(
+        pedido,
+        erro instanceof ErroDaDemo ? erro : new ErroDaDemo(500, 'Ocorreu um erro na demonstração.'),
+      );
     }
   }
   return falhar(pedido, new ErroDaDemo(404, INDISPONIVEL));
@@ -110,7 +119,12 @@ function falhar(pedido: HttpRequest<unknown>, erro: ErroDaDemo): Observable<neve
       new HttpErrorResponse({
         status: erro.status,
         url: pedido.url,
-        error: { erro: erro.message, codigo: erro.codigo, campos: [], momento: new Date().toISOString() },
+        error: {
+          erro: erro.message,
+          codigo: erro.codigo,
+          campos: [],
+          momento: new Date().toISOString(),
+        },
       }),
   );
 }
@@ -192,7 +206,10 @@ function resumo(mes: string): ResumoDoMes {
   const hoje = new Date();
   const projecao =
     mes === mesAtual()
-      ? arredondar((gastos * new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate()) / hoje.getDate())
+      ? arredondar(
+          (gastos * new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate()) /
+            hoje.getDate(),
+        )
       : null;
   return {
     mes,
@@ -201,7 +218,8 @@ function resumo(mes: string): ResumoDoMes {
     sobra,
     taxaDePoupanca: receitas > 0 ? Math.round((sobra / receitas) * 1000) / 10 : null,
     gastosMesAnterior: gastosAntes,
-    variacao: gastosAntes > 0 ? Math.round(((gastos - gastosAntes) / gastosAntes) * 1000) / 10 : null,
+    variacao:
+      gastosAntes > 0 ? Math.round(((gastos - gastosAntes) / gastosAntes) * 1000) / 10 : null,
     projecaoDeGastos: projecao,
     porCategoria: Object.entries(agora)
       .map(([categoria, total]) => ({ categoria, total, anterior: antes[categoria] ?? 0 }))
@@ -236,9 +254,14 @@ function relatorioDoAno(ano: number): RelatorioDoAno {
 function orcamentos(mes: string): Orcamento[] {
   return estado.orcamentos
     .map((o) => {
-      const gasto = somar(doMes(mes).filter((g) => g.categoria === o.categoria).map((g) => g.valor));
+      const gasto = somar(
+        doMes(mes)
+          .filter((g) => g.categoria === o.categoria)
+          .map((g) => g.valor),
+      );
       const percentual = Math.round((gasto / o.limite) * 100);
-      const alerta: Orcamento['alerta'] = percentual >= 100 ? 'ESTOUROU' : percentual >= 80 ? 'ATENCAO' : 'OK';
+      const alerta: Orcamento['alerta'] =
+        percentual >= 100 ? 'ESTOUROU' : percentual >= 80 ? 'ATENCAO' : 'OK';
       return { id: o.id, categoria: o.categoria, limite: o.limite, gasto, percentual, alerta };
     })
     .sort((a, b) => a.categoria.localeCompare(b.categoria));
@@ -249,7 +272,11 @@ function contasFixas(mes: string): ContaFixa[] {
     .map((c) => {
       const vencimento = diaNoMes(mes, c.dia);
       const paga = estado.contasPagas.has(`${c.id}|${mes}`);
-      const situacao: ContaFixa['situacao'] = paga ? 'PAGA' : vencimento < hojeIso() ? 'VENCIDA' : 'PENDENTE';
+      const situacao: ContaFixa['situacao'] = paga
+        ? 'PAGA'
+        : vencimento < hojeIso()
+          ? 'VENCIDA'
+          : 'PENDENTE';
       return { ...c, vencimento, situacao };
     })
     .sort((a, b) => a.dia - b.dia);
@@ -260,7 +287,9 @@ function periodo(conta: ContaDemo, mes: string): Omit<Fatura, 'total'> {
   const anterior = new Date(`${diaNoMes(somarMes(mes, -1), conta.fechamento!)}T12:00:00`);
   anterior.setDate(anterior.getDate() + 1);
   const vencimento =
-    conta.vencimento! > conta.fechamento! ? diaNoMes(mes, conta.vencimento!) : diaNoMes(somarMes(mes, 1), conta.vencimento!);
+    conta.vencimento! > conta.fechamento!
+      ? diaNoMes(mes, conta.vencimento!)
+      : diaNoMes(somarMes(mes, 1), conta.vencimento!);
   return { mes, inicio: dataIso(anterior), fechamento, vencimento };
 }
 
@@ -277,7 +306,8 @@ function contaComFaturas(conta: ContaDemo): ContaOuCartao {
     return { ...conta, faturaAberta: null, faturaAPagar: null };
   }
   const hoje = hojeIso();
-  const aberta = hoje > diaNoMes(mesAtual(), conta.fechamento!) ? somarMes(mesAtual(), 1) : mesAtual();
+  const aberta =
+    hoje > diaNoMes(mesAtual(), conta.fechamento!) ? somarMes(mesAtual(), 1) : mesAtual();
   const anterior = gastosDaFatura(conta, somarMes(aberta, -1)).fatura;
   return {
     ...conta,
@@ -340,13 +370,22 @@ function cofrinho() {
   const depositos = [...estado.depositos].sort((a, b) => b.data.localeCompare(a.data));
   const primeiro = depositos.length ? depositos[depositos.length - 1].data : null;
   const totalDepositos = somar(depositos.map((d) => d.valor));
-  const totalGastos = primeiro ? somar(estado.gastos.filter((g) => g.data >= primeiro).map((g) => g.valor)) : 0;
-  return { depositos, totalDepositos, totalGastos, saldo: arredondar(totalDepositos - totalGastos) };
+  const totalGastos = primeiro
+    ? somar(estado.gastos.filter((g) => g.data >= primeiro).map((g) => g.valor))
+    : 0;
+  return {
+    depositos,
+    totalDepositos,
+    totalGastos,
+    saldo: arredondar(totalDepositos - totalGastos),
+  };
 }
 
 /** Espelha o ObjetivosService do backend: meses contam o atual e o do prazo; por mes arredonda para cima. */
 function situacaoDoObjetivo(objetivo: ObjetivoDemo): ObjetivoDoCofrinho {
-  const guardado = somar(estado.depositos.filter((d) => d.objetivo === objetivo.id).map((d) => d.valor));
+  const guardado = somar(
+    estado.depositos.filter((d) => d.objetivo === objetivo.id).map((d) => d.valor),
+  );
   const falta = arredondar(Math.max(0, objetivo.alvo - guardado));
   const concluido = falta === 0;
   const percentual = Math.min(100, Math.floor((guardado * 100) / objetivo.alvo));
@@ -376,21 +415,33 @@ function situacaoDoAssistente() {
 
 /** Na demo nao ha IA: tres respostas de exemplo, escolhidas pelo assunto da pergunta. */
 function respostaDoAssistente(pergunta: string): { texto: string; tela: string | null } {
-  const real = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const real = (valor: number) =>
+    valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const assunto = semAcento(pergunta);
   const mes = mesAtual();
   if (/objetivo|cofrinho|guardar|viagem/.test(assunto)) {
-    const linhas = estado.objetivos.map(situacaoDoObjetivo).map((o) =>
-      o.concluido
-        ? `${o.nome}: concluído!`
-        : `${o.nome}: faltam ${real(o.falta)}` + (o.porMes !== null ? `, guardando ${real(o.porMes)} por mês.` : '.'),
-    );
-    return { texto: linhas.length ? linhas.join('\n') : 'Você ainda não tem cofrinho por objetivo.', tela: 'painel' };
+    const linhas = estado.objetivos
+      .map(situacaoDoObjetivo)
+      .map((o) =>
+        o.concluido
+          ? `${o.nome}: concluído!`
+          : `${o.nome}: faltam ${real(o.falta)}` +
+            (o.porMes !== null ? `, guardando ${real(o.porMes)} por mês.` : '.'),
+      );
+    return {
+      texto: linhas.length ? linhas.join('\n') : 'Você ainda não tem cofrinho por objetivo.',
+      tela: 'painel',
+    };
   }
   if (/orcamento|estour|limite/.test(assunto)) {
     const atencao = orcamentos(mes).filter((o) => o.alerta !== 'OK');
     const texto = atencao.length
-      ? atencao.map((o) => `${o.categoria}: ${o.percentual}% do limite (${real(o.gasto)} de ${real(o.limite)}).`).join('\n')
+      ? atencao
+          .map(
+            (o) =>
+              `${o.categoria}: ${o.percentual}% do limite (${real(o.gasto)} de ${real(o.limite)}).`,
+          )
+          .join('\n')
       : 'Neste mês nenhuma categoria passou de 80% do limite.';
     return { texto, tela: 'orcamentos' };
   }
@@ -406,7 +457,14 @@ function respostaDoAssistente(pergunta: string): { texto: string; tela: string |
 }
 
 function familia(): Familia {
-  const membro = (u: Usuario) => ({ id: u.id, nome: u.nome, email: u.email, foto: u.foto, papel: u.role, premium: true });
+  const membro = (u: Usuario) => ({
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    foto: u.foto,
+    papel: u.role,
+    premium: true,
+  });
   return {
     id: 'familia-demo',
     nome: estado.nomeDaFamilia,
@@ -427,8 +485,20 @@ function plano(): InfoDoPlano {
     assinaturaDisponivel: false,
     site: { mensal: '19,90', anual: '199,00' },
     app: { mensal: '22,89', anual: '228,85' },
-    gratuito: ['Gastos, receitas e contas fixas', 'Relatório do mês', '10 leituras de nota por mês'],
-    premium: ['Open Finance', 'Notas sem limite', 'Orçamento por categoria', 'Relatório anual', 'Mural de fotos', 'Vários cofrinhos por objetivo', 'Assistente de IA'],
+    gratuito: [
+      'Gastos, receitas e contas fixas',
+      'Relatório do mês',
+      '10 leituras de nota por mês',
+    ],
+    premium: [
+      'Open Finance',
+      'Notas sem limite',
+      'Orçamento por categoria',
+      'Relatório anual',
+      'Mural de fotos',
+      'Vários cofrinhos por objetivo',
+      'Assistente de IA',
+    ],
     planoFamilia: true,
     voceAssinou: true,
     familiaDisponivel: false,
@@ -452,9 +522,30 @@ function gastosDoBanco(): GastoDoBanco[] {
   };
   const conta = 'Banco Exemplo · Conta corrente';
   return [
-    { data: dia(1), descricao: 'Padaria Pão Quente', valor: 18.9, idExterno: 'pluggy:demo-1', conta, moeda: 'BRL' },
-    { data: dia(3), descricao: 'Uber', valor: 27.5, idExterno: 'pluggy:demo-2', conta, moeda: 'BRL' },
-    { data: dia(6), descricao: 'Farmácia', valor: 64.3, idExterno: 'pluggy:demo-3', conta, moeda: 'BRL' },
+    {
+      data: dia(1),
+      descricao: 'Padaria Pão Quente',
+      valor: 18.9,
+      idExterno: 'pluggy:demo-1',
+      conta,
+      moeda: 'BRL',
+    },
+    {
+      data: dia(3),
+      descricao: 'Uber',
+      valor: 27.5,
+      idExterno: 'pluggy:demo-2',
+      conta,
+      moeda: 'BRL',
+    },
+    {
+      data: dia(6),
+      descricao: 'Farmácia',
+      valor: 64.3,
+      idExterno: 'pluggy:demo-3',
+      conta,
+      moeda: 'BRL',
+    },
   ];
 }
 
@@ -463,32 +554,52 @@ function previaDoExtrato(conteudo: string): LinhaDoExtrato[] {
   if (/<OFX>/i.test(conteudo)) {
     const linhas: LinhaDoExtrato[] = [];
     for (const bloco of conteudo.split(/<STMTTRN>/i).slice(1)) {
-      const campo = (nome: string) => new RegExp(`<${nome}>([^<\\r\\n]*)`, 'i').exec(bloco)?.[1]?.trim() ?? '';
+      const campo = (nome: string) =>
+        new RegExp(`<${nome}>([^<\\r\\n]*)`, 'i').exec(bloco)?.[1]?.trim() ?? '';
       const valor = Number(campo('TRNAMT').replace(',', '.'));
       if (!(valor < 0)) {
         continue;
       }
       const d = campo('DTPOSTED');
       const descricao = campo('MEMO') || campo('NAME') || 'Sem descrição';
-      linhas.push(linha(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`, descricao, -valor, 'ofx:' + campo('FITID')));
+      linhas.push(
+        linha(
+          `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`,
+          descricao,
+          -valor,
+          'ofx:' + campo('FITID'),
+        ),
+      );
     }
     return linhas;
   }
-  const [cabecalho, ...resto] = conteudo.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
+  const [cabecalho, ...resto] = conteudo
+    .replace(/^﻿/, '')
+    .split(/\r?\n/)
+    .filter((l) => l.trim());
   const sep = cabecalho?.includes(';') ? ';' : ',';
   const lidas = resto.map((l, i) => {
     const [data, descricao, valorTexto] = l.split(sep).map((c) => c.trim().replace(/^"|"$/g, ''));
     const iso = data.includes('/') ? data.split('/').reverse().join('-') : data.slice(0, 10);
     const limpo = valorTexto.replace(/[^0-9,.-]/g, '');
     const valor = Number(
-      limpo.lastIndexOf(',') > limpo.lastIndexOf('.') ? limpo.replace(/\./g, '').replace(',', '.') : limpo.replace(/,/g, ''),
+      limpo.lastIndexOf(',') > limpo.lastIndexOf('.')
+        ? limpo.replace(/\./g, '').replace(',', '.')
+        : limpo.replace(/,/g, ''),
     );
     return { iso, descricao, valor, i };
   });
   const temSinal = lidas.some((l) => l.valor < 0);
   return lidas
     .filter((l) => !Number.isNaN(l.valor) && (!temSinal || l.valor < 0))
-    .map((l) => linha(l.iso, l.descricao, Math.abs(l.valor), `csv:${l.iso}|${semAcento(l.descricao)}|${Math.abs(l.valor)}|${l.i}`));
+    .map((l) =>
+      linha(
+        l.iso,
+        l.descricao,
+        Math.abs(l.valor),
+        `csv:${l.iso}|${semAcento(l.descricao)}|${Math.abs(l.valor)}|${l.i}`,
+      ),
+    );
 }
 
 function linha(data: string, descricao: string, valor: number, idExterno: string): LinhaDoExtrato {
@@ -498,16 +609,26 @@ function linha(data: string, descricao: string, valor: number, idExterno: string
     valor,
     idExterno,
     categoria: categoriaAutomatica(descricao, ''),
-    jaImportada: estado.gastos.some((g) => (g as Gasto & { idExterno?: string }).idExterno === idExterno),
+    jaImportada: estado.gastos.some(
+      (g) => (g as Gasto & { idExterno?: string }).idExterno === idExterno,
+    ),
   };
 }
 
 function csvDoMes(mes: string): Blob {
   const celula = (v: string) => `"${(/^[=+\-@]/.test(v) ? "'" + v : v).replace(/"/g, '""')}"`;
   const linhas = doMes(mes).map((g) =>
-    [g.data, celula(g.item), celula(g.categoria), String(g.valor).replace('.', ','), celula(g.estabelecimento)].join(';'),
+    [
+      g.data,
+      celula(g.item),
+      celula(g.categoria),
+      String(g.valor).replace('.', ','),
+      celula(g.estabelecimento),
+    ].join(';'),
   );
-  return new Blob(['﻿' + ['data;item;categoria;valor;estabelecimento', ...linhas].join('\n')], { type: 'text/csv' });
+  return new Blob(['﻿' + ['data;item;categoria;valor;estabelecimento', ...linhas].join('\n')], {
+    type: 'text/csv',
+  });
 }
 
 /** Grava o lancamento: parcelas viram uma linha por mes; divisao em partes iguais. */
@@ -518,7 +639,9 @@ function lancar(corpo: Corpo): Gasto[] {
   const novos: Gasto[] = [];
   for (const item of (corpo['itens'] ?? []) as Corpo[]) {
     const manual = (corpo['origem'] ?? 'Manual') === 'Manual' && item['categoria'];
-    const categoria = manual ? categoriaValida(item['categoria']) : categoriaAutomatica(item['item'], estabelecimento);
+    const categoria = manual
+      ? categoriaValida(item['categoria'])
+      : categoriaAutomatica(item['item'], estabelecimento);
     const valor = Number(item['valor']);
     const parcela = Math.floor((valor / parcelas) * 100) / 100;
     for (let i = 0; i < parcelas; i++) {
@@ -547,14 +670,25 @@ function lancar(corpo: Corpo): Gasto[] {
   const dividir = (corpo['dividirCom'] ?? []) as string[];
   for (const gasto of novos) {
     if (dividir.length) {
-      estado.partes[gasto.id] = Object.fromEntries(dividir.map((pessoa) => [pessoa, arredondar(gasto.valor / dividir.length)]));
+      estado.partes[gasto.id] = Object.fromEntries(
+        dividir.map((pessoa) => [pessoa, arredondar(gasto.valor / dividir.length)]),
+      );
     }
   }
   estado.gastos.push(...novos);
   return novos;
 }
 
-const COTACOES: Record<string, number> = { BRL: 1, USD: 5.5, EUR: 6.0, GBP: 7.0, ARS: 0.0055, CLP: 0.0058, UYU: 0.14, JPY: 0.036 };
+const COTACOES: Record<string, number> = {
+  BRL: 1,
+  USD: 5.5,
+  EUR: 6.0,
+  GBP: 7.0,
+  ARS: 0.0055,
+  CLP: 0.0058,
+  UYU: 0.14,
+  JPY: 0.036,
+};
 
 // ---------- Rotas ----------
 
@@ -565,401 +699,954 @@ const ROTAS: Rota[] = [
   ['POST', /^\/auth\/(google|refresh)$/, () => tokens()],
   ['POST', /^\/auth\/logout$/, () => undefined],
   ['GET', /^\/auth\/me$/, () => estado.titular],
-  ['PUT', /^\/auth\/me\/preferences$/, (_p, _x, c) => {
-    estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };
-    return estado.titular;
-  }],
-  ['PUT', /^\/auth\/me\/alerts$/, (_p, _x, c) => {
-    estado.titular = { ...estado.titular, avisos: c as { email: boolean; push: boolean } };
-    return estado.titular;
-  }],
-  ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
-    const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
-    estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, modulos } };
-    return estado.titular;
-  }],
+  [
+    'PUT',
+    /^\/auth\/me\/preferences$/,
+    (_p, _x, c) => {
+      estado.titular = {
+        ...estado.titular,
+        preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) },
+      };
+      return estado.titular;
+    },
+  ],
+  [
+    'PUT',
+    /^\/auth\/me\/alerts$/,
+    (_p, _x, c) => {
+      estado.titular = { ...estado.titular, avisos: c as { email: boolean; push: boolean } };
+      return estado.titular;
+    },
+  ],
+  [
+    'PUT',
+    /^\/auth\/me\/modules$/,
+    (_p, _x, c) => {
+      const modulos = (c as { modulos: Preferencias['modulos'] }).modulos;
+      estado.titular = {
+        ...estado.titular,
+        preferencias: { ...estado.titular.preferencias, modulos },
+      };
+      return estado.titular;
+    },
+  ],
   // Foto de perfil: so nesta aba, como o resto da demo.
-  ['PUT', /^\/me\/foto$/, (_p, _x, c) => {
-    estado.titular = { ...estado.titular, foto: `data:image/jpeg;base64,${String(c['imagemBase64'])}`, fotoPropria: true };
-    return estado.titular;
-  }],
-  ['DELETE', /^\/me\/foto$/, () => {
-    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
-    return estado.titular;
-  }],
-  ['PUT', /^\/me\/foto\/google$/, () => {
-    estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
-    return estado.titular;
-  }],
-  ['GET', /^\/me\/export$/, () => new Blob([JSON.stringify({ aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos }, null, 2)], { type: 'application/json' })],
-  ['DELETE', /^\/me$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  [
+    'PUT',
+    /^\/me\/foto$/,
+    (_p, _x, c) => {
+      estado.titular = {
+        ...estado.titular,
+        foto: `data:image/jpeg;base64,${String(c['imagemBase64'])}`,
+        fotoPropria: true,
+      };
+      return estado.titular;
+    },
+  ],
+  [
+    'DELETE',
+    /^\/me\/foto$/,
+    () => {
+      estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
+      return estado.titular;
+    },
+  ],
+  [
+    'PUT',
+    /^\/me\/foto\/google$/,
+    () => {
+      estado.titular = { ...estado.titular, foto: null, fotoPropria: false };
+      return estado.titular;
+    },
+  ],
+  [
+    'GET',
+    /^\/me\/export$/,
+    () =>
+      new Blob(
+        [
+          JSON.stringify(
+            { aviso: 'Dados de exemplo da demonstração', gastos: estado.gastos },
+            null,
+            2,
+          ),
+        ],
+        { type: 'application/json' },
+      ),
+  ],
+  [
+    'DELETE',
+    /^\/me$/,
+    () => {
+      throw new ErroDaDemo(422, INDISPONIVEL);
+    },
+  ],
   ['GET', /^\/users$/, () => [estado.titular, estado.membro]],
 
   // Familia
   ['GET', /^\/family$/, () => familia()],
-  ['PUT', /^\/family$/, (_p, _x, c) => { estado.nomeDaFamilia = String(c['nome'] || estado.nomeDaFamilia); return familia(); }],
-  ['POST', /^\/family\/invites$/, (_p, _x, c) => {
-    estado.convites.push({ id: novoId('convite'), email: String(c['email']).toLowerCase(), venceEm: dataIso(new Date(Date.now() + 7 * 86_400_000)) });
-    return familia();
-  }],
-  ['DELETE', new RegExp(`^/family/invites/${ID}$`), (_p, [id]) => { remover(estado.convites, id); return familia(); }],
-  ['DELETE', new RegExp(`^/family/members/${ID}$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
-  ['PUT', new RegExp(`^/family/members/${ID}/role$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  [
+    'PUT',
+    /^\/family$/,
+    (_p, _x, c) => {
+      estado.nomeDaFamilia = String(c['nome'] || estado.nomeDaFamilia);
+      return familia();
+    },
+  ],
+  [
+    'POST',
+    /^\/family\/invites$/,
+    (_p, _x, c) => {
+      estado.convites.push({
+        id: novoId('convite'),
+        email: String(c['email']).toLowerCase(),
+        venceEm: dataIso(new Date(Date.now() + 7 * 86_400_000)),
+      });
+      return familia();
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/family/invites/${ID}$`),
+    (_p, [id]) => {
+      remover(estado.convites, id);
+      return familia();
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/family/members/${ID}$`),
+    () => {
+      throw new ErroDaDemo(422, INDISPONIVEL);
+    },
+  ],
+  [
+    'PUT',
+    new RegExp(`^/family/members/${ID}/role$`),
+    () => {
+      throw new ErroDaDemo(422, INDISPONIVEL);
+    },
+  ],
   ['GET', /^\/family\/invites\/mine$/, () => []],
   ['GET', /^\/(family\/)?history$/, () => []],
-  ['POST', /^\/family\/(leave|invites\/.+\/accept)$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  [
+    'POST',
+    /^\/family\/(leave|invites\/.+\/accept)$/,
+    () => {
+      throw new ErroDaDemo(422, INDISPONIVEL);
+    },
+  ],
 
   // Plano e pagamento: nada sai para a Stripe.
   ['GET', /^\/billing\/plan$/, () => plano()],
-  ['POST', /^\/billing\/(checkout|portal|refund)$/, () => { throw new ErroDaDemo(422, 'Pagamento indisponível na demonstração: esta conta de exemplo já é Premium.'); }],
+  [
+    'POST',
+    /^\/billing\/(checkout|portal|refund)$/,
+    () => {
+      throw new ErroDaDemo(
+        422,
+        'Pagamento indisponível na demonstração: esta conta de exemplo já é Premium.',
+      );
+    },
+  ],
 
   // Open Finance: contas de exemplo; conectar banco de verdade nao.
   ['GET', /^\/banking\/status$/, () => ({ habilitado: true })],
   ['GET', /^\/banking\/accounts$/, () => estado.bancos],
   ['POST', /^\/banking\/sync$/, () => estado.bancos],
   ['GET', /^\/banking\/transactions$/, () => gastosDoBanco()],
-  ['POST', /^\/banking\/(connect-token|items)$/, () => { throw new ErroDaDemo(422, 'Conectar banco (Pluggy) fica indisponível na demonstração. As contas abaixo são de exemplo.'); }],
-  ['DELETE', new RegExp(`^/banking/connections/${ID}$`), (_p, [id]) => { estado.bancos = estado.bancos.filter((b) => b.conexaoId !== id); return estado.bancos; }],
+  [
+    'POST',
+    /^\/banking\/(connect-token|items)$/,
+    () => {
+      throw new ErroDaDemo(
+        422,
+        'Conectar banco (Pluggy) fica indisponível na demonstração. As contas abaixo são de exemplo.',
+      );
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/banking/connections/${ID}$`),
+    (_p, [id]) => {
+      estado.bancos = estado.bancos.filter((b) => b.conexaoId !== id);
+      return estado.bancos;
+    },
+  ],
 
   // Gastos
-  ['GET', /^\/expenses\/search$/, (p) => {
-    const termo = semAcento(p.params.get('q') ?? '');
-    return termo.length < 2 ? [] : estado.gastos
-      .filter((g) => semAcento(`${g.item} ${g.estabelecimento}`).includes(termo))
-      .sort((a, b) => b.data.localeCompare(a.data))
-      .slice(0, 20);
-  }],
+  [
+    'GET',
+    /^\/expenses\/search$/,
+    (p) => {
+      const termo = semAcento(p.params.get('q') ?? '');
+      return termo.length < 2
+        ? []
+        : estado.gastos
+            .filter((g) => semAcento(`${g.item} ${g.estabelecimento}`).includes(termo))
+            .sort((a, b) => b.data.localeCompare(a.data))
+            .slice(0, 20);
+    },
+  ],
   ['GET', /^\/expenses\/splits$/, (p) => acerto(mesDe(p))],
   ['GET', /^\/expenses\/export$/, (p) => csvDoMes(mesDe(p))],
-  ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
-  ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
-    (c['linhas'] as LinhaDoExtrato[]).map((l) => linha(l.data, l.descricao, l.valor, l.idExterno))],
-  ['POST', /^\/expenses\/import$/, (_p, _x, c) => {
-    const linhas = (c['linhas'] ?? []) as Corpo[];
-    let importados = 0;
-    for (const l of linhas) {
-      if (estado.gastos.some((g) => (g as Gasto & { idExterno?: string }).idExterno === l['idExterno'])) {
-        continue;
+  [
+    'POST',
+    /^\/expenses\/import\/preview$/,
+    (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? '')),
+  ],
+  [
+    'POST',
+    /^\/expenses\/import\/preview-lines$/,
+    (_p, _x, c) =>
+      (c['linhas'] as LinhaDoExtrato[]).map((l) =>
+        linha(l.data, l.descricao, l.valor, l.idExterno),
+      ),
+  ],
+  [
+    'POST',
+    /^\/expenses\/import$/,
+    (_p, _x, c) => {
+      const linhas = (c['linhas'] ?? []) as Corpo[];
+      let importados = 0;
+      for (const l of linhas) {
+        if (
+          estado.gastos.some(
+            (g) => (g as Gasto & { idExterno?: string }).idExterno === l['idExterno'],
+          )
+        ) {
+          continue;
+        }
+        const [novo] = lancar({
+          data: l['data'],
+          origem: l['categoria'] ? 'Manual' : 'Extrato',
+          contaId: c['contaId'],
+          itens: [{ item: l['descricao'], valor: l['valor'], categoria: l['categoria'] }],
+        });
+        Object.assign(novo, { origem: 'Extrato', idExterno: l['idExterno'] });
+        importados++;
       }
-      const [novo] = lancar({ data: l['data'], origem: l['categoria'] ? 'Manual' : 'Extrato', contaId: c['contaId'], itens: [{ item: l['descricao'], valor: l['valor'], categoria: l['categoria'] }] });
-      Object.assign(novo, { origem: 'Extrato', idExterno: l['idExterno'] });
-      importados++;
-    }
-    return { importados, pulados: linhas.length - importados };
-  }],
-  ['GET', /^\/expenses$/, (p) => {
-    const mes = p.params.get('mes');
-    return (mes ? doMes(mes) : estado.gastos).slice().sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm));
-  }],
+      return { importados, pulados: linhas.length - importados };
+    },
+  ],
+  [
+    'GET',
+    /^\/expenses$/,
+    (p) => {
+      const mes = p.params.get('mes');
+      return (mes ? doMes(mes) : estado.gastos)
+        .slice()
+        .sort(
+          (a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm),
+        );
+    },
+  ],
   ['POST', /^\/expenses$/, (_p, _x, c) => lancar(c)],
-  ['PUT', new RegExp(`^/expenses/${ID}$`), (_p, [id], c) => {
-    const gasto = exigir(estado.gastos.find((g) => g.id === id), 'Gasto não encontrado.');
-    Object.assign(gasto, { item: c['item'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']) });
-    return gasto;
-  }],
-  ['DELETE', new RegExp(`^/expenses/${ID}$`), (_p, [id]) => { remover(estado.gastos, id); delete estado.partes[id]; }],
+  [
+    'PUT',
+    new RegExp(`^/expenses/${ID}$`),
+    (_p, [id], c) => {
+      const gasto = exigir(
+        estado.gastos.find((g) => g.id === id),
+        'Gasto não encontrado.',
+      );
+      Object.assign(gasto, {
+        item: c['item'],
+        categoria: categoriaValida(c['categoria']),
+        valor: Number(c['valor']),
+      });
+      return gasto;
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/expenses/${ID}$`),
+    (_p, [id]) => {
+      remover(estado.gastos, id);
+      delete estado.partes[id];
+    },
+  ],
 
   // Categorias e regras
   ['GET', /^\/categories$/, () => ({ categorias: categorias() })],
-  ['POST', /^\/categories$/, (_p, _x, c) => {
-    const nome = String(c['nome'] ?? '').trim();
-    if (nome.length < 2 || categorias().some((x) => semAcento(x) === semAcento(nome))) {
-      throw new ErroDaDemo(422, 'Essa opção já existe.');
-    }
-    estado.categoriasExtras.push(nome);
-    return { categorias: categorias() };
-  }],
-  ['GET', /^\/categories\/rules$/, () => [...estado.regras].sort((a, b) => a.termo.localeCompare(b.termo))],
-  ['PUT', /^\/categories\/rules$/, (_p, _x, c) => {
-    const termo = semAcento(String(c['termo'] ?? ''));
-    if (termo.length < 2) {
-      throw new ErroDaDemo(422, 'Digite um termo válido para a regra.');
-    }
-    const existente = estado.regras.find((r) => r.termo === termo);
-    if (existente) {
-      existente.categoria = categoriaValida(c['categoria']);
-      return existente;
-    }
-    const nova = { id: novoId('regra'), termo, categoria: categoriaValida(c['categoria']) };
-    estado.regras.push(nova);
-    return nova;
-  }],
+  [
+    'POST',
+    /^\/categories$/,
+    (_p, _x, c) => {
+      const nome = String(c['nome'] ?? '').trim();
+      if (nome.length < 2 || categorias().some((x) => semAcento(x) === semAcento(nome))) {
+        throw new ErroDaDemo(422, 'Essa opção já existe.');
+      }
+      estado.categoriasExtras.push(nome);
+      return { categorias: categorias() };
+    },
+  ],
+  [
+    'GET',
+    /^\/categories\/rules$/,
+    () => [...estado.regras].sort((a, b) => a.termo.localeCompare(b.termo)),
+  ],
+  [
+    'PUT',
+    /^\/categories\/rules$/,
+    (_p, _x, c) => {
+      const termo = semAcento(String(c['termo'] ?? ''));
+      if (termo.length < 2) {
+        throw new ErroDaDemo(422, 'Digite um termo válido para a regra.');
+      }
+      const existente = estado.regras.find((r) => r.termo === termo);
+      if (existente) {
+        existente.categoria = categoriaValida(c['categoria']);
+        return existente;
+      }
+      const nova = { id: novoId('regra'), termo, categoria: categoriaValida(c['categoria']) };
+      estado.regras.push(nova);
+      return nova;
+    },
+  ],
   ['DELETE', new RegExp(`^/categories/rules/${ID}$`), (_p, [id]) => remover(estado.regras, id)],
 
   // Receitas
   ['GET', /^\/incomes\/categories$/, () => CATEGORIAS_DE_RECEITA],
-  ['GET', /^\/incomes$/, (p) => estado.receitas.filter((r) => r.data.startsWith(mesDe(p))).sort((a, b) => b.data.localeCompare(a.data))],
-  ['POST', /^\/incomes$/, (_p, _x, c) => {
-    const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.id };
-    estado.receitas.push(receita);
-    return receita;
-  }],
+  [
+    'GET',
+    /^\/incomes$/,
+    (p) =>
+      estado.receitas
+        .filter((r) => r.data.startsWith(mesDe(p)))
+        .sort((a, b) => b.data.localeCompare(a.data)),
+  ],
+  [
+    'POST',
+    /^\/incomes$/,
+    (_p, _x, c) => {
+      const receita = {
+        id: novoId('receita'),
+        data: c['data'],
+        descricao: c['descricao'],
+        categoria: c['categoria'] || 'Outros',
+        valor: Number(c['valor']),
+        usuario: estado.titular.id,
+      };
+      estado.receitas.push(receita);
+      return receita;
+    },
+  ],
   ['DELETE', new RegExp(`^/incomes/${ID}$`), (_p, [id]) => remover(estado.receitas, id)],
 
   // Relatorios
   ['GET', /^\/reports\/month$/, (p) => resumo(mesDe(p))],
-  ['GET', /^\/reports\/year$/, (p) => relatorioDoAno(Number(p.params.get('ano')) || new Date().getFullYear())],
+  [
+    'GET',
+    /^\/reports\/year$/,
+    (p) => relatorioDoAno(Number(p.params.get('ano')) || new Date().getFullYear()),
+  ],
 
   // Contas fixas
   ['GET', /^\/bills$/, (p) => contasFixas(mesDe(p))],
-  ['POST', /^\/bills$/, (_p, _x, c) => {
-    estado.contasFixas.push({ id: novoId('fixa'), descricao: c['descricao'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']), dia: Number(c['dia']), automatico: !!c['automatico'] });
-  }],
+  [
+    'POST',
+    /^\/bills$/,
+    (_p, _x, c) => {
+      estado.contasFixas.push({
+        id: novoId('fixa'),
+        descricao: c['descricao'],
+        categoria: categoriaValida(c['categoria']),
+        valor: Number(c['valor']),
+        dia: Number(c['dia']),
+        automatico: !!c['automatico'],
+      });
+    },
+  ],
   ['DELETE', new RegExp(`^/bills/${ID}$`), (_p, [id]) => remover(estado.contasFixas, id)],
-  ['POST', new RegExp(`^/bills/${ID}/pay$`), (p, [id]) => {
-    const conta = exigir(estado.contasFixas.find((c) => c.id === id), 'Conta não encontrada.');
-    const mes = mesDe(p);
-    if (estado.contasPagas.has(`${id}|${mes}`)) {
-      throw new ErroDaDemo(409, 'Essa conta já foi paga neste mês.');
-    }
-    estado.contasPagas.add(`${id}|${mes}`);
-    const [gasto] = lancar({ data: diaNoMes(mes, conta.dia), origem: 'Conta fixa', itens: [{ item: conta.descricao, categoria: conta.categoria, valor: conta.valor, tipo: 'Fixo' }] });
-    gasto.categoria = conta.categoria;
-    return gasto;
-  }],
+  [
+    'POST',
+    new RegExp(`^/bills/${ID}/pay$`),
+    (p, [id]) => {
+      const conta = exigir(
+        estado.contasFixas.find((c) => c.id === id),
+        'Conta não encontrada.',
+      );
+      const mes = mesDe(p);
+      if (estado.contasPagas.has(`${id}|${mes}`)) {
+        throw new ErroDaDemo(409, 'Essa conta já foi paga neste mês.');
+      }
+      estado.contasPagas.add(`${id}|${mes}`);
+      const [gasto] = lancar({
+        data: diaNoMes(mes, conta.dia),
+        origem: 'Conta fixa',
+        itens: [
+          { item: conta.descricao, categoria: conta.categoria, valor: conta.valor, tipo: 'Fixo' },
+        ],
+      });
+      gasto.categoria = conta.categoria;
+      return gasto;
+    },
+  ],
 
   // Orcamentos
   ['GET', /^\/budgets$/, (p) => orcamentos(mesDe(p))],
-  ['PUT', /^\/budgets$/, (_p, _x, c) => {
-    const categoria = categoriaValida(c['categoria']);
-    const existente = estado.orcamentos.find((o) => o.categoria === categoria);
-    if (existente) {
-      existente.limite = Number(c['limite']);
-    } else {
-      estado.orcamentos.push({ id: novoId('orc'), categoria, limite: Number(c['limite']) });
-    }
-  }],
+  [
+    'PUT',
+    /^\/budgets$/,
+    (_p, _x, c) => {
+      const categoria = categoriaValida(c['categoria']);
+      const existente = estado.orcamentos.find((o) => o.categoria === categoria);
+      if (existente) {
+        existente.limite = Number(c['limite']);
+      } else {
+        estado.orcamentos.push({ id: novoId('orc'), categoria, limite: Number(c['limite']) });
+      }
+    },
+  ],
   ['DELETE', new RegExp(`^/budgets/${ID}$`), (_p, [id]) => remover(estado.orcamentos, id)],
 
   // Contas e cartoes
-  ['GET', /^\/accounts$/, () => estado.contas.map(contaComFaturas).sort((a, b) => a.nome.localeCompare(b.nome))],
-  ['POST', /^\/accounts$/, (_p, _x, c) => {
-    const cartao = c['tipo'] === 'CARTAO';
-    const conta: ContaDemo = { id: novoId('conta'), nome: String(c['nome']), tipo: cartao ? 'CARTAO' : 'CONTA', fechamento: cartao ? Number(c['fechamento']) : null, vencimento: cartao ? Number(c['vencimento']) : null };
-    estado.contas.push(conta);
-    return contaComFaturas(conta);
-  }],
-  ['DELETE', new RegExp(`^/accounts/${ID}$`), (_p, [id]) => {
-    remover(estado.contas, id);
-    estado.gastos.filter((g) => g.contaId === id).forEach((g) => (g.contaId = null));
-  }],
-  ['GET', new RegExp(`^/accounts/${ID}/statement$`), (p, [id]) => {
-    const conta = exigir(estado.contas.find((c) => c.id === id), 'Conta ou cartão não encontrado.');
-    if (conta.tipo !== 'CARTAO') {
-      throw new ErroDaDemo(422, 'Fatura só existe para cartão.');
-    }
-    return gastosDaFatura(conta, mesDe(p));
-  }],
+  [
+    'GET',
+    /^\/accounts$/,
+    () => estado.contas.map(contaComFaturas).sort((a, b) => a.nome.localeCompare(b.nome)),
+  ],
+  [
+    'POST',
+    /^\/accounts$/,
+    (_p, _x, c) => {
+      const cartao = c['tipo'] === 'CARTAO';
+      const conta: ContaDemo = {
+        id: novoId('conta'),
+        nome: String(c['nome']),
+        tipo: cartao ? 'CARTAO' : 'CONTA',
+        fechamento: cartao ? Number(c['fechamento']) : null,
+        vencimento: cartao ? Number(c['vencimento']) : null,
+      };
+      estado.contas.push(conta);
+      return contaComFaturas(conta);
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/accounts/${ID}$`),
+    (_p, [id]) => {
+      remover(estado.contas, id);
+      estado.gastos.filter((g) => g.contaId === id).forEach((g) => (g.contaId = null));
+    },
+  ],
+  [
+    'GET',
+    new RegExp(`^/accounts/${ID}/statement$`),
+    (p, [id]) => {
+      const conta = exigir(
+        estado.contas.find((c) => c.id === id),
+        'Conta ou cartão não encontrado.',
+      );
+      if (conta.tipo !== 'CARTAO') {
+        throw new ErroDaDemo(422, 'Fatura só existe para cartão.');
+      }
+      return gastosDaFatura(conta, mesDe(p));
+    },
+  ],
 
   // Metas, cofrinho, notas, produtos
   // Sempre uma copia: devolver o mesmo objeto faz o signal da tela nao ver a mudanca.
   ['GET', /^\/monthly-goals$/, () => ({ ...estado.metas })],
-  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
+  [
+    'PUT',
+    /^\/monthly-goals$/,
+    (_p, _x, c) => {
+      estado.metas[String(c['mes'])] = Number(c['limite']);
+      return { ...estado.metas };
+    },
+  ],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
-  ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
-    const objetivo = (c['objetivo'] as string | undefined) ?? null;
-    if (objetivo) {
-      exigir(estado.objetivos.find((o) => o.id === objetivo), 'Objetivo não encontrado.');
-    }
-    const deposito = { id: novoId('deposito'), data: c['data'] || hojeIso(), valor: Number(c['valor']), usuario: estado.titular.id, registradoEm: new Date().toISOString(), objetivo };
-    estado.depositos.push(deposito);
-    return deposito;
-  }],
-  ['DELETE', new RegExp(`^/piggy-bank/deposits/${ID}$`), (_p, [id]) => remover(estado.depositos, id)],
+  [
+    'POST',
+    /^\/piggy-bank\/deposits$/,
+    (_p, _x, c) => {
+      const objetivo = (c['objetivo'] as string | undefined) ?? null;
+      if (objetivo) {
+        exigir(
+          estado.objetivos.find((o) => o.id === objetivo),
+          'Objetivo não encontrado.',
+        );
+      }
+      const deposito = {
+        id: novoId('deposito'),
+        data: c['data'] || hojeIso(),
+        valor: Number(c['valor']),
+        usuario: estado.titular.id,
+        registradoEm: new Date().toISOString(),
+        objetivo,
+      };
+      estado.depositos.push(deposito);
+      return deposito;
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/piggy-bank/deposits/${ID}$`),
+    (_p, [id]) => remover(estado.depositos, id),
+  ],
   ['GET', /^\/piggy-bank\/goals$/, () => estado.objetivos.map(situacaoDoObjetivo)],
-  ['POST', /^\/piggy-bank\/goals$/, (_p, _x, c) => {
-    const objetivo = { id: novoId('objetivo'), nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null };
-    estado.objetivos.push(objetivo);
-    return situacaoDoObjetivo(objetivo);
-  }],
-  ['PUT', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id], c) => {
-    const objetivo = exigir(estado.objetivos.find((o) => o.id === id), 'Objetivo não encontrado.');
-    Object.assign(objetivo, { nome: String(c['nome']), alvo: Number(c['alvo']), prazo: (c['prazo'] as string | null) || null });
-  }],
-  ['DELETE', new RegExp(`^/piggy-bank/goals/${ID}$`), (_p, [id]) => {
-    remover(estado.objetivos, id);
-    estado.depositos.filter((d) => d.objetivo === id).forEach((d) => (d.objetivo = null));
-  }],
+  [
+    'POST',
+    /^\/piggy-bank\/goals$/,
+    (_p, _x, c) => {
+      const objetivo = {
+        id: novoId('objetivo'),
+        nome: String(c['nome']),
+        alvo: Number(c['alvo']),
+        prazo: (c['prazo'] as string | null) || null,
+      };
+      estado.objetivos.push(objetivo);
+      return situacaoDoObjetivo(objetivo);
+    },
+  ],
+  [
+    'PUT',
+    new RegExp(`^/piggy-bank/goals/${ID}$`),
+    (_p, [id], c) => {
+      const objetivo = exigir(
+        estado.objetivos.find((o) => o.id === id),
+        'Objetivo não encontrado.',
+      );
+      Object.assign(objetivo, {
+        nome: String(c['nome']),
+        alvo: Number(c['alvo']),
+        prazo: (c['prazo'] as string | null) || null,
+      });
+    },
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/piggy-bank/goals/${ID}$`),
+    (_p, [id]) => {
+      remover(estado.objetivos, id);
+      estado.depositos.filter((d) => d.objetivo === id).forEach((d) => (d.objetivo = null));
+    },
+  ],
   // Assistente: respostas montadas aqui, sem IA, a partir dos dados de exemplo.
   ['GET', /^\/assistant$/, () => situacaoDoAssistente()],
-  ['POST', /^\/assistant\/ask$/, (_p, _x, c) => {
-    if (c['autorizoIa'] === true) {
-      estado.assistenteAutorizado = true;
-    }
-    if (!estado.assistenteAutorizado) {
-      throw new ErroDaDemo(422, 'Autorize o envio ao assistente para continuar.', 'CONSENTIMENTO_NECESSARIO');
-    }
-    estado.perguntasAoAssistente++;
-    return { ...respostaDoAssistente(String(c['pergunta'] ?? '')), restantes: situacaoDoAssistente().restantes };
-  }],
+  [
+    'POST',
+    /^\/assistant\/ask$/,
+    (_p, _x, c) => {
+      if (c['autorizoIa'] === true) {
+        estado.assistenteAutorizado = true;
+      }
+      if (!estado.assistenteAutorizado) {
+        throw new ErroDaDemo(
+          422,
+          'Autorize o envio ao assistente para continuar.',
+          'CONSENTIMENTO_NECESSARIO',
+        );
+      }
+      estado.perguntasAoAssistente++;
+      return {
+        ...respostaDoAssistente(String(c['pergunta'] ?? '')),
+        restantes: situacaoDoAssistente().restantes,
+      };
+    },
+  ],
   ['GET', /^\/notes$/, () => estado.notas],
-  ['POST', /^\/notes$/, (_p, _x, c) => {
-    const nota = { id: novoId('nota'), titulo: c['titulo'], texto: c['texto'] ?? '', data: c['data'] ?? null, valor: Number(c['valor'] ?? 0), categoria: c['categoria'] ?? 'Outros', gastoId: null, usuario: estado.titular.id, criadoEm: new Date().toISOString() };
-    estado.notas.push(nota);
-    return nota;
-  }],
+  [
+    'POST',
+    /^\/notes$/,
+    (_p, _x, c) => {
+      const nota = {
+        id: novoId('nota'),
+        titulo: c['titulo'],
+        texto: c['texto'] ?? '',
+        data: c['data'] ?? null,
+        valor: Number(c['valor'] ?? 0),
+        categoria: c['categoria'] ?? 'Outros',
+        gastoId: null,
+        usuario: estado.titular.id,
+        criadoEm: new Date().toISOString(),
+      };
+      estado.notas.push(nota);
+      return nota;
+    },
+  ],
   ['DELETE', new RegExp(`^/notes/${ID}$`), (_p, [id]) => remover(estado.notas, id)],
-  ['GET', /^\/products\/price-check$/, (p) => {
-    const produto = produtos().find((x) => x.chave === semAcento(p.params.get('item') ?? ''));
-    if (!produto) {
-      return null;
-    }
-    const valor = Number(p.params.get('valor'));
-    const percentual = Math.round(((valor - produto.media) / produto.media) * 100);
-    return { media: produto.media, compras: produto.compras, percentual, acima: produto.compras >= 2 && percentual > 15 };
-  }],
+  [
+    'GET',
+    /^\/products\/price-check$/,
+    (p) => {
+      const produto = produtos().find((x) => x.chave === semAcento(p.params.get('item') ?? ''));
+      if (!produto) {
+        return null;
+      }
+      const valor = Number(p.params.get('valor'));
+      const percentual = Math.round(((valor - produto.media) / produto.media) * 100);
+      return {
+        media: produto.media,
+        compras: produto.compras,
+        percentual,
+        acima: produto.compras >= 2 && percentual > 15,
+      };
+    },
+  ],
   ['GET', /^\/products$/, () => produtos()],
 
   // Leitura de nota: devolve um cupom de exemplo.
-  ['GET', /^\/receipts\/usage$/, () => ({ usadas: estado.leiturasNoMes, limite: 10, restantes: null })],
-  ['POST', /^\/receipts\/parse$/, () => {
-    estado.leiturasNoMes++;
-    return {
-      reciboId: novoId('recibo'),
-      estabelecimento: 'Supermercado Bom Preço',
-      data: hojeIso(),
-      itens: [
-        { item: 'Arroz 5kg', categoria: 'Alimentação', valor: 27.9 },
-        { item: 'Feijão carioca 1kg', categoria: 'Alimentação', valor: 8.49 },
-        { item: 'Café 500g', categoria: 'Alimentação', valor: 18.9 },
-        { item: 'Detergente', categoria: 'Outros', valor: 2.79 },
-      ],
-      origem: 'OCR',
-      aviso: 'Demonstração: este é um cupom de exemplo, a foto não foi lida.',
-      leiturasRestantes: null,
-    };
-  }],
+  [
+    'GET',
+    /^\/receipts\/usage$/,
+    () => ({ usadas: estado.leiturasNoMes, limite: 10, restantes: null }),
+  ],
+  [
+    'POST',
+    /^\/receipts\/parse$/,
+    () => {
+      estado.leiturasNoMes++;
+      return {
+        reciboId: novoId('recibo'),
+        estabelecimento: 'Supermercado Bom Preço',
+        data: hojeIso(),
+        itens: [
+          { item: 'Arroz 5kg', categoria: 'Alimentação', valor: 27.9 },
+          { item: 'Feijão carioca 1kg', categoria: 'Alimentação', valor: 8.49 },
+          { item: 'Café 500g', categoria: 'Alimentação', valor: 18.9 },
+          { item: 'Detergente', categoria: 'Outros', valor: 2.79 },
+        ],
+        origem: 'OCR',
+        aviso: 'Demonstração: este é um cupom de exemplo, a foto não foi lida.',
+        leiturasRestantes: null,
+      };
+    },
+  ],
 
   // Cambio sem rede
-  ['GET', /^\/exchange-rate\/currencies$/, () => Object.keys(COTACOES).map((codigo) => ({ codigo, nome: codigo }))],
-  ['GET', /^\/exchange-rate$/, (p) => {
-    const de = p.params.get('de') ?? 'USD';
-    const para = p.params.get('para') ?? 'BRL';
-    return { de, para, taxa: Math.round(((COTACOES[de] ?? 1) / (COTACOES[para] ?? 1)) * 10000) / 10000, data: hojeIso(), fonte: 'Demonstração', estimativa: true, desatualizada: false };
-  }],
+  [
+    'GET',
+    /^\/exchange-rate\/currencies$/,
+    () => Object.keys(COTACOES).map((codigo) => ({ codigo, nome: codigo })),
+  ],
+  [
+    'GET',
+    /^\/exchange-rate$/,
+    (p) => {
+      const de = p.params.get('de') ?? 'USD';
+      const para = p.params.get('para') ?? 'BRL';
+      return {
+        de,
+        para,
+        taxa: Math.round(((COTACOES[de] ?? 1) / (COTACOES[para] ?? 1)) * 10000) / 10000,
+        data: hojeIso(),
+        fonte: 'Demonstração',
+        estimativa: true,
+        desatualizada: false,
+      };
+    },
+  ],
 
   // Minhas metas (so o mes atual) e Girls Math
   ['GET', /^\/personal-goals$/, () => estado.metasDoMes],
   ['POST', /^\/personal-goals$/, (_p, _x, c) => salvarMetaDoMes(null, c)],
   ['PUT', new RegExp(`^/personal-goals/${ID}$`), (_p, [id], c) => salvarMetaDoMes(id, c)],
   ['DELETE', new RegExp(`^/personal-goals/${ID}$`), (_p, [id]) => remover(estado.metasDoMes, id)],
-  ['GET', /^\/girls-math$/, () => [...estado.girlsMath].sort((a, b) => b.data.localeCompare(a.data))],
-  ['POST', /^\/girls-math$/, (_p, _x, c) => {
-    const fotoAssetId = c['imageBase64'] ? guardarImagem(c) : null;
-    const item = { id: novoId('gm'), produto: String(c['produto']), loja: String(c['loja'] ?? ''), valor: Number(c['valor']), data: String(c['data'] ?? hojeIso()), fotoAssetId, temFoto: fotoAssetId !== null };
-    estado.girlsMath.push(item);
-    return item;
-  }],
+  [
+    'GET',
+    /^\/girls-math$/,
+    () => [...estado.girlsMath].sort((a, b) => b.data.localeCompare(a.data)),
+  ],
+  [
+    'POST',
+    /^\/girls-math$/,
+    (_p, _x, c) => {
+      const fotoAssetId = c['imageBase64'] ? guardarImagem(c) : null;
+      const item = {
+        id: novoId('gm'),
+        produto: String(c['produto']),
+        loja: String(c['loja'] ?? ''),
+        valor: Number(c['valor']),
+        data: String(c['data'] ?? hojeIso()),
+        fotoAssetId,
+        temFoto: fotoAssetId !== null,
+      };
+      estado.girlsMath.push(item);
+      return item;
+    },
+  ],
   ['DELETE', new RegExp(`^/girls-math/${ID}$`), (_p, [id]) => remover(estado.girlsMath, id)],
 
   // Lugares
   ['GET', /^\/places\/tags$/, () => [...estado.marcadores]],
-  ['POST', /^\/places\/tags$/, (_p, _x, c) => { estado.marcadores.push(String(c['nome'])); return [...estado.marcadores]; }],
+  [
+    'POST',
+    /^\/places\/tags$/,
+    (_p, _x, c) => {
+      estado.marcadores.push(String(c['nome']));
+      return [...estado.marcadores];
+    },
+  ],
   ['GET', /^\/places$/, () => [...estado.lugares].sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/places$/, (_p, _x, c) => salvarLugar(null, c)],
   ['PUT', new RegExp(`^/places/${ID}$`), (_p, [id], c) => salvarLugar(id, c)],
   ['DELETE', new RegExp(`^/places/${ID}$`), (_p, [id]) => remover(estado.lugares, id)],
 
   // Filmes
-  ['GET', /^\/movies\/search$/, (p) => {
-    const termo = semAcento(p.params.get('busca') ?? p.params.get('q') ?? '');
-    return FILMES_DO_CATALOGO.filter((f) => semAcento(f.titulo).includes(termo));
-  }],
-  ['GET', /^\/movies\/random$/, () => FILMES_DO_CATALOGO[Math.floor(Math.random() * FILMES_DO_CATALOGO.length)]],
+  [
+    'GET',
+    /^\/movies\/search$/,
+    (p) => {
+      const termo = semAcento(p.params.get('busca') ?? p.params.get('q') ?? '');
+      return FILMES_DO_CATALOGO.filter((f) => semAcento(f.titulo).includes(termo));
+    },
+  ],
+  [
+    'GET',
+    /^\/movies\/random$/,
+    () => FILMES_DO_CATALOGO[Math.floor(Math.random() * FILMES_DO_CATALOGO.length)],
+  ],
   ['GET', /^\/movies$/, () => estado.filmes],
-  ['POST', /^\/movies$/, (_p, _x, c) => {
-    if (estado.filmes.some((f) => f.tmdbId === c['tmdbId'])) {
-      throw new ErroDaDemo(422, 'Esse filme já está na lista.');
-    }
-    const filme = { id: novoId('filme'), tmdbId: c['tmdbId'], titulo: c['titulo'], ano: c['ano'] ?? '', poster: '', nota: Number(c['nota'] ?? 0), sinopse: c['sinopse'] ?? '', assistido: false, avaliacoes: {}, usuario: estado.titular.id };
-    estado.filmes.push(filme);
-    return filme;
-  }],
-  ['PATCH', new RegExp(`^/movies/${ID}/watched$`), (p, [id]) => {
-    const filme = exigir(estado.filmes.find((f) => f.id === id));
-    filme.assistido = p.params.get('assistido') !== 'false';
-    return filme;
-  }],
-  ['PUT', new RegExp(`^/movies/${ID}/rating$`), (_p, [id], c) => {
-    const filme = exigir(estado.filmes.find((f) => f.id === id));
-    filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.id]: Number(c['nota']) };
-    return filme;
-  }],
+  [
+    'POST',
+    /^\/movies$/,
+    (_p, _x, c) => {
+      if (estado.filmes.some((f) => f.tmdbId === c['tmdbId'])) {
+        throw new ErroDaDemo(422, 'Esse filme já está na lista.');
+      }
+      const filme = {
+        id: novoId('filme'),
+        tmdbId: c['tmdbId'],
+        titulo: c['titulo'],
+        ano: c['ano'] ?? '',
+        poster: '',
+        nota: Number(c['nota'] ?? 0),
+        sinopse: c['sinopse'] ?? '',
+        assistido: false,
+        avaliacoes: {},
+        usuario: estado.titular.id,
+      };
+      estado.filmes.push(filme);
+      return filme;
+    },
+  ],
+  [
+    'PATCH',
+    new RegExp(`^/movies/${ID}/watched$`),
+    (p, [id]) => {
+      const filme = exigir(estado.filmes.find((f) => f.id === id));
+      filme.assistido = p.params.get('assistido') !== 'false';
+      return filme;
+    },
+  ],
+  [
+    'PUT',
+    new RegExp(`^/movies/${ID}/rating$`),
+    (_p, [id], c) => {
+      const filme = exigir(estado.filmes.find((f) => f.id === id));
+      filme.avaliacoes = { ...filme.avaliacoes, [estado.titular.id]: Number(c['nota']) };
+      return filme;
+    },
+  ],
   ['DELETE', new RegExp(`^/movies/${ID}$`), (_p, [id]) => remover(estado.filmes, id)],
 
   // Compras
-  ['GET', /^\/shopping\/catalog$/, (p) => {
-    const termo = semAcento(p.params.get('busca') ?? p.params.get('q') ?? '');
-    return PRODUTOS_DO_CATALOGO.filter((x) => semAcento(`${x.nome} ${x.marca}`).includes(termo));
-  }],
-  ['GET', /^\/shopping\/items$/, (p) => {
-    const lista = p.params.get('lista');
-    return estado.compras.filter((c) => !lista || c.lista === lista);
-  }],
-  ['POST', /^\/shopping\/items$/, (_p, _x, c) => {
-    const item = { id: novoId('compra'), item: c['item'], quantidade: c['quantidade'] ?? '', lista: c['lista'] === 'Desejos' ? 'Desejos' as const : 'Compras' as const, comprado: false, marca: c['marca'] ?? '', imagem: c['imagem'] ?? '', codigo: c['codigo'] ?? '', usuario: estado.titular.id };
-    estado.compras.push(item);
-    return item;
-  }],
-  ['PATCH', new RegExp(`^/shopping/items/${ID}/purchased$`), (p, [id]) => {
-    const item = exigir(estado.compras.find((c) => c.id === id));
-    item.comprado = p.params.get('comprado') !== 'false';
-    return item;
-  }],
+  [
+    'GET',
+    /^\/shopping\/catalog$/,
+    (p) => {
+      const termo = semAcento(p.params.get('busca') ?? p.params.get('q') ?? '');
+      return PRODUTOS_DO_CATALOGO.filter((x) => semAcento(`${x.nome} ${x.marca}`).includes(termo));
+    },
+  ],
+  [
+    'GET',
+    /^\/shopping\/items$/,
+    (p) => {
+      const lista = p.params.get('lista');
+      return estado.compras.filter((c) => !lista || c.lista === lista);
+    },
+  ],
+  [
+    'POST',
+    /^\/shopping\/items$/,
+    (_p, _x, c) => {
+      const item = {
+        id: novoId('compra'),
+        item: c['item'],
+        quantidade: c['quantidade'] ?? '',
+        lista: c['lista'] === 'Desejos' ? ('Desejos' as const) : ('Compras' as const),
+        comprado: false,
+        marca: c['marca'] ?? '',
+        imagem: c['imagem'] ?? '',
+        codigo: c['codigo'] ?? '',
+        usuario: estado.titular.id,
+      };
+      estado.compras.push(item);
+      return item;
+    },
+  ],
+  [
+    'PATCH',
+    new RegExp(`^/shopping/items/${ID}/purchased$`),
+    (p, [id]) => {
+      const item = exigir(estado.compras.find((c) => c.id === id));
+      item.comprado = p.params.get('comprado') !== 'false';
+      return item;
+    },
+  ],
   ['DELETE', new RegExp(`^/shopping/items/${ID}$`), (_p, [id]) => remover(estado.compras, id)],
 
   // Mural e arquivos
-  ['GET', /^\/feed$/, (p) => {
-    const mes = p.params.get('mes');
-    return estado.fotos.filter((f) => !mes || f.mesKey === mes).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
-  }],
-  ['POST', /^\/feed$/, (_p, _x, c) => {
-    const assetId = guardarImagem(c);
-    const foto = { id: novoId('feed'), mesKey: c['mesKey'] || mesAtual(), assetId, legenda: '', usuario: estado.titular.id, criadoEm: new Date().toISOString() };
-    estado.fotos.push(foto);
-    return foto;
-  }],
-  ['PATCH', new RegExp(`^/feed/${ID}/caption$`), (_p, [id], c) => {
-    const foto = exigir(estado.fotos.find((f) => f.id === id));
-    foto.legenda = String(c['legenda'] ?? '');
-    return foto;
-  }],
+  [
+    'GET',
+    /^\/feed$/,
+    (p) => {
+      const mes = p.params.get('mes');
+      return estado.fotos
+        .filter((f) => !mes || f.mesKey === mes)
+        .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+    },
+  ],
+  [
+    'POST',
+    /^\/feed$/,
+    (_p, _x, c) => {
+      const assetId = guardarImagem(c);
+      const foto = {
+        id: novoId('feed'),
+        mesKey: c['mesKey'] || mesAtual(),
+        assetId,
+        legenda: '',
+        usuario: estado.titular.id,
+        criadoEm: new Date().toISOString(),
+      };
+      estado.fotos.push(foto);
+      return foto;
+    },
+  ],
+  [
+    'PATCH',
+    new RegExp(`^/feed/${ID}/caption$`),
+    (_p, [id], c) => {
+      const foto = exigir(estado.fotos.find((f) => f.id === id));
+      foto.legenda = String(c['legenda'] ?? '');
+      return foto;
+    },
+  ],
   ['DELETE', new RegExp(`^/feed/${ID}$`), (_p, [id]) => remover(estado.fotos, id)],
-  ['POST', /^\/assets$/, (_p, _x, c) => ({ id: guardarImagem(c), contentType: c['mimeType'] ?? 'image/jpeg', tamanho: String(c['imageBase64'] ?? '').length, contexto: c['contexto'] ?? '', criadoEm: new Date().toISOString() })],
-  ['GET', new RegExp(`^/assets/${ID}/content$`), (_p, [id]) => fetch(exigir(estado.imagens[id])).then((r) => r.blob())],
-  ['DELETE', new RegExp(`^/assets/${ID}$`), (_p, [id]) => { delete estado.imagens[id]; }],
+  [
+    'POST',
+    /^\/assets$/,
+    (_p, _x, c) => ({
+      id: guardarImagem(c),
+      contentType: c['mimeType'] ?? 'image/jpeg',
+      tamanho: String(c['imageBase64'] ?? '').length,
+      contexto: c['contexto'] ?? '',
+      criadoEm: new Date().toISOString(),
+    }),
+  ],
+  [
+    'GET',
+    new RegExp(`^/assets/${ID}/content$`),
+    (_p, [id]) => fetch(exigir(estado.imagens[id])).then((r) => r.blob()),
+  ],
+  [
+    'DELETE',
+    new RegExp(`^/assets/${ID}$`),
+    (_p, [id]) => {
+      delete estado.imagens[id];
+    },
+  ],
 
   // Fofocoins e premios
-  ['GET', /^\/coins$/, () => ({ saldo: estado.moedas, historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)) })],
-  ['POST', /^\/coins\/adjustments$/, (_p, _x, c) => {
-    const valor = Number(c['valor']);
-    estado.moedas += valor;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor, motivo: String(c['motivo'] ?? ''), usuario: estado.titular.id });
-    return { saldo: estado.moedas, historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)) };
-  }],
+  [
+    'GET',
+    /^\/coins$/,
+    () => ({
+      saldo: estado.moedas,
+      historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)),
+    }),
+  ],
+  [
+    'POST',
+    /^\/coins\/adjustments$/,
+    (_p, _x, c) => {
+      const valor = Number(c['valor']);
+      estado.moedas += valor;
+      estado.movimentos.push({
+        id: novoId('moeda'),
+        data: hojeIso(),
+        valor,
+        motivo: String(c['motivo'] ?? ''),
+        usuario: estado.titular.id,
+      });
+      return {
+        saldo: estado.moedas,
+        historico: [...estado.movimentos].sort((a, b) => b.data.localeCompare(a.data)),
+      };
+    },
+  ],
   ['GET', /^\/prizes\/redemptions$/, () => estado.resgates],
-  ['POST', new RegExp(`^/prizes/${ID}/redemptions$`), (_p, [id]) => {
-    const premio = exigir(estado.premios.find((x) => x.id === id), 'Prêmio não encontrado.');
-    if (estado.moedas < premio.preco) {
-      throw new ErroDaDemo(422, 'Moedas insuficientes para esse prêmio.', 'SALDO_INSUFICIENTE');
-    }
-    estado.moedas -= premio.preco;
-    estado.movimentos.push({ id: novoId('moeda'), data: hojeIso(), valor: -premio.preco, motivo: `Resgate: ${premio.nome}`, usuario: estado.titular.id });
-    const resgate = { id: novoId('resgate'), premio: premio.nome, preco: premio.preco, usuario: estado.titular.id, status: 'RESGATADO', data: hojeIso(), saldo: estado.moedas };
-    estado.resgates.unshift(resgate);
-    return resgate;
-  }],
-  ['GET', /^\/prizes$/, (p) => estado.premios.filter((x) => p.params.get('todos') === 'true' || x.ativo)],
-  ['POST', /^\/prizes$/, (_p, _x, c) => {
-    const premio = { id: novoId('premio'), nome: c['nome'], descricao: c['descricao'] ?? '', preco: Number(c['preco']), ativo: c['ativo'] ?? true };
-    estado.premios.push(premio);
-    return premio;
-  }],
-  ['PUT', new RegExp(`^/prizes/${ID}$`), (_p, [id], c) => {
-    const premio = exigir(estado.premios.find((x) => x.id === id));
-    Object.assign(premio, { nome: c['nome'], descricao: c['descricao'] ?? '', preco: Number(c['preco']), ativo: c['ativo'] ?? premio.ativo });
-    return premio;
-  }],
+  [
+    'POST',
+    new RegExp(`^/prizes/${ID}/redemptions$`),
+    (_p, [id]) => {
+      const premio = exigir(
+        estado.premios.find((x) => x.id === id),
+        'Prêmio não encontrado.',
+      );
+      if (estado.moedas < premio.preco) {
+        throw new ErroDaDemo(422, 'Moedas insuficientes para esse prêmio.', 'SALDO_INSUFICIENTE');
+      }
+      estado.moedas -= premio.preco;
+      estado.movimentos.push({
+        id: novoId('moeda'),
+        data: hojeIso(),
+        valor: -premio.preco,
+        motivo: `Resgate: ${premio.nome}`,
+        usuario: estado.titular.id,
+      });
+      const resgate = {
+        id: novoId('resgate'),
+        premio: premio.nome,
+        preco: premio.preco,
+        usuario: estado.titular.id,
+        status: 'RESGATADO',
+        data: hojeIso(),
+        saldo: estado.moedas,
+      };
+      estado.resgates.unshift(resgate);
+      return resgate;
+    },
+  ],
+  [
+    'GET',
+    /^\/prizes$/,
+    (p) => estado.premios.filter((x) => p.params.get('todos') === 'true' || x.ativo),
+  ],
+  [
+    'POST',
+    /^\/prizes$/,
+    (_p, _x, c) => {
+      const premio = {
+        id: novoId('premio'),
+        nome: c['nome'],
+        descricao: c['descricao'] ?? '',
+        preco: Number(c['preco']),
+        ativo: c['ativo'] ?? true,
+      };
+      estado.premios.push(premio);
+      return premio;
+    },
+  ],
+  [
+    'PUT',
+    new RegExp(`^/prizes/${ID}$`),
+    (_p, [id], c) => {
+      const premio = exigir(estado.premios.find((x) => x.id === id));
+      Object.assign(premio, {
+        nome: c['nome'],
+        descricao: c['descricao'] ?? '',
+        preco: Number(c['preco']),
+        ativo: c['ativo'] ?? premio.ativo,
+      });
+      return premio;
+    },
+  ],
   ['DELETE', new RegExp(`^/prizes/${ID}$`), (_p, [id]) => remover(estado.premios, id)],
 ];
 
@@ -970,10 +1657,22 @@ function guardarImagem(c: Corpo): string {
 }
 
 function salvarMetaDoMes(id: string | null, c: Corpo) {
-  const existente = id ? exigir(estado.metasDoMes.find((m) => m.id === id), 'Meta não encontrada.') : null;
+  const existente = id
+    ? exigir(
+        estado.metasDoMes.find((m) => m.id === id),
+        'Meta não encontrada.',
+      )
+    : null;
   const alvo = Number(c['alvo']);
   const atual = Number(c['atual'] ?? 0);
-  const meta = { id: existente?.id ?? novoId('meta'), titulo: String(c['titulo']), alvo, atual, mes: hojeIso().slice(0, 7), concluida: atual >= alvo };
+  const meta = {
+    id: existente?.id ?? novoId('meta'),
+    titulo: String(c['titulo']),
+    alvo,
+    atual,
+    mes: hojeIso().slice(0, 7),
+    concluida: atual >= alvo,
+  };
   if (existente) {
     Object.assign(existente, meta);
     return existente;
@@ -983,7 +1682,12 @@ function salvarMetaDoMes(id: string | null, c: Corpo) {
 }
 
 function salvarLugar(id: string | null, c: Corpo) {
-  const existente = id ? exigir(estado.lugares.find((l) => l.id === id), 'Lugar não encontrado.') : null;
+  const existente = id
+    ? exigir(
+        estado.lugares.find((l) => l.id === id),
+        'Lugar não encontrado.',
+      )
+    : null;
   const fotoAssetId = c['imageBase64'] ? guardarImagem(c) : (existente?.fotoAssetId ?? null);
   const lugar = {
     id: existente?.id ?? novoId('lugar'),

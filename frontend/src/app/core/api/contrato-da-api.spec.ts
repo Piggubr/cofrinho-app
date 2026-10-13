@@ -343,7 +343,13 @@ const CASOS: Caso[] = [
   ],
   ['apagar lugar', (s) => s.lifestyle.excluirLugar('l1'), 'DELETE', '/places/l1'],
   ['marcadores', (s) => s.lifestyle.listarMarcadores(), 'GET', '/places/tags'],
-  ['metas do mes', (s) => s.lifestyle.listarMetasDoMes('2026-10'), 'GET', '/personal-goals', { mes: '2026-10' }],
+  [
+    'metas do mes',
+    (s) => s.lifestyle.listarMetasDoMes('2026-10'),
+    'GET',
+    '/personal-goals',
+    { mes: '2026-10' },
+  ],
   [
     'criar meta do mes',
     (s) => s.lifestyle.criarMetaDoMes({ titulo: 'Ler', alvo: 4, atual: 0 }),

@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
@@ -129,8 +129,12 @@ describe('Profile', () => {
     expect(opcoes.map((b) => b.querySelector('strong')?.textContent)).toEqual([
       'Rosa Piggu',
       'Menta',
-      'Lilás',
       'Azul',
+      'Lilás',
+      'Coral',
+      'Mel',
+      'Vinho',
+      'Grafite',
     ]);
     expect(opcoes[0].getAttribute('aria-checked')).toBe('true');
 
@@ -146,6 +150,47 @@ describe('Profile', () => {
     expect(document.documentElement.dataset['tema']).toBeUndefined();
     expect(localStorage.getItem('piggu_tema')).toBe('rosa');
     localStorage.removeItem('piggu_tema');
+  });
+
+  it('cor do Premium: sem o plano, o titular vai para os planos e a cor nao muda', () => {
+    auth.atualizarUsuario(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('Mais cores no Premium');
+    const coral = [...pagina.querySelectorAll<HTMLButtonElement>('.temas [role="radio"]')].find(
+      (b) => b.querySelector('strong')?.textContent === 'Coral',
+    )!;
+    expect(coral.classList).toContain('travado');
+
+    coral.click();
+    tela.detectChanges();
+
+    expect(navegar).toHaveBeenCalledWith(['/plano']);
+    expect(coral.getAttribute('aria-checked')).toBe('false');
+    expect(localStorage.getItem('piggu_tema')).toBeNull();
+  });
+
+  it('cor do Premium: quem nao e titular recebe o recado em vez dos planos', () => {
+    auth.atualizarUsuario(
+      usuarioDeTeste({ role: 'PARCEIRO', plano: 'GRATUITO', premiumAte: null }),
+    );
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    [...pagina.querySelectorAll<HTMLButtonElement>('.temas [role="radio"]')]
+      .find((b) => b.querySelector('strong')?.textContent === 'Vinho')!
+      .click();
+    tela.detectChanges();
+
+    expect(pagina.textContent).toContain('Quem cuida da assinatura é o titular da família.');
   });
 
   describe('foto de perfil', () => {

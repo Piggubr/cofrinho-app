@@ -147,8 +147,9 @@ describe('Budgets', () => {
       'Recurso do Piggu Premium.',
     );
     expect(
-      [...pagina.querySelectorAll('button')].find((b) => b.textContent?.includes('Salvar categoria'))!
-        .disabled,
+      [...pagina.querySelectorAll('button')].find((b) =>
+        b.textContent?.includes('Salvar categoria'),
+      )!.disabled,
     ).toBe(false);
   });
 
