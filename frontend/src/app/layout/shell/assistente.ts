@@ -212,11 +212,12 @@ interface FalaNaTela extends FalaDoAssistente {
     }
     .painel {
       position: fixed;
-      top: calc(8vh + env(safe-area-inset-top, 0px));
+      /* --tela-*: parte visivel da tela, que o teclado do iPhone encolhe e desloca. */
+      top: calc(var(--tela-topo, 0px) + 8vh + env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(560px, calc(100vw - 32px));
-      max-height: 80vh;
+      max-height: min(80vh, calc(var(--tela-altura, 100vh) - 8vh - env(safe-area-inset-top, 0px) - 12px));
       display: flex;
       flex-direction: column;
       gap: 0.6rem;

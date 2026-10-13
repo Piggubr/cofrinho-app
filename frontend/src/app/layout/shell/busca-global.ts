@@ -119,11 +119,12 @@ function normalizar(texto: string): string {
     }
     .busca {
       position: fixed;
-      top: calc(10vh + env(safe-area-inset-top, 0px));
+      /* --tela-*: parte visivel da tela, que o teclado do iPhone encolhe e desloca. */
+      top: calc(var(--tela-topo, 0px) + 10vh + env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(560px, calc(100vw - 32px));
-      max-height: 70vh;
+      max-height: min(70vh, calc(var(--tela-altura, 100vh) - 10vh - env(safe-area-inset-top, 0px) - 12px));
       overflow: auto;
       overscroll-behavior: contain;
       background: var(--surface);

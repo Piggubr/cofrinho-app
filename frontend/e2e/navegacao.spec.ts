@@ -102,12 +102,17 @@ for (const [janela, botao] of [
     const dialogo = page.getByRole('dialog');
     await expect(dialogo).toBeVisible();
     await expect(page.locator('html')).toHaveClass(/rolagem-travada/);
+    // A janela acompanha a parte visivel da tela (o teclado do iPhone a encolhe e desloca).
+    const alturaVisivel = () =>
+      page.evaluate(() => document.documentElement.style.getPropertyValue('--tela-altura'));
+    expect(await alturaVisivel()).toBe(`${page.viewportSize()!.height}px`);
 
     // Toque perto do canto de baixo, longe da janela: cai no fundo escuro e fecha.
     const tela = page.viewportSize()!;
     await page.mouse.click(12, tela.height - 12);
     await expect(dialogo).toBeHidden();
     await expect(page.locator('html')).not.toHaveClass(/rolagem-travada/);
+    expect(await alturaVisivel()).toBe('');
   });
 }
 
