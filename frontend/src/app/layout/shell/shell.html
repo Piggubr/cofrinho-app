@@ -68,6 +68,7 @@
       type="button"
       class="menu-fundo"
       aria-label="Fechar menu"
+      [style.opacity]="opacidadeDoFundo()"
       (click)="fecharMenu()"
     ></button>
   }
@@ -75,11 +76,19 @@
   <nav
     class="menu"
     [class.aberto]="menuAberto()"
+    [class.arrastando]="arrasteDoMais() !== null"
+    [style.transform]="arrasteDoMais() !== null ? 'translateY(' + arrasteDoMais() + 'px)' : null"
     (keydown.escape)="fecharMenu()"
     aria-label="Telas"
     i18n-aria-label
   >
-    <div class="menu-topo">
+    <div
+      class="menu-topo"
+      (pointerdown)="comecarArraste($event)"
+      (pointermove)="arrastar($event)"
+      (pointerup)="soltarArraste($event)"
+      (pointercancel)="soltarArraste($event)"
+    >
       <span class="menu-alca" aria-hidden="true"></span>
       <a routerLink="/painel" class="marca" (click)="fecharMenu()">
         <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>

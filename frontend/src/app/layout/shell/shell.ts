@@ -365,6 +365,58 @@ export class Shell {
   }
 
   /**
+   * Arraste da folha do "Mais" pelo topo (onde fica a alca), so no celular. Para baixo a
+   * folha acompanha o dedo e, passado um terco da altura ou num gesto rapido, fecha; para
+   * cima ela cede um pouco, com resistencia, e volta ao lugar ao soltar.
+   */
+  protected readonly arrasteDoMais = signal<number | null>(null);
+  private inicioDoArraste: { y: number; tempo: number; altura: number } | null = null;
+
+  protected comecarArraste(evento: PointerEvent): void {
+    const folha = evento.currentTarget as HTMLElement;
+    const naGrade = !matchMedia('(max-width: 899px)').matches;
+    if (naGrade || !this.menuAberto() || (evento.target as HTMLElement).closest('button')) {
+      return;
+    }
+    folha.setPointerCapture?.(evento.pointerId);
+    this.inicioDoArraste = {
+      y: evento.clientY,
+      tempo: evento.timeStamp,
+      altura: folha.closest('nav')?.getBoundingClientRect().height ?? 400,
+    };
+    this.arrasteDoMais.set(0);
+  }
+
+  protected arrastar(evento: PointerEvent): void {
+    if (!this.inicioDoArraste) {
+      return;
+    }
+    const dy = evento.clientY - this.inicioDoArraste.y;
+    // Para cima: cresce cada vez menos e para em 24px, so para mostrar que nao estica.
+    this.arrasteDoMais.set(dy >= 0 ? dy : -24 * (1 - Math.exp(dy / 80)));
+  }
+
+  protected soltarArraste(evento: PointerEvent): void {
+    const inicio = this.inicioDoArraste;
+    if (!inicio) {
+      return;
+    }
+    this.inicioDoArraste = null;
+    const dy = evento.clientY - inicio.y;
+    const velocidade = dy / Math.max(evento.timeStamp - inicio.tempo, 1);
+    this.arrasteDoMais.set(null);
+    if (dy > inicio.altura / 3 || (dy > 24 && velocidade > 0.5)) {
+      this.fecharMenu();
+    }
+  }
+
+  /** O fundo escuro clareia conforme a folha desce. */
+  protected opacidadeDoFundo(): number | null {
+    const dy = this.arrasteDoMais();
+    return dy && dy > 0 ? Math.max(0, 1 - dy / 400) : null;
+  }
+
+  /**
    * O "+" vira um balao com as duas formas de lancar. Com o balao ou o painel aberto, o
    * mesmo botao (agora um "x") fecha.
    */

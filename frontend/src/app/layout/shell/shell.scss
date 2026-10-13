@@ -602,9 +602,20 @@
     transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
+  /* O topo e a alca de arrastar: o dedo ali move a folha, sem rolar a pagina. */
   .menu-topo {
     position: relative;
     padding: 0.9rem 0.25rem 0.6rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+
+  /* Enquanto o dedo arrasta, a folha segue sem atraso; ao soltar, a transicao volta e
+   * leva a folha de volta ao lugar ou para fora da tela. */
+  .menu.aberto.arrastando {
+    transition: none;
   }
 
   .menu-topo .marca {

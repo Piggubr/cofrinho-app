@@ -43,6 +43,31 @@ test.describe('no celular', () => {
     await expect(page).toHaveURL(/\/receitas$/);
     await expect(menu).not.toHaveClass(/aberto/);
   });
+
+  test('a folha do "Mais" volta ao lugar se puxada para cima e fecha se puxada para baixo', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    const mais = page.getByRole('navigation', { name: 'Atalhos' }).getByRole('button', { name: 'Mais' });
+    const menu = page.getByRole('navigation', { name: 'Telas' });
+    await mais.click();
+    // Espera a folha terminar de subir antes de medir onde esta a alca.
+    await expect(menu).toHaveCSS('transform', 'none');
+    const topo = (await menu.locator('.menu-topo').boundingBox())!;
+    const [x, y] = [topo.x + 60, topo.y + 10];
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y - 200, { steps: 8 });
+    await page.mouse.up();
+    await expect(menu).toHaveClass(/aberto/);
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y + 250, { steps: 10 });
+    await page.mouse.up();
+    await expect(menu).not.toHaveClass(/aberto/);
+  });
 });
 
 for (const [janela, botao] of [
