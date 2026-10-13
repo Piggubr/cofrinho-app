@@ -71,6 +71,27 @@ const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
   { id: 'conta', titulo: $localize`Família e plano` },
 ];
 
+/**
+ * Ordem das telas na folha do "Mais" do celular, das mais usadas para as menos. As que ja
+ * estao na barra de abas nao aparecem ali; tela fora da lista vai para o fim.
+ */
+const ORDEM_DO_MAIS = [
+  '/receitas',
+  '/contas-fixas',
+  '/orcamentos',
+  '/metas',
+  '/contas-e-cartoes',
+  '/calendario',
+  '/compras',
+  '/girls-math',
+  '/lugares',
+  '/filmes',
+  '/feed',
+  '/premios',
+  '/familia',
+  '/plano',
+];
+
 export interface GrupoDeMenu {
   readonly id: Grupo;
   readonly titulo: string;
@@ -101,6 +122,7 @@ export interface GrupoDeMenu {
   host: {
     '[class.abas-nativas]': 'usaAbasNativas',
     '(document:keydown.escape)': 'fecharOpcoes()',
+    '(window:scroll)': 'aoRolar()',
   },
 })
 export class Shell {
@@ -126,6 +148,17 @@ export class Shell {
   protected readonly opcoesAbertas = signal(false);
   /** Painel do "+": lanca gasto ou receita por cima da tela aberta. */
   protected readonly lancamentoAberto = signal(false);
+  /** Gasto ou receita: a aba com que o painel abre, conforme a opcao do balao. */
+  protected readonly tipoDoLancamento = signal<'gasto' | 'receita'>('gasto');
+  /** Aviso curto depois de lancar ("Gasto lançado."), ja com o painel fechado. */
+  protected readonly avisoDoLancamento = signal('');
+  private temporizadorDoAviso?: ReturnType<typeof setTimeout>;
+  /**
+   * O "+" se recolhe para a direita ao rolar para baixo, deixando uma pontinha na borda,
+   * e volta inteiro no alto da tela ou quando a pessoa toca na pontinha.
+   */
+  protected readonly maisRecolhido = signal(false);
+  private ultimaRolagem = 0;
   /** Foto escolhida no balao, entregue ao painel para ja ler o recibo. */
   protected readonly fotoDoRecibo = signal<File | null>(null);
   protected readonly cotacao = signal<Cotacao | null>(null);
@@ -331,12 +364,74 @@ export class Shell {
     })).filter((grupo) => grupo.itens.length > 0);
   }
 
+  /** Tela que ja tem aba embaixo: no celular ela sai da folha do "Mais". */
+  protected naBarraDeAbas(rota: string): boolean {
+    return this.atalhos().some((item) => item.rota === rota);
+  }
+
+  protected ordemNoMais(rota: string): number {
+    const posicao = ORDEM_DO_MAIS.indexOf(rota);
+    return posicao < 0 ? ORDEM_DO_MAIS.length : posicao;
+  }
+
   protected alternarMenu(): void {
     this.menuAberto.update((aberto) => !aberto);
   }
 
   protected fecharMenu(): void {
     this.menuAberto.set(false);
+  }
+
+  /**
+   * Arraste da folha do "Mais" pelo topo (onde fica a alca), so no celular. Para baixo a
+   * folha acompanha o dedo e, passado um terco da altura ou num gesto rapido, fecha; para
+   * cima ela cede um pouco, com resistencia, e volta ao lugar ao soltar.
+   */
+  protected readonly arrasteDoMais = signal<number | null>(null);
+  private inicioDoArraste: { y: number; tempo: number; altura: number } | null = null;
+
+  protected comecarArraste(evento: PointerEvent): void {
+    const folha = evento.currentTarget as HTMLElement;
+    const naGrade = !matchMedia('(max-width: 899px)').matches;
+    if (naGrade || !this.menuAberto() || (evento.target as HTMLElement).closest('button')) {
+      return;
+    }
+    folha.setPointerCapture?.(evento.pointerId);
+    this.inicioDoArraste = {
+      y: evento.clientY,
+      tempo: evento.timeStamp,
+      altura: folha.closest('nav')?.getBoundingClientRect().height ?? 400,
+    };
+    this.arrasteDoMais.set(0);
+  }
+
+  protected arrastar(evento: PointerEvent): void {
+    if (!this.inicioDoArraste) {
+      return;
+    }
+    const dy = evento.clientY - this.inicioDoArraste.y;
+    // Para cima: cresce cada vez menos e para em 24px, so para mostrar que nao estica.
+    this.arrasteDoMais.set(dy >= 0 ? dy : -24 * (1 - Math.exp(dy / 80)));
+  }
+
+  protected soltarArraste(evento: PointerEvent): void {
+    const inicio = this.inicioDoArraste;
+    if (!inicio) {
+      return;
+    }
+    this.inicioDoArraste = null;
+    const dy = evento.clientY - inicio.y;
+    const velocidade = dy / Math.max(evento.timeStamp - inicio.tempo, 1);
+    this.arrasteDoMais.set(null);
+    if (dy > inicio.altura / 3 || (dy > 24 && velocidade > 0.5)) {
+      this.fecharMenu();
+    }
+  }
+
+  /** O fundo escuro clareia conforme a folha desce. */
+  protected opacidadeDoFundo(): number | null {
+    const dy = this.arrasteDoMais();
+    return dy && dy > 0 ? Math.max(0, 1 - dy / 400) : null;
   }
 
   /**
@@ -349,6 +444,8 @@ export class Shell {
       this.tutorial.concluir();
     }
     this.fecharMenu();
+    // Tocar na pontinha do "+" recolhido traz o botao de volta e ja abre o balao.
+    this.maisRecolhido.set(false);
     if (this.lancamentoAberto() || this.opcoesAbertas()) {
       this.fecharLancamento();
       this.fecharOpcoes();
@@ -368,11 +465,30 @@ export class Shell {
     this.opcoesAbertas.set(false);
   }
 
-  protected abrirLancamento(): void {
+  protected abrirLancamento(tipo: 'gasto' | 'receita' = 'gasto'): void {
     this.fecharMenu();
     this.fecharOpcoes();
     this.fotoDoRecibo.set(null);
+    this.tipoDoLancamento.set(tipo);
     this.lancamentoAberto.set(true);
+  }
+
+  /** Lancou: o painel fecha e um aviso curto confirma. */
+  protected aoLancar(mensagem: string): void {
+    this.fecharLancamento();
+    this.avisoDoLancamento.set(mensagem);
+    clearTimeout(this.temporizadorDoAviso);
+    this.temporizadorDoAviso = setTimeout(() => this.avisoDoLancamento.set(''), 2500);
+  }
+
+  protected aoRolar(): void {
+    const y = window.scrollY;
+    if (y <= 8) {
+      this.maisRecolhido.set(false);
+    } else if (y > this.ultimaRolagem + 4 && y > 80 && !this.lancamentoAberto() && !this.opcoesAbertas()) {
+      this.maisRecolhido.set(true);
+    }
+    this.ultimaRolagem = y;
   }
 
   /** "Foto do recibo" no balao: a camera abre direto e o painel ja chega lendo a foto. */
@@ -385,6 +501,7 @@ export class Shell {
     }
     this.fecharOpcoes();
     this.fotoDoRecibo.set(arquivo);
+    this.tipoDoLancamento.set('gasto');
     this.lancamentoAberto.set(true);
   }
 

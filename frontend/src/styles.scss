@@ -581,6 +581,12 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Busca ou assistente aberto: a pagina de tras fica parada (core/ui/travar-rolagem).
+ * So no html: no body tambem, ele vira o rolador e o cabecalho deixa de grudar no alto. */
+html.rolagem-travada {
+  overflow: hidden;
+}
+
 body {
   background: var(--site-bg);
   color: var(--ink);
@@ -645,8 +651,18 @@ a {
 
 /* Cartoes que vem de componentes filhos nao sao irmaos no DOM; o espaco vem do host. */
 app-resumo-do-mes,
-app-avisos-do-mes {
+app-avisos-do-mes,
+app-importar-extrato,
+app-goals {
   display: block;
+}
+
+/* Mesmo espaco quando um dos lados e um bloco com cartoes dentro (componente filho ou
+ * grade de cartoes): sem isso eles encostam, como Importar e exportar nos Gastos. */
+.cartao + :has(> .cartao),
+:has(> .cartao:last-child) + .cartao,
+:has(> .cartao:last-child) + :has(> .cartao:first-child) {
+  margin-top: 0.9rem;
 }
 
 app-resumo-do-mes + *,
@@ -698,6 +714,16 @@ textarea {
     border-color 0.15s ease,
     background-color 0.15s ease,
     box-shadow 0.15s ease;
+}
+
+/* No iPhone, campo com letra menor que 16px faz a tela dar zoom ao ganhar o cursor, e ela
+ * fica torta (aconteceu no assistente). Com o dedo como ponteiro, os campos usam 16px. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 input::placeholder,
@@ -1174,4 +1200,33 @@ button {
   justify-content: center;
   gap: 0.5rem;
   margin: -0.9rem 0 1rem;
+}
+
+/* Aviso curto do shell depois de lancar pelo "+", com o painel ja fechado. */
+.aviso-do-lancamento {
+  position: fixed;
+  left: 50%;
+  z-index: 33;
+  margin: 0;
+  padding: 0.6rem 1.1rem;
+  border: 0.5px solid var(--vidro-borda);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  backdrop-filter: var(--vidro-desfoque);
+  box-shadow:
+    inset 0 1px 0 var(--vidro-brilho),
+    var(--shadow-float);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: aviso-surge 0.2s ease-out;
+}
+
+@keyframes aviso-surge {
+  from {
+    opacity: 0;
+  }
 }

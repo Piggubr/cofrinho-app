@@ -8,6 +8,7 @@ import { Filme, Gasto, ItemDeCompra, Lugar } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { MoedaService } from '../../core/ui/moeda';
+import { travarRolagemEnquanto } from '../../core/ui/travar-rolagem';
 
 export interface TelaBuscavel {
   readonly rota: string;
@@ -114,15 +115,18 @@ function normalizar(texto: string): string {
       inset: 0;
       background: rgba(43, 30, 50, 0.35);
       z-index: 40;
+      touch-action: none;
     }
     .busca {
       position: fixed;
-      top: calc(10vh + env(safe-area-inset-top, 0px));
+      /* --tela-*: parte visivel da tela, que o teclado do iPhone encolhe e desloca. */
+      top: calc(var(--tela-topo, 0px) + 10vh + env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(560px, calc(100vw - 32px));
-      max-height: 70vh;
+      max-height: min(70vh, calc(var(--tela-altura, 100vh) - 10vh - env(safe-area-inset-top, 0px) - 12px));
       overflow: auto;
+      overscroll-behavior: contain;
       background: var(--surface);
       border-radius: var(--raio);
       box-shadow: var(--shadow-float);
@@ -172,7 +176,7 @@ function normalizar(texto: string): string {
       color: var(--muted);
     }
   `,
-  host: { '(document:keydown)': 'atalho($event)' },
+  host: { '(document:keydown)': 'atalho($event)', '[class.janela-aberta]': 'aberta()' },
 })
 export class BuscaGlobal {
   private readonly finance = inject(FinanceService);
@@ -230,6 +234,7 @@ export class BuscaGlobal {
   });
 
   constructor() {
+    travarRolagemEnquanto(this.aberta);
     this.digitado
       .pipe(
         debounceTime(250),

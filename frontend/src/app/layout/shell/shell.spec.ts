@@ -132,6 +132,37 @@ describe('Shell', () => {
     ]);
   });
 
+  it('no "Mais" do celular, as telas que ja tem aba ficam de fora e o resto segue a ordem de uso', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const itens = [...pagina.querySelectorAll<HTMLElement>('nav.menu .menu-itens a')];
+
+    const naBarra = itens.filter((a) => a.classList.contains('na-barra')).map((a) => a.textContent?.trim());
+    expect(naBarra).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar']);
+
+    const noMais = itens
+      .filter((a) => !a.classList.contains('na-barra'))
+      .sort((a, b) => +a.style.getPropertyValue('--ordem-no-mais') - +b.style.getPropertyValue('--ordem-no-mais'))
+      .map((a) => a.textContent?.trim());
+    expect(noMais).toEqual([
+      'Receitas',
+      'Contas do mês',
+      'Orçamento',
+      'Minhas metas',
+      'Cartões e bancos',
+      'Calendário',
+      'Compras',
+      'Girls Math',
+      'Lugares',
+      'Filmes',
+      'Fotos',
+      'Prêmios',
+      'Família',
+      'Premium',
+    ]);
+  });
+
   it('todas as telas de estilo de vida aparecem, mesmo com modulos desligados numa conta antiga', () => {
     const usuario = usuarioDeTeste();
     auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: [] } });
@@ -226,7 +257,7 @@ describe('Shell', () => {
     expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
   });
 
-  it('o "+" vira um balao com "Lançar gasto" e "Foto do recibo"; o gasto abre o painel', () => {
+  it('o "+" vira um balao com gasto, receita e foto; o gasto abre o painel', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
@@ -237,7 +268,7 @@ describe('Shell', () => {
     const opcoes = [...pagina.querySelectorAll('.opcoes-do-lancar .opcao')].map((o) =>
       o.textContent?.trim(),
     );
-    expect(opcoes).toEqual(['Lançar gasto', 'Foto do recibo']);
+    expect(opcoes).toEqual(['Lançar gasto', 'Lançar receita', 'Foto do recibo']);
     expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
     expect(mais.getAttribute('aria-expanded')).toBe('true');
 
@@ -253,6 +284,87 @@ describe('Shell', () => {
     tela.detectChanges();
     expect(pagina.querySelector('app-lancamento-rapido')).toBeNull();
     expect(mais.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('o "+" se recolhe ao rolar para baixo, fica com o balao aberto e volta no topo', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const mais = pagina.querySelector('button.lancar-flutuante') as HTMLButtonElement;
+    const rolar = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+      tela.detectChanges();
+    };
+
+    try {
+      rolar(40);
+      expect(mais.classList).not.toContain('recolhido');
+      rolar(300);
+      expect(mais.classList).toContain('recolhido');
+
+      // A pontinha traz o botao de volta e abre o balao; rolar com ele aberto nao recolhe.
+      mais.click();
+      tela.detectChanges();
+      expect(mais.classList).not.toContain('recolhido');
+      rolar(600);
+      expect(mais.classList).not.toContain('recolhido');
+
+      mais.click();
+      rolar(900);
+      expect(mais.classList).toContain('recolhido');
+      rolar(0);
+      expect(mais.classList).not.toContain('recolhido');
+    } finally {
+      Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    }
+  });
+
+  it('a folha do "Mais" no celular: puxar para cima volta ao lugar, para baixo fecha', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    try {
+      const tela = abrir();
+      http.match(() => true).forEach((pedido) => pedido.flush(null));
+      const pagina: HTMLElement = tela.nativeElement;
+      const menu = pagina.querySelector('nav.menu') as HTMLElement;
+      const topo = pagina.querySelector('.menu-topo') as HTMLElement;
+      const dedo = (tipo: string, y: number, alvo: Element = topo) => {
+        const evento = new MouseEvent(tipo, { clientY: y, bubbles: true });
+        alvo.dispatchEvent(evento);
+        tela.detectChanges();
+      };
+
+      // Fechada, a alca nao arrasta nada.
+      dedo('pointerdown', 100);
+      dedo('pointermove', 200);
+      expect(menu.style.transform).toBe('');
+
+      (pagina.querySelector('.aba[data-tour="mais"]') as HTMLButtonElement).click();
+      tela.detectChanges();
+      expect(menu.classList).toContain('aberto');
+
+      // Para cima: cede so um pouco e volta ao soltar.
+      dedo('pointerdown', 300);
+      dedo('pointermove', 100);
+      const subiu = Number(/-?[\d.]+/.exec(menu.style.transform)![0]);
+      expect(subiu).toBeLessThan(0);
+      expect(subiu).toBeGreaterThan(-24);
+      expect((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity).toBe('');
+      dedo('pointerup', 100);
+      expect(menu.classList).toContain('aberto');
+      expect(menu.style.transform).toBe('');
+
+      // Para baixo: o fundo clareia e, passado um terco, fecha.
+      dedo('pointerdown', 100);
+      dedo('pointermove', 300);
+      expect(Number((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity)).toBeLessThan(1);
+      dedo('pointerup', 600);
+      expect(menu.classList).not.toContain('aberto');
+      // Soltar sem ter comecado nao faz nada.
+      dedo('pointerup', 600);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('tocar fora do balao ou apertar Esc fecha as opcoes', () => {

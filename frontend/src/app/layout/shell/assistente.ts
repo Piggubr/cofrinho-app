@@ -5,9 +5,11 @@ import { FinanceService } from '../../core/api/finance.service';
 import { FalaDoAssistente, SituacaoDoAssistente } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
+import { toqueNaTela } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaService } from '../../core/ui/moeda';
+import { travarRolagemEnquanto } from '../../core/ui/travar-rolagem';
 
 /** Nome das telas que o assistente pode sugerir abrir. */
 const TELAS: Record<string, string> = {
@@ -206,14 +208,16 @@ interface FalaNaTela extends FalaDoAssistente {
       inset: 0;
       background: rgba(43, 30, 50, 0.35);
       z-index: 40;
+      touch-action: none;
     }
     .painel {
       position: fixed;
-      top: calc(8vh + env(safe-area-inset-top, 0px));
+      /* --tela-*: parte visivel da tela, que o teclado do iPhone encolhe e desloca. */
+      top: calc(var(--tela-topo, 0px) + 8vh + env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       width: min(560px, calc(100vw - 32px));
-      max-height: 80vh;
+      max-height: min(80vh, calc(var(--tela-altura, 100vh) - 8vh - env(safe-area-inset-top, 0px) - 12px));
       display: flex;
       flex-direction: column;
       gap: 0.6rem;
@@ -235,6 +239,7 @@ interface FalaNaTela extends FalaDoAssistente {
     }
     .conversa {
       overflow: auto;
+      overscroll-behavior: contain;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
@@ -303,6 +308,7 @@ interface FalaNaTela extends FalaDoAssistente {
       color: var(--muted);
     }
   `,
+  host: { '[class.janela-aberta]': 'aberto()' },
 })
 export class Assistente {
   protected readonly auth = inject(AuthService);
@@ -325,6 +331,10 @@ export class Assistente {
   protected readonly precisaAutorizar = computed(
     () => !!this.situacao() && !this.situacao()!.autorizado && !this.autorizandoAgora(),
   );
+
+  constructor() {
+    travarRolagemEnquanto(this.aberto);
+  }
 
   protected nomeDaTela(rota: string): string | null {
     return TELAS[rota] ?? null;
@@ -413,7 +423,11 @@ export class Assistente {
       });
   }
 
+  /** No toque o cursor nao vai sozinho para o campo: subiria o teclado de surpresa. */
   private focar(): void {
+    if (toqueNaTela()) {
+      return;
+    }
     setTimeout(() => this.campo()?.nativeElement.focus());
   }
 

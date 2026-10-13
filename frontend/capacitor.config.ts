@@ -10,8 +10,11 @@ const config: CapacitorConfig = {
   appName: 'Piggu',
   webDir: 'dist/demo/browser',
   ios: {
-    // O conteudo comeca abaixo da barra de status e acima da barra de gestos.
-    contentInset: 'always',
+    // A pagina ocupa a tela inteira, por baixo da barra de status e da barra de gestos: o
+    // vidro do cabecalho sobe ate o alto (sem faixa preta) e o CSS reserva as areas
+    // seguras com env(safe-area-inset-*). Com 'always' o iOS somava a barra de gestos as
+    // alturas que o CSS ja descontava, e a folha do "Mais" ficava alta demais.
+    contentInset: 'never',
   },
 };
 

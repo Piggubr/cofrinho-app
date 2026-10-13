@@ -6,6 +6,7 @@ import {
   computed,
   inject,
   input,
+  linkedSignal,
   output,
   signal,
 } from '@angular/core';
@@ -63,11 +64,16 @@ export class LancamentoRapido {
   /** Foto escolhida no balao do "+": o painel ja abre lendo o recibo. */
   readonly foto = input<File | null>(null);
 
+  /** Aba com que o painel abre: "Lançar receita" no balao ja chega em Receita. */
+  readonly tipoInicial = input<Tipo>('gasto');
+
   readonly fechar = output<void>();
+  /** Lancamento gravado, com a mensagem para o aviso; quem abriu o painel o fecha. */
+  readonly lancado = output<string>();
   /** "Mais opções": leva para a tela de Gastos (parcelas, moeda, divisao). */
   readonly abrirGastos = output<void>();
 
-  protected readonly tipo = signal<Tipo>('gasto');
+  protected readonly tipo = linkedSignal<Tipo>(() => this.tipoInicial());
   protected readonly valor = signal<number | null>(null);
   protected readonly descricao = signal('');
   protected readonly categoria = signal('');
@@ -277,15 +283,14 @@ export class LancamentoRapido {
     });
   }
 
-  /** Grava, avisa as telas abertas e limpa para o proximo, sem fechar o painel. */
+  /** Gravou: avisa as telas abertas e entrega a mensagem para o painel fechar. */
   private concluido(mensagem: string): void {
     this.lancamentos.avisar();
     this.salvando.set(false);
     this.valor.set(null);
     this.descricao.set('');
     this.cancelarRecibo();
-    this.aviso.set(mensagem);
-    this.focarValor();
+    this.lancado.emit(mensagem);
   }
 
   private falhou(falha: unknown): void {

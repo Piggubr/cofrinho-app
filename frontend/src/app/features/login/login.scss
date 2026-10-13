@@ -2,7 +2,8 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 1.25rem;
+  /* Fora da moldura: no iPhone a pagina comeca atras da barra de status. */
+  padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
   background:
     radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--destaque-brilho) 35%, transparent) 0%, transparent 70%),
     var(--site-bg);

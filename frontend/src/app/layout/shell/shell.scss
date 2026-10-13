@@ -31,9 +31,25 @@
   gap: 0.9rem;
   min-height: 64px;
   padding: 0.6rem 1.75rem;
+}
+
+/* O vidro fica numa camada atras do cabecalho, e nao nele: um backdrop-filter no proprio
+ * cabecalho prende os position: fixed de dentro (busca, assistente) ao tamanho dele, e
+ * ai o fundo escuro nao cobre a tela nem fecha ao tocar fora. */
+.cabecalho::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: color-mix(in srgb, var(--site-bg) 85%, transparent);
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
+
+/* Com a busca ou o assistente aberto, o cabecalho sobe acima das abas e do "+", para o
+ * fundo escuro da janela cobrir tudo. */
+.cabecalho:has(.janela-aberta) {
+  z-index: 50;
 }
 
 .marca {
@@ -281,7 +297,16 @@
 
 /* A de baixo (mais perto do dedo) chega primeiro. */
 .opcao:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.opcao:nth-child(2) {
   animation-delay: 0.04s;
+}
+
+/* Aviso curto depois de lancar (o visual fica no styles.scss): acima do "+". */
+.aviso-do-lancamento {
+  bottom: calc(1.5rem + 56px + 0.75rem);
 }
 
 .opcao:hover {
@@ -395,6 +420,9 @@
   .cabecalho {
     min-height: calc(56px + env(safe-area-inset-top, 0px));
     padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+  }
+
+  .cabecalho::before {
     background: color-mix(in srgb, var(--site-bg) 74%, transparent);
     backdrop-filter: var(--vidro-desfoque);
     -webkit-backdrop-filter: var(--vidro-desfoque);
@@ -535,9 +563,22 @@
       0 8px 20px color-mix(in srgb, var(--primaria) 35%, transparent);
   }
 
+  /* Rolando para baixo o "+" sai pela direita e deixa uma pontinha para o toque. */
+  .lancar-flutuante.recolhido {
+    transform: translateX(calc(100% + 1rem - 18px));
+    opacity: 0.85;
+    transition:
+      transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.3s ease;
+  }
+
   .opcoes-do-lancar {
     right: 1rem;
     bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 54px + 0.75rem);
+  }
+
+  .aviso-do-lancamento {
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 76px + 0.5rem);
   }
 
   /* Painel do "+" no celular: folha larga logo acima do botao. */
@@ -549,17 +590,18 @@
     max-height: calc(100dvh - 76px - 54px - 6rem - env(safe-area-inset-bottom, 0px));
   }
 
-  /* "Mais": folha que sobe de baixo, por cima de tudo e com a propria area segura. */
+  /* "Mais": folha que sobe de baixo e para logo acima da barra de abas, que segue a
+   * vista (o fundo escuro por cima dela fecha a folha). */
   .menu {
     position: fixed;
     top: auto;
     left: 0.5rem;
     right: 0.5rem;
-    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px) + 74px);
     z-index: 40;
     height: auto;
     max-height: 82vh;
-    padding: 0.5rem 1rem 1rem;
+    padding: 0.5rem 0.75rem 0.75rem;
     border: 0.5px solid var(--vidro-borda);
     border-radius: 32px;
     background: var(--vidro-forte);
@@ -582,9 +624,20 @@
     transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
+  /* O topo e a alca de arrastar: o dedo ali move a folha, sem rolar a pagina. */
   .menu-topo {
     position: relative;
-    padding: 1rem 0.25rem 0.9rem;
+    padding: 0.9rem 0.25rem 0.6rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+
+  /* Enquanto o dedo arrasta, a folha segue sem atraso; ao soltar, a transicao volta e
+   * leva a folha de volta ao lugar ou para fora da tela. */
+  .menu.aberto.arrastando {
+    transition: none;
   }
 
   .menu-topo .marca {
@@ -619,17 +672,29 @@
     cursor: pointer;
   }
 
-  /* No celular as telas aparecem em grade, como icones de app. */
-  .menu-itens {
+  /* No celular as telas aparecem numa grade so, como icones de app: sem os titulos dos
+   * grupos, na ordem do Mais e sem as que ja tem aba embaixo, para caber sem rolar. */
+  .menu-grupos {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0.4rem;
+    gap: 0.4rem 0.25rem;
+  }
+
+  .menu-grupo,
+  .menu-itens {
+    display: contents;
+  }
+
+  .menu-grupo-titulo,
+  .menu-item.na-barra {
+    display: none;
   }
 
   .menu-itens .menu-item {
+    order: var(--ordem-no-mais);
     flex-direction: column;
-    gap: 0.4rem;
-    padding: 0.6rem 0.2rem;
+    gap: 0.35rem;
+    padding: 0.4rem 0.2rem;
     font-size: 0.72rem;
     text-align: center;
     color: var(--ink-soft);
@@ -659,10 +724,9 @@
     line-height: 1.2;
   }
 
+  /* No celular o "Sair" fica no Perfil. */
   .menu-item.sair {
-    margin-top: 0.75rem;
-    justify-content: center;
-    border: 1px solid var(--border);
+    display: none;
   }
 
   .menu-fundo {
@@ -729,15 +793,18 @@
     bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 0.75rem);
   }
 
+  .aviso-do-lancamento {
+    bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem);
+  }
+
   @media (max-width: 899px) {
     .conteudo {
       padding-bottom: calc(var(--abas-nativas-altura, 83px) + 1rem);
     }
 
-    /* A folha do "Mais" abre acima da barra, que segue tocavel para fecha-la. */
+    /* A folha do "Mais" abre logo acima da barra, que segue tocavel para fecha-la. */
     .menu {
-      bottom: var(--abas-nativas-altura, 83px);
-      padding-bottom: 1rem;
+      bottom: calc(var(--abas-nativas-altura, 83px) + 0.5rem);
     }
   }
 }

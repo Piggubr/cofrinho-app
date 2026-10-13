@@ -23,7 +23,9 @@ test.describe('no celular', () => {
   });
 
 
-  test('"Mais" abre o menu agrupado e fecha ao escolher uma tela', async ({ page }) => {
+  test('"Mais" mostra so o que nao tem aba, sem rolar, e fecha ao escolher uma tela', async ({
+    page,
+  }) => {
     await page.goto('/painel');
 
     await page
@@ -31,13 +33,88 @@ test.describe('no celular', () => {
       .getByRole('button', { name: 'Mais' })
       .click();
     const menu = page.getByRole('navigation', { name: 'Telas' });
-    await expect(menu.locator('.menu-grupo-titulo').first()).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'Premium' })).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'Gastos' })).toBeHidden();
+    await expect(menu.locator('.menu-grupo-titulo').first()).toBeHidden();
+    const rola = await menu.evaluate((nav) => nav.scrollHeight > nav.clientHeight);
+    expect(rola).toBe(false);
     await menu.getByRole('link', { name: 'Receitas' }).click();
 
     await expect(page).toHaveURL(/\/receitas$/);
     await expect(menu).not.toHaveClass(/aberto/);
   });
+
+  test('o "+" se recolhe ao rolar para baixo, volta no topo e a pontinha abre o balao', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    const mais = page.locator('button.lancar-flutuante');
+    await expect(page.getByRole('heading', { name: 'Contas bancárias' })).toBeVisible();
+
+    await page.mouse.wheel(0, 600);
+    await expect(mais).toHaveClass(/recolhido/);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(mais).not.toHaveClass(/recolhido/);
+
+    await page.mouse.wheel(0, 600);
+    await expect(mais).toHaveClass(/recolhido/);
+    await expect(mais).toHaveCSS('opacity', '0.85');
+    const pontinha = (await mais.boundingBox())!;
+    await page.mouse.click(pontinha.x + 6, pontinha.y + pontinha.height / 2);
+    await expect(mais).not.toHaveClass(/recolhido/);
+    await expect(page.getByRole('menuitem', { name: 'Lançar receita' })).toBeVisible();
+  });
+
+  test('a folha do "Mais" volta ao lugar se puxada para cima e fecha se puxada para baixo', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    const mais = page.getByRole('navigation', { name: 'Atalhos' }).getByRole('button', { name: 'Mais' });
+    const menu = page.getByRole('navigation', { name: 'Telas' });
+    await mais.click();
+    // Espera a folha terminar de subir antes de medir onde esta a alca.
+    await expect(menu).toHaveCSS('transform', 'none');
+    const topo = (await menu.locator('.menu-topo').boundingBox())!;
+    const [x, y] = [topo.x + 60, topo.y + 10];
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y - 200, { steps: 8 });
+    await page.mouse.up();
+    await expect(menu).toHaveClass(/aberto/);
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y + 250, { steps: 10 });
+    await page.mouse.up();
+    await expect(menu).not.toHaveClass(/aberto/);
+  });
 });
+
+for (const [janela, botao] of [
+  ['a busca', 'Buscar (Ctrl+K)'],
+  ['o assistente', 'Perguntar ao assistente'],
+] as const) {
+  test(`${janela} cobre a tela, prende a rolagem e fecha ao tocar fora`, async ({ page }) => {
+    await page.goto('/painel');
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.getByRole('button', { name: botao }).click();
+    const dialogo = page.getByRole('dialog');
+    await expect(dialogo).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(/rolagem-travada/);
+    // A janela acompanha a parte visivel da tela (o teclado do iPhone a encolhe e desloca).
+    const alturaVisivel = () =>
+      page.evaluate(() => document.documentElement.style.getPropertyValue('--tela-altura'));
+    expect(await alturaVisivel()).toBe(`${page.viewportSize()!.height}px`);
+
+    // Toque perto do canto de baixo, longe da janela: cai no fundo escuro e fecha.
+    const tela = page.viewportSize()!;
+    await page.mouse.click(12, tela.height - 12);
+    await expect(dialogo).toBeHidden();
+    await expect(page.locator('html')).not.toHaveClass(/rolagem-travada/);
+    expect(await alturaVisivel()).toBe('');
+  });
+}
 
 test('todas as telas de estilo de vida ficam sempre no menu; o perfil nao as desliga', async ({
   page,
@@ -66,25 +143,33 @@ test('pode ser instalado: manifesto com nome, icones e atalho para lancar gasto'
   expect((await request.get('/icons/icon-192.png')).ok()).toBe(true);
 });
 
-test('o "+" abre o balao e o lancamento por cima da tela, sem sair dela', async ({ page }) => {
+test('o "+" abre o balao e o lancamento por cima da tela; lancou, o painel fecha e avisa', async ({
+  page,
+}) => {
   await page.goto('/relatorios');
+  const mais = page.getByRole('button', { name: 'Lançar gasto ou receita' });
+  const painel = page.getByRole('dialog', { name: 'Lançar' });
 
-  await page.getByRole('button', { name: 'Lançar gasto ou receita' }).click();
+  await mais.click();
   await expect(page.getByRole('menuitem', { name: 'Foto do recibo' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Lançar gasto' }).click();
-  const painel = page.getByRole('dialog', { name: 'Lançar' });
   await painel.locator('#valor-rapido').fill('12.5');
   await painel.locator('#descricao-rapida').fill('Pão de queijo');
   await painel.getByRole('button', { name: 'Lançar gasto' }).click();
 
-  await expect(painel.getByText('Gasto lançado.')).toBeVisible();
+  await expect(painel).toBeHidden();
+  await expect(page.getByRole('status').getByText('Gasto lançado.')).toBeVisible();
   await expect(page).toHaveURL(/\/relatorios$/);
 
-  await painel.getByRole('tab', { name: 'Receita' }).click();
+  // "Lançar receita" no balao ja abre o painel na aba Receita.
+  await mais.click();
+  await page.getByRole('menuitem', { name: 'Lançar receita' }).click();
+  await expect(painel.getByRole('tab', { name: 'Receita' })).toHaveAttribute('aria-selected', 'true');
   await painel.locator('#valor-rapido').fill('300');
   await painel.locator('#descricao-rapida').fill('Freela');
   await painel.getByRole('button', { name: 'Lançar receita' }).click();
-  await expect(painel.getByText('Receita lançada.')).toBeVisible();
+  await expect(painel).toBeHidden();
+  await expect(page.getByRole('status').getByText('Receita lançada.')).toBeVisible();
 });
 
 test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ page }) => {

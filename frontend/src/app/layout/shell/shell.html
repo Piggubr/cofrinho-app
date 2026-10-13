@@ -68,6 +68,7 @@
       type="button"
       class="menu-fundo"
       aria-label="Fechar menu"
+      [style.opacity]="opacidadeDoFundo()"
       (click)="fecharMenu()"
     ></button>
   }
@@ -75,11 +76,19 @@
   <nav
     class="menu"
     [class.aberto]="menuAberto()"
+    [class.arrastando]="arrasteDoMais() !== null"
+    [style.transform]="arrasteDoMais() !== null ? 'translateY(' + arrasteDoMais() + 'px)' : null"
     (keydown.escape)="fecharMenu()"
     aria-label="Telas"
     i18n-aria-label
   >
-    <div class="menu-topo">
+    <div
+      class="menu-topo"
+      (pointerdown)="comecarArraste($event)"
+      (pointermove)="arrastar($event)"
+      (pointerup)="soltarArraste($event)"
+      (pointercancel)="soltarArraste($event)"
+    >
       <span class="menu-alca" aria-hidden="true"></span>
       <a routerLink="/painel" class="marca" (click)="fecharMenu()">
         <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>
@@ -97,25 +106,31 @@
       </button>
     </div>
 
-    @for (grupo of gruposVisiveis(); track grupo.id) {
-      <div class="menu-grupo">
-        <span class="menu-grupo-titulo">{{ grupo.titulo }}</span>
-        <div class="menu-itens">
-          @for (item of grupo.itens; track item.rota) {
-            <a
-              [routerLink]="item.rota"
-              routerLinkActive="ativo"
-              class="menu-item"
-              [attr.data-tour]="item.rota"
-              (click)="fecharMenu()"
-            >
-              <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
-              <span class="menu-rotulo">{{ item.rotulo }}</span>
-            </a>
-          }
+    <!-- No celular os grupos viram uma grade so, na ordem do Mais e sem as telas que ja
+         estao na barra de abas. -->
+    <div class="menu-grupos">
+      @for (grupo of gruposVisiveis(); track grupo.id) {
+        <div class="menu-grupo">
+          <span class="menu-grupo-titulo">{{ grupo.titulo }}</span>
+          <div class="menu-itens">
+            @for (item of grupo.itens; track item.rota) {
+              <a
+                [routerLink]="item.rota"
+                routerLinkActive="ativo"
+                class="menu-item"
+                [class.na-barra]="naBarraDeAbas(item.rota)"
+                [style.--ordem-no-mais]="ordemNoMais(item.rota)"
+                [attr.data-tour]="item.rota"
+                (click)="fecharMenu()"
+              >
+                <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
+                <span class="menu-rotulo">{{ item.rotulo }}</span>
+              </a>
+            }
+          </div>
         </div>
-      </div>
-    }
+      }
+    </div>
 
     <button type="button" class="menu-item sair" (click)="sair()">
       <span class="menu-icone"><app-icone nome="sair" /></span>
@@ -139,9 +154,13 @@
         (click)="fecharOpcoes()"
       ></button>
       <div class="opcoes-do-lancar" role="menu" aria-label="Lançar" i18n-aria-label>
-        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento()">
+        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('gasto')">
           <span class="opcao-icone"><app-icone nome="lapis" [tamanho]="18" /></span>
           <span i18n>Lançar gasto</span>
+        </button>
+        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('receita')">
+          <span class="opcao-icone"><app-icone nome="entrada" [tamanho]="18" /></span>
+          <span i18n>Lançar receita</span>
         </button>
         <button type="button" class="opcao" role="menuitem" (click)="campoDaFoto.click()">
           <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
@@ -160,6 +179,8 @@
       <app-lancamento-rapido
         class="painel-rapido"
         [foto]="fotoDoRecibo()"
+        [tipoInicial]="tipoDoLancamento()"
+        (lancado)="aoLancar($event)"
         (fechar)="fecharLancamento()"
         (abrirGastos)="abrirGastos()"
       />
@@ -169,6 +190,7 @@
       class="lancar-flutuante"
       data-tour="lancar"
       [class.aberto]="lancamentoAberto() || opcoesAbertas()"
+      [class.recolhido]="maisRecolhido() && !tutorial.aberto()"
       [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
       [attr.aria-expanded]="lancamentoAberto() || opcoesAbertas()"
       aria-label="Lançar gasto ou receita"
@@ -177,6 +199,10 @@
     >
       <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
     </button>
+  }
+
+  @if (avisoDoLancamento()) {
+    <p class="aviso-do-lancamento" role="status">{{ avisoDoLancamento() }}</p>
   }
 
   @if (tutorial.aberto()) {
