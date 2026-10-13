@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, effect, inject, signal, untracked } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 
-export type IdDoTema = 'rosa' | 'menta' | 'lilas' | 'azul';
+export type IdDoTema = 'rosa' | 'menta' | 'lilas' | 'azul' | 'coral' | 'mel' | 'vinho' | 'grafite';
 
 export interface Tema {
   id: IdDoTema;
@@ -12,9 +13,11 @@ export interface Tema {
   /** Fundo da pagina, para a barra do navegador (meta theme-color). */
   fundo: string;
   fundoEscuro: string;
+  /** Rosa, Menta e Azul sao gratis; as outras cores sao do Premium. */
+  premium: boolean;
 }
 
-/** Os mesmos quatro temas do app antigo. As cores de cada um ficam no styles.scss. */
+/** Os quatro temas do app antigo e mais quatro. As cores de cada um ficam no styles.scss. */
 export const TEMAS: readonly Tema[] = [
   {
     id: 'rosa',
@@ -24,6 +27,7 @@ export const TEMAS: readonly Tema[] = [
     destaqueEscuro: '#f0a6c4',
     fundo: '#fcf8f9',
     fundoEscuro: '#161015',
+    premium: false,
   },
   {
     id: 'menta',
@@ -33,15 +37,7 @@ export const TEMAS: readonly Tema[] = [
     destaqueEscuro: '#9fe0c8',
     fundo: '#f7fbfa',
     fundoEscuro: '#0f1513',
-  },
-  {
-    id: 'lilas',
-    nome: $localize`Lilás`,
-    descricao: $localize`Calmo e criativo`,
-    destaque: '#6a3d94',
-    destaqueEscuro: '#d2b8f2',
-    fundo: '#faf8fc',
-    fundoEscuro: '#131017',
+    premium: false,
   },
   {
     id: 'azul',
@@ -51,6 +47,57 @@ export const TEMAS: readonly Tema[] = [
     destaqueEscuro: '#a8d0ee',
     fundo: '#f7fafc',
     fundoEscuro: '#0f1317',
+    premium: false,
+  },
+  {
+    id: 'lilas',
+    nome: $localize`Lilás`,
+    descricao: $localize`Calmo e criativo`,
+    destaque: '#6a3d94',
+    destaqueEscuro: '#d2b8f2',
+    fundo: '#faf8fc',
+    fundoEscuro: '#131017',
+    premium: true,
+  },
+  {
+    id: 'coral',
+    nome: $localize`Coral`,
+    descricao: $localize`Quente e animado`,
+    destaque: '#a8432c',
+    destaqueEscuro: '#f5b8a6',
+    fundo: '#fdf9f8',
+    fundoEscuro: '#171110',
+    premium: true,
+  },
+  {
+    id: 'mel',
+    nome: $localize`Mel`,
+    descricao: $localize`Doce e ensolarado`,
+    destaque: '#855a0b',
+    destaqueEscuro: '#f3d38f',
+    fundo: '#fcfaf5',
+    fundoEscuro: '#15130e',
+    premium: true,
+  },
+  {
+    id: 'vinho',
+    nome: $localize`Vinho`,
+    descricao: $localize`Elegante e marcante`,
+    destaque: '#7a1f2e',
+    destaqueEscuro: '#f0aab3',
+    fundo: '#fcf8f8',
+    fundoEscuro: '#161011',
+    premium: true,
+  },
+  {
+    id: 'grafite',
+    nome: $localize`Grafite`,
+    descricao: $localize`Sóbrio e discreto`,
+    destaque: '#363d4a',
+    destaqueEscuro: '#d3dae4',
+    fundo: '#f9fafb',
+    fundoEscuro: '#111214',
+    premium: true,
   },
 ];
 
@@ -86,12 +133,65 @@ export function aplicarTemaSalvo(): void {
   aplicar(lerTemaSalvo());
 }
 
+/** Marca que a cor ou o icone voltaram ao padrao porque o Premium acabou. */
+const CHAVE_DO_AVISO = 'piggu_personalizacao_voltou';
+
+export function marcarQueVoltouAoPadrao(): void {
+  try {
+    localStorage.setItem(CHAVE_DO_AVISO, '1');
+  } catch {
+    // Sem armazenamento: o aviso so nao aparece.
+  }
+}
+
+export function voltouAoPadrao(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_DO_AVISO) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function esquecerQueVoltouAoPadrao(): void {
+  try {
+    localStorage.removeItem(CHAVE_DO_AVISO);
+  } catch {
+    // Nada a fazer.
+  }
+}
+
+/**
+ * Cor escolhida no Perfil. As cores Premium so ficam enquanto o plano vale: quando alguem
+ * entra sem Premium com uma delas salva, o app volta para o Rosa. Antes do login nada muda,
+ * porque ainda nao se sabe o plano. A trava e so no aparelho: e enfeite, nao dado.
+ */
 @Injectable({ providedIn: 'root' })
 export class Temas {
+  private readonly auth = inject(AuthService);
   readonly atual = signal<Tema>(lerTemaSalvo());
 
-  escolher(id: IdDoTema): void {
+  constructor() {
+    effect(() => {
+      if (this.auth.autenticado() && !this.auth.ehPremium() && this.atual().premium) {
+        untracked(() => {
+          this.salvar(TEMAS[0]);
+          marcarQueVoltouAoPadrao();
+        });
+      }
+    });
+  }
+
+  /** Falso quando a cor e do Premium e a pessoa nao tem: a tela leva para os planos. */
+  escolher(id: IdDoTema): boolean {
     const tema = temaPorId(id);
+    if (tema.premium && !this.auth.ehPremium()) {
+      return false;
+    }
+    this.salvar(tema);
+    return true;
+  }
+
+  private salvar(tema: Tema): void {
     this.atual.set(tema);
     aplicar(tema);
     try {

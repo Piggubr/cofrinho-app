@@ -28,6 +28,7 @@ export function usuarioDeTeste(mudancas: Partial<Usuario> = {}): Usuario {
  */
 export class AuthFalso {
   readonly usuario = signal<Usuario | null>(usuarioDeTeste());
+  readonly autenticado = computed(() => this.usuario() !== null);
   readonly ehMembro = computed(() => this.usuario()?.role === 'MEMBRO');
   readonly ehAdmin = computed(() => this.usuario()?.role === 'ADMIN');
   readonly ehTitular = computed(() => this.usuario()?.role === 'TITULAR' || this.ehAdmin());
