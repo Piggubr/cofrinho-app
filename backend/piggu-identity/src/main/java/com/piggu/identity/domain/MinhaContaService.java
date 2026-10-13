@@ -5,6 +5,7 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
@@ -83,6 +84,16 @@ public class MinhaContaService {
             arquivo.put("cpf", Map.of("numero", cofre.decifrar(conta.getCpfCifrado()).formatado(),
                     "informadoEm", conta.getCpfInformadoEm()));
         }
+        if (conta.temDocumento()) {
+            String nome = DocumentosDeIdentidade.tipo(conta.getTipoDoDocumento())
+                    .map(DocumentosDeIdentidade.Tipo::nome).orElse(conta.getTipoDoDocumento());
+            arquivo.put("documento", Map.of("tipo", nome,
+                    "numero", cofre.decifrarTexto(conta.getDocumentoCifrado()),
+                    "informadoEm", conta.getDocumentoInformadoEm()));
+        }
+        if (conta.getPais() != null) {
+            arquivo.put("pais", conta.getPais());
+        }
         arquivo.put("familia", familia.ver(usuario));
         if (conta.getTermsVersion() != null) {
             arquivo.put("aceiteDosTermos", Map.of("versao", conta.getTermsVersion(), "em", conta.getTermsAcceptedAt()));
@@ -148,20 +159,57 @@ public class MinhaContaService {
     }
 
     /**
-     * Onde a pessoa mora. No Brasil o CPF e obrigatorio (o app pede ate ser informado);
-     * fora dele a conta segue sem CPF. Quem ja informou o CPF continua com ele.
+     * O pais onde a pessoa mora e, se ela ja digitou, o documento de la (o CPF no Brasil).
+     * Trocar de pais nao apaga documento nenhum: o que ja foi informado fica preso a conta,
+     * e quem ja tem um documento nao precisa de outro.
      */
     @Transactional
-    public UserResponse declararResidencia(UUID contaId, boolean noBrasil) {
+    public UserResponse informarPais(UUID contaId, String paisDigitado, String documento) {
         UserAccount conta = conta(contaId);
-        if (conta.moraNoBrasil() != noBrasil) {
-            conta.declararResidencia(noBrasil);
+        String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        if (!Texto.vazio(documento) && !conta.temCpf() && !conta.temDocumento()) {
+            if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
+                prenderCpf(conta, conferirCpfLivre(documento));
+            } else {
+                DocumentosDeIdentidade.pedidoEm(pais).ifPresent(tipo ->
+                        prenderDocumento(conta, tipo, conferirDocumentoLivre(tipo, documento)));
+            }
+        }
+        if (!pais.equals(conta.getPais())) {
+            conta.declararPais(pais);
             usuarios.save(conta);
             trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
-                    conta.getId(), null, noBrasil ? "Mora no Brasil" : "Mora fora do Brasil");
-            log.info("Residencia: conta={} noBrasil={}", conta.getId(), noBrasil);
+                    conta.getId(), null, "Pais onde mora: " + pais);
+            log.info("Pais: conta={} pais={}", conta.getId(), pais);
         }
         return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /** Confere o documento de fora e se nenhuma conta ja o usa; devolve o numero limpo. */
+    @Transactional(readOnly = true)
+    public String conferirDocumentoLivre(DocumentosDeIdentidade.Tipo tipo, String digitado) {
+        String numero = tipo.normalizar(digitado);
+        if (usuarios.existsByIdDocIndice(cofre.indice(tipo, numero))) {
+            throw new BusinessException("Este " + tipo.nome() + " já está ligado a outra conta do Piggu. Entre com "
+                    + "a conta que você já tem; se não foi você quem a criou, escreva para o canal de privacidade.",
+                    HttpStatus.CONFLICT, "DOCUMENTO_EM_USO");
+        }
+        return numero;
+    }
+
+    /** Grava o documento ja conferido; como no CPF, o indice unico decide uma corrida. */
+    @Transactional
+    public void prenderDocumento(UserAccount conta, DocumentosDeIdentidade.Tipo tipo, String numero) {
+        conta.informarDocumento(tipo, cofre.cifrar(numero), cofre.indice(tipo, numero));
+        try {
+            usuarios.saveAndFlush(conta);
+        } catch (DataIntegrityViolationException corrida) {
+            throw new BusinessException("Este " + tipo.nome() + " já está ligado a outra conta do Piggu.",
+                    HttpStatus.CONFLICT, "DOCUMENTO_EM_USO");
+        }
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, tipo.nome() + " informado");
+        log.info("Documento informado: conta={} tipo={}", conta.getId(), tipo);
     }
 
     /**

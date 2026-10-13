@@ -16,9 +16,10 @@ import java.util.UUID;
  * Perfil publico do usuario — o mesmo formato que {@code usuarioPublico_} devolvia,
  * acrescido do id.
  *
- * <p>{@code cpfInformado} falso faz o front pedir o CPF antes de liberar o app: so acontece
- * com quem mora no Brasil ({@code moraNoBrasil}) e ainda nao informou. Quem mora fora
- * vem sempre com verdadeiro. O numero nunca vem aqui; so na exportacao dos dados.</p>
+ * <p>{@code cpfInformado} falso faz o front pedir o documento antes de liberar o app: o
+ * CPF de quem mora no Brasil, ou o documento do pais ({@code pais}) quando la se pede um
+ * (veja {@code DocumentosDeIdentidade}). O nome ficou do tempo em que so havia CPF. O
+ * numero nunca vem aqui; so na exportacao dos dados.</p>
  *
  * <p>{@code foto} e a que o app mostra (a propria, senao a do Google); {@code fotoPropria} e
  * {@code temFotoDoGoogle} dizem quais botoes o Perfil oferece.</p>
@@ -52,7 +53,7 @@ public record UserResponse(
         String termosAceitos,
         boolean temSenha,
         boolean emailConfirmado,
-        boolean moraNoBrasil
+        String pais
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -89,13 +90,13 @@ public record UserResponse(
                 familia.planoPara(conta.getId()) == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId(),
                 new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
-                conta.cpfEmDia(),
+                conta.documentoEmDia(),
                 conta.temFotoPropria(),
                 conta.getGooglePicture() != null,
                 conta.getTermsVersion(),
                 conta.temSenha(),
                 conta.isEmailVerified(),
-                conta.moraNoBrasil()
+                conta.getPais()
         );
     }
 }

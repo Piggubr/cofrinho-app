@@ -74,11 +74,11 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("cadastro pede o aceite dos termos e recusa senha fraca sem criar conta")
     void cadastroValida() {
-        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, CPF, true, null, true, null))
+        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", CPF, null, true, null))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo("TERMOS_NECESSARIOS"));
         for (String fraca : new String[] {"curta1", "somenteletras", "1234567890", EMAIL, "a1" + "x".repeat(71)}) {
-            assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, fraca, CPF, true,
+            assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, fraca, "BR", CPF,
                     Consentimentos.VERSAO_DO_AVISO, true, null))
                     .as(fraca)
                     .isInstanceOfSatisfying(BusinessException.class,
@@ -203,8 +203,8 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("e-mail da PIGGU_ADMIN_EMAILS cadastrado por senha nao vira ADMIN")
     void adminSoComEmailConfirmado() {
-        TokenResponse acesso = auth.cadastrar("Operadora", "outra.operadora@exemplo.test", SENHA, CPF,
-                true, Consentimentos.VERSAO_DO_AVISO, true, null);
+        TokenResponse acesso = auth.cadastrar("Operadora", "outra.operadora@exemplo.test", SENHA, "BR",
+                CPF, Consentimentos.VERSAO_DO_AVISO, true, null);
         assertThat(acesso.usuario().role()).isEqualTo(PigguRole.TITULAR);
         assertThat(auth.entrarComSenha("outra.operadora@exemplo.test", SENHA, true, null).usuario().role())
                 .isEqualTo(PigguRole.TITULAR);
@@ -213,10 +213,10 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("quem mora no Brasil cadastra com CPF valido; sem CPF ou com CPF invalido a conta nao nasce")
     void cpfNoCadastro() {
-        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, " ", true, Consentimentos.VERSAO_DO_AVISO, true, null))
+        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", " ", Consentimentos.VERSAO_DO_AVISO, true, null))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo("CPF_NECESSARIO"));
-        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "529.982.247-26", true,
+        assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", "529.982.247-26",
                 Consentimentos.VERSAO_DO_AVISO, true, null))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("CPF");
         assertThat(usuarios.findByEmail(EMAIL)).isEmpty();
@@ -224,7 +224,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         TokenResponse acesso = cadastrar(EMAIL);
 
         assertThat(acesso.usuario().cpfInformado()).isTrue();
-        assertThat(acesso.usuario().moraNoBrasil()).isTrue();
+        assertThat(acesso.usuario().pais()).isEqualTo("BR");
         UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
         assertThat(conta.temCpf()).isTrue();
         assertThat(conta.getCpfCifrado()).doesNotContain("52998224725");
@@ -235,7 +235,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     void cpfRepetido() {
         cadastrar(EMAIL);
 
-        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "52998224725", true,
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725",
                 Consentimentos.VERSAO_DO_AVISO, true, null))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo(MinhaContaService.CODIGO_CPF_EM_USO));
@@ -243,17 +243,48 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("quem mora fora do Brasil cadastra sem CPF e o app nao pede")
+    @DisplayName("quem mora num pais sem documento no catalogo cadastra sem documento e o app nao pede")
     void foraDoBrasilSemCpf() {
-        TokenResponse acesso = auth.cadastrar("Ana", EMAIL, SENHA, null, false, Consentimentos.VERSAO_DO_AVISO, true, null);
+        TokenResponse acesso = auth.cadastrar("Ana", EMAIL, SENHA, "US", null, Consentimentos.VERSAO_DO_AVISO, true, null);
 
-        assertThat(acesso.usuario().moraNoBrasil()).isFalse();
+        assertThat(acesso.usuario().pais()).isEqualTo("US");
         assertThat(acesso.usuario().cpfInformado()).as("nada pendente de CPF").isTrue();
         assertThat(usuarios.findByEmail(EMAIL).orElseThrow().temCpf()).isFalse();
     }
 
+    @Test
+    @DisplayName("em Portugal o cadastro pede o NIF valido, guarda cifrado e nao deixa repetir")
+    void documentoDePortugal() {
+        assertThatThrownBy(() -> auth.cadastrar("Rita", EMAIL, SENHA, "PT", null, Consentimentos.VERSAO_DO_AVISO, true, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_NECESSARIO"));
+        assertThatThrownBy(() -> auth.cadastrar("Rita", EMAIL, SENHA, "PT", "123456780", Consentimentos.VERSAO_DO_AVISO, true, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_INVALIDO"));
+        assertThat(usuarios.findByEmail(EMAIL)).isEmpty();
+
+        TokenResponse acesso = auth.cadastrar("Rita", EMAIL, SENHA, "pt", "123 456 789", Consentimentos.VERSAO_DO_AVISO,
+                true, null);
+
+        assertThat(acesso.usuario().pais()).isEqualTo("PT");
+        assertThat(acesso.usuario().cpfInformado()).as("documento em dia").isTrue();
+        UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
+        assertThat(conta.temDocumento()).isTrue();
+        assertThat(conta.getTipoDoDocumento()).isEqualTo("PT_NIF");
+        assertThat(conta.getDocumentoCifrado()).doesNotContain("123456789");
+
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "PT", "123456789",
+                Consentimentos.VERSAO_DO_AVISO, true, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_EM_USO"));
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "XX", null,
+                Consentimentos.VERSAO_DO_AVISO, true, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("PAIS_INVALIDO"));
+    }
+
     private TokenResponse cadastrar(String email) {
-        return auth.cadastrar("  Duda   Souza ", email, SENHA, CPF, true, Consentimentos.VERSAO_DO_AVISO, true,
+        return auth.cadastrar("  Duda   Souza ", email, SENHA, "BR", CPF, Consentimentos.VERSAO_DO_AVISO, true,
                 "navegador");
     }
 

@@ -17,6 +17,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     boolean existsByCpfIndice(String cpfIndice);
 
+    boolean existsByIdDocIndice(String idDocIndice);
+
     List<UserAccount> findByHouseholdIdOrderByCreatedAtAsc(UUID householdId);
 
     /** Sem nenhum acesso desde o limite (conta que nunca entrou conta pela criacao). */

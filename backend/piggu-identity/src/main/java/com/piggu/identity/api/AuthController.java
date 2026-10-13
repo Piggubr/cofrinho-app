@@ -12,6 +12,7 @@ import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
+import com.piggu.identity.domain.DocumentosDeIdentidade;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -65,8 +66,8 @@ public class AuthController {
     public ResponseEntity<TokenResponse> cadastrar(@Valid @RequestBody CadastroRequest pedido,
                                                    @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
-        boolean noBrasil = !Boolean.FALSE.equals(pedido.moraNoBrasil());
-        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pedido.cpf(), noBrasil,
+        String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
+        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
                 pedido.versaoDosTermos(), lembrar, userAgent));
     }
 

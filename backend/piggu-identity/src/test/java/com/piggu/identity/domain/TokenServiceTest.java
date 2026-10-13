@@ -81,11 +81,15 @@ class TokenServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("quem mora fora do Brasil nao precisa de CPF: o access token sai com cpf=true")
+    @DisplayName("quem mora num pais que nao pede documento sai com cpf=true; onde pede, so depois de informar")
     void claimDoCpfForaDoBrasil() {
         UserAccount conta = new UserAccount("fora@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
-        conta.declararResidencia(false);
+        conta.declararPais("US");
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
 
+        conta.declararPais("PT");
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isFalse();
+        conta.informarDocumento(DocumentosDeIdentidade.Tipo.PT_NIF, "cifrado", "indice");
         assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
     }
 

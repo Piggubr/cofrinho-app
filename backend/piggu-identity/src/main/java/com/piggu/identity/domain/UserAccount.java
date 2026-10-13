@@ -124,9 +124,27 @@ public class UserAccount {
     @Column(name = "cpf_informado_em")
     private Instant cpfInformadoEm;
 
-    /** Mora no Brasil: o CPF e obrigatorio. Quem mora fora segue sem CPF. */
-    @Column(name = "lives_in_brazil", nullable = false)
-    private boolean livesInBrazil = true;
+    /**
+     * Pais onde mora (ISO 3166). No Brasil o CPF e obrigatorio; nos paises de
+     * {@link DocumentosDeIdentidade} o documento de la; nos demais, nenhum. Nulo so em
+     * conta que disse "fora do Brasil" antes de existir a lista de paises.
+     */
+    @Column(name = "country", length = 2)
+    private String country = DocumentosDeIdentidade.BRASIL;
+
+    /** Documento de quem mora fora ({@link DocumentosDeIdentidade.Tipo}), cifrado como o CPF. */
+    @Column(name = "id_doc_type", length = 20)
+    private String idDocType;
+
+    @Column(name = "id_doc_cifrado", length = 200)
+    private String idDocCifrado;
+
+    /** HMAC do tipo + numero, unico entre as contas. */
+    @Column(name = "id_doc_indice", length = 64)
+    private String idDocIndice;
+
+    @Column(name = "id_doc_informado_em")
+    private Instant idDocInformadoEm;
 
     /** BCrypt da senha ({@link Senhas}); nulo = a conta so entra pelo Google. */
     @Column(name = "password_hash", length = 100)
@@ -456,17 +474,53 @@ public class UserAccount {
         return cpfIndice != null;
     }
 
-    public boolean moraNoBrasil() {
-        return livesInBrazil;
+    public String getPais() {
+        return country;
     }
 
-    public void declararResidencia(boolean noBrasil) {
-        this.livesInBrazil = noBrasil;
+    public void declararPais(String pais) {
+        this.country = pais;
     }
 
-    /** Nada falta de CPF: ja informou, ou mora fora do Brasil e nao precisa. */
-    public boolean cpfEmDia() {
-        return temCpf() || !livesInBrazil;
+    public boolean temDocumento() {
+        return idDocIndice != null;
+    }
+
+    /**
+     * Nada falta de documento: ja informou um (CPF ou o de fora), ou mora num pais onde
+     * o Piggu nao pede nenhum. Quem ja informou um documento nao precisa de outro ao mudar.
+     */
+    public boolean documentoEmDia() {
+        if (temCpf() || temDocumento()) {
+            return true;
+        }
+        if (DocumentosDeIdentidade.BRASIL.equals(country)) {
+            return false;
+        }
+        return DocumentosDeIdentidade.pedidoEm(country).isEmpty();
+    }
+
+    /** Como o CPF: entra uma vez e fica preso a conta. */
+    public void informarDocumento(DocumentosDeIdentidade.Tipo tipo, String cifrado, String indice) {
+        if (temDocumento()) {
+            throw new IllegalStateException("A conta ja tem documento");
+        }
+        this.idDocType = tipo.name();
+        this.idDocCifrado = cifrado;
+        this.idDocIndice = indice;
+        this.idDocInformadoEm = Instant.now();
+    }
+
+    public String getTipoDoDocumento() {
+        return idDocType;
+    }
+
+    public String getDocumentoCifrado() {
+        return idDocCifrado;
+    }
+
+    public Instant getDocumentoInformadoEm() {
+        return idDocInformadoEm;
     }
 
     /** O CPF fica preso a conta: so entra uma vez (trocar e pelo canal de privacidade). */

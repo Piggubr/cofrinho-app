@@ -14,8 +14,10 @@ export interface DadosDoCadastro {
   nome: string;
   email: string;
   senha: string;
-  moraNoBrasil: boolean;
-  cpf?: string;
+  /** ISO 3166, duas letras. */
+  pais: string;
+  /** CPF no Brasil, o documento de la nos paises que pedem um. */
+  documento?: string;
 }
 
 /** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */

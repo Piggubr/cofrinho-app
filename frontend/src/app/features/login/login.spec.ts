@@ -240,15 +240,16 @@ describe('Login', () => {
 
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
     await enviar(tela);
-    expect(alerta()).toContain('Informe seu CPF');
+    expect(alerta()).toContain('Informe o número do seu documento (CPF)');
 
-    preencher(tela, 'cpf-cadastro', '529.982.247-26');
+    preencher(tela, 'documento-cadastro', '529.982.247-26');
     await enviar(tela);
     expect(alerta()).toContain('CPF inválido');
 
-    preencher(tela, 'cpf-cadastro', '52998224725');
+    preencher(tela, 'documento-cadastro', '52998224725');
     expect(
-      (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#cpf-cadastro')!.value,
+      (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#documento-cadastro')!
+        .value,
     ).toBe('529.982.247-25');
     await enviar(tela);
     expect(alerta()).toContain('aceite os Termos');
@@ -267,8 +268,8 @@ describe('Login', () => {
           nome: 'Ana',
           email: 'ana@piggu.test',
           senha: 'cofrinho123',
-          moraNoBrasil: true,
-          cpf: '52998224725',
+          pais: 'BR',
+          documento: '52998224725',
         },
         true,
       ],
@@ -289,7 +290,7 @@ describe('Login', () => {
     preencher(tela, 'email-cadastro', 'ana@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
-    preencher(tela, 'cpf-cadastro', '52998224725');
+    preencher(tela, 'documento-cadastro', '52998224725');
     const aceite = (tela.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       '.aceite-do-cadastro input[type=checkbox]',
     )!;
@@ -303,18 +304,27 @@ describe('Login', () => {
     ).toContain('ja tem conta');
   });
 
-  it('quem mora fora do Brasil cadastra sem CPF', async () => {
+  it('o campo do documento muda com o pais; onde nao se pede documento, some', async () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     const pagina: HTMLElement = tela.nativeElement;
     const pais = pagina.querySelector<HTMLSelectElement>('#pais-cadastro')!;
-    pais.value = pais.options[1].value;
-    pais.dispatchEvent(new Event('change'));
-    tela.detectChanges();
-    expect(pagina.querySelector('#cpf-cadastro')).toBeNull();
+    expect(pais.options.length).toBeGreaterThan(200);
+    expect(pais.options[0].textContent).toContain('Brasil');
+    const escolher = async (codigo: string) => {
+      pais.value = codigo;
+      pais.dispatchEvent(new Event('change'));
+      tela.detectChanges();
+      await tela.whenStable();
+    };
 
-    preencher(tela, 'nome-cadastro', 'Ana');
-    preencher(tela, 'email-cadastro', 'ana@piggu.test');
+    await escolher('US');
+    expect(pagina.querySelector('#documento-cadastro')).toBeNull();
+
+    await escolher('PT');
+    expect(pagina.querySelector('label[for=documento-cadastro]')?.textContent).toContain('NIF');
+    preencher(tela, 'nome-cadastro', 'Rita');
+    preencher(tela, 'email-cadastro', 'rita@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
     const aceite = pagina.querySelector<HTMLInputElement>(
@@ -322,14 +332,22 @@ describe('Login', () => {
     )!;
     aceite.checked = true;
     aceite.dispatchEvent(new Event('change'));
+    preencher(tela, 'documento-cadastro', '123456780');
     await enviar(tela);
+    expect(pagina.querySelector('[role=alert]')?.textContent).toContain('NIF inválido');
 
+    preencher(tela, 'documento-cadastro', '123 456 789');
+    await enviar(tela);
     expect(cadastros[0][0]).toEqual({
-      nome: 'Ana',
-      email: 'ana@piggu.test',
+      nome: 'Rita',
+      email: 'rita@piggu.test',
       senha: 'cofrinho123',
-      moraNoBrasil: false,
-      cpf: undefined,
+      pais: 'PT',
+      documento: '123456789',
     });
+
+    await escolher('US');
+    await enviar(tela);
+    expect(cadastros[1][0]).toEqual(expect.objectContaining({ pais: 'US', documento: undefined }));
   });
 });

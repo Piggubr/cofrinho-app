@@ -45,8 +45,11 @@ export interface Usuario {
   temSenha?: boolean;
   /** Falso enquanto a conta criada por senha nao entrou nenhuma vez pelo Google. */
   emailConfirmado?: boolean;
-  /** No Brasil o CPF e obrigatorio; fora dele a conta segue sem. Ausente conta como Brasil. */
-  moraNoBrasil?: boolean;
+  /**
+   * Pais onde mora (ISO 3166). Decide o documento pedido (core/ui/documentos.ts). Nulo
+   * so em conta que disse "fora do Brasil" antes da lista de paises; ausente conta como Brasil.
+   */
+  pais?: string | null;
 }
 
 /** Familia de quem esta logado; convites so chegam para o titular. */

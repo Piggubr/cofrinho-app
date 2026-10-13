@@ -275,18 +275,27 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("CPF so e cobrado de quem mora no Brasil; voltar ao Brasil sem CPF volta a cobrar")
-    void cpfSoNoBrasil() {
-        assertThat(contas.declararResidencia(titular.getId(), true).cpfInformado()).as("no Brasil, sem CPF").isFalse();
+    @DisplayName("o documento cobrado depende do pais; o que ja foi informado fica e vale ao mudar")
+    void documentoPorPais() {
+        assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado()).as("no Brasil, sem CPF").isFalse();
 
-        UserResponse fora = contas.declararResidencia(titular.getId(), false);
-        assertThat(fora.moraNoBrasil()).isFalse();
-        assertThat(fora.cpfInformado()).as("fora do Brasil nada fica pendente").isTrue();
-        assertThat(usuarios.findById(titular.getId()).orElseThrow().cpfEmDia()).isTrue();
+        UserResponse eua = contas.informarPais(titular.getId(), "us", null);
+        assertThat(eua.pais()).isEqualTo("US");
+        assertThat(eua.cpfInformado()).as("nos EUA nada fica pendente").isTrue();
 
-        assertThat(contas.declararResidencia(titular.getId(), true).cpfInformado()).isFalse();
-        contas.informarCpf(titular.getId(), "529.982.247-25");
-        assertThat(contas.declararResidencia(titular.getId(), false).cpfInformado()).isTrue();
+        assertThat(contas.informarPais(titular.getId(), "ES", null).cpfInformado()).as("Espanha pede DNI").isFalse();
+        assertThatThrownBy(() -> contas.informarPais(titular.getId(), "ES", "12345678A"))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_INVALIDO"));
+        assertThat(contas.informarPais(titular.getId(), "ES", "12345678-z").cpfInformado()).isTrue();
+
+        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(salvo.getTipoDoDocumento()).isEqualTo("ES_DNI");
+        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("documento")
+                .asString().contains("12345678Z", "DNI/NIE");
+
+        assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado())
+                .as("quem ja tem documento nao precisa de outro ao voltar").isTrue();
     }
 
     @Test

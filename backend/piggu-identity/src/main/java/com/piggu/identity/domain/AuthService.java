@@ -122,13 +122,13 @@ public class AuthService {
      * Cadastro por e-mail e senha. O e-mail fica sem prova ate o primeiro login Google
      * nele: por isso nao usa convite de familia nem vira ADMIN pela lista.
      *
-     * <p>Quem mora no Brasil informa o CPF aqui mesmo, e ele e conferido antes de a conta
-     * nascer: CPF ja usado em outra conta barra o cadastro. Quem mora fora segue sem CPF
-     * (se informar um, ele vale igual).</p>
+     * <p>O documento do pais onde a pessoa mora vem aqui mesmo e e conferido antes de a
+     * conta nascer: no Brasil o CPF, nos paises de {@link DocumentosDeIdentidade} o de la.
+     * Documento ja usado em outra conta barra o cadastro. Nos outros paises segue sem.</p>
      */
     @Transactional
-    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String cpfDigitado,
-                                   boolean moraNoBrasil, String versaoDosTermos, boolean lembrar, String userAgent) {
+    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
+                                   String documento, String versaoDosTermos, boolean lembrar, String userAgent) {
         String email = Texto.email(emailBruto);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         if (nomeLimpo.isEmpty()) {
@@ -140,21 +140,31 @@ public class AuthService {
                     HttpStatus.CONFLICT, "EMAIL_JA_CADASTRADO");
         }
         senhas.validar(senha, email);
-        boolean semCpf = Texto.vazio(cpfDigitado);
-        if (moraNoBrasil && semCpf) {
-            throw new BusinessException("Informe seu CPF. Ele garante uma conta por pessoa.",
-                    HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+        String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        Cpf cpf = null;
+        DocumentosDeIdentidade.Tipo tipo = DocumentosDeIdentidade.pedidoEm(pais).orElse(null);
+        String numero = null;
+        if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
+            if (Texto.vazio(documento)) {
+                throw new BusinessException("Informe seu CPF. Ele garante uma conta por pessoa.",
+                        HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+            }
+            cpf = minhaConta.conferirCpfLivre(documento);
+        } else if (tipo != null) {
+            numero = minhaConta.conferirDocumentoLivre(tipo, documento);
         }
-        Cpf cpf = semCpf ? null : minhaConta.conferirCpfLivre(cpfDigitado);
 
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
         conta.setNickname(nomeLimpo);
-        conta.declararResidencia(moraNoBrasil);
+        conta.declararPais(pais);
         conta.definirSenha(senhas.hash(senha));
         conta.registrarAcesso();
         usuarios.save(conta);
         if (cpf != null) {
             minhaConta.prenderCpf(conta, cpf);
+        }
+        if (numero != null) {
+            minhaConta.prenderDocumento(conta, tipo, numero);
         }
         log.info("Cadastro por senha: conta={}", conta.getId());
 

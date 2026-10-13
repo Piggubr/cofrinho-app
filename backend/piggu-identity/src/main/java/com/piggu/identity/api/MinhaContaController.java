@@ -6,7 +6,6 @@ import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.domain.MinhaContaService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -50,13 +49,15 @@ public class MinhaContaController {
         return servico.informarCpf(usuario.id(), pedido.cpf());
     }
 
-    public record ResidenciaRequest(@NotNull(message = "Diga se mora no Brasil.") Boolean moraNoBrasil) {
+    /** @param documento CPF no Brasil, o documento de la nos paises que pedem um; pode faltar */
+    public record PaisRequest(@NotBlank(message = "Escolha o país onde você mora.") @Size(max = 2) String pais,
+                              @Size(max = 40) String documento) {
     }
 
-    /** No Brasil o CPF e obrigatorio; quem mora fora segue sem ele. */
-    @PutMapping("/residencia")
-    public UserResponse declararResidencia(@Valid @RequestBody ResidenciaRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.declararResidencia(usuario.id(), pedido.moraNoBrasil());
+    /** Onde mora e, se for o caso, o documento de la; o documento fica preso a conta. */
+    @PutMapping("/pais")
+    public UserResponse informarPais(@Valid @RequestBody PaisRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.informarPais(usuario.id(), pedido.pais(), pedido.documento());
     }
 
     public record FotoRequest(@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,

@@ -46,7 +46,7 @@ public class TokenService {
      * lembrete) ficam sem ela, para apagar a conta funcionar mesmo sem CPF.
      */
     public String gerarAccessToken(UserAccount conta, Household familia) {
-        return gerar(conta, familia, propriedades.accessTtl(), null, conta.cpfEmDia());
+        return gerar(conta, familia, propriedades.accessTtl(), null, conta.documentoEmDia());
     }
 
     /**

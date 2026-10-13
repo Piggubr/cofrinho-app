@@ -145,34 +145,37 @@
             />
           </div>
           <div class="campo">
-            <label i18n for="pais-cadastro">Onde você mora?</label>
+            <label i18n for="pais-cadastro">País onde você mora</label>
             <select
               id="pais-cadastro"
               name="pais"
-              [ngModel]="moraNoBrasil()"
-              (ngModelChange)="moraNoBrasil.set($event)"
+              autocomplete="country"
+              [ngModel]="pais()"
+              (ngModelChange)="trocarPais($event)"
             >
-              <option i18n [ngValue]="true">No Brasil</option>
-              <option i18n [ngValue]="false">Fora do Brasil</option>
+              @for (opcao of paises; track opcao.codigo) {
+                <option [value]="opcao.codigo">{{ opcao.nome }}</option>
+              }
             </select>
           </div>
-          @if (moraNoBrasil()) {
+          @if (documentoPedido(); as doc) {
             <div class="campo">
-              <label i18n for="cpf-cadastro">CPF</label>
+              <label for="documento-cadastro">{{ doc.nome }}</label>
               <input
-                #campoCpf
-                id="cpf-cadastro"
-                name="cpf"
-                inputmode="numeric"
+                #campoDocumento
+                id="documento-cadastro"
+                name="documento"
+                [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
                 autocomplete="off"
-                placeholder="000.000.000-00"
-                maxlength="14"
-                aria-describedby="dica-do-cpf"
-                [value]="cpf()"
-                (input)="digitarCpf(campoCpf.value, campoCpf)"
+                autocapitalize="characters"
+                [placeholder]="doc.exemplo"
+                [attr.maxlength]="doc.tamanhoMaximo"
+                aria-describedby="dica-do-documento"
+                [value]="documento()"
+                (input)="digitarDocumento(campoDocumento.value, campoDocumento)"
               />
-              <p i18n id="dica-do-cpf" class="dica">
-                Uma conta por pessoa: o CPF fica preso à sua conta, guardado cifrado.
+              <p i18n id="dica-do-documento" class="dica">
+                Uma conta por pessoa: o documento fica preso à sua conta, guardado cifrado.
               </p>
             </div>
           }

@@ -49,7 +49,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     void cadastroEEntrada() throws Exception {
         String cadastro = mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"cpf\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuario.temSenha").value(true))
                 .andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE);
@@ -67,7 +67,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
 
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"cpf\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("EMAIL_JA_CADASTRADO"));
     }
@@ -82,10 +82,10 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("declarar onde mora pede login")
-    void residenciaPedeToken() throws Exception {
-        mockMvc.perform(put("/api/me/residencia").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"moraNoBrasil\":false}"))
+    @DisplayName("informar o pais pede login")
+    void paisPedeToken() throws Exception {
+        mockMvc.perform(put("/api/me/pais").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pais\":\"PT\"}"))
                 .andExpect(status().isUnauthorized());
     }
 

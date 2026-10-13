@@ -15,7 +15,8 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /**
- * Guarda o CPF cifrado e calcula o indice que impede duas contas com o mesmo CPF.
+ * Guarda o CPF (e o documento de quem mora fora do Brasil) cifrado e calcula o indice
+ * que impede duas contas com o mesmo documento.
  *
  * <p>Duas colunas: {@code cpf_cifrado} (AES-256-GCM, para devolver o numero na
  * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256, unico no banco). O indice
@@ -62,39 +63,60 @@ public class CofreDeCpf {
 
     /** Sempre o mesmo para o mesmo CPF: e o que a coluna unica compara. */
     public String indice(Cpf cpf) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(chaveDoIndice);
-            return HexFormat.of().formatHex(mac.doFinal(cpf.numero().getBytes(StandardCharsets.US_ASCII)));
-        } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("Nao foi possivel calcular o indice do CPF", erro);
-        }
+        return indiceDe(cpf.numero());
+    }
+
+    /**
+     * Indice do documento de quem mora fora. Leva o tipo junto ("PT_NIF:123456789"):
+     * o mesmo numero em paises diferentes e de pessoas diferentes.
+     */
+    public String indice(DocumentosDeIdentidade.Tipo tipo, String numero) {
+        return indiceDe(tipo.name() + ":" + numero);
     }
 
     /** Nonce aleatorio + texto cifrado, em base64. */
     public String cifrar(Cpf cpf) {
+        return cifrar(cpf.numero());
+    }
+
+    public Cpf decifrar(String guardado) {
+        return new Cpf(decifrarTexto(guardado));
+    }
+
+    /** Nonce aleatorio + texto cifrado, em base64 (o CPF e os documentos de fora). */
+    public String cifrar(String texto) {
         try {
             byte[] nonce = new byte[TAMANHO_DO_NONCE];
             ALEATORIO.nextBytes(nonce);
             Cipher cifra = Cipher.getInstance("AES/GCM/NoPadding");
             cifra.init(Cipher.ENCRYPT_MODE, chaveDaCifra, new GCMParameterSpec(128, nonce));
-            byte[] cifrado = cifra.doFinal(cpf.numero().getBytes(StandardCharsets.US_ASCII));
+            byte[] cifrado = cifra.doFinal(texto.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(ByteBuffer.allocate(nonce.length + cifrado.length)
                     .put(nonce).put(cifrado).array());
         } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("Nao foi possivel cifrar o CPF", erro);
+            throw new IllegalStateException("Nao foi possivel cifrar o documento", erro);
         }
     }
 
-    public Cpf decifrar(String guardado) {
+    public String decifrarTexto(String guardado) {
         try {
             byte[] tudo = Base64.getDecoder().decode(guardado);
             Cipher cifra = Cipher.getInstance("AES/GCM/NoPadding");
             cifra.init(Cipher.DECRYPT_MODE, chaveDaCifra, new GCMParameterSpec(128, tudo, 0, TAMANHO_DO_NONCE));
             byte[] claro = cifra.doFinal(tudo, TAMANHO_DO_NONCE, tudo.length - TAMANHO_DO_NONCE);
-            return new Cpf(new String(claro, StandardCharsets.US_ASCII));
+            return new String(claro, StandardCharsets.UTF_8);
         } catch (GeneralSecurityException | IllegalArgumentException erro) {
-            throw new IllegalStateException("Nao foi possivel ler o CPF guardado (a PIGGU_CPF_CHAVE mudou?)", erro);
+            throw new IllegalStateException("Nao foi possivel ler o documento guardado (a PIGGU_CPF_CHAVE mudou?)", erro);
+        }
+    }
+
+    private String indiceDe(String texto) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(chaveDoIndice);
+            return HexFormat.of().formatHex(mac.doFinal(texto.getBytes(StandardCharsets.UTF_8)));
+        } catch (GeneralSecurityException erro) {
+            throw new IllegalStateException("Nao foi possivel calcular o indice do documento", erro);
         }
     }
 

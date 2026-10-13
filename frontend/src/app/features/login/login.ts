@@ -1,4 +1,12 @@
-import { Component, ElementRef, inject, signal, viewChild, afterNextRender } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
@@ -7,7 +15,7 @@ import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
-import { cpfValido, digitosDoCpf, formatarCpf } from '../../core/ui/cpf';
+import { BRASIL, documentoDoPais, listaDePaises } from '../../core/ui/documentos';
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -15,8 +23,8 @@ type Modo = 'entrar' | 'cadastro';
  * Entrada no app.
  *
  * <p>Duas portas para a mesma conta: e-mail e senha, ou o Google. O cadastro por e-mail
- * pede nome, e-mail, senha (duas vezes), o aceite dos termos e, de quem mora no Brasil, o
- * CPF (uma conta por pessoa; quem mora fora segue sem). Pelo Google, na primeira
+ * pede nome, e-mail, senha (duas vezes), o pais onde mora, o documento de la (o CPF no
+ * Brasil; veja {@link documentoDoPais}) e o aceite dos termos. Pelo Google, na primeira
  * vez o backend so cria a conta com o aceite, pedido aqui depois que o Google confirma.</p>
  */
 @Component({
@@ -45,8 +53,11 @@ export class Login {
   protected readonly email = signal('');
   protected readonly senha = signal('');
   protected readonly confirmacao = signal('');
-  protected readonly moraNoBrasil = signal(true);
-  protected readonly cpf = signal('');
+  protected readonly paises = listaDePaises();
+  protected readonly pais = signal(BRASIL);
+  protected readonly documento = signal('');
+  /** O documento que o pais escolhido pede; nulo nos paises onde nao se pede nenhum. */
+  protected readonly documentoPedido = computed(() => documentoDoPais(this.pais()));
 
   constructor() {
     afterNextRender(() => void this.prepararBotao());
@@ -108,8 +119,8 @@ export class Login {
             nome: this.nome().trim(),
             email: this.email().trim(),
             senha: this.senha(),
-            moraNoBrasil: this.moraNoBrasil(),
-            cpf: this.moraNoBrasil() ? digitosDoCpf(this.cpf()) : undefined,
+            pais: this.pais(),
+            documento: this.documentoPedido()?.limpar(this.documento()),
           },
           this.lembrar(),
         ),
@@ -132,10 +143,11 @@ export class Login {
     if (this.senha() !== this.confirmacao()) {
       return $localize`As duas senhas nao sao iguais.`;
     }
-    if (this.moraNoBrasil() && !cpfValido(this.cpf())) {
-      return digitosDoCpf(this.cpf()).length === 11
-        ? $localize`CPF inválido. Confira os números.`
-        : $localize`Informe seu CPF (11 números).`;
+    const doc = this.documentoPedido();
+    if (doc && !doc.valido(this.documento())) {
+      return this.documento().trim()
+        ? $localize`${doc.nome}:nome: inválido. Confira o número.`
+        : $localize`Informe o número do seu documento (${doc.nome}:nome:).`;
     }
     if (!this.aceitou()) {
       return $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`;
@@ -143,10 +155,16 @@ export class Login {
     return '';
   }
 
-  /** Mascara do CPF enquanto digita, como na tela do CPF. */
-  protected digitarCpf(texto: string, campo: HTMLInputElement): void {
-    const formatado = formatarCpf(texto);
-    this.cpf.set(formatado);
+  /** Outro pais pede outro documento: o numero digitado para o anterior nao serve. */
+  protected trocarPais(pais: string): void {
+    this.pais.set(pais);
+    this.documento.set('');
+  }
+
+  /** Mascara enquanto digita (so o CPF tem), como na tela do documento. */
+  protected digitarDocumento(texto: string, campo: HTMLInputElement): void {
+    const formatado = this.documentoPedido()?.formatar(texto) ?? texto;
+    this.documento.set(formatado);
     campo.value = formatado;
   }
 
