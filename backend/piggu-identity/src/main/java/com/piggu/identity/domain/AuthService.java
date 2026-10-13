@@ -128,7 +128,7 @@ public class AuthService {
      *
      * <p>No Brasil o CPF e obrigatorio e conferido (digitos), mas CPF repetido nao barra.
      * Fora, o documento de {@link DocumentosDeIdentidade} e opcional; se vier, e conferido
-     * e ja usado em outra conta barra. O celular e obrigatorio e fica em E.164.</p>
+     * e tambem pode repetir. O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
     public TokenResponse cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
@@ -157,7 +157,7 @@ public class AuthService {
         } else if (Texto.vazio(documento)) {
             // Fora do Brasil o documento e opcional; o Perfil oferece informar depois.
         } else if (tipo != null) {
-            numero = minhaConta.conferirDocumentoLivre(tipo, documento);
+            numero = minhaConta.conferirDocumento(tipo, documento);
         }
 
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);

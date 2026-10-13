@@ -12,7 +12,6 @@ import com.piggu.identity.avisos.AvisosEnviados;
 import com.piggu.identity.billing.ProvedorDePagamento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -169,7 +168,7 @@ public class MinhaContaService {
                 prenderCpf(conta, conferirCpf(documento));
             } else {
                 DocumentosDeIdentidade.pedidoEm(pais).ifPresent(tipo ->
-                        prenderDocumento(conta, tipo, conferirDocumentoLivre(tipo, documento)));
+                        prenderDocumento(conta, tipo, conferirDocumento(tipo, documento)));
             }
         }
         if (!pais.equals(conta.getPais())) {
@@ -184,26 +183,19 @@ public class MinhaContaService {
 
     /** Confere o documento de fora e se nenhuma conta ja o usa; devolve o numero limpo. */
     @Transactional(readOnly = true)
-    public String conferirDocumentoLivre(DocumentosDeIdentidade.Tipo tipo, String digitado) {
+    public String conferirDocumento(DocumentosDeIdentidade.Tipo tipo, String digitado) {
         String numero = tipo.normalizar(digitado);
         if (usuarios.existsByIdDocIndice(cofre.indice(tipo, numero))) {
-            throw new BusinessException("Este " + tipo.nome() + " já está ligado a outra conta do Piggu. Entre com "
-                    + "a conta que você já tem; se não foi você quem a criou, escreva para o canal de privacidade.",
-                    HttpStatus.CONFLICT, "DOCUMENTO_EM_USO");
+            log.warn("Documento repetido: ja ligado a outra conta, tipo={}", tipo);
         }
         return numero;
     }
 
-    /** Grava o documento ja conferido; como no CPF, o indice unico decide uma corrida. */
+    /** Grava o documento ja conferido; como o CPF, pode repetir entre contas. */
     @Transactional
     public void prenderDocumento(UserAccount conta, DocumentosDeIdentidade.Tipo tipo, String numero) {
         conta.informarDocumento(tipo, cofre.cifrar(numero), cofre.indice(tipo, numero));
-        try {
-            usuarios.saveAndFlush(conta);
-        } catch (DataIntegrityViolationException corrida) {
-            throw new BusinessException("Este " + tipo.nome() + " já está ligado a outra conta do Piggu.",
-                    HttpStatus.CONFLICT, "DOCUMENTO_EM_USO");
-        }
+        usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, tipo.nome() + " informado");
         log.info("Documento informado: conta={} tipo={}", conta.getId(), tipo);

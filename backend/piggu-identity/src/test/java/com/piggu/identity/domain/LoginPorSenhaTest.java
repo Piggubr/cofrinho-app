@@ -327,11 +327,10 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         assertThat(conta.getTipoDoDocumento()).isEqualTo("PT_NIF");
         assertThat(conta.getDocumentoCifrado()).doesNotContain("123456789");
 
-        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "PT", "123456789", CELULAR,
-                Consentimentos.VERSAO_DO_AVISO, true, null))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_EM_USO"));
-        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "XX", null, CELULAR,
+        assertThat(auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "PT", "123456789", CELULAR,
+                Consentimentos.VERSAO_DO_AVISO, true, null).usuario().cpfInformado())
+                .as("documento repetido nao barra").isTrue();
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra2@exemplo.test", SENHA, "XX", null, CELULAR,
                 Consentimentos.VERSAO_DO_AVISO, true, null))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo("PAIS_INVALIDO"));

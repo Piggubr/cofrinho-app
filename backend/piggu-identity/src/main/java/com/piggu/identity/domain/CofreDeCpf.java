@@ -16,7 +16,7 @@ import java.util.HexFormat;
 
 /**
  * Guarda o CPF (e o documento de quem mora fora do Brasil) cifrado e calcula o indice
- * que acha contas com o mesmo documento (o do exterior continua unico).
+ * que acha contas com o mesmo documento (pode repetir desde a V25/V26).
  *
  * <p>Duas colunas: {@code cpf_cifrado} (AES-256-GCM, para devolver o numero na
  * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; desde a V25 pode repetir). O indice
