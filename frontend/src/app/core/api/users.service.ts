@@ -35,6 +35,11 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/me/cpf'), { cpf });
   }
 
+  /** Aceite da versao nova dos Termos e do Aviso por quem ja tem conta. */
+  aceitarTermos(versao: string): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/termos'), { versao });
+  }
+
   /** Foto de perfil propria, ja recortada e reduzida no aparelho (ver prepararFotoDePerfil). */
   trocarFoto(imagemBase64: string): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/me/foto'), { imagemBase64, mimeType: 'image/jpeg' });

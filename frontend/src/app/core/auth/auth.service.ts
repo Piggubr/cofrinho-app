@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, firstValueFrom, shareReplay, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
+import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
 import { esquecerListasGuardadas } from '../offline/listas-guardadas';
 import { GoogleIdentityService } from './google-identity.service';
@@ -48,6 +49,12 @@ export class AuthService {
 
   /** Conta ainda sem CPF: o app so abre a tela de informar. */
   readonly cpfPendente = computed(() => this.usuarioAtual()?.cpfInformado === false);
+
+  /** Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo. */
+  readonly termosPendentes = computed(() => {
+    const aceitos = this.usuarioAtual()?.termosAceitos;
+    return aceitos !== undefined && aceitos !== VERSAO_DO_AVISO;
+  });
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;

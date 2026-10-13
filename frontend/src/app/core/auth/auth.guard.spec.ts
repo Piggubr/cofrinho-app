@@ -8,18 +8,22 @@ import {
   provideRouter,
 } from '@angular/router';
 import { PigguRole } from '../api/models';
-import { autenticadoGuard, perfilGuard } from './auth.guard';
+import { autenticadoGuard, cpfGuard, perfilGuard, termosGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 /** Quem abre cada tela: sessao valida primeiro, depois o perfil. */
 describe('guards de rota', () => {
   const autenticado = signal(false);
+  const termosPendentes = signal(false);
+  const cpfPendente = signal(false);
   let restaurou = false;
   let perfil: PigguRole | null = null;
   let tentativasDeRestaurar = 0;
 
   beforeEach(() => {
     autenticado.set(false);
+    termosPendentes.set(false);
+    cpfPendente.set(false);
     restaurou = false;
     perfil = null;
     tentativasDeRestaurar = 0;
@@ -30,6 +34,8 @@ describe('guards de rota', () => {
           provide: AuthService,
           useValue: {
             autenticado,
+            termosPendentes,
+            cpfPendente,
             restaurarSessao: async () => {
               tentativasDeRestaurar++;
               return restaurou;
@@ -50,6 +56,20 @@ describe('guards de rota', () => {
   function destino(resultado: unknown): string {
     return TestBed.inject(Router).serializeUrl(resultado as UrlTree);
   }
+
+  it('termos novos sem aceite levam ao aceite antes do CPF; tudo em dia, passa', () => {
+    termosPendentes.set(true);
+    cpfPendente.set(true);
+    expect(destino(rodar(cpfGuard))).toBe('/aceite');
+    expect(destino(rodar(termosGuard))).toBe('/aceite');
+
+    termosPendentes.set(false);
+    expect(destino(rodar(cpfGuard))).toBe('/cpf');
+    expect(rodar(termosGuard)).toBe(true);
+
+    cpfPendente.set(false);
+    expect(rodar(cpfGuard)).toBe(true);
+  });
 
   it('com sessao aberta, passa sem perguntar ao servidor', async () => {
     autenticado.set(true);

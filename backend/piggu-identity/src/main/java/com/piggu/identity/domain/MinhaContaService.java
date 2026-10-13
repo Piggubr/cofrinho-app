@@ -1,6 +1,7 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
+import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
@@ -129,6 +130,25 @@ public class MinhaContaService {
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /**
+     * Aceite de uma versao nova dos Termos e do Aviso por quem ja tem conta. So vale a
+     * versao vigente: um front antigo nao colhe aceite sobre um texto que saiu do ar.
+     */
+    @Transactional
+    public UserResponse aceitarTermos(UUID contaId, String versao) {
+        if (!Consentimentos.VERSAO_DO_AVISO.equals(versao)) {
+            throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
+                    HttpStatus.UNPROCESSABLE_CONTENT, Consentimentos.CODIGO_AVISO_MUDOU);
+        }
+        UserAccount conta = conta(contaId);
+        conta.aceitarTermos(versao);
+        usuarios.save(conta);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, "Termos aceitos (versao " + versao + ")");
+        log.info("Termos aceitos: conta={} versao={}", conta.getId(), versao);
         return UserResponse.de(conta, familia.daConta(conta));
     }
 

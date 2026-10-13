@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { ParDeTokens, Usuario } from '../api/models';
 import { APP_CONFIG } from '../config/app-config';
+import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { usuarioDeTeste } from '../../testing/auth-falso';
 import { AuthService } from './auth.service';
 import { GoogleIdentityService } from './google-identity.service';
@@ -82,6 +83,17 @@ describe('AuthService', () => {
     expect(auth.ehPremium()).toBe(false);
     auth.atualizarUsuario(usuarioDeTeste({ plano: 'GRATUITO', role: 'ADMIN' }));
     expect(auth.ehPremium()).toBe(true);
+  });
+
+  it('termos de versao antiga ou nunca aceitos ficam pendentes; ausente (demo) conta como aceito', () => {
+    auth.atualizarUsuario(usuarioDeTeste());
+    expect(auth.termosPendentes()).toBe(false);
+    auth.atualizarUsuario(usuarioDeTeste({ termosAceitos: null }));
+    expect(auth.termosPendentes()).toBe(true);
+    auth.atualizarUsuario(usuarioDeTeste({ termosAceitos: '2026-09' }));
+    expect(auth.termosPendentes()).toBe(true);
+    auth.atualizarUsuario(usuarioDeTeste({ termosAceitos: VERSAO_DO_AVISO }));
+    expect(auth.termosPendentes()).toBe(false);
   });
 
   it('sem usuario, nenhum perfil vale', () => {

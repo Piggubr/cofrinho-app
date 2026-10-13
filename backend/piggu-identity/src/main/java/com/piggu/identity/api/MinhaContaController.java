@@ -53,6 +53,15 @@ public class MinhaContaController {
                               @NotBlank @Size(max = 40) String mimeType) {
     }
 
+    public record TermosRequest(@NotBlank(message = "Informe a versao dos termos.") @Size(max = 20) String versao) {
+    }
+
+    /** Os Termos mudaram: a pessoa aceita a versao nova para seguir usando o app. */
+    @PutMapping("/termos")
+    public UserResponse aceitarTermos(@Valid @RequestBody TermosRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.aceitarTermos(usuario.id(), pedido.versao());
+    }
+
     /** Foto de perfil propria; o servidor reduz, recorta e regrava antes de guardar. */
     @PutMapping("/foto")
     public UserResponse trocarFoto(@Valid @RequestBody FotoRequest pedido, @AuthUser CurrentUser usuario) {

@@ -33,6 +33,11 @@ export interface Usuario {
   familia: string;
   /** Falso: o app pede o CPF antes de liberar o resto. Ausente (demo, perfil antigo) conta como informado. */
   cpfInformado?: boolean;
+  /**
+   * Versao dos Termos aceita por ultimo; nula em conta antiga. Diferente da vigente, o app
+   * pede o aceite de novo. Ausente (demo, perfil antigo) conta como aceita.
+   */
+  termosAceitos?: string | null;
 }
 
 /** Familia de quem esta logado; convites so chegam para o titular. */

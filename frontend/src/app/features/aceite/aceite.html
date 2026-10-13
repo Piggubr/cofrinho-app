@@ -1,0 +1,46 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Os Termos mudaram</h1>
+    <p i18n class="subtitulo">
+      Atualizamos os Termos de Uso e o Aviso de Privacidade. Para seguir usando o Piggu, leia e
+      aceite a versão nova.
+    </p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    <h2 i18n class="o-que-mudou">O que mudou</h2>
+    <ul class="mudancas">
+      <li i18n>
+        O Premium agora tem regras claras: renova sozinho até você cancelar, sem multa, e quem
+        assina pelo site tem 7 dias para se arrepender e receber tudo de volta.
+      </li>
+      <li i18n>
+        Explicamos o que o Piggu faz com bancos e IA: só lê seus dados, nunca movimenta dinheiro, e
+        nada vai para a IA sem a sua autorização.
+      </li>
+      <li i18n>
+        Ficaram por escrito as regras da família, do uso adequado e de como encerrar a conta.
+      </li>
+      <li i18n>Nada muda no que você já guardou: seus dados continuam seus.</li>
+    </ul>
+
+    <p i18n class="nota">
+      Leia os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
+      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a> completos (versão
+      {{ versao }}).
+    </p>
+
+    <button i18n type="button" class="botao" [disabled]="salvando()" (click)="aceitar()">
+      Aceitar e continuar
+    </button>
+    <button i18n type="button" class="botao contorno pequeno sair" [disabled]="salvando()" (click)="sair()">
+      Sair
+    </button>
+    <button i18n type="button" class="excluir" [disabled]="salvando()" (click)="excluirConta()">
+      Não concordo: excluir minha conta
+    </button>
+  </section>
+</div>
