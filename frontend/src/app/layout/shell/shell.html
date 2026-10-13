@@ -97,25 +97,31 @@
       </button>
     </div>
 
-    @for (grupo of gruposVisiveis(); track grupo.id) {
-      <div class="menu-grupo">
-        <span class="menu-grupo-titulo">{{ grupo.titulo }}</span>
-        <div class="menu-itens">
-          @for (item of grupo.itens; track item.rota) {
-            <a
-              [routerLink]="item.rota"
-              routerLinkActive="ativo"
-              class="menu-item"
-              [attr.data-tour]="item.rota"
-              (click)="fecharMenu()"
-            >
-              <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
-              <span class="menu-rotulo">{{ item.rotulo }}</span>
-            </a>
-          }
+    <!-- No celular os grupos viram uma grade so, na ordem do Mais e sem as telas que ja
+         estao na barra de abas. -->
+    <div class="menu-grupos">
+      @for (grupo of gruposVisiveis(); track grupo.id) {
+        <div class="menu-grupo">
+          <span class="menu-grupo-titulo">{{ grupo.titulo }}</span>
+          <div class="menu-itens">
+            @for (item of grupo.itens; track item.rota) {
+              <a
+                [routerLink]="item.rota"
+                routerLinkActive="ativo"
+                class="menu-item"
+                [class.na-barra]="naBarraDeAbas(item.rota)"
+                [style.--ordem-no-mais]="ordemNoMais(item.rota)"
+                [attr.data-tour]="item.rota"
+                (click)="fecharMenu()"
+              >
+                <span class="menu-icone"><app-icone [nome]="item.icone" /></span>
+                <span class="menu-rotulo">{{ item.rotulo }}</span>
+              </a>
+            }
+          </div>
         </div>
-      </div>
-    }
+      }
+    </div>
 
     <button type="button" class="menu-item sair" (click)="sair()">
       <span class="menu-icone"><app-icone nome="sair" /></span>

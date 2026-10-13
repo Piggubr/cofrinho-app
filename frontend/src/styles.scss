@@ -345,6 +345,12 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Busca ou assistente aberto: a pagina de tras fica parada (core/ui/travar-rolagem).
+ * So no html: no body tambem, ele vira o rolador e o cabecalho deixa de grudar no alto. */
+html.rolagem-travada {
+  overflow: hidden;
+}
+
 body {
   background: var(--site-bg);
   color: var(--ink);
@@ -409,8 +415,18 @@ a {
 
 /* Cartoes que vem de componentes filhos nao sao irmaos no DOM; o espaco vem do host. */
 app-resumo-do-mes,
-app-avisos-do-mes {
+app-avisos-do-mes,
+app-importar-extrato,
+app-goals {
   display: block;
+}
+
+/* Mesmo espaco quando um dos lados e um bloco com cartoes dentro (componente filho ou
+ * grade de cartoes): sem isso eles encostam, como Importar e exportar nos Gastos. */
+.cartao + :has(> .cartao),
+:has(> .cartao:last-child) + .cartao,
+:has(> .cartao:last-child) + :has(> .cartao:first-child) {
+  margin-top: 0.9rem;
 }
 
 app-resumo-do-mes + *,

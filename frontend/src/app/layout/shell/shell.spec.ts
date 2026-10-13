@@ -132,6 +132,37 @@ describe('Shell', () => {
     ]);
   });
 
+  it('no "Mais" do celular, as telas que ja tem aba ficam de fora e o resto segue a ordem de uso', () => {
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const itens = [...pagina.querySelectorAll<HTMLElement>('nav.menu .menu-itens a')];
+
+    const naBarra = itens.filter((a) => a.classList.contains('na-barra')).map((a) => a.textContent?.trim());
+    expect(naBarra).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar']);
+
+    const noMais = itens
+      .filter((a) => !a.classList.contains('na-barra'))
+      .sort((a, b) => +a.style.getPropertyValue('--ordem-no-mais') - +b.style.getPropertyValue('--ordem-no-mais'))
+      .map((a) => a.textContent?.trim());
+    expect(noMais).toEqual([
+      'Receitas',
+      'Contas do mês',
+      'Orçamento',
+      'Minhas metas',
+      'Cartões e bancos',
+      'Calendário',
+      'Compras',
+      'Girls Math',
+      'Lugares',
+      'Filmes',
+      'Fotos',
+      'Prêmios',
+      'Família',
+      'Premium',
+    ]);
+  });
+
   it('todas as telas de estilo de vida aparecem, mesmo com modulos desligados numa conta antiga', () => {
     const usuario = usuarioDeTeste();
     auth.usuario.set({ ...usuario, preferencias: { ...usuario.preferencias, modulos: [] } });

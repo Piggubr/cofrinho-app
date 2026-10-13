@@ -69,6 +69,27 @@ const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
   { id: 'conta', titulo: $localize`Família e plano` },
 ];
 
+/**
+ * Ordem das telas na folha do "Mais" do celular, das mais usadas para as menos. As que ja
+ * estao na barra de abas nao aparecem ali; tela fora da lista vai para o fim.
+ */
+const ORDEM_DO_MAIS = [
+  '/receitas',
+  '/contas-fixas',
+  '/orcamentos',
+  '/metas',
+  '/contas-e-cartoes',
+  '/calendario',
+  '/compras',
+  '/girls-math',
+  '/lugares',
+  '/filmes',
+  '/feed',
+  '/premios',
+  '/familia',
+  '/plano',
+];
+
 export interface GrupoDeMenu {
   readonly id: Grupo;
   readonly titulo: string;
@@ -323,6 +344,16 @@ export class Shell {
       ...grupo,
       itens: visiveis.filter((item) => item.grupo === grupo.id),
     })).filter((grupo) => grupo.itens.length > 0);
+  }
+
+  /** Tela que ja tem aba embaixo: no celular ela sai da folha do "Mais". */
+  protected naBarraDeAbas(rota: string): boolean {
+    return this.atalhos().some((item) => item.rota === rota);
+  }
+
+  protected ordemNoMais(rota: string): number {
+    const posicao = ORDEM_DO_MAIS.indexOf(rota);
+    return posicao < 0 ? ORDEM_DO_MAIS.length : posicao;
   }
 
   protected alternarMenu(): void {

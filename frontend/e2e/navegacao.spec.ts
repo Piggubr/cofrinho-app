@@ -23,7 +23,9 @@ test.describe('no celular', () => {
   });
 
 
-  test('"Mais" abre o menu agrupado e fecha ao escolher uma tela', async ({ page }) => {
+  test('"Mais" mostra so o que nao tem aba, sem rolar, e fecha ao escolher uma tela', async ({
+    page,
+  }) => {
     await page.goto('/painel');
 
     await page
@@ -31,13 +33,37 @@ test.describe('no celular', () => {
       .getByRole('button', { name: 'Mais' })
       .click();
     const menu = page.getByRole('navigation', { name: 'Telas' });
-    await expect(menu.locator('.menu-grupo-titulo').first()).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'Premium' })).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'Gastos' })).toBeHidden();
+    await expect(menu.locator('.menu-grupo-titulo').first()).toBeHidden();
+    const rola = await menu.evaluate((nav) => nav.scrollHeight > nav.clientHeight);
+    expect(rola).toBe(false);
     await menu.getByRole('link', { name: 'Receitas' }).click();
 
     await expect(page).toHaveURL(/\/receitas$/);
     await expect(menu).not.toHaveClass(/aberto/);
   });
 });
+
+for (const [janela, botao] of [
+  ['a busca', 'Buscar (Ctrl+K)'],
+  ['o assistente', 'Perguntar ao assistente'],
+] as const) {
+  test(`${janela} cobre a tela, prende a rolagem e fecha ao tocar fora`, async ({ page }) => {
+    await page.goto('/painel');
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.getByRole('button', { name: botao }).click();
+    const dialogo = page.getByRole('dialog');
+    await expect(dialogo).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(/rolagem-travada/);
+
+    // Toque perto do canto de baixo, longe da janela: cai no fundo escuro e fecha.
+    const tela = page.viewportSize()!;
+    await page.mouse.click(12, tela.height - 12);
+    await expect(dialogo).toBeHidden();
+    await expect(page.locator('html')).not.toHaveClass(/rolagem-travada/);
+  });
+}
 
 test('todas as telas de estilo de vida ficam sempre no menu; o perfil nao as desliga', async ({
   page,

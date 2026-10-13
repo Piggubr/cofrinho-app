@@ -8,6 +8,7 @@ import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaService } from '../../core/ui/moeda';
+import { travarRolagemEnquanto } from '../../core/ui/travar-rolagem';
 
 /** Nome das telas que o assistente pode sugerir abrir. */
 const TELAS: Record<string, string> = {
@@ -206,6 +207,7 @@ interface FalaNaTela extends FalaDoAssistente {
       inset: 0;
       background: rgba(43, 30, 50, 0.35);
       z-index: 40;
+      touch-action: none;
     }
     .painel {
       position: fixed;
@@ -235,6 +237,7 @@ interface FalaNaTela extends FalaDoAssistente {
     }
     .conversa {
       overflow: auto;
+      overscroll-behavior: contain;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
@@ -303,6 +306,7 @@ interface FalaNaTela extends FalaDoAssistente {
       color: var(--muted);
     }
   `,
+  host: { '[class.janela-aberta]': 'aberto()' },
 })
 export class Assistente {
   protected readonly auth = inject(AuthService);
@@ -325,6 +329,10 @@ export class Assistente {
   protected readonly precisaAutorizar = computed(
     () => !!this.situacao() && !this.situacao()!.autorizado && !this.autorizandoAgora(),
   );
+
+  constructor() {
+    travarRolagemEnquanto(this.aberto);
+  }
 
   protected nomeDaTela(rota: string): string | null {
     return TELAS[rota] ?? null;
