@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
@@ -11,7 +11,14 @@ import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
-import { IdDoTema, TEMAS, Temas } from '../../core/ui/tema';
+import {
+  IdDoTema,
+  TEMAS,
+  Temas,
+  esquecerQueVoltouAoPadrao,
+  voltouAoPadrao,
+} from '../../core/ui/tema';
+import { ICONES_DO_APP, IconesDoApp, IdDoIcone } from '../../core/nativo/icone-do-app';
 import { Tutorial } from '../../core/ui/tutorial';
 import { AutorizacoesDeIa } from './autorizacoes-de-ia';
 
@@ -34,6 +41,11 @@ export class Profile {
   private readonly temasDoApp = inject(Temas);
   protected readonly temas = TEMAS;
   protected readonly temaAtual = this.temasDoApp.atual;
+  protected readonly iconesDoApp = inject(IconesDoApp);
+  protected readonly icones = ICONES_DO_APP;
+  protected readonly iconeAtual = this.iconesDoApp.atual;
+  protected readonly voltouAoPadrao = signal(voltouAoPadrao());
+  private readonly router = inject(Router);
   protected readonly painel = inject(PainelOrganizado);
 
   /** Na ordem escolhida; o membro so ve os blocos que aparecem para ele. */
@@ -221,7 +233,31 @@ export class Profile {
   }
 
   protected escolherTema(id: IdDoTema): void {
-    this.temasDoApp.escolher(id);
+    if (!this.temasDoApp.escolher(id)) {
+      this.convidarParaOPremium();
+    }
+  }
+
+  protected async escolherIcone(id: IdDoIcone): Promise<void> {
+    if (!(await this.iconesDoApp.escolher(id))) {
+      this.convidarParaOPremium();
+    }
+  }
+
+  protected dispensarAvisoDoPadrao(): void {
+    esquecerQueVoltouAoPadrao();
+    this.voltouAoPadrao.set(false);
+  }
+
+  /** O titular vai para os planos; quem nao assina pela familia recebe o recado. */
+  private convidarParaOPremium(): void {
+    if (this.auth.ehTitular()) {
+      void this.router.navigate(['/plano']);
+    } else {
+      this.aviso.set(
+        $localize`Essa personalização é do Piggu Premium. Quem cuida da assinatura é o titular da família.`,
+      );
+    }
   }
 
   protected sair(): void {

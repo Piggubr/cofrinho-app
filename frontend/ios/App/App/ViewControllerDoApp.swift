@@ -11,5 +11,6 @@ class ViewControllerDoApp: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(AbasNativasPlugin())
         bridge?.registerPluginInstance(AtalhosPlugin())
+        bridge?.registerPluginInstance(IconeDoAppPlugin())
     }
 }

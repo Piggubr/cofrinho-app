@@ -27,6 +27,8 @@ import { Cotacao } from '../../core/api/models';
 import { AbaNativa, AbasNativas } from '../../core/nativo/abas-nativas';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
 import { Atalhos } from '../../core/nativo/atalhos';
+import { IconesDoApp } from '../../core/nativo/icone-do-app';
+import { Temas } from '../../core/ui/tema';
 import { FilaDeGastos } from '../../core/offline/fila-de-gastos';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { formatadorDe } from '../../core/ui/moeda';
@@ -109,6 +111,10 @@ export class Shell {
   private readonly avisosNoCelular = inject(AvisosNoCelular);
   private readonly filaDeGastos = inject(FilaDeGastos);
   private readonly atalhosDoApp = inject(Atalhos);
+  // Criados aqui para que a cor e o icone do Premium voltem ao padrao logo que a pessoa
+  // entra sem o plano, mesmo sem abrir o Perfil.
+  private readonly temas = inject(Temas);
+  private readonly iconesDoApp = inject(IconesDoApp);
   private readonly location = inject(Location);
   private readonly elemento: HTMLElement = inject(ElementRef).nativeElement;
   private readonly injetor = inject(Injector);

@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Plugins do proprio projeto entram antes do super.onCreate, que monta a ponte.
         registerPlugin(AtalhosPlugin.class);
+        registerPlugin(IconeDoAppPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
