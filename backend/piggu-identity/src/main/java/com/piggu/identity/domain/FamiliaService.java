@@ -287,7 +287,10 @@ public class FamiliaService {
         return Optional.empty();
     }
 
-    /** O titular tira alguem da familia; o que a pessoa lancou fica com a familia. */
+    /**
+     * O titular tira alguem da familia. O que a pessoa lancou e era compartilhado fica com
+     * a familia, sem o nome dela; o que era so dela some (como prometido no Aviso).
+     */
     @Transactional
     public FamiliaResponse removerMembro(CurrentUser usuario, UUID membroId) {
         exigirTitular(usuario);
@@ -301,6 +304,7 @@ public class FamiliaService {
             throw new ForbiddenException("So da para remover membros e parceiros.");
         }
         trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
+        sairDeOndeEsta(membro);
         mudarParaFamiliaPropria(membro);
         log.info("Membro removido da familia: conta={} familia={}", membroId, usuario.familia());
         return ver(usuario);
@@ -340,7 +344,10 @@ public class FamiliaService {
         if (cuidaDaFamilia(conta)) {
             throw new BusinessException("O titular nao sai da propria familia.");
         }
-        trilha.registrar(conta.getHouseholdId(), conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
+        // Esquecer antes de registrar: a saida fica na trilha da familia.
+        UUID antiga = conta.getHouseholdId();
+        sairDeOndeEsta(conta);
+        trilha.registrar(antiga, conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
         mudarParaFamiliaPropria(conta);
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }

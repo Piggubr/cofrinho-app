@@ -23,24 +23,38 @@ class ProtecaoDeProducaoTest {
     @Test
     @DisplayName("servico sem banco (gateway) nao e conferido")
     void semBanco() {
-        assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()).afterPropertiesSet());
+        assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(producao()).afterPropertiesSet());
     }
 
     @Test
     @DisplayName("endereco do site ou origem do CORS em http derruba a subida em producao")
     void soHttps() {
-        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+        assertThatThrownBy(() -> new ProtecaoDeProducao(producao()
                 .withProperty("CORS_ORIGINS", "https://piggu.app,http://piggu.app")).afterPropertiesSet())
                 .hasMessageContaining("CORS_ORIGINS");
-        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+        assertThatThrownBy(() -> new ProtecaoDeProducao(producao()
                 .withProperty("SITE_URL", "http://piggu.app")).afterPropertiesSet())
                 .hasMessageContaining("SITE_URL");
-        assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+        assertThatNoException().isThrownBy(() -> new ProtecaoDeProducao(producao()
                 .withProperty("SITE_URL", "https://piggu.app")).afterPropertiesSet());
     }
 
+    @Test
+    @DisplayName("limite por IP contando so um proxy derruba a subida em producao")
+    void proxiesNaFrente() {
+        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()).afterPropertiesSet())
+                .hasMessageContaining("PROXIESNAFRENTE");
+        assertThatThrownBy(() -> new ProtecaoDeProducao(new MockEnvironment()
+                .withProperty("piggu.limite.proxies-na-frente", "1")).afterPropertiesSet())
+                .hasMessageContaining("PROXIESNAFRENTE");
+    }
+
+    private static MockEnvironment producao() {
+        return new MockEnvironment().withProperty("piggu.limite.proxies-na-frente", "2");
+    }
+
     private static ProtecaoDeProducao protecao(String senha) {
-        return new ProtecaoDeProducao(new MockEnvironment()
+        return new ProtecaoDeProducao(producao()
                 .withProperty("spring.datasource.url", "jdbc:postgresql://db/x")
                 .withProperty("spring.datasource.password", senha));
     }

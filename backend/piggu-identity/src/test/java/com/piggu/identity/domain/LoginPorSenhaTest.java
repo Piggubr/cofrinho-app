@@ -121,6 +121,18 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("renovar a sessao conta como acesso: a retencao nao apaga quem so renova")
+    void renovarRegistraAcesso() throws InterruptedException {
+        TokenResponse acesso = cadastrar(EMAIL);
+        java.time.Instant antes = usuarios.findByEmail(EMAIL).orElseThrow().getLastLoginAt();
+        Thread.sleep(20);
+
+        auth.renovar(acesso.refreshToken(), null);
+
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().getLastLoginAt()).isAfter(antes);
+    }
+
+    @Test
     @DisplayName("cinco senhas erradas travam a entrada por senha, mesmo com a certa depois")
     void travaPorTentativas() {
         cadastrar(EMAIL);
@@ -279,7 +291,8 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         conta = usuarios.findByEmail(EMAIL).orElseThrow();
         conta.pedirConfirmacaoDeEmail(tokens.hash("link-2"), java.time.Instant.now().plusSeconds(60));
         usuarios.save(conta);
-        assertThat(confirmacao.confirmar("link-2").emailConfirmado()).isTrue();
+        confirmacao.confirmar("link-2");
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().isEmailVerified()).isTrue();
         assertThatThrownBy(() -> confirmacao.confirmar("link-2")).isInstanceOf(BusinessException.class);
 
         conta = usuarios.findByEmail(EMAIL).orElseThrow();

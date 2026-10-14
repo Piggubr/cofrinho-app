@@ -2,7 +2,6 @@ package com.piggu.identity.domain;
 
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
-import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.CanalDeEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,17 +28,15 @@ public class ConfirmacaoDeEmail {
     static final Duration INTERVALO = Duration.ofMinutes(1);
 
     private final UserAccountRepository usuarios;
-    private final FamiliaService familias;
     private final TokenService tokens;
     private final CanalDeEmail email;
     private final String site;
     private final boolean producao;
 
-    public ConfirmacaoDeEmail(UserAccountRepository usuarios, FamiliaService familias, TokenService tokens,
+    public ConfirmacaoDeEmail(UserAccountRepository usuarios, TokenService tokens,
                               CanalDeEmail email, @Value("${SITE_URL:http://localhost:4200}") String site,
                               @Value("${piggu.ambiente:dev}") String ambiente) {
         this.usuarios = usuarios;
-        this.familias = familias;
         this.tokens = tokens;
         this.email = email;
         this.site = site.endsWith("/") ? site.substring(0, site.length() - 1) : site;
@@ -83,7 +80,7 @@ public class ConfirmacaoDeEmail {
     }
 
     @Transactional
-    public UserResponse confirmar(String token) {
+    public void confirmar(String token) {
         UserAccount conta = token == null || token.isBlank() ? null
                 : usuarios.findByEmailTokenHash(tokens.hash(token.trim())).orElse(null);
         if (conta == null || !conta.linkDeEmailValido(Instant.now())) {
@@ -93,6 +90,5 @@ public class ConfirmacaoDeEmail {
         conta.confirmarEmail();
         usuarios.save(conta);
         log.info("E-mail confirmado por link: conta={}", conta.getId());
-        return UserResponse.de(conta, familias.daConta(conta));
     }
 }

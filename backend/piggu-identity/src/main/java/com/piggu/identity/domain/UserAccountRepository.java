@@ -17,9 +17,9 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     List<UserAccount> findAllByOrderByEmailAsc();
 
-    boolean existsByCpfIndice(String cpfIndice);
+    List<UserAccount> findByCpfIndice(String cpfIndice);
 
-    boolean existsByIdDocIndice(String idDocIndice);
+    List<UserAccount> findByIdDocIndice(String idDocIndice);
 
     List<UserAccount> findByHouseholdIdOrderByCreatedAtAsc(UUID householdId);
 

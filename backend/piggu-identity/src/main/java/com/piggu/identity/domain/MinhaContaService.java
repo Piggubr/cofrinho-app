@@ -19,6 +19,7 @@ import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -116,9 +117,9 @@ public class MinhaContaService {
     }
 
     /**
-     * Prende o CPF a conta. Um CPF so pode estar em uma conta: e o que impede a mesma
-     * pessoa de abrir varias. Depois de informado nao muda pelo app (correcao pelo canal
-     * de privacidade), senao trocar de CPF liberaria o antigo para outra conta.
+     * Prende o CPF a conta. Pode repetir entre contas; a repeticao vai para o log com as
+     * contas envolvidas. Depois de informado nao muda pelo app (correcao pelo canal de
+     * privacidade).
      */
     @Transactional
     public UserResponse informarCpf(UUID contaId, String digitado) {
@@ -133,21 +134,18 @@ public class MinhaContaService {
 
     /**
      * Confere o CPF (digitos e formato). CPF ja usado em outra conta nao barra (Eduardo,
-     * 2026-10-13): so fica no log, para investigar abuso se precisar.
+     * 2026-10-13): {@link #prenderCpf} registra as contas no log, para investigar abuso.
      */
-    @Transactional(readOnly = true)
     public Cpf conferirCpf(String digitado) {
-        Cpf cpf = Cpf.de(digitado);
-        if (usuarios.existsByCpfIndice(cofre.indice(cpf))) {
-            log.warn("CPF repetido: ja ligado a outra conta");
-        }
-        return cpf;
+        return Cpf.de(digitado);
     }
 
     /** Grava o CPF ja conferido. */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
-        conta.informarCpf(cofre.cifrar(cpf), cofre.indice(cpf));
+        String indice = cofre.indice(cpf);
+        avisarRepetido("CPF", conta, usuarios.findByCpfIndice(indice));
+        conta.informarCpf(cofre.cifrar(cpf), indice);
         usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
@@ -181,20 +179,25 @@ public class MinhaContaService {
         return UserResponse.de(conta, familia.daConta(conta));
     }
 
-    /** Confere o documento de fora e se nenhuma conta ja o usa; devolve o numero limpo. */
-    @Transactional(readOnly = true)
+    /** Confere o documento de fora; devolve o numero limpo. Repetido nao barra. */
     public String conferirDocumento(DocumentosDeIdentidade.Tipo tipo, String digitado) {
-        String numero = tipo.normalizar(digitado);
-        if (usuarios.existsByIdDocIndice(cofre.indice(tipo, numero))) {
-            log.warn("Documento repetido: ja ligado a outra conta, tipo={}", tipo);
+        return tipo.normalizar(digitado);
+    }
+
+    /** So ids no log: o numero nunca sai do cofre. */
+    private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
+        List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
+        if (!ids.isEmpty()) {
+            log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
         }
-        return numero;
     }
 
     /** Grava o documento ja conferido; como o CPF, pode repetir entre contas. */
     @Transactional
     public void prenderDocumento(UserAccount conta, DocumentosDeIdentidade.Tipo tipo, String numero) {
-        conta.informarDocumento(tipo, cofre.cifrar(numero), cofre.indice(tipo, numero));
+        String indice = cofre.indice(tipo, numero);
+        avisarRepetido(tipo.nome(), conta, usuarios.findByIdDocIndice(indice));
+        conta.informarDocumento(tipo, cofre.cifrar(numero), indice);
         usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, tipo.nome() + " informado");

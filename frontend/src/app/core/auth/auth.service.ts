@@ -114,11 +114,10 @@ export class AuthService {
 
   /** Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. */
   async confirmarEmail(token: string): Promise<void> {
-    const usuario = await firstValueFrom(
-      this.http.post<Usuario>(`${this.config.apiUrl}/auth/confirmar-email`, { token }),
-    );
-    if (this.usuarioAtual()?.id === usuario.id) {
-      this.atualizarUsuario(usuario);
+    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/confirmar-email`, { token }));
+    // A resposta nao traz o perfil; com sessao aberta, busca o atualizado.
+    if (this.autenticado()) {
+      this.atualizarUsuario(await firstValueFrom(this.http.get<Usuario>(`${this.config.apiUrl}/auth/me`)));
     }
   }
 

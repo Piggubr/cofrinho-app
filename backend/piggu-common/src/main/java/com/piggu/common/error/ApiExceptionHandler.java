@@ -95,9 +95,25 @@ public class ApiExceptionHandler {
         // O padrao da rota (/api/users/{id}), nunca o caminho concreto: o caminho pode
         // levar e-mail ou outro dado pessoal para o log.
         Object rota = pedido.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        if (violouRestricao(erro)) {
+            // A mensagem do banco traz o valor ("Key (email)=(fulano@...)"): so a classe vai pro log.
+            log.warn("Restricao do banco violada em {} {}: {}", pedido.getMethod(), rota, erro.getClass().getSimpleName());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiError.de("Outra alteracao chegou antes. Tente de novo.", "CONFLITO"));
+        }
         log.error("Falha inesperada em {} {}", pedido.getMethod(), rota == null ? "(rota desconhecida)" : rota, erro);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.de("Ocorreu um erro. Tente novamente.", "ERRO_INTERNO"));
+    }
+
+    /** Pelo nome: o spring-tx e opcional aqui e nem todo servico tem banco. */
+    private static boolean violouRestricao(Throwable erro) {
+        for (Class<?> tipo = erro.getClass(); tipo != null; tipo = tipo.getSuperclass()) {
+            if (tipo.getName().equals("org.springframework.dao.DataIntegrityViolationException")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String mensagemDoProtocolo(HttpStatusCode status) {

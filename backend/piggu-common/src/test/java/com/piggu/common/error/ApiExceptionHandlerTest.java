@@ -91,6 +91,17 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("restricao do banco vira 409 e o valor que estava na mensagem nao vai para o log")
+    @ExtendWith(OutputCaptureExtension.class)
+    void restricaoDoBanco(CapturedOutput saida) throws Exception {
+        mockMvc.perform(get("/teste/duplicado"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("CONFLITO"));
+
+        assertThat(saida.getAll()).contains("DataIntegrityViolationException").doesNotContain("fulana@exemplo.test");
+    }
+
+    @Test
     @DisplayName("validacao lista o campo invalido e resume a primeira mensagem")
     void validacaoDetalhaCampo() throws Exception {
         mockMvc.perform(post("/teste/validado")
@@ -132,6 +143,12 @@ class ApiExceptionHandlerTest {
         @GetMapping("/ausente")
         String ausente() {
             throw new NotFoundException("Gasto nao encontrado.");
+        }
+
+        @GetMapping("/duplicado")
+        String duplicado() {
+            throw new org.springframework.dao.DataIntegrityViolationException(
+                    "Key (email)=(fulana@exemplo.test) already exists");
         }
 
         @GetMapping("/explode")

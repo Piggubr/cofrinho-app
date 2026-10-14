@@ -64,7 +64,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
         Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
 
         assertThat(token.getExpiresAt()).isNotNull().isAfter(Instant.now());
-        assertThat(tokens.segundosDeAcesso()).isEqualTo(1800);
+        assertThat(tokens.segundosDeAcesso()).isEqualTo(300);
     }
 
     @Test

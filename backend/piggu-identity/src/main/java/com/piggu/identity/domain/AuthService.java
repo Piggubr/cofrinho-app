@@ -281,6 +281,9 @@ public class AuthService {
         }
 
         sessoes.delete(sessao);
+        // Quem so renova tambem esta usando: sem isto a retencao apagaria conta ativa.
+        conta.registrarAcesso();
+        usuarios.save(conta);
         return emitirPar(conta, userAgent, sessao.isRemember());
     }
 

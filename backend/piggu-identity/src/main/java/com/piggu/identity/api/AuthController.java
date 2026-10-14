@@ -80,8 +80,10 @@ public class AuthController {
 
     /** Aberto: quem clica no link pode estar sem sessao, em outro aparelho. */
     @PostMapping("/confirmar-email")
-    public UserResponse confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
-        return confirmacao.confirmar(pedido.token());
+    public ResponseEntity<Void> confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
+        // Nada do perfil volta: quem tem o link pode nao ser o dono da sessao.
+        confirmacao.confirmar(pedido.token());
+        return ResponseEntity.noContent().build();
     }
 
     /** Manda outro link; o anterior deixa de valer. */
