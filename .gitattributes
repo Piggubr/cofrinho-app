@@ -1,0 +1,2 @@
+# Scripts rodam no Linux (containers, CI): sem CRLF mesmo com core.autocrlf no Windows.
+*.sh text eol=lf
