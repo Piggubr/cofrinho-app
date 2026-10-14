@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,8 @@ public class AuthService {
     static final int TENTATIVAS_DE_SENHA = 5;
     static final Duration TRAVA_DA_SENHA = Duration.ofMinutes(15);
 
-    private static final String SENHA_ERRADA = "E-mail ou senha incorretos.";
+    private static final String SENHA_ERRADA = "E-mail ou senha incorretos. Se voce criou a conta pelo Google, "
+            + "entre pelo Google. Muitas tentativas seguidas bloqueiam a senha por 15 minutos.";
 
     private final GoogleIdTokenVerifier verificador;
     private final UserAccountRepository usuarios;
@@ -131,17 +133,12 @@ public class AuthService {
      * e tambem pode repetir. O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
-    public TokenResponse cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
-                                   String documento, String telefone, String versaoDosTermos, boolean lembrar, String userAgent) {
+    public void cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
+                          String documento, String telefone, String versaoDosTermos) {
         String email = Texto.email(emailBruto);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         if (nomeLimpo.isEmpty()) {
             throw new BusinessException("Conte como podemos te chamar.");
-        }
-        if (usuarios.findByEmail(email).isPresent()) {
-            throw new BusinessException("Este e-mail ja tem conta no Piggu. Entre com ele; se a conta foi criada"
-                    + " pelo Google, entre com o Google e crie uma senha no Perfil.",
-                    HttpStatus.CONFLICT, "EMAIL_JA_CADASTRADO");
         }
         senhas.validar(senha, email);
         String pais = DocumentosDeIdentidade.pais(paisDigitado);
@@ -160,11 +157,19 @@ public class AuthService {
             numero = minhaConta.conferirDocumento(tipo, documento);
         }
 
+        // E-mail que ja tem conta responde igual a um cadastro novo, para o cadastro nao
+        // dizer a ninguem quais e-mails usam o Piggu: o dono recebe um aviso no e-mail.
+        String hash = senhas.hash(senha);
+        Optional<UserAccount> existente = usuarios.findByEmail(email);
+        if (existente.isPresent()) {
+            confirmacao.avisarCadastroRepetido(existente.get());
+            return;
+        }
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
         conta.setNickname(nomeLimpo);
         conta.declararPais(pais);
         conta.setPhone(celular);
-        conta.definirSenha(senhas.hash(senha));
+        conta.definirSenha(hash);
         conta.registrarAcesso();
         usuarios.save(conta);
         if (cpf != null) {
@@ -177,8 +182,6 @@ public class AuthService {
         // TODO: confirmar o celular por SMS. Precisa de um provedor externo (Twilio, Zenvia,
         // AWS SNS); por ora o numero so fica guardado.
         log.info("Cadastro por senha: conta={}", conta.getId());
-
-        return emitirPar(conta, userAgent, lembrar);
     }
 
     /**
@@ -194,14 +197,11 @@ public class AuthService {
             senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
-        if (conta.senhaTravada(agora)) {
-            throw new BusinessException("Muitas tentativas erradas. Espere alguns minutos ou entre com o Google.",
-                    HttpStatus.TOO_MANY_REQUESTS, "SENHA_TRAVADA");
-        }
-        if (!conta.temSenha()) {
+        // Travada ou so com Google: a mesma resposta da senha errada, para o login nao
+        // revelar quais e-mails tem conta nem como cada uma entra.
+        if (conta.senhaTravada(agora) || !conta.temSenha()) {
             senhas.confere(senha, null);
-            throw new BusinessException("Esta conta ainda nao tem senha. Entre com o Google e crie uma senha no Perfil.",
-                    HttpStatus.UNAUTHORIZED, "CONTA_SEM_SENHA");
+            throw new UnauthorizedException(SENHA_ERRADA);
         }
         if (!senhas.confere(senha, conta.getPasswordHash())) {
             conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);

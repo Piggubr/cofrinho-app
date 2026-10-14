@@ -67,6 +67,21 @@ public class ConfirmacaoDeEmail {
                         + "\n\nSe nao foi voce quem criou a conta, ignore este e-mail.");
     }
 
+    /**
+     * Alguem tentou cadastrar um e-mail que ja tem conta. A resposta do cadastro e a mesma
+     * de um cadastro novo; quem fica sabendo e so o dono do e-mail.
+     */
+    public void avisarCadastroRepetido(UserAccount conta) {
+        if (!email.ligado()) {
+            log.info("E-mail desligado; aviso de cadastro repetido nao enviado: conta={}", conta.getId());
+            return;
+        }
+        email.enviar(conta.getEmail(), "Piggu: tentativa de criar conta com seu e-mail",
+                "Alguem tentou criar uma conta no Piggu com este e-mail, que ja tem conta.\n\n"
+                        + "Se foi voce, entre em " + site + "/entrar com sua senha ou pelo Google. "
+                        + "Se nao foi, ignore este e-mail: nada mudou na sua conta.");
+    }
+
     /** Um link por minuto, no maximo: o botao nao vira disparador de e-mail. */
     @Transactional
     public void reenviar(UUID usuarioId) {

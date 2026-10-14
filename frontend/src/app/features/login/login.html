@@ -8,6 +8,10 @@
       <p class="aviso erro" role="alert">{{ erro() }}</p>
     }
 
+    @if (informacao()) {
+      <p class="aviso sucesso" role="status">{{ informacao() }}</p>
+    }
+
     @if (entrando()) {
       <p i18n class="aviso informacao">Confirmando seu acesso...</p>
     }

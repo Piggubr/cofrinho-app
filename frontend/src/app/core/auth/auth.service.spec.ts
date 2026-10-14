@@ -76,18 +76,15 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBe('acesso');
   });
 
-  it('cadastro manda nome, e-mail, senha, pais, documento e o aceite da versao vigente dos termos', async () => {
-    const cadastro = auth.cadastrar(
-      {
-        nome: 'Ana',
-        email: 'ana@piggu.test',
-        senha: 'cofrinho123',
-        pais: 'BR',
-        documento: '52998224725',
-        telefone: '11999998888',
-      },
-      true,
-    );
+  it('cadastro manda os dados e o aceite da versao vigente dos termos, sem abrir sessao', async () => {
+    const cadastro = auth.cadastrar({
+      nome: 'Ana',
+      email: 'ana@piggu.test',
+      senha: 'cofrinho123',
+      pais: 'BR',
+      documento: '52998224725',
+      telefone: '11999998888',
+    });
     const pedido = http.expectOne('/api/auth/cadastro');
     expect(pedido.request.body).toEqual({
       nome: 'Ana',
@@ -97,12 +94,11 @@ describe('AuthService', () => {
       documento: '52998224725',
       telefone: '11999998888',
       versaoDosTermos: VERSAO_DO_AVISO,
-      lembrar: true,
     });
-    pedido.flush(tokens());
+    pedido.flush(null, { status: 202, statusText: 'Accepted' });
     await cadastro;
 
-    expect(auth.autenticado()).toBe(true);
+    expect(auth.autenticado()).toBe(false);
   });
 
   it('criar ou trocar a senha atualiza o perfil e leva o cookie da sessao', async () => {

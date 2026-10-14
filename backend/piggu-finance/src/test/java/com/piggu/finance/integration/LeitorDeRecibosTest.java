@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 /** Quando o leitor proprio basta e quando o Gemini entra. */
 class LeitorDeRecibosTest {
 
-    private static final ReceiptParseRequest FOTO = new ReceiptParseRequest("aGVsbG8=", "image/jpeg");
+    private static final ReceiptParseRequest FOTO = new ReceiptParseRequest("/9j/4A==" /* cabecalho de JPEG */, "image/jpeg");
     private static final String FECHA = "MERCADO\nLEITE NINHO 400G 15,99\nCAFE 3,50\nTOTAL 19,49\n";
     private static final String NAO_FECHA = "MERCADO\nLEITE NINHO 400G 15,99\nTOTAL 19,49\n";
 
@@ -192,4 +192,12 @@ class LeitorDeRecibosTest {
         verify(ocr, never()).ler(any());
         verify(cota, never()).registrar(any());
     }
+
+    @Test
+    @DisplayName("so JPEG, PNG ou WebP chegam ao OCR")
+    void recusaOutroFormato() {
+        ReceiptParseRequest tiff = new ReceiptParseRequest("SUkqAA==", "image/jpeg");
+        assertThatThrownBy(() -> leitor.ler(tiff, USUARIO)).hasMessageContaining("JPEG, PNG ou WebP");
+    }
+
 }

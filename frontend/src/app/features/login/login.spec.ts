@@ -14,7 +14,7 @@ describe('Login', () => {
   let entradas: [string, boolean, string | undefined][];
   let respostaDaEntrada: () => Promise<void>;
   let entradasComSenha: [string, string, boolean][];
-  let cadastros: [DadosDoCadastro, boolean][];
+  let cadastros: DadosDoCadastro[];
   let navegar: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -40,8 +40,8 @@ describe('Login', () => {
               entradasComSenha.push([email, senha, lembrar]);
               return respostaDaEntrada();
             },
-            cadastrar: (dados: DadosDoCadastro, lembrar: boolean) => {
-              cadastros.push([dados, lembrar]);
+            cadastrar: (dados: DadosDoCadastro) => {
+              cadastros.push(dados);
               return respostaDaEntrada();
             },
           },
@@ -267,26 +267,27 @@ describe('Login', () => {
     await enviar(tela);
 
     expect(cadastros).toEqual([
-      [
-        {
-          nome: 'Ana',
-          email: 'ana@piggu.test',
-          senha: 'cofrinho123',
-          pais: 'BR',
-          documento: '52998224725',
-          telefone: '+55 (11) 99999-8888',
-        },
-        true,
-      ],
+      {
+        nome: 'Ana',
+        email: 'ana@piggu.test',
+        senha: 'cofrinho123',
+        pais: 'BR',
+        documento: '52998224725',
+        telefone: '+55 (11) 99999-8888',
+      },
     ]);
-    expect(navegar).toHaveBeenCalledWith(['/painel']);
+    // Sem sessao: pede para confirmar o e-mail e entrar, a mesma coisa para e-mail repetido.
+    expect(navegar).not.toHaveBeenCalled();
+    expect(
+      (tela.nativeElement as HTMLElement).querySelector('[role=status]')?.textContent,
+    ).toContain('Mandamos um link para ana@piggu.test');
   });
 
-  it('e-mail que ja tem conta mostra a mensagem do backend', async () => {
+  it('erro do backend no cadastro aparece na tela', async () => {
     respostaDaEntrada = async () => {
       throw new HttpErrorResponse({
-        status: 409,
-        error: { erro: 'Este e-mail ja tem conta no Piggu.', codigo: 'EMAIL_JA_CADASTRADO' },
+        status: 422,
+        error: { erro: 'Confira o celular.', codigo: 'TELEFONE_INVALIDO' },
       });
     };
     const tela = await abrir();
@@ -307,7 +308,7 @@ describe('Login', () => {
 
     expect(
       (tela.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
-    ).toContain('ja tem conta');
+    ).toContain('Confira o celular');
   });
 
   it('o campo do documento muda com o pais; onde nao se pede documento, some', async () => {
@@ -345,7 +346,7 @@ describe('Login', () => {
 
     preencher(tela, 'documento-cadastro', '123 456 789');
     await enviar(tela);
-    expect(cadastros[0][0]).toEqual({
+    expect(cadastros[0]).toEqual({
       nome: 'Rita',
       email: 'rita@piggu.test',
       senha: 'cofrinho123',
@@ -353,9 +354,5 @@ describe('Login', () => {
       documento: '123456789',
       telefone: '+351 912 345 678',
     });
-
-    await escolher('US');
-    await enviar(tela);
-    expect(cadastros[1][0]).toEqual(expect.objectContaining({ pais: 'US', documento: undefined }));
   });
 });

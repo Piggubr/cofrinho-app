@@ -65,14 +65,16 @@ public class AuthController {
         return comCookie(servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), lembrar, userAgent));
     }
 
-    /** Conta nova por e-mail e senha; o aceite dos termos vem junto. */
+    /**
+     * Conta nova por e-mail e senha; o aceite dos termos vem junto. Responde 202 sem
+     * sessao, a mesma coisa se o e-mail ja tem conta: a pessoa confirma o e-mail e entra.
+     */
     @PostMapping("/cadastro")
-    public ResponseEntity<TokenResponse> cadastrar(@Valid @RequestBody CadastroRequest pedido,
-                                                   @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
-        boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
+    public ResponseEntity<Void> cadastrar(@Valid @RequestBody CadastroRequest pedido) {
         String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
-        return comCookie(servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
-                pedido.telefone(), pedido.versaoDosTermos(), lembrar, userAgent));
+        servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
+                pedido.telefone(), pedido.versaoDosTermos());
+        return ResponseEntity.accepted().build();
     }
 
     public record ConfirmarEmailRequest(@NotBlank @Size(max = 100) String token) {

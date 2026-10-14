@@ -43,6 +43,7 @@ export class Login {
   protected readonly modo = signal<Modo>('entrar');
   protected readonly lembrar = signal(true);
   protected readonly erro = signal('');
+  protected readonly informacao = signal('');
   protected readonly entrando = signal(false);
   /** Conta nova pelo Google: ele ja confirmou, falta o aceite dos termos para criar. */
   protected readonly aguardandoAceite = signal(false);
@@ -76,6 +77,7 @@ export class Login {
   protected trocarModo(modo: Modo): void {
     this.modo.set(modo);
     this.erro.set('');
+    this.informacao.set('');
     this.senha.set('');
     this.confirmacao.set('');
     this.aceitou.set(false);
@@ -116,21 +118,27 @@ export class Login {
       this.erro.set(problema);
       return;
     }
-    await this.tentar(
-      () =>
-        this.auth.cadastrar(
-          {
-            nome: this.nome().trim(),
-            email: this.email().trim(),
-            senha: this.senha(),
-            pais: this.pais(),
-            documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
-            telefone: `+${ddiDoPais(this.paisDoDdi())} ${this.telefone().trim()}`,
-          },
-          this.lembrar(),
-        ),
-      $localize`Nao foi possivel criar sua conta.`,
-    );
+    this.erro.set('');
+    this.entrando.set(true);
+    try {
+      await this.auth.cadastrar({
+        nome: this.nome().trim(),
+        email: this.email().trim(),
+        senha: this.senha(),
+        pais: this.pais(),
+        documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
+        telefone: `+${ddiDoPais(this.paisDoDdi())} ${this.telefone().trim()}`,
+      });
+      // O backend responde igual se o e-mail ja tem conta: a tela nao entra sozinha.
+      this.trocarModo('entrar');
+      this.informacao.set(
+        $localize`Pronto! Mandamos um link para ${this.email().trim()}:email:. Confirme seu e-mail e entre com a senha que você criou.`,
+      );
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha, $localize`Nao foi possivel criar sua conta.`));
+    } finally {
+      this.entrando.set(false);
+    }
   }
 
   /** Confere aqui o que da para conferir sem o servidor; o backend confere de novo. */

@@ -11,7 +11,10 @@ describe('ConfirmarEmail', () => {
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: { confirmarEmail } },
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({ token: 'abc' }) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ token: 'abc' }) } },
+        },
       ],
     });
     const fixture = TestBed.createComponent(ConfirmarEmail);

@@ -89,11 +89,13 @@ export class AuthService {
   }
 
   /** Conta nova por e-mail e senha; o aceite dos termos (e o CPF, no Brasil) vai junto. */
-  async cadastrar(dados: DadosDoCadastro, lembrar: boolean): Promise<void> {
-    await this.abrirSessao(
-      '/auth/cadastro',
-      { ...dados, versaoDosTermos: VERSAO_DO_AVISO, lembrar },
-      lembrar,
+  /** Cria a conta sem abrir sessao: a pessoa confirma o e-mail e entra com a senha. */
+  async cadastrar(dados: DadosDoCadastro): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/cadastro`, {
+        ...dados,
+        versaoDosTermos: VERSAO_DO_AVISO,
+      }),
     );
   }
 
@@ -114,10 +116,14 @@ export class AuthService {
 
   /** Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. */
   async confirmarEmail(token: string): Promise<void> {
-    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/confirmar-email`, { token }));
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/confirmar-email`, { token }),
+    );
     // A resposta nao traz o perfil; com sessao aberta, busca o atualizado.
     if (this.autenticado()) {
-      this.atualizarUsuario(await firstValueFrom(this.http.get<Usuario>(`${this.config.apiUrl}/auth/me`)));
+      this.atualizarUsuario(
+        await firstValueFrom(this.http.get<Usuario>(`${this.config.apiUrl}/auth/me`)),
+      );
     }
   }
 
