@@ -102,12 +102,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # O npm audit cobre o front; aqui o OSV le os pom.xml (com as transitivas) e
-      # falha se alguma dependencia tem vulnerabilidade conhecida.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      # O npm audit cobre o front. Aqui o proprio Maven resolve as dependencias (com as
+      # transitivas e os modulos internos, que o OSV nao acha sozinho no Maven Central) e
+      # grava um SBOM CycloneDX; o OSV le o SBOM e falha se algo tem vulnerabilidade.
+      - working-directory: backend
+        run: >-
+          mvn -B -q -DskipTests -Djacoco.skip=true package
+          org.cyclonedx:cyclonedx-maven-plugin:2.9.3:makeAggregateBom
+          -DoutputFormat=json -DoutputName=bom
       - run: |
           curl -sSfL -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64
           chmod +x osv-scanner
-          ./osv-scanner scan source -r backend
+          ./osv-scanner scan source -L backend/target/bom.json
 
   frontend:
     name: Frontend (build + testes)
