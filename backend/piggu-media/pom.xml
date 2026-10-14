@@ -79,7 +79,9 @@
     <dependency>
       <groupId>com.google.auth</groupId>
       <artifactId>google-auth-library-oauth2-http</artifactId>
-      <version>1.24.1</version>
+      <!-- 1.4x+ usa o google-http-client 2.x, a mesma linha do google-api-client 2.9;
+           a 1.24 puxava o 1.44 e misturava as duas no classpath. -->
+      <version>1.54.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.api-client</groupId>

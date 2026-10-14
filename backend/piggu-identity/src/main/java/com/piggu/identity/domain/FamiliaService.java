@@ -75,6 +75,16 @@ public class FamiliaService {
      */
     @Transactional
     public UserAccount criarConta(String email, String primeiroNome, String versaoDosTermos) {
+        return criarConta(email, primeiroNome, versaoDosTermos, true);
+    }
+
+    /**
+     * @param emailConfirmado o e-mail ja foi provado (login Google). Cadastro por senha
+     *                        chega sem prova: nao usa convite pendente, porque qualquer um
+     *                        poderia cadastrar o e-mail convidado e entrar na familia alheia.
+     */
+    @Transactional
+    public UserAccount criarConta(String email, String primeiroNome, String versaoDosTermos, boolean emailConfirmado) {
         if (versaoDosTermos == null) {
             throw new BusinessException("Para criar sua conta, leia e aceite os Termos de Uso e o Aviso de Privacidade.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "TERMOS_NECESSARIOS");
@@ -83,14 +93,16 @@ public class FamiliaService {
             throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
                     HttpStatus.CONFLICT, Consentimentos.CODIGO_AVISO_MUDOU);
         }
-        Optional<HouseholdInvite> convite = convites.findByEmailOrderByCreatedAtDesc(email).stream()
-                .filter(HouseholdInvite::valido)
-                .findFirst();
+        Optional<HouseholdInvite> convite = !emailConfirmado ? Optional.empty()
+                : convites.findByEmailOrderByCreatedAtDesc(email).stream()
+                        .filter(HouseholdInvite::valido)
+                        .findFirst();
 
         UserAccount nova;
         if (convite.isPresent()) {
             nova = new UserAccount(email, PigguRole.MEMBRO, convite.get().getHouseholdId());
             nova.aceitarTermos(versaoDosTermos);
+            nova.confirmarEmail();
             nova = usuarios.save(nova);
             convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(email));
             log.info("Conta criada por convite id={} familia={}", nova.getId(), nova.getHouseholdId());
@@ -98,6 +110,9 @@ public class FamiliaService {
             Household familia = familias.save(new Household(nomePadrao(primeiroNome)));
             nova = new UserAccount(email, PigguRole.TITULAR, familia.getId());
             nova.aceitarTermos(versaoDosTermos);
+            if (emailConfirmado) {
+                nova.confirmarEmail();
+            }
             nova = usuarios.save(nova);
             log.info("Conta e familia criadas id={} familia={}", nova.getId(), familia.getId());
         }
@@ -190,6 +205,10 @@ public class FamiliaService {
     /** Convites para o e-mail de quem ja tem conta, para a tela da familia oferecer. */
     @Transactional(readOnly = true)
     public List<FamiliaResponse.Convite> convitesParaMim(CurrentUser usuario) {
+        // E-mail sem prova nao ve convite: o dono do e-mail pode ser outra pessoa.
+        if (!usuarios.findById(usuario.id()).map(UserAccount::isEmailVerified).orElse(false)) {
+            return List.of();
+        }
         return convites.findByEmailOrderByCreatedAtDesc(usuario.email()).stream()
                 .filter(HouseholdInvite::valido)
                 .filter(convite -> !convite.getHouseholdId().equals(usuario.familia()))
@@ -209,6 +228,10 @@ public class FamiliaService {
         HouseholdInvite convite = convites.findById(conviteId)
                 .filter(encontrado -> encontrado.getEmail().equals(conta.getEmail()) && encontrado.valido())
                 .orElseThrow(() -> new NotFoundException("Convite nao encontrado ou vencido."));
+        if (!conta.isEmailVerified()) {
+            throw new BusinessException("Para entrar numa familia, entre uma vez com o Google desse e-mail;"
+                    + " e assim que o Piggu confirma que o e-mail e seu.", HttpStatus.FORBIDDEN, "EMAIL_NAO_CONFIRMADO");
+        }
         if (convite.getHouseholdId().equals(conta.getHouseholdId())) {
             throw new BusinessException("Voce ja faz parte dessa familia.");
         }
@@ -264,7 +287,10 @@ public class FamiliaService {
         return Optional.empty();
     }
 
-    /** O titular tira alguem da familia; o que a pessoa lancou fica com a familia. */
+    /**
+     * O titular tira alguem da familia. O que a pessoa lancou e era compartilhado fica com
+     * a familia, sem o nome dela; o que era so dela some (como prometido no Aviso).
+     */
     @Transactional
     public FamiliaResponse removerMembro(CurrentUser usuario, UUID membroId) {
         exigirTitular(usuario);
@@ -278,6 +304,7 @@ public class FamiliaService {
             throw new ForbiddenException("So da para remover membros e parceiros.");
         }
         trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
+        sairDeOndeEsta(membro);
         mudarParaFamiliaPropria(membro);
         log.info("Membro removido da familia: conta={} familia={}", membroId, usuario.familia());
         return ver(usuario);
@@ -317,7 +344,10 @@ public class FamiliaService {
         if (cuidaDaFamilia(conta)) {
             throw new BusinessException("O titular nao sai da propria familia.");
         }
-        trilha.registrar(conta.getHouseholdId(), conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
+        // Esquecer antes de registrar: a saida fica na trilha da familia.
+        UUID antiga = conta.getHouseholdId();
+        sairDeOndeEsta(conta);
+        trilha.registrar(antiga, conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
         mudarParaFamiliaPropria(conta);
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }

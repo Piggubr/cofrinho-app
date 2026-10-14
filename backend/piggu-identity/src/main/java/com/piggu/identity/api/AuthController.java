@@ -3,13 +3,19 @@ package com.piggu.identity.api;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.identity.api.dto.CadastroRequest;
+import com.piggu.identity.api.dto.DefinirSenhaRequest;
 import com.piggu.identity.api.dto.GoogleLoginRequest;
 import com.piggu.identity.api.dto.PreferencesRequest;
+import com.piggu.identity.api.dto.SenhaLoginRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
+import com.piggu.identity.domain.ConfirmacaoDeEmail;
+import com.piggu.identity.domain.DocumentosDeIdentidade;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpHeaders;
@@ -43,10 +49,12 @@ public class AuthController {
     public static final String COOKIE = "piggu_refresh";
 
     private final AuthService servico;
+    private final ConfirmacaoDeEmail confirmacao;
     private final Duration validadeDaSessao;
 
-    public AuthController(AuthService servico, JwtProperties jwt) {
+    public AuthController(AuthService servico, ConfirmacaoDeEmail confirmacao, JwtProperties jwt) {
         this.servico = servico;
+        this.confirmacao = confirmacao;
         this.validadeDaSessao = jwt.refreshTtl();
     }
 
@@ -57,11 +65,48 @@ public class AuthController {
         return comCookie(servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), lembrar, userAgent));
     }
 
+    /**
+     * Conta nova por e-mail e senha; o aceite dos termos vem junto. Responde 202 sem
+     * sessao, a mesma coisa se o e-mail ja tem conta: a pessoa confirma o e-mail e entra.
+     */
+    @PostMapping("/cadastro")
+    public ResponseEntity<Void> cadastrar(@Valid @RequestBody CadastroRequest pedido) {
+        String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
+        servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
+                pedido.telefone(), pedido.versaoDosTermos());
+        return ResponseEntity.accepted().build();
+    }
+
+    public record ConfirmarEmailRequest(@NotBlank @Size(max = 100) String token) {
+    }
+
+    /** Aberto: quem clica no link pode estar sem sessao, em outro aparelho. */
+    @PostMapping("/confirmar-email")
+    public ResponseEntity<Void> confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
+        // Nada do perfil volta: quem tem o link pode nao ser o dono da sessao.
+        confirmacao.confirmar(pedido.token());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Manda outro link; o anterior deixa de valer. */
+    @PostMapping("/me/email/reenviar")
+    public ResponseEntity<Void> reenviarConfirmacao(@AuthUser CurrentUser usuario) {
+        confirmacao.reenviar(usuario.id());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/entrar")
+    public ResponseEntity<TokenResponse> entrarComSenha(@Valid @RequestBody SenhaLoginRequest pedido,
+                                                        @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
+        boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
+        return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> renovar(@CookieValue(name = COOKIE, required = false) String refresh,
                                                  @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         if (refresh == null || refresh.isBlank()) {
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente com Google.");
+            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
         }
         return comCookie(servico.renovar(refresh, userAgent));
     }
@@ -104,6 +149,17 @@ public class AuthController {
     public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
                                      @AuthUser CurrentUser usuario) {
         return servico.salvarPreferencias(usuario.id(), pedido);
+    }
+
+    /**
+     * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
+     * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica.
+     */
+    @PutMapping("/me/senha")
+    public UserResponse definirSenha(@Valid @RequestBody DefinirSenhaRequest pedido,
+                                     @AuthUser CurrentUser usuario,
+                                     @CookieValue(name = COOKIE, required = false) String refresh) {
+        return servico.definirSenha(usuario.id(), pedido.senhaAtual(), pedido.novaSenha(), refresh);
     }
 
     public record ModulosRequest(@NotNull(message = "Escolha os modulos.") @Size(max = 10) List<String> modulos) {

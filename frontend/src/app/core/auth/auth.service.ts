@@ -9,6 +9,19 @@ import { esquecerListasGuardadas } from '../offline/listas-guardadas';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
 
+/** O CPF so vai (e e obrigatorio) para quem mora no Brasil. */
+export interface DadosDoCadastro {
+  nome: string;
+  email: string;
+  senha: string;
+  /** ISO 3166, duas letras. */
+  pais: string;
+  /** Opcional: CPF no Brasil, o documento de la nos paises que pedem um. */
+  documento?: string;
+  /** Celular; no Brasil pode vir so com DDD, fora comeca com + e o codigo do pais. */
+  telefone: string;
+}
+
 /** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */
 const CHAVE_DO_PERFIL_OFFLINE = 'piggu_perfil_offline';
 
@@ -48,7 +61,6 @@ export class AuthService {
   );
 
   /** Conta ainda sem CPF: o app so abre a tela de informar. */
-  readonly cpfPendente = computed(() => this.usuarioAtual()?.cpfInformado === false);
 
   /** Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo. */
   readonly termosPendentes = computed(() => {
@@ -68,13 +80,62 @@ export class AuthService {
     lembrar: boolean,
     versaoDosTermos?: string,
   ): Promise<void> {
-    // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
-    const tokens = await firstValueFrom(
-      this.http.post<ParDeTokens>(
-        `${this.config.apiUrl}/auth/google`,
-        { idToken, versaoDosTermos, lembrar },
+    await this.abrirSessao('/auth/google', { idToken, versaoDosTermos, lembrar }, lembrar);
+  }
+
+  /** Entrada por e-mail e senha, sem passar pelo Google. */
+  async entrarComSenha(email: string, senha: string, lembrar: boolean): Promise<void> {
+    await this.abrirSessao('/auth/entrar', { email, senha, lembrar }, lembrar);
+  }
+
+  /** Conta nova por e-mail e senha; o aceite dos termos (e o CPF, no Brasil) vai junto. */
+  /** Cria a conta sem abrir sessao: a pessoa confirma o e-mail e entra com a senha. */
+  async cadastrar(dados: DadosDoCadastro): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/cadastro`, {
+        ...dados,
+        versaoDosTermos: VERSAO_DO_AVISO,
+      }),
+    );
+  }
+
+  /**
+   * Cria a senha de quem so entrava pelo Google, ou troca a atual (que entao e pedida).
+   * O cookie vai junto para o backend manter a sessao deste aparelho.
+   */
+  async definirSenha(novaSenha: string, senhaAtual?: string): Promise<void> {
+    const usuario = await firstValueFrom(
+      this.http.put<Usuario>(
+        `${this.config.apiUrl}/auth/me/senha`,
+        { senhaAtual, novaSenha },
         { withCredentials: true },
       ),
+    );
+    this.atualizarUsuario(usuario);
+  }
+
+  /** Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. */
+  async confirmarEmail(token: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/confirmar-email`, { token }),
+    );
+    // A resposta nao traz o perfil; com sessao aberta, busca o atualizado.
+    if (this.autenticado()) {
+      this.atualizarUsuario(
+        await firstValueFrom(this.http.get<Usuario>(`${this.config.apiUrl}/auth/me`)),
+      );
+    }
+  }
+
+  /** Manda outro link de confirmacao; o anterior deixa de valer. */
+  async reenviarConfirmacao(): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/me/email/reenviar`, {}));
+  }
+
+  private async abrirSessao(rota: string, corpo: object, lembrar: boolean): Promise<void> {
+    // withCredentials: e assim que o navegador aceita o cookie do refresh vindo da API.
+    const tokens = await firstValueFrom(
+      this.http.post<ParDeTokens>(`${this.config.apiUrl}${rota}`, corpo, { withCredentials: true }),
     );
     this.storage.guardar(tokens);
     this.usuarioAtual.set(tokens.usuario);

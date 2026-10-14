@@ -1,5 +1,6 @@
 package com.piggu.finance.integration;
 
+import com.piggu.common.web.Imagens;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
@@ -180,7 +181,11 @@ public class LeitorDeRecibos {
 
     private static byte[] imagem(String base64) {
         try {
-            return Base64.getMimeDecoder().decode(base64);
+            byte[] bytes = Base64.getMimeDecoder().decode(base64);
+            // So JPEG, PNG e WebP chegam ao OCR e ao Gemini: o Leptonica abre TIFF, PNM e
+            // outros formatos que ninguem precisa mandar aqui.
+            Imagens.tipo(bytes);
+            return bytes;
         } catch (IllegalArgumentException erro) {
             throw new BusinessException("A foto do recibo chegou corrompida. Tente de novo.");
         }

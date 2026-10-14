@@ -5,6 +5,10 @@
 # Em producao:  docker compose --profile producao up -d --build
 # sobe tambem o Caddy (servico web), unica porta publica: 80 e 443, com HTTPS automatico.
 
+# Teto de memoria por container: a JVM usa 75% dele (MaxRAMPercentage no Dockerfile), e
+# um servico que estoura cai sozinho em vez de levar o host junto. O finance tem mais
+# por causa do Tesseract (memoria nativa, fora da heap). Ajuste com PIGGU_MEMORIA_<SERVICO>.
+
 # Logs no stdout de cada container, com rotacao (S5): no maximo 5 arquivos de 10 MB
 # por servico. O mais velho sai sozinho, entao log com id de usuario nao fica para
 # sempre. Prazo e destino estao em docs/implantacao-producao.md (Logs).
@@ -17,6 +21,7 @@ x-logs: &logs
 services:
   postgres:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_POSTGRES:-512m}
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: piggu
@@ -44,6 +49,7 @@ services:
 
   identity:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_IDENTITY:-512m}
     build:
       context: .
       args:
@@ -103,6 +109,7 @@ services:
 
   finance:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_FINANCE:-1g}
     build:
       context: .
       args:
@@ -126,6 +133,7 @@ services:
 
   rewards:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_REWARDS:-384m}
     build:
       context: .
       args:
@@ -145,6 +153,7 @@ services:
 
   lifestyle:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_LIFESTYLE:-384m}
     build:
       context: .
       args:
@@ -166,6 +175,7 @@ services:
 
   media:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_MEDIA:-512m}
     build:
       context: .
       args:
@@ -192,6 +202,7 @@ services:
   # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
   banking:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_BANKING:-384m}
     profiles: ["open-finance"]
     build:
       context: .
@@ -217,6 +228,7 @@ services:
 
   gateway:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_GATEWAY:-384m}
     build:
       context: .
       args:
@@ -244,6 +256,7 @@ services:
   # Construa o front antes:  cd frontend && npm ci && npm run build
   web:
     logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_WEB:-128m}
     profiles: ["producao"]
     build:
       context: ..

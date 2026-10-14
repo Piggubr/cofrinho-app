@@ -285,4 +285,38 @@ describe('Profile', () => {
       expect(tela.nativeElement.textContent).toContain('Não consegui ler essa imagem.');
     });
   });
+
+  it('conta do Google cria a senha pelo Perfil; depois disso pede a atual para trocar', async () => {
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+    await tela.whenStable();
+    const pagina: HTMLElement = tela.nativeElement;
+    const preencher = (id: string, valor: string) => {
+      const campo = pagina.querySelector<HTMLInputElement>(`#${id}`)!;
+      campo.value = valor;
+      campo.dispatchEvent(new Event('input'));
+    };
+    const salvar = async () => {
+      [...pagina.querySelectorAll('button')]
+        .find((b) => /Criar senha|Trocar senha/.test(b.textContent ?? ''))!
+        .click();
+      await new Promise((pronto) => setTimeout(pronto));
+      tela.detectChanges();
+    };
+
+    expect(pagina.querySelector('#senha-atual')).toBeNull();
+    preencher('nova-senha', 'cofrinho123');
+    preencher('repita-senha', 'cofrinho999');
+    await salvar();
+    expect(pagina.textContent).toContain('nao sao iguais');
+    expect(auth.senhasDefinidas).toEqual([]);
+
+    preencher('repita-senha', 'cofrinho123');
+    await salvar();
+    expect(auth.senhasDefinidas).toEqual([['cofrinho123', undefined]]);
+    expect(pagina.textContent).toContain('Senha criada.');
+    expect(pagina.querySelector('#senha-atual')).not.toBeNull();
+  });
 });

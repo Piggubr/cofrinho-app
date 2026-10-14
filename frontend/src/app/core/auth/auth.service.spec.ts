@@ -60,6 +60,59 @@ describe('AuthService', () => {
     expect(auth.podeLancar()).toBe(true);
   });
 
+  it('entrar com e-mail e senha usa a mesma sessao do Google', async () => {
+    const entrada = auth.entrarComSenha('ana@piggu.test', 'cofrinho123', false);
+    const pedido = http.expectOne('/api/auth/entrar');
+    expect(pedido.request.body).toEqual({
+      email: 'ana@piggu.test',
+      senha: 'cofrinho123',
+      lembrar: false,
+    });
+    expect(pedido.request.withCredentials).toBe(true);
+    pedido.flush(tokens());
+    await entrada;
+
+    expect(auth.autenticado()).toBe(true);
+    expect(storage.accessToken).toBe('acesso');
+  });
+
+  it('cadastro manda os dados e o aceite da versao vigente dos termos, sem abrir sessao', async () => {
+    const cadastro = auth.cadastrar({
+      nome: 'Ana',
+      email: 'ana@piggu.test',
+      senha: 'cofrinho123',
+      pais: 'BR',
+      documento: '52998224725',
+      telefone: '11999998888',
+    });
+    const pedido = http.expectOne('/api/auth/cadastro');
+    expect(pedido.request.body).toEqual({
+      nome: 'Ana',
+      email: 'ana@piggu.test',
+      senha: 'cofrinho123',
+      pais: 'BR',
+      documento: '52998224725',
+      telefone: '11999998888',
+      versaoDosTermos: VERSAO_DO_AVISO,
+    });
+    pedido.flush(null, { status: 202, statusText: 'Accepted' });
+    await cadastro;
+
+    expect(auth.autenticado()).toBe(false);
+  });
+
+  it('criar ou trocar a senha atualiza o perfil e leva o cookie da sessao', async () => {
+    const definir = auth.definirSenha('novaSenha456', 'cofrinho123');
+    const pedido = http.expectOne('/api/auth/me/senha');
+    expect(pedido.request.method).toBe('PUT');
+    expect(pedido.request.body).toEqual({ senhaAtual: 'cofrinho123', novaSenha: 'novaSenha456' });
+    expect(pedido.request.withCredentials).toBe(true);
+    pedido.flush(usuarioDeTeste({ temSenha: true }));
+    await definir;
+
+    expect(auth.usuario()?.temSenha).toBe(true);
+  });
+
   it('cada papel ve o que lhe cabe', () => {
     const casos: [Usuario['role'], boolean, boolean, boolean][] = [
       ['ADMIN', true, true, false],

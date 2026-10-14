@@ -1,5 +1,6 @@
 package com.piggu.media.domain;
 
+import com.piggu.common.web.Imagens;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
@@ -45,7 +46,7 @@ public class AssetService {
 
         // O tipo sai dos bytes, nao do que o cliente diz: um .jpg que na verdade e HTML
         // ou script nao entra.
-        String tipo = tipoPeloConteudo(conteudo);
+        String tipo = Imagens.tipo(conteudo);
         String rotulo = Texto.limitarOuPadrao(contexto, 30, Asset.CONTEXTO_PADRAO);
         String nome = UUID.randomUUID() + extensao(tipo);
 
@@ -106,21 +107,6 @@ public class AssetService {
         } catch (IllegalArgumentException erro) {
             throw new BusinessException("A foto chegou em um formato que nao consegui ler.");
         }
-    }
-
-    /** Assinatura dos primeiros bytes: JPEG FF D8 FF, PNG 89 50 4E 47, WebP RIFF....WEBP. */
-    static String tipoPeloConteudo(byte[] b) {
-        if (b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
-            return "image/jpeg";
-        }
-        if (b.length >= 4 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') {
-            return "image/png";
-        }
-        if (b.length >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
-                && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') {
-            return "image/webp";
-        }
-        throw new BusinessException("A foto precisa ser JPEG, PNG ou WebP.");
     }
 
     private String extensao(String contentType) {

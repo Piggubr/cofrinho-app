@@ -9,7 +9,7 @@ uma plataforma de microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL.
 | Serviço | Porta | Banco | Responsabilidade |
 |---|---|---|---|
 | `piggu-gateway` | 8080 | — | Porta de entrada única, roteamento e CORS |
-| `piggu-identity` | 8081 | `piggu_identity` | Login Google, contas, perfis, sessões, JWKS |
+| `piggu-identity` | 8081 | `piggu_identity` | Login por e-mail e senha ou Google, contas, perfis, sessões, JWKS |
 | `piggu-finance` | 8082 | `piggu_finance` | Gastos, metas, cofrinho, notas, memória de preços, câmbio, recibos |
 | `piggu-rewards` | 8083 | `piggu_rewards` | Fofocoins, prêmios, resgates |
 | `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras, metas do mês e Girls Math (pessoais) |
@@ -112,6 +112,30 @@ Cada pessoa tem conta própria e pertence a uma **família** (`households`). Cad
 aberto: o primeiro login Google cria a conta e uma família nova, com a pessoa como
 `TITULAR`. Quem foi convidado pelo titular (`POST /api/family/invites`, vale 7 dias)
 entra na família dele como `MEMBRO`.
+
+### Entrar com e-mail e senha
+
+A mesma conta entra por duas portas: e-mail e senha (`POST /api/auth/cadastro` e
+`POST /api/auth/entrar`) ou Google (`POST /api/auth/google`). Quem já tem conta Google
+cria uma senha no Perfil (`PUT /api/auth/me/senha`), que também serve para trocá-la
+(aí a senha atual é pedida e as outras sessões caem).
+
+- A senha fica em BCrypt (custo 12): pelo menos 8 caracteres, com letra e número, até
+  72 bytes. Cinco erros seguidos travam a entrada por senha da conta por 15 minutos; o
+  Google continua entrando. O limite por IP do login vale também para senha e cadastro.
+- O cadastro pede o país onde a pessoa mora (lista ISO 3166, coluna `country`) e o
+  documento de lá, conferido pelo dígito verificador e único entre as contas: no Brasil o
+  CPF; na Argentina, Bolívia, Chile, Colômbia, Equador, Espanha, Itália, México, Paraguai,
+  Peru, Portugal, Uruguai e Venezuela o número nacional de cada um
+  (`DocumentosDeIdentidade`, colunas `id_doc_*`, cifrado como o CPF). Nos outros países
+  não existe um número que dê para conferir e não seja sigiloso (o SSN americano, por
+  exemplo), então a conta segue sem documento. Pelo Google, a tela do documento depois da
+  entrada pede o país e o documento (`PUT /api/me/pais`).
+- O cadastro por senha ainda não confirma o e-mail (`email_verified` falso). Enquanto
+  isso, a conta não vira `ADMIN` pela `PIGGU_ADMIN_EMAILS`, não usa convite de família e
+  não aceita convite. O primeiro login Google nesse e-mail confirma; se a conta tinha
+  senha, ela é apagada e as sessões caem, para que quem cadastrou o e-mail de outra
+  pessoa não fique dentro da conta dela.
 
 | Papel | O que faz |
 |---|---|
@@ -222,7 +246,7 @@ Cada ação do `Code.gs` e onde ela foi parar:
 
 | Ação antiga | Agora |
 |---|---|
-| `auth` | `POST /api/auth/google` |
+| `auth` | `POST /api/auth/google` (ou `POST /api/auth/entrar`, por senha) |
 | `getData` | Substituída por endpoints por recurso |
 | `save` | `POST /api/expenses` |
 | `updateExpense` | `PUT /api/expenses/{id}` |

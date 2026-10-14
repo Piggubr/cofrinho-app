@@ -1,5 +1,7 @@
 package com.piggu.identity.domain;
 
+import com.piggu.identity.api.dto.UserResponse;
+
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
@@ -273,14 +275,35 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("o mesmo CPF nao entra em outra conta, nem com outra pontuacao")
-    void cpfUnico() {
+    @DisplayName("o documento cobrado depende do pais; o que ja foi informado fica e vale ao mudar")
+    void documentoPorPais() {
+        assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado()).as("no Brasil, sem CPF").isFalse();
+
+        UserResponse eua = contas.informarPais(titular.getId(), "us", null);
+        assertThat(eua.pais()).isEqualTo("US");
+        assertThat(eua.cpfInformado()).as("nos EUA nada fica pendente").isTrue();
+
+        assertThat(contas.informarPais(titular.getId(), "ES", null).cpfInformado()).as("Espanha pede DNI").isFalse();
+        assertThatThrownBy(() -> contas.informarPais(titular.getId(), "ES", "12345678A"))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_INVALIDO"));
+        assertThat(contas.informarPais(titular.getId(), "ES", "12345678-z").cpfInformado()).isTrue();
+
+        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(salvo.getTipoDoDocumento()).isEqualTo("ES_DNI");
+        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("documento")
+                .asString().contains("12345678Z", "DNI/NIE");
+
+        assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado())
+                .as("quem ja tem documento nao precisa de outro ao voltar").isTrue();
+    }
+
+    @Test
+    @DisplayName("o mesmo CPF pode estar em duas contas")
+    void cpfRepetido() {
         contas.informarCpf(titular.getId(), "529.982.247-25");
 
-        assertThatThrownBy(() -> contas.informarCpf(membro.getId(), "52998224725"))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo(MinhaContaService.CODIGO_CPF_EM_USO));
-        assertThat(usuarios.findById(membro.getId()).orElseThrow().temCpf()).isFalse();
+        assertThat(contas.informarCpf(membro.getId(), "52998224725").cpfInformado()).isTrue();
     }
 
     @Test

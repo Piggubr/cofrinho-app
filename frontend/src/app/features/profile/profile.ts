@@ -21,6 +21,7 @@ import {
 import { ICONES_DO_APP, IconesDoApp, IdDoIcone } from '../../core/nativo/icone-do-app';
 import { Tutorial } from '../../core/ui/tutorial';
 import { AutorizacoesDeIa } from './autorizacoes-de-ia';
+import { problemaDaSenha } from '../../core/auth/regras-da-senha';
 
 /**
  * Perfil e, para o administrador, as contas da instalacao.
@@ -84,7 +85,16 @@ export class Profile {
 
   protected readonly excluindo = signal(false);
 
+  protected readonly senhaAtual = signal('');
+  protected readonly novaSenha = signal('');
+  protected readonly repitaSenha = signal('');
+  protected readonly salvandoSenha = signal(false);
+  /** Erro e aviso dentro do proprio cartao: o topo da pagina fica longe dali. */
+  protected readonly erroDaSenha = signal('');
+  protected readonly avisoDaSenha = signal('');
+
   protected readonly salvandoFoto = signal(false);
+  protected readonly reenviando = signal(false);
 
   /** Primeira letra do nome, no lugar da foto quando nao ha nenhuma. */
   protected readonly inicial = computed(() =>
@@ -98,6 +108,53 @@ export class Profile {
     });
     if (this.auth.ehAdmin()) {
       this.carregarAdmin();
+    }
+  }
+
+  /** Manda outro link de confirmacao do e-mail; o aviso aparece no cartao da senha. */
+  protected async reenviarConfirmacao(): Promise<void> {
+    this.erroDaSenha.set('');
+    this.avisoDaSenha.set('');
+    this.reenviando.set(true);
+    try {
+      await this.auth.reenviarConfirmacao();
+      this.avisoDaSenha.set($localize`Mandamos um link novo. Ele vale por 24 horas.`);
+    } catch (falha) {
+      this.erroDaSenha.set(mensagemDeErro(falha));
+    } finally {
+      this.reenviando.set(false);
+    }
+  }
+
+  /** Cria a senha (conta que so entrava pelo Google) ou troca a atual. */
+  protected async salvarSenha(): Promise<void> {
+    const pessoa = this.auth.usuario();
+    this.erroDaSenha.set('');
+    this.avisoDaSenha.set('');
+    const problema =
+      (pessoa?.temSenha && !this.senhaAtual() ? $localize`Informe a senha atual.` : '') ||
+      problemaDaSenha(this.novaSenha(), pessoa?.email) ||
+      (this.novaSenha() !== this.repitaSenha() ? $localize`As duas senhas nao sao iguais.` : '');
+    if (problema) {
+      this.erroDaSenha.set(problema);
+      return;
+    }
+    const trocando = pessoa?.temSenha === true;
+    this.salvandoSenha.set(true);
+    try {
+      await this.auth.definirSenha(this.novaSenha(), trocando ? this.senhaAtual() : undefined);
+      this.senhaAtual.set('');
+      this.novaSenha.set('');
+      this.repitaSenha.set('');
+      this.avisoDaSenha.set(
+        trocando
+          ? $localize`Senha trocada. Os outros aparelhos vão pedir para entrar de novo.`
+          : $localize`Senha criada. Agora você também entra com e-mail e senha.`,
+      );
+    } catch (falha) {
+      this.erroDaSenha.set(mensagemDeErro(falha));
+    } finally {
+      this.salvandoSenha.set(false);
     }
   }
 

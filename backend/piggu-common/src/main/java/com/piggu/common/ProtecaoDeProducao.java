@@ -1,6 +1,7 @@
 package com.piggu.common;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -34,6 +35,13 @@ public class ProtecaoDeProducao implements InitializingBean {
             if (valor.contains("http://")) {
                 throw new IllegalStateException("Em producao " + variavel + " precisa usar https:// (veio: " + valor + ").");
             }
+        }
+        // Atras do Caddy e do gateway: com menos de 2, o limite por IP conta o IP do Caddy
+        // e vira um balde so para todo mundo (20 logins por minuto no site inteiro).
+        int proxies = Binder.get(ambiente).bind("piggu.limite.proxies-na-frente", Integer.class).orElse(1);
+        if (proxies < 2) {
+            throw new IllegalStateException("Em producao PIGGU_LIMITE_PROXIESNAFRENTE precisa ser 2 (Caddy + gateway),"
+                    + " senao o limite por IP vale para todos juntos (veio: " + proxies + ").");
         }
         if (ambiente.getProperty("spring.datasource.url") == null) {
             return;

@@ -66,3 +66,108 @@ h1 {
   font-size: 0.78rem;
   margin: 0;
 }
+
+/* Seletor segmentado Entrar | Criar conta, como o da lista de compras. */
+.abas {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.1rem;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.aba {
+  flex: 1;
+  padding: 0.55rem 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.aba.ativa {
+  background: var(--surface);
+  color: var(--rose-deep);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(43, 30, 50, 0.1);
+}
+
+.formulario {
+  text-align: left;
+  margin-bottom: 0.25rem;
+}
+
+.dica {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin: 0.3rem 0 0;
+}
+
+.aceite-do-cadastro {
+  justify-content: flex-start;
+  text-align: left;
+  margin: 0.95rem 0 1rem;
+}
+
+.botao.largo {
+  width: 100%;
+  margin-top: 0.95rem;
+}
+
+.aceite-do-cadastro + .botao.largo {
+  margin-top: 0;
+}
+
+/* "ou" entre o formulario e o botao do Google. */
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 1.1rem 0 0.9rem;
+}
+
+.separador::before,
+.separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.botao-link {
+  display: block;
+  margin: 0.6rem auto 0;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* DDI e numero na mesma linha; o DDI encolhe ate o texto do pais. */
+.telefone {
+  display: flex;
+  gap: 8px;
+
+  select {
+    flex: 0 1 40%;
+    min-width: 0;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+  }
+}

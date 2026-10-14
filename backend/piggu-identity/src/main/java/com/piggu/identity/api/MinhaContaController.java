@@ -49,6 +49,17 @@ public class MinhaContaController {
         return servico.informarCpf(usuario.id(), pedido.cpf());
     }
 
+    /** @param documento CPF no Brasil, o documento de la nos paises que pedem um; pode faltar */
+    public record PaisRequest(@NotBlank(message = "Escolha o país onde você mora.") @Size(max = 2) String pais,
+                              @Size(max = 40) String documento) {
+    }
+
+    /** Onde mora e, se for o caso, o documento de la; o documento fica preso a conta. */
+    @PutMapping("/pais")
+    public UserResponse informarPais(@Valid @RequestBody PaisRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.informarPais(usuario.id(), pedido.pais(), pedido.documento());
+    }
+
     public record FotoRequest(@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,
                               @NotBlank @Size(max = 40) String mimeType) {
     }

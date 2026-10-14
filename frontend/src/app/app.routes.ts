@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { autenticadoGuard, cpfGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
+import { autenticadoGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
 
 /**
  * Mapa de telas.
@@ -25,12 +25,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/legal/termos').then((m) => m.Termos),
   },
   // Termos novos ainda nao aceitos param aqui antes de qualquer outra tela.
+  // Aberta: o link do e-mail pode ser aberto sem sessao, em outro aparelho.
+  {
+    path: 'confirmar-email',
+    loadComponent: () => import('./features/confirmar-email/confirmar-email').then((m) => m.ConfirmarEmail),
+  },
   {
     path: 'aceite',
     canActivate: [autenticadoGuard],
     loadComponent: () => import('./features/aceite/aceite').then((m) => m.Aceite),
   },
-  // Conta sem CPF para aqui antes de qualquer outra tela.
+  // Informar o documento (opcional), oferecido pelo Perfil.
   {
     path: 'cpf',
     canActivate: [autenticadoGuard, termosGuard],
@@ -40,7 +45,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [autenticadoGuard],
     // Filhos: roda depois de a sessao ser restaurada pelo guard acima.
-    canActivateChild: [cpfGuard],
+    canActivateChild: [termosGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'painel' },

@@ -64,20 +64,17 @@ class TokenServiceTest extends PostgresIntegrationTest {
         Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
 
         assertThat(token.getExpiresAt()).isNotNull().isAfter(Instant.now());
-        assertThat(tokens.segundosDeAcesso()).isEqualTo(1800);
+        assertThat(tokens.segundosDeAcesso()).isEqualTo(300);
     }
 
     @Test
-    @DisplayName("sem CPF o access token diz cpf=false; o token de exclusao nao leva a claim")
-    void claimDoCpf() {
+    @DisplayName("documento e opcional: nenhum token leva a claim cpf")
+    void semClaimDoCpf() {
         UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).hasClaim("cpf")).isFalse();
         assertThat(decoder.decode(tokens.gerarTokenDeExclusao(conta, FAMILIA, EscopoDeExclusao.PESSOA))
                 .hasClaim("cpf")).isFalse();
-
-        conta.informarCpf("cifrado", "indice");
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).getClaimAsBoolean("cpf")).isTrue();
     }
 
     @Test

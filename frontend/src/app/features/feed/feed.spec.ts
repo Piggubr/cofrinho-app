@@ -53,7 +53,20 @@ describe('Feed', () => {
     entrada.dispatchEvent(new Event('change'));
   }
 
-  const esperarLeitura = () => new Promise((pronto) => setTimeout(pronto, 20));
+  /** O FileReader termina quando quer: com a maquina ocupada (CI), 20 ms fixos nao bastavam. */
+  async function esperarEnvio() {
+    const ehEnvio = (r: { method: string; url: string }) =>
+      r.method === 'POST' && r.url === '/api/feed';
+    for (let tentativa = 0; tentativa < 100; tentativa++) {
+      const enviados = http.match(ehEnvio);
+      if (enviados.length > 0) {
+        expect(enviados).toHaveLength(1);
+        return enviados[0];
+      }
+      await new Promise((pronto) => setTimeout(pronto, 10));
+    }
+    return http.expectOne(ehEnvio);
+  }
 
   it('mostra as fotos do mes pelo endereco do arquivo', () => {
     const pagina: HTMLElement = abrir().nativeElement;
@@ -76,8 +89,7 @@ describe('Feed', () => {
     const pagina: HTMLElement = tela.nativeElement;
 
     escolherArquivo(pagina, new File([new Uint8Array([1, 2, 3])], 'f.png', { type: 'image/png' }));
-    await esperarLeitura();
-    const pedido = http.expectOne((r) => r.method === 'POST' && r.url === '/api/feed');
+    const pedido = await esperarEnvio();
     expect(pedido.request.body).toEqual({
       mesKey: mes,
       imageBase64: 'AQID',

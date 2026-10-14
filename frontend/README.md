@@ -27,7 +27,7 @@ onze mesmo abrindo só uma.
 
 | Rota | O que faz | Perfis |
 |---|---|---|
-| `/entrar` | Login com Google | — |
+| `/entrar` | Entrar ou criar conta com e-mail e senha, ou pelo Google | — |
 | `/painel` | Cofrinho, limite do mês, gastos por categoria e saldo dos bancos conectados | todos |
 | `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, TITULAR |
 | `/calendario` | Grade do mês com gastos e lembretes | ADMIN, TITULAR |
@@ -112,7 +112,7 @@ do mês anterior, dependendo de onde a pessoa está. As funções em
 src/app/
 ├── core/
 │   ├── api/          Um serviço por domínio do backend, mais os modelos
-│   ├── auth/         Login Google, tokens, interceptor e guards
+│   ├── auth/         Login (senha ou Google), tokens, interceptor e guards
 │   ├── config/       Configuração injetável (URL da API, client ID)
 │   └── ui/           Pipes, datas, leitura de arquivo, mensagem de erro
 ├── layout/shell/     Cabeçalho, menu e área de conteúdo

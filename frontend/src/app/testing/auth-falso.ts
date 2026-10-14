@@ -52,6 +52,13 @@ export class AuthFalso {
     this.usuario.set({ ...atual, preferencias: { ...atual.preferencias, ...preferencias } });
   }
 
+  readonly senhasDefinidas: [string, string | undefined][] = [];
+
+  async definirSenha(novaSenha: string, senhaAtual?: string): Promise<void> {
+    this.senhasDefinidas.push([novaSenha, senhaAtual]);
+    this.usuario.update((atual) => (atual ? { ...atual, temSenha: true } : atual));
+  }
+
   async sair(): Promise<void> {}
 
   async encerrarLocalmente(): Promise<void> {

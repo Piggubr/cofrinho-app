@@ -327,6 +327,94 @@
   </section>
 }
 
+@if (auth.usuario(); as pessoa) {
+  <section class="cartao" aria-labelledby="titulo-senha">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-senha">Senha de acesso</h2>
+    </div>
+    @if (pessoa.temSenha) {
+      <p i18n class="linha-detalhe">
+        Você entra com {{ pessoa.email }} e sua senha, ou pelo Google. Trocar a senha encerra as
+        sessões nos outros aparelhos.
+      </p>
+    } @else {
+      <p i18n class="linha-detalhe">
+        Hoje você entra pelo Google. Crie uma senha para entrar também com {{ pessoa.email }}.
+      </p>
+    }
+    @if (pessoa.emailConfirmado === false) {
+      <p i18n class="linha-detalhe">
+        Seu e-mail ainda não foi confirmado. Abra o link que mandamos para {{ pessoa.email }} (ou entre
+        uma vez pelo Google com ele); só então dá para aceitar convite de família.
+      </p>
+      <button i18n type="button" class="botao contorno pequeno" [disabled]="reenviando()" (click)="reenviarConfirmacao()">
+        Reenviar e-mail de confirmação
+      </button>
+    }
+    @if (pessoa.cpfInformado === false) {
+      <p class="linha-detalhe">
+        <ng-container i18n>Documento ainda não informado (opcional).</ng-container>
+        <a i18n routerLink="/cpf">Informar agora</a>
+      </p>
+    }
+    @if (erroDaSenha()) {
+      <p class="aviso erro" role="alert">{{ erroDaSenha() }}</p>
+    }
+    @if (avisoDaSenha()) {
+      <p class="aviso sucesso" role="status">{{ avisoDaSenha() }}</p>
+    }
+    <form (ngSubmit)="salvarSenha()" novalidate>
+      @if (pessoa.temSenha) {
+        <div class="campo">
+          <label i18n for="senha-atual">Senha atual</label>
+          <input
+            id="senha-atual"
+            name="senhaAtual"
+            type="password"
+            autocomplete="current-password"
+            [ngModel]="senhaAtual()"
+            (ngModelChange)="senhaAtual.set($event)"
+          />
+        </div>
+      }
+      <div class="linha-de-campos">
+        <div class="campo">
+          <label i18n for="nova-senha">Nova senha</label>
+          <input
+            id="nova-senha"
+            name="novaSenha"
+            type="password"
+            autocomplete="new-password"
+            [ngModel]="novaSenha()"
+            (ngModelChange)="novaSenha.set($event)"
+          />
+        </div>
+        <div class="campo">
+          <label i18n for="repita-senha">Repita a nova senha</label>
+          <input
+            id="repita-senha"
+            name="repitaSenha"
+            type="password"
+            autocomplete="new-password"
+            [ngModel]="repitaSenha()"
+            (ngModelChange)="repitaSenha.set($event)"
+          />
+        </div>
+      </div>
+      <p i18n class="linha-detalhe">Pelo menos 8 caracteres, com letras e números.</p>
+      <div class="acoes">
+        <button type="submit" class="botao" [disabled]="salvandoSenha()">
+          @if (pessoa.temSenha) {
+            <ng-container i18n>Trocar senha</ng-container>
+          } @else {
+            <ng-container i18n>Criar senha</ng-container>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
 <section class="cartao" aria-labelledby="titulo-dados">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-dados">Seus dados</h2>

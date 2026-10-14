@@ -30,9 +30,9 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/auth/me/modules'), { modulos });
   }
 
-  /** Prende o CPF a conta; uma vez so, e o mesmo CPF nao entra em outra conta. */
-  informarCpf(cpf: string): Observable<Usuario> {
-    return this.http.put<Usuario>(this.url('/me/cpf'), { cpf });
+  /** Pais onde mora e, quando la se pede um, o documento (o CPF no Brasil). */
+  informarPais(pais: string, documento?: string): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/pais'), { pais, documento });
   }
 
   /** Aceite da versao nova dos Termos e do Aviso por quem ja tem conta. */

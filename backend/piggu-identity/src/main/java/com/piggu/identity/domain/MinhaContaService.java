@@ -5,13 +5,13 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
 import com.piggu.identity.billing.ProvedorDePagamento;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +19,7 @@ import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +46,6 @@ public class MinhaContaService {
     private final Aparelhos aparelhos;
     private final AvisosEnviados avisosEnviados;
 
-    public static final String CODIGO_CPF_EM_USO = "CPF_EM_USO";
 
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
@@ -79,9 +79,22 @@ public class MinhaContaService {
         Map<String, Object> arquivo = new LinkedHashMap<>();
         arquivo.put("geradoEm", Instant.now());
         arquivo.put("conta", UserResponse.de(conta, familia.daConta(conta)));
+        if (conta.getPhone() != null) {
+            arquivo.put("celular", conta.getPhone());
+        }
         if (conta.temCpf()) {
             arquivo.put("cpf", Map.of("numero", cofre.decifrar(conta.getCpfCifrado()).formatado(),
                     "informadoEm", conta.getCpfInformadoEm()));
+        }
+        if (conta.temDocumento()) {
+            String nome = DocumentosDeIdentidade.tipo(conta.getTipoDoDocumento())
+                    .map(DocumentosDeIdentidade.Tipo::nome).orElse(conta.getTipoDoDocumento());
+            arquivo.put("documento", Map.of("tipo", nome,
+                    "numero", cofre.decifrarTexto(conta.getDocumentoCifrado()),
+                    "informadoEm", conta.getDocumentoInformadoEm()));
+        }
+        if (conta.getPais() != null) {
+            arquivo.put("pais", conta.getPais());
         }
         arquivo.put("familia", familia.ver(usuario));
         if (conta.getTermsVersion() != null) {
@@ -104,9 +117,9 @@ public class MinhaContaService {
     }
 
     /**
-     * Prende o CPF a conta. Um CPF so pode estar em uma conta: e o que impede a mesma
-     * pessoa de abrir varias. Depois de informado nao muda pelo app (correcao pelo canal
-     * de privacidade), senao trocar de CPF liberaria o antigo para outra conta.
+     * Prende o CPF a conta. Pode repetir entre contas; a repeticao vai para o log com as
+     * contas envolvidas. Depois de informado nao muda pelo app (correcao pelo canal de
+     * privacidade).
      */
     @Transactional
     public UserResponse informarCpf(UUID contaId, String digitado) {
@@ -115,22 +128,80 @@ public class MinhaContaService {
             throw new BusinessException("Sua conta já tem um CPF. Para corrigir, escreva para o canal de privacidade.",
                     HttpStatus.CONFLICT);
         }
-        Cpf cpf = Cpf.de(digitado);
+        prenderCpf(conta, conferirCpf(digitado));
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /**
+     * Confere o CPF (digitos e formato). CPF ja usado em outra conta nao barra (Eduardo,
+     * 2026-10-13): {@link #prenderCpf} registra as contas no log, para investigar abuso.
+     */
+    public Cpf conferirCpf(String digitado) {
+        return Cpf.de(digitado);
+    }
+
+    /** Grava o CPF ja conferido. */
+    @Transactional
+    public void prenderCpf(UserAccount conta, Cpf cpf) {
         String indice = cofre.indice(cpf);
-        if (usuarios.existsByCpfIndice(indice)) {
-            throw cpfEmUso();
-        }
+        avisarRepetido("CPF", conta, usuarios.findByCpfIndice(indice));
         conta.informarCpf(cofre.cifrar(cpf), indice);
-        try {
-            usuarios.saveAndFlush(conta);
-        } catch (DataIntegrityViolationException corrida) {
-            // Duas contas informando o mesmo CPF ao mesmo tempo: o indice unico decide.
-            throw cpfEmUso();
-        }
+        usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
+    }
+
+    /**
+     * O pais onde a pessoa mora e, se ela ja digitou, o documento de la (o CPF no Brasil).
+     * Trocar de pais nao apaga documento nenhum: o que ja foi informado fica preso a conta,
+     * e quem ja tem um documento nao precisa de outro.
+     */
+    @Transactional
+    public UserResponse informarPais(UUID contaId, String paisDigitado, String documento) {
+        UserAccount conta = conta(contaId);
+        String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        if (!Texto.vazio(documento) && !conta.temCpf() && !conta.temDocumento()) {
+            if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
+                prenderCpf(conta, conferirCpf(documento));
+            } else {
+                DocumentosDeIdentidade.pedidoEm(pais).ifPresent(tipo ->
+                        prenderDocumento(conta, tipo, conferirDocumento(tipo, documento)));
+            }
+        }
+        if (!pais.equals(conta.getPais())) {
+            conta.declararPais(pais);
+            usuarios.save(conta);
+            trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                    conta.getId(), null, "Pais onde mora: " + pais);
+            log.info("Pais: conta={} pais={}", conta.getId(), pais);
+        }
         return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /** Confere o documento de fora; devolve o numero limpo. Repetido nao barra. */
+    public String conferirDocumento(DocumentosDeIdentidade.Tipo tipo, String digitado) {
+        return tipo.normalizar(digitado);
+    }
+
+    /** So ids no log: o numero nunca sai do cofre. */
+    private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
+        List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
+        if (!ids.isEmpty()) {
+            log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
+        }
+    }
+
+    /** Grava o documento ja conferido; como o CPF, pode repetir entre contas. */
+    @Transactional
+    public void prenderDocumento(UserAccount conta, DocumentosDeIdentidade.Tipo tipo, String numero) {
+        String indice = cofre.indice(tipo, numero);
+        avisarRepetido(tipo.nome(), conta, usuarios.findByIdDocIndice(indice));
+        conta.informarDocumento(tipo, cofre.cifrar(numero), indice);
+        usuarios.save(conta);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
+                conta.getId(), null, tipo.nome() + " informado");
+        log.info("Documento informado: conta={} tipo={}", conta.getId(), tipo);
     }
 
     /**
@@ -182,12 +253,6 @@ public class MinhaContaService {
                 conta.getId(), null, descricao);
         log.info("{}: conta={}", descricao, conta.getId());
         return UserResponse.de(conta, familia.daConta(conta));
-    }
-
-    private static BusinessException cpfEmUso() {
-        return new BusinessException("Este CPF já está ligado a outra conta do Piggu. Entre com a conta que você "
-                + "já tem; se não foi você quem a criou, escreva para o canal de privacidade.",
-                HttpStatus.CONFLICT, CODIGO_CPF_EM_USO);
     }
 
     /**

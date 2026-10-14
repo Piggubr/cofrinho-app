@@ -4,6 +4,7 @@ import com.piggu.common.error.BusinessException;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
@@ -84,7 +85,12 @@ public final class FotoDePerfil {
                     if (largura <= 0 || altura <= 0 || largura > DIMENSAO_MAXIMA || altura > DIMENSAO_MAXIMA) {
                         throw invalida("Essa foto é grande demais. Escolha outra.");
                     }
-                    return leitor.read(0);
+                    // Le pulando pixels: o avatar sai com 256 px, e um PNG liso de 6000 px
+                    // (poucos KB) aberto inteiro ocuparia centenas de MB de memoria.
+                    ImageReadParam parametros = leitor.getDefaultReadParam();
+                    int passo = Math.max(1, Math.min(largura, altura) / (LADO * 2));
+                    parametros.setSourceSubsampling(passo, passo, 0, 0);
+                    return leitor.read(0, parametros);
                 } finally {
                     leitor.dispose();
                 }
