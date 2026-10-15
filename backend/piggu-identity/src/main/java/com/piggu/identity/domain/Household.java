@@ -39,6 +39,10 @@ public class Household {
     @Column(name = "premium_since")
     private Instant premiumSince;
 
+    /** Primeira cobranca paga da assinatura: o arrependimento conta daqui, nao do teste. */
+    @Column(name = "first_charge_at")
+    private Instant firstChargeAt;
+
     /** INDIVIDUAL ou FAMILIA. */
     @Column(name = "plan_kind", nullable = false, length = 20)
     private String planKind = "INDIVIDUAL";
@@ -136,6 +140,19 @@ public class Household {
 
     public Instant getPremiumSince() {
         return premiumSince;
+    }
+
+    /** Nulo mantem o que ja se sabia: o aviso de uma assinatura em teste nao apaga nada. */
+    public void registrarPrimeiraCobranca(Instant quando) {
+        if (quando != null) {
+            this.firstChargeAt = quando;
+        }
+    }
+
+    /** Primeira cobranca deste contrato; nula durante o teste (ou se for de um contrato anterior). */
+    public Instant getPrimeiraCobranca() {
+        return firstChargeAt != null && premiumSince != null && firstChargeAt.isBefore(premiumSince)
+                ? null : firstChargeAt;
     }
 
     public void renomear(String name) {

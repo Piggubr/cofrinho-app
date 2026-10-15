@@ -68,6 +68,12 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @Autowired
     private com.piggu.identity.avisos.AvisosEnviados avisosEnviados;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Autowired
+    private com.piggu.identity.billing.AssinaturaService assinaturas;
+
     private UserAccount titular;
     private UserAccount membro;
 
@@ -208,6 +214,26 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     void semStripe() {
         contas.excluir(membro.getId());
         verify(pagamentos, never()).encerrarCliente(anyString());
+    }
+
+    @Test
+    @DisplayName("excluir conta que testou guarda so o HMAC do CPF: a conta nova com o mesmo CPF nao testa de novo")
+    void excluirGuardaCpfDoTeste() {
+        jdbc.update("DELETE FROM trial_cpf_history");
+        UserAccount testou = usuarios.findById(membro.getId()).orElseThrow();
+        testou.informarCpf("cifrado", "indice-que-testou");
+        testou.marcarTesteGratisUsado();
+        usuarios.save(testou);
+
+        contas.excluir(membro.getId());
+
+        assertThat(jdbc.queryForList("SELECT * FROM trial_cpf_history"))
+                .singleElement().satisfies(linha -> assertThat(linha).containsOnlyKeys("cpf_indice", "used_at")
+                        .containsEntry("cpf_indice", "indice-que-testou"));
+        UserAccount nova = familias.criarConta("bia2@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        nova.informarCpf("cifrado", "indice-que-testou");
+        usuarios.save(nova);
+        assertThat(assinaturas.plano(nova.getId()).diasDeTeste()).isZero();
     }
 
     @Test

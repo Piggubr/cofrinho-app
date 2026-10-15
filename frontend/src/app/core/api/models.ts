@@ -117,7 +117,7 @@ export interface InfoDoPlano {
   plano: Plano;
   premiumAte: string | null;
   origem: 'WEB' | 'APP_STORE' | 'PLAY_STORE' | null;
-  /** Ate quando da para desistir com o dinheiro de volta (7 dias); nulo fora do prazo. */
+  /** Ate quando da para desistir com o dinheiro de volta (7 dias da primeira cobranca); nulo fora do prazo. */
   reembolsoAte: string | null;
   /** Dias gratis ao assinar (uma vez por conta); 0 quando ja usou. */
   diasDeTeste: number;

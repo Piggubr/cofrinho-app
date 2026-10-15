@@ -10,6 +10,7 @@ import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
 import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class MinhaContaService {
     private final CofreDeCpf cofre;
     private final Aparelhos aparelhos;
     private final AvisosEnviados avisosEnviados;
+    private final TestesGratis testes;
 
 
     public MinhaContaService(UserAccountRepository usuarios,
@@ -56,7 +58,9 @@ public class MinhaContaService {
                              TrilhaDeAuditoria trilha,
                              CofreDeCpf cofre,
                              Aparelhos aparelhos,
-                             AvisosEnviados avisosEnviados) {
+                             AvisosEnviados avisosEnviados,
+                             TestesGratis testes) {
+        this.testes = testes;
         this.cofre = cofre;
         this.aparelhos = aparelhos;
         this.avisosEnviados = avisosEnviados;
@@ -272,6 +276,8 @@ public class MinhaContaService {
             }
         }
 
+        // So o HMAC do CPF e a data do teste ficam: excluir e recriar a conta nao devolve o teste.
+        testes.lembrarAoExcluir(conta);
         sessoes.apagarPorUsuario(conta.getId());
         usuarios.delete(conta);
         usuarios.flush();

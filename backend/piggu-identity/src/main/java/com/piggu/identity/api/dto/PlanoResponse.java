@@ -18,8 +18,9 @@ import java.util.List;
  * @param assinaturaDisponivel falso enquanto o provedor de pagamento do site nao estiver configurado
  * @param site                 precos no site (Stripe)
  * @param app                  precos dentro do app iOS/Android: +15% pela taxa das lojas
- * @param reembolsoAte         ate quando da para desistir com dinheiro de volta (7 dias, CDC
- *                             art. 49); nulo fora do prazo ou quando nao foi assinado pelo site
+ * @param reembolsoAte         ate quando da para desistir com dinheiro de volta: 7 dias da primeira
+ *                             cobranca (CDC art. 49); no teste, 7 dias depois do fim dele. Nulo
+ *                             fora do prazo ou quando nao foi assinado pelo site
  * @param diasDeTeste          dias gratis que esta conta ainda tem ao assinar; 0 se ja usou
  * @param planoFamilia         a assinatura vigente da casa e o plano familia
  * @param voceAssinou          foi esta conta que assinou (so ela gerencia e pede reembolso)
@@ -87,9 +88,11 @@ public record PlanoResponse(
                                    boolean familiaDisponivel, int diasDeTeste, boolean openFinance) {
         Plano vigente = familia.planoPara(conta.getId());
         boolean voceAssinou = familia.planoVigente() == Plano.PREMIUM && conta.getId().equals(familia.getSubscriberId());
-        Instant reembolsoAte = voceAssinou && "WEB".equals(familia.getPlanSource())
-                && familia.getPremiumSince() != null
-                ? familia.getPremiumSince().plus(AssinaturaService.PRAZO_DE_ARREPENDIMENTO) : null;
+        // Sem cobranca ainda e o teste: a primeira cobranca vem no fim dele (premiumAte).
+        Instant primeiraCobranca = familia.getPrimeiraCobranca() != null
+                ? familia.getPrimeiraCobranca() : familia.getPremiumUntil();
+        Instant reembolsoAte = voceAssinou && "WEB".equals(familia.getPlanSource()) && primeiraCobranca != null
+                ? primeiraCobranca.plus(AssinaturaService.PRAZO_DE_ARREPENDIMENTO) : null;
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getPlanSource(),
                 reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null,

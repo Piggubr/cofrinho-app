@@ -8,6 +8,7 @@ import com.piggu.identity.billing.AssinaturaService;
 import com.piggu.identity.billing.Periodo;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -31,19 +33,22 @@ public class BillingController {
         this.assinaturas = assinaturas;
     }
 
-    public record CheckoutRequest(@NotNull(message = "Escolha mensal ou anual.") Periodo periodo) {
+    /** @param campanha codigo de promocao que liberou o teste (vem do link /plano?promo=); opcional */
+    public record CheckoutRequest(@NotNull(message = "Escolha mensal ou anual.") Periodo periodo,
+                                  @Size(max = 40) String campanha) {
     }
 
     @GetMapping("/plan")
-    public PlanoResponse plano(@AuthUser CurrentUser usuario) {
-        return assinaturas.plano(usuario.id());
+    public PlanoResponse plano(@AuthUser CurrentUser usuario,
+                               @RequestParam(required = false) @Size(max = 40) String campanha) {
+        return assinaturas.plano(usuario.id(), campanha);
     }
 
     /** Devolve a pagina de pagamento do provedor; o front so redireciona. */
     @PostMapping("/checkout")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, String> checkout(@Valid @RequestBody CheckoutRequest pedido, @AuthUser CurrentUser usuario) {
-        return Map.of("url", assinaturas.checkout(usuario.id(), pedido.periodo()));
+        return Map.of("url", assinaturas.checkout(usuario.id(), pedido.periodo(), pedido.campanha()));
     }
 
     /** Trocar cartao, ver recibos e cancelar, tao facil quanto assinar. */
@@ -53,12 +58,14 @@ public class BillingController {
         return Map.of("url", assinaturas.portal(usuario.id()));
     }
 
-    /** Desistir nos 7 primeiros dias, com o dinheiro de volta (CDC art. 49). */
+    /**
+     * Desistir em ate 7 dias da primeira cobranca, com o dinheiro de volta (CDC art. 49).
+     * {@code reembolsado} falso: cancelou no teste, sem nada a devolver.
+     */
     @PostMapping("/refund")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
-    public ResponseEntity<Void> reembolso(@AuthUser CurrentUser usuario) {
-        assinaturas.cancelarComReembolso(usuario.id());
-        return ResponseEntity.noContent().build();
+    public Map<String, Boolean> reembolso(@AuthUser CurrentUser usuario) {
+        return Map.of("reembolsado", assinaturas.cancelarComReembolso(usuario.id()));
     }
 
     /** Aberto: quem prova a origem e a assinatura HMAC do cabecalho, nao um token. */

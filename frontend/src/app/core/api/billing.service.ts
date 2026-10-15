@@ -6,17 +6,21 @@ import { InfoDoPlano, Periodo } from './models';
 /** Piggu Premium. O pagamento acontece na pagina do provedor; aqui so pegamos o endereco. */
 @Injectable({ providedIn: 'root' })
 export class BillingService extends ApiBase {
-  plano(): Observable<InfoDoPlano> {
-    return this.http.get<InfoDoPlano>(this.url('/billing/plan'));
+  /** @param campanha codigo de promocao do link (/plano?promo=), que pode liberar o teste de novo */
+  plano(campanha?: string | null): Observable<InfoDoPlano> {
+    return this.http.get<InfoDoPlano>(this.url('/billing/plan'), { params: campanha ? { campanha } : {} });
   }
 
-  checkout(periodo: Periodo): Observable<{ url: string }> {
-    return this.http.post<{ url: string }>(this.url('/billing/checkout'), { periodo });
+  checkout(periodo: Periodo, campanha?: string | null): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(this.url('/billing/checkout'), campanha ? { periodo, campanha } : { periodo });
   }
 
-  /** Desistir nos 7 primeiros dias: cancela na hora e devolve o valor. */
-  reembolso(): Observable<void> {
-    return this.http.post<void>(this.url('/billing/refund'), {});
+  /**
+   * Desistir em ate 7 dias da primeira cobranca: cancela na hora e devolve o valor.
+   * reembolsado falso: cancelou ainda no teste, sem nada a devolver.
+   */
+  reembolso(): Observable<{ reembolsado: boolean }> {
+    return this.http.post<{ reembolsado: boolean }>(this.url('/billing/refund'), {});
   }
 
   /** Trocar cartao, ver recibos e cancelar. */

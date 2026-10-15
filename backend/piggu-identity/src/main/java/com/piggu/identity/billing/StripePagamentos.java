@@ -48,8 +48,9 @@ public class StripePagamentos implements ProvedorDePagamento {
     /** A Stripe recomenda recusar avisos com mais de 5 minutos: barra reenvio de aviso capturado. */
     private static final Duration TOLERANCIA = Duration.ofMinutes(5);
 
-    private static final Set<String> EVENTOS = Set.of(
-            "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted");
+    /** trial_will_end chega 3 dias antes do fim do teste: e a hora do e-mail de aviso. */
+    private static final Set<String> EVENTOS = Set.of("customer.subscription.created",
+            "customer.subscription.updated", "customer.subscription.deleted", "customer.subscription.trial_will_end");
 
     /** past_due segue Premium ate o fim do periodo pago enquanto a Stripe tenta cobrar de novo. */
     private static final Set<String> STATUS_PAGOS = Set.of("active", "trialing", "past_due");
@@ -85,7 +86,7 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     @Override
-    public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste) {
+    public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste, String campanha) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("mode", "subscription");
         if (periodo.familia() && !propriedades.familiaHabilitado()) {
@@ -97,6 +98,9 @@ public class StripePagamentos implements ProvedorDePagamento {
         form.add("subscription_data[metadata][userId]", conta.getId().toString());
         if (diasDeTeste > 0) {
             form.add("subscription_data[trial_period_days]", Integer.toString(diasDeTeste));
+        }
+        if (campanha != null) {
+            form.add("subscription_data[metadata][campanha]", campanha);
         }
         form.add("locale", "pt-BR");
         form.add("success_url", propriedades.siteUrl() + "/plano?assinatura=ok");
@@ -122,11 +126,12 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     /**
-     * Acha a assinatura viva do cliente, confere o prazo pela data de inicio que a propria
-     * Stripe guarda, devolve cada cobranca feita desde entao e cancela na hora.
+     * Acha a assinatura viva do cliente e as cobrancas pagas dela (feitas desde o inicio que a
+     * propria Stripe guarda). O prazo conta da primeira cobranca paga, nao do inicio: o teste
+     * gratis nao gasta os 7 dias. Sem cobranca ainda (no teste), so cancela.
      */
     @Override
-    public void cancelarComReembolso(String clienteNoProvedor, Duration prazo) {
+    public boolean cancelarComReembolso(String clienteNoProvedor, Duration prazo) {
         JsonNode assinatura = StreamSupport.stream(
                         obter("/v1/subscriptions?customer={c}&status=all&limit=10", clienteNoProvedor)
                                 .path("data").spliterator(), false)
@@ -134,17 +139,24 @@ public class StripePagamentos implements ProvedorDePagamento {
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Não achei uma assinatura ativa pelo site."));
 
-        Instant inicio = Instant.ofEpochSecond(assinatura.path("start_date").asLong());
-        if (Duration.between(inicio, relogio.instant()).compareTo(prazo) > 0) {
-            throw new BusinessException("Já se passaram os 7 dias do arrependimento. Você pode cancelar em "
+        long inicio = assinatura.path("start_date").asLong();
+        List<JsonNode> pagas = StreamSupport.stream(
+                        obter("/v1/charges?customer={c}&limit=20", clienteNoProvedor).path("data").spliterator(), false)
+                .filter(cobranca -> cobranca.path("created").asLong() >= inicio && cobranca.path("paid").asBoolean())
+                .toList();
+
+        Optional<Instant> primeira = pagas.stream()
+                .map(cobranca -> Instant.ofEpochSecond(cobranca.path("created").asLong()))
+                .min(Instant::compareTo);
+        if (primeira.isPresent() && Duration.between(primeira.get(), relogio.instant()).compareTo(prazo) > 0) {
+            throw new BusinessException("Já se passaram os 7 dias desde a primeira cobrança. Você pode cancelar em "
                     + "Gerenciar assinatura, e o Premium segue até o fim do período pago.",
                     HttpStatus.CONFLICT, "PRAZO_DE_REEMBOLSO");
         }
 
         int devolvidas = 0;
-        for (JsonNode cobranca : obter("/v1/charges?customer={c}&limit=20", clienteNoProvedor).path("data")) {
-            boolean desteContrato = cobranca.path("created").asLong() >= inicio.getEpochSecond();
-            if (desteContrato && cobranca.path("paid").asBoolean() && !cobranca.path("refunded").asBoolean()) {
+        for (JsonNode cobranca : pagas) {
+            if (!cobranca.path("refunded").asBoolean()) {
                 MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
                 form.add("charge", cobranca.path("id").asString());
                 form.add("reason", "requested_by_customer");
@@ -154,6 +166,7 @@ public class StripePagamentos implements ProvedorDePagamento {
         }
         apagar("/v1/subscriptions/{id}", assinatura.path("id").asString());
         log.info("Assinatura cancelada no arrependimento: cobrancasDevolvidas={}", devolvidas);
+        return devolvidas > 0;
     }
 
     @Override
@@ -196,6 +209,11 @@ public class StripePagamentos implements ProvedorDePagamento {
 
         boolean paga = !tipo.endsWith(".deleted") && STATUS_PAGOS.contains(assinaturaStripe.path("status").asString());
         long inicio = assinaturaStripe.path("start_date").asLong(0);
+        // Ativa quer dizer que a primeira cobranca passou: no fim do teste, ou no inicio quando nao
+        // houve teste. Em teste (ou outro status) fica nulo e a familia mantem o que ja sabia.
+        long trialEnd = assinaturaStripe.path("trial_end").asLong(0);
+        long primeiraCobranca = "active".equals(assinaturaStripe.path("status").asString())
+                ? (trialEnd != 0 ? trialEnd : inicio) : 0;
         return Optional.of(new EventoDeAssinatura(
                 UUID.fromString(usuario),
                 assinaturaStripe.path("customer").asString(null),
@@ -206,7 +224,10 @@ public class StripePagamentos implements ProvedorDePagamento {
                 // O tipo sai do preco cobrado, nao do metadata: trocar de plano pelo portal
                 // muda o preco e nao o metadata.
                 propriedades.ehPrecoDoFamilia(
-                        assinaturaStripe.path("items").path("data").path(0).path("price").path("id").asString(""))));
+                        assinaturaStripe.path("items").path("data").path(0).path("price").path("id").asString("")),
+                primeiraCobranca == 0 ? null : Instant.ofEpochSecond(primeiraCobranca),
+                assinaturaStripe.path("metadata").path("campanha").asString(null),
+                tipo.endsWith(".trial_will_end") && trialEnd != 0 ? Instant.ofEpochSecond(trialEnd) : null));
     }
 
     /** Nas versoes novas da API o fim do periodo mora no item, nao na assinatura. */

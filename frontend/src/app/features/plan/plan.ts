@@ -28,8 +28,10 @@ export class Plan {
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly ocupado = signal(false);
-  protected readonly voltouDoPagamento =
-    inject(ActivatedRoute).snapshot.queryParamMap.get('assinatura') === 'ok';
+  private readonly parametros = inject(ActivatedRoute).snapshot.queryParamMap;
+  protected readonly voltouDoPagamento = this.parametros.get('assinatura') === 'ok';
+  /** Campanha do link de divulgacao (/plano?promo=CODIGO): pode liberar o teste gratis de novo. */
+  private readonly campanha = this.parametros.get('promo');
 
   constructor() {
     void this.carregar();
@@ -42,14 +44,14 @@ export class Plan {
       if (this.voltouDoPagamento) {
         await firstValueFrom(this.auth.renovar());
       }
-      this.info.set(await firstValueFrom(this.billing.plano()));
+      this.info.set(await firstValueFrom(this.billing.plano(this.campanha)));
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     }
   }
 
   protected async assinar(periodo: Periodo): Promise<void> {
-    await this.abrir(() => this.billing.checkout(periodo));
+    await this.abrir(() => this.billing.checkout(periodo, this.campanha));
   }
 
   /** Arrependimento (CDC art. 49): cancela agora e devolve tudo o que foi pago. */
@@ -60,10 +62,14 @@ export class Plan {
     this.ocupado.set(true);
     this.erro.set('');
     try {
-      await firstValueFrom(this.billing.reembolso());
+      const { reembolsado } = await firstValueFrom(this.billing.reembolso());
       await firstValueFrom(this.auth.renovar());
       this.info.set(await firstValueFrom(this.billing.plano()));
-      this.aviso.set($localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`);
+      this.aviso.set(
+        reembolsado
+          ? $localize`Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.`
+          : $localize`Premium cancelado. Você estava no teste grátis, então nada foi cobrado.`,
+      );
     } catch (falha) {
       this.erro.set(mensagemDeErro(falha));
     } finally {

@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,8 @@ import java.util.UUID;
  *   <li>sessao vencida e convite vencido saem;</li>
  *   <li>conta sem nenhum acesso por 24 meses e excluida como se a pessoa tivesse
  *       pedido (cascata pelos servicos, ver {@link MinhaContaService#excluir});</li>
- *   <li>conta desativada ha 12 meses tambem.</li>
+ *   <li>conta desativada ha 12 meses tambem;</li>
+ *   <li>CPF de conta excluida que usou o teste gratis sai 5 anos depois do uso.</li>
  * </ul>
  *
  * <p>Os prazos estao no aviso de privacidade; mudou aqui, muda la. Uma conta que falha
@@ -40,6 +42,7 @@ public class RetencaoDeDados {
     private final UserAccountRepository usuarios;
     private final MinhaContaService contas;
     private final TransactionTemplate transacao;
+    private final TestesGratis testes;
     private final Duration semAcesso;
     private final Duration desativada;
 
@@ -48,6 +51,7 @@ public class RetencaoDeDados {
                            UserAccountRepository usuarios,
                            MinhaContaService contas,
                            TransactionTemplate transacao,
+                           TestesGratis testes,
                            @Value("${piggu.retencao.conta-sem-acesso:P730D}") Duration semAcesso,
                            @Value("${piggu.retencao.conta-desativada:P365D}") Duration desativada) {
         this.sessoes = sessoes;
@@ -55,6 +59,7 @@ public class RetencaoDeDados {
         this.usuarios = usuarios;
         this.contas = contas;
         this.transacao = transacao;
+        this.testes = testes;
         this.semAcesso = semAcesso;
         this.desativada = desativada;
     }
@@ -83,7 +88,9 @@ public class RetencaoDeDados {
         transacao.executeWithoutResult(status -> {
             int sessoesApagadas = sessoes.apagarExpiradas(agora);
             int convitesApagados = convites.apagarVencidos(agora);
-            log.info("Retencao: sessoes={} convites={} apagados", sessoesApagadas, convitesApagados);
+            int cpfsApagados = testes.apagarVencidos(agora);
+            log.info("Retencao: sessoes={} convites={} cpfsDeTeste={} apagados", sessoesApagadas, convitesApagados,
+                    cpfsApagados);
         });
     }
 }

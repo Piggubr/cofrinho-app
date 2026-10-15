@@ -13,7 +13,7 @@ const GRATUITO: InfoDoPlano = {
   premiumAte: null,
   origem: null,
   reembolsoAte: null,
-  diasDeTeste: 7,
+  diasDeTeste: 14,
   assinaturaDisponivel: true,
   site: { mensal: '19,90', anual: '199,00' },
   app: { mensal: '22,89', anual: '228,85' },
@@ -33,7 +33,7 @@ describe('Plan', () => {
   let http: HttpTestingController;
   let auth: AuthFalso;
 
-  function montar(assinatura: string | null = null) {
+  function montar(assinatura: string | null = null, promo: string | null = null) {
     auth = new AuthFalso();
     auth.usuario.set(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     TestBed.configureTestingModule({
@@ -46,7 +46,12 @@ describe('Plan', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { queryParamMap: convertToParamMap(assinatura ? { assinatura } : {}) },
+            snapshot: {
+              queryParamMap: convertToParamMap({
+                ...(assinatura ? { assinatura } : {}),
+                ...(promo ? { promo } : {}),
+              }),
+            },
           },
         },
       ],
@@ -69,7 +74,7 @@ describe('Plan', () => {
 
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('R$ 19,90');
-    expect(pagina.textContent).toContain('7 dias grátis');
+    expect(pagina.textContent).toContain('14 dias grátis');
     expect(pagina.textContent).not.toContain('22,89');
 
     [...pagina.querySelectorAll('button')]
@@ -129,7 +134,30 @@ describe('Plan', () => {
     expect(auth.renovacoes()).toBe(1);
   });
 
-  it('nos 7 dias do arrependimento mostra o reembolso e, confirmado, cancela', async () => {
+  it('link de campanha: mostra os dias da campanha e leva o codigo ao pagamento', async () => {
+    const tela = montar(null, 'VOLTA30');
+    tela.detectChanges();
+    http.expectOne('/api/billing/plan?campanha=VOLTA30').flush({ ...GRATUITO, diasDeTeste: 30 });
+    await tela.whenStable();
+    tela.detectChanges();
+    expect(tela.nativeElement.textContent).toContain('30 dias grátis');
+
+    const assinar = [...(tela.nativeElement as HTMLElement).querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Assinar mensal'),
+    )!;
+    vi.spyOn(tela.componentInstance as unknown as { irPara: (url: string) => void }, 'irPara').mockImplementation(
+      () => undefined,
+    );
+    assinar.click();
+    const pedido = http.expectOne('/api/billing/checkout');
+    expect(pedido.request.body).toEqual({ periodo: 'MENSAL', campanha: 'VOLTA30' });
+    pedido.flush({ url: 'https://checkout.stripe.com/c' });
+  });
+
+  it.each([
+    [true, 'reembolso aparece'],
+    [false, 'nada foi cobrado'],
+  ])('nos 7 dias do arrependimento mostra o reembolso e, confirmado, cancela (reembolsado: %s)', async (reembolsado, mensagem) => {
     const tela = montar();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     tela.detectChanges();
@@ -150,7 +178,7 @@ describe('Plan', () => {
       b.textContent?.includes('Cancelar e pedir reembolso'),
     )!;
     botao.click();
-    http.expectOne('/api/billing/refund').flush(null);
+    http.expectOne('/api/billing/refund').flush({ reembolsado });
     await vi.waitFor(() =>
       http
         .expectOne('/api/billing/plan')
@@ -160,7 +188,7 @@ describe('Plan', () => {
     tela.detectChanges();
 
     expect(auth.renovacoes()).toBe(1);
-    expect(tela.nativeElement.textContent).toContain('reembolso aparece');
+    expect(tela.nativeElement.textContent).toContain(mensagem);
   });
 });
 

@@ -485,6 +485,10 @@ public class UserAccount {
         return trialUsedAt != null;
     }
 
+    public Instant getTrialUsedAt() {
+        return trialUsedAt;
+    }
+
     public void marcarTesteGratisUsado() {
         if (trialUsedAt == null) {
             trialUsedAt = Instant.now();
@@ -503,6 +507,11 @@ public class UserAccount {
 
     public boolean temCpf() {
         return cpfIndice != null;
+    }
+
+    /** HMAC do CPF: compara contas sem abrir o CPF. */
+    public String getCpfIndice() {
+        return cpfIndice;
     }
 
     public String getPais() {

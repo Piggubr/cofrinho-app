@@ -42,6 +42,17 @@ class CheckoutTest {
     }
 
     @Test
+    @DisplayName("com campanha, o codigo vai no metadata da assinatura para o webhook registrar o uso")
+    void comCampanha() {
+        stripe.expect(requestTo("https://stripe.test/v1/checkout/sessions"))
+                .andExpect(content().string(containsString("subscription_data%5Bmetadata%5D%5Bcampanha%5D=VOLTA30")))
+                .andRespond(withSuccess("{\"url\":\"https://checkout.stripe.test/s\"}", MediaType.APPLICATION_JSON));
+
+        pagamentos.abrirCheckout(conta, Periodo.MENSAL, 30, "VOLTA30");
+        stripe.verify();
+    }
+
+    @Test
     @DisplayName("sem dias de teste, cobra na hora")
     void semTeste() {
         stripe.expect(requestTo("https://stripe.test/v1/checkout/sessions"))

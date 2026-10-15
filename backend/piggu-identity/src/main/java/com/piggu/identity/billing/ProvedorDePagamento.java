@@ -23,19 +23,26 @@ public interface ProvedorDePagamento {
      * Endereco da pagina de pagamento do provedor.
      *
      * @param diasDeTeste dias gratis antes da primeira cobranca; 0 cobra na hora
+     * @param campanha    campanha de teste gratis, devolvida no webhook para registrar o uso; pode ser nula
      */
-    String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste);
+    String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste, String campanha);
+
+    default String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste) {
+        return abrirCheckout(conta, periodo, diasDeTeste, null);
+    }
 
     /** Endereco onde a pessoa troca cartao, ve recibos e cancela. */
     String abrirPortal(UserAccount conta);
 
     /**
      * Arrependimento (CDC art. 49): cancela na hora e devolve tudo o que foi cobrado
-     * desde o inicio da assinatura, se ela tem menos de {@code prazo}.
+     * nesta assinatura, se a primeira cobranca paga tem menos de {@code prazo}. Ainda no
+     * teste (nada cobrado), so cancela.
      *
+     * @return se alguma cobranca foi devolvida; falso quando cancelou no teste
      * @throws com.piggu.common.error.BusinessException quando passou do prazo ou nao ha assinatura
      */
-    void cancelarComReembolso(String clienteNoProvedor, Duration prazo);
+    boolean cancelarComReembolso(String clienteNoProvedor, Duration prazo);
 
     /**
      * Apaga o cliente no provedor, o que cancela na hora qualquer assinatura dele.

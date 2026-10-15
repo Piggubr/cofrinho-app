@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -53,20 +54,68 @@ class ArrependimentoTest {
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(json("{\"id\":\"sub_1\",\"status\":\"canceled\"}"));
 
-        pagamentos.cancelarComReembolso("cus_1", AssinaturaService.PRAZO_DE_ARREPENDIMENTO);
+        assertThat(pagamentos.cancelarComReembolso("cus_1", AssinaturaService.PRAZO_DE_ARREPENDIMENTO)).isTrue();
 
         stripe.verify();
     }
 
     @Test
-    @DisplayName("depois dos 7 dias nada e devolvido nem cancelado por aqui")
+    @DisplayName("teste gratis nao gasta o prazo: assinou ha 16 dias, primeira cobranca ha 2, devolve")
+    void prazoContaDaPrimeiraCobranca() {
+        assinatura(AGORA.minus(Duration.ofDays(16)).getEpochSecond());
+        cobrancas("""
+                {"data":[{"id":"ch_1","created":%d,"paid":true,"refunded":false}]}"""
+                .formatted(AGORA.minus(Duration.ofDays(2)).getEpochSecond()));
+        stripe.expect(requestTo(STRIPE + "/v1/refunds"))
+                .andExpect(content().string("charge=ch_1&reason=requested_by_customer"))
+                .andRespond(json("{\"id\":\"re_1\"}"));
+        cancelamento();
+
+        assertThat(pagamentos.cancelarComReembolso("cus_1", AssinaturaService.PRAZO_DE_ARREPENDIMENTO)).isTrue();
+
+        stripe.verify();
+    }
+
+    @Test
+    @DisplayName("ainda no teste (nada cobrado): cancela sem reembolso, mesmo depois de 7 dias do inicio")
+    void noTesteSoCancela() {
+        long inicio = AGORA.minus(Duration.ofDays(10)).getEpochSecond();
+        assinatura(inicio);
+        cobrancas("""
+                {"data":[{"id":"ch_antigo","created":%d,"paid":true,"refunded":false}]}""".formatted(inicio - 86400));
+        cancelamento();
+
+        assertThat(pagamentos.cancelarComReembolso("cus_1", AssinaturaService.PRAZO_DE_ARREPENDIMENTO))
+                .as("no teste nada foi cobrado").isFalse();
+
+        stripe.verify();
+    }
+
+    @Test
+    @DisplayName("mais de 7 dias desde a primeira cobranca: nada e devolvido nem cancelado por aqui")
     void foraDoPrazo() {
-        assinatura(AGORA.minus(Duration.ofDays(8)).getEpochSecond());
+        assinatura(AGORA.minus(Duration.ofDays(22)).getEpochSecond());
+        cobrancas("""
+                {"data":[
+                  {"id":"ch_2","created":%d,"paid":true,"refunded":false},
+                  {"id":"ch_1","created":%d,"paid":true,"refunded":false}
+                ]}""".formatted(AGORA.minus(Duration.ofDays(1)).getEpochSecond(),
+                AGORA.minus(Duration.ofDays(8)).getEpochSecond()));
 
         assertThatThrownBy(() -> pagamentos.cancelarComReembolso("cus_1", AssinaturaService.PRAZO_DE_ARREPENDIMENTO))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> org.assertj.core.api.Assertions.assertThat(erro.getCodigo()).isEqualTo("PRAZO_DE_REEMBOLSO"));
         stripe.verify();
+    }
+
+    private void cobrancas(String corpo) {
+        stripe.expect(requestTo(STRIPE + "/v1/charges?customer=cus_1&limit=20")).andRespond(json(corpo));
+    }
+
+    private void cancelamento() {
+        stripe.expect(requestTo(STRIPE + "/v1/subscriptions/sub_1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(json("{\"id\":\"sub_1\",\"status\":\"canceled\"}"));
     }
 
     private void assinatura(long inicio) {

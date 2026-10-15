@@ -85,8 +85,8 @@ piggu:
       sandbox: ${APNS_SANDBOX:false}
 
   assinatura:
-    # Teste gratis do Premium ao assinar pelo site, uma vez por conta. 0 desliga.
-    dias-de-teste: ${PIGGU_DIAS_DE_TESTE:7}
+    # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.
+    dias-de-teste: ${PIGGU_DIAS_DE_TESTE:14}
 
   revenuecat:
     # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
