@@ -248,19 +248,18 @@ docker compose version              # e sobe os serviços com o perfil producao
 whoami                              # na Oracle: "ubuntu" na imagem Ubuntu, "opc" na Oracle Linux
 ```
 
-- **`git fetch` pediu usuário/senha?** O repositório é privado: crie uma chave só de
-  leitura para o servidor buscar o código e cadastre como *Deploy key* (sem *Allow write
-  access*) em *Settings > Deploy keys* do repositório:
+- **`git fetch` pediu usuário/senha?** O repositório é público, então o servidor busca
+  pelo HTTPS sem chave nenhuma. Deixe o `origin` assim:
   ```bash
-  ssh-keygen -t ed25519 -f ~/.ssh/github-leitura -N "" -C piggu-servidor
-  cat ~/.ssh/github-leitura.pub      # cole em Settings > Deploy keys > Add deploy key
-  printf 'Host github.com\n  IdentityFile ~/.ssh/github-leitura\n' >> ~/.ssh/config
-  git -C /opt/piggu remote set-url origin git@github.com:Piggubr/cofrinho-app.git
+  git -C /opt/piggu remote set-url origin https://github.com/Piggubr/cofrinho-app.git
   git -C /opt/piggu fetch origin main
   ```
-- **`/opt/piggu` não é um clone?** Faça o clone com a chave acima e copie para dentro dele o
-  que fica fora do Git: `backend/.env`, `backend/keys/` e o `docker-compose.override.yml`, se
-  houver.
+  (Se um dia o repositório virar privado, cadastre uma *Deploy key* só de leitura em
+  *Settings > Deploy keys* e troque o `origin` para `git@github.com:Piggubr/cofrinho-app.git`.)
+- **`/opt/piggu` não é um clone?** Faça o clone
+  (`git clone https://github.com/Piggubr/cofrinho-app.git /opt/piggu`) e copie para dentro
+  dele o que fica fora do Git: `backend/.env`, `backend/keys/` e o
+  `docker-compose.override.yml`, se houver.
 - **Porta 22:** o Actions entra de IPs que mudam. Na Oracle Cloud, a *Security List* (ou o
   NSG) da VCN precisa aceitar TCP 22 de `0.0.0.0/0`; com senha desligada no SSH
   (`PasswordAuthentication no`) só entra quem tem chave. Se o SSH estiver fechado só para o
