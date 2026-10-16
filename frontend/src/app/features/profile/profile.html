@@ -86,11 +86,29 @@
       }
     </div>
 
+    <form class="linha-de-campos" (ngSubmit)="salvarApelido()" novalidate>
+      <div class="campo">
+        <label i18n for="apelido-perfil">Como quer ser chamado?</label>
+        <input
+          id="apelido-perfil"
+          name="apelido"
+          autocomplete="nickname"
+          maxlength="120"
+          [ngModel]="apelido()"
+          (ngModelChange)="apelido.set($event)"
+        />
+      </div>
+      <button i18n type="submit" class="botao contorno pequeno" [disabled]="salvandoApelido()">
+        Salvar nome
+      </button>
+    </form>
+
     <div class="acoes">
       <button i18n type="button" class="botao contorno" (click)="sair()">Sair da conta</button>
     </div>
   </section>
 }
+
 
 <section class="cartao" aria-labelledby="titulo-moeda">
   <div class="cartao-titulo">

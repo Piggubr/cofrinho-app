@@ -98,16 +98,29 @@
       } @else {
         <form class="formulario" (ngSubmit)="cadastrar()" novalidate>
           <div class="campo">
-            <label i18n for="nome-cadastro">Como podemos te chamar?</label>
+            <label i18n for="nome-cadastro">Como quer ser chamado?</label>
             <input
               id="nome-cadastro"
               name="nome"
-              autocomplete="name"
+              autocomplete="nickname"
               maxlength="120"
               [ngModel]="nome()"
               (ngModelChange)="nome.set($event)"
             />
           </div>
+          <div class="campo">
+            <label i18n for="nascimento-cadastro">Data de nascimento</label>
+            <input
+              id="nascimento-cadastro"
+              name="nascimento"
+              type="date"
+              autocomplete="bday"
+              [max]="hoje"
+              [ngModel]="nascimento()"
+              (ngModelChange)="nascimento.set($event)"
+            />
+          </div>
+
           <div class="campo">
             <label i18n for="email-cadastro">E-mail</label>
             <input

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -134,12 +135,13 @@ public class AuthService {
      */
     @Transactional
     public void cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
-                          String documento, String telefone, String versaoDosTermos) {
+                          String documento, String telefone, String versaoDosTermos, LocalDate nascimento) {
         String email = Texto.email(emailBruto);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         if (nomeLimpo.isEmpty()) {
             throw new BusinessException("Conte como podemos te chamar.");
         }
+        LocalDate dataDeNascimento = MinhaContaService.conferirNascimento(nascimento);
         senhas.validar(senha, email);
         String pais = DocumentosDeIdentidade.pais(paisDigitado);
         String celular = e164(telefone, pais);
@@ -167,6 +169,8 @@ public class AuthService {
         }
         UserAccount conta = familias.criarConta(email, nomeLimpo.split(" ")[0], versaoDosTermos, false);
         conta.setNickname(nomeLimpo);
+        conta.informarNascimento(dataDeNascimento);
+
         conta.declararPais(pais);
         conta.setPhone(celular);
         conta.definirSenha(hash);

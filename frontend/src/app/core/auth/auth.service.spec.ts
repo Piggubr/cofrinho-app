@@ -84,6 +84,7 @@ describe('AuthService', () => {
       pais: 'BR',
       documento: '52998224725',
       telefone: '11999998888',
+      nascimento: '1990-05-20',
     });
     const pedido = http.expectOne('/api/auth/cadastro');
     expect(pedido.request.body).toEqual({
@@ -93,6 +94,7 @@ describe('AuthService', () => {
       pais: 'BR',
       documento: '52998224725',
       telefone: '11999998888',
+      nascimento: '1990-05-20',
       versaoDosTermos: VERSAO_DO_AVISO,
     });
     pedido.flush(null, { status: 202, statusText: 'Accepted' });

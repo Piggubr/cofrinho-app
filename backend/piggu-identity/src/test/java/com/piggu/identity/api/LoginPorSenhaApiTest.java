@@ -50,7 +50,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     void cadastroEEntrada() throws Exception {
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\",\"nascimento\":\"1990-05-20\"}"))
                 .andExpect(status().isAccepted())
                 .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
 
@@ -68,7 +68,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
 
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\",\"nascimento\":\"1990-05-20\"}"))
                 .andExpect(status().isAccepted());
         assertThat(usuarios.count()).isEqualTo(1);
     }

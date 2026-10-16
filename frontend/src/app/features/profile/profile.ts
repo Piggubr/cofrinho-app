@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
@@ -94,6 +94,9 @@ export class Profile {
   protected readonly avisoDaSenha = signal('');
 
   protected readonly salvandoFoto = signal(false);
+  protected readonly apelido = signal(this.auth.usuario()?.apelido ?? '');
+  protected readonly salvandoApelido = signal(false);
+
   protected readonly reenviando = signal(false);
 
   /** Primeira letra do nome, no lugar da foto quando nao ha nenhuma. */
@@ -229,6 +232,24 @@ export class Profile {
         this.salvandoFoto.set(false);
       },
     });
+  }
+
+  protected async salvarApelido(): Promise<void> {
+    if (!this.apelido().trim()) {
+      this.erro.set($localize`Conte como podemos te chamar.`);
+      return;
+    }
+    this.salvandoApelido.set(true);
+    this.erro.set('');
+    this.aviso.set('');
+    try {
+      this.auth.atualizarUsuario(await firstValueFrom(this.users.sobreVoce(this.apelido().trim())));
+      this.aviso.set($localize`Nome salvo.`);
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha));
+    } finally {
+      this.salvandoApelido.set(false);
+    }
   }
 
   /** No celular, a permissao do sistema vem antes de gravar: sem ela o push fica desligado. */

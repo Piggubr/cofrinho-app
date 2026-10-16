@@ -16,6 +16,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
 import { BRASIL, ddiDoPais, documentoDoPais, listaDePaises } from '../../core/ui/documentos';
+import { hojeIso, problemaDoNascimento } from '../../core/ui/nascimento';
+
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -60,6 +62,8 @@ export class Login {
   /** Pais do DDI do celular; segue o pais onde mora ate a pessoa escolher outro. */
   protected readonly paisDoDdi = signal(BRASIL);
   protected readonly telefone = signal('');
+  protected readonly nascimento = signal('');
+  protected readonly hoje = hojeIso();
   protected readonly ddi = ddiDoPais;
   /** O documento que o pais escolhido pede; nulo nos paises onde nao se pede nenhum. */
   protected readonly documentoPedido = computed(() => documentoDoPais(this.pais()));
@@ -128,6 +132,7 @@ export class Login {
         pais: this.pais(),
         documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
         telefone: `+${ddiDoPais(this.paisDoDdi())} ${this.telefone().trim()}`,
+        nascimento: this.nascimento(),
       });
       // O backend responde igual se o e-mail ja tem conta: a tela nao entra sozinha.
       this.trocarModo('entrar');
@@ -146,6 +151,11 @@ export class Login {
     if (!this.nome().trim()) {
       return $localize`Conte como podemos te chamar.`;
     }
+    const nascimentoRuim = problemaDoNascimento(this.nascimento());
+    if (nascimentoRuim) {
+      return nascimentoRuim;
+    }
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email().trim())) {
       return $localize`Confira o e-mail.`;
     }

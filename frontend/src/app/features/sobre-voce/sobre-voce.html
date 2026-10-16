@@ -1,0 +1,47 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Sobre você</h1>
+    <p i18n class="subtitulo">Antes de começar, conte como quer ser chamado.</p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    <form class="formulario" (ngSubmit)="salvar()" novalidate>
+      <div class="campo">
+        <label i18n for="apelido">Como quer ser chamado?</label>
+        <input
+          id="apelido"
+          name="apelido"
+          autocomplete="nickname"
+          maxlength="120"
+          [ngModel]="apelido()"
+          (ngModelChange)="apelido.set($event)"
+        />
+      </div>
+      @if (pedeNascimento) {
+        <div class="campo">
+          <label i18n for="nascimento">Data de nascimento</label>
+          <input
+            id="nascimento"
+            name="nascimento"
+            type="date"
+            autocomplete="bday"
+            [max]="hoje"
+            [ngModel]="nascimento()"
+            (ngModelChange)="nascimento.set($event)"
+          />
+        </div>
+        <p i18n class="nota">
+          A data não muda depois. Quem tem entre 13 e 17 anos tem os lançamentos visíveis para o
+          titular da família.
+        </p>
+      }
+      <button i18n type="submit" class="botao" [disabled]="salvando()">Continuar</button>
+    </form>
+    <button i18n type="button" class="botao contorno pequeno sair" [disabled]="salvando()" (click)="sair()">
+      Sair
+    </button>
+  </section>
+</div>

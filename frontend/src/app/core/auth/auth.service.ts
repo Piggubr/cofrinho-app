@@ -20,7 +20,10 @@ export interface DadosDoCadastro {
   documento?: string;
   /** Celular; no Brasil pode vir so com DDD, fora comeca com + e o codigo do pais. */
   telefone: string;
+  /** aaaa-mm-dd; menos de 13 anos nao cria conta. */
+  nascimento: string;
 }
+
 
 /** Perfil guardado para abrir o app sem sinal; so com "manter conectado". */
 const CHAVE_DO_PERFIL_OFFLINE = 'piggu_perfil_offline';
@@ -67,6 +70,16 @@ export class AuthService {
     const aceitos = this.usuarioAtual()?.termosAceitos;
     return aceitos !== undefined && aceitos !== VERSAO_DO_AVISO;
   });
+
+  /**
+   * Falta como chamar ou a data de nascimento: o app pede os dois antes do resto. Perfil
+   * sem o campo (demo, resposta antiga) nao trava.
+   */
+  readonly sobreVocePendente = computed(() => {
+    const usuario = this.usuarioAtual();
+    return usuario?.nascimento !== undefined && (!usuario.apelido?.trim() || !usuario.nascimento);
+  });
+
 
   temPerfil(...perfis: PigguRole[]): boolean {
     const atual = this.usuarioAtual()?.role;

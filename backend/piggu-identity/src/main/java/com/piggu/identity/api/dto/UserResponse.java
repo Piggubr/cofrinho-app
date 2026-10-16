@@ -8,6 +8,7 @@ import com.piggu.identity.domain.UserAccount;
 import com.piggu.identity.domain.ModulosDeEstiloDeVida;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,7 +32,10 @@ import java.util.UUID;
  * <p>{@code temSenha} diz se a conta tambem entra por e-mail e senha (o Perfil oferece
  * criar ou trocar); {@code emailConfirmado} e falso enquanto a conta, criada por senha,
  * nao entrou nenhuma vez pelo Google.</p>
+ *
+ * <p>{@code apelido} ou {@code nascimento} nulos: o front pede os dois antes de liberar o app.</p>
  */
+
 public record UserResponse(
         UUID id,
         String email,
@@ -53,7 +57,8 @@ public record UserResponse(
         String termosAceitos,
         boolean temSenha,
         boolean emailConfirmado,
-        String pais
+        String pais,
+        LocalDate nascimento
 ) {
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
@@ -96,7 +101,8 @@ public record UserResponse(
                 conta.getTermsVersion(),
                 conta.temSenha(),
                 conta.isEmailVerified(),
-                conta.getPais()
+                conta.getPais(),
+                conta.getBirthDate()
         );
     }
 }

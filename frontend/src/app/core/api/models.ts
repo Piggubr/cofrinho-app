@@ -50,7 +50,10 @@ export interface Usuario {
    * so em conta que disse "fora do Brasil" antes da lista de paises; ausente conta como Brasil.
    */
   pais?: string | null;
+  /** aaaa-mm-dd; nula ate a pessoa informar (o app pede). Ausente (demo) conta como informada. */
+  nascimento?: string | null;
 }
+
 
 /** Familia de quem esta logado; convites so chegam para o titular. */
 export interface Familia {

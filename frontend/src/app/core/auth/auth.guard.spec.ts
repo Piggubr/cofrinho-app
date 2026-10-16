@@ -15,6 +15,7 @@ import { AuthService } from './auth.service';
 describe('guards de rota', () => {
   const autenticado = signal(false);
   const termosPendentes = signal(false);
+  const sobreVocePendente = signal(false);
   let restaurou = false;
   let perfil: PigguRole | null = null;
   let tentativasDeRestaurar = 0;
@@ -22,6 +23,7 @@ describe('guards de rota', () => {
   beforeEach(() => {
     autenticado.set(false);
     termosPendentes.set(false);
+    sobreVocePendente.set(false);
     restaurou = false;
     perfil = null;
     tentativasDeRestaurar = 0;
@@ -33,6 +35,7 @@ describe('guards de rota', () => {
           useValue: {
             autenticado,
             termosPendentes,
+            sobreVocePendente,
             restaurarSessao: async () => {
               tentativasDeRestaurar++;
               return restaurou;
@@ -60,6 +63,14 @@ describe('guards de rota', () => {
 
     termosPendentes.set(false);
     expect(rodar(termosGuard)).toBe(true);
+  });
+
+  it('sem nome ou data de nascimento, para em "Sobre voce" (depois dos termos)', () => {
+    sobreVocePendente.set(true);
+    expect(destino(rodar(termosGuard))).toBe('/sobre-voce');
+
+    termosPendentes.set(true);
+    expect(destino(rodar(termosGuard))).toBe('/aceite');
   });
 
   it('com sessao aberta, passa sem perguntar ao servidor', async () => {

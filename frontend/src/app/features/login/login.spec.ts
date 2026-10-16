@@ -224,6 +224,7 @@ describe('Login', () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     preencher(tela, 'nome-cadastro', 'Ana');
+    preencher(tela, 'nascimento-cadastro', '1990-05-20');
     preencher(tela, 'email-cadastro', 'ana@piggu.test');
     preencher(tela, 'senha-cadastro', 'curta');
     preencher(tela, 'confirmacao-cadastro', 'curta');
@@ -274,6 +275,7 @@ describe('Login', () => {
         pais: 'BR',
         documento: '52998224725',
         telefone: '+55 (11) 99999-8888',
+        nascimento: '1990-05-20',
       },
     ]);
     // Sem sessao: pede para confirmar o e-mail e entrar, a mesma coisa para e-mail repetido.
@@ -293,6 +295,7 @@ describe('Login', () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     preencher(tela, 'nome-cadastro', 'Ana');
+    preencher(tela, 'nascimento-cadastro', '1990-05-20');
     preencher(tela, 'email-cadastro', 'ana@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
@@ -331,6 +334,7 @@ describe('Login', () => {
     await escolher('PT');
     expect(pagina.querySelector('label[for=documento-cadastro]')?.textContent).toContain('NIF');
     preencher(tela, 'nome-cadastro', 'Rita');
+    preencher(tela, 'nascimento-cadastro', '1990-05-20');
     preencher(tela, 'email-cadastro', 'rita@piggu.test');
     preencher(tela, 'senha-cadastro', 'cofrinho123');
     preencher(tela, 'confirmacao-cadastro', 'cofrinho123');
@@ -353,6 +357,7 @@ describe('Login', () => {
       pais: 'PT',
       documento: '123456789',
       telefone: '+351 912 345 678',
+      nascimento: '1990-05-20',
     });
   });
 });

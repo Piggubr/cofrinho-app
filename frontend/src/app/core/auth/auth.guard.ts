@@ -16,11 +16,18 @@ export const autenticadoGuard: CanActivateFn = async () => {
   return restaurada ? true : router.createUrlTree(['/entrar']);
 };
 
-/** Termos novos ainda nao aceitos: so passa pela tela de aceite. */
+/**
+ * Termos novos ainda nao aceitos: so passa pela tela de aceite. Depois, falta como
+ * chamar ou a data de nascimento: so passa pela tela "Sobre voce".
+ */
 export const termosGuard: CanActivateFn & CanActivateChildFn = () => {
   const auth = inject(AuthService);
-  return auth.termosPendentes() ? inject(Router).createUrlTree(['/aceite']) : true;
+  if (auth.termosPendentes()) {
+    return inject(Router).createUrlTree(['/aceite']);
+  }
+  return auth.sobreVocePendente() ? inject(Router).createUrlTree(['/sobre-voce']) : true;
 };
+
 
 /**
  * Restringe uma rota a perfis especificos.

@@ -35,7 +35,13 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/me/pais'), { pais, documento });
   }
 
+  /** Como quer ser chamado e, so na primeira vez, a data de nascimento (aaaa-mm-dd). */
+  sobreVoce(apelido: string, nascimento?: string): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/sobre-voce'), { apelido, nascimento });
+  }
+
   /** Aceite da versao nova dos Termos e do Aviso por quem ja tem conta. */
+
   aceitarTermos(versao: string): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/me/termos'), { versao });
   }

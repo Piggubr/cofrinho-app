@@ -35,7 +35,14 @@ export const routes: Routes = [
     canActivate: [autenticadoGuard],
     loadComponent: () => import('./features/aceite/aceite').then((m) => m.Aceite),
   },
+  // Como quer ser chamado e data de nascimento, uma vez, antes do resto.
+  {
+    path: 'sobre-voce',
+    canActivate: [autenticadoGuard],
+    loadComponent: () => import('./features/sobre-voce/sobre-voce').then((m) => m.SobreVoce),
+  },
   // Informar o documento (opcional), oferecido pelo Perfil.
+
   {
     path: 'cpf',
     canActivate: [autenticadoGuard, termosGuard],

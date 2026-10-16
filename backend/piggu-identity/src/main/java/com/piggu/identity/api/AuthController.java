@@ -73,7 +73,8 @@ public class AuthController {
     public ResponseEntity<Void> cadastrar(@Valid @RequestBody CadastroRequest pedido) {
         String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
         servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
-                pedido.telefone(), pedido.versaoDosTermos());
+                pedido.telefone(), pedido.versaoDosTermos(), pedido.nascimento());
+
         return ResponseEntity.accepted().build();
     }
 

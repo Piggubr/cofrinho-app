@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.Map;
+
 
 /** CPF e foto da conta, copia dos dados e exclusao da conta (LGPD art. 18). Gratis em qualquer plano e papel. */
 @RestController
@@ -60,7 +62,18 @@ public class MinhaContaController {
         return servico.informarPais(usuario.id(), pedido.pais(), pedido.documento());
     }
 
-    public record FotoRequest(@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,
+    public record SobreVoceRequest(@NotBlank(message = "Conte como podemos te chamar.") @Size(max = 120) String apelido,
+                                   LocalDate nascimento) {
+    }
+
+    /** Como quer ser chamado e a data de nascimento (esta so na primeira vez). */
+    @PutMapping("/sobre-voce")
+    public UserResponse sobreVoce(@Valid @RequestBody SobreVoceRequest pedido, @AuthUser CurrentUser usuario) {
+        return servico.sobreVoce(usuario.id(), pedido.apelido(), pedido.nascimento());
+    }
+
+    public record FotoRequest(
+@NotBlank(message = "Escolha uma foto.") @Size(max = 250_000) String imagemBase64,
                               @NotBlank @Size(max = 40) String mimeType) {
     }
 

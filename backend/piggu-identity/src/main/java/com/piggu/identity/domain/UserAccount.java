@@ -13,6 +13,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,10 @@ public class UserAccount {
 
     @Column(name = "first_name", length = 80)
     private String firstName;
+
+    /** Decide se a pessoa e menor de idade ({@link #MAIORIDADE}); entra uma vez, como o CPF. */
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @Column(nullable = false)
     private boolean active = true;
@@ -316,6 +322,34 @@ public class UserAccount {
             return googleName.split("\\s+")[0];
         }
         return email.split("@")[0];
+    }
+
+    /** Idade a partir da qual a pessoa deixa de ser menor e so ela ve os proprios dados. */
+    public static final int MAIORIDADE = 18;
+
+    /** Idade minima para ter conta (LGPD art. 14). */
+    public static final int IDADE_MINIMA = 13;
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    /** Fica presa a conta: mudar depois deixaria o menor sair da vista do titular. */
+    public void informarNascimento(LocalDate data) {
+        if (birthDate != null) {
+            throw new IllegalStateException("A conta ja tem data de nascimento");
+        }
+        this.birthDate = data;
+    }
+
+    /** Menor de 18 com data informada; sem data, ninguem trata a pessoa como menor. */
+    public boolean menorDeIdade(LocalDate hoje) {
+        return birthDate != null && Period.between(birthDate, hoje).getYears() < MAIORIDADE;
+    }
+
+    /** Falta como chamar ou a data de nascimento: o app pede antes de liberar o resto. */
+    public boolean perfilIncompleto() {
+        return nickname == null || nickname.isBlank() || birthDate == null;
     }
 
     public UUID getId() {

@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +186,44 @@ public class MinhaContaService {
         return UserResponse.de(conta, familia.daConta(conta));
     }
 
+    /**
+     * Como a pessoa quer ser chamada e, se ainda nao informou, quando nasceu. O nome muda
+     * quando quiser; a data entra uma vez (ver {@link UserAccount#informarNascimento}).
+     */
+    @Transactional
+    public UserResponse sobreVoce(UUID contaId, String apelido, LocalDate nascimento) {
+        UserAccount conta = conta(contaId);
+        String nome = Texto.limitar(Texto.espacoUnico(apelido), 120);
+        if (nome.isEmpty()) {
+            throw new BusinessException("Conte como podemos te chamar.");
+        }
+        conta.setNickname(nome);
+        if (conta.getBirthDate() == null) {
+            if (nascimento == null) {
+                throw new BusinessException("Informe sua data de nascimento.");
+            }
+            conta.informarNascimento(conferirNascimento(nascimento));
+        }
+        usuarios.save(conta);
+        log.info("Sobre voce atualizado: conta={}", conta.getId());
+        return UserResponse.de(conta, familia.daConta(conta));
+    }
+
+    /** Data plausivel e de quem tem pelo menos {@link UserAccount#IDADE_MINIMA} anos. */
+    public static LocalDate conferirNascimento(LocalDate data) {
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        if (data == null || data.isAfter(hoje) || data.isBefore(hoje.minusYears(120))) {
+            throw new BusinessException("Confira a data de nascimento.");
+        }
+        if (data.isAfter(hoje.minusYears(UserAccount.IDADE_MINIMA))) {
+            throw new BusinessException("O Piggu Ã© para quem tem " + UserAccount.IDADE_MINIMA + " anos ou mais.",
+                    HttpStatus.UNPROCESSABLE_CONTENT, "IDADE_MINIMA");
+        }
+        return data;
+    }
+
     /** Confere o documento de fora; devolve o numero limpo. Repetido nao barra. */
+
     public String conferirDocumento(DocumentosDeIdentidade.Tipo tipo, String digitado) {
         return tipo.normalizar(digitado);
     }
