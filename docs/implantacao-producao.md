@@ -238,6 +238,34 @@ A chave que o Actions usa só consegue rodar esse script (`command=` no
 `authorized_keys`): quem a tivesse não abriria um terminal no servidor, só pediria para
 publicar um commit que já está na branch.
 
+**Antes de tudo, confira no servidor** (o script roda lá, então tudo isto precisa existir):
+
+```bash
+cd /opt/piggu && git remote -v      # um clone do repositório (não uma cópia de arquivos)
+git fetch origin main               # precisa funcionar sem pedir senha (ver abaixo)
+node -v && npm -v                   # o script compila o site no servidor
+docker compose version              # e sobe os serviços com o perfil producao
+whoami                              # na Oracle: "ubuntu" na imagem Ubuntu, "opc" na Oracle Linux
+```
+
+- **`git fetch` pediu usuário/senha?** O repositório é privado: crie uma chave só de
+  leitura para o servidor buscar o código e cadastre como *Deploy key* (sem *Allow write
+  access*) em *Settings > Deploy keys* do repositório:
+  ```bash
+  ssh-keygen -t ed25519 -f ~/.ssh/github-leitura -N "" -C piggu-servidor
+  cat ~/.ssh/github-leitura.pub      # cole em Settings > Deploy keys > Add deploy key
+  printf 'Host github.com\n  IdentityFile ~/.ssh/github-leitura\n' >> ~/.ssh/config
+  git -C /opt/piggu remote set-url origin git@github.com:Piggubr/cofrinho-app.git
+  git -C /opt/piggu fetch origin main
+  ```
+- **`/opt/piggu` não é um clone?** Faça o clone com a chave acima e copie para dentro dele o
+  que fica fora do Git: `backend/.env`, `backend/keys/` e o `docker-compose.override.yml`, se
+  houver.
+- **Porta 22:** o Actions entra de IPs que mudam. Na Oracle Cloud, a *Security List* (ou o
+  NSG) da VCN precisa aceitar TCP 22 de `0.0.0.0/0`; com senha desligada no SSH
+  (`PasswordAuthentication no`) só entra quem tem chave. Se o SSH estiver fechado só para o
+  seu IP, o job falha com timeout.
+
 **No servidor** (uma vez):
 
 ```bash
@@ -261,6 +289,28 @@ depois do `rm`.)
    `DEPLOY_HOST_KEY` (a linha do `echo`).
 3. *Settings > Secrets and variables > Actions > Variables*: `DEPLOY_LIGADO` = `true`.
    Sem ela o job fica cinza (pulado), nunca vermelho.
+4. Se o usuário do servidor não for `ubuntu` (na Oracle Linux é `opc`), crie também a
+   variável `DEPLOY_USUARIO` com o nome dele.
+
+**Testar a ligação sem publicar nada** (do seu computador, com a chave do
+`cat ~/actions-deploy` salva num arquivo antes do `rm`). Um commit que não existe faz o
+script buscar a `main` e parar sem mexer em nada:
+
+```bash
+ssh -i actions-deploy ubuntu@IP_DO_SERVIDOR 0000000000000000000000000000000000000000
+```
+
+Tem que aparecer "==> Buscando main" e depois "O commit ... nao esta em main; nada foi
+feito.". Isso prova que o SSH entra, que a chave só roda o script e que o servidor busca o
+código. Não teste com um commit de verdade da `main` enquanto ela ainda tiver o app antigo:
+o script trocaria o servidor para ele.
+
+**A primeira vez que a nova arquitetura chega na `main`:** o servidor hoje roda a
+`feature/nova-arquitetura`. O caminho é PR da feature para a `develop`, depois PR da
+`develop` para a `main` (o job "Origem do PR para a main" só aceita a `develop` ou
+`hotfix/...`). No merge, o CI roda e o job publica sozinho; acompanhe em *Actions*. As
+migrações de banco rodam na subida dos serviços: faça um backup antes desse primeiro
+merge (seção 6).
 
 Publicar de novo o mesmo commit (por exemplo, depois de mudar o `.env`): no Actions, abra
 a última execução do CI na branch e use *Re-run all jobs*. Para publicar à mão, no
