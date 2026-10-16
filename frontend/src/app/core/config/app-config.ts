@@ -18,5 +18,5 @@ export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG');
 
 export const appConfigPadrao: AppConfig = {
   apiUrl: '/api',
-  googleClientId: '532290439779-olhgd7m1hssj4o30gjs3ngrcs7ga48aa.apps.googleusercontent.com',
+  googleClientId: '80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com',
 };

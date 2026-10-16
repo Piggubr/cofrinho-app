@@ -43,7 +43,7 @@ piggu:
     # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
     client-ids:
-      - ${GOOGLE_CLIENT_ID:532290439779-olhgd7m1hssj4o30gjs3ngrcs7ga48aa.apps.googleusercontent.com}
+      - ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
   jwt:
     issuer: ${JWT_ISSUER:https://piggu.app}
     # Sem valor padrao de proposito: sem JWT_PRIVATE_KEY e JWT_PUBLIC_KEY o servico
