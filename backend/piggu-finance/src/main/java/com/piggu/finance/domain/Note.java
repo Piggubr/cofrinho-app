@@ -1,10 +1,12 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
@@ -18,6 +20,7 @@ import java.util.UUID;
  * <p>Uma nota com valor maior que zero representa um evento pago: ao ser criada
  * ela tambem gera um gasto, e {@code expenseId} guarda esse vinculo.</p>
  */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "notes")
 public class Note {

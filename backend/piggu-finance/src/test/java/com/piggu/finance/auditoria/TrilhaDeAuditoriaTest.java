@@ -51,7 +51,7 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
     private TrilhaDeAuditoria trilha;
 
     @Test
-    @DisplayName("o titular lanca, o parceiro corrige e apaga: o historico mostra os tres, do mais novo ao mais velho")
+    @DisplayName("o titular lanca, corrige e apaga: o historico mostra os tres, do mais novo ao mais velho")
     void gastoLancadoEditadoEApagado() throws Exception {
         String id = json.readTree(mockMvc.perform(post("/api/expenses").with(titular)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -60,14 +60,19 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
 
         mockMvc.perform(put("/api/expenses/" + id).with(parceiro).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"item\":\"Pao\",\"categoria\":\"Lazer\",\"valor\":15}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(put("/api/expenses/" + id).with(titular).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"item\":\"Pao\",\"categoria\":\"Lazer\",\"valor\":15}"))
                 .andExpect(status().isOk());
-        mockMvc.perform(delete("/api/expenses/" + id).with(parceiro)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/expenses/" + id).with(titular)).andExpect(status().isNoContent());
 
+        mockMvc.perform(get("/api/history").param("entidade", "gasto").with(parceiro))
+                .andExpect(jsonPath("$.length()").value(0));
         mockMvc.perform(get("/api/history").param("entidade", "gasto").with(titular))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].acao").value("APAGOU"))
-                .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(emailParceiro).toString()))
+                .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(emailTitular).toString()))
                 .andExpect(jsonPath("$[0].antes").value("2026-09-10 · Pao · Lazer · 15.00"))
                 .andExpect(jsonPath("$[1].acao").value("EDITOU"))
                 .andExpect(jsonPath("$[1].antes").value("2026-09-10 · Pao · Lazer · 12.50"))
@@ -78,7 +83,7 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("receita, meta e cofrinho tambem entram; o membro nao ve o historico e a vizinha nao ve o nosso")
+    @DisplayName("receita, meta e cofrinho tambem entram; cada um ve o que fez e a vizinha nao ve o nosso")
     void outrasEntidadesEPermissoes() throws Exception {
         mockMvc.perform(post("/api/incomes").with(titular).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"data\":\"2026-09-05\",\"descricao\":\"Salario\",\"categoria\":\"Salário\",\"valor\":5000}"))
@@ -88,11 +93,14 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
         mockMvc.perform(post("/api/piggy-bank/deposits").with(membro).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"data\":\"2026-09-01\",\"valor\":100}")).andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/history").with(parceiro))
-                .andExpect(jsonPath("$.length()").value(3))
+        mockMvc.perform(get("/api/history").with(titular))
+                .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[*].entidade").value(org.hamcrest.Matchers.containsInAnyOrder(
-                        "receita", "meta", "deposito")));
-        mockMvc.perform(get("/api/history").with(membro)).andExpect(status().isForbidden());
+                        "receita", "meta")));
+        mockMvc.perform(get("/api/history").with(membro))
+                .andExpect(jsonPath("$[*].entidade").value(org.hamcrest.Matchers.containsInAnyOrder("deposito")));
+        mockMvc.perform(get("/api/history").with(parceiro)).andExpect(jsonPath("$.length()").value(0));
+
         mockMvc.perform(get("/api/history").with(TokensDeTeste.da(UUID.randomUUID(), "vizinha@piggu.test", PigguRole.TITULAR)))
                 .andExpect(jsonPath("$.length()").value(0));
     }

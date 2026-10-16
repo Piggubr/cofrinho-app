@@ -1,6 +1,8 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.dados.EscopoDeExclusao;
+import com.piggu.common.security.CurrentUserArgumentResolver;
+import com.piggu.common.security.PigguRole;
 import com.piggu.identity.config.JwtProperties;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -15,8 +17,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Emissao dos tokens do Piggu.
@@ -32,10 +39,12 @@ public class TokenService {
 
     private final JwtEncoder encoder;
     private final JwtProperties propriedades;
+    private final UserAccountRepository usuarios;
 
-    public TokenService(JwtEncoder encoder, JwtProperties propriedades) {
+    public TokenService(JwtEncoder encoder, JwtProperties propriedades, UserAccountRepository usuarios) {
         this.encoder = encoder;
         this.propriedades = propriedades;
+        this.usuarios = usuarios;
     }
 
     /**
@@ -54,12 +63,22 @@ public class TokenService {
         return gerar(conta, familia, Duration.ofMinutes(5), escopo);
     }
 
+    /** Token de cinco minutos que leva o que e da pessoa para a familia {@code destino}. */
+    public String gerarTokenDeMudanca(UserAccount conta, Household familia, UUID destino) {
+        return gerar(conta, familia, Duration.ofMinutes(5), EscopoDeExclusao.MUDAR, destino);
+    }
+
     /** Token de cinco minutos para o lembrete diario ler os avisos da pessoa no financeiro. */
     public String gerarTokenDoLembrete(UserAccount conta, Household familia) {
         return gerar(conta, familia, Duration.ofMinutes(5), null);
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao) {
+        return gerar(conta, familia, validade, exclusao, null);
+    }
+
+    private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
+                         UUID destino) {
         Instant agora = Instant.now();
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .issuer(propriedades.issuer())
@@ -77,9 +96,29 @@ public class TokenService {
         if (exclusao != null) {
             claims.claim(EscopoDeExclusao.CLAIM, exclusao.name());
         }
+        if (destino != null) {
+            claims.claim(EscopoDeExclusao.CLAIM_DESTINO, destino.toString());
+        }
+        // O titular ve tambem os dados dos menores da familia (DonoAtual nos servicos). Fez
+        // 18 anos ou mudou de familia? Vale na proxima renovacao (ate 5 min).
+        List<String> menores = menoresVisiveis(conta, familia);
+        if (!menores.isEmpty()) {
+            claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_MENORES, menores);
+        }
 
         JwsHeader cabecalho = JwsHeader.with(SignatureAlgorithm.RS256).keyId("piggu-signing-key").build();
         return encoder.encode(JwtEncoderParameters.from(cabecalho, claims.build())).getTokenValue();
+    }
+
+    private List<String> menoresVisiveis(UserAccount conta, Household familia) {
+        if (conta.getRole() != PigguRole.TITULAR && conta.getRole() != PigguRole.ADMIN) {
+            return List.of();
+        }
+        LocalDate hoje = LocalDate.now(ZoneId.of(conta.getTimezone()));
+        return usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId()).stream()
+                .filter(outro -> !outro.getId().equals(conta.getId()) && outro.menorDeIdade(hoje))
+                .map(outro -> outro.getId().toString())
+                .toList();
     }
 
     /** Token opaco de 256 bits para a sessao longa. Nunca e' gravado em claro. */

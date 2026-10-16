@@ -119,10 +119,10 @@ describe('GirlsMath', () => {
     confirmar.mockRestore();
   });
 
-  it('o membro usa sem foto, porque o servico de fotos nao o aceita', () => {
+  it('o membro tambem coloca foto', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
     const { pagina } = abrir([]);
-    expect(pagina.querySelector('label.foto')).toBeNull();
+    expect(pagina.querySelector('label.foto')).not.toBeNull();
     expect(pagina.querySelector('#produtoGm')).not.toBeNull();
   });
 });

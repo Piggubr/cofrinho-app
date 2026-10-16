@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Exportar e apagar os dados da pessoa neste servico.
@@ -42,7 +43,12 @@ public class MeusDadosController {
         if (escopo == null) {
             throw new ForbiddenException("Exclusao de dados so pelo pedido de exclusao da conta.");
         }
-        dados.apagar(usuario, escopo);
+        if (escopo == EscopoDeExclusao.MUDAR) {
+            dados.mover(usuario, UUID.fromString(token.getClaimAsString(EscopoDeExclusao.CLAIM_DESTINO)));
+        } else {
+            dados.apagar(usuario, escopo);
+        }
         return ResponseEntity.noContent().build();
+
     }
 }

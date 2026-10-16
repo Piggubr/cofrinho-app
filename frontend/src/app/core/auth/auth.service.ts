@@ -54,12 +54,10 @@ export class AuthService {
   readonly ehPremium = computed(
     () => this.usuarioAtual()?.role === 'ADMIN' || this.usuarioAtual()?.plano === 'PREMIUM',
   );
-  /** O membro da familia so alcanca o painel e o cofrinho. */
-  readonly ehMembro = computed(() => this.usuarioAtual()?.role === 'MEMBRO');
   /** Titular da familia; o ADMIN vale como titular dentro da propria familia. */
   readonly ehTitular = computed(() => this.usuarioAtual()?.role === 'TITULAR' || this.ehAdmin());
-  /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
-  readonly podeLancar = computed(
+  /** Cria e edita os premios da familia: titular (ou ADMIN) e parceiro. */
+  readonly cuidaDosPremios = computed(
     () => this.ehTitular() || this.usuarioAtual()?.role === 'PARCEIRO',
   );
 

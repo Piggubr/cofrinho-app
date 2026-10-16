@@ -29,12 +29,13 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao alcanca lugares, filmes nem compras")
-    void membroNaoAlcanca() throws Exception {
-        mockMvc.perform(get("/api/places").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/movies").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+    @DisplayName("membro alcanca lugares, filmes e compras (so os dele)")
+    void membroAlcanca() throws Exception {
+        mockMvc.perform(get("/api/places").with(TokensDeTeste.membro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/movies").with(TokensDeTeste.membro())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/shopping/items").with(TokensDeTeste.membro())).andExpect(status().isOk());
     }
+
 
     @Test
     @DisplayName("metas do mes e girls math sao pessoais: membro tambem usa")

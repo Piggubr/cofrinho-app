@@ -181,9 +181,9 @@ describe('Family', () => {
     expect(pagina.textContent).toContain('Bia · MEMBRO → Bia · PARCEIRO');
   });
 
-  it('membro nao ve o historico', () => {
+  it('membro tambem ve o historico (o que ele fez)', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
-    expect(abrir().textContent).not.toContain('Ver histórico');
+    expect(abrir().textContent).toContain('Ver histórico');
   });
 
   it('membro nao ve convites nem botao de remover', () => {

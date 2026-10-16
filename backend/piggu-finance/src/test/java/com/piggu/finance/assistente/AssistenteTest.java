@@ -109,7 +109,7 @@ class AssistenteTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("sem consentimento pede a autorizacao; no gratuito pede o Premium; membro nao entra")
+    @DisplayName("sem consentimento pede a autorizacao; no gratuito pede o Premium")
     void portas() throws Exception {
         perguntar(casas.casaA, false)
                 .andExpect(status().isUnprocessableContent())
@@ -121,9 +121,8 @@ class AssistenteTest extends PostgresIntegrationTest {
         perguntar(gratuita, true)
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.codigo").value("PLANO_PREMIUM"));
-
-        perguntar(TokensDeTeste.membro(), true).andExpect(status().isForbidden());
     }
+
 
     @Test
     @DisplayName("retirar a autorizacao faz o assistente pedir de novo antes de enviar")

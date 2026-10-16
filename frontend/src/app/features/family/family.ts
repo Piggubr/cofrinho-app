@@ -164,7 +164,7 @@ export class Family {
 
   protected remover(membro: MembroDaFamilia): void {
     if (
-      !confirm($localize`Tirar ${membro.nome} da família? O que essa pessoa lançou continua aqui.`)
+      !confirm($localize`Tirar ${membro.nome} da família? A pessoa leva o que lançou e a família deixa de ver.`)
     ) {
       return;
     }
@@ -174,7 +174,7 @@ export class Family {
   protected sairDaFamilia(): void {
     if (
       !confirm(
-        $localize`Sair da família? Você passa a ter uma família só sua e precisa entrar de novo.`,
+        $localize`Sair da família? Você leva o que lançou para uma família só sua e precisa entrar de novo.`,
       )
     ) {
       return;

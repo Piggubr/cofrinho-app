@@ -10,5 +10,7 @@ public interface MovieRepository extends JpaRepository<Movie, UUID> {
 
     List<Movie> findAllByOrderByCreatedAtDesc();
 
-    Optional<Movie> findByTmdbId(String tmdbId);
+    /** Por pessoa: o titular ve os filmes dos menores, mas tem a propria lista. */
+    Optional<Movie> findByTmdbIdAndUserId(String tmdbId, UUID userId);
+
 }

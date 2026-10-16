@@ -51,13 +51,15 @@ class MeusDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("titular exporta a familia inteira; membro, so o que lancou")
+    @DisplayName("cada um exporta o que lancou; o titular, tambem o dos menores")
     void exportar() throws Exception {
         mockMvc.perform(get("/api/meus-dados").with(titular))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.expenses.length()").value(1))
-                .andExpect(jsonPath("$.piggy_deposits.length()").value(1))
+                .andExpect(jsonPath("$.piggy_deposits.length()").value(0))
                 .andExpect(jsonPath("$.expenses[0].item").value("Mercado do titular"));
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.titularComMenores(familia, emailMembro)))
+                .andExpect(jsonPath("$.piggy_deposits.length()").value(1));
 
         mockMvc.perform(get("/api/meus-dados").with(membro))
                 .andExpect(jsonPath("$.expenses.length()").value(0))
@@ -72,15 +74,15 @@ class MeusDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("quando a pessoa sai e a familia fica, o que ela lancou fica sem dono")
+    @DisplayName("quando a pessoa exclui a conta e a familia fica, o que ela lancou sai com ela")
     void pessoaSaiFamiliaFica() throws Exception {
         mockMvc.perform(delete("/api/meus-dados")
                         .with(TokensDeTeste.exclusao(familia, emailMembro, PigguRole.MEMBRO, "PESSOA")))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/piggy-bank").with(titular))
-                .andExpect(jsonPath("$.depositos.length()").value(1))
-                .andExpect(jsonPath("$.depositos[0].usuario").isEmpty());
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.titularComMenores(familia, emailMembro)))
+                .andExpect(jsonPath("$.piggy_deposits.length()").value(0));
+
         mockMvc.perform(get("/api/expenses").with(titular))
                 .andExpect(jsonPath("$[0].usuario").value(TokensDeTeste.idDe(emailTitular).toString()));
     }

@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import java.time.Instant;
+import java.time.LocalDate;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,6 +31,30 @@ class TokenServiceTest extends PostgresIntegrationTest {
 
     @Autowired
     private JwtDecoder decoder;
+
+    @Autowired
+    private UserAccountRepository usuarios;
+
+    @Autowired
+    private HouseholdRepository casas;
+
+    @Test
+    @DisplayName("o titular leva no token os menores (13 a 17) da familia; o menor e os adultos, nao")
+    void menoresNoTokenDoTitular() {
+        Household casa = casas.save(new Household("Casa com menor"));
+        UserAccount titular = usuarios.save(new UserAccount("titular.menores@piggu.test", PigguRole.TITULAR, casa.getId()));
+        UserAccount menor = new UserAccount("menor.menores@piggu.test", PigguRole.MEMBRO, casa.getId());
+        menor.informarNascimento(LocalDate.now().minusYears(15));
+        usuarios.save(menor);
+        UserAccount adulto = new UserAccount("adulto.menores@piggu.test", PigguRole.PARCEIRO, casa.getId());
+        adulto.informarNascimento(LocalDate.now().minusYears(18));
+        usuarios.save(adulto);
+
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("menores"))
+                .containsExactly(menor.getId().toString());
+        assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa)).hasClaim("menores")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa)).hasClaim("menores")).isFalse();
+    }
 
     @Test
     @DisplayName("access token carrega id, e-mail, papel, plano e familia, e e verificavel pela chave publica")

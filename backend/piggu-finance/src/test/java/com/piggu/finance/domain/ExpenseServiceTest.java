@@ -1,6 +1,9 @@
 package com.piggu.finance.domain;
 
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.PigguRole;
+
 import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.api.dto.SaveExpensesRequest;
@@ -23,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ExpenseServiceTest extends PostgresIntegrationTest {
 
     private static final UUID PESSOA = UUID.randomUUID();
+    private static final CurrentUser DONO = new CurrentUser(PESSOA, "dono@piggu.test", PigguRole.MEMBRO);
 
     @Autowired
     private ExpenseService gastos;
@@ -90,7 +94,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
         ), PESSOA).get(0);
 
         ExpenseResponse editado = gastos.atualizar(original.id(),
-                new UpdateExpenseRequest("Leite meio gordo", "Lazer", new BigDecimal("2.50")));
+                new UpdateExpenseRequest("Leite meio gordo", "Lazer", new BigDecimal("2.50")), DONO);
 
         assertThat(editado.item()).isEqualTo("Leite meio gordo");
         assertThat(editado.categoria()).isEqualTo("Lazer");
@@ -116,7 +120,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
     void gastoInexistente() {
         UUID ausente = UUID.randomUUID();
 
-        assertThatThrownBy(() -> gastos.excluir(ausente))
+        assertThatThrownBy(() -> gastos.excluir(ausente, DONO))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Gasto nao encontrado.");
     }

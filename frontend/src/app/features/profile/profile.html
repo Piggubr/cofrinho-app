@@ -168,40 +168,38 @@
   </div>
 </section>
 
-@if (!auth.ehMembro()) {
-  <section class="cartao" aria-labelledby="titulo-avisos">
-    <div class="cartao-titulo">
-      <h2 i18n id="titulo-avisos">Avisos</h2>
-    </div>
-    <p i18n class="linha-detalhe">
-      Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app
-      fechado. No máximo uma vez por dia, e só quando há novidade.
-    </p>
-    <!-- Cada toque ja salva, como nos Ajustes do iPhone. -->
+<section class="cartao" aria-labelledby="titulo-avisos">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-avisos">Avisos</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app
+    fechado. No máximo uma vez por dia, e só quando há novidade.
+  </p>
+  <!-- Cada toque ja salva, como nos Ajustes do iPhone. -->
+  <label class="caixa linha-chave">
+    <span i18n>Por e-mail, para {{ auth.usuario()?.email }}</span>
+    <input
+      type="checkbox"
+      class="chave"
+      [ngModel]="avisoPorEmail()"
+      [disabled]="salvandoAvisos()"
+      (ngModelChange)="avisoPorEmail.set($event); salvarAvisos()"
+    />
+  </label>
+  @if (celular.disponivel) {
     <label class="caixa linha-chave">
-      <span i18n>Por e-mail, para {{ auth.usuario()?.email }}</span>
+      <span i18n>Notificação neste iPhone</span>
       <input
         type="checkbox"
         class="chave"
-        [ngModel]="avisoPorEmail()"
+        [ngModel]="avisoNoCelular()"
         [disabled]="salvandoAvisos()"
-        (ngModelChange)="avisoPorEmail.set($event); salvarAvisos()"
+        (ngModelChange)="avisoNoCelular.set($event); salvarAvisos()"
       />
     </label>
-    @if (celular.disponivel) {
-      <label class="caixa linha-chave">
-        <span i18n>Notificação neste iPhone</span>
-        <input
-          type="checkbox"
-          class="chave"
-          [ngModel]="avisoNoCelular()"
-          [disabled]="salvandoAvisos()"
-          (ngModelChange)="avisoNoCelular.set($event); salvarAvisos()"
-        />
-      </label>
-    }
-  </section>
-}
+  }
+</section>
 
 <section class="cartao" id="organizar-painel" aria-labelledby="titulo-painel">
   <div class="cartao-titulo">
@@ -336,14 +334,12 @@
   </div>
 </section>
 
-@if (!auth.ehMembro()) {
-  <section class="cartao" aria-labelledby="titulo-ia">
-    <div class="cartao-titulo">
-      <h2 i18n id="titulo-ia">Autorizações da IA</h2>
-    </div>
-    <app-autorizacoes-de-ia />
-  </section>
-}
+<section class="cartao" aria-labelledby="titulo-ia">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-ia">Autorizações da IA</h2>
+  </div>
+  <app-autorizacoes-de-ia />
+</section>
 
 @if (auth.usuario(); as pessoa) {
   <section class="cartao" aria-labelledby="titulo-senha">

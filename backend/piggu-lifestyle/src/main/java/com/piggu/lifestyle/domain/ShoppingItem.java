@@ -1,10 +1,12 @@
 package com.piggu.lifestyle.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
@@ -16,6 +18,7 @@ import java.util.UUID;
  * <p>Marca, imagem e codigo de barras chegam da busca de produtos e por isso podem
  * estar vazios quando o item foi digitado a mao.</p>
  */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "shopping_items")
 public class ShoppingItem {

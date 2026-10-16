@@ -5,7 +5,6 @@ import { Subject, catchError, debounceTime, forkJoin, of, switchMap } from 'rxjs
 import { FinanceService } from '../../core/api/finance.service';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { Filme, Gasto, ItemDeCompra, Lugar } from '../../core/api/models';
-import { AuthService } from '../../core/auth/auth.service';
 import { Icone, NomeDoIcone } from '../../core/ui/icone';
 import { MoedaService } from '../../core/ui/moeda';
 import { travarRolagemEnquanto } from '../../core/ui/travar-rolagem';
@@ -181,7 +180,6 @@ function normalizar(texto: string): string {
 export class BuscaGlobal {
   private readonly finance = inject(FinanceService);
   private readonly lifestyle = inject(LifestyleService);
-  private readonly auth = inject(AuthService);
   private readonly moeda = inject(MoedaService);
   private readonly router = inject(Router);
 
@@ -239,7 +237,7 @@ export class BuscaGlobal {
       .pipe(
         debounceTime(250),
         switchMap((termo) =>
-          termo.trim().length < 2 || this.auth.ehMembro()
+          termo.trim().length < 2
             ? of([])
             : this.finance.buscarGastos(termo).pipe(catchError(() => of([]))),
         ),
@@ -267,8 +265,7 @@ export class BuscaGlobal {
     this.termo.set('');
     this.selecionado.set(0);
     setTimeout(() => this.campo()?.nativeElement.focus());
-    // Membro da familia so ve as telas: gastos e listas sao do titular.
-    if (!this.auth.ehMembro() && !this.listas()) {
+    if (!this.listas()) {
       forkJoin({
         lugares: this.lifestyle.listarLugares().pipe(catchError(() => of([]))),
         filmes: this.lifestyle.listarFilmes().pipe(catchError(() => of([]))),

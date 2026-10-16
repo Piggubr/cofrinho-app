@@ -18,13 +18,15 @@ import java.util.regex.Pattern;
  * Exporta e apaga os dados de uma pessoa (LGPD art. 18, II, V e VI) num servico.
  *
  * <p>Cada servico declara as tabelas em que guarda dado de alguem e a coluna que diz
- * quem lancou. Isso basta para tres operacoes:</p>
+ * quem lancou. Isso basta para quatro operacoes:</p>
  * <ul>
- *   <li><b>exportar</b>: o titular leva a familia inteira; o membro, o que ele lancou. Tabela
- *       privada ({@link Tabela#privada()}) leva so o de quem pediu, para todos;</li>
+ *   <li><b>exportar</b>: o que a pessoa ve no app (o dela; o titular, tambem o dos menores e
+ *       o que nao tem dono). Tabela privada ({@link Tabela#privada()}) leva so o de quem pediu;</li>
  *   <li><b>apagar a familia</b>: quando a pessoa era a ultima da familia, tudo sai;</li>
- *   <li><b>apagar a pessoa</b>: a familia continua, entao o que era compartilhado fica,
- *       anonimizado, e o que era so dela ({@link Tabela#pessoal()}) sai.</li>
+ *   <li><b>apagar a pessoa</b>: a familia continua, entao o que era da familia fica,
+ *       anonimizado, e o que era da pessoa ({@link Tabela#pessoal()}) sai;</li>
+ *   <li><b>mudar a pessoa de familia</b>: o que era dela vai junto para a familia nova; o
+ *       que era da familia fica (a {@code apagar} da pessoa, em seguida, anonimiza).</li>
  * </ul>
  *
  * <p>SQL direto, entao o filtro automatico por familia nao vale aqui: toda instrucao
@@ -79,17 +81,32 @@ public class DadosDaFamilia {
         void antes(UUID familia, UUID pessoa, EscopoDeExclusao escopo);
     }
 
+    /**
+     * Depois de mudar a pessoa de familia: o que nao tem coluna de autor mas acompanha um
+     * registro dela, e referencias que ficaram entre familias (conta de outra pessoa num gasto).
+     */
+    public interface AoMover {
+        void depois(UUID origem, UUID pessoa, UUID destino);
+    }
+
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     private final List<Tabela> tabelas;
     private final List<AoApagar> extras;
+    private final List<AoMover> aoMover;
 
     /** @param tabelas em ordem de exclusao: quem aponta para outra tabela vem antes dela */
     public DadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, List<Tabela> tabelas, List<AoApagar> extras) {
+        this(jdbc, json, tabelas, extras, List.of());
+    }
+
+    public DadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, List<Tabela> tabelas, List<AoApagar> extras,
+                          List<AoMover> aoMover) {
         this.jdbc = jdbc;
         this.json = json;
         this.tabelas = List.copyOf(tabelas);
         this.extras = List.copyOf(extras);
+        this.aoMover = List.copyOf(aoMover);
     }
 
     @Transactional(readOnly = true)
@@ -100,10 +117,20 @@ public class DadosDaFamilia {
                 continue;
             }
             String sql = "SELECT coalesce(jsonb_agg(t), '[]'::jsonb)::text FROM " + tabela.nome() + " t WHERE household_id = ?";
-            String linhas = usuario.isTitular() && !tabela.privada()
-                    ? jdbc.queryForObject(sql, String.class, usuario.familia())
-                    : jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,
-                            usuario.familia(), usuario.id());
+            String linhas;
+            if (tabela.autor() == null) {
+                linhas = jdbc.queryForObject(sql, String.class, usuario.familia());
+            } else if (tabela.privada()) {
+                linhas = jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,
+                        usuario.familia(), usuario.id());
+            } else {
+                // O mesmo que a pessoa ve no app (DonoAtual): o dela, e o titular tambem o
+                // dos menores e o que ficou sem dono.
+                linhas = jdbc.queryForObject(sql + " AND (" + tabela.autor() + " = ANY(?) OR (" + tabela.autor()
+                                + " IS NULL AND ?))", String.class,
+                        usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isTitular());
+            }
+
             dados.put(tabela.nome(), ler(linhas));
         }
         return dados;
@@ -129,7 +156,30 @@ public class DadosDaFamilia {
         log.info("Dados apagados: conta={} familia={} escopo={} linhas={}", usuario.id(), familia, escopo, linhas);
     }
 
+    /**
+     * Leva o que e da pessoa ({@link Tabela#pessoal()}) para a familia {@code destino}. Tudo
+     * numa transacao, como a exclusao.
+     */
+    @Transactional
+    public void mover(CurrentUser usuario, UUID destino) {
+        UUID origem = usuario.familia();
+        if (destino.equals(origem)) {
+            return;
+        }
+        int linhas = 0;
+        for (Tabela tabela : tabelas) {
+            if (tabela.autor() != null && tabela.pessoal()) {
+                linhas += jdbc.update("UPDATE " + tabela.nome() + " SET household_id = ? WHERE household_id = ? AND "
+                        + tabela.autor() + " = ?", destino, origem, usuario.id());
+            }
+        }
+        aoMover.forEach(extra -> extra.depois(origem, usuario.id(), destino));
+        log.info("Dados levados para outra familia: conta={} de={} para={} linhas={}", usuario.id(), origem, destino,
+                linhas);
+    }
+
     private JsonNode ler(String linhas) {
+
         try {
             return json.readTree(linhas);
         } catch (Exception erro) {

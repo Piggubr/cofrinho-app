@@ -18,8 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Regras de perfil na porta da API.
  *
  * <p>Os testes de servico cobrem o calculo; estes cobrem quem tem permissao de
- * chegar ate ele. O perfil MEMBRO so alcanca o cambio e o cofrinho, exatamente
- * como a funcao autorizarAcao_ definia no Apps Script.</p>
+ * chegar ate ele. Todo perfil da familia alcanca o financeiro; o que cada um ve e
+ * filtrado por dono (ver CadaUmVeOSeuTest).</p>
  */
 @AutoConfigureMockMvc
 class PermissoesDaApiTest extends PostgresIntegrationTest {
@@ -36,20 +36,20 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao alcanca gastos, metas, notas, produtos nem categorias")
-    void membroNaoAlcancaFinanceiro() throws Exception {
+    @DisplayName("membro alcanca gastos, metas, notas, produtos e categorias (so os dele)")
+    void membroAlcancaFinanceiro() throws Exception {
         mockMvc.perform(get("/api/expenses").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/monthly-goals").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/notes").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/products").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/categories").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(get("/api/alerts").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

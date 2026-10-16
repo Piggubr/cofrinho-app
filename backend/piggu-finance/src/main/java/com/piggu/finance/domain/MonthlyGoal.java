@@ -1,9 +1,11 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
@@ -14,6 +16,7 @@ import java.util.UUID;
  * Limite de gasto de um mes. Um registro por familia e mes ({@code AAAA-MM}),
  * o formato que a aba "Metas" usava.
  */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.SO_DA_PESSOA, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "monthly_goals")
 public class MonthlyGoal {

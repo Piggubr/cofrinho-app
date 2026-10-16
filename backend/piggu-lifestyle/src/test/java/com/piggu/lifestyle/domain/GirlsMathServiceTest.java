@@ -1,6 +1,5 @@
 package com.piggu.lifestyle.domain;
 
-import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
@@ -95,14 +94,15 @@ class GirlsMathServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro registra sem foto; com foto e barrado antes de chegar ao media")
-    void membroSemFoto() {
+    @DisplayName("membro registra com e sem foto, como qualquer pessoa")
+    void membroComFoto() {
         assertThat(girlsMath.criar(pedido("Batom", null, null, null), BIA).produto()).isEqualTo("Batom");
 
-        assertThatThrownBy(() -> girlsMath.criar(pedido("Batom", null, null, "YQ=="), BIA))
-                .isInstanceOf(ForbiddenException.class);
-        verify(media, never()).enviar(any(), any(), any());
+        when(media.enviar(any(), any(), any())).thenReturn(UUID.randomUUID());
+        assertThat(girlsMath.criar(pedido("Batom", null, null, "YQ=="), BIA).temFoto()).isTrue();
+
     }
+
 
     @Test
     @DisplayName("item de outra pessoa nao aparece e responde como inexistente")

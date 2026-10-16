@@ -22,7 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class Consentimentos {
 
     /** Versao vigente do aviso de privacidade. Mudou o texto, muda aqui e no front. */
-    public static final String VERSAO_DO_AVISO = "2026-10-14";
+    public static final String VERSAO_DO_AVISO = "2026-10-16";
 
     public static final String CODIGO_NECESSARIO = "CONSENTIMENTO_NECESSARIO";
     public static final String CODIGO_AVISO_MUDOU = "AVISO_DESATUALIZADO";

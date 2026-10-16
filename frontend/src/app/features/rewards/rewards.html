@@ -13,7 +13,7 @@
     <span class="saldo">{{ saldo()?.saldo ?? 0 }}</span>
   </div>
 
-  @if (auth.podeLancar()) {
+  @if (auth.cuidaDosPremios()) {
     <div class="linha-de-campos">
       <div class="campo">
         <label i18n for="ajusteValor">Quantidade</label>
@@ -79,7 +79,7 @@
   }
 </section>
 
-@if (auth.podeLancar()) {
+@if (auth.cuidaDosPremios()) {
   <section class="cartao">
     <div class="cartao-titulo">
       <h2 i18n>Novo prêmio</h2>
@@ -154,7 +154,7 @@
             } @else {
               <span class="etiqueta">Desativado</span>
             }
-            @if (auth.podeLancar() && premio.ativo) {
+            @if (auth.cuidaDosPremios() && premio.ativo) {
               <button
                 type="button"
                 class="botao icone-so perigo"

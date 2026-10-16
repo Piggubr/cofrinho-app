@@ -1,10 +1,12 @@
 package com.piggu.media.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
@@ -18,9 +20,15 @@ import java.util.UUID;
  * Drive: ele trabalha com o id do asset, e trocar de provedor de armazenamento no
  * futuro nao muda nada do lado de fora.</p>
  */
+@Filter(name = DonoAtual.FILTRO, condition = Asset.VISIVEL, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "assets")
 public class Asset {
+
+    /** Como o DonoAtual.POR_USER_ID, pela coluna de quem enviou o arquivo. */
+    static final String VISIVEL = "(:todos OR {alias}.owner_id = ANY(CAST(:visiveis AS uuid[]))"
+            + " OR ({alias}.owner_id IS NULL AND :semDono))";
+
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
     @TenantId

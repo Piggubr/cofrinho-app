@@ -13,13 +13,8 @@ public interface PiggyDepositRepository extends JpaRepository<PiggyDeposit, UUID
 
     List<PiggyDeposit> findAllByOrderByDepositDateDesc();
 
-    List<PiggyDeposit> findByUserIdOrderByDepositDateDesc(UUID userId);
-
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM PiggyDeposit d")
     BigDecimal somarTudo();
-
-    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM PiggyDeposit d WHERE d.userId = ?1")
-    BigDecimal somarDoUsuario(UUID userId);
 
     /** Quanto ja foi guardado em cada objetivo, pelo id do objetivo. */
     @Query("SELECT d.goalId, SUM(d.amount) FROM PiggyDeposit d WHERE d.goalId IS NOT NULL GROUP BY d.goalId")

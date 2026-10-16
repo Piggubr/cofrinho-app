@@ -108,13 +108,14 @@ class CofrinhosPorObjetivoTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao ve objetivos nem deposita neles; segue com o cofrinho geral")
+    @DisplayName("membro tem os proprios objetivos e nao alcanca o do titular")
     void membro() throws Exception {
-        mockMvc.perform(get("/api/piggy-bank/goals").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/piggy-bank/goals").with(TokensDeTeste.membro())).andExpect(status().isOk());
         String id = casas.criar("/api/piggy-bank/goals", TokensDeTeste.titular(), "{\"nome\":\"Bike\",\"alvo\":900}")
                 .path("id").asString();
-        deposito(TokensDeTeste.membro(), id).andExpect(status().isForbidden());
+        deposito(TokensDeTeste.membro(), id).andExpect(status().isNotFound());
     }
+
 
     private ResultActions objetivo(RequestPostProcessor quem, String nome) throws Exception {
         return mockMvc.perform(post("/api/piggy-bank/goals").with(quem)

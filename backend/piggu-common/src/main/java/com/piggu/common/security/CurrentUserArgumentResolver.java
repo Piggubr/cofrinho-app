@@ -9,6 +9,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.util.List;
 import java.util.UUID;
 
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
@@ -43,6 +44,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static final String CLAIM_FAMILIA = "familia";
         /** Falso quando a conta ainda nao informou o CPF (ver {@link CpfObrigatorio}). */
         public static final String CLAIM_CPF = "cpf";
+        /** So no token do titular: ids dos menores da familia, cujos dados ele tambem ve. */
+        public static final String CLAIM_MENORES = "menores";
 
         private JwtClaims() {
         }
@@ -57,8 +60,23 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                     email.toLowerCase(),
                     PigguRole.of(jwt.getClaimAsString(CLAIM_ROLE)),
                     Plano.de(jwt.getClaimAsString(CLAIM_PLANO)),
-                    FamiliaAtual.de(jwt)
+                    FamiliaAtual.de(jwt),
+                    menores(jwt)
             );
         }
+
+        /** Ids da claim {@link #CLAIM_MENORES}; ausente ou invalida vira lista vazia. */
+        public static List<UUID> menores(Jwt jwt) {
+            List<String> ids = jwt.getClaimAsStringList(CLAIM_MENORES);
+            if (ids == null) {
+                return List.of();
+            }
+            try {
+                return ids.stream().map(UUID::fromString).toList();
+            } catch (IllegalArgumentException invalido) {
+                return List.of();
+            }
+        }
+
     }
 }

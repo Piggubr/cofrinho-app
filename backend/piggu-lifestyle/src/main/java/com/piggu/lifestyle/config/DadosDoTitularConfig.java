@@ -17,6 +17,9 @@ import java.util.List;
  * <p>As fotos dos lugares moram no piggu-media, que apaga as dele. Tabela nova com
  * dado de pessoa entra aqui.</p>
  *
+ * <p>Lugares, filmes e compras sao de quem lancou ({@code DonoAtual}): saem com a pessoa
+ * e vao junto quando ela muda de familia.</p>
+ *
  * <p>Metas do mes e Girls Math sao so da pessoa: saem com ela mesmo que a familia fique, e
  * nem o titular leva as dos outros na exportacao.</p>
  */
@@ -26,10 +29,10 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                Tabela.compartilhada("places", "user_id"),
+                Tabela.pessoal("places", "user_id"),
                 Tabela.compartilhada("custom_place_tags", "created_by_id"),
-                Tabela.compartilhada("movies", "user_id"),
-                Tabela.compartilhada("shopping_items", "user_id"),
+                Tabela.pessoal("movies", "user_id"),
+                Tabela.pessoal("shopping_items", "user_id"),
                 Tabela.privada("personal_goals", "user_id"),
                 Tabela.privada("girls_math_items", "user_id")
         ), extras.orderedStream().toList());

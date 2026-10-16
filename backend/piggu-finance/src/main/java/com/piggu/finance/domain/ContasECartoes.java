@@ -69,7 +69,8 @@ public class ContasECartoes {
         if (nome.length() < 2) {
             throw new BusinessException("Digite o nome da conta ou do cartao.");
         }
-        if (contas.existsByNameIgnoreCase(nome)) {
+        if (contas.existsByNameIgnoreCaseAndUserId(nome, pessoa)) {
+
             throw new BusinessException("Ja existe uma conta com esse nome.");
         }
         boolean cartao = tipo == PaymentAccount.Tipo.CARTAO;

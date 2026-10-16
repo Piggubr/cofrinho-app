@@ -1,18 +1,27 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 /** Parte de uma pessoa da familia em um gasto dividido. */
+@Filter(name = DonoAtual.FILTRO, condition = ExpenseShare.VISIVEL, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "expense_shares")
 public class ExpenseShare {
+
+    /** A parte da pessoa, e todas as partes dos gastos que ela ve por ser dona. */
+    static final String VISIVEL = "(:todos OR {alias}.member_id = ANY(CAST(:visiveis AS uuid[]))"
+            + " OR {alias}.expense_id IN (SELECT e.id FROM expenses e"
+            + " WHERE e.user_id = ANY(CAST(:visiveis AS uuid[])) OR (e.user_id IS NULL AND :semDono)))";
+
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
     @TenantId

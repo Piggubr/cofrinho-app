@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LifestyleService } from '../../core/api/lifestyle.service';
 import { MediaService } from '../../core/api/media.service';
-import { AuthService } from '../../core/auth/auth.service';
 import { ItemDoGirlsMath } from '../../core/api/models';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { DataBrPipe } from '../../core/ui/data.pipe';
@@ -44,10 +43,6 @@ export class GirlsMath {
   protected readonly moeda = inject(MoedaService);
   private readonly lifestyle = inject(LifestyleService);
   private readonly media = inject(MediaService);
-  private readonly auth = inject(AuthService);
-
-  /** As fotos moram no servico de media, que nao aceita o membro: para ele, sem foto. */
-  protected readonly aceitaFoto = computed(() => !this.auth.ehMembro());
 
   protected readonly carregando = signal(true);
   protected readonly erro = signal('');

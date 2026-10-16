@@ -1,10 +1,12 @@
 package com.piggu.lifestyle.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.TenantId;
 import org.hibernate.type.SqlTypes;
@@ -21,6 +23,7 @@ import java.util.UUID;
  * <p>As notas de cada pessoa ficam em um mapa do id da pessoa para nota de 1 a 5, como
  * a coluna Avaliacoes_JSON guardava (la a chave era o e-mail).</p>
  */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "movies")
 public class Movie {

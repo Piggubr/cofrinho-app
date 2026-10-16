@@ -54,10 +54,11 @@ class ConsentimentoRetiradoTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao usa a leitura de nota, entao nao tem o que retirar")
-    void membroNaoEntra() throws Exception {
-        mockMvc.perform(delete("/api/receipts/consent").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+    @DisplayName("membro tambem usa a leitura de nota e retira a propria autorizacao")
+    void membroRetira() throws Exception {
+        mockMvc.perform(delete("/api/receipts/consent").with(TokensDeTeste.membro())).andExpect(status().isNoContent());
     }
+
 
     private static CurrentUser pessoa(UUID familia, String email) {
         return new CurrentUser(TokensDeTeste.idDe(email), email, PigguRole.PARCEIRO, Plano.PREMIUM, familia);

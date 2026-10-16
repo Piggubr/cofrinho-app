@@ -53,7 +53,7 @@ public class MovieService {
         }
 
         String tmdbId = Texto.limitar(filme.tmdbId(), 20);
-        if (!tmdbId.isEmpty() && repositorio.findByTmdbId(tmdbId).isPresent()) {
+        if (!tmdbId.isEmpty() && repositorio.findByTmdbIdAndUserId(tmdbId, usuarioId).isPresent()) {
             throw new BusinessException("Esse filme ja esta na lista.");
         }
 

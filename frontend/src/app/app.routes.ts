@@ -7,8 +7,9 @@ import { autenticadoGuard, perfilGuard, termosGuard } from './core/auth/auth.gua
  * <p>Cada rota carrega o proprio componente sob demanda: o app antigo entregava as
  * onze abas em um HTML so, e tudo era baixado mesmo sem ser aberto.</p>
  *
- * <p>O MEMBRO da familia so alcanca o painel e o proprio perfil. O guard aqui e
- * conveniencia de navegacao; quem realmente decide e o backend.</p>
+ * <p>Todo papel da familia alcanca todas as telas, cada um com os proprios dados; so o
+ * Premium e do titular. O guard aqui e conveniencia de navegacao; quem realmente decide e
+ * o backend.</p>
  */
 export const routes: Routes = [
   {
@@ -75,67 +76,54 @@ export const routes: Routes = [
       },
       {
         path: 'gastos',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/expenses/expenses').then((m) => m.Expenses),
       },
       {
         path: 'receitas',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/incomes/incomes').then((m) => m.Incomes),
       },
       {
         path: 'relatorios',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
       },
       {
         path: 'contas-e-cartoes',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/accounts/accounts').then((m) => m.Accounts),
       },
       {
         path: 'contas-fixas',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/bills/bills').then((m) => m.Bills),
       },
       {
         path: 'orcamentos',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/budgets/budgets').then((m) => m.Budgets),
       },
       {
         path: 'calendario',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/calendar/calendar').then((m) => m.Calendar),
       },
       {
         path: 'compras',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/shopping/shopping').then((m) => m.Shopping),
       },
       {
         path: 'lugares',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/places/places').then((m) => m.Places),
       },
       {
         path: 'filmes',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/movies/movies').then((m) => m.Movies),
       },
       {
         path: 'feed',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/feed/feed').then((m) => m.Feed),
       },
       {
         path: 'premios',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/rewards/rewards').then((m) => m.Rewards),
       },
       {
         path: 'planejar',
-        canActivate: [perfilGuard('ADMIN', 'TITULAR', 'PARCEIRO')],
         loadComponent: () => import('./features/plan-hub/plan-hub').then((m) => m.PlanHub),
       },
       // Minhas metas: pessoais, entao valem para todos os perfis, membro incluido.

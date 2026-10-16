@@ -30,8 +30,17 @@ public class DadosDoTitularConfig {
                 new Tabela("bank_accounts", null, true),
                 Tabela.pessoal("bank_connections", "user_id"),
                 Tabela.pessoal("consents", "user_id")
-        ), extras.orderedStream().toList());
+        ), extras.orderedStream().toList(), List.of(contasAcompanhamAConexao(jdbc)));
     }
+
+    /** As contas nao tem coluna de dono: vao para a familia nova junto com a conexao. */
+    static DadosDaFamilia.AoMover contasAcompanhamAConexao(JdbcTemplate jdbc) {
+        return (origem, pessoa, destino) -> jdbc.update("""
+                UPDATE bank_accounts a SET household_id = ? FROM bank_connections c
+                WHERE a.connection_id = c.id AND c.household_id = ? AND a.household_id = ?
+                """, destino, destino, origem);
+    }
+
 
     @Bean
     Consentimentos consentimentos(JdbcTemplate jdbc) {

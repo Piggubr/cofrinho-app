@@ -44,9 +44,9 @@ export class Aceite {
 
   protected excluirConta(): void {
     const texto =
-      $localize`Excluir sua conta apaga o que é só seu. Se você for a última pessoa da família, ` +
-      $localize`tudo da família é apagado. Se outras pessoas ficarem, o que você lançou fica com elas, ` +
-      $localize`sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ` +
+      $localize`Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, ` +
+      $localize`tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com ` +
+      $localize`elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ` +
       $localize`Digite EXCLUIR para confirmar.`;
     if (prompt(texto)?.trim().toUpperCase() !== 'EXCLUIR') {
       return;

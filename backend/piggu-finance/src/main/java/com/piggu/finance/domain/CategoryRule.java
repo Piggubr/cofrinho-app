@@ -1,16 +1,19 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
 import java.util.UUID;
 
 /** "Sempre que o item ou o estabelecimento tiver o termo, use a categoria." */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.SO_DA_PESSOA, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "category_rules")
 public class CategoryRule {

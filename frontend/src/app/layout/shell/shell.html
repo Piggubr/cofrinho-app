@@ -31,9 +31,7 @@
 
     <div class="cabecalho-acoes">
       <app-busca-global data-tour="busca" [telas]="itensVisiveis()" />
-      @if (auth.podeLancar()) {
-        <app-assistente data-tour="assistente" />
-      }
+      <app-assistente data-tour="assistente" />
 
       @if (auth.usuario(); as pessoa) {
         <a
@@ -144,62 +142,60 @@
 
   <!-- Lancar de qualquer tela: o "+" vira um balao com as opcoes, e o painel abre no
        canto, sem trocar de tela. -->
-  @if (!auth.ehMembro()) {
-    @if (opcoesAbertas()) {
-      <button
-        i18n-aria-label
-        type="button"
-        class="opcoes-fundo"
-        aria-label="Fechar opções"
-        (click)="fecharOpcoes()"
-      ></button>
-      <div class="opcoes-do-lancar" role="menu" aria-label="Lançar" i18n-aria-label>
-        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('gasto')">
-          <span class="opcao-icone"><app-icone nome="lapis" [tamanho]="18" /></span>
-          <span i18n>Lançar gasto</span>
-        </button>
-        <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('receita')">
-          <span class="opcao-icone"><app-icone nome="entrada" [tamanho]="18" /></span>
-          <span i18n>Lançar receita</span>
-        </button>
-        <button type="button" class="opcao" role="menuitem" (click)="campoDaFoto.click()">
-          <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
-          <span i18n>Foto do recibo</span>
-        </button>
-        <input
-          #campoDaFoto
-          type="file"
-          accept="image/*"
-          hidden
-          (change)="escolherFotoDoRecibo($event)"
-        />
-      </div>
-    }
-    @if (lancamentoAberto()) {
-      <app-lancamento-rapido
-        class="painel-rapido"
-        [foto]="fotoDoRecibo()"
-        [tipoInicial]="tipoDoLancamento()"
-        (lancado)="aoLancar($event)"
-        (fechar)="fecharLancamento()"
-        (abrirGastos)="abrirGastos()"
-      />
-    }
+  @if (opcoesAbertas()) {
     <button
-      type="button"
-      class="lancar-flutuante"
-      data-tour="lancar"
-      [class.aberto]="lancamentoAberto() || opcoesAbertas()"
-      [class.recolhido]="maisRecolhido() && !tutorial.aberto()"
-      [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
-      [attr.aria-expanded]="lancamentoAberto() || opcoesAbertas()"
-      aria-label="Lançar gasto ou receita"
       i18n-aria-label
-      (click)="alternarLancamento()"
-    >
-      <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
-    </button>
+      type="button"
+      class="opcoes-fundo"
+      aria-label="Fechar opções"
+      (click)="fecharOpcoes()"
+    ></button>
+    <div class="opcoes-do-lancar" role="menu" aria-label="Lançar" i18n-aria-label>
+      <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('gasto')">
+        <span class="opcao-icone"><app-icone nome="lapis" [tamanho]="18" /></span>
+        <span i18n>Lançar gasto</span>
+      </button>
+      <button type="button" class="opcao" role="menuitem" (click)="abrirLancamento('receita')">
+        <span class="opcao-icone"><app-icone nome="entrada" [tamanho]="18" /></span>
+        <span i18n>Lançar receita</span>
+      </button>
+      <button type="button" class="opcao" role="menuitem" (click)="campoDaFoto.click()">
+        <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
+        <span i18n>Foto do recibo</span>
+      </button>
+      <input
+        #campoDaFoto
+        type="file"
+        accept="image/*"
+        hidden
+        (change)="escolherFotoDoRecibo($event)"
+      />
+    </div>
   }
+  @if (lancamentoAberto()) {
+    <app-lancamento-rapido
+      class="painel-rapido"
+      [foto]="fotoDoRecibo()"
+      [tipoInicial]="tipoDoLancamento()"
+      (lancado)="aoLancar($event)"
+      (fechar)="fecharLancamento()"
+      (abrirGastos)="abrirGastos()"
+    />
+  }
+  <button
+    type="button"
+    class="lancar-flutuante"
+    data-tour="lancar"
+    [class.aberto]="lancamentoAberto() || opcoesAbertas()"
+    [class.recolhido]="maisRecolhido() && !tutorial.aberto()"
+    [class.destaque]="tutorial.aberto() && tutorial.passo()?.id === 'lancar'"
+    [attr.aria-expanded]="lancamentoAberto() || opcoesAbertas()"
+    aria-label="Lançar gasto ou receita"
+    i18n-aria-label
+    (click)="alternarLancamento()"
+  >
+    <app-icone nome="mais" [tamanho]="26" [traco]="2.2" />
+  </button>
 
   @if (avisoDoLancamento()) {
     <p class="aviso-do-lancamento" role="status">{{ avisoDoLancamento() }}</p>

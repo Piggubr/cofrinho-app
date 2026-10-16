@@ -15,19 +15,17 @@
   <div class="cartao-titulo">
     <h2 i18n id="titulo-novo-gm">O que você não comprou?</h2>
   </div>
-  <div class="formulario" [class.sem-foto]="!aceitaFoto()">
-    @if (aceitaFoto()) {
-      <label class="foto" [class.com-foto]="previaDaFoto()">
-        @if (previaDaFoto()) {
-          <img [src]="previaDaFoto()" alt="" />
-        } @else {
-          <app-icone nome="camera" [tamanho]="22" />
-          <span i18n>Foto</span>
-        }
-        <input type="file" accept="image/*" (change)="escolherFoto($event)" hidden />
-        <span i18n class="so-leitor">Escolher foto do produto</span>
-      </label>
-    }
+  <div class="formulario">
+    <label class="foto" [class.com-foto]="previaDaFoto()">
+      @if (previaDaFoto()) {
+        <img [src]="previaDaFoto()" alt="" />
+      } @else {
+        <app-icone nome="camera" [tamanho]="22" />
+        <span i18n>Foto</span>
+      }
+      <input type="file" accept="image/*" (change)="escolherFoto($event)" hidden />
+      <span i18n class="so-leitor">Escolher foto do produto</span>
+    </label>
     <div class="campos">
       <div class="campo">
         <label i18n for="produtoGm">Nome do produto</label>

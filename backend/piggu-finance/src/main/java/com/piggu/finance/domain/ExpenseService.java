@@ -2,7 +2,9 @@ package com.piggu.finance.domain;
 
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
+import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
@@ -231,8 +233,8 @@ public class ExpenseService {
     }
 
     @Transactional
-    public ExpenseResponse atualizar(UUID id, UpdateExpenseRequest pedido) {
-        Expense gasto = buscar(id);
+    public ExpenseResponse atualizar(UUID id, UpdateExpenseRequest pedido, CurrentUser usuario) {
+        Expense gasto = paraMudar(id, usuario);
         String antes = Resumos.gasto(gasto);
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
@@ -246,8 +248,8 @@ public class ExpenseService {
     }
 
     @Transactional
-    public void excluir(UUID id) {
-        Expense gasto = buscar(id);
+    public void excluir(UUID id, CurrentUser usuario) {
+        Expense gasto = paraMudar(id, usuario);
         repositorio.delete(gasto);
         trilha.apagou("gasto", id, Resumos.gasto(gasto));
         log.info("Gasto apagado: id={}", id);
@@ -268,6 +270,16 @@ public class ExpenseService {
         return repositorio.findById(id)
                 .orElseThrow(() -> new NotFoundException("Gasto nao encontrado."));
     }
+
+    /** Gasto dividido aparece para quem divide, mas so quem lancou muda ou apaga. */
+    private Expense paraMudar(UUID id, CurrentUser usuario) {
+        Expense gasto = buscar(id);
+        if (!usuario.podeGerenciar(gasto.getUserId())) {
+            throw new ForbiddenException("SÃ³ quem lanÃ§ou o gasto pode mudar ou apagar.");
+        }
+        return gasto;
+    }
+
 
     /**
      * Categoria escolhida a mao no lancamento manual e respeitada. Sem escolha, ou vinda da

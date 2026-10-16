@@ -1,10 +1,15 @@
 package com.piggu.lifestyle.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.TenantId;
 import org.hibernate.type.SqlTypes;
@@ -17,6 +22,12 @@ import java.util.List;
 import java.util.UUID;
 
 /** Lugar visitado e avaliado. Uma linha da aba Lugares. */
+@FilterDef(name = DonoAtual.FILTRO, autoEnabled = true, applyToLoadByKey = true, parameters = {
+        @ParamDef(name = DonoAtual.TODOS, type = Boolean.class, resolver = DonoAtual.Todos.class),
+        @ParamDef(name = DonoAtual.VISIVEIS, type = String.class, resolver = DonoAtual.Visiveis.class),
+        @ParamDef(name = DonoAtual.SEM_DONO, type = Boolean.class, resolver = DonoAtual.SemDono.class),
+        @ParamDef(name = DonoAtual.EU, type = String.class, resolver = DonoAtual.Eu.class)})
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "places")
 public class Place {

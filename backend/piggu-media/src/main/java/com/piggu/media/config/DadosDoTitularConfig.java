@@ -3,7 +3,6 @@ package com.piggu.media.config;
 import com.piggu.common.dados.DadosDaFamilia.Tabela;
 import com.piggu.common.dados.DadosDaFamilia;
 import com.piggu.common.dados.EscopoDeExclusao;
-import com.piggu.media.domain.Asset;
 import com.piggu.media.storage.StoragePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +19,10 @@ import java.util.List;
 /**
  * Onde o media guarda dado de alguem, para exportar e apagar (LGPD art. 18).
  *
- * <p>Foto do mural e da familia: se a pessoa sai e a familia fica, a foto fica,
- * anonimizada. Quando a familia inteira sai, os arquivos saem do armazenamento. Foto
- * privada ({@link Asset#CONTEXTOS_PRIVADOS}, como a do Girls Math) sai com a pessoa mesmo
- * que a familia fique: era so dela.</p>
+ * <p>Cada foto e de quem enviou ({@code DonoAtual}): sai com a pessoa quando ela exclui a
+ * conta (os arquivos tambem) e vai junto quando ela muda de familia. Quando a familia
+ * inteira sai, os arquivos saem do armazenamento.</p>
+
  */
 @Configuration
 public class DadosDoTitularConfig {
@@ -33,8 +32,8 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                Tabela.compartilhada("feed_photos", "user_id"),
-                Tabela.compartilhada("assets", "owner_id")
+                Tabela.pessoal("feed_photos", "user_id"),
+                Tabela.pessoal("assets", "owner_id")
         ), extras.orderedStream().toList());
     }
 
@@ -50,13 +49,11 @@ public class DadosDoTitularConfig {
                 arquivos = jdbc.queryForList(
                         "SELECT drive_file_id FROM assets WHERE household_id = ?", String.class, familia);
             } else {
-                // Antes da anonimizacao das tabelas, que tiraria o dono e deixaria a foto para sempre.
-                String privadas = "household_id = ? AND owner_id = ? AND context IN ("
-                        + String.join(", ", Asset.CONTEXTOS_PRIVADOS.stream().map(c -> "'" + c + "'").toList()) + ")";
-                arquivos = jdbc.queryForList("SELECT drive_file_id FROM assets WHERE " + privadas, String.class,
-                        familia, pessoa);
-                jdbc.update("DELETE FROM assets WHERE " + privadas, familia, pessoa);
+                // Os registros saem com as tabelas (sao da pessoa); aqui so os arquivos.
+                arquivos = jdbc.queryForList("SELECT drive_file_id FROM assets WHERE household_id = ? AND owner_id = ?",
+                        String.class, familia, pessoa);
             }
+
             if (arquivos.isEmpty()) {
                 return;
             }

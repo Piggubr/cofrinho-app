@@ -103,15 +103,38 @@ public class TrilhaDeAuditoria {
                 Timestamp.from(relogio.instant()));
     }
 
-    /** Os mais recentes da familia, para a tela de historico. SQL puro: filtra a familia a mao. */
+    /** Os mais recentes da familia, de todos os autores (exportacao da familia). */
     public List<Evento> recentes(UUID familia, String entidade, int limite) {
+        return recentes(familia, entidade, limite, null, true);
+    }
+
+    /**
+     * Os mais recentes da familia, para a tela de historico. SQL puro: filtra a familia (e os
+     * autores) a mao.
+     *
+     * @param autores  so o que estas pessoas (e o sistema) fizeram; nulo = todos
+     * @param semAutor inclui o que ficou sem autor (de quem excluiu a conta): o titular ve
+     */
+    public List<Evento> recentes(UUID familia, String entidade, int limite, List<UUID> autores, boolean semAutor) {
+        List<Object> parametros = new java.util.ArrayList<>(List.of(familia));
         String sql = """
                 SELECT id, autor_id, acao, entidade, entidade_id, antes, depois, criado_em
                 FROM eventos_de_auditoria WHERE household_id = ?
-                """ + (entidade == null ? "" : " AND entidade = ?") + " ORDER BY id DESC LIMIT ?";
-        Object[] parametros = entidade == null
-                ? new Object[]{familia, limite}
-                : new Object[]{familia, entidade, limite};
+                """;
+        if (entidade != null) {
+            sql += " AND entidade = ?";
+            parametros.add(entidade);
+        }
+        if (autores != null) {
+            sql += " AND (autor_id = ANY(?) OR (autor_id IS NULL AND ?))";
+            List<UUID> comSistema = new java.util.ArrayList<>(autores);
+            comSistema.add(SISTEMA);
+            parametros.add(comSistema.toArray(UUID[]::new));
+            parametros.add(semAutor);
+
+        }
+        sql += " ORDER BY id DESC LIMIT ?";
+        parametros.add(limite);
         return jdbc.query(sql, (linha, n) -> new Evento(
                 linha.getLong("id"),
                 linha.getObject("autor_id", UUID.class),
@@ -120,7 +143,8 @@ public class TrilhaDeAuditoria {
                 linha.getString("entidade_id"),
                 linha.getString("antes"),
                 linha.getString("depois"),
-                linha.getTimestamp("criado_em").toInstant()), parametros);
+                linha.getTimestamp("criado_em").toInstant()), parametros.toArray());
+
     }
 
     /**

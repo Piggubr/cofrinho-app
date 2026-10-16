@@ -57,7 +57,7 @@ describe('AuthService', () => {
     expect(auth.autenticado()).toBe(true);
     expect(storage.accessToken).toBe('acesso');
     expect(auth.ehTitular()).toBe(true);
-    expect(auth.podeLancar()).toBe(true);
+    expect(auth.cuidaDosPremios()).toBe(true);
   });
 
   it('entrar com e-mail e senha usa a mesma sessao do Google', async () => {
@@ -116,19 +116,15 @@ describe('AuthService', () => {
   });
 
   it('cada papel ve o que lhe cabe', () => {
-    const casos: [Usuario['role'], boolean, boolean, boolean][] = [
-      ['ADMIN', true, true, false],
-      ['TITULAR', true, true, false],
-      ['PARCEIRO', false, true, false],
-      ['MEMBRO', false, false, true],
+    const casos: [Usuario['role'], boolean, boolean][] = [
+      ['ADMIN', true, true],
+      ['TITULAR', true, true],
+      ['PARCEIRO', false, true],
+      ['MEMBRO', false, false],
     ];
-    for (const [role, titular, lanca, membro] of casos) {
+    for (const [role, titular, premios] of casos) {
       auth.atualizarUsuario(usuarioDeTeste({ role }));
-      expect([auth.ehTitular(), auth.podeLancar(), auth.ehMembro()]).toEqual([
-        titular,
-        lanca,
-        membro,
-      ]);
+      expect([auth.ehTitular(), auth.cuidaDosPremios()]).toEqual([titular, premios]);
       expect(auth.temPerfil(role)).toBe(true);
     }
   });

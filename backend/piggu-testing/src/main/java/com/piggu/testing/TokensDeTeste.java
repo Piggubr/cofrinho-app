@@ -57,6 +57,36 @@ public final class TokensDeTeste {
         return como(EMAIL_MEMBRO, PigguRole.MEMBRO);
     }
 
+    /** Titular que ve tambem os dados destes menores (claim menores, como o identity emite). */
+    public static RequestPostProcessor titularComMenores(UUID familia, String... emailsDosMenores) {
+        return SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(token -> token
+                        .subject(idDe(EMAIL_TITULAR).toString())
+                        .claim("email", EMAIL_TITULAR)
+                        .claim("role", PigguRole.TITULAR.name())
+                        .claim("plano", "PREMIUM")
+                        .claim("familia", familia.toString())
+                        .claim("menores",
+ java.util.Arrays.stream(emailsDosMenores)
+                                .map(email -> idDe(email).toString()).toList()))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        PigguRole.TITULAR.authority()));
+    }
+
+    /** Token de mudanca que so o identity emite: leva o que e da pessoa para {@code destino}. */
+    public static RequestPostProcessor mudanca(UUID familia, String email, PigguRole role, UUID destino) {
+        return SecurityMockMvcRequestPostProcessors.jwt()
+                .jwt(token -> token
+                        .subject(idDe(email).toString())
+                        .claim("email", email)
+                        .claim("role", role.name())
+                        .claim("familia", familia.toString())
+                        .claim("exclusao", "MUDAR")
+                        .claim("destino", destino.toString()))
+                .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(role.authority()));
+    }
+
+
     /** Pessoa de outra familia, com Premium para nada ser barrado pelo plano. */
     public static RequestPostProcessor da(UUID familia, String email, PigguRole role) {
         return token(email, role, idDe(email), "PREMIUM", familia);

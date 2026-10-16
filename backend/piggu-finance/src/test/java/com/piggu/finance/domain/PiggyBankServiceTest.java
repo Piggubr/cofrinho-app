@@ -80,7 +80,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("saldo soma depositos de todas as pessoas")
+    @DisplayName("sem pessoa autenticada (job) o filtro por dono nao corta: soma os depositos de todos")
     void somaDepositosDeTodos() {
         cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), MEMBRO);
         cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), TITULAR);
@@ -88,20 +88,6 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
         assertThat(cofrinho.consultar(TITULAR).totalDepositos()).isEqualByComparingTo("150");
     }
 
-    @Test
-    @DisplayName("perfil membro ve so os proprios depositos, sem desconto de gastos")
-    void membroVeApenasOProprio() {
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("100")), MEMBRO);
-        cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("50")), TITULAR);
-        lancarGasto("Mercado", "40");
-
-        PiggyBankResponse resposta = cofrinho.consultar(MEMBRO);
-
-        assertThat(resposta.depositos()).hasSize(1);
-        assertThat(resposta.totalDepositos()).isEqualByComparingTo("100");
-        assertThat(resposta.totalGastos()).isEqualByComparingTo("0");
-        assertThat(resposta.saldo()).isEqualByComparingTo("100");
-    }
 
     @Test
     @DisplayName("cofrinho vazio responde zero em vez de falhar")
@@ -133,16 +119,23 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("administrador apaga deposito de qualquer pessoa")
-    void adminApagaQualquerDeposito() {
-        DepositResponse deposito =
-                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), TITULAR);
-        CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
+    @DisplayName("o titular apaga o deposito de um menor, mas nao o de outro adulto")
+    void titularApagaODoMenor() {
+        CurrentUser menor = new CurrentUser(UUID.randomUUID(), "menor@piggu.test", PigguRole.MEMBRO);
+        DepositResponse doMenor =
+                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), menor);
+        CurrentUser adulto = new CurrentUser(UUID.randomUUID(), "adulto@piggu.test", PigguRole.MEMBRO);
+        DepositResponse doAdulto =
+                cofrinho.depositar(new DepositRequest(LocalDate.now(), new BigDecimal("10")), adulto);
+        CurrentUser titularComMenor = new CurrentUser(TITULAR.id(), TITULAR.email(), PigguRole.TITULAR,
+                TITULAR.plano(), TITULAR.familia(), List.of(menor.id()));
 
-        cofrinho.excluir(deposito.id(), admin);
+        cofrinho.excluir(doMenor.id(), titularComMenor);
 
-        assertThat(cofrinho.consultar(admin).depositos()).isEmpty();
+        assertThatThrownBy(() -> cofrinho.excluir(doAdulto.id(), titularComMenor))
+                .isInstanceOf(ForbiddenException.class);
     }
+
 
     private void lancarGasto(String item, String valor) {
         gastos.salvar(new SaveExpensesRequest(

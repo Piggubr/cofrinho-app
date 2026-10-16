@@ -9,5 +9,7 @@ public interface PaymentAccountRepository extends JpaRepository<PaymentAccount, 
 
     List<PaymentAccount> findAllByOrderByNameAsc();
 
-    boolean existsByNameIgnoreCase(String name);
+    /** Por pessoa: o titular ve as contas dos menores, mas pode ter uma com o mesmo nome. */
+    boolean existsByNameIgnoreCaseAndUserId(String name, UUID userId);
+
 }

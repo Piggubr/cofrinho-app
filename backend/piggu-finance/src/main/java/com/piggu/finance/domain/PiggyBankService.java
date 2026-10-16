@@ -4,7 +4,6 @@ import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
-import com.piggu.common.security.PigguRole;
 import com.piggu.finance.api.dto.DepositRequest;
 import com.piggu.finance.api.dto.DepositResponse;
 import com.piggu.finance.api.dto.PiggyBankResponse;
@@ -30,8 +29,8 @@ import java.util.UUID;
  * <ol>
  *   <li>O saldo desconta apenas os gastos <em>registrados depois</em> do primeiro
  *       deposito. Gastos anteriores ao cofrinho nao pertencem a ele.</li>
- *   <li>Quem tem perfil MEMBRO ve somente os proprios depositos, e o saldo dele e
- *       o proprio total, sem desconto de gastos.</li>
+ *   <li>Cada pessoa ve o proprio cofrinho (o titular, tambem o dos menores): os
+ *       depositos e os gastos ja chegam filtrados por dono ({@code DonoAtual}).</li>
  * </ol>
  */
 @Service
@@ -54,10 +53,6 @@ public class PiggyBankService {
 
     @Transactional(readOnly = true)
     public PiggyBankResponse consultar(CurrentUser usuario) {
-        if (usuario.role() == PigguRole.MEMBRO) {
-            return consultarComoMembro(usuario.id());
-        }
-
         List<DepositResponse> lista = depositos.findAllByOrderByDepositDateDesc().stream()
                 .map(DepositResponse::de)
                 .toList();
@@ -77,11 +72,7 @@ public class PiggyBankService {
         LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
         UUID objetivo = pedido.objetivo();
         if (objetivo != null) {
-            // O membro nao ve os objetivos (o total deles soma o deposito dos outros).
-            if (usuario.role() == PigguRole.MEMBRO) {
-                throw new ForbiddenException("Os cofrinhos por objetivo sao do titular e do parceiro.");
-            }
-            // Objetivo de outra familia nem aparece: o filtro da familia responde 404.
+            // Objetivo de outra pessoa ou familia nem aparece: os filtros respondem 404.
             objetivos.findById(objetivo).orElseThrow(() -> new NotFoundException("Objetivo nao encontrado."));
         }
         PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), usuario.id(), objetivo));
@@ -104,13 +95,6 @@ public class PiggyBankService {
         log.info("Deposito apagado: id={}", id);
     }
 
-    private PiggyBankResponse consultarComoMembro(UUID pessoa) {
-        List<DepositResponse> proprios = depositos.findByUserIdOrderByDepositDateDesc(pessoa).stream()
-                .map(DepositResponse::de)
-                .toList();
-        BigDecimal total = depositos.somarDoUsuario(pessoa);
-        return new PiggyBankResponse(proprios, total, BigDecimal.ZERO, total);
-    }
 
     private BigDecimal totalGastoDesdeOPrimeiroDeposito() {
         Optional<Instant> inicio = depositos.primeiroDeposito();

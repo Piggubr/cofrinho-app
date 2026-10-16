@@ -1,9 +1,7 @@
 package com.piggu.lifestyle.domain;
 
-import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
-import com.piggu.common.security.PigguRole;
 import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.lifestyle.api.dto.GirlsMathRequest;
@@ -54,12 +52,8 @@ public class GirlsMathService {
         );
 
         if (temFoto(pedido)) {
-            // O piggu-media nao aceita envio de membro (ver AssetController); melhor avisar
-            // aqui do que devolver a falha do media como servico indisponivel.
-            if (usuario.role() == PigguRole.MEMBRO) {
-                throw new ForbiddenException("Foto no Girls Math e so para titular e parceiro.");
-            }
-            item.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
+            item.trocarFoto(
+media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
         }
 
         return GirlsMathResponse.de(repositorio.save(item));

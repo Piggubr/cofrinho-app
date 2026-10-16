@@ -8,7 +8,7 @@ import { ApiError } from '../api/models';
  * o backend recusa consentimento com versao diferente, entao um front antigo nao colhe
  * aceite sobre um texto que ja saiu do ar.</p>
  */
-export const VERSAO_DO_AVISO = '2026-10-14';
+export const VERSAO_DO_AVISO = '2026-10-16';
 
 /** Canal do encarregado (LGPD art. 41). Trocar quando o dominio definitivo existir. */
 export const CONTATO_PRIVACIDADE = 'privacidade@piggu.app';

@@ -13,9 +13,16 @@ public enum EscopoDeExclusao {
     /** A pessoa sai; a familia fica com o que era compartilhado, anonimizado. */
     PESSOA,
     /** A pessoa era a ultima da familia: tudo sai. */
-    FAMILIA;
+    FAMILIA,
+    /**
+     * A pessoa muda de familia (saiu, foi removida ou aceitou outro convite) e leva o que e
+     * dela para a familia da claim {@link #CLAIM_DESTINO}. Nada e apagado.
+     */
+    MUDAR;
 
     public static final String CLAIM = "exclusao";
+    public static final String CLAIM_DESTINO = "destino";
+
 
     public static EscopoDeExclusao de(String valor) {
         if (valor == null) {

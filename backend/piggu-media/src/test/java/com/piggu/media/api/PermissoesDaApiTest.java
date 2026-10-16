@@ -52,18 +52,19 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao le foto por id, nao envia arquivo e nao ve o feed")
-    void membroNaoAlcanca() throws Exception {
+    @DisplayName("membro envia as proprias fotos e ve o proprio feed, mas nao le a foto do titular")
+    void membroSoAlcancaAsDele() throws Exception {
         Asset foto = fotoDaFamilia();
 
         mockMvc.perform(get("/api/assets/" + foto.getId() + "/content").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
         mockMvc.perform(post("/api/assets").with(TokensDeTeste.membro())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}"))
-                .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/feed").with(TokensDeTeste.membro())).andExpect(status().isForbidden());
+                .andExpect(status().is2xxSuccessful());
+        mockMvc.perform(get("/api/feed").with(TokensDeTeste.membro())).andExpect(status().isOk());
     }
+
 
     @Test
     @DisplayName("titular le a foto, com nosniff para o navegador nao reinterpretar o arquivo")

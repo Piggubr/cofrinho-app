@@ -150,9 +150,7 @@ export class Dashboard {
       untracked(() => this.carregar());
     });
     this.carregar();
-    if (!this.auth.ehMembro()) {
-      this.carregarContas();
-    }
+    this.carregarContas();
   }
 
   /** Cada banco e um compartilhamento novo: a autorizacao e pedida toda vez. */
@@ -294,20 +292,6 @@ export class Dashboard {
   private carregar(): void {
     this.carregando.set(true);
     this.erro.set('');
-
-    if (this.auth.ehMembro()) {
-      this.finance.consultarCofrinho().subscribe({
-        next: (cofrinho) => {
-          this.cofrinho.set(cofrinho);
-          this.carregando.set(false);
-        },
-        error: (falha) => {
-          this.erro.set(mensagemDeErro(falha));
-          this.carregando.set(false);
-        },
-      });
-      return;
-    }
 
     // Tres chamadas independentes em paralelo. O backend antigo devolvia tudo de
     // uma vez em getData; agora cada recurso e um endpoint proprio e o navegador

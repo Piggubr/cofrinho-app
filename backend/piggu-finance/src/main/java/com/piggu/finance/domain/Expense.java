@@ -1,10 +1,15 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+
 import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
@@ -18,9 +23,21 @@ import java.util.UUID;
  * <p>Cada item de um recibo vira um registro proprio; {@code receiptId} e' o que
  * mantem juntos os itens lidos da mesma foto.</p>
  */
+@FilterDef(name = DonoAtual.FILTRO, autoEnabled = true, applyToLoadByKey = true, parameters = {
+        @ParamDef(name = DonoAtual.TODOS, type = Boolean.class, resolver = DonoAtual.Todos.class),
+        @ParamDef(name = DonoAtual.VISIVEIS, type = String.class, resolver = DonoAtual.Visiveis.class),
+        @ParamDef(name = DonoAtual.SEM_DONO, type = Boolean.class, resolver = DonoAtual.SemDono.class),
+        @ParamDef(name = DonoAtual.EU, type = String.class, resolver = DonoAtual.Eu.class)})
+@Filter(name = DonoAtual.FILTRO, condition = Expense.VISIVEL, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "expenses")
 public class Expense {
+
+    /** O de quem a pessoa ve (DonoAtual) e o gasto dividido com ela. */
+    static final String VISIVEL = "(:todos OR {alias}.user_id = ANY(CAST(:visiveis AS uuid[]))"
+            + " OR ({alias}.user_id IS NULL AND :semDono)"
+            + " OR {alias}.id IN (SELECT s.expense_id FROM expense_shares s"
+            + " WHERE s.member_id = ANY(CAST(:visiveis AS uuid[]))))";
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
     @TenantId

@@ -14,16 +14,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -249,7 +252,10 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         assertThat(depois.getHouseholdId()).isEqualTo(titular.getHouseholdId());
         assertThat(depois.getRole()).isEqualTo(PigguRole.MEMBRO);
         assertThat(casas.findById(vizinho.getHouseholdId())).as("a familia antiga ficou vazia").isEmpty();
-        assertThat(escopoEnviado()).isEqualTo("FAMILIA");
+        List<Jwt> enviados = tokensEnviados();
+        assertThat(enviados).extracting(t -> t.getClaimAsString("exclusao")).containsExactly("MUDAR", "FAMILIA");
+        assertThat(enviados.get(0).getClaimAsString("destino")).as("leva o que e dele para a familia nova")
+                .isEqualTo(titular.getHouseholdId().toString());
     }
 
     @Test
@@ -268,6 +274,13 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         verify(cascata).apagar(token.capture());
         return decoder.decode(token.getValue()).getClaimAsString("exclusao");
     }
+
+    private List<Jwt> tokensEnviados() {
+        ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
+        verify(cascata, atLeastOnce()).apagar(token.capture());
+        return token.getAllValues().stream().map(decoder::decode).toList();
+    }
+
 
     @Test
     @DisplayName("conta antiga sem aceite aceita a versao vigente dos termos; versao velha e recusada")

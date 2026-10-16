@@ -250,11 +250,11 @@ describe('Shell', () => {
     expect(router.url).toBe('/painel');
   });
 
-  it('o membro nao tem o "+" de lancar', () => {
+  it('o membro tambem tem o "+" de lancar', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
-    expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).toBeNull();
+    expect((tela.nativeElement as HTMLElement).querySelector('.lancar-flutuante')).not.toBeNull();
   });
 
   it('o "+" vira um balao com gasto, receita e foto; o gasto abre o painel', () => {
@@ -513,19 +513,14 @@ describe('Shell', () => {
       expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
     });
 
-    it('o membro ve um tour curto, sem o "+"', () => {
+    it('o membro ve o mesmo tour, com o "+"', () => {
       auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
       const { tela, pagina } = primeiroAcesso();
-      expect(pagina.querySelector('.balao .contagem')?.textContent?.trim()).toBe('1/3');
+      expect(pagina.querySelector('.balao .contagem')?.textContent?.trim()).toBe('1/8');
 
-      for (let i = 0; i < 2; i++) {
-        botao(pagina, 'Próximo').click();
-        tela.detectChanges();
-      }
-      expect(titulo(pagina)).toBe('Família');
-      botao(pagina, 'Começar').click();
+      botao(pagina, 'Próximo').click();
       tela.detectChanges();
-      expect(pagina.querySelector('app-tutorial')).toBeNull();
+      expect(titulo(pagina)).toBe('Lance pelo +');
     });
   });
 });

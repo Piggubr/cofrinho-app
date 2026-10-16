@@ -1,10 +1,12 @@
 package com.piggu.finance.domain;
 
+import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /** Deposito no cofrinho — uma linha da aba "Cofrinho". */
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "piggy_deposits")
 public class PiggyDeposit {

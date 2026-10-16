@@ -160,7 +160,7 @@ export class ImportarExtrato {
   );
 
   constructor() {
-    if (!this.auth.ehPremium() || !this.auth.podeLancar()) {
+    if (!this.auth.ehPremium()) {
       return;
     }
     // Opcional como no painel: qualquer falha so esconde o botao.

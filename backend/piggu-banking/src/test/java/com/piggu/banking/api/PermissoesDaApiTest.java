@@ -40,13 +40,14 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao ve saldo bancario")
-    void membroNaoAlcanca() throws Exception {
+    @DisplayName("membro ve as proprias contas e conecta o proprio banco")
+    void membroAlcanca() throws Exception {
         mockMvc.perform(get("/api/banking/accounts").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
         mockMvc.perform(post("/api/banking/connect-token").with(TokensDeTeste.membro()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnprocessableContent());
     }
+
 
     @Test
     @DisplayName("titular lista as contas e pede o token do widget")

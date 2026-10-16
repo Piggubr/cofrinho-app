@@ -218,9 +218,8 @@ public class FamiliaService {
     }
 
     /**
-     * Quem ja tem conta aceita entrar em outra familia. Os dados da familia antiga saem
-     * como numa exclusao de conta: se a pessoa era a ultima de la, tudo sai; senao o que
-     * era compartilhado fica com quem ficou, anonimizado.
+     * Quem ja tem conta aceita entrar em outra familia e leva o que e dela. Se era a ultima
+     * da familia antiga, o resto de la sai; senao o que era da familia fica, anonimizado.
      */
     @Transactional
     public void aceitarConvite(CurrentUser usuario, UUID conviteId) {
@@ -236,7 +235,7 @@ public class FamiliaService {
             throw new BusinessException("Voce ja faz parte dessa familia.");
         }
 
-        Optional<Household> vazia = sairDeOndeEsta(conta);
+        Optional<Household> vazia = sairDeOndeEsta(conta, convite.getHouseholdId());
         conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
         usuarios.saveAndFlush(conta);
         trilha.registrar(convite.getHouseholdId(), conta.getId(), Acao.ENTROU, PESSOA, conta.getId(), null,
@@ -247,21 +246,32 @@ public class FamiliaService {
         log.info("Convite aceito: conta={} familia={}", conta.getId(), convite.getHouseholdId());
     }
 
+    /** Exclusao da conta: os dados da pessoa saem junto (ver {@link #sairDeOndeEsta(UserAccount, UUID)}). */
+    @Transactional
+    public Optional<Household> sairDeOndeEsta(UserAccount conta) {
+        return sairDeOndeEsta(conta, null);
+    }
+
     /**
-     * Apaga os dados da pessoa na familia atual (nos outros servicos) e acerta a familia:
-     * se ninguem fica, ela some; se o titular sai, o membro mais antigo assume.
+     * Tira a pessoa da familia atual (nos outros servicos) e acerta a familia: se ninguem
+     * fica, ela some; se o titular sai, o membro mais antigo assume.
      *
+     * @param destino familia para onde vai o que e da pessoa (lancamentos, metas, fotos...);
+     *                nulo quando a conta esta sendo excluida e os dados saem com ela
      * @return a familia que ficou vazia, para quem chamou apagar depois de tirar a conta
      *         dela (a conta aponta para a familia); vazio quando outras pessoas ficam
      */
     @Transactional
-    public Optional<Household> sairDeOndeEsta(UserAccount conta) {
+    public Optional<Household> sairDeOndeEsta(UserAccount conta, UUID destino) {
         Household familia = daConta(conta);
         List<UserAccount> outros = usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId()).stream()
                 .filter(outro -> !outro.getId().equals(conta.getId()))
                 .toList();
         EscopoDeExclusao escopo = outros.isEmpty() ? EscopoDeExclusao.FAMILIA : EscopoDeExclusao.PESSOA;
 
+        if (destino != null) {
+            cascata.apagar(tokens.gerarTokenDeMudanca(conta, familia, destino));
+        }
         cascata.apagar(tokens.gerarTokenDeExclusao(conta, familia, escopo));
         trilha.esquecer(familia.getId(), conta.getId(), escopo == EscopoDeExclusao.FAMILIA);
 
@@ -288,8 +298,8 @@ public class FamiliaService {
     }
 
     /**
-     * O titular tira alguem da familia. O que a pessoa lancou e era compartilhado fica com
-     * a familia, sem o nome dela; o que era so dela some (como prometido no Aviso).
+     * O titular tira alguem da familia. A pessoa vai para uma familia so dela e leva o que
+     * lancou; a familia perde o acesso a isso.
      */
     @Transactional
     public FamiliaResponse removerMembro(CurrentUser usuario, UUID membroId) {
@@ -304,7 +314,6 @@ public class FamiliaService {
             throw new ForbiddenException("So da para remover membros e parceiros.");
         }
         trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
-        sairDeOndeEsta(membro);
         mudarParaFamiliaPropria(membro);
         log.info("Membro removido da familia: conta={} familia={}", membroId, usuario.familia());
         return ver(usuario);
@@ -337,24 +346,28 @@ public class FamiliaService {
         return ver(usuario);
     }
 
-    /** O membro (ou parceiro) sai por conta propria e passa a ter uma familia so dele. */
+    /** O membro (ou parceiro) sai por conta propria, com o que e dele, para uma familia so dele. */
     @Transactional
     public void sair(CurrentUser usuario) {
         UserAccount conta = conta(usuario);
         if (cuidaDaFamilia(conta)) {
             throw new BusinessException("O titular nao sai da propria familia.");
         }
-        // Esquecer antes de registrar: a saida fica na trilha da familia.
         UUID antiga = conta.getHouseholdId();
-        sairDeOndeEsta(conta);
-        trilha.registrar(antiga, conta.getId(), Acao.SAIU, PESSOA, conta.getId(), pessoa(conta), null);
+        String quem = pessoa(conta);
         mudarParaFamiliaPropria(conta);
+        // Depois de esquecer (dentro da mudanca): a saida fica na trilha da familia.
+        trilha.registrar(antiga, conta.getId(), Acao.SAIU, PESSOA, conta.getId(), quem, null);
+
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }
 
+    /** Cria a familia nova antes de sair: os dados da pessoa precisam de um lugar para ir. */
     private void mudarParaFamiliaPropria(UserAccount conta) {
         Household nova = familias.save(new Household(nomePadrao(conta.primeiroNomeExibicao())));
+        sairDeOndeEsta(conta, nova.getId());
         conta.mudarDeFamilia(nova.getId(), PigguRole.TITULAR);
+
         usuarios.save(conta);
         sessoes.apagarPorUsuario(conta.getId());
     }

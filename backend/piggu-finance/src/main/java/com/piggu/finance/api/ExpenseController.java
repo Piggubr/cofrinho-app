@@ -20,7 +20,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,7 +46,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/expenses")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class ExpenseController {
 
     private final ExpenseService servico;
@@ -145,13 +143,15 @@ public class ExpenseController {
 
     @PutMapping("/{id}")
     public ExpenseResponse atualizar(@PathVariable UUID id,
-                                     @Valid @RequestBody UpdateExpenseRequest pedido) {
-        return servico.atualizar(id, pedido);
+                                     @Valid @RequestBody UpdateExpenseRequest pedido,
+                                     @AuthUser CurrentUser usuario) {
+        return servico.atualizar(id, pedido, usuario);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        servico.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.excluir(id, usuario);
+
         return ResponseEntity.noContent().build();
     }
 }

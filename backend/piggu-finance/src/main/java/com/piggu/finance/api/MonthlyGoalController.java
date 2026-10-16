@@ -5,7 +5,6 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.api.dto.MonthlyGoalRequest;
 import com.piggu.finance.domain.MonthlyGoalService;
 import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +17,6 @@ import java.util.Map;
 /** Limites de gasto por mes. Substitui a acao setMonthlyGoal. */
 @RestController
 @RequestMapping("/api/monthly-goals")
-@PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
 public class MonthlyGoalController {
 
     private final MonthlyGoalService servico;

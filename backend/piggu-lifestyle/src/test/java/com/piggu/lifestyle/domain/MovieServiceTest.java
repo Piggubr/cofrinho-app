@@ -120,17 +120,19 @@ class MovieServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("membro nao apaga filme de outra pessoa, mas o titular e o admin apagam")
+    @DisplayName("so quem adicionou apaga o filme; nem o admin apaga o de outro adulto")
     void exclusaoRespeitaDono() {
         MovieResponse filme = adicionar("603", "Matrix");
         CurrentUser outra = new CurrentUser(EDUARDO, "eduardo@piggu.test", PigguRole.MEMBRO);
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         assertThatThrownBy(() -> filmes.excluir(filme.id(), outra)).isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> filmes.excluir(filme.id(), admin)).isInstanceOf(ForbiddenException.class);
 
-        filmes.excluir(filme.id(), admin);
+        filmes.excluir(filme.id(), new CurrentUser(TITULAR, "titular@piggu.test", PigguRole.TITULAR));
         assertThat(filmes.listar()).isEmpty();
     }
+
 
     private MovieResponse adicionar(String tmdbId, String titulo) {
         return filmes.adicionar(new TmdbMovie(

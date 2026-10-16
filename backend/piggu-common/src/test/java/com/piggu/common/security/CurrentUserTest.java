@@ -3,7 +3,9 @@ package com.piggu.common.security;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,10 +36,16 @@ class CurrentUserTest {
     }
 
     @Test
-    @DisplayName("titular gerencia o que qualquer pessoa da familia lancou")
-    void titularGerencia() {
-        CurrentUser titular = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
+    @DisplayName("titular gerencia o que os menores lancaram, mas nao o de um adulto da familia")
+    void titularGerenciaOsMenores() {
+        CurrentUser titular = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR, Plano.GRATUITO, null,
+                List.of(OUTRA));
         assertThat(titular.podeGerenciar(OUTRA)).isTrue();
+        assertThat(titular.visiveis()).containsExactly(ID, OUTRA);
+
+        CurrentUser semMenores = new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR);
+        assertThat(semMenores.podeGerenciar(OUTRA)).isFalse();
+        assertThat(semMenores.visiveis()).containsExactly(ID);
     }
 
     @Test
@@ -48,21 +56,21 @@ class CurrentUserTest {
     }
 
     @Test
-    @DisplayName("administrador gerencia registro de qualquer pessoa")
-    void adminPodeTudo() {
+    @DisplayName("administrador vale como titular: nao mexe no registro de outro adulto")
+    void adminComoTitular() {
         CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
         assertThat(admin.isAdmin()).isTrue();
-        assertThat(admin.podeGerenciar(OUTRA)).isTrue();
+        assertThat(admin.podeGerenciar(OUTRA)).isFalse();
     }
 
     @Test
-    @DisplayName("registro sem dono so e gerenciavel por administrador")
+    @DisplayName("registro sem dono fica com o titular (ou administrador)")
     void registroSemDono() {
         CurrentUser comum = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
         assertThat(comum.podeGerenciar(null)).isFalse();
 
-        CurrentUser admin = new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN);
-        assertThat(admin.podeGerenciar(null)).isTrue();
+        assertThat(new CurrentUser(ID, "titular@piggu.test", PigguRole.TITULAR).podeGerenciar(null)).isTrue();
+        assertThat(new CurrentUser(ID, "admin@piggu.test", PigguRole.ADMIN).podeGerenciar(null)).isTrue();
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.piggu.common.security;
 import com.piggu.common.error.BusinessException;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,11 +15,18 @@ import java.util.UUID;
  * @param role    papel de acesso
  * @param plano   plano da familia quando o token foi emitido; GRATUITO quando o token nao diz
  * @param familia familia (household) da pessoa; todo dado de dominio pertence a uma
+ * @param menores so no token do titular: quem da familia tem 13 a 17 anos, cujos dados
+ *                ele tambem ve (ver {@link DonoAtual})
  */
-public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia) {
+public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia, List<UUID> menores) {
 
     public CurrentUser {
         plano = plano == null ? Plano.GRATUITO : plano;
+        menores = menores == null ? List.of() : List.copyOf(menores);
+    }
+
+    public CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia) {
+        this(id, email, role, plano, familia, List.of());
     }
 
     /** Sem plano nem familia informados: gratuito. */
@@ -39,9 +47,14 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
         return role == PigguRole.TITULAR || isAdmin();
     }
 
-    /** Lanca e edita os dados de toda a familia: titular (ou ADMIN) e parceiro. */
-    public boolean podeLancar() {
-        return isTitular() || role == PigguRole.PARCEIRO;
+    /** De quem sao os dados que a pessoa ve: os dela e, para o titular, os dos menores. */
+    public List<UUID> visiveis() {
+        if (menores.isEmpty()) {
+            return List.of(id);
+        }
+        List<UUID> todos = new java.util.ArrayList<>(menores);
+        todos.addFirst(id);
+        return List.copyOf(todos);
     }
 
     /** O ADMIN opera a instalacao e usa tudo; os demais dependem do plano da familia. */
@@ -58,10 +71,12 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
     }
 
     /**
-     * Autor do registro, titular ou parceiro da familia. Registro de outra familia nem chega aqui:
-     * o filtro por familia ({@link FamiliaAtual}) ja o deixou fora da consulta.
+     * Mexe no registro quem o lancou, e o titular no de um menor (ou no que ficou sem dono, de
+     * antes de cada um ter os seus). Registro de outra familia nem chega aqui: o filtro por
+     * familia ({@link FamiliaAtual}) ja o deixou fora da consulta.
      */
     public boolean podeGerenciar(UUID dono) {
-        return podeLancar() || (dono != null && dono.equals(id));
+        return dono == null ? isTitular() : visiveis().contains(dono);
     }
+
 }

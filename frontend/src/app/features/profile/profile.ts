@@ -10,7 +10,7 @@ import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
-import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
+import { BLOCOS_DO_PAINEL, PainelOrganizado } from '../../core/ui/painel';
 import {
   IdDoTema,
   TEMAS,
@@ -49,12 +49,10 @@ export class Profile {
   private readonly router = inject(Router);
   protected readonly painel = inject(PainelOrganizado);
 
-  /** Na ordem escolhida; o membro so ve os blocos que aparecem para ele. */
+  /** Na ordem escolhida. */
   protected readonly blocosDoPainel = computed(() => {
-    const doMembro: IdDoBloco[] = ['metas', 'cofrinho', 'girls-math'];
     return this.painel
       .blocos()
-      .filter((bloco) => !this.auth.ehMembro() || doMembro.includes(bloco.id))
       .map((bloco) => ({
         ...bloco,
         nome: BLOCOS_DO_PAINEL.find((b) => b.id === bloco.id)?.nome ?? bloco.id,
@@ -293,9 +291,9 @@ export class Profile {
 
   protected excluirConta(): void {
     const texto =
-      $localize`Excluir sua conta apaga o que é só seu. Se você for a última pessoa da família, ` +
-      $localize`tudo da família é apagado. Se outras pessoas ficarem, o que você lançou fica com elas, ` +
-      $localize`sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ` +
+      $localize`Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, ` +
+      $localize`tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com ` +
+      $localize`elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. ` +
       $localize`Digite EXCLUIR para confirmar.`;
     if (prompt(texto)?.trim().toUpperCase() !== 'EXCLUIR') {
       return;

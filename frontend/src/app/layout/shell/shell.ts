@@ -48,9 +48,7 @@ interface ItemDeMenu {
   readonly rotulo: string;
   readonly icone: NomeDoIcone;
   readonly grupo: Grupo;
-  /** Quando ausente, o item aparece para todos os perfis. */
-  readonly somenteCompleto?: boolean;
-  /** Assinar e cancelar o Premium e so do titular; o parceiro nao ve o item. */
+  /** Assinar e cancelar o Premium e so do titular; os outros nao veem o item. */
   readonly somenteTitular?: boolean;
 }
 
@@ -171,23 +169,23 @@ export class Shell {
   // prettier-ignore
   protected readonly itens: ItemDeMenu[] = [
     { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa', grupo: 'dia-a-dia' },
-    { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', grupo: 'dia-a-dia', somenteCompleto: true },
-    { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia', somenteCompleto: true },
-    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia', somenteCompleto: true },
-    { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar', somenteCompleto: true },
+    { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', grupo: 'dia-a-dia' },
+    { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia' },
+    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia' },
+    { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar' },
     { rota: '/metas', rotulo: $localize`Minhas metas`, icone: 'bandeira', grupo: 'planejar' },
-    { rota: '/orcamentos', rotulo: $localize`Orçamento`, icone: 'pizza', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar', somenteCompleto: true },
-    { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas', somenteCompleto: true },
-    { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', grupo: 'contas', somenteCompleto: true },
-    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo', somenteCompleto: true },
-    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo', somenteCompleto: true },
-    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo', somenteCompleto: true },
-    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo', somenteCompleto: true },
-    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo', somenteCompleto: true },
+    { rota: '/orcamentos', rotulo: $localize`Orçamento`, icone: 'pizza', grupo: 'planejar' },
+    { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar' },
+    { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas' },
+    { rota: '/calendario', rotulo: $localize`Calendário`, icone: 'calendario', grupo: 'contas' },
+    { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo' },
+    { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo' },
+    { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo' },
+    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo' },
+    { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo' },
     { rota: '/girls-math', rotulo: $localize`Girls Math`, icone: 'sacola', grupo: 'estilo' },
     { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas', grupo: 'conta' },
-    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', grupo: 'conta', somenteCompleto: true, somenteTitular: true },
+    { rota: '/plano', rotulo: $localize`Premium`, icone: 'estrela', grupo: 'conta', somenteTitular: true },
   ];
 
   constructor() {
@@ -263,9 +261,7 @@ export class Shell {
 
   /** Atalhos da barra de baixo no celular; o resto fica em "Mais". */
   protected atalhos(): ItemDeMenu[] {
-    const rotas = this.auth.ehMembro()
-      ? ['/painel', '/familia']
-      : ['/painel', '/gastos', '/relatorios', '/planejar'];
+    const rotas = ['/painel', '/gastos', '/relatorios', '/planejar'];
     return this.itens.filter((item) => rotas.includes(item.rota));
   }
 
@@ -349,9 +345,6 @@ export class Shell {
   }
 
   protected itensVisiveis(): ItemDeMenu[] {
-    if (this.auth.ehMembro()) {
-      return this.itens.filter((item) => !item.somenteCompleto);
-    }
     return this.itens.filter((item) => this.auth.ehTitular() || !item.somenteTitular);
   }
 

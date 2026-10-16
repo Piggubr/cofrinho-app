@@ -25,7 +25,7 @@ class ExclusaoDaPessoaTest extends PostgresIntegrationTest {
     private JdbcTemplate jdbc;
 
     @Test
-    @DisplayName("foto do Girls Math sai com a pessoa; a do mural fica, anonimizada; a dos outros nao muda")
+    @DisplayName("as fotos da pessoa saem com ela, do mural tambem; a dos outros nao muda")
     void fotoPrivadaSaiComAPessoa() {
         UUID familia = UUID.randomUUID();
         UUID quemSai = UUID.randomUUID();
@@ -39,8 +39,8 @@ class ExclusaoDaPessoaTest extends PostgresIntegrationTest {
 
         assertThat(dono(privada)).isNull();
         assertThat(existe(privada)).isFalse();
-        assertThat(existe(doMural)).isTrue();
-        assertThat(dono(doMural)).isNull();
+        assertThat(existe(doMural)).isFalse();
+
         assertThat(dono(privadaDeOutra)).isEqualTo(quemFica);
     }
 

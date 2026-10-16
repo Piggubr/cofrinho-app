@@ -134,16 +134,18 @@ class AssetServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("ninguem apaga foto de outra pessoa, mas o admin apaga")
+    @DisplayName("so quem enviou apaga a foto; nem o admin apaga a de outro adulto")
     void exclusaoRespeitaDono() {
         Asset asset = guardar(png(), "image/png");
         CurrentUser outra = new CurrentUser(UUID.randomUUID(), "membro@piggu.test", PigguRole.MEMBRO);
         CurrentUser admin = new CurrentUser(UUID.randomUUID(), "admin@piggu.test", PigguRole.ADMIN);
 
         assertThatThrownBy(() -> assets.apagar(asset.getId(), outra)).isInstanceOf(ForbiddenException.class);
+        assertThatThrownBy(() -> assets.apagar(asset.getId(), admin)).isInstanceOf(ForbiddenException.class);
 
-        assets.apagar(asset.getId(), admin);
+        assets.apagar(asset.getId(), TITULAR);
         assertThat(repositorio.count()).isZero();
+
     }
 
     @Test
