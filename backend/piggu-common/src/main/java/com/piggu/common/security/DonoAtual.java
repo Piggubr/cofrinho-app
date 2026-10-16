@@ -10,7 +10,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Cada pessoa ve so o que lancou; o titular ve tambem o dos menores (13 a 17 anos).
+ * Cada pessoa ve so o que lancou; titular e parceiro veem tambem o um do outro e o dos
+ * menores (13 a 17 anos).
  *
  * <p>Como o {@link FamiliaAtual}, fica no Hibernate e nao em cada consulta: as entidades
  * com dono declaram o filtro {@link #FILTRO} (ligado sozinho, inclusive no
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
  * familia, que ja nao enxerga nada sem ser escolhida explicitamente.</p>
  *
  * <p>Registro sem dono (de antes de cada um ter os seus, ou de quem excluiu a conta) fica
- * com o titular.</p>
+ * com titular e parceiro.</p>
  */
 public final class DonoAtual {
 
@@ -36,7 +37,7 @@ public final class DonoAtual {
             + " OR ({alias}.user_id IS NULL AND :semDono))";
 
     /**
-     * So o da propria pessoa, nem o titular ve o dos menores: preferencias que valem para
+     * So o da propria pessoa, nem os responsaveis veem a dos outros: preferencias que valem para
      * quem lanca (regras de categoria, memoria de precos, metas e orcamentos). Com uma
      * linha por pessoa, as buscas por chave (categoria, termo, mes) continuam achando uma so.
      * O que ficou sem dono aqui nao aparece para ninguem.
@@ -77,13 +78,14 @@ public final class DonoAtual {
         }
     }
 
-    /** O titular fica com o que nao tem dono. */
+    /** Titular e parceiro ficam com o que nao tem dono. */
 
     public static final class SemDono implements Supplier<Boolean> {
         @Override
         public Boolean get() {
             Jwt jwt = jwt();
-            return jwt != null && CurrentUserArgumentResolver.JwtClaims.toCurrentUser(jwt).isTitular();
+            return jwt != null && CurrentUserArgumentResolver.JwtClaims.toCurrentUser(jwt).isResponsavel();
+
 
         }
     }

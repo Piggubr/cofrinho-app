@@ -49,6 +49,17 @@ class CurrentUserTest {
     }
 
     @Test
+    @DisplayName("parceiro e titular: um gerencia o do outro e fica com o que nao tem dono")
+    void parceiroComoTitular() {
+        CurrentUser parceiro = new CurrentUser(ID, "parceiro@piggu.test", PigguRole.PARCEIRO, Plano.GRATUITO, null,
+                List.of(OUTRA));
+        assertThat(parceiro.isResponsavel()).isTrue();
+        assertThat(parceiro.podeGerenciar(OUTRA)).isTrue();
+        assertThat(parceiro.podeGerenciar(null)).isTrue();
+        assertThat(parceiro.isTitular()).as("plano e convites continuam so com o titular").isFalse();
+    }
+
+    @Test
     @DisplayName("quem nao e dono nem titular nao pode")
     void terceiroNaoPode() {
         CurrentUser outra = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
@@ -64,7 +75,8 @@ class CurrentUserTest {
     }
 
     @Test
-    @DisplayName("registro sem dono fica com o titular (ou administrador)")
+    @DisplayName("registro sem dono fica com o titular, o parceiro ou o administrador")
+
     void registroSemDono() {
         CurrentUser comum = new CurrentUser(ID, "membro@piggu.test", PigguRole.MEMBRO);
         assertThat(comum.podeGerenciar(null)).isFalse();

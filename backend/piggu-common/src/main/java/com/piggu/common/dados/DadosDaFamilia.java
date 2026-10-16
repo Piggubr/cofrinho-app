@@ -20,8 +20,8 @@ import java.util.regex.Pattern;
  * <p>Cada servico declara as tabelas em que guarda dado de alguem e a coluna que diz
  * quem lancou. Isso basta para quatro operacoes:</p>
  * <ul>
- *   <li><b>exportar</b>: o que a pessoa ve no app (o dela; o titular, tambem o dos menores e
- *       o que nao tem dono). Tabela privada ({@link Tabela#privada()}) leva so o de quem pediu;</li>
+ *   <li><b>exportar</b>: o que a pessoa ve no app (o dela; titular e parceiro, tambem o do
+ *       outro, o dos menores e o que nao tem dono). Tabela privada ({@link Tabela#privada()}) leva so o de quem pediu;</li>
  *   <li><b>apagar a familia</b>: quando a pessoa era a ultima da familia, tudo sai;</li>
  *   <li><b>apagar a pessoa</b>: a familia continua, entao o que era da familia fica,
  *       anonimizado, e o que era da pessoa ({@link Tabela#pessoal()}) sai;</li>
@@ -124,11 +124,12 @@ public class DadosDaFamilia {
                 linhas = jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,
                         usuario.familia(), usuario.id());
             } else {
-                // O mesmo que a pessoa ve no app (DonoAtual): o dela, e o titular tambem o
-                // dos menores e o que ficou sem dono.
+                // O mesmo que a pessoa ve no app (DonoAtual): o dela, e titular e parceiro
+                // tambem o do outro, o dos menores e o que ficou sem dono.
+
                 linhas = jdbc.queryForObject(sql + " AND (" + tabela.autor() + " = ANY(?) OR (" + tabela.autor()
                                 + " IS NULL AND ?))", String.class,
-                        usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isTitular());
+                        usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isResponsavel());
             }
 
             dados.put(tabela.nome(), ler(linhas));

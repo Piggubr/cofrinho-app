@@ -99,29 +99,41 @@ public class TokenService {
         if (destino != null) {
             claims.claim(EscopoDeExclusao.CLAIM_DESTINO, destino.toString());
         }
-        // O titular ve tambem os dados dos menores da familia (DonoAtual nos servicos). Fez
-        // 18 anos ou mudou de familia? Vale na proxima renovacao (ate 5 min).
-        List<String> menores = menoresVisiveis(conta, familia);
-        if (!menores.isEmpty()) {
-            claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_MENORES, menores);
+        // Titular e parceiro veem tambem os dados um do outro e dos menores (DonoAtual nos
+        // servicos). Fez 18 anos, mudou de papel ou de familia? Vale na proxima renovacao (ate 5 min).
+        List<String> tambemVe = tambemVisiveis(conta, familia);
+        if (!tambemVe.isEmpty()) {
+            claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_TAMBEM_VE, tambemVe);
         }
 
         JwsHeader cabecalho = JwsHeader.with(SignatureAlgorithm.RS256).keyId("piggu-signing-key").build();
         return encoder.encode(JwtEncoderParameters.from(cabecalho, claims.build())).getTokenValue();
     }
 
-    private List<String> menoresVisiveis(UserAccount conta, Household familia) {
-        if (conta.getRole() != PigguRole.TITULAR && conta.getRole() != PigguRole.ADMIN) {
+    /**
+     * Para o titular e o parceiro (o casal): o outro responsavel e os menores. Um menor
+     * promovido a parceiro nao ganha a vista dos adultos.
+     */
+    private List<String> tambemVisiveis(UserAccount conta, Household familia) {
+        LocalDate hoje = LocalDate.now(ZoneId.of(conta.getTimezone()));
+        if (!responsavel(conta) || conta.menorDeIdade(hoje)) {
             return List.of();
         }
-        LocalDate hoje = LocalDate.now(ZoneId.of(conta.getTimezone()));
         return usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId()).stream()
-                .filter(outro -> !outro.getId().equals(conta.getId()) && outro.menorDeIdade(hoje))
+                .filter(outro -> !outro.getId().equals(conta.getId())
+                        && (outro.menorDeIdade(hoje) || responsavel(outro)))
+
                 .map(outro -> outro.getId().toString())
                 .toList();
     }
 
+    private static boolean responsavel(UserAccount conta) {
+        return conta.getRole() == PigguRole.TITULAR || conta.getRole() == PigguRole.ADMIN
+                || conta.getRole() == PigguRole.PARCEIRO;
+    }
+
     /** Token opaco de 256 bits para a sessao longa. Nunca e' gravado em claro. */
+
     public String gerarRefreshToken() {
         byte[] bytes = new byte[32];
         ALEATORIO.nextBytes(bytes);

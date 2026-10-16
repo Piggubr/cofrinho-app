@@ -57,8 +57,8 @@ public final class TokensDeTeste {
         return como(EMAIL_MEMBRO, PigguRole.MEMBRO);
     }
 
-    /** Titular que ve tambem os dados destes menores (claim menores, como o identity emite). */
-    public static RequestPostProcessor titularComMenores(UUID familia, String... emailsDosMenores) {
+    /** Titular que ve tambem os dados destas pessoas (claim tambemVe, como o identity emite). */
+    public static RequestPostProcessor responsavelVendo(UUID familia, String... emails) {
         return SecurityMockMvcRequestPostProcessors.jwt()
                 .jwt(token -> token
                         .subject(idDe(EMAIL_TITULAR).toString())
@@ -66,8 +66,8 @@ public final class TokensDeTeste {
                         .claim("role", PigguRole.TITULAR.name())
                         .claim("plano", "PREMIUM")
                         .claim("familia", familia.toString())
-                        .claim("menores",
- java.util.Arrays.stream(emailsDosMenores)
+                        .claim("tambemVe",
+ java.util.Arrays.stream(emails)
                                 .map(email -> idDe(email).toString()).toList()))
                 .authorities(new org.springframework.security.core.authority.SimpleGrantedAuthority(
                         PigguRole.TITULAR.authority()));

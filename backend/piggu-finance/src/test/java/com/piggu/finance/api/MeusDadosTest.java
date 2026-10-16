@@ -58,7 +58,7 @@ class MeusDadosTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.expenses.length()").value(1))
                 .andExpect(jsonPath("$.piggy_deposits.length()").value(0))
                 .andExpect(jsonPath("$.expenses[0].item").value("Mercado do titular"));
-        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.titularComMenores(familia, emailMembro)))
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.responsavelVendo(familia, emailMembro)))
                 .andExpect(jsonPath("$.piggy_deposits.length()").value(1));
 
         mockMvc.perform(get("/api/meus-dados").with(membro))
@@ -80,7 +80,7 @@ class MeusDadosTest extends PostgresIntegrationTest {
                         .with(TokensDeTeste.exclusao(familia, emailMembro, PigguRole.MEMBRO, "PESSOA")))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.titularComMenores(familia, emailMembro)))
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.responsavelVendo(familia, emailMembro)))
                 .andExpect(jsonPath("$.piggy_deposits.length()").value(0));
 
         mockMvc.perform(get("/api/expenses").with(titular))

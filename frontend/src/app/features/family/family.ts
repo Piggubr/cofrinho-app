@@ -146,13 +146,13 @@ export class Family {
     this.executar(this.familias.cancelarConvite(id), $localize`Convite cancelado.`);
   }
 
-  /** O parceiro lanca e edita como o titular, mas nao mexe no plano nem nas pessoas. */
+  /** O parceiro ve e edita tudo como o titular, mas nao mexe no plano nem nas pessoas. */
   protected mudarPapel(membro: MembroDaFamilia): void {
     const papel = membro.papel === 'PARCEIRO' ? 'MEMBRO' : 'PARCEIRO';
     const texto =
       papel === 'PARCEIRO'
-        ? $localize`Tornar ${membro.nome} parceiro? Essa pessoa passa a lançar e editar gastos, receitas, contas e orçamentos da família. Plano, convites e pessoas continuam só com você.`
-        : $localize`Voltar ${membro.nome} a membro? Essa pessoa passa a ver só o painel e o cofrinho.`;
+        ? $localize`Tornar ${membro.nome} parceiro? Vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você.`
+        : $localize`Voltar ${membro.nome} a membro? Essa pessoa passa a ver só o que ela lança, e você deixa de ver o dela.`;
     if (!confirm(texto)) {
       return;
     }

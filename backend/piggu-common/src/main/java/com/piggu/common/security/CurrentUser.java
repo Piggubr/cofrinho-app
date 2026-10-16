@@ -15,14 +15,14 @@ import java.util.UUID;
  * @param role    papel de acesso
  * @param plano   plano da familia quando o token foi emitido; GRATUITO quando o token nao diz
  * @param familia familia (household) da pessoa; todo dado de dominio pertence a uma
- * @param menores so no token do titular: quem da familia tem 13 a 17 anos, cujos dados
- *                ele tambem ve (ver {@link DonoAtual})
+ * @param tambemVe so no token do titular e do parceiro: o outro responsavel da familia e
+ *                 quem tem 13 a 17 anos, cujos dados ele tambem ve (ver {@link DonoAtual})
  */
-public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia, List<UUID> menores) {
+public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia, List<UUID> tambemVe) {
 
     public CurrentUser {
         plano = plano == null ? Plano.GRATUITO : plano;
-        menores = menores == null ? List.of() : List.copyOf(menores);
+        tambemVe = tambemVe == null ? List.of() : List.copyOf(tambemVe);
     }
 
     public CurrentUser(UUID id, String email, PigguRole role, Plano plano, UUID familia) {
@@ -47,12 +47,20 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
         return role == PigguRole.TITULAR || isAdmin();
     }
 
-    /** De quem sao os dados que a pessoa ve: os dela e, para o titular, os dos menores. */
+    /**
+     * Titular (ou ADMIN) e parceiro: o casal que responde pela familia. Um ve o do outro e o
+     * dos menores, e fica com o que nao tem dono.
+     */
+    public boolean isResponsavel() {
+        return isTitular() || role == PigguRole.PARCEIRO;
+    }
+
+    /** De quem sao os dados que a pessoa ve: os dela e, para os responsaveis, {@link #tambemVe}. */
     public List<UUID> visiveis() {
-        if (menores.isEmpty()) {
+        if (tambemVe.isEmpty()) {
             return List.of(id);
         }
-        List<UUID> todos = new java.util.ArrayList<>(menores);
+        List<UUID> todos = new java.util.ArrayList<>(tambemVe);
         todos.addFirst(id);
         return List.copyOf(todos);
     }
@@ -71,12 +79,13 @@ public record CurrentUser(UUID id, String email, PigguRole role, Plano plano, UU
     }
 
     /**
-     * Mexe no registro quem o lancou, e o titular no de um menor (ou no que ficou sem dono, de
-     * antes de cada um ter os seus). Registro de outra familia nem chega aqui: o filtro por
-     * familia ({@link FamiliaAtual}) ja o deixou fora da consulta.
+     * Mexe no registro quem o lancou, e os responsaveis no do outro responsavel e no de um
+     * menor (ou no que ficou sem dono, de antes de cada um ter os seus). Registro de outra
+     * familia nem chega aqui: o filtro por familia ({@link FamiliaAtual}) ja o deixou fora.
      */
     public boolean podeGerenciar(UUID dono) {
-        return dono == null ? isTitular() : visiveis().contains(dono);
+        return dono == null ? isResponsavel() : visiveis().contains(dono);
     }
+
 
 }

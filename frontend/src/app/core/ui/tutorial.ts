@@ -25,7 +25,7 @@ const COMPLETO: PassoDoTutorial[] = [
   { id: 'painel', icone: 'casa', alvos: ['/painel'], titulo: $localize`Painel`, texto: $localize`O resumo do mês: quanto entrou, quanto saiu, quanto ainda dá para gastar e as contas que vencem.` },
   { id: 'planejar', icone: 'alvo', alvos: ['/planejar', 'mais'], titulo: $localize`Planejar`, texto: $localize`Defina quanto quer gastar por categoria, cadastre as contas do mês e acompanhe seus objetivos.` },
   { id: 'relatorios', icone: 'grafico', alvos: ['/relatorios', 'mais'], titulo: $localize`Relatórios`, texto: $localize`Veja para onde o dinheiro foi, mês a mês e por categoria.` },
-  { id: 'familia', icone: 'pessoas', alvos: ['/familia', 'mais'], titulo: $localize`Família`, texto: $localize`Convide quem mora com você. Cada um lança do seu celular e vê o que é seu; o titular vê também o de quem tem menos de 18 anos.` },
+  { id: 'familia', icone: 'pessoas', alvos: ['/familia', 'mais'], titulo: $localize`Família`, texto: $localize`Convide quem mora com você. Cada um lança do seu celular e vê o que é seu; titular e parceiro veem também o um do outro e o de quem tem menos de 18 anos.` },
   { id: 'busca', icone: 'busca', alvos: ['busca'], titulo: $localize`Busca`, texto: $localize`Encontre qualquer tela ou lançamento pela lupa.` },
   { id: 'assistente', icone: 'brilho', alvos: ['assistente'], titulo: $localize`Assistente`, texto: $localize`Pergunte sobre o seu dinheiro, como "quanto gastei este mês?", e ele responde.` },
 ];

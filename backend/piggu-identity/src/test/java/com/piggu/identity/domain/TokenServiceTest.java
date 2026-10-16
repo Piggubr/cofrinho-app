@@ -39,22 +39,28 @@ class TokenServiceTest extends PostgresIntegrationTest {
     private HouseholdRepository casas;
 
     @Test
-    @DisplayName("o titular leva no token os menores (13 a 17) da familia; o menor e os adultos, nao")
-    void menoresNoTokenDoTitular() {
+    @DisplayName("titular e parceiro levam no token um ao outro e os menores (13 a 17); o menor e o membro adulto, nada")
+    void quemOsResponsaveisVeem() {
         Household casa = casas.save(new Household("Casa com menor"));
         UserAccount titular = usuarios.save(new UserAccount("titular.menores@piggu.test", PigguRole.TITULAR, casa.getId()));
+        UserAccount parceiro = new UserAccount("parceiro.menores@piggu.test", PigguRole.PARCEIRO, casa.getId());
+        parceiro.informarNascimento(LocalDate.now().minusYears(30));
+        usuarios.save(parceiro);
         UserAccount menor = new UserAccount("menor.menores@piggu.test", PigguRole.MEMBRO, casa.getId());
         menor.informarNascimento(LocalDate.now().minusYears(15));
         usuarios.save(menor);
-        UserAccount adulto = new UserAccount("adulto.menores@piggu.test", PigguRole.PARCEIRO, casa.getId());
+        UserAccount adulto = new UserAccount("adulto.menores@piggu.test", PigguRole.MEMBRO, casa.getId());
         adulto.informarNascimento(LocalDate.now().minusYears(18));
         usuarios.save(adulto);
 
-        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("menores"))
-                .containsExactly(menor.getId().toString());
-        assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa)).hasClaim("menores")).isFalse();
-        assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa)).hasClaim("menores")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+                .containsExactlyInAnyOrder(parceiro.getId().toString(), menor.getId().toString());
+        assertThat(decoder.decode(tokens.gerarAccessToken(parceiro, casa)).getClaimAsStringList("tambemVe"))
+                .containsExactlyInAnyOrder(titular.getId().toString(), menor.getId().toString());
+        assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa)).hasClaim("tambemVe")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa)).hasClaim("tambemVe")).isFalse();
     }
+
 
     @Test
     @DisplayName("access token carrega id, e-mail, papel, plano e familia, e e verificavel pela chave publica")

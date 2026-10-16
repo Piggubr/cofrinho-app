@@ -56,14 +56,14 @@ class CadaUmVeOSeuTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$[*].item").value(containsInAnyOrder("Do adulto")));
         mockMvc.perform(get("/api/expenses").with(titular))
                 .andExpect(jsonPath("$[*].item").value(containsInAnyOrder("Do titular")));
-        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.titularComMenores(casa, MENOR)))
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.responsavelVendo(casa, MENOR)))
                 .andExpect(jsonPath("$[*].item").value(containsInAnyOrder("Do titular", "Do menor")));
 
         // Nem pelo id: o filtro vale tambem no findById.
         mockMvc.perform(delete("/api/expenses/" + doAdulto).with(menor)).andExpect(status().isNotFound());
-        mockMvc.perform(delete("/api/expenses/" + doAdulto).with(TokensDeTeste.titularComMenores(casa, MENOR)))
+        mockMvc.perform(delete("/api/expenses/" + doAdulto).with(TokensDeTeste.responsavelVendo(casa, MENOR)))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(delete("/api/expenses/" + doMenor).with(TokensDeTeste.titularComMenores(casa, MENOR)))
+        mockMvc.perform(delete("/api/expenses/" + doMenor).with(TokensDeTeste.responsavelVendo(casa, MENOR)))
                 .andExpect(status().isNoContent());
     }
 
@@ -78,7 +78,7 @@ class CadaUmVeOSeuTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.totalDepositos").value(100));
         mockMvc.perform(get("/api/piggy-bank").with(TokensDeTeste.da(casa, TITULAR, PigguRole.TITULAR)))
                 .andExpect(jsonPath("$.totalDepositos").value(50));
-        mockMvc.perform(get("/api/piggy-bank").with(TokensDeTeste.titularComMenores(casa, MENOR)))
+        mockMvc.perform(get("/api/piggy-bank").with(TokensDeTeste.responsavelVendo(casa, MENOR)))
                 .andExpect(jsonPath("$.totalDepositos").value(150));
     }
 

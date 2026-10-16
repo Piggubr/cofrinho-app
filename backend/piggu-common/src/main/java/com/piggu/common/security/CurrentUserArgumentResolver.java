@@ -44,8 +44,9 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static final String CLAIM_FAMILIA = "familia";
         /** Falso quando a conta ainda nao informou o CPF (ver {@link CpfObrigatorio}). */
         public static final String CLAIM_CPF = "cpf";
-        /** So no token do titular: ids dos menores da familia, cujos dados ele tambem ve. */
-        public static final String CLAIM_MENORES = "menores";
+        /** So no token do titular e do parceiro: de quem mais da familia eles veem os dados. */
+
+        public static final String CLAIM_TAMBEM_VE = "tambemVe";
 
         private JwtClaims() {
         }
@@ -61,13 +62,13 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                     PigguRole.of(jwt.getClaimAsString(CLAIM_ROLE)),
                     Plano.de(jwt.getClaimAsString(CLAIM_PLANO)),
                     FamiliaAtual.de(jwt),
-                    menores(jwt)
+                    tambemVe(jwt)
             );
         }
 
-        /** Ids da claim {@link #CLAIM_MENORES}; ausente ou invalida vira lista vazia. */
-        public static List<UUID> menores(Jwt jwt) {
-            List<String> ids = jwt.getClaimAsStringList(CLAIM_MENORES);
+        /** Ids da claim {@link #CLAIM_TAMBEM_VE}; ausente ou invalida vira lista vazia. */
+        public static List<UUID> tambemVe(Jwt jwt) {
+            List<String> ids = jwt.getClaimAsStringList(CLAIM_TAMBEM_VE);
             if (ids == null) {
                 return List.of();
             }
