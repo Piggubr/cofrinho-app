@@ -50,7 +50,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
         menor.informarNascimento(LocalDate.now().minusYears(15));
         usuarios.save(menor);
         UserAccount adulto = new UserAccount("adulto.menores@piggu.test", PigguRole.MEMBRO, casa.getId());
-        adulto.informarNascimento(LocalDate.now().minusYears(18));
+        adulto.informarNascimento(LocalDate.now().minusYears(25));
         usuarios.save(adulto);
 
         assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
