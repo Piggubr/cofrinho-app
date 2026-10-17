@@ -41,7 +41,7 @@
          API anterior a 1.40, recusada por daemons Docker recentes. Fixar aqui vale
          para todos os modulos; 1.43 e aceita por Docker 20.10 em diante. -->
     <docker.api.version>1.43</docker.api.version>
-    <jacoco.version>0.8.13</jacoco.version>
+    <jacoco.version>0.8.15</jacoco.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
