@@ -20,7 +20,7 @@ COPY . .
 ARG MODULO
 RUN mvn -B -q -pl ${MODULO} -am package -DskipTests
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 ARG MODULO
 COPY --from=build /app/${MODULO}/target/*.jar app.jar
