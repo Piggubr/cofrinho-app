@@ -1,0 +1,30 @@
+# Backend Java
+backend/.env
+backend/*/target/
+backend/dados-fotos/
+# Chaves de assinatura geradas por backend/scripts/gerar-chaves-dev.sh
+backend/keys/
+
+# Arquivos compactados de apoio
+*.rar
+*.zip
+
+# Sistema
+.DS_Store
+
+# Frontend Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Segredos: nunca no Git (o .env.example, com valores de desenvolvimento, fica).
+.env
+.env.*
+!.env.example
+*.pem
+!backend/piggu-identity/src/test/resources/keys/*.pem
+*.p12
+*.jks
+*.key
+*credentials*.json
+service-account*.json

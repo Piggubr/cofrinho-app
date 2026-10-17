@@ -1,0 +1,41 @@
+.conta-fixa {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.conta-fixa:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.conta {
+  align-items: flex-start;
+  padding: 0;
+  border: none;
+}
+
+.conta-valor {
+  white-space: nowrap;
+}
+
+.etiqueta.paga {
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+
+.etiqueta.atrasada {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.conta-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.45rem;
+}
+
+/* A etiqueta fica a esquerda e os botoes vao para a direita. */
+.conta-acoes .etiqueta {
+  margin-right: auto;
+}

@@ -1,0 +1,162 @@
+<article class="documento">
+  <p><a i18n routerLink="/entrar">← Voltar</a></p>
+  <h1 i18n>Aviso de Privacidade do Piggu</h1>
+  <p i18n class="versao">Versão {{ versao }}</p>
+
+  <p i18n>
+    Este aviso explica quais dados pessoais o Piggu usa, para quê, com quem compartilha e
+    como você exerce seus direitos pela Lei Geral de Proteção de Dados (Lei 13.709/2018).
+    Se você mora na União Europeia, também valem os direitos do Regulamento Geral de Proteção
+    de Dados (GDPR), exercidos pelo mesmo contato no fim deste aviso.
+  </p>
+
+  <h2 i18n>Quem cuida dos seus dados</h2>
+  <p i18n>
+    O controlador é o Piggu. Para qualquer assunto de privacidade, inclusive falar com o
+    encarregado, escreva para <a [href]="'mailto:' + contato">{{ contato }}</a>.
+  </p>
+
+  <h2 i18n>O que coletamos e por quê</h2>
+  <div class="tabela-rolavel">
+    <table>
+      <thead>
+        <tr><th i18n>Dado</th><th i18n>Para quê</th><th i18n>Base legal</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td i18n>Nome e e-mail (do cadastro ou da conta Google) e a foto da conta Google</td>
+          <td i18n>Criar sua conta, entrar e mostrar quem lançou cada coisa na família</td>
+          <td i18n>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td i18n>Celular</td>
+          <td i18n>Falar com você sobre a sua conta e, no futuro, confirmar que é você ao entrar. Não aparece para a sua família e não é usado para propaganda</td>
+          <td i18n>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td i18n>Foto de perfil, se você escolher uma</td>
+          <td i18n>Mostrar você no app e para a sua família, no lugar da foto do Google. Antes de guardar, o Piggu reduz a foto e tira a localização e os outros dados da câmera. Você troca, remove ou volta para a do Google no Perfil</td>
+          <td i18n>Consentimento (art. 7º, I), que você retira removendo a foto</td>
+        </tr>
+        <tr>
+          <td i18n>CPF</td>
+          <td i18n>Identificar quem é o titular da conta e prevenir fraude. Obrigatório no cadastro de quem mora no Brasil. Fica cifrado, não aparece para a sua família e sai inteiro só quando você baixa os seus dados</td>
+          <td i18n>Legítimo interesse (art. 7º, IX) e prevenção à fraude</td>
+        </tr>
+        <tr>
+          <td i18n>País onde você mora e, se você informar, o documento de identidade de lá (por exemplo NIF, DNI, Codice Fiscale)</td>
+          <td i18n>Saber qual documento pedir, identificar quem é o titular da conta e prevenir fraude. O documento é opcional fora do Brasil, fica cifrado e não aparece para a sua família. Alguns documentos (como CURP e Codice Fiscale) contêm data de nascimento e sexo; o Piggu não usa essas informações para nada</td>
+          <td i18n>Legítimo interesse (art. 7º, IX) e prevenção à fraude; para quem mora na União Europeia, interesse legítimo (art. 6º, 1, f, do GDPR)</td>
+        </tr>
+        <tr>
+          <td i18n>Gastos, receitas, metas, notas, compras, lugares, filmes, fotos e prêmios que você lança</td>
+          <td i18n>Funcionar como seu controle financeiro e da sua família</td>
+          <td i18n>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td i18n>Foto da nota fiscal</td>
+          <td i18n>Ler os itens automaticamente. Com a sua autorização, a foto vai para a IA do Google, que devolve os itens; você confere antes de gravar</td>
+          <td i18n>Consentimento (art. 7º, I) para o envio ao Google</td>
+        </tr>
+        <tr>
+          <td i18n>Perguntas ao assistente (Premium) e os totais e gastos que cada pergunta pede</td>
+          <td i18n>Responder sobre o seu dinheiro. Vai para a IA do Google só o necessário para a pergunta, sem nome nem e-mail; a conversa não fica guardada no Piggu, só a contagem de perguntas do mês</td>
+          <td i18n>Consentimento (art. 7º, I), pedido no primeiro uso</td>
+        </tr>
+        <tr>
+          <td i18n>Contas e saldos bancários (Open Finance)</td>
+          <td i18n>Mostrar seus saldos no painel, se você conectar um banco</td>
+          <td i18n>Consentimento (art. 7º, I), pedido a cada banco conectado</td>
+        </tr>
+        <tr>
+          <td i18n>Dados da assinatura Premium (e-mail, situação do pagamento)</td>
+          <td i18n>Cobrar e liberar o Premium</td>
+          <td i18n>Execução do contrato (art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td i18n>Endereço IP, navegador e registros técnicos</td>
+          <td i18n>Segurança, prevenção de abuso e correção de falhas</td>
+          <td i18n>Legítimo interesse (art. 7º, IX) e Marco Civil da Internet</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p i18n>Não vendemos dados, não usamos para publicidade e não mostramos anúncios.</p>
+
+  <h2 i18n>Com quem compartilhamos (operadores)</h2>
+  <div class="tabela-rolavel">
+    <table>
+      <thead>
+        <tr><th i18n>Empresa</th><th i18n>O que recebe</th><th i18n>Quando</th></tr>
+      </thead>
+      <tbody>
+        <tr><td i18n>Google (login)</td><td i18n>Confirmação da sua conta Google</td><td i18n>Sempre que você entra</td></tr>
+        <tr><td i18n>Google (Gemini, IA)</td><td i18n>A foto da nota fiscal; no assistente, a pergunta e os totais e gastos que ela pede</td><td i18n>Quando você lê uma nota pela foto ou pergunta ao assistente, sempre depois de autorizar</td></tr>
+        <tr><td i18n>Google (Drive), se usado como armazenamento</td><td i18n>As fotos que você envia</td><td i18n>Ao enviar uma foto</td></tr>
+        <tr><td i18n>Pluggy (Open Finance)</td><td i18n>Contas, saldos e débitos do banco que você conectar</td><td i18n>Só se você conectar um banco e autorizar</td></tr>
+        <tr><td i18n>Stripe (pagamentos)</td><td i18n>E-mail e dados do pagamento (o cartão fica só na Stripe)</td><td i18n>Ao assinar o Premium pelo site</td></tr>
+        <tr><td i18n>Resend (e-mail)</td><td i18n>Seu e-mail, o link de confirmação do e-mail e o texto dos avisos do dia</td><td i18n>Ao criar conta com e-mail e senha (ou pedir outro link) e, se você ligar, nos avisos por e-mail</td></tr>
+        <tr><td i18n>Apple (notificações)</td><td i18n>O texto dos avisos do dia, para o seu iPhone</td><td i18n>Só se você ligar a notificação no iPhone</td></tr>
+        <tr><td i18n>Provedor de hospedagem</td><td i18n>Os dados guardados nos nossos servidores</td><td i18n>Sempre (infraestrutura)</td></tr>
+        <tr><td i18n>TMDB e Open Food Facts</td><td i18n>Só o termo que você pesquisa (nome de filme, código de barras)</td><td i18n>Ao pesquisar</td></tr>
+        <tr><td i18n>Frankfurter (cotação)</td><td i18n>Nenhum dado pessoal</td><td i18n>Ao mostrar a cotação</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p i18n>
+    Google, Stripe, Resend e Apple podem tratar dados fora do Brasil. Isso acontece com as garantias que a
+    LGPD exige (art. 33), como cláusulas contratuais e o consentimento específico que pedimos
+    antes de enviar a foto à IA.
+  </p>
+
+  <h2 i18n>Por quanto tempo guardamos</h2>
+  <ul>
+    <li i18n>Enquanto sua conta existir, ou até você apagar o registro.</li>
+    <li i18n>Sessões de acesso: apagadas quando vencem (30 dias).</li>
+    <li i18n>Conta sem nenhum acesso por 24 meses: excluída, como se você tivesse pedido.</li>
+    <li i18n>Conta desativada: excluída depois de 12 meses.</li>
+    <li i18n>Banco conectado sem atualização há 90 dias: conexão e saldos apagados.</li>
+    <li i18n>Fotos que não pertencem a mais nada: apagadas no dia seguinte.</li>
+    <li i18n>Histórico de quem mudou o quê na família: apagado depois de 400 dias.</li>
+    <li i18n>Registro dos avisos do dia já enviados: apagado depois de 120 dias.</li>
+    <li i18n>
+      Teste grátis já usado: ao excluir a conta, guardamos só uma marca cifrada do CPF (que não
+      permite ler o número) e a data do teste, para que o mesmo CPF não use o teste de novo.
+      Prevenção à fraude (art. 7º, IX e art. 16 da LGPD). Apagada 5 anos depois do teste.
+    </li>
+  </ul>
+
+  <h2 i18n>Seus direitos</h2>
+  <p i18n>
+    Você pode, a qualquer momento e de graça, em qualquer plano: ver seus dados, baixar uma
+    cópia de tudo em <strong>Perfil → Baixar meus dados</strong>, corrigir o que lançou,
+    desconectar bancos e excluir sua conta em <strong>Perfil → Excluir minha conta</strong>.
+    Pode também retirar um consentimento: desconectar o banco retira o da Pluggy, e os da
+    IA saem em <strong>Perfil → Autorizações da IA</strong> (ou escrevendo para {{ contato }}). Se achar que não respondemos bem, pode reclamar à ANPD.
+  </p>
+  <p i18n>
+    Na família, cada pessoa vê só o que lançou e os gastos divididos com ela. O titular e o
+    parceiro veem também o que o outro lança e o que lança quem tem de 13 a 17 anos (por isso
+    pedimos a data de nascimento; menores de 13 anos não podem ter conta). Se você sair da família ou for removido, leva o que lançou
+    e a família deixa de ver. Se excluir a conta, o que você lançou é apagado.
+  </p>
+
+  <h2 i18n>Cookies</h2>
+  <p i18n>
+    Usamos um único cookie, essencial, que mantém você conectado. Não usamos cookies de
+    publicidade nem de terceiros, e a fonte do site é servida pelo próprio Piggu.
+  </p>
+
+  <h2 i18n>Segurança</h2>
+  <p i18n>
+    Conexão sempre por HTTPS, acesso separado por família, senhas de banco que nunca passam
+    pelo Piggu e registros sem dados pessoais. Se algo der errado, avisamos você e a ANPD
+    como a lei pede.
+  </p>
+
+  <h2 i18n>Mudanças</h2>
+  <p i18n>
+    Se este aviso mudar, a versão acima muda e pediremos de novo as autorizações que
+    dependem dele.
+  </p>
+</article>

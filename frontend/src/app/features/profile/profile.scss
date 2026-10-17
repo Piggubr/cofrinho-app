@@ -1,0 +1,267 @@
+.identidade {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar-grande {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.avatar-inicial {
+  display: inline-grid;
+  place-items: center;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+/* A foto inteira abre o seletor; o selo da camera diz que da para trocar. */
+.foto-do-perfil {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.foto-do-perfil:focus-visible {
+  outline: 2px solid var(--rose-deep);
+  outline-offset: 2px;
+}
+
+.foto-do-perfil.enviando {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.selo-da-camera {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--ink);
+  font-size: 0.75rem;
+}
+
+.acoes-da-foto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.linha-acoes select {
+  width: auto;
+  min-width: 120px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+}
+
+.caixa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.caixa input:not(.chave) {
+  width: auto;
+  margin: 0;
+}
+
+.linha-chave {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.temas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.tema {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.6rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 3px var(--anel);
+  }
+
+  strong {
+    font-size: 0.9rem;
+  }
+
+  small {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+}
+
+.tema.travado {
+  small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--ouro-ink);
+  }
+}
+
+.subtitulo-icone {
+  margin-top: 1.1rem;
+}
+
+.icones-do-app {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.icone-do-app {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.55rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 3px var(--anel);
+  }
+
+  img {
+    width: 56px;
+    height: 56px;
+    border-radius: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  small {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  &.travado img {
+    opacity: 0.75;
+  }
+}
+
+.selo-premium {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
+}
+
+.amostra {
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+.ordem-do-painel {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  li:last-child {
+    border-bottom: 0;
+  }
+}
+
+.nome-do-bloco {
+  flex: 1;
+  min-width: 0;
+}
+
+.setas {
+  display: flex;
+  gap: 0.15rem;
+}
+
+/* "Personalizar o Painel" pula para ca: a margem deixa o titulo fora da barra fixa. */
+#organizar-painel {
+  scroll-margin-top: 6rem;
+}
+
+/* No toque, 16px: menos que isso o iPhone da zoom ao focar o campo. */
+@media (pointer: coarse) {
+  .linha-acoes select {
+    font-size: 16px;
+  }
+}
+
+.aviso-do-padrao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
+}

@@ -1,0 +1,117 @@
+<h1 i18n>Girls Math</h1>
+<p i18n class="linha-detalhe lead">Registre o que você deixou de comprar.</p>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao placar" aria-live="polite">
+  <p i18n class="linha-detalhe">Você deixou de gastar este mês</p>
+  <p class="valor-grande">{{ totais().noMes | moeda }}</p>
+  <p i18n class="linha-detalhe">Desde o começo: {{ totais().total | moeda }}</p>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-novo-gm">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-novo-gm">O que você não comprou?</h2>
+  </div>
+  <div class="formulario">
+    <label class="foto" [class.com-foto]="previaDaFoto()">
+      @if (previaDaFoto()) {
+        <img [src]="previaDaFoto()" alt="" />
+      } @else {
+        <app-icone nome="camera" [tamanho]="22" />
+        <span i18n>Foto</span>
+      }
+      <input type="file" accept="image/*" (change)="escolherFoto($event)" hidden />
+      <span i18n class="so-leitor">Escolher foto do produto</span>
+    </label>
+    <div class="campos">
+      <div class="campo">
+        <label i18n for="produtoGm">Nome do produto</label>
+        <input
+          id="produtoGm"
+          type="text"
+          maxlength="120"
+          [ngModel]="produto()"
+          (ngModelChange)="produto.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="lojaGm">Loja onde você viu</label>
+        <input
+          id="lojaGm"
+          type="text"
+          maxlength="120"
+          [ngModel]="loja()"
+          (ngModelChange)="loja.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="valorGm">Quanto custava ({{ moeda.simbolo() }})</label>
+        <input
+          id="valorGm"
+          type="number"
+          min="0.01"
+          step="0.01"
+          inputmode="decimal"
+          [ngModel]="valor()"
+          (ngModelChange)="valor.set($event)"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="acoes">
+    <button type="button" class="botao" (click)="guardar()" [disabled]="salvando()">
+      @if (salvando()) {
+        <ng-container i18n>Guardando...</ng-container>
+      } @else {
+        <ng-container i18n>Guardar no Girls Math</ng-container>
+      }
+    </button>
+    @if (previaDaFoto()) {
+      <button i18n type="button" class="botao contorno" (click)="tirarFoto()">Tirar a foto</button>
+    }
+  </div>
+</section>
+
+@if (carregando()) {
+  <p i18n class="carregando">Carregando...</p>
+} @else if (itens().length) {
+  <section class="cartao" aria-label="Itens guardados" i18n-aria-label>
+    @for (item of itens(); track item.id) {
+      <div class="linha item">
+        <div class="linha-com-foto">
+          @if (item.temFoto) {
+            <img class="miniatura" [src]="urlDaFoto(item)" alt="" loading="lazy" />
+          } @else {
+            <span class="miniatura vazia"><app-icone nome="sacola" [tamanho]="20" /></span>
+          }
+          <div>
+            <p class="linha-titulo">{{ item.produto }}</p>
+            <p class="linha-detalhe">
+              {{ item.data | dataBr }}
+              @if (item.loja) {
+                · {{ item.loja }}
+              }
+            </p>
+          </div>
+        </div>
+        <span class="linha-valor">{{ item.valor | moeda }}</span>
+        <button
+          type="button"
+          class="botao icone-so perigo"
+          (click)="excluir(item)"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
+        >
+          <app-icone nome="lixeira" [tamanho]="18" />
+        </button>
+      </div>
+    }
+  </section>
+} @else {
+  <p i18n class="vazio">Nenhum item guardado ainda.</p>
+}

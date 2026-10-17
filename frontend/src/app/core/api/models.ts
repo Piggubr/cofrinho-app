@@ -1,0 +1,671 @@
+/**
+ * Tipos espelhando os DTOs do backend.
+ *
+ * <p>Os nomes seguem o que a API devolve, em portugues. Traduzir aqui criaria um
+ * dicionario a mais para manter sincronizado toda vez que um campo mudasse.</p>
+ */
+
+/** ADMIN opera a instalacao; TITULAR e o dono da familia; MEMBRO foi convidado. */
+export type PigguRole = 'ADMIN' | 'TITULAR' | 'PARCEIRO' | 'MEMBRO';
+
+export interface Usuario {
+  id: string;
+  email: string;
+  nome: string;
+  primeiroNome: string;
+  apelido: string | null;
+  /** A que o app mostra: a escolhida pela pessoa, senao a do Google; nula mostra as iniciais. */
+  foto: string | null;
+  /** A pessoa escolheu uma foto propria (o Perfil oferece voltar a do Google). Ausente na demo antiga. */
+  fotoPropria?: boolean;
+  /** A conta Google tem foto, para oferecer usar ela. */
+  temFotoDoGoogle?: boolean;
+  role: PigguRole;
+  ativo: boolean;
+  permissoes: Record<string, unknown>;
+  preferencias: Preferencias;
+  /** Avisos fora do app; ausente em conta antiga da demo. */
+  avisos?: { email: boolean; push: boolean };
+  plano: Plano;
+  /** Ate quando o Premium (da familia) vale; nulo no gratuito. */
+  premiumAte: string | null;
+  /** Familia a que a conta pertence. */
+  familia: string;
+  /**
+   * Falso: o app pede o CPF antes de liberar o resto (so acontece com quem mora no Brasil).
+   * Ausente (demo, perfil antigo) conta como informado.
+   */
+  cpfInformado?: boolean;
+  /**
+   * Versao dos Termos aceita por ultimo; nula em conta antiga. Diferente da vigente, o app
+   * pede o aceite de novo. Ausente (demo, perfil antigo) conta como aceita.
+   */
+  termosAceitos?: string | null;
+  /** A conta tambem entra por e-mail e senha. Ausente (demo, perfil antigo) conta como sem senha. */
+  temSenha?: boolean;
+  /** Falso enquanto a conta criada por senha nao entrou nenhuma vez pelo Google. */
+  emailConfirmado?: boolean;
+  /**
+   * Pais onde mora (ISO 3166). Decide o documento pedido (core/ui/documentos.ts). Nulo
+   * so em conta que disse "fora do Brasil" antes da lista de paises; ausente conta como Brasil.
+   */
+  pais?: string | null;
+  /** aaaa-mm-dd; nula ate a pessoa informar (o app pede). Ausente (demo) conta como informada. */
+  nascimento?: string | null;
+}
+
+
+/** Familia de quem esta logado; convites so chegam para o titular. */
+export interface Familia {
+  id: string;
+  nome: string;
+  plano: Plano;
+  /** A assinatura da casa e o plano familia; no individual so quem assinou e Premium. */
+  planoFamilia: boolean;
+  membros: MembroDaFamilia[];
+  convites: ConviteDaFamilia[];
+}
+
+export interface MembroDaFamilia {
+  id: string;
+  nome: string;
+  email: string;
+  foto: string | null;
+  papel: PigguRole;
+  premium: boolean;
+}
+
+/** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */
+export interface EventoDeAuditoria {
+  id: number;
+  /** Id de quem fez; o id zero e o proprio Piggu (job agendado); nulo, conta excluida. */
+  autor: string | null;
+  acao:
+    | 'CRIOU'
+    | 'EDITOU'
+    | 'APAGOU'
+    | 'IMPORTOU'
+    | 'PAGOU'
+    | 'MUDOU_PAPEL'
+    | 'REMOVEU'
+    | 'ENTROU'
+    | 'SAIU'
+    | 'CONVIDOU';
+  entidade: string;
+  entidadeId: string | null;
+  antes: string | null;
+  depois: string | null;
+  quando: string;
+}
+
+export interface ConviteDaFamilia {
+  id: string;
+  email: string;
+  venceEm: string;
+  /** Nome da familia que convidou. */
+  familia: string;
+}
+
+export type Plano = 'GRATUITO' | 'PREMIUM';
+export type Periodo = 'MENSAL' | 'ANUAL' | 'FAMILIA_MENSAL' | 'FAMILIA_ANUAL';
+
+/** Precos em reais, ja formatados ("19,90"). */
+export interface Precos {
+  mensal: string;
+  anual: string;
+}
+
+/** Tela de planos: o que vale agora e o que cada plano inclui. */
+export interface InfoDoPlano {
+  plano: Plano;
+  premiumAte: string | null;
+  origem: 'WEB' | 'APP_STORE' | 'PLAY_STORE' | null;
+  /** Ate quando da para desistir com o dinheiro de volta (7 dias da primeira cobranca); nulo fora do prazo. */
+  reembolsoAte: string | null;
+  /** Dias gratis ao assinar (uma vez por conta); 0 quando ja usou. */
+  diasDeTeste: number;
+  assinaturaDisponivel: boolean;
+  site: Precos;
+  app: Precos;
+  gratuito: string[];
+  premium: string[];
+  /** A assinatura da casa e o plano familia (vale para todos). */
+  planoFamilia: boolean;
+  /** Foi esta conta que assinou: so ela gerencia e pede reembolso. */
+  voceAssinou: boolean;
+  familiaDisponivel: boolean;
+  siteFamilia: Precos;
+  appFamilia: Precos;
+  pessoasNoFamilia: number;
+  /** Ha assinatura vigente na casa, talvez individual de outra pessoa. */
+  casaTemAssinatura: boolean;
+}
+
+/** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */
+export interface Preferencias {
+  moeda: string;
+  moedaConversao: string;
+  mostrarCotacao: boolean;
+  /** Fuso IANA da pessoa; conta nova nasce em America/Sao_Paulo. */
+  fuso?: string;
+  /** Idioma da interface; hoje so pt-BR. */
+  idioma?: string;
+  /** Telas de estilo de vida ligadas no menu; ausente (conta antiga, demo) liga todas. */
+  modulos?: ModuloDeEstiloDeVida[];
+}
+
+export type ModuloDeEstiloDeVida =
+  | 'compras'
+  | 'lugares'
+  | 'filmes'
+  | 'fotos'
+  | 'premios'
+  | 'girls-math';
+
+export interface MoedaDisponivel {
+  codigo: string;
+  nome: string;
+}
+
+/** O refresh nao vem no corpo: fica num cookie HttpOnly que o JavaScript nao le. */
+export interface ParDeTokens {
+  accessToken: string;
+  expiresIn: number;
+  usuario: Usuario;
+}
+
+/** Corpo unico de erro devolvido por todos os servicos. */
+export interface ApiError {
+  erro: string;
+  codigo: string;
+  campos: { campo: string; mensagem: string }[];
+  momento: string;
+}
+
+export interface Gasto {
+  id: string;
+  data: string;
+  reciboId: string;
+  estabelecimento: string;
+  item: string;
+  categoria: string;
+  valor: number;
+  tipo: string;
+  origem: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+  registradoEm: string;
+  contaId?: string | null;
+  /** Parcela N de M; ausentes quando o gasto e a vista. */
+  parcela?: number | null;
+  parcelas?: number | null;
+  /** Compra em outra moeda: o valor acima ja e o convertido. */
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
+}
+
+export interface ItemDeGasto {
+  item: string;
+  categoria?: string | null;
+  valor: number;
+  tipo?: string | null;
+  moedaOriginal?: string | null;
+  valorOriginal?: number | null;
+}
+
+export interface NovoLancamento {
+  data: string;
+  estabelecimento?: string | null;
+  reciboId?: string | null;
+  origem?: string | null;
+  itens: ItemDeGasto[];
+  contaId?: string | null;
+  /** 2 a 48 divide cada item em uma linha por mes. */
+  parcelas?: number | null;
+  /** Ids das pessoas da familia que dividem o gasto. */
+  dividirCom?: string[] | null;
+}
+
+export interface ReciboLido {
+  reciboId: string;
+  estabelecimento: string;
+  data: string;
+  itens: { item: string; categoria: string; valor: number }[];
+  /** OCR: leitor proprio, a foto nao saiu do servidor. GEMINI: leitura por IA. */
+  origem: 'OCR' | 'GEMINI';
+  /** O que conferir com mais cuidado; nulo quando a soma bateu com o total do cupom. */
+  aviso: string | null;
+  /** Leituras gratis que sobram no mes; nulo no Premium (sem limite). */
+  leiturasRestantes: number | null;
+}
+
+/** Leituras de nota pela foto no mes da familia. */
+export interface UsoDeLeituras {
+  usadas: number;
+  limite: number;
+  /** Nulo no Premium: sem limite. */
+  restantes: number | null;
+}
+
+export interface Deposito {
+  id: string;
+  data: string;
+  valor: number;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+  registradoEm: string;
+  /** Cofrinho por objetivo que recebeu o deposito; nulo e o cofrinho geral. */
+  objetivo?: string | null;
+}
+
+/** Cofrinho por objetivo e onde ele esta. */
+export interface ObjetivoDoCofrinho {
+  id: string;
+  nome: string;
+  alvo: number;
+  prazo: string | null;
+  guardado: number;
+  falta: number;
+  percentual: number;
+  /** Meses ate o prazo contando o atual; nulo sem prazo. */
+  mesesRestantes: number | null;
+  /** Quanto guardar por mes para chegar no prazo; nulo sem prazo. */
+  porMes: number | null;
+  concluido: boolean;
+  atrasado: boolean;
+}
+
+export interface PedidoDeObjetivo {
+  nome: string;
+  alvo: number;
+  prazo: string | null;
+}
+
+/** Assistente de IA: se esta ligado, se a pessoa ja autorizou o envio e quanto sobra no mes. */
+export interface SituacaoDoAssistente {
+  habilitado: boolean;
+  autorizado: boolean;
+  limite: number;
+  restantes: number;
+}
+
+/** Uma fala da conversa, que so o aparelho guarda; {@code pessoa} falso e a resposta. */
+export interface FalaDoAssistente {
+  pessoa: boolean;
+  texto: string;
+}
+
+export interface PedidoAoAssistente {
+  pergunta: string;
+  historico: FalaDoAssistente[];
+  moeda: string;
+  autorizoIa?: boolean;
+  versaoDoAviso?: string;
+}
+
+export interface RespostaDoAssistente {
+  texto: string;
+  /** Rota que o assistente sugere abrir (gastos, orcamentos...); nula quando nenhuma. */
+  tela: string | null;
+  restantes: number;
+}
+
+export interface Cofrinho {
+  depositos: Deposito[];
+  totalDepositos: number;
+  totalGastos: number;
+  saldo: number;
+}
+
+export interface Nota {
+  id: string;
+  titulo: string;
+  texto: string;
+  data: string | null;
+  valor: number;
+  categoria: string;
+  gastoId: string | null;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+  criadoEm: string;
+}
+
+export interface Produto {
+  chave: string;
+  nome: string;
+  categoria: string;
+  ultimo: number;
+  menor: number;
+  maior: number;
+  media: number;
+  compras: number;
+  data: string | null;
+  variacao: number;
+}
+
+export interface Cotacao {
+  de: string;
+  para: string;
+  taxa: number;
+  data: string;
+  fonte: string;
+  estimativa: boolean;
+  desatualizada: boolean;
+}
+
+export interface SaldoDeMoedas {
+  saldo: number;
+  historico: MovimentoDeMoedas[];
+}
+
+export interface MovimentoDeMoedas {
+  id: string;
+  data: string;
+  valor: number;
+  motivo: string;
+  /** Dono das moedas; hoje sempre "USUARIA", como na planilha. */
+  usuario: string;
+}
+
+export interface Premio {
+  id: string;
+  nome: string;
+  descricao: string;
+  preco: number;
+  ativo: boolean;
+}
+
+export interface Resgate {
+  id: string;
+  premio: string;
+  preco: number;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+  status: string;
+  data: string;
+  saldo: number;
+}
+
+export interface Lugar {
+  id: string;
+  nome: string;
+  categoria: string;
+  localizacao: string;
+  nota: number;
+  comentario: string;
+  data: string;
+  marcacoes: string[];
+  fotoAssetId: string | null;
+  temFoto: boolean;
+  valor: number;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+}
+
+export interface NovoLugar {
+  nome: string;
+  categoria?: string | null;
+  localizacao?: string | null;
+  nota: number;
+  comentario?: string | null;
+  data: string;
+  marcacoes?: string[];
+  valor?: number | null;
+  imageBase64?: string | null;
+  mimeType?: string | null;
+}
+
+/** Meta pessoal do mes (Minhas metas). So a pessoa ve as proprias. */
+export interface MetaDoMes {
+  id: string;
+  titulo: string;
+  alvo: number;
+  atual: number;
+  /** AAAA-MM */
+  mes: string;
+  concluida: boolean;
+}
+
+export interface NovaMetaDoMes {
+  titulo: string;
+  alvo: number;
+  atual: number;
+}
+
+/** Algo que a pessoa deixou de comprar (Girls Math). So a pessoa ve os proprios. */
+export interface ItemDoGirlsMath {
+  id: string;
+  produto: string;
+  loja: string;
+  valor: number;
+  data: string;
+  fotoAssetId: string | null;
+  temFoto: boolean;
+}
+
+export interface NovoItemDoGirlsMath {
+  produto: string;
+  loja?: string | null;
+  valor: number;
+  data?: string | null;
+  imageBase64?: string | null;
+  mimeType?: string | null;
+}
+
+export interface Filme {
+  id: string;
+  tmdbId: string;
+  titulo: string;
+  ano: string;
+  poster: string;
+  nota: number;
+  sinopse: string;
+  assistido: boolean;
+  avaliacoes: Record<string, number>;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+}
+
+/** Filme vindo do TMDB, ainda fora da lista. */
+export interface FilmeDoCatalogo {
+  tmdbId: string;
+  titulo: string;
+  ano: string;
+  poster: string;
+  nota: number;
+  sinopse: string;
+}
+
+export interface ItemDeCompra {
+  id: string;
+  item: string;
+  quantidade: string;
+  lista: 'Compras' | 'Desejos';
+  comprado: boolean;
+  marca: string;
+  imagem: string;
+  codigo: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+}
+
+export interface NovoItemDeCompra {
+  item: string;
+  quantidade?: string | null;
+  lista?: string | null;
+  marca?: string | null;
+  imagem?: string | null;
+  codigo?: string | null;
+}
+
+export interface ProdutoDoCatalogo {
+  codigo: string;
+  nome: string;
+  marca: string;
+  quantidade: string;
+  imagem: string;
+}
+
+export interface FotoDoFeed {
+  id: string;
+  mesKey: string;
+  assetId: string;
+  legenda: string;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+  criadoEm: string;
+}
+
+export interface Arquivo {
+  id: string;
+  contentType: string;
+  tamanho: number;
+  contexto: string;
+  criadoEm: string;
+}
+
+/** Conta de um banco conectado por Open Finance, com o saldo da ultima sincronizacao. */
+export interface ContaBancaria {
+  id: string;
+  /** Banco conectado ao qual a conta pertence; e ele que se desconecta. */
+  conexaoId: string;
+  instituicao: string;
+  nome: string;
+  tipo: string;
+  numero: string;
+  saldo: number;
+  moeda: string;
+  status: string;
+  atualizadoEm: string | null;
+}
+
+export interface ConnectToken {
+  accessToken: string;
+  sandbox: boolean;
+}
+
+/** Receita da familia (salario, extra, reembolso...). */
+export interface Receita {
+  id: string;
+  data: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  /** Id de quem lancou; nulo quando a conta foi excluida. */
+  usuario: string | null;
+}
+
+/** Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca. */
+export interface ResumoDoMes {
+  mes: string;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  /** Em porcentagem; nula quando o mes nao tem receita. */
+  taxaDePoupanca: number | null;
+  gastosMesAnterior: number;
+  /** Gastos contra o mes anterior, em porcentagem; nula se o anterior nao teve gasto. */
+  variacao: number | null;
+  /** So no mes corrente: o ritmo de gasto ate hoje levado ao fim do mes. */
+  projecaoDeGastos: number | null;
+  porCategoria: { categoria: string; total: number; anterior: number }[];
+}
+
+/** Relatorio do ano (Premium): mes a mes e por categoria. */
+export interface RelatorioDoAno {
+  ano: number;
+  receitas: number;
+  gastos: number;
+  sobra: number;
+  meses: { mes: string; receitas: number; gastos: number; sobra: number }[];
+  porCategoria: { categoria: string; total: number }[];
+}
+
+/** Conta fixa no mes: quando vence e se ja foi lancada. */
+export interface ContaFixa {
+  id: string;
+  descricao: string;
+  categoria: string;
+  valor: number;
+  /** Dia do vencimento (1 a 31; 31 vira o ultimo dia do mes). */
+  dia: number;
+  /** Lancada sozinha no dia do vencimento. */
+  automatico: boolean;
+  vencimento: string;
+  situacao: 'PAGA' | 'PENDENTE' | 'VENCIDA';
+}
+
+/** Orcamento de uma categoria no mes: alerta em 80% (ATENCAO) e 100% (ESTOUROU). */
+export interface Orcamento {
+  id: string;
+  categoria: string;
+  limite: number;
+  gasto: number;
+  percentual: number;
+  alerta: 'OK' | 'ATENCAO' | 'ESTOUROU';
+}
+
+/** Regra de categoria automatica: o termo ja vem normalizado (sem acento, minusculo). */
+export interface RegraDeCategoria {
+  id: string;
+  termo: string;
+  categoria: string;
+}
+
+/** Fatura do cartao: os gastos entre o dia seguinte ao fechamento anterior e o fechamento. */
+export interface Fatura {
+  mes: string;
+  inicio: string;
+  fechamento: string;
+  vencimento: string;
+  total: number;
+}
+
+/** Conta ou cartao; no cartao, a fatura aberta e a fechada que ainda vai vencer. */
+export interface ContaOuCartao {
+  id: string;
+  nome: string;
+  tipo: 'CONTA' | 'CARTAO';
+  fechamento: number | null;
+  vencimento: number | null;
+  faturaAberta: Fatura | null;
+  faturaAPagar: Fatura | null;
+}
+
+/** Acerto dos gastos divididos: saldo positivo tem a receber; negativo deve. */
+export interface AcertoDeDivisao {
+  /** Id da pessoa; nulo quando a conta foi excluida. */
+  pessoa: string | null;
+  pagou: number;
+  parte: number;
+  saldo: number;
+}
+
+/** Preco digitado contra a media do produto: acima quando passa 15% com 2 compras ou mais. */
+export interface ConferenciaDePreco {
+  media: number;
+  compras: number;
+  percentual: number;
+  acima: boolean;
+}
+
+/** Debito lido de um banco conectado, antes de virar gasto. */
+export interface GastoDoBanco {
+  data: string;
+  descricao: string;
+  valor: number;
+  idExterno: string;
+  /** Banco e conta de onde saiu, para conferir na revisao. */
+  conta: string;
+  moeda: string;
+}
+
+/** Linha do extrato na previa da importacao. */
+export interface LinhaDoExtrato {
+  data: string;
+  descricao: string;
+  valor: number;
+  idExterno: string;
+  categoria: string;
+  jaImportada: boolean;
+}

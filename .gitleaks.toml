@@ -1,0 +1,11 @@
+# Configuracao do gitleaks (job "Segredos" do CI e scripts/procurar-segredos.sh).
+# Usa as regras padrao e so libera o que e sabidamente inofensivo.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Chaves de teste (so assinam tokens nos testes) e a chave de dev do inicio do projeto, ja trocada e bloqueada no TokenConfig (CHAVE_VAZADA)"
+paths = [
+    '''backend/piggu-identity/src/test/resources/keys/.*\.pem''',
+    '''backend/piggu-identity/src/main/resources/keys/piggu-dev-private\.pem''',
+]

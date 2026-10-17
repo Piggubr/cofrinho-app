@@ -1,0 +1,71 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: piggu-finance
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/piggu_finance}
+    username: ${DB_USER:piggu}
+    password: ${DB_PASSWORD:piggu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Chave publica do piggu-identity. Baixada uma vez e mantida em cache.
+          jwk-set-uri: ${JWKS_URI:http://localhost:8081/.well-known/jwks.json}
+  http:
+    clients:
+      # Toda chamada de saida (RestClient) com prazo: um servico lento nao segura a thread.
+      connect-timeout: 5s
+      read-timeout: 60s
+
+piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
+  leitura-de-nota:
+    # Notas lidas pela foto por familia no mes, no gratuito.
+    gratis-por-mes: ${PIGGU_LEITURAS_GRATIS_POR_MES:10}
+    # false: toda foto vai direto para o Gemini (padrao ate o leitor proprio ser testado
+    # com cupons reais). true: o Tesseract tenta primeiro e o Gemini fica de reserva.
+    leitor-proprio: ${PIGGU_LEITOR_PROPRIO:false}
+  assistente:
+    # Perguntas ao assistente de IA por pessoa no mes (Premium).
+    perguntas-por-mes: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:150}
+  integracoes:
+    gemini:
+      # Vazio desliga a leitura de recibos por foto, com aviso claro na tela.
+      api-key: ${GEMINI_API_KEY:}
+      modelo: ${GEMINI_MODEL:gemini-3.6-flash}
+      timeout: PT45S
+    cambio:
+      base-url: https://api.frankfurter.dev/v2
+      timeout: PT10S
+      padrao: "6.15"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    # Toda linha leva a requisicao (X-Request-Id do gateway) e o id do usuario.
+    level: "%5p [req=%X{requestId:-} user=%X{userId:-}]"
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}

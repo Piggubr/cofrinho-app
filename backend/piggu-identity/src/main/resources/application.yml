@@ -1,0 +1,122 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: piggu-identity
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/piggu_identity}
+    username: ${DB_USER:piggu}
+    password: ${DB_PASSWORD:piggu}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  http:
+    clients:
+      # Toda chamada de saida (RestClient) com prazo: um servico lento nao segura a thread.
+      connect-timeout: 5s
+      read-timeout: 30s
+
+piggu:
+  # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
+  ambiente: ${PIGGU_AMBIENTE:dev}
+  # Open Finance escondido por enquanto: some da lista do Premium. PIGGU_OPEN_FINANCE=true volta.
+  open-finance:
+    ligado: ${PIGGU_OPEN_FINANCE:false}
+  cpf:
+    # O CPF e informado aqui; exportar e apagar a conta tambem funcionam sem ele.
+    exigir: false
+    # 32 bytes em base64 (openssl rand -base64 32). Vazio so fora de producao.
+    chave: ${PIGGU_CPF_CHAVE:}
+  # Historico da familia (trilha de auditoria) pela rota que o gateway ja manda para ca.
+  auditoria:
+    rota: /api/family/history
+  google:
+    # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
+    # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
+    client-ids:
+      - ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
+  jwt:
+    issuer: ${JWT_ISSUER:https://piggu.app}
+    # Sem valor padrao de proposito: sem JWT_PRIVATE_KEY e JWT_PUBLIC_KEY o servico
+    # recusa subir. Aceita o PEM inteiro ou um caminho file:. So o perfil dev
+    # (application-dev.yml) aponta para chaves locais geradas por scripts/gerar-chaves-dev.sh.
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
+    access-ttl: PT5M
+    refresh-ttl: P30D
+
+  # Quem opera a instalacao: ao entrar, essas contas viram ADMIN. Lista separada por
+  # virgula, so por variavel de ambiente; nenhum e-mail fica no repositorio.
+  admin-emails: ${PIGGU_ADMIN_EMAILS:}
+
+  dados:
+    # Servicos que guardam dado de pessoas: exportar e apagar a conta passa por todos.
+    # Servico novo com dado pessoal entra aqui, senao a exclusao fica incompleta.
+    servicos:
+      finance: ${FINANCE_URL:http://localhost:8082}
+      rewards: ${REWARDS_URL:http://localhost:8083}
+      lifestyle: ${LIFESTYLE_URL:http://localhost:8084}
+      media: ${MEDIA_URL:http://localhost:8085}
+      # Vazio quando o Open Finance esta desligado.
+      banking: ${BANKING_URL:}
+
+  # Avisos fora do app (fatura, orcamento, conta fixa). Cada canal so liga com as credenciais.
+  avisos:
+    cron: ${PIGGU_AVISOS_CRON:0 0 9 * * *}
+    email:
+      api-url: ${PIGGU_EMAIL_API_URL:https://api.resend.com/emails}
+      api-key: ${PIGGU_EMAIL_API_KEY:}
+      remetente: ${PIGGU_EMAIL_REMETENTE:}
+    apns:
+      team-id: ${APNS_TEAM_ID:}
+      key-id: ${APNS_KEY_ID:}
+      # Conteudo do AuthKey_XXXX.p8 (PEM).
+      chave: ${APNS_CHAVE:}
+      bundle-id: ${APNS_BUNDLE_ID:}
+      sandbox: ${APNS_SANDBOX:false}
+
+  assinatura:
+    # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.
+    dias-de-teste: ${PIGGU_DIAS_DE_TESTE:14}
+
+  revenuecat:
+    # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
+    # Vazio deixa a compra pelos apps em 501.
+    webhook-secret: ${REVENUECAT_WEBHOOK_SECRET:}
+
+  stripe:
+    # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    price-mensal: ${STRIPE_PRICE_MENSAL:}
+    price-anual: ${STRIPE_PRICE_ANUAL:}
+    # Plano familia (ate 5 pessoas): R$ 39,99/mes e R$ 399,90/ano. Vazio esconde o familia.
+    price-familia-mensal: ${STRIPE_PRICE_FAMILIA_MENSAL:}
+    price-familia-anual: ${STRIPE_PRICE_FAMILIA_ANUAL:}
+    site-url: ${SITE_URL:http://localhost:4200}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    # Toda linha leva a requisicao (X-Request-Id do gateway) e o id do usuario.
+    level: "%5p [req=%X{requestId:-} user=%X{userId:-}]"
+  level:
+    com.piggu: ${LOG_LEVEL:INFO}

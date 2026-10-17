@@ -1,0 +1,21 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    @switch (estado()) {
+      @case ('confirmando') {
+        <h1 i18n>Confirmando seu e-mail…</h1>
+      }
+      @case ('ok') {
+        <h1 i18n>E-mail confirmado</h1>
+        <p i18n class="subtitulo">Pronto, seu e-mail está confirmado no Piggu.</p>
+      }
+      @case ('erro') {
+        <h1 i18n>Não deu para confirmar</h1>
+        <p class="aviso erro" role="alert">{{ erro() }}</p>
+      }
+    }
+    @if (estado() !== 'confirmando') {
+      <a i18n routerLink="/painel" class="botao">Abrir o Piggu</a>
+    }
+  </section>
+</div>
