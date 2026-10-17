@@ -1,6 +1,6 @@
 # Build unico para todos os servicos: o modulo desejado entra por ARG.
 # Um Dockerfile so evita varios arquivos quase identicos saindo de sincronia.
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-26 AS build
 WORKDIR /app
 
 # As dependencias mudam bem menos que o codigo: copiar so os poms primeiro
