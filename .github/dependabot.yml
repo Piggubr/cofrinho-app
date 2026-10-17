@@ -1,9 +1,11 @@
 # Atualizacoes de dependencia toda semana, em PRs pequenos e agrupados.
 # Correcao de seguranca chega a qualquer hora (Dependabot alerts), fora deste agendamento.
+# Os PRs vao para a develop: a main so aceita PR da develop ou de hotfix/... (docs/branches.md).
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /backend
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
@@ -16,6 +18,7 @@ updates:
 
   - package-ecosystem: npm
     directory: /frontend
+    target-branch: develop
     schedule:
       interval: weekly
     groups:
@@ -24,10 +27,12 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: monthly
 
   - package-ecosystem: docker
     directory: /backend
+    target-branch: develop
     schedule:
       interval: monthly
