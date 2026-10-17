@@ -1,0 +1,42 @@
+# Perfil de teste: banco vem do Testcontainers, integracoes externas desligadas.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:0/.well-known/jwks.json
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.piggu: WARN
+
+piggu:
+  # Os testes fazem muitas escritas seguidas com a mesma conta; o limite em si tem
+  # teste proprio (LimiteDeRequisicoesTest).
+  limite:
+    login: 100000
+    publico: 100000
+    escrita: 100000
+    envio: 100000
+  admin-emails: operador@exemplo.test, Outra.Operadora@Exemplo.test
+  google:
+    client-ids:
+      - client-de-teste.apps.googleusercontent.com
+  jwt:
+    issuer: https://piggu.test
+    private-key: classpath:keys/piggu-test-private.pem
+    public-key: classpath:keys/piggu-test-public.pem
+    access-ttl: PT5M
+    refresh-ttl: P30D
+  # Sem servicos de dominio nos testes: a cascata e simulada onde importa.
+  dados:
+    servicos:
+      finance: ""
+      rewards: ""
+      lifestyle: ""
+      media: ""
+      banking: ""

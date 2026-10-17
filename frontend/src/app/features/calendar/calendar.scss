@@ -1,0 +1,97 @@
+.navegacao-de-mes {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.grade-do-mes {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.3rem;
+}
+
+.cabecalho-dia {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding-bottom: 0.2rem;
+}
+
+.celula {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.1rem;
+  min-height: 58px;
+  padding: 0.3rem 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  background: var(--surface);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.celula.vazia {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.celula.hoje {
+  border-color: var(--rose);
+  border-width: 2px;
+}
+
+.celula.selecionado {
+  background: var(--button-bg);
+}
+
+.celula.com-gasto {
+  background: var(--field-bg);
+}
+
+.numero-do-dia {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.marca-gasto {
+  font-size: 0.6rem;
+  color: var(--rose-deep);
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.marca-nota {
+  color: var(--evento);
+  font-size: 1rem;
+  line-height: 0.6;
+}
+
+.linha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+h3 {
+  margin-top: 0.8rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .celula {
+    min-height: 48px;
+  }
+
+  .marca-gasto {
+    font-size: 0.52rem;
+  }
+}

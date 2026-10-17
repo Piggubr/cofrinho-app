@@ -1,152 +1,99 @@
-# Cofrinho dos Fofos — Estrutura Refatorada
+# Piggu — O cofrinho dos fofos
 
-Este repositório contém a versão refatorada do monolito HTML/CSS/JS do **Cofrinho dos Fofos**, separando o código em arquivos organizados por responsabilidade para facilitar manutenção e evolução.
+Aplicação de controle financeiro doméstico, migrada de um Google Apps Script com
+planilha como banco de dados para uma plataforma em Java e Angular.
 
-## Estrutura de pastas
+## O que tem aqui
 
-```text
-/
-├── index.html
-├── manifest.webmanifest
-├── favicon.jpg
-├── apple-touch-icon.png
-│
-├── css/
-│   ├── variables.css
-│   ├── base.css
-│   ├── layout.css
-│   ├── forms.css
-│   ├── calendar.css
-│   ├── shopping.css
-│   ├── movies.css
-│   ├── places.css
-│   ├── prizes.css
-│   ├── modals.css
-│   └── responsive.css
-│
-├── js/
-│   ├── utils.js
-│   ├── state.js
-│   ├── storage.js
-│   ├── integrations.js
-│   ├── modals.js
-│   ├── navigation.js
-│   ├── dashboard.js
-│   ├── transactions.js
-│   ├── calendar.js
-│   ├── shopping.js
-│   ├── photos.js
-│   ├── movies.js
-│   ├── places.js
-│   ├── prizes.js
-│   ├── fofocoins.js
-│   └── app.js
-│
-└── assets/
-    ├── icons/
-    ├── illustrations/
-    ├── logos/
-    ├── movies/
-    ├── places/
-    └── photos/
-```
+| Pasta | O que é |
+|---|---|
+| [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
+| [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
+| [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
+| [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
+| [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
+| `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
 
-## Como rodar localmente
+## O que o app faz
 
-### Opção 1: Abrir direto no navegador
+- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR e MEMBRO,
+  com os dados de cada família isolados no banco.
+- **Dinheiro:** gastos (inclusive em outra moeda e divididos na família), receitas,
+  contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
+  metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
+  relatório do mês e do ano, importação de OFX/CSV sem duplicar e exportação em CSV.
+- **Cofrinhos por objetivo:** nome, quanto juntar e até quando; o Piggu diz quanto
+  guardar por mês. Um no gratuito, quantos quiser no Premium.
+- **Bancos:** saldo pelo Open Finance (Pluggy) e os débitos dos últimos 30 dias
+  trazidos como gastos, revistos antes de gravar e sem repetir; sempre com
+  consentimento e com desconexão grátis.
+- **Avisos:** fatura chegando, orçamento em 80% e 100% e conta do mês vencendo, por
+  e-mail ou notificação no iPhone, uma vez por dia e sem repetir; cada canal é escolha
+  da pessoa no perfil.
+- **Sem sinal:** instala como app pelo navegador (PWA) e, com "manter conectado", abre
+  sem internet; o gasto lançado sem sinal fica guardado no aparelho e vai sozinho
+  quando a conexão volta.
+- **Assistente de IA (Premium):** perguntas como "quanto gastei com mercado?" ou
+  "vou estourar algum orçamento?", respondidas com os números da família pelo Gemini.
+  Só lê, pede autorização no primeiro uso, não guarda a conversa e tem limite mensal.
+- **Atalhos:** "Lançar gasto" no toque longo do ícone (iPhone e Android), pela Siri
+  ("Lançar gasto no Piggu", com ou sem o valor) e por links `piggu://gastos?rapido=1`.
+- **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
+- **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
+- **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste
+  ([planos](docs/planos-premium.md)).
+- **Privacidade:** exportar e excluir a conta, aceite dos termos gravado com data e
+  versão, retenção automática e sessão com refresh token em cookie HttpOnly.
+- **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
+  (Ctrl+K). Há um modo demo, sem backend, para mostrar o app
+  ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
+  `android-demo`).
 
-1. Clone ou baixe este repositório.
-2. Navegue até a pasta raiz.
-3. Abra o arquivo `index.html` diretamente no seu navegador (duplo clique ou `Open With`).
-
-O app deve carregar normalmente em modo local, usando `localStorage` para persistir os dados.
-
-### Opção 2: Usar um servidor estático simples (recomendado)
-
-Algumas funcionalidades (como certos tipos de requisição e PWA) podem se comportar melhor com um servidor HTTP local.
-
-#### Com Python 3
-
-Na raiz do projeto:
+## Subindo tudo
 
 ```bash
-python -m http.server 8000
+# 1. Backend (Postgres + os sete serviços)
+cd backend
+cp .env.example .env        # preencha GOOGLE_CLIENT_ID
+./scripts/gerar-chaves-dev.sh   # par RSA local para assinar os tokens
+docker compose up --build
+
+# 2. Frontend, em outro terminal
+cd frontend
+npm install
+npm start                   # http://localhost:4200
 ```
 
-Depois acesse:
+A API fica em `http://localhost:8080`; o front usa proxy para ela em
+desenvolvimento.
 
-```text
-http://localhost:8000
-```
+## De onde veio
 
-#### Com Node.js (http-server)
+O sistema era um arquivo `Code.gs` de 1542 linhas, sem classes, com um `doPost`
+que despachava 32 ações numa cadeia de `else if`, e uma planilha Google com 14
+abas fazendo as vezes de banco. O front eram 21 arquivos JS compartilhando
+variáveis globais e manipulando o DOM diretamente.
 
-Se tiver Node instalado:
+As regras de negócio foram preservadas, inclusive as menos óbvias — o saldo do
+cofrinho que só desconta gastos posteriores ao primeiro depósito, a normalização
+do nome de produto que junta "Leite Mimosa 1L" e "leite mimosa 1 l" no mesmo
+histórico de preço, e a nota com valor que cria um gasto vinculado.
+
+Os detalhes de cada parte estão nos READMEs de [`backend/`](backend/README.md)
+e [`frontend/`](frontend/README.md).
+
+## Testes
 
 ```bash
-npx http-server -p 8000
+cd backend && mvn verify    # mais de 400 testes e o piso de cobertura (precisa de Docker)
+cd frontend && npm test     # 298 testes
+cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
+cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
+bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
+bash backend/scripts/teste-do-backup.sh   # backup e restauração num Postgres descartável
 ```
 
-E acesse:
-
-```text
-http://localhost:8000
-```
-
-## Imagens e assets
-
-A estrutura espera que as imagens estejam organizadas assim:
-
-```text
-assets/
-├── icons/
-│   ├── olho.svg
-│   ├── olho-fechado.svg
-│   ├── menu.svg
-│   ├── trofeu.svg
-│   ├── assets/icons/coin.svg
-│   ├── estrela.svg
-│   ├── icone-scan.svg
-│   └── icone-carrinho.svg
-│
-├── illustrations/
-│   ├── piggu-abertura.webp
-│   ├── porquinho-perfil.svg
-│   ├── porquinho-gastos.svg
-│   ├── trofeu-v2.svg
-│   └── new-profile.svg
-│
-├── logos/
-│   ├── logo-v2.svg
-│   ├── cofrinho-logo.svg
-│   ├── favicon.jpg
-│   └── apple-touch-icon.png
-│
-├── movies/
-│   └── posters/
-│
-├── places/
-│   └── photos/
-│
-└── photos/
-    └── monthly/
-```
-
-No `index.html` os caminhos estão relativos à raiz, por exemplo:
-
-```html
-<img src="assets/illustrations/piggu-abertura.webp" alt="...">
-```
-
-Se preferir manter as imagens na raiz como no original, basta ajustar os `src` no HTML.
-
-## Integração com Google Sheets / Apps Script
-
-O arquivo `js/integrations.js` contém as constantes:
-
-```js
-const APPSSCRIPTURL = 'https://script.google.com/.../exec';
-const GOOGLECLIENTID = '....apps.googleusercontent.com';
-```
-
-Substitua pelos valores do seu projeto do Google Apps Script conforme o guia que você já tem. Enquanto essas URLs não forem configuradas, o app
+O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste novo,
+piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
+propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
+(JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).

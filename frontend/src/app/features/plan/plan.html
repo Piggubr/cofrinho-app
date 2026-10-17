@@ -1,0 +1,151 @@
+<h1 i18n>Piggu Premium</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso" role="status">{{ aviso() }}</p>
+}
+
+@if (info(); as plano) {
+  @if (voltouDoPagamento && plano.plano === 'GRATUITO') {
+    <p i18n class="aviso">
+      Pagamento enviado. O Premium aparece assim que o pagamento for confirmado, o que leva alguns
+      segundos.
+      <button type="button" class="botao contorno pequeno" (click)="carregar()">Atualizar</button>
+    </p>
+  }
+
+  @if (plano.plano === 'PREMIUM') {
+    <section class="cartao">
+      <div class="cartao-titulo">
+        <h2><span class="selo"><app-icone nome="estrela" [tamanho]="16" [traco]="2.2" /></span><ng-container i18n>Você é Premium</ng-container></h2>
+        @if (plano.premiumAte) {
+          <span i18n class="etiqueta">até {{ plano.premiumAte | dataBr }}</span>
+        }
+      </div>
+      @if (!plano.voceAssinou) {
+        <p i18n class="linha-detalhe">Quem assinou o plano família da sua casa cuida da assinatura.</p>
+      } @else if (plano.origem === 'WEB') {
+        <p i18n class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
+        <div class="acoes">
+          <button i18n type="button" class="botao contorno" (click)="gerenciar()" [disabled]="ocupado()">
+            Gerenciar assinatura
+          </button>
+          @if (plano.reembolsoAte) {
+            <button i18n type="button" class="botao perigo" (click)="pedirReembolso()" [disabled]="ocupado()">
+              Cancelar e pedir reembolso
+            </button>
+          }
+        </div>
+        @if (plano.reembolsoAte) {
+          <p i18n class="linha-detalhe">
+            Mudou de ideia? Até {{ plano.reembolsoAte | dataBr }} você cancela e recebe tudo de volta.
+          </p>
+        }
+      } @else if (plano.origem) {
+        <p i18n class="linha-detalhe">
+          Assinado pelo app. Para cancelar, use as assinaturas da
+          {{ plano.origem === 'APP_STORE' ? 'App Store' : 'Google Play' }}.
+        </p>
+      }
+    </section>
+  } @else if (auth.ehPremium()) {
+    <p i18n class="aviso">Como administrador, você já usa tudo do Premium.</p>
+  } @else if (plano.casaTemAssinatura) {
+    <p i18n class="aviso">
+      Alguém da sua família assinou o Premium individual, que vale só para essa pessoa. Ela pode
+      trocar para o plano família em Gerenciar assinatura e liberar o Premium para a casa toda.
+    </p>
+  }
+
+  <div class="planos">
+    <section class="cartao" aria-labelledby="titulo-gratuito">
+      <div class="cartao-titulo">
+        <h2 i18n id="titulo-gratuito">Gratuito</h2>
+        <span class="etiqueta">R$ 0</span>
+      </div>
+      <ul class="itens">
+        @for (item of plano.gratuito; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    </section>
+
+    <section i18n class="cartao destaque" aria-labelledby="titulo-premium">
+      <div class="cartao-titulo">
+        <h2 id="titulo-premium">Premium</h2>
+        <span class="etiqueta">só para você</span>
+      </div>
+      <p class="preco">
+        R$ {{ plano.site.mensal }}<small>/mês</small>
+        <span class="ou">ou R$ {{ plano.site.anual }}/ano (2 meses grátis)</span>
+      </p>
+      <ul class="itens">
+        @for (item of plano.premium; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+
+      @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura) {
+        @if (plano.assinaturaDisponivel) {
+          @if (plano.diasDeTeste > 0) {
+            <p class="linha-detalhe">
+              Comece com {{ plano.diasDeTeste }} dias grátis. A primeira cobrança só acontece depois
+              disso, e você pode cancelar antes sem pagar nada.
+            </p>
+          }
+          <div class="acoes">
+            <button type="button" class="botao" (click)="assinar('MENSAL')" [disabled]="ocupado()">
+              Assinar mensal
+            </button>
+            <button
+              type="button"
+              class="botao secundario"
+              (click)="assinar('ANUAL')"
+              [disabled]="ocupado()"
+            >
+              Assinar anual
+            </button>
+          </div>
+        } @else {
+          <p class="vazio">A assinatura abre em breve.</p>
+        }
+      }
+    </section>
+    @if (plano.familiaDisponivel || plano.planoFamilia) {
+      <section i18n class="cartao destaque" aria-labelledby="titulo-familia">
+        <div class="cartao-titulo">
+          <h2 id="titulo-familia">Premium família</h2>
+          <span class="etiqueta">até {{ plano.pessoasNoFamilia }} pessoas</span>
+        </div>
+        <p class="preco">
+          R$ {{ plano.siteFamilia.mensal }}<small>/mês</small>
+          <span class="ou">ou R$ {{ plano.siteFamilia.anual }}/ano (2 meses grátis)</span>
+        </p>
+        <ul class="itens">
+          <li>Tudo do Premium para todas as pessoas da sua família</li>
+          <li>A família pode ter até {{ plano.pessoasNoFamilia }} pessoas, contando você</li>
+        </ul>
+        @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura && plano.assinaturaDisponivel) {
+          <div class="acoes">
+            <button type="button" class="botao" (click)="assinar('FAMILIA_MENSAL')" [disabled]="ocupado()">
+              Assinar família mensal
+            </button>
+            <button type="button" class="botao secundario" (click)="assinar('FAMILIA_ANUAL')" [disabled]="ocupado()">
+              Assinar família anual
+            </button>
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <p i18n class="linha-detalhe letras-miudas">
+    O pagamento é feito na página segura da Stripe; o Piggu não vê nem guarda dados do cartão.
+    Cancele quando quiser, sem multa. Se desistir em até 7 dias da primeira cobrança, devolvemos o
+    valor integral. Se o Premium acabar, nada do que você guardou some: tudo continua visível.
+  </p>
+} @else if (!erro()) {
+  <p i18n class="vazio">Carregando...</p>
+}

@@ -1,0 +1,505 @@
+<h1 i18n>Perfil</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+@if (aviso()) {
+  <p class="aviso sucesso">{{ aviso() }}</p>
+}
+
+@if (auth.usuario(); as pessoa) {
+  <section class="cartao">
+    <div class="identidade">
+      <button
+        type="button"
+        class="foto-do-perfil"
+        [class.enviando]="salvandoFoto()"
+        [disabled]="salvandoFoto()"
+        (click)="seletorDeFoto.click()"
+      >
+        @if (pessoa.foto) {
+          <img
+            [src]="pessoa.foto"
+            [alt]="pessoa.nome"
+            class="avatar-grande"
+            referrerpolicy="no-referrer"
+          />
+        } @else {
+          <span class="avatar-grande avatar-inicial" aria-hidden="true">{{ inicial() }}</span>
+        }
+        <span class="selo-da-camera" aria-hidden="true"><app-icone nome="camera" /></span>
+        <span i18n class="so-leitor">Escolher foto de perfil</span>
+      </button>
+      <input
+        #seletorDeFoto
+        type="file"
+        accept="image/*"
+        class="so-leitor"
+        tabindex="-1"
+        aria-hidden="true"
+        (change)="escolherFoto($event)"
+      />
+      <div>
+        <h2>{{ pessoa.nome }}</h2>
+        <p class="linha-detalhe">{{ pessoa.email }}</p>
+        <span class="etiqueta">{{ pessoa.role }}</span>
+        <p class="linha-detalhe"><a i18n routerLink="/familia">Ver minha família</a></p>
+      </div>
+    </div>
+
+    <div class="acoes-da-foto">
+      <button
+        type="button"
+        class="botao contorno pequeno"
+        [disabled]="salvandoFoto()"
+        (click)="seletorDeFoto.click()"
+      >
+        @if (salvandoFoto()) {
+          <ng-container i18n>Salvando…</ng-container>
+        } @else if (pessoa.foto) {
+          <ng-container i18n>Trocar foto</ng-container>
+        } @else {
+          <ng-container i18n>Colocar foto</ng-container>
+        }
+      </button>
+      @if (pessoa.temFotoDoGoogle && (pessoa.fotoPropria || !pessoa.foto)) {
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          [disabled]="salvandoFoto()"
+          (click)="usarFotoDoGoogle()"
+        >
+          Usar foto do Google
+        </button>
+      }
+      @if (pessoa.foto) {
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          [disabled]="salvandoFoto()"
+          (click)="removerFoto()"
+        >
+          Remover foto
+        </button>
+      }
+    </div>
+
+    <form class="linha-de-campos" (ngSubmit)="salvarApelido()" novalidate>
+      <div class="campo">
+        <label i18n for="apelido-perfil">Como quer ser chamado?</label>
+        <input
+          id="apelido-perfil"
+          name="apelido"
+          autocomplete="nickname"
+          maxlength="120"
+          [ngModel]="apelido()"
+          (ngModelChange)="apelido.set($event)"
+        />
+      </div>
+      <button i18n type="submit" class="botao contorno pequeno" [disabled]="salvandoApelido()">
+        Salvar nome
+      </button>
+    </form>
+
+    <div class="acoes">
+      <button i18n type="button" class="botao contorno" (click)="sair()">Sair da conta</button>
+    </div>
+  </section>
+}
+
+
+<section class="cartao" aria-labelledby="titulo-moeda">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-moeda">Moeda</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="moeda">Mostrar valores em</label>
+      <select id="moeda" [ngModel]="moeda()" (ngModelChange)="moeda.set($event)">
+        @for (opcao of moedas(); track opcao.codigo) {
+          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label i18n for="moedaConversao">Converter cotação para</label>
+      <select
+        id="moedaConversao"
+        [ngModel]="moedaConversao()"
+        (ngModelChange)="moedaConversao.set($event)"
+      >
+        @for (opcao of moedas(); track opcao.codigo) {
+          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <label class="caixa linha-chave">
+    <span i18n>Mostrar a cotação no topo do app</span>
+    <input
+      type="checkbox"
+      class="chave"
+      [ngModel]="mostrarCotacao()"
+      (ngModelChange)="mostrarCotacao.set($event)"
+    />
+  </label>
+  <p i18n class="linha-detalhe">
+    Trocar a moeda muda só como os valores aparecem; os valores já lançados não são convertidos.
+  </p>
+
+  <div class="acoes">
+    <button
+      i18n
+      type="button"
+      class="botao"
+      (click)="salvarPreferencias()"
+      [disabled]="salvandoPreferencias() || !moedas().length"
+    >
+      @if (salvandoPreferencias()) {
+        Salvando...
+      } @else {
+        Salvar preferências
+      }
+    </button>
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-avisos">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-avisos">Avisos</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app
+    fechado. No máximo uma vez por dia, e só quando há novidade.
+  </p>
+  <!-- Cada toque ja salva, como nos Ajustes do iPhone. -->
+  <label class="caixa linha-chave">
+    <span i18n>Por e-mail, para {{ auth.usuario()?.email }}</span>
+    <input
+      type="checkbox"
+      class="chave"
+      [ngModel]="avisoPorEmail()"
+      [disabled]="salvandoAvisos()"
+      (ngModelChange)="avisoPorEmail.set($event); salvarAvisos()"
+    />
+  </label>
+  @if (celular.disponivel) {
+    <label class="caixa linha-chave">
+      <span i18n>Notificação neste iPhone</span>
+      <input
+        type="checkbox"
+        class="chave"
+        [ngModel]="avisoNoCelular()"
+        [disabled]="salvandoAvisos()"
+        (ngModelChange)="avisoNoCelular.set($event); salvarAvisos()"
+      />
+    </label>
+  }
+</section>
+
+<section class="cartao" id="organizar-painel" aria-labelledby="titulo-painel">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-painel">Organizar o Painel</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Ligue os blocos que quer ver na tela inicial e escolha a ordem. Vale para este aparelho.
+  </p>
+  <ol class="ordem-do-painel">
+    @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {
+      <li>
+        <span class="nome-do-bloco">{{ bloco.nome }}</span>
+        <div class="setas">
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            [disabled]="primeiro"
+            (click)="painel.mover(bloco.id, -1)"
+            [attr.aria-label]="'Subir ' + bloco.nome"
+          >
+            <app-icone nome="subir" [tamanho]="18" />
+          </button>
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            [disabled]="ultimo"
+            (click)="painel.mover(bloco.id, 1)"
+            [attr.aria-label]="'Descer ' + bloco.nome"
+          >
+            <app-icone nome="descer" [tamanho]="18" />
+          </button>
+        </div>
+        <input
+          type="checkbox"
+          class="chave"
+          [checked]="bloco.visivel"
+          (change)="painel.alternar(bloco.id)"
+          [attr.aria-label]="'Mostrar ' + bloco.nome"
+        />
+      </li>
+    }
+  </ol>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno pequeno" (click)="painel.restaurar()">
+      Voltar ao padrão
+    </button>
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-tema" id="personalizar">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-tema">Cor do Piggu</h2>
+    @if (!auth.ehPremium()) {
+      <span i18n class="etiqueta premium">Mais cores no Premium</span>
+    }
+  </div>
+  <p i18n class="linha-detalhe">Vale para este aparelho e acompanha o modo claro ou escuro.</p>
+  @if (voltouAoPadrao()) {
+    <p class="aviso aviso-do-padrao" role="status">
+      <ng-container i18n>
+        O Premium acabou, então a cor e o ícone voltaram para o Rosa.
+      </ng-container>
+      <button i18n type="button" class="botao fantasma pequeno" (click)="dispensarAvisoDoPadrao()">
+        Entendi
+      </button>
+    </p>
+  }
+  <div class="temas" role="radiogroup" aria-labelledby="titulo-tema">
+    @for (tema of temas; track tema.id) {
+      <button
+        type="button"
+        role="radio"
+        class="tema"
+        [class.travado]="tema.premium && !auth.ehPremium()"
+        [attr.aria-checked]="tema.id === temaAtual().id"
+        (click)="escolherTema(tema.id)"
+      >
+        <span class="amostra" [style.background]="tema.destaque" aria-hidden="true"></span>
+        <strong>{{ tema.nome }}</strong>
+        <small>
+          @if (tema.premium && !auth.ehPremium()) {
+            <app-icone nome="estrela" [tamanho]="12" />
+            <ng-container i18n>Premium</ng-container>
+          } @else {
+            {{ tema.descricao }}
+          }
+        </small>
+      </button>
+    }
+  </div>
+
+  @if (iconesDoApp.disponivel) {
+    <h3 i18n id="titulo-icone" class="subtitulo-icone">Ícone do app</h3>
+    <p i18n class="linha-detalhe">
+      No modo escuro o iPhone usa a versão escura de cada ícone. O sistema avisa a cada troca.
+    </p>
+    <div class="icones-do-app" role="radiogroup" aria-labelledby="titulo-icone">
+      @for (icone of icones; track icone.id) {
+        <button
+          type="button"
+          role="radio"
+          class="icone-do-app"
+          [class.travado]="icone.id !== 'padrao' && !auth.ehPremium()"
+          [attr.aria-checked]="icone.id === iconeAtual()"
+          [attr.aria-label]="icone.nome"
+          (click)="escolherIcone(icone.id)"
+        >
+          <img [src]="icone.previa" alt="" width="56" height="56" />
+          <small>{{ icone.nome }}</small>
+          @if (icone.id !== 'padrao' && !auth.ehPremium()) {
+            <span class="selo-premium" aria-hidden="true"
+              ><app-icone nome="estrela" [tamanho]="11"
+            /></span>
+          }
+        </button>
+      }
+    </div>
+  }
+</section>
+
+<section class="cartao" aria-labelledby="titulo-tour-perfil">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-tour-perfil">Tour do Piggu</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    O passo a passo das funções principais, o mesmo do primeiro acesso.
+  </p>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno" (click)="tutorial.abrir()">
+      Ver o tour de novo
+    </button>
+  </div>
+</section>
+
+<section class="cartao" aria-labelledby="titulo-ia">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-ia">Autorizações da IA</h2>
+  </div>
+  <app-autorizacoes-de-ia />
+</section>
+
+@if (auth.usuario(); as pessoa) {
+  <section class="cartao" aria-labelledby="titulo-senha">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-senha">Senha de acesso</h2>
+    </div>
+    @if (pessoa.temSenha) {
+      <p i18n class="linha-detalhe">
+        Você entra com {{ pessoa.email }} e sua senha, ou pelo Google. Trocar a senha encerra as
+        sessões nos outros aparelhos.
+      </p>
+    } @else {
+      <p i18n class="linha-detalhe">
+        Hoje você entra pelo Google. Crie uma senha para entrar também com {{ pessoa.email }}.
+      </p>
+    }
+    @if (pessoa.emailConfirmado === false) {
+      <p i18n class="linha-detalhe">
+        Seu e-mail ainda não foi confirmado. Abra o link que mandamos para {{ pessoa.email }} (ou entre
+        uma vez pelo Google com ele); só então dá para aceitar convite de família.
+      </p>
+      <button i18n type="button" class="botao contorno pequeno" [disabled]="reenviando()" (click)="reenviarConfirmacao()">
+        Reenviar e-mail de confirmação
+      </button>
+    }
+    @if (pessoa.cpfInformado === false) {
+      <p class="linha-detalhe">
+        <ng-container i18n>Documento ainda não informado (opcional).</ng-container>
+        <a i18n routerLink="/cpf">Informar agora</a>
+      </p>
+    }
+    @if (erroDaSenha()) {
+      <p class="aviso erro" role="alert">{{ erroDaSenha() }}</p>
+    }
+    @if (avisoDaSenha()) {
+      <p class="aviso sucesso" role="status">{{ avisoDaSenha() }}</p>
+    }
+    <form (ngSubmit)="salvarSenha()" novalidate>
+      @if (pessoa.temSenha) {
+        <div class="campo">
+          <label i18n for="senha-atual">Senha atual</label>
+          <input
+            id="senha-atual"
+            name="senhaAtual"
+            type="password"
+            autocomplete="current-password"
+            [ngModel]="senhaAtual()"
+            (ngModelChange)="senhaAtual.set($event)"
+          />
+        </div>
+      }
+      <div class="linha-de-campos">
+        <div class="campo">
+          <label i18n for="nova-senha">Nova senha</label>
+          <input
+            id="nova-senha"
+            name="novaSenha"
+            type="password"
+            autocomplete="new-password"
+            [ngModel]="novaSenha()"
+            (ngModelChange)="novaSenha.set($event)"
+          />
+        </div>
+        <div class="campo">
+          <label i18n for="repita-senha">Repita a nova senha</label>
+          <input
+            id="repita-senha"
+            name="repitaSenha"
+            type="password"
+            autocomplete="new-password"
+            [ngModel]="repitaSenha()"
+            (ngModelChange)="repitaSenha.set($event)"
+          />
+        </div>
+      </div>
+      <p i18n class="linha-detalhe">Pelo menos 8 caracteres, com letras e números.</p>
+      <div class="acoes">
+        <button type="submit" class="botao" [disabled]="salvandoSenha()">
+          @if (pessoa.temSenha) {
+            <ng-container i18n>Trocar senha</ng-container>
+          } @else {
+            <ng-container i18n>Criar senha</ng-container>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="cartao" aria-labelledby="titulo-dados">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-dados">Seus dados</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são gratuitos
+    em qualquer plano.
+  </p>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno" (click)="baixarMeusDados()">
+      Baixar meus dados
+    </button>
+    <button
+      i18n
+      type="button"
+      class="botao perigo"
+      (click)="excluirConta()"
+      [disabled]="excluindo()"
+    >
+      @if (excluindo()) {
+        Excluindo...
+      } @else {
+        Excluir minha conta
+      }
+    </button>
+  </div>
+</section>
+
+@if (auth.ehAdmin()) {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2 i18n>Contas da instalação</h2>
+    </div>
+
+    @if (carregandoAdmin()) {
+      <p i18n class="carregando">Carregando...</p>
+    } @else {
+      @for (conta of contas(); track conta.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ conta.nome }}</p>
+            <p class="linha-detalhe">{{ conta.email }}</p>
+          </div>
+          <div class="linha-acoes">
+            <select
+              i18n-aria-label
+              [ngModel]="conta.role"
+              (ngModelChange)="alterarPerfil(conta, $event)"
+              aria-label="Perfil"
+            >
+              @for (perfil of perfis; track perfil) {
+                <option [value]="perfil">{{ perfil }}</option>
+              }
+            </select>
+            <button
+              i18n
+              type="button"
+              class="botao contorno pequeno"
+              (click)="alternarAtivo(conta)"
+            >
+              @if (conta.ativo) {
+                Desativar
+              } @else {
+                Ativar
+              }
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <p i18n class="vazio">Nenhuma conta criada ainda.</p>
+      }
+    }
+  </section>
+}

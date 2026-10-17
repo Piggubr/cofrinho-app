@@ -1,0 +1,222 @@
+<h1 i18n>Lugares</h1>
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<div class="acoes topo">
+  <button i18n type="button" class="botao" (click)="abrirNovo()">Novo lugar</button>
+</div>
+
+@if (formularioAberto()) {
+  <section class="cartao">
+    <div class="cartao-titulo">
+      <h2 i18n>
+        @if (editandoId()) {
+          Editar lugar
+        } @else {
+          Novo lugar
+        }
+      </h2>
+    </div>
+
+    <div class="linha-de-campos">
+      <div class="campo">
+        <label i18n for="nomeLugar">Nome</label>
+        <input
+          id="nomeLugar"
+          maxlength="120"
+          type="text"
+          [ngModel]="nome()"
+          (ngModelChange)="nome.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="categoriaLugar">Categoria</label>
+        <input
+          i18n-placeholder
+          id="categoriaLugar"
+          maxlength="50"
+          type="text"
+          [ngModel]="categoria()"
+          (ngModelChange)="categoria.set($event)"
+          placeholder="Ex.: Restaurante"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="localizacao">Localização</label>
+        <input
+          i18n-placeholder
+          id="localizacao"
+          maxlength="200"
+          type="text"
+          [ngModel]="localizacao()"
+          (ngModelChange)="localizacao.set($event)"
+          placeholder="Ex.: Lisboa"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="dataVisita">Data da visita</label>
+        <input id="dataVisita" type="date" [ngModel]="data()" (ngModelChange)="data.set($event)" />
+      </div>
+      <div class="campo">
+        <label i18n for="valorLugar">Quanto gastamos ({{ moeda.simbolo() }})</label>
+        <input
+          id="valorLugar"
+          type="number"
+          min="0"
+          step="0.01"
+          [ngModel]="valor()"
+          (ngModelChange)="valor.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label i18n>Nota</label>
+      <div class="estrelas">
+        @for (valorDaNota of notasPossiveis; track valorDaNota) {
+          <button
+            type="button"
+            class="estrela"
+            [class.marcada]="nota() >= valorDaNota"
+            (click)="nota.set(valorDaNota)"
+            [attr.aria-label]="'Nota ' + valorDaNota"
+          >
+            ★
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="campo">
+      <label i18n for="comentario">Comentário</label>
+      <textarea
+        id="comentario"
+        maxlength="500"
+        [ngModel]="comentario()"
+        (ngModelChange)="comentario.set($event)"
+      ></textarea>
+    </div>
+
+    <div class="campo">
+      <label i18n>Marcadores</label>
+      <div class="marcadores">
+        @for (marcador of marcadores(); track marcador) {
+          <button
+            type="button"
+            class="marcador"
+            [class.ativo]="marcacoes().includes(marcador)"
+            (click)="alternarMarcador(marcador)"
+          >
+            {{ marcador }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="linha-de-campos">
+      <div class="campo">
+        <label i18n for="novoMarcador">Criar marcador</label>
+        <input
+          id="novoMarcador"
+          maxlength="40"
+          type="text"
+          [ngModel]="novoMarcador()"
+          (ngModelChange)="novoMarcador.set($event)"
+        />
+      </div>
+      <div class="campo alinhado">
+        <button i18n type="button" class="botao contorno" (click)="criarMarcador()">
+          Adicionar marcador
+        </button>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label i18n class="botao secundario arquivo">
+        Escolher foto
+        <input type="file" accept="image/*" (change)="escolherFoto($event)" hidden />
+      </label>
+      @if (previaDaFoto()) {
+        <img i18n-alt [src]="previaDaFoto()" alt="Foto do lugar" class="previa" />
+      }
+    </div>
+
+    <div class="acoes">
+      <button i18n type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
+        @if (salvando()) {
+          Guardando...
+        } @else {
+          Salvar
+        }
+      </button>
+      <button i18n type="button" class="botao contorno" (click)="fechar()">Cancelar</button>
+    </div>
+  </section>
+}
+
+@if (carregando()) {
+  <p i18n class="carregando">Carregando...</p>
+} @else if (lugares().length) {
+  <div class="grade">
+    @for (lugar of lugares(); track lugar.id) {
+      <article class="cartao lugar">
+        @if (lugar.temFoto) {
+          <img [src]="urlDaFoto(lugar)" [alt]="lugar.nome" class="foto" loading="lazy" />
+        }
+        <h3>{{ lugar.nome }}</h3>
+        <p class="linha-detalhe">
+          {{ lugar.categoria }}
+          @if (lugar.localizacao) {
+            · {{ lugar.localizacao }}
+          }
+          · {{ lugar.data | dataBr }}
+        </p>
+        <p class="nota">{{ '★'.repeat(lugar.nota) }}</p>
+        @if (lugar.comentario) {
+          <p class="comentario">{{ lugar.comentario }}</p>
+        }
+        @if (lugar.valor > 0) {
+          <p class="linha-valor">{{ lugar.valor | moeda }}</p>
+        }
+        @if (lugar.marcacoes.length) {
+          <div class="marcadores">
+            @for (marcacao of lugar.marcacoes; track marcacao) {
+              <span class="etiqueta">{{ marcacao }}</span>
+            }
+          </div>
+        }
+        <div class="acoes">
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            (click)="editar(lugar)"
+            aria-label="Editar"
+            i18n-aria-label
+            title="Editar"
+            i18n-title
+          >
+            <app-icone nome="lapis" [tamanho]="18" />
+          </button>
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="excluir(lugar)"
+            aria-label="Apagar"
+            i18n-aria-label
+            title="Apagar"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
+        </div>
+      </article>
+    }
+  </div>
+} @else {
+  <p i18n class="vazio">Nenhum lugar registrado ainda.</p>
+  <p class="vazio-acao">
+    <button i18n class="botao contorno pequeno" appFocar="nomeLugar">Registrar um lugar</button>
+  </p>
+}

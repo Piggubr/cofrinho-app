@@ -1,0 +1,99 @@
+@if (erro()) {
+  <p class="aviso erro" role="alert">{{ erro() }}</p>
+}
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2 i18n>Limite do mês</h2>
+  </div>
+
+  @if (metaDoMesAtual() > 0) {
+    <p i18n class="resumo">{{ totalDoMesAtual() | moeda }} de {{ metaDoMesAtual() | moeda }}</p>
+    <div class="progresso" [class.estourado]="estourou()">
+      <span [style.width.%]="progresso()"></span>
+    </div>
+    <p i18n class="linha-detalhe">
+      {{ progresso() }}% usado
+      @if (estourou()) {
+        <strong> · limite ultrapassado</strong>
+      }
+    </p>
+  } @else {
+    <p i18n class="vazio">Nenhum limite definido para este mês ainda.</p>
+    <p class="vazio-acao">
+      <button i18n class="botao contorno pequeno" appFocar="limite">Definir o limite do mês</button>
+    </p>
+  }
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2 i18n>Definir o limite</h2>
+  </div>
+
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="mes">Mês</label>
+      <input
+        id="mes"
+        type="month"
+        [ngModel]="mesEscolhido()"
+        (ngModelChange)="aoTrocarMes($event)"
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="limite">Total no mês ({{ moeda.simbolo() }})</label>
+      <input
+        id="limite"
+        type="number"
+        min="0.01"
+        step="0.01"
+        inputmode="decimal"
+        [ngModel]="limite()"
+        (ngModelChange)="limite.set($event)"
+        placeholder="0,00"
+      />
+    </div>
+    <div class="campo alinhado">
+      <button i18n type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
+        @if (salvando()) {
+          Guardando...
+        } @else {
+          Salvar limite
+        }
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2 i18n>Limites dos outros meses</h2>
+  </div>
+
+  @if (carregando()) {
+    <p i18n class="carregando">Carregando...</p>
+  } @else if (lista().length) {
+    @for (meta of lista(); track meta.mes) {
+      <div class="linha">
+        <p class="linha-titulo">{{ meta.rotulo }}</p>
+        <div class="linha-acoes">
+          <span class="linha-valor">{{ meta.limite | moeda }}</span>
+          <button
+            type="button"
+            class="botao icone-so fantasma"
+            (click)="editar(meta)"
+            aria-label="Editar"
+            i18n-aria-label
+            title="Editar"
+            i18n-title
+          >
+            <app-icone nome="lapis" [tamanho]="18" />
+          </button>
+        </div>
+      </div>
+    }
+  } @else {
+    <p i18n class="vazio">Nenhum limite cadastrado.</p>
+  }
+</section>

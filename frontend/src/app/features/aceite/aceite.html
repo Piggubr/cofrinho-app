@@ -1,0 +1,47 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Os Termos mudaram</h1>
+    <p i18n class="subtitulo">
+      Atualizamos os Termos de Uso e o Aviso de Privacidade. Para seguir usando o Piggu, leia e
+      aceite a versão nova.
+    </p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    <h2 i18n class="o-que-mudou">O que mudou</h2>
+    <ul class="mudancas">
+      <li i18n>
+        Na família, cada pessoa usa todas as telas e vê só o que lançou e os gastos divididos com
+        ela.
+      </li>
+      <li i18n>
+        O titular e o parceiro (o casal) veem tudo um do outro e o que lança quem tem de 13 a 17
+        anos. Por isso pedimos a data de nascimento, e é preciso ter pelo menos 13 anos para ter
+        conta.
+      </li>
+      <li i18n>
+        Quem sai da família, ou é removido, leva o que lançou. Quem exclui a conta tem o que lançou
+        apagado.
+      </li>
+    </ul>
+
+    <p i18n class="nota">
+      Leia os <a routerLink="/termos" target="_blank">Termos de Uso</a> e o
+      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a> completos (versão
+      {{ versao }}).
+    </p>
+
+    <button i18n type="button" class="botao" [disabled]="salvando()" (click)="aceitar()">
+      Aceitar e continuar
+    </button>
+    <button i18n type="button" class="botao contorno pequeno sair" [disabled]="salvando()" (click)="sair()">
+      Sair
+    </button>
+    <button i18n type="button" class="excluir" [disabled]="salvando()" (click)="excluirConta()">
+      Não concordo: excluir minha conta
+    </button>
+  </section>
+</div>

@@ -1,0 +1,36 @@
+SUPERMERCADO BOM PRECO LTDA
+
+CNPJ: 12.345.678/0001-90 IE: 123456789
+
+RUA DAS FLORES, 100 - CENTRO - CURITIBA PR
+
+DANFE NFC-e - Documento Auxiliar
+
+da Nota Fiscal de Consumidor Eletronica
+
+Codigo Descricao Qtde UN V1 Unit V1 Total
+
+001 7891000100103 LEITE NINHO 400G 1 UN X 15,99 15,99
+002 7896005800012 ARROZ TIO JOAO 5KG 2 UN X 24,90 49,80
+003 7891910000197 ACUCAR UNIAO REFINADO 1KG
+
+1 UN X 4,79 4,79
+
+004 2000123000005 BANANA PRATA KG 1,235 KG X 6,99 8,63
+Desconto item 004 -0,63
+
+Qtde. total de itens 4
+
+Valor total R$ 79,21
+
+Descontos R$ 0,63
+
+Valor a Pagar R$ 78,58
+
+FORMA PAGAMENTO VALOR PAGO
+
+Cartao de Credito 78,58
+
+Consumidor nao identificado
+
+Emissao: 01/10/2026 14:32:10

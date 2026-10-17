@@ -1,0 +1,1232 @@
+/* Design system do Piggu.
+ *
+ * A paleta (vinho, rosa e os tons de tinta) veio de css/variables.css do app original
+ * e continua a mesma. O que mudou foi o uso: o rosa deixou de pintar fundos, bordas e
+ * campos e ficou como cor de destaque; as superficies sao brancas sobre um fundo quase
+ * neutro, com bordas e sombras discretas. Os tokens ficam como custom properties no
+ * :root porque o app antigo ja trocava de tema redefinindo essas mesmas variaveis. */
+
+/* A fonte Sora vem do proprio app (pacote @fontsource-variable/sora, declarado no
+ * angular.json): carregar do Google entregaria o IP de todo visitante a terceiros antes
+ * de qualquer login ou aviso (LGPD). */
+
+:root {
+  color-scheme: light;
+
+  /* Paleta da marca */
+  --pink-bg: #f7dde7;
+  --ink: #2b1e32;
+  --ink-soft: #5c4c58;
+  --muted: #94808a;
+  --rose: #c27a97;
+  --rose-deep: #8e2f58;
+  --evento: #5c4270;
+  --ok: #7fa07f;
+  --over: #c0436e;
+
+  /* Papeis das cores. Trocar a paleta e mexer so neste bloco. */
+  --primaria: var(--rose-deep);
+  --primaria-hover: #77264a;
+  --primaria-contraste: #ffffff;
+  --destaque-1: #b04c78;
+  --destaque-2: #8e2f58;
+  --destaque-3: #6e2245;
+  --destaque-brilho: rgba(255, 190, 215, 0.35);
+  --anel: rgba(194, 122, 151, 0.2);
+  --ok-soft: #ecf3ec;
+  --ok-ink: #46664a;
+  --danger: #c0436e;
+  --danger-soft: #fceaf0;
+  --danger-ink: #962e54;
+  --ouro: #d4a64a;
+  --ouro-soft: #fbf1de;
+  --ouro-ink: #82601a;
+  --serie-receita: #7fa07f;
+  --serie-gasto: #c27a97;
+  --placeholder: #a8969f;
+
+  /* Superficies */
+  --site-bg: #fcf8f9;
+  --surface: #ffffff;
+  --surface-sunken: #f7f0f3;
+  --border: #f0e4e9;
+  --border-strong: #e3d2da;
+  --field-bg: #f7f0f3;
+  --button-bg: #fbeff3;
+  --track: #f3e6ec;
+  --rose-soft: #fbeff3;
+
+  /* Vidro (barras e folhas flutuantes do celular) */
+  --vidro-fundo: rgba(255, 255, 255, 0.68);
+  --vidro-forte: rgba(255, 255, 255, 0.78);
+  --vidro-borda: rgba(255, 255, 255, 0.7);
+  --vidro-brilho: rgba(255, 255, 255, 0.9);
+  --vidro-sombra: 0 10px 34px rgba(110, 34, 69, 0.14), 0 2px 6px rgba(43, 30, 50, 0.06);
+  --vidro-desfoque: blur(22px) saturate(190%);
+
+  /* Forma */
+  --shadow-card: 0 1px 2px rgba(43, 30, 50, 0.04), 0 6px 24px rgba(43, 30, 50, 0.05);
+  --shadow-float: 0 12px 40px rgba(43, 30, 50, 0.16);
+  --raio: 20px;
+  --raio-pequeno: 12px;
+  --altura-controle: 46px;
+  --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
+}
+
+/* Versao escura: segue o modo do aparelho. O cartao de destaque continua vinho e o
+ * vinho dos textos vira um rosa claro para manter o contraste sobre o fundo escuro. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --pink-bg: #3a2030;
+    --ink: #f3e9ee;
+    --ink-soft: #cdbcc5;
+    --muted: #a08e98;
+    --rose: #d88aa9;
+    --rose-deep: #f0a6c4;
+    --evento: #b9a0d0;
+    --ok: #8fbf8f;
+    --over: #ef6b95;
+
+    --primaria: #e58fb2;
+    --primaria-hover: #f0a6c4;
+    --primaria-contraste: #2a0f1d;
+    --destaque-1: #8e2f58;
+    --destaque-2: #6e2245;
+    --destaque-3: #4a1530;
+    --destaque-brilho: rgba(255, 150, 195, 0.25);
+    --anel: rgba(232, 143, 178, 0.28);
+    --ok-soft: #1f3324;
+    --ok-ink: #a9d4a9;
+    --danger: #ef6b95;
+    --danger-soft: #3d1a27;
+    --danger-ink: #f5a3bd;
+    --ouro: #e0b45a;
+    --ouro-soft: #3a2e17;
+    --ouro-ink: #f0cd85;
+    --serie-receita: #8fbf8f;
+    --serie-gasto: #e58fb2;
+    --placeholder: #7d6b75;
+
+    --site-bg: #161015;
+    --surface: #221a20;
+    --surface-sunken: #2c2229;
+    --border: #372b34;
+    --border-strong: #4b3d47;
+    --field-bg: #2c2229;
+    --button-bg: #3a2431;
+    --track: #372b34;
+    --rose-soft: #3a2431;
+
+    --vidro-fundo: rgba(40, 28, 37, 0.66);
+    --vidro-forte: rgba(40, 28, 37, 0.78);
+    --vidro-borda: rgba(255, 255, 255, 0.12);
+    --vidro-brilho: rgba(255, 255, 255, 0.18);
+    --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
+    --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Temas de cor (Perfil > Cor do Piggu). O rosa e o :root acima; os outros trocam so os
+ * tons da marca e das superficies. Cada tema define as mesmas chaves no claro e no
+ * escuro, para o escuro de um tema nunca herdar o claro dele. A barra de gasto dos
+ * graficos segue o tema (rosa no Azul parecia erro); no Menta a receita vira cinza-azulado
+ * para nao confundir com o gasto verde. Alerta e dourado ficam iguais em todos. */
+@mixin tema($nome, $claro, $escuro) {
+  :root[data-tema='#{$nome}'] {
+    @each $token, $valor in $claro {
+      --#{$token}: #{$valor};
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-tema='#{$nome}'] {
+      @each $token, $valor in $escuro {
+        --#{$token}: #{$valor};
+      }
+    }
+  }
+}
+
+@include tema(
+  'menta',
+  (
+    pink-bg: #d3f4e8,
+    rose: #5fae95,
+    rose-deep: #1f6b5a,
+    primaria: #1f6b5a,
+    primaria-hover: #185a4b,
+    primaria-contraste: #ffffff,
+    destaque-1: #2f8a73,
+    destaque-2: #1f6b5a,
+    destaque-3: #174f43,
+    destaque-brilho: rgba(190, 255, 230, 0.35),
+    anel: rgba(95, 174, 149, 0.2),
+    site-bg: #f7fbfa,
+    surface-sunken: #eef6f3,
+    border: #e1efe9,
+    border-strong: #cfe3db,
+    field-bg: #eef6f3,
+    button-bg: #eaf6f1,
+    track: #ddeee7,
+    rose-soft: #eaf6f1,
+    serie-gasto: #3f9a82,
+    serie-receita: #8a9bb8,
+    vidro-sombra: (
+      0 10px 34px rgba(23, 79, 67, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #1d3a32,
+    rose: #7fcfb3,
+    rose-deep: #9fe0c8,
+    primaria: #8fd6bd,
+    primaria-hover: #9fe0c8,
+    primaria-contraste: #0d2a22,
+    destaque-1: #2f8a73,
+    destaque-2: #1f6b5a,
+    destaque-3: #13473b,
+    destaque-brilho: rgba(150, 255, 215, 0.22),
+    anel: rgba(143, 214, 189, 0.28),
+    site-bg: #0f1513,
+    surface: #1a2220,
+    vidro-fundo: rgba(26, 36, 33, 0.66),
+    vidro-forte: rgba(26, 36, 33, 0.78),
+    surface-sunken: #222c29,
+    border: #2c3834,
+    border-strong: #3d4b46,
+    field-bg: #222c29,
+    button-bg: #20352e,
+    track: #2c3834,
+    rose-soft: #20352e,
+    serie-gasto: #8fd6bd,
+    serie-receita: #a7b6cf,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'lilas',
+  (
+    pink-bg: #eadcfb,
+    rose: #a07cc5,
+    rose-deep: #6a3d94,
+    primaria: #6a3d94,
+    primaria-hover: #5a3280,
+    primaria-contraste: #ffffff,
+    destaque-1: #8558b0,
+    destaque-2: #6a3d94,
+    destaque-3: #4e2a70,
+    destaque-brilho: rgba(225, 200, 255, 0.35),
+    anel: rgba(160, 124, 197, 0.2),
+    site-bg: #faf8fc,
+    surface-sunken: #f3eff8,
+    border: #ebe4f2,
+    border-strong: #dccfe9,
+    field-bg: #f3eff8,
+    button-bg: #f3ecfb,
+    track: #e9e0f3,
+    rose-soft: #f3ecfb,
+    serie-gasto: #a07cc5,
+    vidro-sombra: (
+      0 10px 34px rgba(78, 42, 112, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #2e2240,
+    rose: #b99ae0,
+    rose-deep: #d2b8f2,
+    primaria: #c4a5ec,
+    primaria-hover: #d2b8f2,
+    primaria-contraste: #1e1030,
+    destaque-1: #6a3d94,
+    destaque-2: #4e2a70,
+    destaque-3: #351c50,
+    destaque-brilho: rgba(210, 170, 255, 0.22),
+    anel: rgba(196, 165, 236, 0.28),
+    site-bg: #131017,
+    surface: #1e1a24,
+    vidro-fundo: rgba(32, 26, 40, 0.66),
+    vidro-forte: rgba(32, 26, 40, 0.78),
+    surface-sunken: #27222e,
+    border: #332c3b,
+    border-strong: #463d50,
+    field-bg: #27222e,
+    button-bg: #2c2238,
+    track: #332c3b,
+    rose-soft: #2c2238,
+    serie-gasto: #c4a5ec,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'azul',
+  (
+    pink-bg: #d4eafa,
+    rose: #6fa7cf,
+    rose-deep: #22608f,
+    primaria: #22608f,
+    primaria-hover: #1b5079,
+    primaria-contraste: #ffffff,
+    destaque-1: #3a7fb3,
+    destaque-2: #22608f,
+    destaque-3: #174a70,
+    destaque-brilho: rgba(190, 225, 255, 0.35),
+    anel: rgba(111, 167, 207, 0.2),
+    site-bg: #f7fafc,
+    surface-sunken: #eef4f8,
+    border: #e2ecf3,
+    border-strong: #cfdee9,
+    field-bg: #eef4f8,
+    button-bg: #eaf3fa,
+    track: #dde9f2,
+    rose-soft: #eaf3fa,
+    serie-gasto: #5a95c4,
+    vidro-sombra: (
+      0 10px 34px rgba(23, 74, 112, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #1c2e3d,
+    rose: #8bbde0,
+    rose-deep: #a8d0ee,
+    primaria: #96c4e8,
+    primaria-hover: #a8d0ee,
+    primaria-contraste: #0b2033,
+    destaque-1: #2f6f9f,
+    destaque-2: #22608f,
+    destaque-3: #163f60,
+    destaque-brilho: rgba(160, 210, 255, 0.22),
+    anel: rgba(150, 196, 232, 0.28),
+    site-bg: #0f1317,
+    surface: #1a1f24,
+    vidro-fundo: rgba(26, 32, 38, 0.66),
+    vidro-forte: rgba(26, 32, 38, 0.78),
+    surface-sunken: #22292f,
+    border: #2c343b,
+    border-strong: #3d4750,
+    field-bg: #22292f,
+    button-bg: #1f2f3c,
+    track: #2c343b,
+    rose-soft: #1f2f3c,
+    serie-gasto: #96c4e8,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'coral',
+  (
+    pink-bg: #fbe0d8,
+    rose: #e08a73,
+    rose-deep: #a8432c,
+    primaria: #a8432c,
+    primaria-hover: #8f3824,
+    primaria-contraste: #ffffff,
+    destaque-1: #c4583e,
+    destaque-2: #a8432c,
+    destaque-3: #7e3020,
+    destaque-brilho: rgba(255, 205, 190, 0.35),
+    anel: rgba(224, 138, 115, 0.2),
+    site-bg: #fdf9f8,
+    surface-sunken: #f9f0ed,
+    border: #f3e5e0,
+    border-strong: #e9d3cc,
+    field-bg: #f9f0ed,
+    button-bg: #fcefeb,
+    track: #f3e3de,
+    rose-soft: #fcefeb,
+    serie-gasto: #e08a73,
+    vidro-sombra: (
+      0 10px 34px rgba(126, 48, 32, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #3d2520,
+    rose: #eba08b,
+    rose-deep: #f5b8a6,
+    primaria: #f0a993,
+    primaria-hover: #f5b8a6,
+    primaria-contraste: #2e120b,
+    destaque-1: #a8432c,
+    destaque-2: #843222,
+    destaque-3: #5c2116,
+    destaque-brilho: rgba(255, 170, 145, 0.22),
+    anel: rgba(240, 169, 147, 0.28),
+    site-bg: #171110,
+    surface: #231b19,
+    vidro-fundo: rgba(40, 29, 26, 0.66),
+    vidro-forte: rgba(40, 29, 26, 0.78),
+    surface-sunken: #2d2421,
+    border: #382c29,
+    border-strong: #4c3d39,
+    field-bg: #2d2421,
+    button-bg: #3a2621,
+    track: #382c29,
+    rose-soft: #3a2621,
+    serie-gasto: #f0a993,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'mel',
+  (
+    pink-bg: #f8e7c4,
+    rose: #d3a24a,
+    rose-deep: #855a0b,
+    primaria: #855a0b,
+    primaria-hover: #704b08,
+    primaria-contraste: #ffffff,
+    destaque-1: #a87316,
+    destaque-2: #855a0b,
+    destaque-3: #5e3f06,
+    destaque-brilho: rgba(255, 225, 160, 0.35),
+    anel: rgba(211, 162, 74, 0.2),
+    site-bg: #fcfaf5,
+    surface-sunken: #f7f1e6,
+    border: #f1e8d6,
+    border-strong: #e6d8bc,
+    field-bg: #f7f1e6,
+    button-bg: #fbf3e2,
+    track: #efe4cd,
+    rose-soft: #fbf3e2,
+    serie-gasto: #d3a24a,
+    vidro-sombra: (
+      0 10px 34px rgba(94, 63, 6, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #3a2e17,
+    rose: #e6bd6a,
+    rose-deep: #f3d38f,
+    primaria: #ecc778,
+    primaria-hover: #f3d38f,
+    primaria-contraste: #2a1d02,
+    destaque-1: #8a5f12,
+    destaque-2: #6b490c,
+    destaque-3: #4a3208,
+    destaque-brilho: rgba(255, 215, 130, 0.22),
+    anel: rgba(236, 199, 120, 0.28),
+    site-bg: #15130e,
+    surface: #211e17,
+    vidro-fundo: rgba(36, 32, 24, 0.66),
+    vidro-forte: rgba(36, 32, 24, 0.78),
+    surface-sunken: #2b271e,
+    border: #363027,
+    border-strong: #4a4235,
+    field-bg: #2b271e,
+    button-bg: #33291a,
+    track: #363027,
+    rose-soft: #33291a,
+    serie-gasto: #ecc778,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'vinho',
+  (
+    pink-bg: #f3d9dc,
+    rose: #b0606b,
+    rose-deep: #7a1f2e,
+    primaria: #7a1f2e,
+    primaria-hover: #661a26,
+    primaria-contraste: #ffffff,
+    destaque-1: #9a3242,
+    destaque-2: #7a1f2e,
+    destaque-3: #561520,
+    destaque-brilho: rgba(255, 190, 200, 0.32),
+    anel: rgba(176, 96, 107, 0.2),
+    site-bg: #fcf8f8,
+    surface-sunken: #f6eeef,
+    border: #f0e2e4,
+    border-strong: #e4cfd2,
+    field-bg: #f6eeef,
+    button-bg: #f9ecee,
+    track: #f1e1e3,
+    rose-soft: #f9ecee,
+    serie-gasto: #b0606b,
+    vidro-sombra: (
+      0 10px 34px rgba(86, 21, 32, 0.15),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #3a1d22,
+    rose: #dc8c97,
+    rose-deep: #f0aab3,
+    primaria: #e899a4,
+    primaria-hover: #f0aab3,
+    primaria-contraste: #2b0a10,
+    destaque-1: #7a1f2e,
+    destaque-2: #5e1723,
+    destaque-3: #401018,
+    destaque-brilho: rgba(255, 150, 165, 0.22),
+    anel: rgba(232, 153, 164, 0.28),
+    site-bg: #161011,
+    surface: #221a1b,
+    vidro-fundo: rgba(38, 26, 28, 0.66),
+    vidro-forte: rgba(38, 26, 28, 0.78),
+    surface-sunken: #2c2224,
+    border: #382b2d,
+    border-strong: #4c3c3f,
+    field-bg: #2c2224,
+    button-bg: #3a2226,
+    track: #382b2d,
+    rose-soft: #3a2226,
+    serie-gasto: #e899a4,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+@include tema(
+  'grafite',
+  (
+    pink-bg: #e2e5ea,
+    rose: #7d8796,
+    rose-deep: #363d4a,
+    primaria: #363d4a,
+    primaria-hover: #2b313c,
+    primaria-contraste: #ffffff,
+    destaque-1: #4c5566,
+    destaque-2: #363d4a,
+    destaque-3: #262b35,
+    destaque-brilho: rgba(220, 228, 240, 0.35),
+    anel: rgba(125, 135, 150, 0.22),
+    site-bg: #f9fafb,
+    surface-sunken: #f1f3f5,
+    border: #e6e9ed,
+    border-strong: #d5dae0,
+    field-bg: #f1f3f5,
+    button-bg: #eef0f3,
+    track: #e2e6ea,
+    rose-soft: #eef0f3,
+    serie-gasto: #7d8796,
+    vidro-sombra: (
+      0 10px 34px rgba(38, 43, 53, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #2a2f37,
+    rose: #a9b3c2,
+    rose-deep: #d3dae4,
+    primaria: #c2cbd8,
+    primaria-hover: #d3dae4,
+    primaria-contraste: #151a22,
+    destaque-1: #4c5566,
+    destaque-2: #363d4a,
+    destaque-3: #232832,
+    destaque-brilho: rgba(200, 215, 235, 0.18),
+    anel: rgba(194, 203, 216, 0.26),
+    site-bg: #111214,
+    surface: #1c1e21,
+    vidro-fundo: rgba(30, 32, 36, 0.66),
+    vidro-forte: rgba(30, 32, 36, 0.78),
+    surface-sunken: #25282c,
+    border: #303338,
+    border-strong: #43474e,
+    field-bg: #25282c,
+    button-bg: #2a2e34,
+    track: #303338,
+    rose-soft: #2a2e34,
+    serie-gasto: #c2cbd8,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Busca ou assistente aberto: a pagina de tras fica parada (core/ui/travar-rolagem).
+ * So no html: no body tambem, ele vira o rolador e o cabecalho deixa de grudar no alto. */
+html.rolagem-travada {
+  overflow: hidden;
+}
+
+body {
+  background: var(--site-bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.1rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+a {
+  color: var(--rose-deep);
+  text-underline-offset: 3px;
+}
+
+::selection {
+  background: var(--pink-bg);
+}
+
+/* ---------- Cartoes ---------- */
+
+.cartao {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+.cartao + .cartao {
+  margin-top: 0.9rem;
+}
+
+/* Cartoes que vem de componentes filhos nao sao irmaos no DOM; o espaco vem do host. */
+app-resumo-do-mes,
+app-avisos-do-mes,
+app-importar-extrato,
+app-goals {
+  display: block;
+}
+
+/* Mesmo espaco quando um dos lados e um bloco com cartoes dentro (componente filho ou
+ * grade de cartoes): sem isso eles encostam, como Importar e exportar nos Gastos. */
+.cartao + :has(> .cartao),
+:has(> .cartao:last-child) + .cartao,
+:has(> .cartao:last-child) + :has(> .cartao:first-child) {
+  margin-top: 0.9rem;
+}
+
+app-resumo-do-mes + *,
+app-avisos-do-mes + * {
+  margin-top: 0.9rem;
+}
+
+app-resumo-do-mes:empty + *,
+app-avisos-do-mes:empty + * {
+  margin-top: 0;
+}
+
+.cartao-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cartao-titulo h2,
+.cartao-titulo h3 {
+  margin: 0;
+}
+
+/* ---------- Formularios ---------- */
+
+label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: var(--altura-controle);
+  padding: 0.6rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--raio-pequeno);
+  background: var(--field-bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* No iPhone, campo com letra menor que 16px faz a tela dar zoom ao ganhar o cursor, e ela
+ * fica torta (aconteceu no assistente). Com o dedo como ponteiro, os campos usam 16px. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--border-strong);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--rose);
+  box-shadow: 0 0 0 4px var(--anel);
+}
+
+select {
+  appearance: none;
+  padding-right: 2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b7480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--rose-deep);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* Chave liga/desliga no padrao do iPhone: trilho em capsula e bolinha que desliza.
+ * Continua sendo um checkbox, entao teclado, leitor de tela e ngModel seguem iguais. */
+input[type='checkbox'].chave {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 51px;
+  height: 31px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition: background-color 0.2s ease;
+}
+
+input[type='checkbox'].chave::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.15),
+    0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.2s ease;
+}
+
+input[type='checkbox'].chave:checked {
+  background: var(--primaria);
+}
+
+input[type='checkbox'].chave:checked::before {
+  transform: translateX(20px);
+}
+
+input[type='checkbox'].chave:focus-visible {
+  outline: 2px solid var(--primaria);
+  outline-offset: 2px;
+}
+
+input[type='checkbox'].chave:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input[type='checkbox'].chave,
+  input[type='checkbox'].chave::before {
+    transition: none;
+  }
+}
+
+input[type='file'] {
+  min-height: 0;
+  padding: 0.5rem;
+}
+
+/* No iOS, campo com fonte menor que 16px faz o Safari e o app dar zoom ao focar, e
+ * o zoom nao volta quando o teclado fecha. Em tela de toque todo campo usa 16px. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.campo + .campo {
+  margin-top: 0.85rem;
+}
+
+/* Rotulo com caixa de selecao ao lado: "[x] Lancar sozinha no vencimento". */
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.linha-de-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.linha-de-campos + .linha-de-campos,
+.linha-de-campos + .campo,
+.campo + .linha-de-campos {
+  margin-top: 0.85rem;
+}
+
+/* Dentro da grade o espaco vem do gap, nao da margem entre campos. */
+.linha-de-campos > .campo + .campo {
+  margin-top: 0;
+}
+
+/* Botao na mesma linha dos campos, alinhado pela base do campo ao lado. */
+.campo.alinhado {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.campo.alinhado .botao {
+  width: 100%;
+}
+
+.erro-do-campo {
+  color: var(--danger);
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+}
+
+/* ---------- Botoes ---------- */
+
+button {
+  font-family: inherit;
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: var(--altura-controle);
+  padding: 0.6rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease,
+    opacity 0.15s ease;
+}
+
+.botao:hover:not(:disabled) {
+  background: var(--primaria-hover);
+}
+
+.botao:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.botao:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
+}
+
+.botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.botao.secundario {
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+}
+
+.botao.secundario:hover:not(:disabled) {
+  background: var(--pink-bg);
+}
+
+.botao.contorno {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.botao.contorno:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.botao.perigo {
+  min-height: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--danger);
+  padding: 0.4rem 0.6rem;
+  font-weight: 500;
+}
+
+.botao.perigo:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.botao.pequeno {
+  min-height: 34px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.botao.fantasma {
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.botao.fantasma:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+/* Botao quadrado so com icone, como as setas de trocar o mes. */
+.botao.icone-so {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* ---------- Listas ---------- */
+
+.linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.linha {
+  flex-wrap: wrap;
+}
+
+/* Texto ocupa o que der; se faltar espaco, as acoes descem para baixo, a direita. */
+.linha > :first-child {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+/* Linha com muito texto: no celular as acoes descem para baixo do texto. */
+@media (max-width: 640px) {
+  .linha.empilhada > :first-child {
+    flex-basis: 100%;
+  }
+}
+
+/* Icone em quadradinho rosa no inicio de uma linha. */
+.linha-com-icone {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.icone-tile {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+  flex-shrink: 0;
+}
+
+/* Valor e botoes de icone no fim da linha. */
+.linha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.linha-acoes .linha-valor,
+.linha-acoes > strong {
+  margin-right: 0.35rem;
+}
+
+.linha:last-child {
+  border-bottom: none;
+}
+
+.linha-titulo {
+  margin: 0;
+  font-weight: 500;
+}
+
+.linha-detalhe {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.linha-valor {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vazio {
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  margin: 0;
+}
+
+/* ---------- Etiquetas e avisos ---------- */
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.etiqueta.premium {
+  background: var(--ouro-soft);
+  color: var(--ouro-ink);
+}
+
+.aviso {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--raio-pequeno);
+  font-size: 0.85rem;
+  margin-bottom: 0.9rem;
+}
+
+.aviso.erro {
+  background: var(--danger-soft);
+  color: var(--danger-ink);
+}
+
+.aviso.sucesso {
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+
+.aviso.informacao {
+  background: var(--rose-soft);
+  color: var(--rose-deep);
+}
+
+/* ---------- Barra de progresso ---------- */
+
+.progresso {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.progresso > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+  transition: width 0.3s ease;
+}
+
+.progresso.estourado > span {
+  background: var(--over);
+}
+
+/* ---------- Grades ---------- */
+
+.grade {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.centralizado {
+  text-align: center;
+}
+
+.carregando {
+  color: var(--muted);
+  font-size: 0.88rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .cartao {
+    padding: 1.05rem;
+  }
+
+  /* No celular a grade tem duas colunas: botao que sobraria sozinho ocupa a linha toda. */
+  .linha-de-campos > .campo.alinhado:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Acao logo abaixo de um estado vazio: diz o que fazer para sair dele. */
+.vazio-acao {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: -0.9rem 0 1rem;
+}
+
+/* Aviso curto do shell depois de lancar pelo "+", com o painel ja fechado. */
+.aviso-do-lancamento {
+  position: fixed;
+  left: 50%;
+  z-index: 33;
+  margin: 0;
+  padding: 0.6rem 1.1rem;
+  border: 0.5px solid var(--vidro-borda);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  -webkit-backdrop-filter: var(--vidro-desfoque);
+  backdrop-filter: var(--vidro-desfoque);
+  box-shadow:
+    inset 0 1px 0 var(--vidro-brilho),
+    var(--shadow-float);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: aviso-surge 0.2s ease-out;
+}
+
+@keyframes aviso-surge {
+  from {
+    opacity: 0;
+  }
+}

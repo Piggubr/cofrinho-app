@@ -1,0 +1,65 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Seu documento</h1>
+    <p i18n class="subtitulo">
+      Cada pessoa tem uma conta no Piggu. O documento garante isso: ele fica preso à sua conta e não
+      pode ser usado em outra.
+    </p>
+
+    @if (erro()) {
+      <p class="aviso erro" role="alert">{{ erro() }}</p>
+    }
+
+    <form class="formulario-cpf" (submit)="$event.preventDefault(); salvar()">
+      <div class="campo">
+        <label i18n for="pais">País onde você mora</label>
+        <select
+          #campoPais
+          id="pais"
+          name="pais"
+          autocomplete="country"
+          (change)="trocarPais(campoPais.value)"
+        >
+          @for (opcao of paises; track opcao.codigo) {
+            <option [value]="opcao.codigo" [selected]="opcao.codigo === pais()">
+              {{ opcao.nome }}
+            </option>
+          }
+        </select>
+      </div>
+      @if (documentoPedido(); as doc) {
+        <div class="campo">
+          <label for="documento">{{ doc.nome }}</label>
+          <input
+            #campo
+            id="documento"
+            name="documento"
+            [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
+            autocomplete="off"
+            autocapitalize="characters"
+            [placeholder]="doc.exemplo"
+            [attr.maxlength]="doc.tamanhoMaximo"
+            [value]="documento()"
+            (input)="digitar(campo.value, campo)"
+          />
+        </div>
+      } @else {
+        <p i18n class="dica">No seu país o Piggu não pede documento. É só continuar.</p>
+      }
+      <button i18n type="submit" class="botao" [disabled]="salvando()">Continuar</button>
+    </form>
+
+    <p i18n class="nota">
+      Guardamos o documento cifrado e usamos só para isso. Ele não aparece para a sua família e sai
+      inteiro apenas quando você baixa os seus dados. Detalhes no
+      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>. Já tem conta com este
+      documento ou quer corrigir? Escreva para {{ contato }}.
+    </p>
+
+    <div class="acoes-do-cpf">
+      <a i18n routerLink="/painel" class="botao contorno pequeno">Agora não</a>
+      <button i18n type="button" class="botao contorno pequeno" (click)="sair()">Sair</button>
+    </div>
+  </section>
+</div>

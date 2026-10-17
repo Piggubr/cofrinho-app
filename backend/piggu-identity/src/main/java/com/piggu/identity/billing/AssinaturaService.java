@@ -1,0 +1,268 @@
+package com.piggu.identity.billing;
+
+import com.piggu.common.error.BusinessException;
+import com.piggu.common.error.UnauthorizedException;
+import com.piggu.common.error.UpstreamException;
+import com.piggu.common.security.Plano;
+import com.piggu.identity.api.dto.PlanoResponse;
+import com.piggu.identity.avisos.CanalDeEmail;
+import com.piggu.identity.domain.FamiliaService;
+import com.piggu.identity.domain.Household;
+import com.piggu.identity.domain.UserAccount;
+import com.piggu.identity.domain.UserAccountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+/**
+ * Plano da conta: mostrar, mandar para o pagamento e aplicar o que o provedor avisou.
+ *
+ * <p>O Premium muda so por webhook. Voltar da pagina de pagamento nao concede nada:
+ * qualquer um poderia abrir a URL de sucesso.</p>
+ */
+@Service
+public class AssinaturaService {
+
+    private static final Logger log = LoggerFactory.getLogger(AssinaturaService.class);
+
+    /** CDC art. 49: sete dias para desistir de compra feita fora do estabelecimento. */
+    public static final Duration PRAZO_DE_ARREPENDIMENTO = Duration.ofDays(7);
+
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            .withZone(ZoneId.of("America/Sao_Paulo"));
+
+    private final UserAccountRepository usuarios;
+    private final FamiliaService familias;
+    private final ProvedorDePagamento pagamentos;
+
+    private final LojaDeApps lojas;
+    private final JdbcTemplate jdbc;
+    private final TestesGratis testes;
+    private final CanalDeEmail email;
+    private final int diasDeTeste;
+    private final boolean openFinance;
+
+    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
+                             LojaDeApps lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+                             @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
+                             @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
+        this.openFinance = openFinance;
+        this.usuarios = usuarios;
+        this.familias = familias;
+        this.pagamentos = pagamentos;
+        this.lojas = lojas;
+        this.jdbc = jdbc;
+        this.testes = testes;
+        this.email = email;
+        this.diasDeTeste = diasDeTeste;
+    }
+
+    @Transactional(readOnly = true)
+    public PlanoResponse plano(UUID usuarioId) {
+        return plano(usuarioId, null);
+    }
+
+    /** @param campanha codigo de promocao do link; invalido mostra o teste normal (o checkout explica o erro) */
+    @Transactional(readOnly = true)
+    public PlanoResponse plano(UUID usuarioId, String campanha) {
+        UserAccount conta = conta(usuarioId);
+        int dias;
+        try {
+            dias = diasDeTesteDe(conta, campanha);
+        } catch (BusinessException campanhaInvalida) {
+            dias = diasDeTesteDe(conta, null);
+        }
+        return PlanoResponse.de(conta, familias.daConta(conta), pagamentos.habilitado(),
+                pagamentos.familiaHabilitado(), dias, openFinance);
+    }
+
+    /**
+     * Teste gratis uma vez por pessoa: por conta e, para quem informou o CPF, por CPF (outra
+     * conta com o mesmo CPF, ativa ou ja excluida, que testou tira o teste desta). A busca e
+     * pelo HMAC do CPF.
+     */
+    private boolean jaTestou(UserAccount conta) {
+        return conta.usouTesteGratis() || (conta.temCpf()
+                && (usuarios.existsByCpfIndiceAndIdNotAndTrialUsedAtIsNotNull(conta.getCpfIndice(), conta.getId())
+                || testes.cpfDeContaExcluidaTestou(conta.getCpfIndice())));
+    }
+
+    /**
+     * Dias de teste ao assinar. Uma campanha valida troca os dias e, se for para quem ja
+     * testou, libera o teste de novo; cada conta usa cada campanha uma vez.
+     *
+     * @throws BusinessException campanha que nao existe, acabou, lotou ou ja foi usada
+     */
+    private int diasDeTesteDe(UserAccount conta, String codigo) {
+        String campanha = TestesGratis.normalizar(codigo);
+        if (campanha == null) {
+            return jaTestou(conta) ? 0 : Math.max(0, diasDeTeste);
+        }
+        TestesGratis.Campanha valida = testes.campanha(campanha).filter(TestesGratis.Campanha::valeAgora)
+                .orElseThrow(() -> new BusinessException("Esta promoção não existe ou já acabou."));
+        if (testes.usouCampanha(conta.getId(), valida.codigo())) {
+            throw new BusinessException("Você já usou esta promoção.");
+        }
+        if (!valida.paraQuemJaTestou() && jaTestou(conta)) {
+            throw new BusinessException("Esta promoção é para quem ainda não usou o teste grátis.");
+        }
+        return valida.diasDeTeste();
+    }
+
+    @Transactional(readOnly = true)
+    public String checkout(UUID usuarioId, Periodo periodo) {
+        return checkout(usuarioId, periodo, null);
+    }
+
+    @Transactional(readOnly = true)
+    public String checkout(UUID usuarioId, Periodo periodo, String campanha) {
+        UserAccount conta = conta(usuarioId);
+        Household familia = familias.daConta(conta);
+        // Uma assinatura por casa: duas se sobreporiam na mesma familia.
+        if (familia.planoVigente() == Plano.PREMIUM) {
+            throw new BusinessException(conta.getId().equals(familia.getSubscriberId())
+                    ? "Você já é Premium. Para trocar de plano, use Gerenciar assinatura."
+                    : "Já há uma assinatura nesta família. Quem assinou pode trocar para o plano família.");
+        }
+        if (periodo.familia() && familias.pessoasNaCasa(familia.getId()) > Periodo.PESSOAS_NO_FAMILIA) {
+            throw new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
+                    + " pessoas. Tire alguém da família ou cancele convites antes de assinar.");
+        }
+        int dias = diasDeTesteDe(conta, campanha);
+        return pagamentos.abrirCheckout(conta, periodo, dias, TestesGratis.normalizar(campanha));
+    }
+
+    @Transactional(readOnly = true)
+    public String portal(UUID usuarioId) {
+        return pagamentos.abrirPortal(conta(usuarioId));
+    }
+
+    /**
+     * Aviso do provedor do site. Quem assinou e uma conta; o Premium vale para a familia
+     * dela. Evento de conta que nao existe mais e ignorado sem erro.
+     */
+    @Transactional
+    public void aplicarWebhook(String corpo, String assinatura) {
+        pagamentos.lerWebhook(corpo, assinatura).ifPresent(evento ->
+                usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
+                    conta.lembrarClienteNoProvedor(evento.clienteNoProvedor());
+                    if (evento.emTeste()) {
+                        conta.marcarTesteGratisUsado();
+                        if (evento.campanha() != null) {
+                            testes.registrarUso(conta.getId(), evento.campanha());
+                        }
+                    }
+                    if (evento.testeAcabaEm() != null) {
+                        avisarFimDoTeste(conta, evento.testeAcabaEm());
+                    }
+                    Household familia = familias.daConta(conta);
+                    boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
+                            evento.inicio(), evento.familia(), conta.getId());
+                    if (aplicado) {
+                        familia.registrarPrimeiraCobranca(evento.primeiraCobranca());
+                    }
+                    log.info("Assinatura web: conta={} familia={} plano={} aplicado={}",
+                            conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
+                }, () -> log.warn("Assinatura web de conta inexistente id={}", evento.usuarioId())));
+    }
+
+    /**
+     * E-mail tres dias antes do fim do teste (a Stripe avisa nessa hora). Um por teste: a
+     * chave e a conta e a data do fim, entao reenvio do aviso nao manda de novo. Vai mesmo
+     * com os lembretes desligados: e aviso de cobranca, nao lembrete.
+     *
+     * <p>Falha na entrega desfaz o webhook inteiro: a Stripe reenvia e a gente tenta de novo.</p>
+     */
+    private void avisarFimDoTeste(UserAccount conta, Instant fim) {
+        if (!email.ligado()) {
+            log.warn("Fim do teste sem e-mail configurado: conta={}", conta.getId());
+            return;
+        }
+        if (!testes.primeiraVez("TESTE_ACABANDO:" + conta.getId() + ":" + fim.getEpochSecond())) {
+            return;
+        }
+        String dia = DATA.format(fim);
+        boolean entregue = email.enviar(conta.getEmail(), "Seu teste grátis do Piggu Premium termina em " + dia,
+                "Olá! Seu teste grátis do Piggu Premium termina em " + dia + ".\n\n"
+                        + "Depois disso, o plano que você escolheu é cobrado no cartão cadastrado e o Premium continua.\n"
+                        + "Se não quiser continuar, cancele antes dessa data em Plano > Gerenciar assinatura, "
+                        + "sem pagar nada.\n\n"
+                        + "Se cancelar depois da primeira cobrança, você ainda tem 7 dias para desistir e receber "
+                        + "o valor integral.");
+        if (!entregue) {
+            throw new UpstreamException("O e-mail de fim do teste não saiu. A Stripe vai reenviar o aviso.");
+        }
+        log.info("Aviso de fim do teste enviado: conta={}", conta.getId());
+    }
+
+    /**
+     * Direito de arrependimento (CDC art. 49): nos 7 dias seguintes a primeira cobranca,
+     * quem assinou cancela e recebe tudo de volta; durante o teste so cancela, sem nada a
+     * devolver. O Premium sai na hora aqui; o aviso da Stripe confirma depois.
+     *
+     * @return se algo foi devolvido; falso quando cancelou ainda no teste
+     */
+    @Transactional
+    public boolean cancelarComReembolso(UUID usuarioId) {
+        UserAccount conta = conta(usuarioId);
+        Household familia = familias.daConta(conta);
+        if (!conta.getId().equals(familia.getSubscriberId())) {
+            throw new BusinessException("Só quem assinou pode pedir o reembolso.");
+        }
+        if (conta.getStripeCustomerId() == null || !"WEB".equals(familia.getPlanSource())) {
+            throw new BusinessException("O reembolso pelo app vale para quem assinou pelo site.");
+        }
+        boolean reembolsado = pagamentos.cancelarComReembolso(conta.getStripeCustomerId(), PRAZO_DE_ARREPENDIMENTO);
+        familia.aplicarAssinatura("WEB", null, Instant.now());
+        log.info("Arrependimento: conta={} familia={} reembolsado={}", conta.getId(), familia.getId(), reembolsado);
+        return reembolsado;
+    }
+
+    /**
+     * Aviso de compra feita no app. Idempotente: o mesmo aviso reenviado nao conta duas
+     * vezes, e um aviso antigo que chega depois de um mais novo e ignorado pela familia.
+     *
+     * @param loja APP_STORE ou PLAY_STORE
+     */
+    @Transactional
+    public void aplicarAvisoDaLoja(String loja, String corpo, String autorizacao) {
+        if (!lojas.habilitada()) {
+            throw new BusinessException("A assinatura pelo app chega junto com os apps.",
+                    HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");
+        }
+        lojas.lerAviso(loja, corpo, autorizacao).ifPresent(aviso -> {
+            int novo = jdbc.update("INSERT INTO billing_events (event_id, provider) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                    aviso.id(), aviso.origem());
+            if (novo == 0) {
+                log.info("Aviso da loja repetido ignorado");
+                return;
+            }
+            EventoDeAssinatura evento = aviso.evento();
+            usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
+                if (evento.emTeste()) {
+                    conta.marcarTesteGratisUsado();
+                }
+                Household familia = familias.daConta(conta);
+                boolean aplicado = familia.aplicarAssinatura(aviso.origem(), evento.premiumAte(), evento.momento(),
+                        evento.inicio(), evento.familia(), conta.getId());
+                log.info("Assinatura na loja: conta={} familia={} origem={} plano={} aplicado={}",
+                        conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
+            }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));
+        });
+    }
+
+    private UserAccount conta(UUID usuarioId) {
+        return usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+    }
+}

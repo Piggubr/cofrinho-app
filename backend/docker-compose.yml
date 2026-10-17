@@ -1,0 +1,283 @@
+# Sobe a plataforma inteira com: docker compose up --build
+#
+# Sao sete processos. Os servicos conversam pela rede interna do Compose.
+# Em desenvolvimento o navegador fala com o gateway (so na propria maquina, porta 8080).
+# Em producao:  docker compose --profile producao up -d --build
+# sobe tambem o Caddy (servico web), unica porta publica: 80 e 443, com HTTPS automatico.
+
+# Teto de memoria por container: a JVM usa 75% dele (MaxRAMPercentage no Dockerfile), e
+# um servico que estoura cai sozinho em vez de levar o host junto. O finance tem mais
+# por causa do Tesseract (memoria nativa, fora da heap). Ajuste com PIGGU_MEMORIA_<SERVICO>.
+
+# Logs no stdout de cada container, com rotacao (S5): no maximo 5 arquivos de 10 MB
+# por servico. O mais velho sai sozinho, entao log com id de usuario nao fica para
+# sempre. Prazo e destino estao em docs/implantacao-producao.md (Logs).
+x-logs: &logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_POSTGRES:-512m}
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: piggu
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-piggu}
+      POSTGRES_DB: postgres
+      # Um usuario por servico (db/init/01-criar-bancos.sh). Sem a variavel propria,
+      # vale DB_PASSWORD, o que so serve em desenvolvimento.
+      DB_PASSWORD_IDENTITY: ${DB_PASSWORD_IDENTITY:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_FINANCE: ${DB_PASSWORD_FINANCE:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_REWARDS: ${DB_PASSWORD_REWARDS:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_LIFESTYLE: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_MEDIA: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
+      DB_PASSWORD_BANKING: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
+    volumes:
+      - piggu-dados:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # So na propria maquina: a senha padrao e conhecida e o banco nao pode ficar na rede.
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U piggu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  identity:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_IDENTITY:-512m}
+    build:
+      context: .
+      args:
+        MODULO: piggu-identity
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_identity
+      DB_USER: piggu_identity
+      DB_PASSWORD: ${DB_PASSWORD_IDENTITY:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
+      JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
+      PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
+      # Cifra do CPF (32 bytes base64). Vazia so em desenvolvimento; em producao o identity recusa subir.
+      PIGGU_CPF_CHAVE: ${PIGGU_CPF_CHAVE:-}
+      # Sem chave o identity recusa subir. O padrao aponta para o par gerado por
+      # scripts/gerar-chaves-dev.sh; em producao defina as duas no .env.
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-file:/app/keys/piggu-dev-private.pem}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-file:/app/keys/piggu-dev-public.pem}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_MENSAL: ${STRIPE_PRICE_MENSAL:-}
+      STRIPE_PRICE_ANUAL: ${STRIPE_PRICE_ANUAL:-}
+      STRIPE_PRICE_FAMILIA_MENSAL: ${STRIPE_PRICE_FAMILIA_MENSAL:-}
+      STRIPE_PRICE_FAMILIA_ANUAL: ${STRIPE_PRICE_FAMILIA_ANUAL:-}
+      PIGGU_DIAS_DE_TESTE: ${PIGGU_DIAS_DE_TESTE:-14}
+      # Open Finance escondido por enquanto (some da lista do Premium). true volta.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
+      REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
+      SITE_URL: ${SITE_URL:-http://localhost:4200}
+      # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
+      PIGGU_EMAIL_API_KEY: ${PIGGU_EMAIL_API_KEY:-}
+      PIGGU_EMAIL_REMETENTE: ${PIGGU_EMAIL_REMETENTE:-}
+      APNS_TEAM_ID: ${APNS_TEAM_ID:-}
+      APNS_KEY_ID: ${APNS_KEY_ID:-}
+      APNS_CHAVE: ${APNS_CHAVE:-}
+      APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-}
+      APNS_SANDBOX: ${APNS_SANDBOX:-false}
+      # Exportar e apagar a conta passa por todos os servicos com dado de pessoas.
+      FINANCE_URL: http://finance:8082
+      REWARDS_URL: http://rewards:8083
+      LIFESTYLE_URL: http://lifestyle:8084
+      MEDIA_URL: http://media:8085
+      # Com o Open Finance ligado:  BANKING_URL=http://banking:8086  no .env
+      BANKING_URL: ${BANKING_URL:-}
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  finance:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_FINANCE:-1g}
+    build:
+      context: .
+      args:
+        MODULO: piggu-finance
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_finance
+      DB_USER: piggu_finance
+      DB_PASSWORD: ${DB_PASSWORD_FINANCE:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      PIGGU_ASSISTENTE_PERGUNTAS_POR_MES: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:-150}
+      # false (padrao): recibo lido so pelo Gemini. true volta o leitor proprio (Tesseract) primeiro.
+      PIGGU_LEITOR_PROPRIO: ${PIGGU_LEITOR_PROPRIO:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  rewards:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_REWARDS:-384m}
+    build:
+      context: .
+      args:
+        MODULO: piggu-rewards
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_rewards
+      DB_USER: piggu_rewards
+      DB_PASSWORD: ${DB_PASSWORD_REWARDS:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  lifestyle:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_LIFESTYLE:-384m}
+    build:
+      context: .
+      args:
+        MODULO: piggu-lifestyle
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_lifestyle
+      DB_USER: piggu_lifestyle
+      DB_PASSWORD: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      MEDIA_URL: http://media:8085
+      TMDB_READ_TOKEN: ${TMDB_READ_TOKEN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  media:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_MEDIA:-512m}
+    build:
+      context: .
+      args:
+        MODULO: piggu-media
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_media
+      DB_USER: piggu_media
+      DB_PASSWORD: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      DRIVE_CREDENTIALS: ${DRIVE_CREDENTIALS:-}
+      DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
+      STORAGE_LOCAL_PATH: /dados/fotos
+    volumes:
+      - piggu-fotos:/dados/fotos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  # Opcional: so sobe com  docker compose --profile open-finance up
+  # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
+  banking:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_BANKING:-384m}
+    profiles: ["open-finance"]
+    build:
+      context: .
+      args:
+        MODULO: piggu-banking
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/piggu_banking
+      DB_USER: piggu_banking
+      DB_PASSWORD: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
+      JWKS_URI: http://identity:8081/.well-known/jwks.json
+      PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
+      PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
+      PLUGGY_SANDBOX: ${PLUGGY_SANDBOX:-false}
+      # false (padrao): card de bancos escondido e novas conexoes recusadas. true volta.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+
+  gateway:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_GATEWAY:-384m}
+    build:
+      context: .
+      args:
+        MODULO: piggu-gateway
+    environment:
+      PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      IDENTITY_URL: http://identity:8081
+      FINANCE_URL: http://finance:8082
+      REWARDS_URL: http://rewards:8083
+      LIFESTYLE_URL: http://lifestyle:8084
+      MEDIA_URL: http://media:8085
+      BANKING_URL: http://banking:8086
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      # So na propria maquina: de fora, a API chega pelo Caddy (HTTPS).
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - identity
+      - finance
+      - rewards
+      - lifestyle
+      - media
+
+  # Porta publica em producao: front + /api para o gateway, HTTPS e cabecalhos de seguranca.
+  # Construa o front antes:  cd frontend && npm ci && npm run build
+  web:
+    logging: *logs
+    mem_limit: ${PIGGU_MEMORIA_WEB:-128m}
+    profiles: ["producao"]
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    environment:
+      DOMINIO: "${DOMINIO:?defina DOMINIO no arquivo .env (ex.: piggu.app)}"
+      EMAIL_DO_CERTIFICADO: ${EMAIL_DO_CERTIFICADO:?defina EMAIL_DO_CERTIFICADO no arquivo .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      # Certificados do Let's Encrypt: sem volume, cada recriacao pediria outro (e bate no limite).
+      - caddy-dados:/data
+      - caddy-config:/config
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  piggu-dados:
+  piggu-fotos:
+  caddy-dados:
+  caddy-config:
