@@ -1,9 +1,9 @@
 /* Design system do Piggu.
  *
- * A paleta (vinho, rosa e os tons de tinta) veio de css/variables.css do app original
- * e continua a mesma. O que mudou foi o uso: o rosa deixou de pintar fundos, bordas e
- * campos e ficou como cor de destaque; as superficies sao brancas sobre um fundo quase
- * neutro, com bordas e sombras discretas. Os tokens ficam como custom properties no
+ * A cor padrao e o Chiclete: rosa-choque no destaque e um rosado leve no fundo, nos
+ * chips e nas bordas. O Rosa Piggu de antes (vinho e rosa do css/variables.css do app
+ * original) virou um dos temas, mais abaixo. As superficies continuam brancas, com
+ * bordas e sombras discretas. Os tokens ficam como custom properties no
  * :root porque o app antigo ja trocava de tema redefinindo essas mesmas variaveis. */
 
 /* A fonte Sora vem do proprio app (pacote @fontsource-variable/sora, declarado no
@@ -14,25 +14,25 @@
   color-scheme: light;
 
   /* Paleta da marca */
-  --pink-bg: #f7dde7;
+  --pink-bg: #ffcfe6;
   --ink: #2b1e32;
   --ink-soft: #5c4c58;
   --muted: #94808a;
-  --rose: #c27a97;
-  --rose-deep: #8e2f58;
+  --rose: #ff4fa3;
+  --rose-deep: #d1006b;
   --evento: #5c4270;
   --ok: #7fa07f;
   --over: #c0436e;
 
   /* Papeis das cores. Trocar a paleta e mexer so neste bloco. */
-  --primaria: var(--rose-deep);
-  --primaria-hover: #77264a;
+  --primaria: #d1006b;
+  --primaria-hover: #b0005a;
   --primaria-contraste: #ffffff;
-  --destaque-1: #b04c78;
-  --destaque-2: #8e2f58;
-  --destaque-3: #6e2245;
-  --destaque-brilho: rgba(255, 190, 215, 0.35);
-  --anel: rgba(194, 122, 151, 0.2);
+  --destaque-1: #ff4fa3;
+  --destaque-2: #e0007a;
+  --destaque-3: #a1005a;
+  --destaque-brilho: rgba(255, 214, 120, 0.45);
+  --anel: rgba(255, 79, 163, 0.25);
   --ok-soft: #ecf3ec;
   --ok-ink: #46664a;
   --danger: #c0436e;
@@ -41,27 +41,27 @@
   --ouro: #d4a64a;
   --ouro-soft: #fbf1de;
   --ouro-ink: #82601a;
-  --serie-receita: #7fa07f;
-  --serie-gasto: #c27a97;
+  --serie-receita: #22b573;
+  --serie-gasto: #ff3d96;
   --placeholder: #a8969f;
 
   /* Superficies */
-  --site-bg: #fcf8f9;
+  --site-bg: #fff4f9;
   --surface: #ffffff;
-  --surface-sunken: #f7f0f3;
-  --border: #f0e4e9;
-  --border-strong: #e3d2da;
-  --field-bg: #f7f0f3;
-  --button-bg: #fbeff3;
-  --track: #f3e6ec;
-  --rose-soft: #fbeff3;
+  --surface-sunken: #ffe9f3;
+  --border: #ffd9ea;
+  --border-strong: #ffbfdc;
+  --field-bg: #ffecf5;
+  --button-bg: #ffe0ef;
+  --track: #ffd6e9;
+  --rose-soft: #ffe0ef;
 
   /* Vidro (barras e folhas flutuantes do celular) */
   --vidro-fundo: rgba(255, 255, 255, 0.68);
   --vidro-forte: rgba(255, 255, 255, 0.78);
   --vidro-borda: rgba(255, 255, 255, 0.7);
   --vidro-brilho: rgba(255, 255, 255, 0.9);
-  --vidro-sombra: 0 10px 34px rgba(110, 34, 69, 0.14), 0 2px 6px rgba(43, 30, 50, 0.06);
+  --vidro-sombra: 0 10px 34px rgba(209, 0, 107, 0.2), 0 2px 6px rgba(43, 30, 50, 0.06);
   --vidro-desfoque: blur(22px) saturate(190%);
 
   /* Forma */
@@ -73,30 +73,30 @@
   --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
 }
 
-/* Versao escura: segue o modo do aparelho. O cartao de destaque continua vinho e o
- * vinho dos textos vira um rosa claro para manter o contraste sobre o fundo escuro. */
+/* Versao escura: segue o modo do aparelho. O destaque vira um rosa neon sobre um fundo
+ * quase preto puxado para o rosa. */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --pink-bg: #3a2030;
+    --pink-bg: #4a0f2e;
     --ink: #f3e9ee;
     --ink-soft: #cdbcc5;
     --muted: #a08e98;
-    --rose: #d88aa9;
-    --rose-deep: #f0a6c4;
+    --rose: #ff6fb5;
+    --rose-deep: #ff8cc4;
     --evento: #b9a0d0;
     --ok: #8fbf8f;
     --over: #ef6b95;
 
-    --primaria: #e58fb2;
-    --primaria-hover: #f0a6c4;
-    --primaria-contraste: #2a0f1d;
-    --destaque-1: #8e2f58;
-    --destaque-2: #6e2245;
-    --destaque-3: #4a1530;
-    --destaque-brilho: rgba(255, 150, 195, 0.25);
-    --anel: rgba(232, 143, 178, 0.28);
+    --primaria: #ff5cae;
+    --primaria-hover: #ff8cc4;
+    --primaria-contraste: #1f0012;
+    --destaque-1: #ff3d96;
+    --destaque-2: #d1006b;
+    --destaque-3: #7a0044;
+    --destaque-brilho: rgba(255, 200, 100, 0.3);
+    --anel: rgba(255, 92, 174, 0.35);
     --ok-soft: #1f3324;
     --ok-ink: #a9d4a9;
     --danger: #ef6b95;
@@ -105,22 +105,22 @@
     --ouro: #e0b45a;
     --ouro-soft: #3a2e17;
     --ouro-ink: #f0cd85;
-    --serie-receita: #8fbf8f;
-    --serie-gasto: #e58fb2;
+    --serie-receita: #3ee08f;
+    --serie-gasto: #ff5cae;
     --placeholder: #7d6b75;
 
-    --site-bg: #161015;
-    --surface: #221a20;
-    --surface-sunken: #2c2229;
-    --border: #372b34;
-    --border-strong: #4b3d47;
-    --field-bg: #2c2229;
-    --button-bg: #3a2431;
-    --track: #372b34;
-    --rose-soft: #3a2431;
+    --site-bg: #14060d;
+    --surface: #22101a;
+    --surface-sunken: #2d1523;
+    --border: #3d1a2e;
+    --border-strong: #5a2643;
+    --field-bg: #2d1523;
+    --button-bg: #4a1430;
+    --track: #3d1a2e;
+    --rose-soft: #4a1430;
 
-    --vidro-fundo: rgba(40, 28, 37, 0.66);
-    --vidro-forte: rgba(40, 28, 37, 0.78);
+    --vidro-fundo: rgba(38, 14, 27, 0.66);
+    --vidro-forte: rgba(38, 14, 27, 0.78);
     --vidro-borda: rgba(255, 255, 255, 0.12);
     --vidro-brilho: rgba(255, 255, 255, 0.18);
     --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -130,7 +130,7 @@
   }
 }
 
-/* Temas de cor (Perfil > Cor do Piggu). O rosa e o :root acima; os outros trocam so os
+/* Temas de cor (Perfil > Cor do Piggu). O Chiclete e o :root acima; os outros trocam so os
  * tons da marca e das superficies. Cada tema define as mesmas chaves no claro e no
  * escuro, para o escuro de um tema nunca herdar o claro dele. A barra de gasto dos
  * graficos segue o tema (rosa no Azul parecia erro); no Menta a receita vira cinza-azulado
@@ -149,6 +149,67 @@
     }
   }
 }
+
+@include tema(
+  'rosa',
+  (
+    pink-bg: #f7dde7,
+    rose: #c27a97,
+    rose-deep: #8e2f58,
+    primaria: var(--rose-deep),
+    primaria-hover: #77264a,
+    primaria-contraste: #ffffff,
+    destaque-1: #b04c78,
+    destaque-2: #8e2f58,
+    destaque-3: #6e2245,
+    destaque-brilho: rgba(255, 190, 215, 0.35),
+    anel: rgba(194, 122, 151, 0.2),
+    site-bg: #fcf8f9,
+    surface-sunken: #f7f0f3,
+    border: #f0e4e9,
+    border-strong: #e3d2da,
+    field-bg: #f7f0f3,
+    button-bg: #fbeff3,
+    track: #f3e6ec,
+    rose-soft: #fbeff3,
+    serie-gasto: #c27a97,
+    serie-receita: #7fa07f,
+    vidro-sombra: (
+      0 10px 34px rgba(110, 34, 69, 0.14),
+      0 2px 6px rgba(43, 30, 50, 0.06),
+    ),
+  ),
+  (
+    pink-bg: #3a2030,
+    rose: #d88aa9,
+    rose-deep: #f0a6c4,
+    primaria: #e58fb2,
+    primaria-hover: #f0a6c4,
+    primaria-contraste: #2a0f1d,
+    destaque-1: #8e2f58,
+    destaque-2: #6e2245,
+    destaque-3: #4a1530,
+    destaque-brilho: rgba(255, 150, 195, 0.25),
+    anel: rgba(232, 143, 178, 0.28),
+    site-bg: #161015,
+    surface: #221a20,
+    vidro-fundo: rgba(40, 28, 37, 0.66),
+    vidro-forte: rgba(40, 28, 37, 0.78),
+    surface-sunken: #2c2229,
+    border: #372b34,
+    border-strong: #4b3d47,
+    field-bg: #2c2229,
+    button-bg: #3a2431,
+    track: #372b34,
+    rose-soft: #3a2431,
+    serie-gasto: #e58fb2,
+    serie-receita: #8fbf8f,
+    vidro-sombra: (
+      0 10px 34px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.3),
+    ),
+  )
+);
 
 @include tema(
   'menta',
@@ -234,6 +295,7 @@
     track: #e9e0f3,
     rose-soft: #f3ecfb,
     serie-gasto: #a07cc5,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(78, 42, 112, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -263,6 +325,7 @@
     track: #332c3b,
     rose-soft: #2c2238,
     serie-gasto: #c4a5ec,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -293,6 +356,7 @@
     track: #dde9f2,
     rose-soft: #eaf3fa,
     serie-gasto: #5a95c4,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(23, 74, 112, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -322,6 +386,7 @@
     track: #2c343b,
     rose-soft: #1f2f3c,
     serie-gasto: #96c4e8,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -352,6 +417,7 @@
     track: #f3e3de,
     rose-soft: #fcefeb,
     serie-gasto: #e08a73,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(126, 48, 32, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -381,6 +447,7 @@
     track: #382c29,
     rose-soft: #3a2621,
     serie-gasto: #f0a993,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -411,6 +478,7 @@
     track: #efe4cd,
     rose-soft: #fbf3e2,
     serie-gasto: #d3a24a,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(94, 63, 6, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -440,6 +508,7 @@
     track: #363027,
     rose-soft: #33291a,
     serie-gasto: #ecc778,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -470,6 +539,7 @@
     track: #f1e1e3,
     rose-soft: #f9ecee,
     serie-gasto: #b0606b,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(86, 21, 32, 0.15),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -499,6 +569,7 @@
     track: #382b2d,
     rose-soft: #3a2226,
     serie-gasto: #e899a4,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -529,6 +600,7 @@
     track: #e2e6ea,
     rose-soft: #eef0f3,
     serie-gasto: #7d8796,
+    serie-receita: #7fa07f,
     vidro-sombra: (
       0 10px 34px rgba(38, 43, 53, 0.14),
       0 2px 6px rgba(43, 30, 50, 0.06),
@@ -558,6 +630,7 @@
     track: #303338,
     rose-soft: #2a2e34,
     serie-gasto: #c2cbd8,
+    serie-receita: #8fbf8f,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),
@@ -565,70 +638,10 @@
   )
 );
 
-/* Cores vibrantes: o degrade do cartao de destaque passa por dois tons (rosa e laranja,
- * roxo e anil...) e o fundo, os chips e as bordas levam um pouco da cor, para o app nao
- * ficar pastel. No escuro o destaque vira neon sobre um fundo quase preto da mesma cor. */
-@include tema(
-  'chiclete',
-  (
-    pink-bg: #ffcfe6,
-    rose: #ff4fa3,
-    rose-deep: #d1006b,
-    primaria: #d1006b,
-    primaria-hover: #b0005a,
-    primaria-contraste: #ffffff,
-    destaque-1: #ff4fa3,
-    destaque-2: #e0007a,
-    destaque-3: #a1005a,
-    destaque-brilho: rgba(255, 214, 120, 0.45),
-    anel: rgba(255, 79, 163, 0.25),
-    site-bg: #fff4f9,
-    surface-sunken: #ffe9f3,
-    border: #ffd9ea,
-    border-strong: #ffbfdc,
-    field-bg: #ffecf5,
-    button-bg: #ffe0ef,
-    track: #ffd6e9,
-    rose-soft: #ffe0ef,
-    serie-gasto: #ff3d96,
-    serie-receita: #22b573,
-    vidro-sombra: (
-      0 10px 34px rgba(209, 0, 107, 0.2),
-      0 2px 6px rgba(43, 30, 50, 0.06),
-    ),
-  ),
-  (
-    pink-bg: #4a0f2e,
-    rose: #ff6fb5,
-    rose-deep: #ff8cc4,
-    primaria: #ff5cae,
-    primaria-hover: #ff8cc4,
-    primaria-contraste: #1f0012,
-    destaque-1: #ff3d96,
-    destaque-2: #d1006b,
-    destaque-3: #7a0044,
-    destaque-brilho: rgba(255, 200, 100, 0.3),
-    anel: rgba(255, 92, 174, 0.35),
-    site-bg: #14060d,
-    surface: #22101a,
-    vidro-fundo: rgba(38, 14, 27, 0.66),
-    vidro-forte: rgba(38, 14, 27, 0.78),
-    surface-sunken: #2d1523,
-    border: #3d1a2e,
-    border-strong: #5a2643,
-    field-bg: #2d1523,
-    button-bg: #4a1430,
-    track: #3d1a2e,
-    rose-soft: #4a1430,
-    serie-gasto: #ff5cae,
-    serie-receita: #3ee08f,
-    vidro-sombra: (
-      0 10px 34px rgba(0, 0, 0, 0.45),
-      0 2px 6px rgba(0, 0, 0, 0.3),
-    ),
-  )
-);
-
+/* Cores vibrantes, como o Chiclete do :root: o degrade do cartao de destaque passa por
+ * dois tons (laranja e pink, roxo e anil...) e o fundo, os chips e as bordas levam um pouco
+ * da cor, para o app nao ficar pastel. No escuro o destaque vira neon sobre um fundo quase
+ * preto da mesma cor. */
 @include tema(
   'tangerina',
   (
@@ -805,67 +818,6 @@
     rose-soft: #0f3a3b,
     serie-gasto: #3fe0d0,
     serie-receita: #b3a2ff,
-    vidro-sombra: (
-      0 10px 34px rgba(0, 0, 0, 0.45),
-      0 2px 6px rgba(0, 0, 0, 0.3),
-    ),
-  )
-);
-
-@include tema(
-  'esmeralda',
-  (
-    pink-bg: #c9f7d6,
-    rose: #22c55e,
-    rose-deep: #0b7a4f,
-    primaria: #0b7a4f,
-    primaria-hover: #08643f,
-    primaria-contraste: #ffffff,
-    destaque-1: #4ade5a,
-    destaque-2: #13a35a,
-    destaque-3: #0a6e55,
-    destaque-brilho: rgba(240, 255, 120, 0.5),
-    anel: rgba(34, 197, 94, 0.25),
-    site-bg: #f3fdf6,
-    surface-sunken: #e4f9eb,
-    border: #d0f2db,
-    border-strong: #b2e8c3,
-    field-bg: #e8faee,
-    button-bg: #d9f6e2,
-    track: #cbf0d6,
-    rose-soft: #d9f6e2,
-    serie-gasto: #16b15a,
-    serie-receita: #3b82f6,
-    vidro-sombra: (
-      0 10px 34px rgba(11, 122, 79, 0.18),
-      0 2px 6px rgba(43, 30, 50, 0.06),
-    ),
-  ),
-  (
-    pink-bg: #0d3d22,
-    rose: #4be37f,
-    rose-deep: #7cf0a2,
-    primaria: #5ef08a,
-    primaria-hover: #8af5aa,
-    primaria-contraste: #00230f,
-    destaque-1: #2fcf55,
-    destaque-2: #0f9a52,
-    destaque-3: #08604a,
-    destaque-brilho: rgba(230, 255, 110, 0.28),
-    anel: rgba(94, 240, 138, 0.35),
-    site-bg: #04120a,
-    surface: #0c1d13,
-    vidro-fundo: rgba(14, 34, 22, 0.66),
-    vidro-forte: rgba(14, 34, 22, 0.78),
-    surface-sunken: #12291b,
-    border: #183824,
-    border-strong: #234f33,
-    field-bg: #12291b,
-    button-bg: #103b20,
-    track: #183824,
-    rose-soft: #103b20,
-    serie-gasto: #5ef08a,
-    serie-receita: #7fb2ff,
     vidro-sombra: (
       0 10px 34px rgba(0, 0, 0, 0.45),
       0 2px 6px rgba(0, 0, 0, 0.3),

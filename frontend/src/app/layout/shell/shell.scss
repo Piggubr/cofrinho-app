@@ -66,14 +66,15 @@
   letter-spacing: -0.02em;
 }
 
+/* Degrade de dois tons da cor escolhida, como o cartao de destaque e o icone do app. */
 .marca-simbolo {
   display: inline-grid;
   place-items: center;
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: var(--primaria);
-  color: var(--primaria-contraste);
+  background: linear-gradient(135deg, var(--destaque-1), var(--destaque-3));
+  color: #ffffff;
 }
 
 /* No computador a marca fica no topo do menu lateral. */
