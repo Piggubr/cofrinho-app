@@ -1,7 +1,21 @@
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
-export type IdDoTema = 'rosa' | 'menta' | 'lilas' | 'azul' | 'coral' | 'mel' | 'vinho' | 'grafite';
+export type IdDoTema =
+  | 'rosa'
+  | 'menta'
+  | 'lilas'
+  | 'azul'
+  | 'coral'
+  | 'mel'
+  | 'vinho'
+  | 'grafite'
+  | 'chiclete'
+  | 'tangerina'
+  | 'eletrico'
+  | 'turquesa'
+  | 'esmeralda'
+  | 'cobalto';
 
 export interface Tema {
   id: IdDoTema;
@@ -17,7 +31,10 @@ export interface Tema {
   premium: boolean;
 }
 
-/** Os quatro temas do app antigo e mais quatro. As cores de cada um ficam no styles.scss. */
+/**
+ * Os quatro temas do app antigo, mais quatro e as seis cores vibrantes. As cores de cada um
+ * ficam no styles.scss.
+ */
 export const TEMAS: readonly Tema[] = [
   {
     id: 'rosa',
@@ -97,6 +114,66 @@ export const TEMAS: readonly Tema[] = [
     destaqueEscuro: '#d3dae4',
     fundo: '#f9fafb',
     fundoEscuro: '#111214',
+    premium: true,
+  },
+  {
+    id: 'chiclete',
+    nome: $localize`Chiclete`,
+    descricao: $localize`Vibrante e divertido`,
+    destaque: '#d1006b',
+    destaqueEscuro: '#ff5cae',
+    fundo: '#fff4f9',
+    fundoEscuro: '#14060d',
+    premium: true,
+  },
+  {
+    id: 'tangerina',
+    nome: $localize`Tangerina`,
+    descricao: $localize`Quente e radiante`,
+    destaque: '#c43e00',
+    destaqueEscuro: '#ff9a3c',
+    fundo: '#fff7f0',
+    fundoEscuro: '#140a04',
+    premium: true,
+  },
+  {
+    id: 'eletrico',
+    nome: $localize`Elétrico`,
+    descricao: $localize`Ousado e intenso`,
+    destaque: '#7426e0',
+    destaqueEscuro: '#c69bff',
+    fundo: '#f8f4ff',
+    fundoEscuro: '#0c0716',
+    premium: true,
+  },
+  {
+    id: 'turquesa',
+    nome: $localize`Turquesa`,
+    descricao: $localize`Fresco e vivo`,
+    destaque: '#007f8c',
+    destaqueEscuro: '#3fe0d0',
+    fundo: '#f2fcfb',
+    fundoEscuro: '#041212',
+    premium: true,
+  },
+  {
+    id: 'esmeralda',
+    nome: $localize`Esmeralda`,
+    descricao: $localize`Cheio de energia`,
+    destaque: '#0b7a4f',
+    destaqueEscuro: '#5ef08a',
+    fundo: '#f3fdf6',
+    fundoEscuro: '#04120a',
+    premium: true,
+  },
+  {
+    id: 'cobalto',
+    nome: $localize`Cobalto`,
+    descricao: $localize`Forte e confiante`,
+    destaque: '#2449e8',
+    destaqueEscuro: '#8aa8ff',
+    fundo: '#f4f7ff',
+    fundoEscuro: '#050917',
     premium: true,
   },
 ];
