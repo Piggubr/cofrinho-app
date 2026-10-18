@@ -6,6 +6,7 @@ import { APP_CONFIG } from '../config/app-config';
 import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
 import { esquecerListasGuardadas } from '../offline/listas-guardadas';
+import { esquecerConversa } from '../privacidade/conversa-do-assistente';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
 
@@ -237,6 +238,7 @@ export class AuthService {
   async encerrarLocalmente(): Promise<void> {
     this.storage.limpar();
     esquecerPerfilOffline();
+    esquecerConversa();
     this.usuarioAtual.set(null);
     await esquecerListasGuardadas();
     await this.google.esquecerConta();
