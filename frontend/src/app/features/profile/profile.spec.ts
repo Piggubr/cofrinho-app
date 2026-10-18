@@ -135,6 +135,12 @@ describe('Profile', () => {
       'Mel',
       'Vinho',
       'Grafite',
+      'Chiclete',
+      'Tangerina',
+      'Elétrico',
+      'Turquesa',
+      'Esmeralda',
+      'Cobalto',
     ]);
     expect(opcoes[0].getAttribute('aria-checked')).toBe('true');
 
