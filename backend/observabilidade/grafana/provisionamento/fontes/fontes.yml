@@ -1,0 +1,53 @@
+# Fontes de dados do Grafana. Senhas vem do ambiente do container (docker-compose.yml),
+# nunca deste arquivo.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 30s
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+
+  # Painel analitico: o usuario piggu_analitico so le o schema "analitico" (views com
+  # contagens, migrations V31 do identity e V18 do financeiro). Somente leitura no banco.
+  - name: Contas (identity)
+    uid: analitico-identity
+    type: grafana-postgresql-datasource
+    url: postgres:5432
+    user: piggu_analitico
+    editable: false
+    jsonData:
+      database: piggu_identity
+      sslmode: disable
+      postgresVersion: 1600
+      maxOpenConns: 2
+    secureJsonData:
+      password: ${DB_PASSWORD_ANALITICO}
+
+  - name: Uso (finance)
+    uid: analitico-finance
+    type: grafana-postgresql-datasource
+    url: postgres:5432
+    user: piggu_analitico
+    editable: false
+    jsonData:
+      database: piggu_finance
+      sslmode: disable
+      postgresVersion: 1600
+      maxOpenConns: 2
+    secureJsonData:
+      password: ${DB_PASSWORD_ANALITICO}

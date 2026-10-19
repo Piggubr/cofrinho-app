@@ -221,10 +221,11 @@ docker compose logs --since 2h finance          # um serviço
 docker compose logs --since 30m | grep <requestId>  # uma requisição em todos
 ```
 
-Se um dia os logs forem para um serviço central (Grafana Loki, Better Stack, Axiom),
-configure lá a retenção de **30 dias** e mantenha a rotação local como está. Em um
-incidente, copie os arquivos antes de qualquer reinício (`docker compose up
---force-recreate` apaga os logs do container): eles são a prova do que aconteceu.
+Com o monitoramento ligado (seção 9), os logs também vão para o Loki, no próprio
+servidor, com retenção de **30 dias**, e dá para ler e procurar no Grafana. A rotação
+local continua como está. Em um incidente, copie os arquivos antes de qualquer reinício
+(`docker compose up --force-recreate` apaga os logs do container): eles são a prova do
+que aconteceu.
 
 ## 8. Deploy automático pelo GitHub Actions
 
@@ -318,3 +319,26 @@ servidor: `/opt/piggu/deploy/atualizar.sh <sha>`.
 Para voltar a uma versão anterior: `/opt/piggu/deploy/atualizar.sh <sha antigo>` (o sha
 precisa estar na branch). As migrações de banco não voltam sozinhas; se a versão nova
 mudou o banco, restaure o backup da noite (seção 6).
+
+## 9. Monitoramento, alertas e painel analítico
+
+Grafana, Prometheus e Loki rodam no próprio servidor, no perfil `observabilidade` do
+Compose, sem porta pública: o Grafana só escuta em `127.0.0.1:3000` e abre por túnel SSH.
+Como funciona por dentro: `docs/observabilidade.md`. Passo a passo para ligar e
+acompanhar: o guia `guias/monitoramento-e-painel.md` da pasta do projeto.
+
+No `.env`:
+
+```env
+PIGGU_OBSERVABILIDADE=true            # o deploy passa a subir o monitoramento junto
+GRAFANA_SENHA=...                     # openssl rand -base64 18; sem ela o Grafana não sobe
+DB_PASSWORD_ANALITICO=...             # usuário do painel analítico, só lê contagens
+PIGGU_ALERTAS_EMAIL=voce@exemplo.com  # para onde vão os alertas
+PIGGU_ALERTAS_REMETENTE=alertas@piggu.com.br   # domínio verificado na Resend
+```
+
+Depois, uma vez: `docker compose exec postgres bash /docker-entrypoint-initdb.d/01-criar-bancos.sh`
+(cria o usuário `piggu_analitico`) e
+`docker compose --profile producao --profile observabilidade up -d`. São cerca de 1,4 GB de
+memória a mais no total (tetos em `PIGGU_MEMORIA_<SERVIÇO>`).
+

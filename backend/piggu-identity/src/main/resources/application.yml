@@ -18,6 +18,10 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+    placeholders:
+      # Schema das views do painel analitico (V*__painel_analitico.sql). Os testes que
+      # migram um schema a parte usam outro, para nao repontar as views do principal.
+      esquema_analitico: analitico
     locations: classpath:db/migration
   http:
     clients:

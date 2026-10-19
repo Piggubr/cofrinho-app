@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +47,7 @@ class MigracaoParaFamiliasTest extends PostgresIntegrationTest {
 
     private Flyway flyway(String alvo) {
         var config = Flyway.configure().dataSource(dataSource).schemas("legado").createSchemas(true)
-                .locations("classpath:db/migration");
+                .locations("classpath:db/migration").placeholders(Map.of("esquema_analitico", "legado_analitico"));
         if (alvo != null) {
             config.target(alvo);
         }

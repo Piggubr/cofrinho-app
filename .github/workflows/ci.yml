@@ -73,6 +73,34 @@ jobs:
       # Dados de exemplo do dev sobre as migracoes reais, so na familia pedida.
       - run: backend/scripts/teste-dos-dados-de-exemplo.sh
 
+  # Configuracao do monitoramento (backend/observabilidade): um erro aqui so apareceria no
+  # servidor, com o Grafana ou o Prometheus caindo depois do deploy. Mesmas versoes do Compose.
+  observabilidade:
+    name: Monitoramento (configuracao)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Compose com todos os perfis
+        run: >-
+          GOOGLE_CLIENT_ID=x DOMINIO=x EMAIL_DO_CERTIFICADO=x
+          docker compose --profile producao --profile observabilidade --profile open-finance config -q
+      - name: Prometheus
+        run: >-
+          docker run --rm -v "$PWD/observabilidade/prometheus:/c:ro" --entrypoint promtool
+          prom/prometheus:v3.13.4 check config /c/prometheus.yml
+      - name: Loki
+        run: docker run --rm -v "$PWD/observabilidade/loki:/c:ro" grafana/loki:3.7.8 -config.file=/c/loki.yml -verify-config
+      - name: Alloy
+        run: docker run --rm -v "$PWD/observabilidade/alloy:/c:ro" grafana/alloy:v1.20.1 fmt /c/config.alloy > /dev/null
+      - name: Paineis e provisionamento do Grafana
+        run: |
+          for f in observabilidade/grafana/paineis/*.json; do jq -e '.uid and .title and (.panels | length > 0)' "$f" > /dev/null; done
+          for f in observabilidade/grafana/provisionamento/*/*.yml; do python3 -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1]))' "$f"; done
+      - run: shellcheck -x ../deploy/atualizar.sh
+
   backend:
     name: Backend (mvn verify)
     runs-on: ubuntu-latest

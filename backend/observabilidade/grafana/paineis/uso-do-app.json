@@ -1,0 +1,985 @@
+{
+  "uid": "piggu-uso",
+  "title": "Piggu - Uso do app",
+  "description": "Quantas pessoas usam, quantas assinam e quais recursos usam. Só contagens: nenhum nome, e-mail ou valor.",
+  "tags": [
+    "piggu"
+  ],
+  "timezone": "browser",
+  "editable": false,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Agora",
+      "collapsed": false,
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Contas",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT contas FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ativas hoje",
+      "description": "Pessoas que abriram o app nas últimas 24 horas.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT pessoas_no_dia FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ativas na semana",
+      "description": "Pessoas que abriram o app nos últimos 7 dias.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT pessoas_na_semana FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias Premium",
+      "description": "Com Premium ativo agora, incluindo teste grátis e cortesia.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias_premium FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias pagantes",
+      "description": "Premium ativo e com ao menos uma cobrança paga (site).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias_pagantes FROM analitico.resumo",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "Crescimento",
+      "collapsed": false,
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Pessoas ativas",
+      "description": "Quantas pessoas usaram o app no último dia, semana e mês, medido a cada minuto. O histórico começa no dia em que o monitoramento foi ligado.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (janela) (max_over_time(piggu_uso_pessoas_ativas[$__interval]))",
+          "editorMode": "code",
+          "legendFormat": "{{janela}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Contas novas por dia",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, contas AS \"contas novas\" FROM analitico.contas_novas_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Testes grátis e assinaturas por dia",
+      "description": "Assinatura conta no dia em que a família passou a ser Premium.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, testes AS \"testes grátis\" FROM analitico.testes_gratis_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, assinaturas FROM analitico.assinaturas_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Premium ativo por origem",
+      "description": "WEB = Stripe no site; APP_STORE e PLAY_STORE = lojas; TESTE_OU_CORTESIA = sem cobrança.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT origem AS \"Origem\", plano AS \"Plano\", familias AS \"Famílias\" FROM analitico.premium_por_origem ORDER BY 3 DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 12,
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 6,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Tamanho das famílias",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT pessoas AS \"Pessoas na família\", familias AS \"Famílias\" FROM analitico.familias_por_tamanho ORDER BY 1",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 13,
+      "gridPos": {
+        "x": 18,
+        "y": 14,
+        "w": 6,
+        "h": 8
+      }
+    },
+    {
+      "type": "row",
+      "title": "Uso dos recursos",
+      "collapsed": false,
+      "id": 14,
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Lançamentos por dia",
+      "description": "Gastos e receitas registrados por dia (pela data em que foram lançados).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, gastos, receitas FROM analitico.lancamentos_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 15,
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Famílias que lançaram algo por dia",
+      "description": "O uso de verdade: famílias que registraram ao menos um gasto ou receita no dia.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, familias AS \"famílias\" FROM analitico.lancamentos_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 16,
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "De onde vêm os gastos",
+      "description": "Manual = digitado; Foto, OCR e GEMINI = leitura do recibo; Extrato = importação; Conta fixa = lançada sozinha.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, origem AS metric, gastos AS value FROM analitico.gastos_por_origem WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 17,
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Famílias por recurso",
+      "description": "Quantas famílias têm ao menos um registro em cada recurso.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT recurso AS \"Recurso\", familias AS \"Famílias que usam\" FROM analitico.familias_por_recurso ORDER BY 2 DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 18,
+      "gridPos": {
+        "x": 12,
+        "y": 31,
+        "w": 6,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Assistente e notas por mês",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT mes AS \"Mês\", perguntas_ao_assistente AS \"Perguntas à IA\", familias_com_assistente AS \"Famílias (IA)\", notas_lidas AS \"Notas lidas\", familias_com_nota AS \"Famílias (notas)\" FROM analitico.recursos_por_mes ORDER BY 1 DESC LIMIT 12",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 19,
+      "gridPos": {
+        "x": 18,
+        "y": 31,
+        "w": 6,
+        "h": 8
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Outros painéis do Piggu",
+      "type": "dashboards",
+      "tags": [
+        "piggu"
+      ],
+      "asDropdown": true
+    }
+  ]
+}
