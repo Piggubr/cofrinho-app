@@ -48,7 +48,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
 
     /**
      * @param login           chamadas por minuto, por IP, no login (Google ou senha), no cadastro e na renovacao
-     * @param publico         chamadas por minuto, por IP, nas demais rotas abertas (webhooks)
+     * @param publico         chamadas por minuto, por IP, nas demais rotas abertas (webhooks, erros do app)
      * @param escrita         POST/PUT/PATCH/DELETE por minuto, por conta
      * @param envio           envios de foto ou extrato por minuto, por conta
      * @param consulta        buscas que custam (TMDB, catalogo, cambio, busca global) por minuto, por conta
@@ -148,7 +148,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
         return caminho.equals("/api/auth/google") || caminho.equals("/api/auth/entrar")
                 || caminho.equals("/api/auth/cadastro") || caminho.equals("/api/auth/refresh")
                 || caminho.equals("/api/auth/logout") || caminho.startsWith("/api/billing/webhooks/")
-                || caminho.startsWith("/api/billing/stores/");
+                || caminho.startsWith("/api/billing/stores/") || caminho.equals("/api/app/erros");
     }
 
     /**

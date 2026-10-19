@@ -3,7 +3,8 @@
 #   - cada servico entra no proprio banco, cria tabela e a extensao pgcrypto;
 #   - nenhum servico entra no banco de outro;
 #   - numa instalacao antiga, com tabelas do piggu, rodar o script de novo passa as
-#     tabelas (e as sequencias) para o usuario do servico, que segue lendo e gravando.
+#     tabelas (e as sequencias) para o usuario do servico, que segue lendo e gravando;
+#   - o usuario do painel (piggu_analitico) so le o schema "analitico", e so le.
 set -euo pipefail
 
 AQUI=$(cd "$(dirname "$0")" && pwd)
@@ -25,7 +26,7 @@ como() {
 admin() { docker exec -i "$NOME" psql -U piggu -d "$1" -AtqX -v ON_ERROR_STOP=1 -c "$2"; }
 
 passo "Postgres descartavel com o init do projeto e uma senha por servico"
-senhas=()
+senhas=(-e DB_PASSWORD_ANALITICO=senha-analitico)
 for servico in $SERVICOS; do senhas+=(-e "DB_PASSWORD_${servico^^}=senha-$servico"); done
 docker run -d --name "$NOME" -e POSTGRES_USER=piggu -e POSTGRES_PASSWORD=piggu -e POSTGRES_DB=postgres \
   "${senhas[@]}" -v "$AQUI/../db/init:/docker-entrypoint-initdb.d:ro" postgres:16-alpine > /dev/null
@@ -98,5 +99,25 @@ for servico in finance lifestyle media banking; do
 done
 como piggu_rewards senha-nova piggu_rewards "DROP TABLE de_para_usuarios" > /dev/null
 
+passo "O painel le as contagens do schema analitico e nada mais"
+# Como a migration V31 faria: view nova, criada pelo servico depois do script.
+como piggu_identity senha-identity piggu_identity \
+  "CREATE TABLE contas (email TEXT); INSERT INTO contas VALUES ('ana@piggu.test');
+   CREATE VIEW analitico.contas_por_dia AS SELECT count(*) AS contas FROM contas;" > /dev/null
+como piggu_analitico senha-analitico piggu_identity "SELECT contas FROM analitico.contas_por_dia" | grep -qx 1 \
+  || falhar "o painel nao le a view do schema analitico"
+if como piggu_analitico senha-analitico piggu_identity "SELECT email FROM contas" 2> /dev/null; then
+  falhar "o painel leu uma tabela com e-mail"
+fi
+if como piggu_analitico senha-analitico piggu_identity "CREATE TABLE analitico.x (n INT)" 2> /dev/null; then
+  falhar "o painel conseguiu escrever"
+fi
+if como piggu_analitico senha-analitico piggu_media "SELECT 1" 2> /dev/null; then
+  falhar "o painel entrou num banco que nao e o dele"
+fi
+docker exec "$NOME" bash /docker-entrypoint-initdb.d/01-criar-bancos.sh > /dev/null
+como piggu_analitico senha-analitico piggu_finance "SELECT count(*) FROM pg_namespace WHERE nspname = 'analitico'" \
+  | grep -qx 1 || falhar "rodar o script de novo quebrou o acesso do painel"
+
 echo
-echo "OK: um usuario por servico, isolado, a atualizacao de uma instalacao antiga e o de-para funcionam."
+echo "OK: um usuario por servico, isolado, a atualizacao de uma instalacao antiga, o de-para e o painel funcionam."

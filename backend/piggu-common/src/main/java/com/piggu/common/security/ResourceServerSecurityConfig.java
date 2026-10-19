@@ -18,7 +18,11 @@ import java.util.List;
 
 /**
  * Seguranca padrao dos servicos de dominio: sem sessao, sem CSRF (API pura),
- * tudo autenticado por JWT exceto o actuator de saude.
+ * tudo autenticado por JWT exceto o actuator de saude e o de metricas.
+ *
+ * <p>O {@code /actuator/prometheus} fica aberto porque quem le e o Prometheus, pela rede
+ * interna do Compose: de fora, o Caddy so repassa {@code /api} e o gateway nao roteia
+ * {@code /actuator}. As metricas trazem rota, status e tempos, nunca dado de pessoa.</p>
  *
  * <p>Cada servico importa esta classe e adiciona apenas as suas excecoes.</p>
  */
@@ -38,7 +42,7 @@ public class ResourceServerSecurityConfig implements WebMvcConfigurer {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
-                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(new PigguJwtAuthenticationConverter())))

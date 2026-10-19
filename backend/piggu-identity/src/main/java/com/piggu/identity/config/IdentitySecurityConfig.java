@@ -32,7 +32,10 @@ public class IdentitySecurityConfig {
                         // Idem para o RevenueCat: a prova e o segredo no Authorization.
                         .requestMatchers(HttpMethod.POST, "/api/billing/stores/*/purchases").permitAll()
                         .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
+                        // Erro de JavaScript do app: chega sem token, ate da tela de login (ErrosDoAppController).
+                        .requestMatchers(HttpMethod.POST, "/api/app/erros").permitAll()
+                        // Metricas: so a rede interna alcanca (ver ResourceServerSecurityConfig).
+                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .bearerTokenResolver(tokenForaDosAvisosDasLojas())

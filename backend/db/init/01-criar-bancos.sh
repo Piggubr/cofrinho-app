@@ -57,3 +57,30 @@ SQL
 SQL
   echo "Banco e usuario $banco prontos"
 done
+
+# Leitura do painel analitico (Grafana, backend/observabilidade). O piggu_analitico so
+# entra no identity e no financeiro, e la so le o schema "analitico": views com contagens
+# (migrations V31 do identity e V18 do financeiro), sem e-mail, valor ou id de ninguem.
+# Somente leitura e com prazo por consulta, para um painel aberto nao pesar no banco.
+senha=${DB_PASSWORD_ANALITICO:-$POSTGRES_PASSWORD}
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -v senha="$senha" <<-'SQL'
+  SELECT 'CREATE ROLE piggu_analitico LOGIN'
+  WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'piggu_analitico')\gexec
+  SELECT format('ALTER ROLE piggu_analitico WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD %L', :'senha')\gexec
+  ALTER ROLE piggu_analitico SET default_transaction_read_only = on;
+  ALTER ROLE piggu_analitico SET statement_timeout = '15s';
+SQL
+for servico in identity finance; do
+  banco=piggu_$servico
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -v banco="$banco" <<-'SQL'
+    SELECT format('GRANT CONNECT ON DATABASE %I TO piggu_analitico', :'banco')\gexec
+SQL
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$banco" -v dono="$banco" <<-'SQL'
+    SELECT format('CREATE SCHEMA IF NOT EXISTS analitico AUTHORIZATION %I', :'dono')\gexec
+    GRANT USAGE ON SCHEMA analitico TO piggu_analitico;
+    GRANT SELECT ON ALL TABLES IN SCHEMA analitico TO piggu_analitico;
+    SELECT format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA analitico GRANT SELECT ON TABLES TO piggu_analitico',
+                  :'dono')\gexec
+SQL
+done
+echo "Usuario piggu_analitico pronto (le so o schema analitico)"
