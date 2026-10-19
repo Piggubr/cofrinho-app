@@ -167,6 +167,13 @@ public class UserAccount {
     @Column(name = "email_token_expires_at")
     private Instant emailTokenExpiresAt;
 
+    /** SHA-256 do link de "esqueci minha senha" ainda nao usado. */
+    @Column(name = "password_reset_hash", length = 64)
+    private String passwordResetHash;
+
+    @Column(name = "password_reset_expires_at")
+    private Instant passwordResetExpiresAt;
+
     /** Celular em E.164 (+5511999998888), pedido no cadastro por senha; ainda sem prova por SMS. */
     @Column(name = "phone", length = 16)
     private String phone;
@@ -268,6 +275,29 @@ public class UserAccount {
 
     public boolean linkDeEmailValido(Instant agora) {
         return emailTokenExpiresAt != null && agora.isBefore(emailTokenExpiresAt);
+    }
+
+    /** Guarda o hash do link novo de redefinir a senha; o anterior deixa de valer. */
+    public void pedirRedefinicaoDeSenha(String hash, Instant validoAte) {
+        this.passwordResetHash = hash;
+        this.passwordResetExpiresAt = validoAte;
+    }
+
+    public boolean linkDeSenhaValido(Instant agora) {
+        return passwordResetExpiresAt != null && agora.isBefore(passwordResetExpiresAt);
+    }
+
+    /**
+     * Senha nova pelo link do e-mail. Abrir o link prova que o e-mail e da pessoa, entao
+     * ele fica confirmado; o link nao serve de novo.
+     *
+     * @param hash ja calculado por {@link Senhas#hash}
+     */
+    public void redefinirSenha(String hash) {
+        definirSenha(hash);
+        confirmarEmail();
+        this.passwordResetHash = null;
+        this.passwordResetExpiresAt = null;
     }
 
     public String getPhone() {

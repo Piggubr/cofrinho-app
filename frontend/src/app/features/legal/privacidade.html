@@ -141,11 +141,27 @@
     e a família deixa de ver. Se excluir a conta, o que você lançou é apagado.
   </p>
 
-  <h2 i18n>Cookies</h2>
+  <h2 i18n id="cookies">Cookies e o que fica no seu aparelho</h2>
   <p i18n>
-    Usamos um único cookie, essencial, que mantém você conectado. Não usamos cookies de
-    publicidade nem de terceiros, e a fonte do site é servida pelo próprio Piggu.
+    Usamos um único cookie, essencial, que mantém você conectado. Ele não depende de
+    autorização porque sem ele não dá para entrar. Não usamos cookies de publicidade nem de
+    terceiros, e a fonte do site é servida pelo próprio Piggu.
   </p>
+  <p i18n>
+    O navegador também guarda, só no seu aparelho, as suas preferências (cor do tema e
+    cartões do painel), os gastos lançados sem sinal até eles chegarem ao Piggu e a sua
+    escolha sobre cookies.
+  </p>
+  <p i18n>
+    Medição de uso e desempenho do site só liga se você aceitar no aviso de cookies. Hoje
+    não usamos nenhuma ferramenta desse tipo; se passarmos a usar, ela aparece na lista de
+    quem recebe dados acima e só funciona com a sua permissão.
+  </p>
+  @if (naWeb) {
+    <button i18n type="button" class="botao secundario" (click)="cookies.reabrir()">
+      Mudar minha escolha de cookies
+    </button>
+  }
 
   <h2 i18n>Segurança</h2>
   <p i18n>

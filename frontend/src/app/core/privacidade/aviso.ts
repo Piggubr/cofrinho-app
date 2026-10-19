@@ -10,8 +10,11 @@ import { ApiError } from '../api/models';
  */
 export const VERSAO_DO_AVISO = '2026-10-16';
 
-/** Canal do encarregado (LGPD art. 41). Trocar quando o dominio definitivo existir. */
-export const CONTATO_PRIVACIDADE = 'privacidade@piggu.app';
+/**
+ * Canal do encarregado (LGPD art. 41), no dominio do site. Precisa receber de verdade:
+ * o encaminhamento do Cloudflare Email Routing (docs/email-do-dominio.md) entrega aqui.
+ */
+export const CONTATO_PRIVACIDADE = 'privacidade@piggu.com.br';
 
 /** O backend recusou porque falta a pessoa autorizar (ou aceitar) algo agora. */
 export function pedeConsentimento(erro: unknown): boolean {
