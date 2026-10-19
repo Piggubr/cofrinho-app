@@ -101,6 +101,7 @@
             <label i18n for="nome-cadastro">Como quer ser chamado?</label>
             <input
               id="nome-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'nome'"
               name="nome"
               autocomplete="nickname"
               maxlength="120"
@@ -112,6 +113,7 @@
             <label i18n for="nascimento-cadastro">Data de nascimento</label>
             <input
               id="nascimento-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'nascimento'"
               name="nascimento"
               type="date"
               autocomplete="bday"
@@ -125,6 +127,7 @@
             <label i18n for="email-cadastro">E-mail</label>
             <input
               id="email-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'email'"
               name="email"
               type="email"
               autocomplete="email"
@@ -139,6 +142,7 @@
             <label i18n for="senha-cadastro">Senha</label>
             <input
               id="senha-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'senha'"
               name="senha"
               type="password"
               autocomplete="new-password"
@@ -154,6 +158,7 @@
             <label i18n for="confirmacao-cadastro">Repita a senha</label>
             <input
               id="confirmacao-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'confirmacao'"
               name="confirmacao"
               type="password"
               autocomplete="new-password"
@@ -179,6 +184,7 @@
             </select>
             <input
               id="telefone-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'telefone'"
               name="telefone"
               type="tel"
               autocomplete="tel-national"
@@ -209,6 +215,7 @@
               <input
                 #campoDocumento
                 id="documento-cadastro"
+              [attr.aria-invalid]="campoComProblema() === 'documento'"
                 name="documento"
                 [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
                 autocomplete="off"

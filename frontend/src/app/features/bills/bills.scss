@@ -14,6 +14,24 @@
   border: none;
 }
 
+.conta-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.marcar-conta {
+  margin: 0.2rem 0.6rem 0 0;
+}
+
+.pagar-varias {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
 .conta-valor {
   white-space: nowrap;
 }

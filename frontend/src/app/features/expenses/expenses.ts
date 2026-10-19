@@ -34,6 +34,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { dataCurta, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { faturaDaCompra } from '../../core/ui/fatura';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
@@ -106,9 +107,30 @@ export class Expenses {
   protected readonly regras = signal<RegraDeCategoria[]>([]);
   protected readonly contas = signal<ContaOuCartao[]>([]);
   protected readonly novaConta = signal('');
-  /** Lancamento rapido: data, conta, moeda, parcelas e divisao ficam recolhidos. */
+  /** Lancamento rapido: data, moeda, tipo e divisao ficam recolhidos. */
   protected readonly maisOpcoes = signal(false);
   protected readonly novasParcelas = signal<number | null>(1);
+  /** No cartao a compra entra na fatura; no debito/Pix so desconta da conta. */
+  protected readonly forma = signal<'CARTAO' | 'DEBITO'>('DEBITO');
+  protected readonly modo = signal<'VISTA' | 'PARCELADO' | 'RECORRENTE'>('VISTA');
+  /** Campo que faltou no ultimo "Lancar": fica com a borda vermelha. */
+  protected readonly faltou = signal<'conta' | 'parcelas' | null>(null);
+  protected readonly cartoes = computed(() => this.contas().filter((c) => c.tipo === 'CARTAO'));
+  protected readonly bancos = computed(() => this.contas().filter((c) => c.tipo === 'CONTA'));
+  /** Fatura em que a compra cai, pela data escolhida e pelo fechamento do cartao. */
+  protected readonly faturaDoLancamento = computed(() => {
+    const cartao = this.cartoes().find((c) => c.id === this.novaConta());
+    if (this.forma() !== 'CARTAO' || !cartao?.fechamento || !cartao.vencimento || !this.novaData()) {
+      return null;
+    }
+    return faturaDaCompra(cartao.fechamento, cartao.vencimento, this.novaData());
+  });
+  protected readonly valorDaParcela = computed(() => {
+    const valor = this.novoValor();
+    const parcelas = this.novasParcelas() ?? 0;
+    return valor && Number.isInteger(parcelas) && parcelas >= 2 ? Math.floor((valor / parcelas) * 100) / 100 : null;
+  });
+  protected readonly diaDaCompra = computed(() => Number(this.novaData().slice(8, 10)));
 
   /** Compra em outra moeda: converte pela cotacao do dia antes de gravar. */
   protected readonly moedaDaCompra = signal('');
@@ -142,13 +164,7 @@ export class Expenses {
   /** O que esta escolhido em "Mais opções", para conferir sem abrir. */
   protected readonly resumoDasOpcoes = computed(() => {
     const data = this.novaData() === hojeIso() ? $localize`Hoje` : dataCurta(this.novaData());
-    const conta = this.contas().find((c) => c.id === this.novaConta());
-    const parcelas = this.novasParcelas() ?? 1;
-    const partes = [
-      data,
-      conta ? conta.nome : $localize`sem conta`,
-      parcelas > 1 ? `${parcelas}x` : $localize`à vista`,
-    ];
+    const partes = [data];
     if (this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo()) {
       partes.push(this.moedaDaCompra());
     }
@@ -204,8 +220,8 @@ export class Expenses {
     this.finance.contas().subscribe({
       next: (lista) => {
         this.contas.set(lista);
-        const padrao = lerContaPadrao();
-        if (padrao && lista.some((conta) => conta.id === padrao)) this.novaConta.set(padrao);
+        const padrao = lista.find((conta) => conta.id === lerContaPadrao());
+        this.trocarForma(padrao?.tipo === 'CARTAO' ? 'CARTAO' : 'DEBITO', padrao?.id);
       },
     });
     this.familia.ver().subscribe({ next: (familia) => this.membros.set(familia.membros) });
@@ -248,9 +264,36 @@ export class Expenses {
     this.carregarGastos();
   }
 
+  protected rotuloDe(mes: string): string {
+    return mesPorExtenso(mes);
+  }
+
+  /** Troca cartao por debito/Pix; com uma conta so daquele tipo, ela ja vem escolhida. */
+  protected trocarForma(forma: 'CARTAO' | 'DEBITO', preferida?: string): void {
+    const opcoes = forma === 'CARTAO' ? this.cartoes() : this.bancos();
+    const escolhida = opcoes.find((c) => c.id === (preferida ?? this.novaConta()));
+    this.forma.set(forma);
+    this.novaConta.set(escolhida?.id ?? (opcoes.length === 1 ? opcoes[0].id : ''));
+    this.faltou.set(null);
+  }
+
+  protected escolherConta(id: string): void {
+    this.novaConta.set(id);
+    this.faltou.set(null);
+  }
+
+  /** Recorrente e conta fixa: o tipo vira Fixo; parcelado comeca em 2x. */
+  protected trocarModo(modo: 'VISTA' | 'PARCELADO' | 'RECORRENTE'): void {
+    this.modo.set(modo);
+    this.novasParcelas.set(modo === 'PARCELADO' ? 2 : 1);
+    this.novoTipo.set(modo === 'RECORRENTE' ? 'Fixo' : 'Variavel');
+    this.faltou.set(null);
+  }
+
   protected lancar(): void {
     const item = this.novoItem().trim();
     const valor = this.novoValor();
+    this.faltou.set(null);
 
     if (!item) {
       this.erro.set($localize`Digite o nome do item.`);
@@ -266,9 +309,23 @@ export class Expenses {
       this.erro.set($localize`Aguarde a cotação da moeda da compra.`);
       return;
     }
-    const parcelas = this.novasParcelas() ?? 1;
-    if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 48) {
-      this.erro.set($localize`Parcelas: de 1 a 48.`);
+    if (this.forma() === 'CARTAO' && !this.cartoes().length) {
+      this.erro.set($localize`Cadastre o cartão em Cartões e bancos, ou escolha Débito/Pix.`);
+      return;
+    }
+    if (!this.novaConta() && (this.forma() === 'CARTAO' || this.bancos().length)) {
+      this.faltou.set('conta');
+      this.erro.set(
+        this.forma() === 'CARTAO'
+          ? $localize`Escolha em qual cartão foi a compra.`
+          : $localize`Escolha de qual conta saiu o dinheiro.`,
+      );
+      return;
+    }
+    const parcelas = this.modo() === 'PARCELADO' ? (this.novasParcelas() ?? 0) : 1;
+    if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 48 || (this.modo() === 'PARCELADO' && parcelas < 2)) {
+      this.faltou.set('parcelas');
+      this.erro.set($localize`Parcelado: de 2 a 48 parcelas.`);
       return;
     }
 
@@ -290,6 +347,7 @@ export class Expenses {
       contaId: this.novaConta() || null,
       parcelas: parcelas > 1 ? parcelas : null,
       dividirCom: this.dividirCom().length ? this.dividirCom() : null,
+      recorrente: this.modo() === 'RECORRENTE' || null,
     };
     this.finance.lancarGastos(pedido).subscribe({
       next: (salvos) => {
@@ -318,7 +376,7 @@ export class Expenses {
     guardarContaPadrao(this.novaConta());
     this.novoItem.set('');
     this.novoValor.set(null);
-    this.novasParcelas.set(1);
+    this.trocarModo('VISTA');
     this.precoAcima.set(null);
     this.dividirCom.set([]);
     this.salvando.set(false);
@@ -426,6 +484,7 @@ export class Expenses {
         reciboId: lido.reciboId,
         origem: 'Foto',
         itens: itens as ItemDeGasto[],
+        contaId: this.novaConta() || null,
       })
       .subscribe({
         next: () => {
@@ -547,7 +606,13 @@ export class Expenses {
     if (!confirm($localize`Apagar "${gasto.item}"?`)) {
       return;
     }
-    this.finance.excluirGasto(gasto.id).subscribe({
+    const seguintes = gasto.parcelas && gasto.parcela ? gasto.parcelas - gasto.parcela : 0;
+    const eAsProximas =
+      seguintes > 0 &&
+      confirm(
+        $localize`Esta é a parcela ${gasto.parcela}:parcela: de ${gasto.parcelas}:parcelas:. Apagar também as ${seguintes}:seguintes: próximas? OK apaga todas; Cancelar apaga só esta.`,
+      );
+    this.finance.excluirGasto(gasto.id, eAsProximas).subscribe({
       next: () => this.carregarGastos(),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
     });

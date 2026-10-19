@@ -29,6 +29,7 @@ import java.util.UUID;
 /**
  * Contas fixas: aluguel, luz, internet. "Marcar como paga" lanca o gasto do mes, uma
  * vez so; com o lancamento automatico ligado, o job diario faz isso no vencimento.
+ * A receita recorrente (o salario) usa o mesmo caminho e lanca uma receita.
  */
 @Service
 public class ContasFixasService {
@@ -44,16 +45,19 @@ public class ContasFixasService {
 
     private final RecurringBillRepository repositorio;
     private final ExpenseService gastos;
+    private final IncomeService receitas;
     private final CategoryService categorias;
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transacao;
     private final Clock relogio;
     private final TrilhaDeAuditoria trilha;
 
-    public ContasFixasService(RecurringBillRepository repositorio, ExpenseService gastos, CategoryService categorias,
-                              JdbcTemplate jdbc, TransactionTemplate transacao, TrilhaDeAuditoria trilha) {
+    public ContasFixasService(RecurringBillRepository repositorio, ExpenseService gastos, IncomeService receitas,
+                              CategoryService categorias, JdbcTemplate jdbc, TransactionTemplate transacao,
+                              TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
         this.gastos = gastos;
+        this.receitas = receitas;
         this.categorias = categorias;
         this.jdbc = jdbc;
         this.transacao = transacao;
@@ -63,8 +67,13 @@ public class ContasFixasService {
 
     @Transactional(readOnly = true)
     public List<ContaDoMes> doMes(YearMonth mes) {
+        return doMes(mes, RecurringBill.Tipo.GASTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ContaDoMes> doMes(YearMonth mes, RecurringBill.Tipo tipo) {
         LocalDate hoje = LocalDate.now(relogio);
-        return repositorio.findByActiveTrueOrderByDueDayAsc().stream()
+        return repositorio.findByActiveTrueAndKindOrderByDueDayAsc(tipo).stream()
                 .map(conta -> {
                     LocalDate vencimento = conta.vencimentoEm(mes);
                     Situacao situacao = conta.pagaEm(mes) ? Situacao.PAGA
@@ -78,7 +87,7 @@ public class ContasFixasService {
     public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
                                UUID autor) {
         RecurringBill conta = repositorio.save(new RecurringBill(Texto.limitar(descricao, 200),
-                categorias.normalizar(categoria), valor, dia, automatico, autor));
+                categoriaDo(RecurringBill.Tipo.GASTO, categoria), valor, dia, automatico, autor));
         trilha.criou("conta-fixa", conta.getId(), Resumos.contaFixa(conta));
         return conta;
     }
@@ -88,7 +97,7 @@ public class ContasFixasService {
                                    boolean automatico) {
         RecurringBill conta = buscar(id);
         String antes = Resumos.contaFixa(conta);
-        conta.editar(Texto.limitar(descricao, 200), categorias.normalizar(categoria), valor, dia, automatico);
+        conta.editar(Texto.limitar(descricao, 200), categoriaDo(conta.getKind(), categoria), valor, dia, automatico);
         trilha.editou("conta-fixa", id, antes, Resumos.contaFixa(conta));
         return conta;
     }
@@ -100,16 +109,58 @@ public class ContasFixasService {
         trilha.apagou("conta-fixa", id, Resumos.contaFixa(conta));
     }
 
-    /** Lanca o gasto do mes no vencimento, uma vez so por mes. */
+    /**
+     * Gasto recorrente lancado na tela de gastos: entra agora, como qualquer gasto, e cada
+     * item vira uma conta fixa automatica no mesmo dia, ja lancada no mes da data.
+     */
+    @Transactional
+    public List<ExpenseResponse> lancarGastoRecorrente(SaveExpensesRequest pedido, UUID autor) {
+        if (pedido.parcelas() != null && pedido.parcelas() > 1) {
+            throw new BusinessException("Gasto recorrente não pode ser parcelado.");
+        }
+        List<ExpenseResponse> salvos = gastos.salvar(pedido, autor);
+        YearMonth mes = YearMonth.from(pedido.data());
+        for (ExpenseResponse gasto : salvos) {
+            RecurringBill conta = new RecurringBill(RecurringBill.Tipo.GASTO, gasto.item(), gasto.categoria(),
+                    gasto.valor(), pedido.data().getDayOfMonth(), true, pedido.contaId(), autor);
+            conta.marcarPaga(mes);
+            trilha.criou("conta-fixa", repositorio.save(conta).getId(), Resumos.contaFixa(conta));
+        }
+        return salvos;
+    }
+
+    /** Receita que entra todo mes no mesmo dia: lanca a deste mes e liga o automatico para os proximos. */
+    @Transactional
+    public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
+                                          UUID autor) {
+        Income receita = receitas.criar(data, descricao, categoria, valor, autor);
+        RecurringBill conta = new RecurringBill(RecurringBill.Tipo.RECEITA, receita.getDescription(),
+                receita.getCategory(), valor, data.getDayOfMonth(), true, null, autor);
+        conta.marcarPaga(YearMonth.from(data));
+        trilha.criou("receita-recorrente", repositorio.save(conta).getId(), Resumos.contaFixa(conta));
+        return receita;
+    }
+
+    /**
+     * Lanca o gasto (ou a receita) do mes no vencimento, uma vez so por mes.
+     *
+     * @return o gasto lancado; nulo quando e uma receita
+     */
     @Transactional
     public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
         RecurringBill conta = buscar(id);
         if (conta.pagaEm(mes)) {
             throw new BusinessException("Esta conta já foi lançada em " + mes + ".", HttpStatus.CONFLICT, "JA_PAGA");
         }
-        ExpenseResponse gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
-                List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(), "Fixo"))),
-                autor).get(0);
+        ExpenseResponse gasto = null;
+        if (conta.getKind() == RecurringBill.Tipo.RECEITA) {
+            receitas.criar(conta.vencimentoEm(mes), conta.getDescription(), conta.getCategory(), conta.getAmount(),
+                    autor);
+        } else {
+            gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
+                    List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
+                            "Fixo")), conta.getAccountId(), null, null), autor).get(0);
+        }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,
                 Resumos.contaFixa(conta) + " · " + mes);
@@ -145,6 +196,10 @@ public class ContasFixasService {
             }
         }
         log.info("Contas fixas lancadas automaticamente: {} de {}", lancadas, devidas.size());
+    }
+
+    private String categoriaDo(RecurringBill.Tipo tipo, String categoria) {
+        return tipo == RecurringBill.Tipo.RECEITA ? IncomeService.categoria(categoria) : categorias.normalizar(categoria);
     }
 
     private RecurringBill buscar(UUID id) {

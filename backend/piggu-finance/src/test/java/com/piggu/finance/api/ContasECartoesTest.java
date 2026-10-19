@@ -45,17 +45,18 @@ class ContasECartoesTest extends PostgresIntegrationTest {
         casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-09-05\",\"contaId\":\"" + cartao
                 + "\",\"itens\":[{\"item\":\"Cinema\",\"categoria\":\"Lazer\",\"valor\":40}]}");
 
-        // Compra de 10/set: fatura de outubro (6/set a 5/out). Cinema de 5/set: fatura de setembro.
+        // Fatura de outubro: compras de 5/set a 4/out. O cinema, no dia do fechamento, ja cai nela.
         mockMvc.perform(get("/api/accounts/" + cartao + "/statement").param("mes", "2026-10").with(casas.casaA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.fatura.total").value(33.33))
+                .andExpect(jsonPath("$.fatura.total").value(73.33))
+                .andExpect(jsonPath("$.fatura.ultimaCompra").value("2026-10-04"))
                 .andExpect(jsonPath("$.fatura.vencimento").value("2026-10-12"))
-                .andExpect(jsonPath("$.gastos[0].parcela").value(1))
-                .andExpect(jsonPath("$.gastos[0].parcelas").value(3));
+                .andExpect(jsonPath("$.gastos[1].parcela").value(1))
+                .andExpect(jsonPath("$.gastos[1].parcelas").value(3));
         mockMvc.perform(get("/api/accounts/" + cartao + "/statement").param("mes", "2026-12").with(casas.casaA))
                 .andExpect(jsonPath("$.fatura.total").value(33.34));
         mockMvc.perform(get("/api/accounts/" + cartao + "/statement").param("mes", "2026-09").with(casas.casaA))
-                .andExpect(jsonPath("$.fatura.total").value(40));
+                .andExpect(jsonPath("$.fatura.total").value(0));
         mockMvc.perform(get("/api/accounts").with(casas.casaA))
                 .andExpect(jsonPath("$[0].tipo").value("CARTAO"))
                 .andExpect(jsonPath("$[0].faturaAberta").exists());

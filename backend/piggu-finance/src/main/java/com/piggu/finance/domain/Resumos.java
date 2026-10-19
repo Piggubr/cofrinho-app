@@ -24,6 +24,10 @@ final class Resumos {
                 conta.isAutoLaunch() ? "automatica" : null);
     }
 
+    static String aReceber(Receivable conta) {
+        return juntar(conta.getDebtor(), conta.getDescription(), valor(conta.getAmount()), conta.getDueDate());
+    }
+
     static String orcamento(String categoria, BigDecimal limite) {
         return juntar(categoria, valor(limite));
     }

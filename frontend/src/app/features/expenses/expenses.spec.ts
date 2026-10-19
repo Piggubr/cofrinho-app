@@ -193,49 +193,20 @@ describe('Expenses', () => {
     http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
   });
 
-  it('lançamento rápido: o resto fica em Mais opções e a última conta vira a padrão', () => {
+  it('a última conta vira a padrão: cartão já vem escolhido e mostra a fatura da compra', () => {
     localStorage.setItem('piggu_conta_padrao', 'c2');
     const tela = TestBed.createComponent(Expenses);
-    abrirCom(
-      tela,
-      [],
-      [],
-      [
-        {
-          id: 'c1',
-          nome: 'Conta',
-          tipo: 'CONTA',
-          fechamento: null,
-          vencimento: null,
-          faturaAberta: null,
-        },
-        {
-          id: 'c2',
-          nome: 'Nubank',
-          tipo: 'CARTAO',
-          fechamento: 3,
-          vencimento: 10,
-          faturaAberta: null,
-        },
-      ],
-    );
+    abrirCom(tela, [], [], CONTAS);
     tela.detectChanges();
     const pagina: HTMLElement = tela.nativeElement;
     const opcoes = pagina.querySelector<HTMLDetailsElement>('details.mais-opcoes')!;
     expect(opcoes.open).toBe(false);
-    expect(opcoes.querySelector('summary')?.textContent).toContain('Hoje · Nubank · à vista');
+    expect(opcoes.querySelector('summary')?.textContent).toContain('Hoje');
+    expect(pagina.querySelector('.alternador .ativo')?.textContent).toContain('Cartão de crédito');
+    expect(pagina.textContent).toContain('Vai para a fatura de');
 
-    const t = tela.componentInstance as unknown as {
-      novoItem: { set(v: string): void };
-      novoValor: { set(v: number): void };
-      novaConta: { set(v: string): void };
-      novasParcelas: { set(v: number): void };
-      lancar(): void;
-    };
-    t.novaConta.set('c1');
-    t.novasParcelas.set(3);
-    tela.detectChanges();
-    expect(opcoes.querySelector('summary')?.textContent).toContain('Conta · 3x');
+    const t = tela.componentInstance as unknown as Tela;
+    t.trocarForma('DEBITO');
     t.novoItem.set('Mercado');
     t.novoValor.set(90);
     t.lancar();
@@ -246,6 +217,37 @@ describe('Expenses', () => {
     http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
     expect(localStorage.getItem('piggu_conta_padrao')).toBe('c1');
     localStorage.removeItem('piggu_conta_padrao');
+  });
+
+  it('cartão sem escolher não é lançado; parcelado pede de 2 a 48; recorrente vai marcado', () => {
+    localStorage.removeItem('piggu_conta_padrao');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(tela, [], [], [...CONTAS, { ...CONTAS[1], id: 'c3', nome: 'Inter' }]);
+    const t = tela.componentInstance as unknown as Tela;
+    t.novoItem.set('TV');
+    t.novoValor.set(900);
+    t.trocarForma('CARTAO');
+    t.lancar();
+    tela.detectChanges();
+    expect(tela.nativeElement.textContent).toContain('Escolha em qual cartão');
+    expect(tela.nativeElement.querySelector('#cartao').getAttribute('aria-invalid')).toBe('true');
+
+    t.escolherConta('c3');
+    t.trocarModo('PARCELADO');
+    t.novasParcelas.set(1);
+    t.lancar();
+    tela.detectChanges();
+    expect(tela.nativeElement.textContent).toContain('de 2 a 48 parcelas');
+
+    t.novasParcelas.set(10);
+    tela.detectChanges();
+    expect(tela.nativeElement.textContent).toContain('10x de');
+    t.trocarModo('RECORRENTE');
+    t.lancar();
+    const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
+    expect(pedido.request.body).toEqual(
+      expect.objectContaining({ contaId: 'c3', parcelas: null, recorrente: true }),
+    );
   });
 
   it('sem internet o gasto fica na fila deste aparelho e o formulario limpa', () => {
@@ -270,6 +272,21 @@ describe('Expenses', () => {
     expect(tela.nativeElement.textContent).toContain('1 gasto esperando conexão');
     localStorage.removeItem('piggu_fila_de_gastos');
   });
+
+  interface Tela {
+    novoItem: { set(v: string): void };
+    novoValor: { set(v: number): void };
+    novasParcelas: { set(v: number): void };
+    trocarForma(forma: 'CARTAO' | 'DEBITO'): void;
+    trocarModo(modo: 'VISTA' | 'PARCELADO' | 'RECORRENTE'): void;
+    escolherConta(id: string): void;
+    lancar(): void;
+  }
+
+  const CONTAS = [
+    { id: 'c1', nome: 'Conta', tipo: 'CONTA', fechamento: null, vencimento: null, faturaAberta: null },
+    { id: 'c2', nome: 'Nubank', tipo: 'CARTAO', fechamento: 3, vencimento: 10, faturaAberta: null },
+  ];
 
   function abrirCom(
     tela: ReturnType<typeof TestBed.createComponent<Expenses>>,

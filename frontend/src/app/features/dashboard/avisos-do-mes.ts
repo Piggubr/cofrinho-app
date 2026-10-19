@@ -1,10 +1,10 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
-import { ContaFixa, ContaOuCartao, Orcamento } from '../../core/api/models';
+import { AReceber, ContaFixa, ContaOuCartao, Orcamento } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { Icone } from '../../core/ui/icone';
-import { dataIso } from '../../core/ui/datas';
+import { dataIso, hojeIso } from '../../core/ui/datas';
 import { MoedaPipe } from '../../core/ui/moeda';
 
 /** Lembretes do mes no painel: contas fixas vencidas ou para vencer. */
@@ -12,7 +12,12 @@ import { MoedaPipe } from '../../core/ui/moeda';
   selector: 'app-avisos-do-mes',
   imports: [MoedaPipe, DataBrPipe, RouterLink, Icone],
   template: `
-    @if (orcamentosEmAlerta().length || faturasAVencer().length || contasEmAberto().length) {
+    @if (
+      orcamentosEmAlerta().length ||
+      faturasAVencer().length ||
+      contasEmAberto().length ||
+      devendo().length
+    ) {
       <section class="cartao" aria-labelledby="titulo-avisos">
         <div class="cartao-titulo">
           <h2 i18n id="titulo-avisos">Para ficar de olho</h2>
@@ -70,6 +75,17 @@ import { MoedaPipe } from '../../core/ui/moeda';
               } @else {
                 <span i18n>Vence em {{ conta.vencimento | dataBr }}</span>
               }
+            </span>
+            <app-icone nome="direita" [tamanho]="18" class="aviso-seta" />
+          </a>
+        }
+
+        @for (conta of devendo(); track conta.id) {
+          <a routerLink="/receitas" class="aviso-linha atrasada">
+            <span class="aviso-icone"><app-icone nome="entrada" [tamanho]="18" /></span>
+            <span class="aviso-texto">
+              <strong>{{ conta.quem }} · {{ conta.valor | moeda }}</strong>
+              <span i18n>Está te devendo desde {{ conta.data | dataBr }}</span>
             </span>
             <app-icone nome="direita" [tamanho]="18" class="aviso-seta" />
           </a>
@@ -146,6 +162,9 @@ export class AvisosDoMes {
   protected readonly contasEmAberto = computed(() =>
     this.contas().filter((c) => c.situacao !== 'PAGA'),
   );
+  private readonly aReceber = signal<AReceber[]>([]);
+  /** Quem passou da data combinada e ainda nao pagou. */
+  protected readonly devendo = computed(() => this.aReceber().filter((c) => c.data < hojeIso()));
 
   constructor() {
     effect((onCleanup) => {
@@ -167,6 +186,10 @@ export class AvisosDoMes {
     this.finance.contas().subscribe({
       next: (contas) => this.cartoes.set(contas),
       error: () => this.cartoes.set([]),
+    });
+    this.finance.aReceber().subscribe({
+      next: (lista) => this.aReceber.set(lista),
+      error: () => this.aReceber.set([]),
     });
   }
 }

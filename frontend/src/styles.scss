@@ -895,6 +895,57 @@ label:has(> input[type='radio']) {
   margin-top: 0.3rem;
 }
 
+/* Campo que faltou ou esta errado: a borda mostra onde corrigir. */
+[aria-invalid='true'] {
+  border-color: var(--danger) !important;
+}
+
+/* Grupo de opcoes com legenda, como "Como pagou". */
+fieldset.escolha {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+
+  legend {
+    padding: 0;
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+  }
+}
+
+/* Botoes lado a lado em capsula: so um fica escolhido. */
+.alternador {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+
+  button {
+    padding: 0.35rem 0.85rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  button.ativo {
+    background: var(--surface);
+    color: var(--rose-deep);
+    font-weight: 600;
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* Em que fatura a compra cai: tem que saltar aos olhos. */
+.destaque-fechamento {
+  color: var(--rose-deep);
+}
+
 /* ---------- Botoes ---------- */
 
 button {
@@ -1126,6 +1177,23 @@ button {
 .aviso.erro {
   background: var(--danger-soft);
   color: var(--danger-ink);
+}
+
+/* Erro que estava fora da vista: a tela rola ate ele e ele pisca (ver levar-ao-erro.ts). */
+.aviso.erro.chamando {
+  animation: chamar-atencao 0.6s ease-in-out 2;
+}
+
+@keyframes chamar-atencao {
+  50% {
+    box-shadow: 0 0 0 4px var(--danger);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso.erro.chamando {
+    animation: none;
+  }
 }
 
 .aviso.sucesso {

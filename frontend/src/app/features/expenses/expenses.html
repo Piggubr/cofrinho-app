@@ -94,6 +94,141 @@
     </div>
   </div>
 
+  <div class="linha-de-campos escolhas-do-gasto">
+    <fieldset class="campo escolha">
+      <legend i18n>Como pagou</legend>
+      <div class="alternador" role="radiogroup">
+        <button
+          i18n
+          type="button"
+          role="radio"
+          [attr.aria-checked]="forma() === 'CARTAO'"
+          [class.ativo]="forma() === 'CARTAO'"
+          (click)="trocarForma('CARTAO')"
+        >
+          Cartão de crédito
+        </button>
+        <button
+          i18n
+          type="button"
+          role="radio"
+          [attr.aria-checked]="forma() === 'DEBITO'"
+          [class.ativo]="forma() === 'DEBITO'"
+          (click)="trocarForma('DEBITO')"
+        >
+          Débito/Pix
+        </button>
+      </div>
+    </fieldset>
+    @if (forma() === 'CARTAO') {
+      @if (cartoes().length) {
+        <div class="campo">
+          <label i18n for="cartao">Cartão</label>
+          <select
+            id="cartao"
+            [attr.aria-invalid]="faltou() === 'conta'"
+            [ngModel]="novaConta()"
+            (ngModelChange)="escolherConta($event)"
+          >
+            <option i18n value="">Escolha o cartão</option>
+            @for (cartao of cartoes(); track cartao.id) {
+              <option [value]="cartao.id">{{ cartao.nome }}</option>
+            }
+          </select>
+          @if (faturaDoLancamento(); as f) {
+            <p i18n class="linha-detalhe destaque-fechamento" role="status">
+              Vai para a fatura de {{ rotuloDe(f.mes) }}, que vence em {{ f.vencimento | dataBr }}.
+            </p>
+          }
+        </div>
+      } @else {
+        <p i18n class="linha-detalhe">
+          Nenhum cartão cadastrado ainda.
+          <a routerLink="/contas-e-cartoes">Cadastrar cartão</a>
+        </p>
+      }
+    } @else if (bancos().length) {
+      <div class="campo">
+        <label i18n for="conta-debito">Saiu de qual conta</label>
+        <select
+          id="conta-debito"
+          [attr.aria-invalid]="faltou() === 'conta'"
+          [ngModel]="novaConta()"
+          (ngModelChange)="escolherConta($event)"
+        >
+          <option i18n value="">Escolha a conta</option>
+          @for (banco of bancos(); track banco.id) {
+            <option [value]="banco.id">{{ banco.nome }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+
+  <div class="linha-de-campos escolhas-do-gasto">
+    <fieldset class="campo escolha">
+      <legend i18n>Como foi a compra</legend>
+      <div class="alternador" role="radiogroup">
+        <button
+          i18n
+          type="button"
+          role="radio"
+          [attr.aria-checked]="modo() === 'VISTA'"
+          [class.ativo]="modo() === 'VISTA'"
+          (click)="trocarModo('VISTA')"
+        >
+          À vista
+        </button>
+        <button
+          i18n
+          type="button"
+          role="radio"
+          [attr.aria-checked]="modo() === 'PARCELADO'"
+          [class.ativo]="modo() === 'PARCELADO'"
+          (click)="trocarModo('PARCELADO')"
+        >
+          Parcelado
+        </button>
+        <button
+          i18n
+          type="button"
+          role="radio"
+          [attr.aria-checked]="modo() === 'RECORRENTE'"
+          [class.ativo]="modo() === 'RECORRENTE'"
+          (click)="trocarModo('RECORRENTE')"
+        >
+          Recorrente
+        </button>
+      </div>
+    </fieldset>
+    @if (modo() === 'PARCELADO') {
+      <div class="campo">
+        <label i18n for="parcelas">Quantas parcelas</label>
+        <input
+          id="parcelas"
+          type="number"
+          inputmode="numeric"
+          min="2"
+          max="48"
+          step="1"
+          [attr.aria-invalid]="faltou() === 'parcelas'"
+          [ngModel]="novasParcelas()"
+          (ngModelChange)="novasParcelas.set($event)"
+        />
+        @if (valorDaParcela(); as parcela) {
+          <p i18n class="linha-detalhe">
+            {{ novasParcelas() }}x de {{ parcela | moeda }}, uma em cada mês
+          </p>
+        }
+      </div>
+    } @else if (modo() === 'RECORRENTE') {
+      <p i18n class="linha-detalhe">
+        Lança sozinho todo dia {{ diaDaCompra() }}, até você desligar em
+        <a routerLink="/contas-fixas">Contas do mês</a>.
+      </p>
+    }
+  </div>
+
   <details
     class="mais-opcoes"
     [open]="maisOpcoes()"
@@ -113,17 +248,6 @@
           (ngModelChange)="novaData.set($event)"
         />
       </div>
-      @if (contas().length) {
-        <div class="campo">
-          <label i18n for="conta">Pago com</label>
-          <select id="conta" [ngModel]="novaConta()" (ngModelChange)="novaConta.set($event)">
-            <option i18n value="">Não informar</option>
-            @for (conta of contas(); track conta.id) {
-              <option [value]="conta.id">{{ conta.nome }}</option>
-            }
-          </select>
-        </div>
-      }
       <div class="campo">
         <label i18n for="moeda-compra">Moeda da compra</label>
         <select id="moeda-compra" [ngModel]="moedaDaCompra()" (ngModelChange)="trocarMoeda($event)">
@@ -134,18 +258,6 @@
         @if (convertido() !== null) {
           <p i18n class="linha-detalhe">≈ {{ convertido() | moeda }} (cotação de hoje)</p>
         }
-      </div>
-      <div class="campo">
-        <label i18n for="parcelas">Parcelas</label>
-        <input
-          id="parcelas"
-          type="number"
-          min="1"
-          max="48"
-          step="1"
-          [ngModel]="novasParcelas()"
-          (ngModelChange)="novasParcelas.set($event)"
-        />
       </div>
       <div class="campo">
         <label i18n for="tipo">Tipo</label>

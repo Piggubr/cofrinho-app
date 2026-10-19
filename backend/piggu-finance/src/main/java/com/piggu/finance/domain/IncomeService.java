@@ -65,7 +65,7 @@ public class IncomeService {
         return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Receita nao encontrada."));
     }
 
-    private static String categoria(String informada) {
+    static String categoria(String informada) {
         return CATEGORIAS.stream().filter(c -> c.equalsIgnoreCase(Texto.limitar(informada, 50).trim()))
                 .findFirst().orElse("Outros");
     }

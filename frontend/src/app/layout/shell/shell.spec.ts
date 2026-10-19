@@ -115,7 +115,7 @@ describe('Shell', () => {
     const pagina: HTMLElement = tela.nativeElement;
 
     const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
-    expect(abas).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar', 'Mais']);
+    expect(abas).toEqual(['Painel', 'Gastos', 'Receitas', 'Relatórios', 'Mais']);
     expect(pagina.querySelector('button.lancar-flutuante')).not.toBeNull();
     expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
 
@@ -139,14 +139,14 @@ describe('Shell', () => {
     const itens = [...pagina.querySelectorAll<HTMLElement>('nav.menu .menu-itens a')];
 
     const naBarra = itens.filter((a) => a.classList.contains('na-barra')).map((a) => a.textContent?.trim());
-    expect(naBarra).toEqual(['Painel', 'Gastos', 'Relatórios', 'Planejar']);
+    expect(naBarra).toEqual(['Painel', 'Gastos', 'Receitas', 'Relatórios']);
 
     const noMais = itens
       .filter((a) => !a.classList.contains('na-barra'))
       .sort((a, b) => +a.style.getPropertyValue('--ordem-no-mais') - +b.style.getPropertyValue('--ordem-no-mais'))
       .map((a) => a.textContent?.trim());
     expect(noMais).toEqual([
-      'Receitas',
+      'Planejar',
       'Contas do mês',
       'Orçamento',
       'Minhas metas',
@@ -442,8 +442,8 @@ describe('Shell', () => {
     expect(configuradas.at(-1)!.map((aba) => aba.id)).toEqual([
       '/painel',
       '/gastos',
+      '/receitas',
       '/relatorios',
-      '/planejar',
       'mais',
     ]);
 

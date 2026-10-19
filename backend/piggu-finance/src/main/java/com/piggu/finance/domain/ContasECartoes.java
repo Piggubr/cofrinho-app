@@ -15,9 +15,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Contas e cartoes. No cartao, a fatura do mes M vai do dia seguinte ao fechamento de M-1
- * ate o fechamento de M; vence no dia de vencimento de M, ou de M+1 quando o dia do
- * vencimento nao passa do dia do fechamento.
+ * Contas e cartoes. No cartao, a fatura do mes M recebe as compras do fechamento de M-1
+ * ate a vespera do fechamento de M: como nos bancos, a compra feita no dia do fechamento
+ * ja vai para a fatura seguinte. Vence no dia de vencimento de M, ou de M+1 quando o dia
+ * do vencimento nao passa do dia do fechamento.
  */
 @Service
 public class ContasECartoes {
@@ -30,10 +31,13 @@ public class ContasECartoes {
         this.gastos = gastos;
     }
 
-    public record Periodo(String mes, LocalDate inicio, LocalDate fechamento, LocalDate vencimento) {
+    /** @param ultimaCompra vespera do fechamento: o ultimo dia que ainda entra nesta fatura */
+    public record Periodo(String mes, LocalDate inicio, LocalDate ultimaCompra, LocalDate fechamento,
+                          LocalDate vencimento) {
     }
 
-    public record Fatura(String mes, LocalDate inicio, LocalDate fechamento, LocalDate vencimento, BigDecimal total) {
+    public record Fatura(String mes, LocalDate inicio, LocalDate ultimaCompra, LocalDate fechamento,
+                         LocalDate vencimento, BigDecimal total) {
     }
 
     public record FaturaComGastos(Fatura fatura, List<ExpenseResponse> gastos) {
@@ -74,11 +78,12 @@ public class ContasECartoes {
             throw new BusinessException("Ja existe uma conta com esse nome.");
         }
         boolean cartao = tipo == PaymentAccount.Tipo.CARTAO;
-        if (cartao && (fechamento == null || vencimento == null)) {
-            throw new BusinessException("Informe o dia de fechamento e o de vencimento do cartao.");
+        if (cartao && vencimento == null) {
+            throw new BusinessException("Informe o dia de vencimento da fatura.");
         }
+        Integer fecha = cartao && fechamento == null ? Integer.valueOf(fechamentoPadrao(vencimento)) : fechamento;
         PaymentAccount conta = contas.save(new PaymentAccount(nome, tipo,
-                cartao ? fechamento.shortValue() : null, cartao ? vencimento.shortValue() : null, pessoa));
+                cartao ? fecha.shortValue() : null, cartao ? vencimento.shortValue() : null, pessoa));
         return new Conta(conta.getId(), conta.getName(), conta.getKind(), conta.getClosingDay(), conta.getDueDay(),
                 null, null);
     }
@@ -97,15 +102,16 @@ public class ContasECartoes {
         }
         Periodo periodo = periodo(conta.getClosingDay(), conta.getDueDay(), mes);
         List<ExpenseResponse> doPeriodo = gastos.findByAccountIdAndExpenseDateBetweenOrderByExpenseDateAscCreatedAtAsc(
-                id, periodo.inicio(), periodo.fechamento()).stream().map(ExpenseResponse::de).toList();
+                id, periodo.inicio(), periodo.ultimaCompra()).stream().map(ExpenseResponse::de).toList();
         BigDecimal total = doPeriodo.stream().map(ExpenseResponse::valor).reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new FaturaComGastos(new Fatura(periodo.mes(), periodo.inicio(), periodo.fechamento(),
-                periodo.vencimento(), total), doPeriodo);
+        return new FaturaComGastos(new Fatura(periodo.mes(), periodo.inicio(), periodo.ultimaCompra(),
+                periodo.fechamento(), periodo.vencimento(), total), doPeriodo);
     }
 
     private Fatura fatura(PaymentAccount conta, Periodo periodo) {
-        BigDecimal total = gastos.somarDaConta(conta.getId(), periodo.inicio(), periodo.fechamento());
-        return new Fatura(periodo.mes(), periodo.inicio(), periodo.fechamento(), periodo.vencimento(), total);
+        BigDecimal total = gastos.somarDaConta(conta.getId(), periodo.inicio(), periodo.ultimaCompra());
+        return new Fatura(periodo.mes(), periodo.inicio(), periodo.ultimaCompra(), periodo.fechamento(),
+                periodo.vencimento(), total);
     }
 
     private PaymentAccount buscar(UUID id) {
@@ -115,15 +121,20 @@ public class ContasECartoes {
     /** Fatura que fecha no mes; dia 31 vira o ultimo dia em meses curtos. */
     static Periodo periodo(int fechamento, int vencimento, YearMonth mes) {
         LocalDate fecha = dia(mes, fechamento);
-        LocalDate inicio = dia(mes.minusMonths(1), fechamento).plusDays(1);
+        LocalDate inicio = dia(mes.minusMonths(1), fechamento);
         LocalDate vence = vencimento > fechamento ? dia(mes, vencimento) : dia(mes.plusMonths(1), vencimento);
-        return new Periodo(mes.toString(), inicio, fecha, vence);
+        return new Periodo(mes.toString(), inicio, fecha.minusDays(1), fecha, vence);
     }
 
-    /** Ate o dia do fechamento, a compra entra na fatura deste mes; depois, na do proximo. */
+    /** Antes do dia do fechamento, a compra entra na fatura deste mes; dele em diante, na do proximo. */
     static YearMonth mesDaFaturaAberta(int fechamento, LocalDate hoje) {
         YearMonth mes = YearMonth.from(hoje);
-        return hoje.isAfter(dia(mes, fechamento)) ? mes.plusMonths(1) : mes;
+        return hoje.isBefore(dia(mes, fechamento)) ? mes : mes.plusMonths(1);
+    }
+
+    /** Sem o dia do fechamento, ele fica 7 dias antes do vencimento, como na maioria dos bancos. */
+    static int fechamentoPadrao(int vencimento) {
+        return vencimento > 7 ? vencimento - 7 : vencimento + 24;
     }
 
     private static LocalDate dia(YearMonth mes, int dia) {

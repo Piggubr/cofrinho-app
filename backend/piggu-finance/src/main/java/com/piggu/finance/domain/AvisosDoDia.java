@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * O que merece aviso hoje: orcamento em 80% ou 100%, fatura de cartao vencendo e conta
- * fixa vencendo ou vencida. E o mesmo "Para ficar de olho" do painel, so que como dado,
+ * O que merece aviso hoje: orcamento em 80% ou 100%, fatura de cartao vencendo, conta
+ * fixa vencendo ou vencida e dinheiro a receber que passou da data combinada. E o mesmo "Para ficar de olho" do painel, so que como dado,
  * para o identity mandar por e-mail ou push quando o app esta fechado.
  *
  * <p>Cada aviso tem uma chave que muda quando a situacao muda (80% e 100% sao chaves
@@ -28,7 +28,9 @@ public class AvisosDoDia {
     static final int DIAS_ANTES_DA_FATURA = 3;
     static final int DIAS_ANTES_DA_CONTA = 2;
 
-    public enum Tipo { ORCAMENTO_ATENCAO, ORCAMENTO_ESTOUROU, FATURA_VENCENDO, CONTA_VENCENDO, CONTA_VENCIDA }
+    public enum Tipo {
+        ORCAMENTO_ATENCAO, ORCAMENTO_ESTOUROU, FATURA_VENCENDO, CONTA_VENCENDO, CONTA_VENCIDA, A_RECEBER_ATRASADO
+    }
 
     /**
      * @param chave     identifica o aviso para nao repetir
@@ -45,17 +47,21 @@ public class AvisosDoDia {
     private final OrcamentoService orcamentos;
     private final ContasECartoes cartoes;
     private final ContasFixasService contasFixas;
+    private final AReceberService aReceber;
     private final Clock relogio;
 
     @Autowired
-    public AvisosDoDia(OrcamentoService orcamentos, ContasECartoes cartoes, ContasFixasService contasFixas) {
-        this(orcamentos, cartoes, contasFixas, Clock.system(Meses.BRASILIA));
+    public AvisosDoDia(OrcamentoService orcamentos, ContasECartoes cartoes, ContasFixasService contasFixas,
+                       AReceberService aReceber) {
+        this(orcamentos, cartoes, contasFixas, aReceber, Clock.system(Meses.BRASILIA));
     }
 
-    AvisosDoDia(OrcamentoService orcamentos, ContasECartoes cartoes, ContasFixasService contasFixas, Clock relogio) {
+    AvisosDoDia(OrcamentoService orcamentos, ContasECartoes cartoes, ContasFixasService contasFixas,
+                AReceberService aReceber, Clock relogio) {
         this.orcamentos = orcamentos;
         this.cartoes = cartoes;
         this.contasFixas = contasFixas;
+        this.aReceber = aReceber;
         this.relogio = relogio;
     }
 
@@ -92,6 +98,13 @@ public class AvisosDoDia {
                     && !conta.vencimento().isAfter(hoje.plusDays(DIAS_ANTES_DA_CONTA))) {
                 avisos.add(new Aviso("conta:" + conta.conta().getId() + ":" + mes + ":vencendo", Tipo.CONTA_VENCENDO,
                         conta.conta().getDescription(), conta.conta().getAmount(), null, null, conta.vencimento()));
+            }
+        }
+
+        for (Receivable conta : aReceber.pendentes()) {
+            if (conta.getDueDate().isBefore(hoje)) {
+                avisos.add(new Aviso("receber:" + conta.getId(), Tipo.A_RECEBER_ATRASADO, conta.getDebtor(),
+                        conta.getAmount(), null, null, conta.getDueDate()));
             }
         }
         return avisos;

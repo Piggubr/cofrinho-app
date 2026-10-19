@@ -54,20 +54,24 @@ public class BillController {
             Boolean automatico) {
     }
 
+    /** @param contaId cartao ou conta que paga o gasto; nulo quando nao foi informado */
     public record BillResponse(UUID id, String descricao, String categoria, BigDecimal valor, int dia,
-                               boolean automatico, LocalDate vencimento, ContasFixasService.Situacao situacao) {
+                               boolean automatico, LocalDate vencimento, ContasFixasService.Situacao situacao,
+                               RecurringBill.Tipo tipo, UUID contaId) {
 
         static BillResponse de(ContasFixasService.ContaDoMes item) {
             RecurringBill conta = item.conta();
             return new BillResponse(conta.getId(), conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                    conta.getDueDay(), conta.isAutoLaunch(), item.vencimento(), item.situacao());
+                    conta.getDueDay(), conta.isAutoLaunch(), item.vencimento(), item.situacao(), conta.getKind(),
+                    conta.getAccountId());
         }
     }
 
-    /** As contas no mes pedido (ou no atual), com vencimento e situacao. */
+    /** As contas no mes pedido (ou no atual), com vencimento e situacao; com tipo RECEITA, as receitas recorrentes. */
     @GetMapping
-    public List<BillResponse> listar(@RequestParam(required = false) String mes) {
-        return servico.doMes(Meses.ouAtual(mes)).stream().map(BillResponse::de).toList();
+    public List<BillResponse> listar(@RequestParam(required = false) String mes,
+                                     @RequestParam(defaultValue = "GASTO") RecurringBill.Tipo tipo) {
+        return servico.doMes(Meses.ouAtual(mes), tipo).stream().map(BillResponse::de).toList();
     }
 
     @PostMapping

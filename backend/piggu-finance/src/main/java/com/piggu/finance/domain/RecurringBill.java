@@ -3,6 +3,8 @@ package com.piggu.finance.domain;
 import com.piggu.common.security.DonoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -15,11 +17,13 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
 
-/** Conta fixa que se repete todo mes. */
+/** Conta fixa que se repete todo mes; com o tipo RECEITA, a receita que entra todo mes (o salario). */
 @Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "recurring_bills")
 public class RecurringBill {
+
+    public enum Tipo { GASTO, RECEITA }
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
     @TenantId
@@ -53,6 +57,14 @@ public class RecurringBill {
     @Column(name = "user_id")
     private UUID userId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10, updatable = false)
+    private Tipo kind = Tipo.GASTO;
+
+    /** Cartao ou conta que paga o gasto todo mes; opcional. */
+    @Column(name = "account_id")
+    private UUID accountId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -61,8 +73,15 @@ public class RecurringBill {
 
     public RecurringBill(String description, String category, BigDecimal amount, int dueDay, boolean autoLaunch,
                          UUID userId) {
+        this(Tipo.GASTO, description, category, amount, dueDay, autoLaunch, null, userId);
+    }
+
+    public RecurringBill(Tipo kind, String description, String category, BigDecimal amount, int dueDay,
+                         boolean autoLaunch, UUID accountId, UUID userId) {
         this.id = UUID.randomUUID();
+        this.kind = kind;
         this.userId = userId;
+        this.accountId = accountId;
         editar(description, category, amount, dueDay, autoLaunch);
     }
 
@@ -120,5 +139,17 @@ public class RecurringBill {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public Tipo getKind() {
+        return kind;
+    }
+
+    public UUID getAccountId() {
+        return accountId;
+    }
+
+    public void pagarCom(UUID accountId) {
+        this.accountId = accountId;
     }
 }
