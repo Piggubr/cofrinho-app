@@ -10,6 +10,7 @@ import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaService } from '../../core/ui/moeda';
 import { travarRolagemEnquanto } from '../../core/ui/travar-rolagem';
+import { Carregando } from '../../core/ui/carregando';
 
 /** Nome das telas que o assistente pode sugerir abrir. */
 const TELAS: Record<string, string> = {
@@ -45,7 +46,7 @@ interface FalaNaTela extends FalaDoAssistente {
  */
 @Component({
   selector: 'app-assistente',
-  imports: [FormsModule, RouterLink, Icone],
+  imports: [FormsModule, RouterLink, Icone, Carregando],
   template: `
     <button
       type="button"
@@ -93,7 +94,7 @@ interface FalaNaTela extends FalaDoAssistente {
           </p>
           <a i18n routerLink="/plano" class="botao" (click)="fechar()">Conhecer o Piggu Premium</a>
         } @else if (carregando()) {
-          <p i18n class="carregando">Carregando...</p>
+          <app-carregando formato="texto" />
         } @else if (situacao() && !situacao()!.habilitado) {
           <p i18n class="vazio">O assistente ainda não está ligado nesta instalação.</p>
         } @else if (precisaAutorizar()) {

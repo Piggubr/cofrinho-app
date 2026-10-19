@@ -8,6 +8,8 @@ import { Premio, Resgate, SaldoDeMoedas } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { PessoaPipe } from '../../core/api/pessoas-da-familia';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Fofocoins e premios.
@@ -18,7 +20,7 @@ import { PessoaPipe } from '../../core/api/pessoas-da-familia';
  */
 @Component({
   selector: 'app-rewards',
-  imports: [Focar, Icone, FormsModule, PessoaPipe],
+  imports: [Focar, Icone, FormsModule, PessoaPipe, Carregando, Vazio],
   templateUrl: './rewards.html',
   styleUrl: './rewards.scss',
 })

@@ -1,0 +1,42 @@
+<main class="tela-de-erro">
+  <section class="caixa">
+    <app-porquinho [humor]="humor()" [tamanho]="200" />
+
+    @switch (caso()) {
+      @case ('nao-encontrada') {
+        <p class="codigo" aria-hidden="true">404</p>
+        <h1 i18n>Essa página fugiu do cofrinho</h1>
+        <p i18n class="subtitulo">
+          O endereço pode ter mudado ou sido digitado com algum errinho. Seus dados continuam
+          guardados direitinho.
+        </p>
+        <div class="acoes">
+          <a i18n routerLink="/painel" class="botao">Ir para o início</a>
+          <button i18n type="button" class="botao contorno" (click)="voltar()">Voltar</button>
+        </div>
+      }
+      @case ('sem-conexao') {
+        <h1 i18n>Você está sem internet</h1>
+        <p i18n class="subtitulo">
+          Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo.
+        </p>
+        <div class="acoes">
+          <button i18n type="button" class="botao" (click)="tentarDeNovo()">Tentar de novo</button>
+          <a i18n routerLink="/painel" class="botao contorno">Ir para o início</a>
+        </div>
+      }
+      @default {
+        <p class="codigo" aria-hidden="true">500</p>
+        <h1 i18n>O Piggu tropeçou</h1>
+        <p i18n class="subtitulo">
+          Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu;
+          tente de novo em instantes.
+        </p>
+        <div class="acoes">
+          <button i18n type="button" class="botao" (click)="tentarDeNovo()">Tentar de novo</button>
+          <a i18n routerLink="/painel" class="botao contorno">Ir para o início</a>
+        </div>
+      }
+    }
+  </section>
+</main>

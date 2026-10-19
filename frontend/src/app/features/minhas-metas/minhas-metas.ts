@@ -6,6 +6,7 @@ import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { AnelDasMetas } from './anel-das-metas';
+import { Carregando } from '../../core/ui/carregando';
 
 /** Quanto do mes ja foi cumprido: metas concluidas sobre o total, de 0 a 100. */
 export function percentualConcluido(metas: readonly MetaDoMes[]): number {
@@ -33,7 +34,7 @@ export function textoParaCompartilhar(metas: readonly MetaDoMes[], rotuloDoMes: 
  */
 @Component({
   selector: 'app-minhas-metas',
-  imports: [FormsModule, Icone, AnelDasMetas],
+  imports: [FormsModule, Icone, AnelDasMetas, Carregando],
   templateUrl: './minhas-metas.html',
   styleUrl: './minhas-metas.scss',
 })

@@ -10,7 +10,7 @@
 }
 
 @if (carregando()) {
-  <p i18n class="carregando">Carregando...</p>
+  <app-carregando formato="cartoes" [linhas]="2" />
 } @else {
   <section class="cartao orbita" aria-labelledby="titulo-orbita">
     <app-anel-das-metas [percentual]="percentual()" />

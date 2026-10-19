@@ -1,8 +1,21 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  isDevMode,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideServiceWorker } from '@angular/service-worker';
 import { Capacitor } from '@capacitor/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import {
+  NavigationError,
+  RedirectCommand,
+  Router,
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withNavigationErrorHandler,
+} from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 import { routes } from './app.routes';
@@ -21,6 +34,16 @@ export const appConfig: ApplicationConfig = {
       // "Personalizar o Painel" leva direto ao cartao no Perfil. Tela nova abre no topo;
       // o voltar devolve a pessoa onde ela estava.
       withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }),
+      // Tela que nao abriu (arquivo dela nao chegou ou erro ao montar): mostra a 500 sem
+      // trocar o endereco, e guarda o destino para o "Tentar de novo".
+      withNavigationErrorHandler((falha: NavigationError) => {
+        console.error(falha.error);
+        const router = inject(Router);
+        return new RedirectCommand(router.parseUrl('/erro'), {
+          skipLocationChange: true,
+          state: { destino: falha.url },
+        });
+      }),
     ),
     // Na demo (build "demo"), a API falsa responde antes de qualquer chamada sair.
     provideHttpClient(withInterceptors([...INTERCEPTORES_DA_DEMO, authInterceptor])),

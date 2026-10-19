@@ -111,7 +111,7 @@
   </div>
 
   @if (carregando()) {
-    <p i18n class="carregando">Carregando...</p>
+    <app-carregando [linhas]="4" />
   } @else if (pendentes().length) {
     @for (item of pendentes(); track item.id) {
       <div class="linha">
@@ -141,10 +141,12 @@
       </div>
     }
   } @else {
-    <p i18n class="vazio">Lista vazia.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="novoItem">Adicionar item</button>
-    </p>
+    <app-vazio icone="carrinho" i18n-titulo titulo="Lista vazia">
+      <p i18n>Anote o que falta em casa e marque conforme for comprando.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="novoItem">Adicionar item</button>
+      </p>
+    </app-vazio>
   }
 </section>
 
