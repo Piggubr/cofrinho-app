@@ -139,6 +139,18 @@ export class AuthService {
     }
   }
 
+  /** Pede o link de senha nova; o backend responde igual com ou sem conta. */
+  async esqueciSenha(email: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/senha/esqueci`, { email }));
+  }
+
+  /** Senha nova pelo link do e-mail; nao abre sessao, a pessoa entra com a senha nova. */
+  async redefinirSenha(token: string, novaSenha: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/senha/redefinir`, { token, novaSenha }),
+    );
+  }
+
   /** Manda outro link de confirmacao; o anterior deixa de valer. */
   async reenviarConfirmacao(): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/me/email/reenviar`, {}));

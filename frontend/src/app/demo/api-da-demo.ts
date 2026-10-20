@@ -572,6 +572,7 @@ const ROTAS: Rota[] = [
     return estado.titular;
   }],
   ['POST', /^\/auth\/logout$/, () => undefined],
+  ['POST', /^\/auth\/senha\/(esqueci|redefinir)$/, () => undefined],
   ['GET', /^\/auth\/me$/, () => estado.titular],
   ['PUT', /^\/auth\/me\/preferences$/, (_p, _x, c) => {
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };

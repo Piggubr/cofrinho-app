@@ -15,6 +15,19 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4300',
     trace: 'retain-on-failure',
+    // Cookies ja escolhidos, para o banner nao cobrir as abas; o proprio banner tem
+    // teste em e2e/cookies.spec.ts. A versao e a de VERSAO_DOS_COOKIES.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: 'http://localhost:4300',
+          localStorage: [
+            { name: 'piggu.cookies', value: '{"versao":"2026-10-19","analise":false,"em":"2026-10-19"}' },
+          ],
+        },
+      ],
+    },
   },
   projects: [
     { name: 'celular', use: { ...devices['Pixel 7'] } },

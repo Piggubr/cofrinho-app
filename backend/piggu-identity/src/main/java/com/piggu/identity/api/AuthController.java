@@ -15,6 +15,7 @@ import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
 import com.piggu.identity.domain.ConfirmacaoDeEmail;
 import com.piggu.identity.domain.DocumentosDeIdentidade;
+import com.piggu.identity.domain.RedefinicaoDeSenha;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -52,13 +53,15 @@ public class AuthController {
 
     private final AuthService servico;
     private final ConfirmacaoDeEmail confirmacao;
+    private final RedefinicaoDeSenha redefinicao;
     private final Duration validadeDaSessao;
     private final LimiteDeRequisicoes.Limites limites;
 
-    public AuthController(AuthService servico, ConfirmacaoDeEmail confirmacao, JwtProperties jwt,
-                          LimiteDeRequisicoes.Limites limites) {
+    public AuthController(AuthService servico, ConfirmacaoDeEmail confirmacao, RedefinicaoDeSenha redefinicao,
+                          JwtProperties jwt, LimiteDeRequisicoes.Limites limites) {
         this.servico = servico;
         this.confirmacao = confirmacao;
+        this.redefinicao = redefinicao;
         this.validadeDaSessao = jwt.refreshTtl();
         this.limites = limites;
     }
@@ -98,6 +101,27 @@ public class AuthController {
     @PostMapping("/me/email/reenviar")
     public ResponseEntity<Void> reenviarConfirmacao(@AuthUser CurrentUser usuario) {
         confirmacao.reenviar(usuario.id());
+        return ResponseEntity.noContent().build();
+    }
+
+    public record EsqueciSenhaRequest(@NotBlank(message = "Informe seu e-mail.") @Size(max = 320) String email) {
+    }
+
+    /** Aberto, e responde 202 com ou sem conta: quem esqueceu a senha nao tem sessao. */
+    @PostMapping("/senha/esqueci")
+    public ResponseEntity<Void> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequest pedido) {
+        redefinicao.pedir(pedido.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    public record RedefinirSenhaRequest(@NotBlank @Size(max = 100) String token,
+                                        @NotBlank(message = "Informe a nova senha.") @Size(max = 200, message = "Senha longa demais.") String novaSenha) {
+    }
+
+    /** Senha nova pelo link do e-mail; sem sessao nova: a pessoa entra com a senha que criou. */
+    @PostMapping("/senha/redefinir")
+    public ResponseEntity<Void> redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest pedido) {
+        redefinicao.redefinir(pedido.token(), pedido.novaSenha());
         return ResponseEntity.noContent().build();
     }
 

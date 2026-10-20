@@ -31,6 +31,15 @@ export const routes: Routes = [
     path: 'confirmar-email',
     loadComponent: () => import('./features/confirmar-email/confirmar-email').then((m) => m.ConfirmarEmail),
   },
+  // Abertas: quem esqueceu a senha esta sem sessao, e o link pode abrir em outro aparelho.
+  {
+    path: 'esqueci-senha',
+    loadComponent: () => import('./features/redefinir-senha/esqueci-senha').then((m) => m.EsqueciSenha),
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () => import('./features/redefinir-senha/redefinir-senha').then((m) => m.RedefinirSenha),
+  },
   {
     path: 'aceite',
     canActivate: [autenticadoGuard],
