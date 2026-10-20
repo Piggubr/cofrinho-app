@@ -16,8 +16,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 
 ## O que o app faz
 
-- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR e MEMBRO,
-  com os dados de cada família isolados no banco.
+- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR, PARCEIRO e
+  MEMBRO, com os dados de cada família isolados no banco.
 - **Dinheiro:** gastos (inclusive em outra moeda e divididos na família), receitas,
   contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
   metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
@@ -89,8 +89,8 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # mais de 400 testes e o piso de cobertura (precisa de Docker)
-cd frontend && npm test     # 298 testes
+cd backend && mvn verify    # testes e o piso de cobertura (precisa de Docker)
+cd frontend && npm test     # testes unitários, sem backend
 cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
 bash scripts/smoke.sh         # smoke e regressão com a stack inteira no Docker (precisa de Docker)
@@ -120,3 +120,9 @@ O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste nov
 piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
 propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
 (JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).
+
+## Branches
+
+Todo trabalho sai da `develop` e volta para ela por PR; a `main` é produção e só recebe
+PR da `develop` (ou de `hotfix/...`). O merge na `main` com CI verde publica no servidor.
+O fluxo completo e as regras estão em [`docs/branches.md`](docs/branches.md).

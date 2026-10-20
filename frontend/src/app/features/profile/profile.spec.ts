@@ -127,6 +127,7 @@ describe('Profile', () => {
     const pagina: HTMLElement = tela.nativeElement;
     const opcoes = [...pagina.querySelectorAll<HTMLButtonElement>('.temas [role="radio"]')];
     expect(opcoes.map((b) => b.querySelector('strong')?.textContent)).toEqual([
+      'Chiclete',
       'Rosa Piggu',
       'Menta',
       'Azul',
@@ -135,20 +136,24 @@ describe('Profile', () => {
       'Mel',
       'Vinho',
       'Grafite',
+      'Tangerina',
+      'Elétrico',
+      'Turquesa',
+      'Cobalto',
     ]);
     expect(opcoes[0].getAttribute('aria-checked')).toBe('true');
 
-    opcoes[1].click();
+    opcoes[2].click();
     tela.detectChanges();
 
-    expect(opcoes[1].getAttribute('aria-checked')).toBe('true');
+    expect(opcoes[2].getAttribute('aria-checked')).toBe('true');
     expect(opcoes[0].getAttribute('aria-checked')).toBe('false');
     expect(document.documentElement.dataset['tema']).toBe('menta');
     expect(localStorage.getItem('piggu_tema')).toBe('menta');
 
     opcoes[0].click();
     expect(document.documentElement.dataset['tema']).toBeUndefined();
-    expect(localStorage.getItem('piggu_tema')).toBe('rosa');
+    expect(localStorage.getItem('piggu_tema')).toBe('chiclete');
     localStorage.removeItem('piggu_tema');
   });
 
