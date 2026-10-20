@@ -12,14 +12,14 @@ test.describe('no celular', () => {
     await expect(abas.locator('.aba')).toHaveText([
       'Painel',
       'Gastos',
+      'Receitas',
       'Relatórios',
-      'Planejar',
       'Mais',
     ]);
     await abas.getByRole('link', { name: 'Relatórios' }).click();
     await expect(page).toHaveURL(/\/relatorios$/);
-    await abas.getByRole('link', { name: 'Planejar' }).click();
-    await expect(page).toHaveURL(/\/planejar$/);
+    await abas.getByRole('link', { name: 'Receitas' }).click();
+    await expect(page).toHaveURL(/\/receitas$/);
   });
 
 
@@ -38,9 +38,9 @@ test.describe('no celular', () => {
     await expect(menu.locator('.menu-grupo-titulo').first()).toBeHidden();
     const rola = await menu.evaluate((nav) => nav.scrollHeight > nav.clientHeight);
     expect(rola).toBe(false);
-    await menu.getByRole('link', { name: 'Receitas' }).click();
+    await menu.getByRole('link', { name: 'Planejar' }).click();
 
-    await expect(page).toHaveURL(/\/receitas$/);
+    await expect(page).toHaveURL(/\/planejar$/);
     await expect(menu).not.toHaveClass(/aberto/);
   });
 
