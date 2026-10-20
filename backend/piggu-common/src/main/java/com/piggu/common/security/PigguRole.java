@@ -10,7 +10,7 @@ import java.util.Locale;
  *   <li>{@link #TITULAR} — dono da familia: convida membros, assina o Premium e gerencia tudo dela.</li>
  *   <li>{@link #PARCEIRO} — promovido pelo titular; lanca e edita os dados da familia como ele,
  *       mas nao mexe no plano, nos convites nem tira pessoas.</li>
- *   <li>{@link #MEMBRO} — convidado; so consulta o painel e deposita no cofrinho.</li>
+ *   <li>{@link #MEMBRO} — convidado; usa todas as telas, cada um com os proprios dados.</li>
  * </ul>
  */
 public enum PigguRole {

@@ -16,8 +16,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 
 ## O que o app faz
 
-- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR e MEMBRO,
-  com os dados de cada família isolados no banco.
+- **Família:** cadastro aberto, convite por e-mail e papéis ADMIN, TITULAR, PARCEIRO e
+  MEMBRO, com os dados de cada família isolados no banco.
 - **Dinheiro:** gastos (inclusive em outra moeda e divididos na família), receitas,
   contas fixas com lançamento automático, contas e cartões com fatura e parcelamento,
   metas, orçamento por categoria com alerta em 80% e 100%, regras de categoria,
@@ -85,15 +85,40 @@ e [`frontend/`](frontend/README.md).
 ## Testes
 
 ```bash
-cd backend && mvn verify    # mais de 400 testes e o piso de cobertura (precisa de Docker)
-cd frontend && npm test     # 298 testes
+cd backend && mvn verify    # testes e o piso de cobertura (precisa de Docker)
+cd frontend && npm test     # testes unitários, sem backend
 cd frontend && npx ng test --watch=false --coverage   # com cobertura, em frontend/coverage/
 cd frontend && npm run e2e    # ponta a ponta no navegador (Playwright), contra a demo
+bash scripts/smoke.sh         # smoke e regressão com a stack inteira no Docker (precisa de Docker)
+bash scripts/conferir-acentos.sh   # nenhum texto com acento quebrado (UTF-8 lido como Latin-1)
 bash scripts/procurar-segredos.sh   # segredos no código e no histórico (gitleaks)
 bash backend/scripts/teste-do-backup.sh   # backup e restauração num Postgres descartável
 ```
+
+O `scripts/smoke.sh` sobe o backend como vai para o servidor (imagens do Dockerfile,
+Postgres novo com as migrações) num projeto do Compose separado (`piggu-smoke`, sem mexer
+no banco de desenvolvimento) e roda `frontend/stack/`:
+
+- **Smoke** (`npm run smoke`): cada serviço no ar e pedindo login, cadastro, confirmação do
+  e-mail pelo link, entrada, sessão renovada pelo cookie e encerrada ao sair, troca de senha,
+  um gasto lançado e listado, e o mesmo caminho pela tela até o painel. O "esqueci minha
+  senha" está marcado como pendente: o fluxo ainda não existe.
+- **Regressão** (`npm run regressao`): um teste por problema que já aconteceu, com a data
+  (o 401 no login de 14/10, o cumprimento pelo e-mail de 16/10, o client do Google, a
+  versão dos Termos, enumeração de contas, cookie do refresh, CORS e rotas internas).
+  Corrigiu um bug que a stack pega? Um teste lá, com a data e o que quebrou.
+
+Sem e-mail configurado, o identity escreve no log o link que mandaria; os testes leem dali.
+Com a stack já de pé (`PIGGU_MANTER_STACK=1 bash scripts/smoke.sh`), `npm run smoke` e
+`npm run regressao` rodam de novo sem subir nada.
 
 O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste novo,
 piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
 propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
 (JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).
+
+## Branches
+
+Todo trabalho sai da `develop` e volta para ela por PR; a `main` é produção e só recebe
+PR da `develop` (ou de `hotfix/...`). O merge na `main` com CI verde publica no servidor.
+O fluxo completo e as regras estão em [`docs/branches.md`](docs/branches.md).

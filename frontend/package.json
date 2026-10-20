@@ -10,7 +10,9 @@
     "i18n": "ng extract-i18n --output-path src/locale",
     "start:demo": "ng serve --configuration demo --host 0.0.0.0",
     "build:demo": "ng build --configuration demo",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "smoke": "playwright test -c playwright.stack.config.ts --grep @smoke",
+    "regressao": "playwright test -c playwright.stack.config.ts --grep @regressao"
   },
   "private": true,
   "packageManager": "npm@11.13.0",
