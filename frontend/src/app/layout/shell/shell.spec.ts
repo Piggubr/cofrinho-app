@@ -47,7 +47,7 @@ describe('Shell', () => {
     return tela;
   }
 
-  it('consulta o par escolhido e mostra a taxa na moeda de conversao', () => {
+  it('consulta o par escolhido e mostra 1 da moeda mais forte na mais fraca', () => {
     auth.preferir({ moeda: 'USD', moedaConversao: 'BRL' });
     const tela = abrir();
 
@@ -66,9 +66,39 @@ describe('Shell', () => {
     tela.detectChanges();
 
     const texto = tela.nativeElement.querySelector('.cotacao').textContent;
-    expect(texto).toContain('USD →');
+    expect(texto).toContain('1 USD =');
     expect(texto).toContain('R$');
     expect(texto).toContain('5,40');
+  });
+
+  it('com a mais fraca primeiro, inverte: 1 USD = R$ 5,00 e nao BRL → US$ 0,20', () => {
+    auth.preferir({ moeda: 'BRL', moedaCotacao: 'BRL', moedaConversao: 'USD' });
+    const tela = abrir();
+
+    http.expectOne((req) => req.url === '/api/exchange-rate').flush({
+      de: 'BRL',
+      para: 'USD',
+      taxa: 0.2,
+      data: '',
+      fonte: '',
+      estimativa: true,
+      desatualizada: false,
+    });
+    tela.detectChanges();
+
+    const texto: string = tela.nativeElement.querySelector('.cotacao').textContent;
+    expect(texto).toContain('1 USD =');
+    expect(texto).toContain('R$');
+    expect(texto).toContain('5,00');
+  });
+
+  it('o par da cotacao nao depende da moeda do app', () => {
+    auth.preferir({ moeda: 'JPY', moedaCotacao: 'EUR', moedaConversao: 'BRL' });
+    abrir();
+
+    const pedido = http.expectOne((req) => req.url === '/api/exchange-rate');
+    expect(pedido.request.params.get('de')).toBe('EUR');
+    expect(pedido.request.params.get('para')).toBe('BRL');
   });
 
   it('com a cotacao desligada nao pede nada e nao mostra nada', () => {

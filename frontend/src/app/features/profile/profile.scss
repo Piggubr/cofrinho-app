@@ -223,14 +223,42 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.6rem;
-    padding: 0.25rem 0;
+    gap: 0.4rem;
+    padding: 0.25rem 0.3rem 0.25rem 0;
     border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    user-select: none;
+    -webkit-user-select: none;
+    transition:
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
   }
 
   li:last-child {
     border-bottom: 0;
   }
+
+  /* No mouse a linha toda arrasta. */
+  @media (pointer: fine) {
+    li {
+      cursor: grab;
+    }
+  }
+
+  /* O bloco que esta andando fica levantado sobre os outros. */
+  li.arrastando {
+    position: relative;
+    z-index: 1;
+    cursor: grabbing;
+    border-radius: 12px;
+    border-bottom-color: transparent;
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-float);
+  }
+}
+
+.par-da-cotacao {
+  margin-top: 0.4rem;
 }
 
 .nome-do-bloco {
@@ -238,9 +266,30 @@
   min-width: 0;
 }
 
-.setas {
-  display: flex;
-  gap: 0.15rem;
+/* Pontilhado de segurar: sem rolar a tela quando o dedo comeca nele. */
+.alca {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--primaria);
+    outline-offset: 1px;
+  }
+
+  .arrastando & {
+    cursor: grabbing;
+    color: var(--ink);
+  }
 }
 
 /* "Personalizar o Painel" pula para ca: a margem deixa o titulo fora da barra fixa. */

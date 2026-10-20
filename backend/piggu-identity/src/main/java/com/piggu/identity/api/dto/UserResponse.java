@@ -66,14 +66,14 @@ public record UserResponse(
     }
 
     /**
-     * Moeda dos valores, moeda da cotacao, se a cotacao aparece no topo, fuso, idioma e os
-     * modulos de estilo de vida ligados no menu.
+     * Moeda dos valores, as duas moedas da cotacao (separadas da moeda dos valores), se a
+     * cotacao aparece no topo, fuso, idioma e os modulos de estilo de vida ligados no menu.
      */
-    public record Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao, String fuso,
-                               String idioma, List<String> modulos) {
+    public record Preferencias(String moeda, String moedaCotacao, String moedaConversao, boolean mostrarCotacao,
+                               String fuso, String idioma, List<String> modulos) {
 
         public Preferencias(String moeda, String moedaConversao, boolean mostrarCotacao) {
-            this(moeda, moedaConversao, mostrarCotacao, null, null, ModulosDeEstiloDeVida.TODOS);
+            this(moeda, moeda, moedaConversao, mostrarCotacao, null, null, ModulosDeEstiloDeVida.TODOS);
         }
     }
 
@@ -89,7 +89,8 @@ public record UserResponse(
                 conta.getRole(),
                 conta.isActive(),
                 conta.getPermissions(),
-                new Preferencias(conta.getCurrency(), conta.getConversionCurrency(), conta.isShowExchangeRate(),
+                new Preferencias(conta.getCurrency(), conta.getQuoteCurrency(), conta.getConversionCurrency(),
+                        conta.isShowExchangeRate(),
                         conta.getTimezone(), conta.getLocale(), conta.getModulos()),
                 familia.planoPara(conta.getId()),
                 familia.planoPara(conta.getId()) == Plano.PREMIUM ? familia.getPremiumUntil() : null,

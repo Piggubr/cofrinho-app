@@ -356,9 +356,10 @@ public class AuthService {
     public UserResponse salvarPreferencias(java.util.UUID usuarioId, PreferencesRequest pedido) {
         String moeda = Moedas.validar(pedido.moeda());
         String conversao = Moedas.validar(pedido.moedaConversao());
+        String cotacao = pedido.moedaCotacao() == null ? null : Moedas.validar(pedido.moedaCotacao());
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
-        conta.alterarPreferencias(moeda, conversao, pedido.mostrarCotacao(), fusoValido(pedido.fuso()));
+        conta.alterarPreferencias(moeda, cotacao, conversao, pedido.mostrarCotacao(), fusoValido(pedido.fuso()));
         return UserResponse.de(conta, familias.daConta(conta));
     }
 

@@ -115,28 +115,23 @@
     <h2 i18n id="titulo-moeda">Moeda</h2>
   </div>
 
-  <div class="linha-de-campos">
-    <div class="campo">
-      <label i18n for="moeda">Mostrar valores em</label>
-      <select id="moeda" [ngModel]="moeda()" (ngModelChange)="moeda.set($event)">
-        @for (opcao of moedas(); track opcao.codigo) {
-          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
-        }
-      </select>
-    </div>
-    <div class="campo">
-      <label i18n for="moedaConversao">Converter cotação para</label>
-      <select
-        id="moedaConversao"
-        [ngModel]="moedaConversao()"
-        (ngModelChange)="moedaConversao.set($event)"
-      >
-        @for (opcao of moedas(); track opcao.codigo) {
-          <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
-        }
-      </select>
-    </div>
+  <!-- Cada escolha ja salva, como nos Avisos. -->
+  <div class="campo">
+    <label i18n for="moeda">Moeda do app</label>
+    <select
+      id="moeda"
+      [ngModel]="moeda()"
+      [disabled]="salvandoPreferencias() || !moedas().length"
+      (ngModelChange)="moeda.set($event); salvarPreferencias()"
+    >
+      @for (opcao of moedas(); track opcao.codigo) {
+        <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+      }
+    </select>
   </div>
+  <p i18n class="linha-detalhe">
+    É a moeda em que os valores aparecem; os valores já lançados não são convertidos.
+  </p>
 
   <label class="caixa linha-chave">
     <span i18n>Mostrar a cotação no topo do app</span>
@@ -144,28 +139,45 @@
       type="checkbox"
       class="chave"
       [ngModel]="mostrarCotacao()"
-      (ngModelChange)="mostrarCotacao.set($event)"
+      [disabled]="salvandoPreferencias() || !moedas().length"
+      (ngModelChange)="mostrarCotacao.set($event); salvarPreferencias()"
     />
   </label>
-  <p i18n class="linha-detalhe">
-    Trocar a moeda muda só como os valores aparecem; os valores já lançados não são convertidos.
-  </p>
 
-  <div class="acoes">
-    <button
-      i18n
-      type="button"
-      class="botao"
-      (click)="salvarPreferencias()"
-      [disabled]="salvandoPreferencias() || !moedas().length"
-    >
-      @if (salvandoPreferencias()) {
-        Salvando...
-      } @else {
-        Salvar preferências
-      }
-    </button>
-  </div>
+  @if (mostrarCotacao()) {
+    <div class="linha-de-campos par-da-cotacao">
+      <div class="campo">
+        <label i18n for="moedaCotacao">Cotação entre</label>
+        <select
+          id="moedaCotacao"
+          [ngModel]="moedaCotacao()"
+          [disabled]="salvandoPreferencias() || !moedas().length"
+          (ngModelChange)="moedaCotacao.set($event); salvarPreferencias()"
+        >
+          @for (opcao of moedas(); track opcao.codigo) {
+            <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label i18n for="moedaConversao">e</label>
+        <select
+          id="moedaConversao"
+          [ngModel]="moedaConversao()"
+          [disabled]="salvandoPreferencias() || !moedas().length"
+          (ngModelChange)="moedaConversao.set($event); salvarPreferencias()"
+        >
+          @for (opcao of moedas(); track opcao.codigo) {
+            <option [value]="opcao.codigo">{{ opcao.codigo }} · {{ opcao.nome }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <p i18n class="linha-detalhe">
+      A cotação mostra quanto vale 1 da moeda mais forte na outra, como 1 USD = R$ 5,00. Ela não
+      muda com a moeda do app.
+    </p>
+  }
 </section>
 
 <section class="cartao" aria-labelledby="titulo-avisos">
@@ -206,32 +218,27 @@
     <h2 i18n id="titulo-painel">Organizar o Painel</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Ligue os blocos que quer ver na tela inicial e escolha a ordem. Vale para este aparelho.
+    Ligue os blocos que quer ver na tela inicial e arraste pelo pontilhado para mudar a ordem.
+    Vale para este aparelho.
   </p>
-  <ol class="ordem-do-painel">
-    @for (bloco of blocosDoPainel(); track bloco.id; let primeiro = $first, ultimo = $last) {
-      <li>
+  <ol class="ordem-do-painel" #listaDoPainel>
+    @for (bloco of blocosDoPainel(); track bloco.id) {
+      <!-- O mouse arrasta pela linha toda; o dedo pelo pontilhado, para o resto rolar a tela. -->
+      <li
+        [attr.data-bloco]="bloco.id"
+        [class.arrastando]="arrastando() === bloco.id"
+        (pointerdown)="comecarArrastar($event, bloco.id)"
+      >
+        <button
+          type="button"
+          class="alca"
+          (keydown.arrowup)="moverPeloTeclado($event, bloco.id, -1)"
+          (keydown.arrowdown)="moverPeloTeclado($event, bloco.id, 1)"
+          [attr.aria-label]="'Mudar a ordem de ' + bloco.nome + ' com as setas para cima e para baixo'"
+        >
+          <app-icone nome="arrastar" [tamanho]="18" />
+        </button>
         <span class="nome-do-bloco">{{ bloco.nome }}</span>
-        <div class="setas">
-          <button
-            type="button"
-            class="botao icone-so fantasma"
-            [disabled]="primeiro"
-            (click)="painel.mover(bloco.id, -1)"
-            [attr.aria-label]="'Subir ' + bloco.nome"
-          >
-            <app-icone nome="subir" [tamanho]="18" />
-          </button>
-          <button
-            type="button"
-            class="botao icone-so fantasma"
-            [disabled]="ultimo"
-            (click)="painel.mover(bloco.id, 1)"
-            [attr.aria-label]="'Descer ' + bloco.nome"
-          >
-            <app-icone nome="descer" [tamanho]="18" />
-          </button>
-        </div>
         <input
           type="checkbox"
           class="chave"

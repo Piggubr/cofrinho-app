@@ -127,6 +127,7 @@ function usuario(id: string, email: string, nome: string, role: Usuario['role'],
     permissoes: {},
     preferencias: {
       moeda: 'BRL',
+      moedaCotacao: 'BRL',
       moedaConversao: 'USD',
       mostrarCotacao: false,
       fuso: 'America/Sao_Paulo',
