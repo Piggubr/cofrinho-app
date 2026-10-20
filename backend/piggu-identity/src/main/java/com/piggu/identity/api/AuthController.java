@@ -3,6 +3,7 @@ package com.piggu.identity.api;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.LimiteDeRequisicoes;
 import com.piggu.identity.api.dto.CadastroRequest;
 import com.piggu.identity.api.dto.DefinirSenhaRequest;
 import com.piggu.identity.api.dto.GoogleLoginRequest;
@@ -15,6 +16,7 @@ import com.piggu.identity.domain.AuthService;
 import com.piggu.identity.domain.ConfirmacaoDeEmail;
 import com.piggu.identity.domain.DocumentosDeIdentidade;
 import com.piggu.identity.domain.RedefinicaoDeSenha;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,13 +55,15 @@ public class AuthController {
     private final ConfirmacaoDeEmail confirmacao;
     private final RedefinicaoDeSenha redefinicao;
     private final Duration validadeDaSessao;
+    private final LimiteDeRequisicoes.Limites limites;
 
     public AuthController(AuthService servico, ConfirmacaoDeEmail confirmacao, RedefinicaoDeSenha redefinicao,
-                          JwtProperties jwt) {
+                          JwtProperties jwt, LimiteDeRequisicoes.Limites limites) {
         this.servico = servico;
         this.confirmacao = confirmacao;
         this.redefinicao = redefinicao;
         this.validadeDaSessao = jwt.refreshTtl();
+        this.limites = limites;
     }
 
     @PostMapping("/google")
@@ -123,9 +127,11 @@ public class AuthController {
 
     @PostMapping("/entrar")
     public ResponseEntity<TokenResponse> entrarComSenha(@Valid @RequestBody SenhaLoginRequest pedido,
-                                                        @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
+                                                        @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
+                                                        HttpServletRequest requisicao) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
-        return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent));
+        String origem = LimiteDeRequisicoes.ipDeOrigem(requisicao, limites);
+        return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent, origem));
     }
 
     @PostMapping("/refresh")

@@ -118,6 +118,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         familias.convidar(como(titular), "caio@familia.test");
         UserAccount parceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         familias.mudarPapel(como(titular), parceiro.getId(), PigguRole.PARCEIRO);
+        familias.aceitarParceria(como(parceiro));
 
         contas.excluir(titular.getId());
 

@@ -72,6 +72,16 @@ public class AssistenteService {
                 Math.max(0, perguntasPorMes - usadas(usuario)));
     }
 
+    /** Grava a autorizacao uma vez por versao do aviso; autorizar de novo nao repete a linha. */
+    @Transactional
+    public Situacao autorizar(CurrentUser usuario, String versaoDoAviso) {
+        usuario.exigirPremium("O assistente de IA");
+        if (!consentimentos.jaAutorizou(usuario, FINALIDADE)) {
+            consentimentos.exigirAgora(usuario, FINALIDADE, "Autorize o envio ao assistente.", true, versaoDoAviso);
+        }
+        return situacao(usuario);
+    }
+
     /**
      * @param moeda codigo da moeda em que a pessoa ve os valores no app
      */

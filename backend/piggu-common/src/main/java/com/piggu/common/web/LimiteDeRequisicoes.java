@@ -136,6 +136,11 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
 
     /** IP de quem chamou, lido da direita do X-Forwarded-For (ver javadoc da classe). */
     String ipDeOrigem(HttpServletRequest pedido) {
+        return ipDeOrigem(pedido, limites);
+    }
+
+    /** O mesmo IP que o limite usa, para quem precisa dele fora do filtro (trava da senha). */
+    public static String ipDeOrigem(HttpServletRequest pedido, Limites limites) {
         String cabecalho = pedido.getHeader("X-Forwarded-For");
         if (cabecalho == null || cabecalho.isBlank()) {
             return pedido.getRemoteAddr();

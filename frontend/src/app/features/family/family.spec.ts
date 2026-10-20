@@ -105,12 +105,12 @@ describe('Family', () => {
     expect(pagina.textContent).toContain('Convite para entrar na Familia Souza');
   });
 
-  it('titular torna o membro parceiro depois de confirmar', () => {
+  it('titular convida o membro para parceiro depois de confirmar', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const pagina = abrir();
 
     [...pagina.querySelectorAll('button')]
-      .find((b) => b.textContent?.trim() === 'Tornar parceiro')!
+      .find((b) => b.textContent?.trim() === 'Convidar para parceiro')!
       .click();
 
     const pedido = http.expectOne('/api/family/members/u2/role');
@@ -118,8 +118,30 @@ describe('Family', () => {
     expect(pedido.request.body).toEqual({ papel: 'PARCEIRO' });
     pedido.flush({
       ...FAMILIA,
-      membros: [FAMILIA.membros[0], { ...FAMILIA.membros[1], papel: 'PARCEIRO' }],
+      membros: [FAMILIA.membros[0], { ...FAMILIA.membros[1], parceriaPendente: true }],
     });
+  });
+
+  it('membro convidado para parceiro aceita e entra de novo, ou recusa', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    auth.usuario.set(usuarioDeTeste({ id: 'u2', role: 'MEMBRO' }));
+    const tela = TestBed.createComponent(Family);
+    tela.detectChanges();
+    http.expectOne('/api/family').flush({
+      ...FAMILIA,
+      membros: [FAMILIA.membros[0], { ...FAMILIA.membros[1], parceriaPendente: true }],
+    });
+    http.expectOne('/api/family/invites/mine').flush([]);
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('O titular convidou você para ser parceiro');
+
+    [...pagina.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Recusar')!.click();
+    const recusa = http.expectOne('/api/family/partnership/decline');
+    expect(recusa.request.method).toBe('POST');
+    recusa.flush(FAMILIA);
+    tela.detectChanges();
+    expect(pagina.textContent).not.toContain('O titular convidou você para ser parceiro');
   });
 
   it('parceiro nao convida, nao remove nem muda papel', () => {
@@ -128,7 +150,7 @@ describe('Family', () => {
 
     expect(pagina.querySelector('#email-convite')).toBeNull();
     expect(pagina.textContent).not.toContain('Remover');
-    expect(pagina.textContent).not.toContain('Tornar parceiro');
+    expect(pagina.textContent).not.toContain('Convidar para parceiro');
     expect(pagina.textContent).toContain('Sair da família');
   });
 
