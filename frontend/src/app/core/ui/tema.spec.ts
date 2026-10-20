@@ -26,7 +26,7 @@ describe('Temas', () => {
     localStorage.setItem('piggu_tema', 'verde-limao');
     aplicarTemaSalvo();
     expect(document.documentElement.dataset['tema']).toBeUndefined();
-    expect(TestBed.inject(Temas).atual().id).toBe('rosa');
+    expect(TestBed.inject(Temas).atual().id).toBe('chiclete');
   });
 
   it('troca a cor da barra do navegador junto com o tema', () => {
@@ -46,18 +46,20 @@ describe('Temas', () => {
     escuro.remove();
   });
 
-  it('sem Premium, so Rosa, Menta e Azul podem ser escolhidas', () => {
+  it('sem Premium, so Chiclete, Rosa, Menta e Azul podem ser escolhidas', () => {
     auth.atualizarUsuario(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     const temas = TestBed.inject(Temas);
 
     expect(temas.escolher('coral')).toBe(false);
-    expect(temas.atual().id).toBe('rosa');
+    expect(temas.escolher('tangerina')).toBe(false);
+    expect(temas.atual().id).toBe('chiclete');
+    expect(temas.escolher('rosa')).toBe(true);
     expect(temas.escolher('azul')).toBe(true);
     expect(temas.escolher('menta')).toBe(true);
     expect(temas.atual().id).toBe('menta');
   });
 
-  it('quando o Premium acaba, a cor do Premium volta para o Rosa e o aviso fica marcado', () => {
+  it('quando o Premium acaba, a cor do Premium volta para o Chiclete e o aviso fica marcado', () => {
     const temas = TestBed.inject(Temas);
     temas.escolher('grafite');
     TestBed.tick();
@@ -66,8 +68,8 @@ describe('Temas', () => {
     auth.atualizarUsuario(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     TestBed.tick();
 
-    expect(temas.atual().id).toBe('rosa');
-    expect(localStorage.getItem('piggu_tema')).toBe('rosa');
+    expect(temas.atual().id).toBe('chiclete');
+    expect(localStorage.getItem('piggu_tema')).toBe('chiclete');
     expect(document.documentElement.dataset['tema']).toBeUndefined();
     expect(voltouAoPadrao()).toBe(true);
   });
