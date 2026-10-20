@@ -199,6 +199,34 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 14
 
+  # O backend inteiro do jeito que vai para o servidor (imagens do Dockerfile, Postgres novo
+  # com as migracoes reais, gateway e JWKS) e o front com o proxy de /api, no navegador.
+  # Smoke: cadastro, e-mail, login, sessao, senha e um gasto. Regressao: o que ja quebrou.
+  stack:
+    name: Smoke e regressao (stack inteira)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Acento quebrado em mensagem (18/10): falha antes de gastar tempo com o build.
+      - run: bash scripts/conferir-acentos.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - run: bash scripts/smoke.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: relatorio-da-stack
+          path: frontend/playwright-report-stack/
+          retention-days: 14
+
   # Atualiza o servidor depois que todos os jobs acima passam num push na main (a
   # branch de producao). Desligado ate a variavel DEPLOY_LIGADO=true existir no
   # repositorio (Settings > Secrets and variables > Actions > Variables); os segredos
@@ -206,7 +234,7 @@ jobs:
   # docs/implantacao-producao.md, secao 8.
   publicar:
     name: Publicar no servidor
-    needs: [segredos, backup, backend, frontend, e2e]
+    needs: [segredos, backup, backend, frontend, e2e, stack]
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&

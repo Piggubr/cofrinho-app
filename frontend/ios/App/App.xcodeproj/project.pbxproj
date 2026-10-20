@@ -318,7 +318,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-azul AppIcon-menta AppIcon-lilas AppIcon-coral AppIcon-mel AppIcon-vinho AppIcon-grafite AppIcon-namorados";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-classico AppIcon-monograma AppIcon-silhueta AppIcon-azul AppIcon-menta AppIcon-lilas AppIcon-coral AppIcon-mel AppIcon-vinho AppIcon-grafite AppIcon-namorados";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -342,7 +342,7 @@
 		504EC3181FED79650016851F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-azul AppIcon-menta AppIcon-lilas AppIcon-coral AppIcon-mel AppIcon-vinho AppIcon-grafite AppIcon-namorados";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-classico AppIcon-monograma AppIcon-silhueta AppIcon-azul AppIcon-menta AppIcon-lilas AppIcon-coral AppIcon-mel AppIcon-vinho AppIcon-grafite AppIcon-namorados";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
