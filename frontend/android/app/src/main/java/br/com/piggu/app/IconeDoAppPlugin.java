@@ -24,7 +24,8 @@ public class IconeDoAppPlugin extends Plugin {
 
     private static final String PADRAO = "padrao";
     private static final List<String> ICONES = Arrays.asList(
-        PADRAO, "azul", "menta", "lilas", "coral", "mel", "vinho", "grafite", "namorados"
+        PADRAO, "classico", "monograma", "silhueta",
+        "azul", "menta", "lilas", "coral", "mel", "vinho", "grafite", "namorados"
     );
 
     @PluginMethod

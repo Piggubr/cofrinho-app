@@ -2,9 +2,17 @@ import { Component, ElementRef, computed, inject, signal, viewChild } from '@ang
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
-import { FalaDoAssistente, SituacaoDoAssistente } from '../../core/api/models';
+import { SituacaoDoAssistente } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { VERSAO_DO_AVISO, pedeConsentimento } from '../../core/privacidade/aviso';
+import {
+  DIAS_GUARDADA,
+  FalaGuardada,
+  esquecerConversa,
+  guardarConversa,
+  lerConversa,
+  podarConversa,
+} from '../../core/privacidade/conversa-do-assistente';
 import { toqueNaTela } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -33,15 +41,14 @@ const SUGESTOES = [
   'Quanto falta para meus objetivos?',
 ];
 
-interface FalaNaTela extends FalaDoAssistente {
-  readonly tela?: string | null;
-}
+/** Falas que vao como contexto para a IA. Igual a AssistenteService.FALAS_NO_CONTEXTO. */
+const FALAS_NO_CONTEXTO = 10;
 
 /**
  * Assistente de IA (Premium): perguntas sobre o dinheiro da familia, so leitura.
  *
- * <p>A conversa fica so na memoria desta aba: o servidor nao guarda, e nada vai para o
- * armazenamento do aparelho. No primeiro uso a pessoa autoriza o envio ao Gemini; a
+ * <p>A conversa fica so neste aparelho, por {@link DIAS_GUARDADA} dias, e sai ao sair da
+ * conta: o servidor nao guarda. No primeiro uso a pessoa autoriza o envio ao Gemini; a
  * autorizacao e gravada no toque e vale ate o aviso de privacidade mudar. Se a gravacao
  * falhar, ela segue na primeira pergunta, como na leitura de nota pela IA.</p>
  */
@@ -73,7 +80,14 @@ interface FalaNaTela extends FalaDoAssistente {
           <img class="avatar grande" src="ilustracoes/piggu-assistente.svg" alt="" />
           <h2 i18n id="titulo-assistente">Assistente</h2>
           @if (falas().length) {
-            <button i18n type="button" class="botao fantasma pequeno" (click)="recomecar()">
+            <button
+              i18n
+              type="button"
+              class="botao fantasma pequeno"
+              (click)="recomecar()"
+              title="Apaga a conversa deste aparelho"
+              i18n-title
+            >
               Nova conversa
             </button>
           }
@@ -102,7 +116,8 @@ interface FalaNaTela extends FalaDoAssistente {
           <div class="consentimento">
             <p i18n>
               Para responder, o assistente envia ao Google (Gemini) só o que a pergunta pede: totais
-              e gastos do período, sem nome nem e-mail. A conversa não fica guardada no Piggu.
+              e gastos do período, sem nome nem e-mail. A conversa não fica guardada no Piggu: fica só
+              neste aparelho por {{ diasGuardada }} dias e sai quando você sai da conta.
             </p>
             <p i18n class="linha-detalhe">
               A IA pode errar e não faz recomendação de investimento. Detalhes no
@@ -325,7 +340,10 @@ export class Assistente {
   protected readonly situacao = signal<SituacaoDoAssistente | null>(null);
   /** A pessoa acabou de autorizar: a proxima pergunta leva a autorizacao. */
   private readonly autorizandoAgora = signal(false);
-  protected readonly falas = signal<FalaNaTela[]>([]);
+  protected readonly diasGuardada = DIAS_GUARDADA;
+  protected readonly falas = signal<FalaGuardada[]>([]);
+  /** De quem sao as falas na tela: trocou a pessoa, le a conversa dela do aparelho. */
+  private donoDasFalas: string | null = null;
   protected readonly texto = signal('');
   protected readonly pensando = signal(false);
   protected readonly erro = signal('');
@@ -336,6 +354,7 @@ export class Assistente {
 
   constructor() {
     travarRolagemEnquanto(this.aberto);
+    podarConversa();
   }
 
   protected nomeDaTela(rota: string): string | null {
@@ -345,6 +364,12 @@ export class Assistente {
   protected abrir(): void {
     this.aberto.set(true);
     this.erro.set('');
+    const usuario = this.auth.usuario()?.id ?? null;
+    if (usuario !== this.donoDasFalas) {
+      this.donoDasFalas = usuario;
+      this.falas.set(usuario ? lerConversa(usuario) : []);
+      this.rolar();
+    }
     if (this.auth.ehPremium() && !this.situacao()) {
       this.carregando.set(true);
       this.finance.situacaoDoAssistente().subscribe({
@@ -369,6 +394,7 @@ export class Assistente {
 
   protected recomecar(): void {
     this.falas.set([]);
+    esquecerConversa();
     this.erro.set('');
     this.focar();
   }
@@ -391,9 +417,11 @@ export class Assistente {
     if (!pergunta || this.pensando()) {
       return;
     }
-    const historico = this.falas().map(({ pessoa, texto }) => ({ pessoa, texto }));
+    const historico = this.falas()
+      .slice(-FALAS_NO_CONTEXTO)
+      .map(({ pessoa, texto }) => ({ pessoa, texto }));
     const autorizo = this.autorizandoAgora();
-    this.falas.update((falas) => [...falas, { pessoa: true, texto: pergunta }]);
+    this.mudarFalas((falas) => [...falas, { pessoa: true, texto: pergunta, em: agora() }]);
     this.texto.set('');
     this.erro.set('');
     this.pensando.set(true);
@@ -407,9 +435,9 @@ export class Assistente {
       })
       .subscribe({
         next: (resposta) => {
-          this.falas.update((falas) => [
+          this.mudarFalas((falas) => [
             ...falas,
-            { pessoa: false, texto: resposta.texto, tela: resposta.tela },
+            { pessoa: false, texto: resposta.texto, tela: resposta.tela, em: agora() },
           ]);
           this.situacao.update(
             (s) => s && { ...s, autorizado: true, restantes: resposta.restantes },
@@ -420,7 +448,7 @@ export class Assistente {
         },
         error: (falha) => {
           // A pergunta volta para o campo, para nao ter de digitar de novo.
-          this.falas.update((falas) => falas.slice(0, -1));
+          this.mudarFalas((falas) => falas.slice(0, -1));
           this.texto.set(pergunta);
           this.pensando.set(false);
           if (pedeConsentimento(falha)) {
@@ -431,6 +459,14 @@ export class Assistente {
           this.erro.set(mensagemDeErro(falha));
         },
       });
+  }
+
+  /** Muda a conversa na tela e a guarda no aparelho, em nome de quem conversa. */
+  private mudarFalas(mudanca: (falas: FalaGuardada[]) => FalaGuardada[]): void {
+    this.falas.update(mudanca);
+    if (this.donoDasFalas) {
+      guardarConversa(this.donoDasFalas, this.falas());
+    }
   }
 
   /** No toque o cursor nao vai sozinho para o campo: subiria o teclado de surpresa. */
@@ -447,4 +483,8 @@ export class Assistente {
       conversa?.scrollTo?.({ top: conversa.scrollHeight });
     });
   }
+}
+
+function agora(): string {
+  return new Date().toISOString();
 }
