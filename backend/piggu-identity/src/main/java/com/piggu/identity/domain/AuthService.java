@@ -22,8 +22,10 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -38,12 +40,30 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
-    /** Senhas erradas seguidas antes de travar a entrada por senha da conta. */
+    /**
+     * Senhas erradas seguidas, de um mesmo IP, antes de travar a entrada por senha da conta
+     * para esse IP. Quem erra de um lugar nao tranca a dona, que entra de outro.
+     */
     static final int TENTATIVAS_DE_SENHA = 5;
+    /**
+     * Senhas erradas seguidas, de qualquer lugar, antes de travar a conta para todos: segura
+     * quem tenta adivinhar de muitos IPs. Alto o bastante para nao virar jeito de trancar alguem.
+     */
+    static final int TENTATIVAS_DA_CONTA = 50;
     static final Duration TRAVA_DA_SENHA = Duration.ofMinutes(15);
+    private static final int ORIGENS_ANTES_DE_LIMPAR = 50_000;
 
     private static final String SENHA_ERRADA = "E-mail ou senha incorretos. Se voce criou a conta pelo Google, "
             + "entre pelo Google. Muitas tentativas seguidas bloqueiam a senha por 15 minutos.";
+
+    /**
+     * Erros por conta e IP. ponytail: em memoria, por instancia; some ao reiniciar (a trava
+     * da conta, gravada no banco, continua) e com mais de uma replica vira Redis.
+     */
+    private final Map<String, ErrosDaOrigem> errosPorOrigem = new ConcurrentHashMap<>();
+
+    private record ErrosDaOrigem(int erros, Instant travadaAte) {
+    }
 
     private final GoogleIdTokenVerifier verificador;
     private final UserAccountRepository usuarios;
@@ -188,28 +208,39 @@ public class AuthService {
         log.info("Cadastro por senha: conta={}", conta.getId());
     }
 
-    /**
-     * Entrada por e-mail e senha. A mesma mensagem serve para e-mail sem conta e senha
-     * errada; cinco erros seguidos travam a entrada por senha da conta por 15 minutos
-     * (o Google continua entrando).
-     */
     @Transactional(noRollbackFor = BusinessException.class)
     public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent) {
+        return entrarComSenha(emailBruto, senha, lembrar, userAgent, null);
+    }
+
+    /**
+     * Entrada por e-mail e senha. A mesma mensagem serve para e-mail sem conta e senha
+     * errada. Cinco erros seguidos de um IP travam a entrada por senha da conta para esse
+     * IP por 15 minutos; cinquenta, de qualquer lugar, travam para todos. O Google continua
+     * entrando.
+     *
+     * @param origem IP de quem tenta (o mesmo do limite por IP); nulo conta como um lugar so
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent,
+                                        String origem) {
         Instant agora = Instant.now();
         UserAccount conta = usuarios.findByEmail(Texto.email(emailBruto)).orElse(null);
         if (conta == null) {
             senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
+        String chave = conta.getId() + "|" + (origem == null ? "" : origem);
         // Travada ou so com Google: a mesma resposta da senha errada, para o login nao
         // revelar quais e-mails tem conta nem como cada uma entra.
-        if (conta.senhaTravada(agora) || !conta.temSenha()) {
+        if (conta.senhaTravada(agora) || origemTravada(chave, agora) || !conta.temSenha()) {
             senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
         if (!senhas.confere(senha, conta.getPasswordHash())) {
-            conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
+            conta.registrarSenhaErrada(TENTATIVAS_DA_CONTA, TRAVA_DA_SENHA, agora);
             usuarios.save(conta);
+            errouDe(chave, agora);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
         if (!conta.isActive()) {
@@ -218,10 +249,28 @@ public class AuthService {
         }
 
         conta.registrarSenhaCerta();
+        errosPorOrigem.remove(chave);
         conta.registrarAcesso();
         usuarios.save(conta);
         log.info("Login por senha: conta={}", conta.getId());
         return emitirPar(conta, userAgent, lembrar);
+    }
+
+    private boolean origemTravada(String chave, Instant agora) {
+        ErrosDaOrigem erros = errosPorOrigem.get(chave);
+        return erros != null && erros.travadaAte() != null && erros.travadaAte().isAfter(agora);
+    }
+
+    /** Conta um erro deste IP na conta; no limite trava este IP e recomeca a contagem. */
+    private void errouDe(String chave, Instant agora) {
+        errosPorOrigem.compute(chave, (k, atual) -> {
+            int erros = (atual == null || atual.travadaAte() != null ? 0 : atual.erros()) + 1;
+            return erros >= TENTATIVAS_DE_SENHA ? new ErrosDaOrigem(0, agora.plus(TRAVA_DA_SENHA))
+                    : new ErrosDaOrigem(erros, null);
+        });
+        if (errosPorOrigem.size() > ORIGENS_ANTES_DE_LIMPAR) {
+            errosPorOrigem.values().removeIf(erros -> erros.travadaAte() == null || !erros.travadaAte().isAfter(agora));
+        }
     }
 
     /**

@@ -47,7 +47,7 @@ public class DadosDaFamilia {
      * @param privada verdadeiro quando nem o titular ve o registro dos outros (metas pessoais,
      *                Girls Math): a exportacao leva so o que e de quem pediu, titular ou nao
      */
-    public record Tabela(String nome, String autor, boolean pessoal, boolean privada) {
+    public record Tabela(String nome, String autor, boolean pessoal, boolean privada, Dona dona) {
 
         public Tabela {
             if (!NOME_SQL.matcher(nome).matches() || (autor != null && !NOME_SQL.matcher(autor).matches())) {
@@ -58,8 +58,21 @@ public class DadosDaFamilia {
             }
         }
 
+        public Tabela(String nome, String autor, boolean pessoal, boolean privada) {
+            this(nome, autor, pessoal, privada, null);
+        }
+
         public Tabela(String nome, String autor, boolean pessoal) {
             this(nome, autor, pessoal, false);
+        }
+
+        /**
+         * Pessoal sem coluna de autor: o dono e o da linha de {@code dona} para a qual a
+         * {@code chave} aponta (contas do banco seguem a conexao). Na exportacao leva so o
+         * de quem pediu, como no app; apagar e mudar de familia ficam com a tabela dona.
+         */
+        public static Tabela daDona(String nome, Dona dona) {
+            return new Tabela(nome, null, true, false, dona);
         }
 
         public static Tabela compartilhada(String nome, String autor) {
@@ -73,6 +86,23 @@ public class DadosDaFamilia {
         /** Pessoal e, alem disso, invisivel para o resto da familia, titular incluido. */
         public static Tabela privada(String nome, String autor) {
             return new Tabela(nome, autor, true, true);
+        }
+    }
+
+    /**
+     * Tabela que diz de quem e a linha de uma tabela sem autor.
+     *
+     * @param chave coluna da tabela sem autor que aponta para {@code nome}.id
+     * @param nome  tabela dona
+     * @param autor coluna de autor da tabela dona
+     */
+    public record Dona(String chave, String nome, String autor) {
+
+        public Dona {
+            if (!NOME_SQL.matcher(chave).matches() || !NOME_SQL.matcher(nome).matches()
+                    || !NOME_SQL.matcher(autor).matches()) {
+                throw new IllegalArgumentException("Nome de tabela ou coluna invalido: " + nome);
+            }
         }
     }
 
@@ -113,12 +143,17 @@ public class DadosDaFamilia {
     public Map<String, JsonNode> exportar(CurrentUser usuario) {
         Map<String, JsonNode> dados = new LinkedHashMap<>();
         for (Tabela tabela : tabelas) {
-            if (!usuario.isTitular() && tabela.autor() == null) {
+            if (!usuario.isTitular() && tabela.autor() == null && tabela.dona() == null) {
                 continue;
             }
             String sql = "SELECT coalesce(jsonb_agg(t), '[]'::jsonb)::text FROM " + tabela.nome() + " t WHERE household_id = ?";
             String linhas;
-            if (tabela.autor() == null) {
+            if (tabela.dona() != null) {
+                Dona dona = tabela.dona();
+                linhas = jdbc.queryForObject(sql + " AND " + dona.chave() + " IN (SELECT id FROM " + dona.nome()
+                        + " WHERE household_id = ? AND " + dona.autor() + " = ?)", String.class,
+                        usuario.familia(), usuario.familia(), usuario.id());
+            } else if (tabela.autor() == null) {
                 linhas = jdbc.queryForObject(sql, String.class, usuario.familia());
             } else if (tabela.privada()) {
                 linhas = jdbc.queryForObject(sql + " AND " + tabela.autor() + " = ?", String.class,

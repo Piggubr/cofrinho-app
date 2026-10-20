@@ -1,5 +1,7 @@
 package com.piggu.banking.api;
 
+import com.piggu.banking.domain.BankAccount;
+import com.piggu.banking.domain.BankAccountRepository;
 import com.piggu.banking.domain.BankConnection;
 import com.piggu.banking.domain.BankConnectionRepository;
 import com.piggu.banking.integration.PluggyClient;
@@ -23,6 +25,8 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -39,6 +43,9 @@ class MeusDadosTest extends PostgresIntegrationTest {
 
     @Autowired
     private BankConnectionRepository conexoes;
+
+    @Autowired
+    private BankAccountRepository contas;
 
     @Autowired
     private TransactionTemplate transacao;
@@ -64,6 +71,28 @@ class MeusDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("a exportacao do titular leva so as contas do banco que ele conectou, como no app")
+    void exportacaoLevaSoAsProprias() throws Exception {
+        String titular = "titular-" + familia + "@piggu.test";
+        BankConnection doTitular = conectar("item-titular-" + familia, TokensDeTeste.idDe(titular));
+        BankConnection doMembro = conectar("item-membro-" + familia, TokensDeTeste.idDe(quemFica));
+        FamiliaAtual.como(familia, () -> transacao.executeWithoutResult(status -> {
+            contas.save(conta(doTitular, "conta-titular-" + familia));
+            contas.save(conta(doMembro, "conta-membro-" + familia));
+        }));
+
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.da(familia, titular, PigguRole.TITULAR)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bank_accounts.length()").value(1))
+                .andExpect(jsonPath("$.bank_accounts[0].pluggy_account_id").value("conta-titular-" + familia));
+
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.da(familia, quemFica, PigguRole.MEMBRO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bank_accounts.length()").value(1))
+                .andExpect(jsonPath("$.bank_accounts[0].pluggy_account_id").value("conta-membro-" + familia));
+    }
+
+    @Test
     @DisplayName("se a Pluggy falha, nada e apagado aqui")
     void pluggyFalha() throws Exception {
         conectar("item-falha-" + familia, TokensDeTeste.idDe(quemSai));
@@ -76,8 +105,14 @@ class MeusDadosTest extends PostgresIntegrationTest {
         assertThat(conexoesDe(TokensDeTeste.idDe(quemSai))).isEqualTo(1);
     }
 
-    private void conectar(String item, UUID email) {
-        FamiliaAtual.como(familia, () -> transacao.executeWithoutResult(status ->
+    private static BankAccount conta(BankConnection conexao, String id) {
+        BankAccount conta = new BankAccount(conexao, id);
+        conta.atualizar("Conta corrente", "BANK", "12345-6", java.math.BigDecimal.TEN, "BRL");
+        return conta;
+    }
+
+    private BankConnection conectar(String item, UUID email) {
+        return FamiliaAtual.como(familia, () -> transacao.execute(status ->
                 conexoes.save(new BankConnection(item, email))));
     }
 

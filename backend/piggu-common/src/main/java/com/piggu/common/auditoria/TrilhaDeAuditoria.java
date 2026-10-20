@@ -40,6 +40,9 @@ public class TrilhaDeAuditoria {
     public static final UUID SISTEMA = new UUID(0L, 0L);
 
     private static final int LIMITE_DO_RESUMO = 300;
+
+    /** Autor escolhido por um job para o que ele faz em nome de alguem (ver {@link #emNomeDe}). */
+    private static final ThreadLocal<java.util.Optional<UUID>> EM_NOME_DE = new ThreadLocal<>();
     private static final Logger log = LoggerFactory.getLogger(TrilhaDeAuditoria.class);
 
     public enum Acao { CRIOU, EDITOU, APAGOU, IMPORTOU, PAGOU, MUDOU_PAPEL, REMOVEU, ENTROU, SAIU, CONVIDOU }
@@ -175,13 +178,38 @@ public class TrilhaDeAuditoria {
         return resumo == null ? null : Texto.limitar(resumo, LIMITE_DO_RESUMO);
     }
 
-    /** Id de quem esta na requisicao; sem requisicao (job agendado), o {@link #SISTEMA}. */
+    /**
+     * Roda {@code tarefa} de um job registrando os eventos em nome de {@code autor}: o que o job
+     * faz pelo registro de alguem (conta fixa automatica) aparece no historico so para quem ve os
+     * dados dessa pessoa. Evento do {@link #SISTEMA} aparece para a familia inteira.
+     *
+     * @param autor dono do registro; nulo quando ficou sem dono (vai para titular e parceiro)
+     */
+    public static void emNomeDe(UUID autor, Runnable tarefa) {
+        java.util.Optional<UUID> anterior = EM_NOME_DE.get();
+        EM_NOME_DE.set(java.util.Optional.ofNullable(autor));
+        try {
+            tarefa.run();
+        } finally {
+            if (anterior == null) {
+                EM_NOME_DE.remove();
+            } else {
+                EM_NOME_DE.set(anterior);
+            }
+        }
+    }
+
+    /**
+     * Id de quem esta na requisicao; sem requisicao (job agendado), quem o job escolheu em
+     * {@link #emNomeDe} ou o {@link #SISTEMA}.
+     */
     public static UUID autorDaRequisicao() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao != null && autenticacao.getPrincipal() instanceof Jwt jwt) {
             CurrentUser usuario = CurrentUserArgumentResolver.JwtClaims.toCurrentUser(jwt);
             return usuario.id();
         }
-        return SISTEMA;
+        java.util.Optional<UUID> emNomeDe = EM_NOME_DE.get();
+        return emNomeDe != null ? emNomeDe.orElse(null) : SISTEMA;
     }
 }

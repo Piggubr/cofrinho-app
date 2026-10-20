@@ -125,6 +125,27 @@ class AssistenteTest extends PostgresIntegrationTest {
 
 
     @Test
+    @DisplayName("autorizar no toque grava na hora: as proximas perguntas nao pedem de novo, e repetir nao duplica")
+    void autorizarSemPerguntar() throws Exception {
+        UUID familia = UUID.randomUUID();
+        RequestPostProcessor quem = TokensDeTeste.da(familia, "toque-" + familia + "@piggu.test", PigguRole.TITULAR);
+        String corpo = "{\"versaoDoAviso\":\"" + Consentimentos.VERSAO_DO_AVISO + "\"}";
+
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(post("/api/assistant/consent").with(quem)
+                            .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.autorizado").value(true));
+        }
+
+        mockMvc.perform(get("/api/assistant").with(quem)).andExpect(jsonPath("$.autorizado").value(true));
+        perguntar(quem, false).andExpect(status().isOk());
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM consents WHERE household_id = ? AND purpose = 'ASSISTENTE'",
+                Integer.class, familia)).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("retirar a autorizacao faz o assistente pedir de novo antes de enviar")
     void retirarAutorizacao() throws Exception {
         perguntar(casas.casaA, true).andExpect(status().isOk());

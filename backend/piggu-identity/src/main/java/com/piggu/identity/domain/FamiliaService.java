@@ -320,8 +320,10 @@ public class FamiliaService {
     }
 
     /**
-     * O titular promove um membro a parceiro, ou volta o parceiro a membro. A pessoa
-     * entra de novo para o papel novo valer no token.
+     * O titular convida um membro para ser parceiro, ou volta o parceiro (ou o convite) a
+     * membro. Parceiro e titular veem os lancamentos um do outro, por isso o papel so muda
+     * quando a pessoa aceita ({@link #aceitarParceria}); voltar a membro vale na hora, porque
+     * so diminui o que cada um ve. Um parceiro por familia: o casal.
      */
     @Transactional
     public FamiliaResponse mudarPapel(CurrentUser usuario, UUID membroId, PigguRole papel) {
@@ -335,13 +337,68 @@ public class FamiliaService {
         if (cuidaDaFamilia(membro)) {
             throw new ForbiddenException("O papel do titular nao muda por aqui.");
         }
-        if (membro.getRole() != papel) {
+        if (papel == PigguRole.PARCEIRO) {
+            convidarParaParceria(usuario, membro);
+        } else if (membro.convidadoParaParceria()) {
+            membro.encerrarConviteDeParceria();
+            usuarios.save(membro);
+            log.info("Convite de parceria cancelado: conta={} familia={}", membroId, usuario.familia());
+        } else if (membro.getRole() == PigguRole.PARCEIRO) {
             String antes = pessoa(membro);
-            membro.setRole(papel);
+            membro.setRole(PigguRole.MEMBRO);
             trilha.registrar(usuario.familia(), usuario.id(), Acao.MUDOU_PAPEL, PESSOA, membroId, antes, pessoa(membro));
             usuarios.save(membro);
             sessoes.apagarPorUsuario(membro.getId());
-            log.info("Papel alterado na familia: conta={} familia={} papel={}", membroId, usuario.familia(), papel);
+            log.info("Parceiro voltou a membro: conta={} familia={}", membroId, usuario.familia());
+        }
+        return ver(usuario);
+    }
+
+    private void convidarParaParceria(CurrentUser usuario, UserAccount membro) {
+        if (membro.getRole() == PigguRole.PARCEIRO || membro.convidadoParaParceria()) {
+            return;
+        }
+        boolean outroParceiro = usuarios.findByHouseholdIdOrderByCreatedAtAsc(usuario.familia()).stream()
+                .anyMatch(outro -> !outro.getId().equals(membro.getId())
+                        && (outro.getRole() == PigguRole.PARCEIRO || outro.convidadoParaParceria()));
+        if (outroParceiro) {
+            throw new BusinessException("A familia ja tem um parceiro (ou um convite esperando resposta). "
+                    + "Volte essa pessoa a membro antes de convidar outra.", HttpStatus.CONFLICT, "JA_TEM_PARCEIRO");
+        }
+        membro.convidarParaParceria(Instant.now());
+        usuarios.save(membro);
+        trilha.registrar(usuario.familia(), usuario.id(), Acao.CONVIDOU, PESSOA, membro.getId(), null,
+                membro.primeiroNomeExibicao() + " · PARCEIRO");
+        log.info("Convite de parceria: conta={} familia={}", membro.getId(), usuario.familia());
+    }
+
+    /**
+     * A pessoa aceita ser parceira: dali em diante ela e o titular veem os lancamentos um do
+     * outro e dos menores. Entra de novo para o papel valer no token.
+     */
+    @Transactional
+    public void aceitarParceria(CurrentUser usuario) {
+        UserAccount conta = conta(usuario);
+        if (!conta.convidadoParaParceria() || conta.getRole() != PigguRole.MEMBRO) {
+            throw new NotFoundException("Nenhum convite de parceria esperando resposta.");
+        }
+        String antes = pessoa(conta);
+        conta.encerrarConviteDeParceria();
+        conta.setRole(PigguRole.PARCEIRO);
+        usuarios.save(conta);
+        trilha.registrar(conta.getHouseholdId(), conta.getId(), Acao.MUDOU_PAPEL, PESSOA, conta.getId(), antes, pessoa(conta));
+        sessoes.apagarPorUsuario(conta.getId());
+        log.info("Parceria aceita: conta={} familia={}", conta.getId(), conta.getHouseholdId());
+    }
+
+    /** A pessoa recusa: continua membro e o convite sai. */
+    @Transactional
+    public FamiliaResponse recusarParceria(CurrentUser usuario) {
+        UserAccount conta = conta(usuario);
+        if (conta.convidadoParaParceria()) {
+            conta.encerrarConviteDeParceria();
+            usuarios.save(conta);
+            log.info("Parceria recusada: conta={} familia={}", conta.getId(), conta.getHouseholdId());
         }
         return ver(usuario);
     }

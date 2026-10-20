@@ -619,7 +619,7 @@ const ROTAS: Rota[] = [
   ['PUT', new RegExp(`^/family/members/${ID}/role$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/family\/invites\/mine$/, () => []],
   ['GET', /^\/(family\/)?history$/, () => []],
-  ['POST', /^\/family\/(leave|invites\/.+\/accept)$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  ['POST', /^\/family\/(leave|invites\/.+\/accept|partnership\/(accept|decline))$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
 
   // Plano e pagamento: nada sai para a Stripe.
   ['GET', /^\/billing\/plan$/, () => plano()],
@@ -794,6 +794,7 @@ const ROTAS: Rota[] = [
   }],
   // Assistente: respostas montadas aqui, sem IA, a partir dos dados de exemplo.
   ['GET', /^\/assistant$/, () => situacaoDoAssistente()],
+  ['POST', /^\/assistant\/consent$/, () => { estado.assistenteAutorizado = true; return situacaoDoAssistente(); }],
   ['POST', /^\/assistant\/ask$/, (_p, _x, c) => {
     if (c['autorizoIa'] === true) {
       estado.assistenteAutorizado = true;
