@@ -1,4 +1,5 @@
 import {
+  AReceber,
   ContaBancaria,
   Deposito,
   Filme,
@@ -27,6 +28,8 @@ export interface ContaFixaDemo {
   valor: number;
   dia: number;
   automatico: boolean;
+  tipo?: 'GASTO' | 'RECEITA';
+  contaId?: string | null;
 }
 
 export interface ContaDemo {
@@ -54,6 +57,7 @@ export interface EstadoDaDemo {
   /** Divisao: gastoId -> parte de cada e-mail. */
   partes: Record<string, Record<string, number>>;
   receitas: Receita[];
+  aReceber: AReceber[];
   contasFixas: ContaFixaDemo[];
   /** "idDaConta|AAAA-MM" das contas fixas ja pagas. */
   contasPagas: Set<string>;
@@ -165,6 +169,7 @@ export function criarEstado(hoje = new Date()): EstadoDaDemo {
     gastos: [],
     partes: {},
     receitas: [],
+    aReceber: [],
     contasFixas: [
       { id: 'fixa-aluguel', descricao: 'Aluguel', categoria: 'Aluguel', valor: 1800, dia: 5, automatico: true },
       { id: 'fixa-netflix', descricao: 'Netflix', categoria: 'Assinaturas', valor: 55.9, dia: 10, automatico: true },

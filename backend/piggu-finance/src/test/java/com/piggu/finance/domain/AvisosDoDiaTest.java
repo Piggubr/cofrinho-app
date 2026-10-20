@@ -24,7 +24,8 @@ class AvisosDoDiaTest {
     private final OrcamentoService orcamentos = mock(OrcamentoService.class);
     private final ContasECartoes cartoes = mock(ContasECartoes.class);
     private final ContasFixasService contasFixas = mock(ContasFixasService.class);
-    private final AvisosDoDia avisos = new AvisosDoDia(orcamentos, cartoes, contasFixas,
+    private final AReceberService aReceber = mock(AReceberService.class);
+    private final AvisosDoDia avisos = new AvisosDoDia(orcamentos, cartoes, contasFixas, aReceber,
             Clock.fixed(HOJE.atStartOfDay(Meses.BRASILIA).plusHours(9).toInstant(), Meses.BRASILIA));
 
     @Test
@@ -67,6 +68,17 @@ class AvisosDoDiaTest {
                 "conta:" + aluguel.getId() + ":2026-10:vencida");
     }
 
+    @Test
+    @DisplayName("quem deve avisa so depois da data combinada, uma vez por valor")
+    void aReceber() {
+        Receivable atrasado = new Receivable("Joao", "Pizza", new BigDecimal("40"), HOJE.minusDays(1), null);
+        Receivable hoje = new Receivable("Ana", "", new BigDecimal("10"), HOJE, null);
+        when(aReceber.pendentes()).thenReturn(List.of(atrasado, hoje));
+
+        assertThat(avisos.deHoje()).extracting(AvisosDoDia.Aviso::chave, AvisosDoDia.Aviso::assunto).containsExactly(
+                org.assertj.core.groups.Tuple.tuple("receber:" + atrasado.getId(), "Joao"));
+    }
+
     private static OrcamentoService.Situacao situacao(UUID id, String categoria, String gasto, String limite,
                                                       String percentual, OrcamentoService.Alerta alerta) {
         return new OrcamentoService.Situacao(id, categoria, new BigDecimal(limite), new BigDecimal(gasto),
@@ -75,7 +87,7 @@ class AvisosDoDiaTest {
 
     private static ContasECartoes.Conta cartao(UUID id, String nome, LocalDate vencimento, String total) {
         ContasECartoes.Fatura fatura = new ContasECartoes.Fatura("2026-09", vencimento.minusDays(40),
-                vencimento.minusDays(10), vencimento, new BigDecimal(total));
+                vencimento.minusDays(11), vencimento.minusDays(10), vencimento, new BigDecimal(total));
         return new ContasECartoes.Conta(id, nome, PaymentAccount.Tipo.CARTAO, (short) 13, (short) 23, null, fatura);
     }
 }

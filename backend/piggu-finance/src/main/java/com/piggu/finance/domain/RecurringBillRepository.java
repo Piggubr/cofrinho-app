@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface RecurringBillRepository extends JpaRepository<RecurringBill, UUID> {
 
-    List<RecurringBill> findByActiveTrueOrderByDueDayAsc();
+    List<RecurringBill> findByActiveTrueAndKindOrderByDueDayAsc(RecurringBill.Tipo kind);
 }

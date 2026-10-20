@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { FinanceService } from '../../core/api/finance.service';
-import { Receita } from '../../core/api/models';
+import { AReceber, ContaFixa, Receita } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -17,6 +17,14 @@ import { Vazio } from '../../core/ui/vazio';
   selector: 'app-incomes',
   imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard, Vazio],
   templateUrl: './incomes.html',
+  styles: `
+    .repetir {
+      margin-top: 0.85rem;
+    }
+    .atrasada .atraso {
+      color: var(--danger);
+    }
+  `,
 })
 export class Incomes {
   private readonly finance = inject(FinanceService);
@@ -32,6 +40,18 @@ export class Incomes {
   protected readonly descricao = signal('');
   protected readonly categoria = signal('Salário');
   protected readonly valor = signal<number | null>(null);
+  /** Receita que entra sozinha todo mes no mesmo dia. */
+  protected readonly repetir = signal(false);
+  protected readonly diaDaReceita = computed(() => Number(this.data().slice(8, 10)));
+  protected readonly recorrentes = signal<ContaFixa[]>([]);
+
+  protected readonly hoje = hojeIso();
+  protected readonly aReceber = signal<AReceber[]>([]);
+  protected readonly quem = signal('');
+  protected readonly motivo = signal('');
+  protected readonly valorAReceber = signal<number | null>(null);
+  protected readonly dataAReceber = signal(hojeIso());
+  protected readonly faltouNoAReceber = signal<'quem' | 'valor' | null>(null);
 
   protected readonly rotuloDoMes = computed(() => mesPorExtenso(this.mesAtual()));
   protected readonly total = computed(() => this.receitas().reduce((soma, r) => soma + r.valor, 0));
@@ -72,12 +92,17 @@ export class Incomes {
     this.salvando.set(true);
     this.erro.set('');
     this.finance
-      .lancarReceita({ data: this.data(), descricao, categoria: this.categoria(), valor })
+      .lancarReceita({ data: this.data(), descricao, categoria: this.categoria(), valor }, this.repetir())
       .subscribe({
         next: () => {
           this.descricao.set('');
           this.valor.set(null);
-          this.aviso.set($localize`Receita lançada.`);
+          this.aviso.set(
+            this.repetir()
+              ? $localize`Receita lançada. Ela entra sozinha todo dia ${this.diaDaReceita()}:dia:.`
+              : $localize`Receita lançada.`,
+          );
+          this.repetir.set(false);
           this.salvando.set(false);
           this.mesAtual.set(this.data().slice(0, 7));
           this.carregar();
@@ -99,10 +124,92 @@ export class Incomes {
     });
   }
 
+  protected pararDeRepetir(fixa: ContaFixa): void {
+    if (!confirm($localize`Parar de lançar "${fixa.descricao}" todo mês? As receitas já lançadas continuam.`)) {
+      return;
+    }
+    this.finance.excluirContaFixa(fixa.id).subscribe({
+      next: () => this.carregar(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected criarAReceber(): void {
+    const quem = this.quem().trim();
+    const valor = this.valorAReceber();
+    this.faltouNoAReceber.set(null);
+    if (!quem) {
+      this.faltouNoAReceber.set('quem');
+      this.erro.set($localize`Diga quem está te devendo.`);
+      return;
+    }
+    if (valor === null || valor <= 0) {
+      this.faltouNoAReceber.set('valor');
+      this.erro.set($localize`Digite quanto vão te pagar.`);
+      return;
+    }
+    if (!this.dataAReceber()) {
+      this.erro.set($localize`Escolha a data combinada para receber.`);
+      return;
+    }
+    this.salvando.set(true);
+    this.erro.set('');
+    this.finance
+      .criarAReceber({ quem, descricao: this.motivo().trim(), valor, data: this.dataAReceber() })
+      .subscribe({
+        next: () => {
+          this.quem.set('');
+          this.motivo.set('');
+          this.valorAReceber.set(null);
+          this.aviso.set($localize`Guardado. Quando receber, toque em Recebi.`);
+          this.salvando.set(false);
+          this.carregarAReceber();
+        },
+        error: (falha) => {
+          this.erro.set(mensagemDeErro(falha));
+          this.salvando.set(false);
+        },
+      });
+  }
+
+  /** "Recebi": vira receita de hoje, no mes em que o dinheiro entrou. */
+  protected receber(conta: AReceber): void {
+    this.finance.receber(conta.id).subscribe({
+      next: () => {
+        this.aviso.set($localize`${conta.quem}:quem: pagou. Entrou como receita de hoje.`);
+        this.mesAtual.set(mesKey(new Date()));
+        this.carregar();
+      },
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected excluirAReceber(conta: AReceber): void {
+    if (!confirm($localize`Apagar o que ${conta.quem}:quem: te deve? Nada entra como receita.`)) {
+      return;
+    }
+    this.finance.excluirAReceber(conta.id).subscribe({
+      next: () => this.carregarAReceber(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
   private carregar(): void {
     this.finance.listarReceitas(this.mesAtual()).subscribe({
       next: (lista) => this.receitas.set(lista),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+    this.finance.receitasRecorrentes(this.mesAtual()).subscribe({
+      next: (lista) => this.recorrentes.set(lista),
+      error: () => this.recorrentes.set([]),
+    });
+    this.carregarAReceber();
+  }
+
+  private carregarAReceber(): void {
+    this.finance.aReceber().subscribe({
+      next: (lista) => this.aReceber.set(lista),
+      error: () => this.aReceber.set([]),
     });
   }
 }

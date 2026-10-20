@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   NavigationCancel,
@@ -11,6 +11,7 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { AvisoDeCookies } from './core/privacidade/aviso-de-cookies';
+import { levarAoErro } from './core/ui/levar-ao-erro';
 
 /**
  * Raiz do app: a tela atual e o que se ve enquanto ela abre.
@@ -55,6 +56,10 @@ export class App {
   protected readonly atrasoDoAviso = atrasoRestante(5000);
 
   constructor() {
+    const destruir = inject(DestroyRef);
+    // Erro de formulario fora da vista: rola ate ele, em todas as telas (ver levarAoErro).
+    afterNextRender(() => destruir.onDestroy(levarAoErro(document.body)));
+
     inject(Router)
       .events.pipe(takeUntilDestroyed())
       .subscribe((evento) => {

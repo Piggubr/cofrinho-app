@@ -20,6 +20,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
     List<Expense> findByExpenseDateBetweenOrderByExpenseDateDesc(LocalDate inicio, LocalDate fim);
 
+    /** As parcelas de um item: mesmo lancamento, mesmo item, mesmo total de parcelas. */
+    List<Expense> findByReceiptIdAndItemAndInstallmentCount(UUID receiptId, String item, Short installmentCount);
+
     /**
      * Total gasto a partir de um instante.
      *

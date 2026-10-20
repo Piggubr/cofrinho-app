@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
 import {
+  AReceber,
   AcertoDeDivisao,
   Cofrinho,
   ConferenciaDePreco,
@@ -50,8 +51,11 @@ export class FinanceService extends ApiBase {
     });
   }
 
-  excluirGasto(id: string): Observable<void> {
-    return this.http.delete<void>(this.url(`/expenses/${id}`));
+  /** @param eAsProximas na parcela, apaga tambem as parcelas seguintes */
+  excluirGasto(id: string, eAsProximas = false): Observable<void> {
+    return this.http.delete<void>(this.url(`/expenses/${id}`), {
+      params: eAsProximas ? { proximas: true } : {},
+    });
   }
 
   /** @returns mapa de AAAA-MM para o limite daquele mes */
@@ -149,8 +153,31 @@ export class FinanceService extends ApiBase {
     return this.http.get<string[]>(this.url('/incomes/categories'));
   }
 
-  lancarReceita(receita: Omit<Receita, 'id' | 'usuario'>): Observable<Receita> {
-    return this.http.post<Receita>(this.url('/incomes'), receita);
+  /** @param recorrente entra sozinha no mesmo dia, todo mes */
+  lancarReceita(receita: Omit<Receita, 'id' | 'usuario'>, recorrente = false): Observable<Receita> {
+    return this.http.post<Receita>(this.url('/incomes'), { ...receita, recorrente });
+  }
+
+  /** Receitas que entram sozinhas todo mes. */
+  receitasRecorrentes(mes: string): Observable<ContaFixa[]> {
+    return this.http.get<ContaFixa[]>(this.url('/bills'), { params: { mes, tipo: 'RECEITA' } });
+  }
+
+  aReceber(): Observable<AReceber[]> {
+    return this.http.get<AReceber[]>(this.url('/incomes/receivables'));
+  }
+
+  criarAReceber(conta: Omit<AReceber, 'id'>): Observable<AReceber> {
+    return this.http.post<AReceber>(this.url('/incomes/receivables'), conta);
+  }
+
+  /** "Recebi": vira receita de hoje. */
+  receber(id: string): Observable<Receita> {
+    return this.http.post<Receita>(this.url(`/incomes/receivables/${id}/receive`), {});
+  }
+
+  excluirAReceber(id: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/incomes/receivables/${id}`));
   }
 
   excluirReceita(id: string): Observable<void> {

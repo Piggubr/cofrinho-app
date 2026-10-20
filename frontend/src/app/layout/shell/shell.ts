@@ -56,6 +56,7 @@ interface ItemDeMenu {
 const SIMBOLOS: Record<string, string> = {
   '/painel': 'house',
   '/gastos': 'creditcard',
+  '/receitas': 'arrow.down.circle',
   '/relatorios': 'chart.bar',
   '/planejar': 'target',
   '/familia': 'person.2',
@@ -74,7 +75,7 @@ const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
  * estao na barra de abas nao aparecem ali; tela fora da lista vai para o fim.
  */
 const ORDEM_DO_MAIS = [
-  '/receitas',
+  '/planejar',
   '/contas-fixas',
   '/orcamentos',
   '/metas',
@@ -100,7 +101,7 @@ export interface GrupoDeMenu {
  * Moldura do app: cabecalho, menu e area de conteudo.
  *
  * <p>No computador o menu e uma coluna fixa a esquerda, em grupos. No celular ele vira
- * uma barra de cinco abas embaixo (Painel, Gastos, Relatorios, Planejar e Mais), com o
+ * uma barra de cinco abas embaixo (Painel, Gastos, Receitas, Relatorios e Mais), com o
  * botao "+" de lancar gasto flutuando acima dela em todas as telas. O "Mais" abre uma
  * folha com as demais telas. As de estilo de vida (compras, lugares, filmes, fotos,
  * premios e Girls Math) so aparecem quando a pessoa as liga no perfil.</p>
@@ -261,7 +262,7 @@ export class Shell {
 
   /** Atalhos da barra de baixo no celular; o resto fica em "Mais". */
   protected atalhos(): ItemDeMenu[] {
-    const rotas = ['/painel', '/gastos', '/relatorios', '/planejar'];
+    const rotas = ['/painel', '/gastos', '/receitas', '/relatorios'];
     return this.itens.filter((item) => rotas.includes(item.rota));
   }
 

@@ -44,7 +44,7 @@ describe('Dashboard', () => {
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
     for (const extra of http.match((req) =>
-      /\/api\/(reports|bills|budgets|accounts|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
+      /\/api\/(reports|bills|budgets|accounts|incomes\/receivables|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
     )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }

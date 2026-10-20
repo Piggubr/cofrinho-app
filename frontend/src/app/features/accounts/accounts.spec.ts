@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { Accounts } from './accounts';
 
-const FATURA = { mes: '2026-10', inicio: '2026-09-06', fechamento: '2026-10-05', vencimento: '2026-10-12', total: 33.33 };
+const FATURA = { mes: '2026-10', inicio: '2026-09-05', ultimaCompra: '2026-10-04', fechamento: '2026-10-05', vencimento: '2026-10-12', total: 33.33 };
 
 /** O cartao mostra a fatura aberta e abre os gastos dela, com a parcela. */
 describe('Accounts', () => {
@@ -56,6 +56,22 @@ describe('Accounts', () => {
     tela$.nome.set('Visa');
     tela$.salvar();
     tela.detectChanges();
-    expect(tela.nativeElement.textContent).toContain('fechamento e de vencimento');
+    expect(tela.nativeElement.textContent).toContain('dia do vencimento da fatura');
+  });
+
+  it('o fechamento acompanha o vencimento, 7 dias antes, ate ser mudado a mao', () => {
+    const tela = TestBed.createComponent(Accounts);
+    http.expectOne('/api/accounts').flush([]);
+    const tela$ = tela.componentInstance as unknown as {
+      fechamento: { (): number | null; set(v: number): void };
+      trocarVencimento(dia: number): void;
+    };
+    tela$.trocarVencimento(15);
+    expect(tela$.fechamento()).toBe(8);
+    tela$.trocarVencimento(20);
+    expect(tela$.fechamento()).toBe(13);
+    tela$.fechamento.set(10);
+    tela$.trocarVencimento(25);
+    expect(tela$.fechamento()).toBe(10);
   });
 });
