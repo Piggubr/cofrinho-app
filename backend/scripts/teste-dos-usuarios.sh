@@ -100,7 +100,7 @@ done
 como piggu_rewards senha-nova piggu_rewards "DROP TABLE de_para_usuarios" > /dev/null
 
 passo "O painel le as contagens do schema analitico e nada mais"
-# Como a migration V31 faria: view nova, criada pelo servico depois do script.
+# Como a migration V32 faria: view nova, criada pelo servico depois do script.
 como piggu_identity senha-identity piggu_identity \
   "CREATE TABLE contas (email TEXT); INSERT INTO contas VALUES ('ana@piggu.test');
    CREATE VIEW analitico.contas_por_dia AS SELECT count(*) AS contas FROM contas;" > /dev/null

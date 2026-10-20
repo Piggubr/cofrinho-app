@@ -23,7 +23,7 @@ datasources:
       maxLines: 1000
 
   # Painel analitico: o usuario piggu_analitico so le o schema "analitico" (views com
-  # contagens, migrations V31 do identity e V18 do financeiro). Somente leitura no banco.
+  # contagens, migrations V32 do identity e V18 do financeiro). Somente leitura no banco.
   - name: Contas (identity)
     uid: analitico-identity
     type: grafana-postgresql-datasource

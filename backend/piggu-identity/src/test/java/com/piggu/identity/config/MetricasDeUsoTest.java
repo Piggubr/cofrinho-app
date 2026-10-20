@@ -46,7 +46,7 @@ class MetricasDeUsoTest extends PostgresIntegrationTest {
     private JdbcTemplate banco;
 
     @Test
-    @DisplayName("as views do painel analitico (V31) rodam e so devolvem contagens")
+    @DisplayName("as views do painel analitico (V32) rodam e so devolvem contagens")
     void viewsDoPainel() {
         for (String view : new String[] {"contas_novas_por_dia", "testes_gratis_por_dia", "assinaturas_por_dia",
                 "resumo", "premium_por_origem", "familias_por_tamanho"}) {

@@ -60,7 +60,7 @@ done
 
 # Leitura do painel analitico (Grafana, backend/observabilidade). O piggu_analitico so
 # entra no identity e no financeiro, e la so le o schema "analitico": views com contagens
-# (migrations V31 do identity e V18 do financeiro), sem e-mail, valor ou id de ninguem.
+# (migrations V32 do identity e V18 do financeiro), sem e-mail, valor ou id de ninguem.
 # Somente leitura e com prazo por consulta, para um painel aberto nao pesar no banco.
 senha=${DB_PASSWORD_ANALITICO:-$POSTGRES_PASSWORD}
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -v senha="$senha" <<-'SQL'

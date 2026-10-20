@@ -108,7 +108,7 @@ enquanto continuar.
 
 O painel "Uso do app" lê o Postgres com o usuário `piggu_analitico`, criado pelo
 `db/init/01-criar-bancos.sh`. Ele só entra no `piggu_identity` e no `piggu_finance`, e lá
-só lê o schema `analitico`: views que devolvem contagens (migrations V31 do identity e V18
+só lê o schema `analitico`: views que devolvem contagens (migrations V32 do identity e V18
 do financeiro). Nenhuma view traz e-mail, nome, documento, valor em dinheiro, descrição ou
 id de pessoa ou família; o `MigrationsTest` e o `MetricasDeUsoTest` quebram se uma coluna
 assim aparecer. O usuário é somente leitura e cada consulta tem prazo de 15 s.
