@@ -249,6 +249,28 @@
   </div>
 </section>
 
+<section class="cartao" aria-labelledby="titulo-aparencia">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-aparencia">Aparência</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.
+  </p>
+  <div class="alternador modos" role="radiogroup" aria-labelledby="titulo-aparencia">
+    @for (modo of modos; track modo.id) {
+      <button
+        type="button"
+        role="radio"
+        [attr.aria-checked]="modo.id === modoAtual()"
+        [class.ativo]="modo.id === modoAtual()"
+        (click)="escolherModo(modo.id)"
+      >
+        {{ modo.nome }}
+      </button>
+    }
+  </div>
+</section>
+
 <section class="cartao" aria-labelledby="titulo-tema" id="personalizar">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-tema">Cor do Piggu</h2>
