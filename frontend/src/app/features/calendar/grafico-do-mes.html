@@ -1,0 +1,122 @@
+@if (vazio()) {
+  <p i18n class="vazio">Nenhuma receita ou gasto neste mês até agora.</p>
+} @else {
+  <div class="numeros">
+    <div>
+      <p i18n class="linha-detalhe">Receitas</p>
+      <p class="numero">{{ totais().receitas | moeda }}</p>
+    </div>
+    <div>
+      <p i18n class="linha-detalhe">Gastos</p>
+      <p class="numero">{{ totais().gastos | moeda }}</p>
+    </div>
+    <div>
+      <p i18n class="linha-detalhe">Sobra</p>
+      <p class="numero sobra" [class.negativo]="totais().sobra < 0">{{ totais().sobra | moeda }}</p>
+    </div>
+  </div>
+
+  <div class="legenda" aria-hidden="true">
+    <span
+      ><i class="amostra receita"></i><ng-container i18n>Receitas acumuladas</ng-container></span
+    >
+    <span><i class="amostra gasto"></i><ng-container i18n>Gastos acumulados</ng-container></span>
+  </div>
+
+  <div
+    #area
+    class="grafico"
+    tabindex="0"
+    role="group"
+    aria-label="Receitas e gastos acumulados no mês. Use as setas para andar pelos dias."
+    i18n-aria-label
+    (pointerdown)="apontar($event)"
+    (pointermove)="apontar($event)"
+    (pointerleave)="sair($event)"
+    (blur)="diaEmFoco.set(null)"
+    (keydown)="teclar($event)"
+  >
+    <svg
+      [attr.viewBox]="'0 0 ' + largura() + ' ' + altura"
+      [attr.height]="altura"
+      aria-hidden="true"
+    >
+      @for (linha of grade(); track linha.rotulo) {
+        <line class="grade" x1="0" [attr.x2]="largura()" [attr.y1]="linha.y" [attr.y2]="linha.y" />
+        <text class="eixo" x="0" [attr.y]="linha.y - 4">{{ linha.rotulo }}</text>
+      }
+      <line class="linha-base" x1="0" [attr.x2]="largura()" [attr.y1]="base" [attr.y2]="base" />
+      @for (marca of eixo(); track marca.dia; let ultima = $last) {
+        <text
+          class="eixo"
+          [attr.x]="marca.x"
+          [attr.y]="altura - 6"
+          [attr.text-anchor]="ultima ? 'end' : 'middle'"
+        >
+          {{ marca.dia }}
+        </text>
+      }
+
+      @if (destaque(); as d) {
+        <line class="cursor" [attr.x1]="d.x" [attr.x2]="d.x" [attr.y1]="0" [attr.y2]="base" />
+      }
+
+      <path class="linha receita" [attr.d]="linhaDeReceitas()" />
+      <path class="linha gasto" [attr.d]="linhaDeGastos()" />
+
+      @if (destaque(); as d) {
+        <circle class="ponto receita" [attr.cx]="d.x" [attr.cy]="d.yReceitas" r="4.5" />
+        <circle class="ponto gasto" [attr.cx]="d.x" [attr.cy]="d.yGastos" r="4.5" />
+      }
+    </svg>
+
+    @if (destaque(); as d) {
+      @if (d.dica) {
+        <div class="dica" role="status" [class.a-esquerda]="d.aEsquerda" [style.left.%]="d.posicao">
+          <strong i18n>Até o dia {{ d.dia }}</strong>
+          <span
+            ><i class="amostra receita"></i><ng-container i18n>Receitas</ng-container>
+            {{ d.receitasAteAqui | moeda }}</span
+          >
+          <span
+            ><i class="amostra gasto"></i><ng-container i18n>Gastos</ng-container>
+            {{ d.gastosAteAqui | moeda }}</span
+          >
+          <span i18n>Sobra {{ d.sobra | moeda }}</span>
+          @if (d.receitas) {
+            <span class="no-dia" i18n>Entrou no dia +{{ d.receitas | moeda }}</span>
+          }
+          @if (d.gastos) {
+            <span class="no-dia" i18n>Saiu no dia −{{ d.gastos | moeda }}</span>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <details>
+    <summary i18n>Ver por semana</summary>
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th i18n scope="col">Dias</th>
+          <th i18n scope="col">Receitas</th>
+          <th i18n scope="col">Gastos</th>
+          <th i18n scope="col">Sobra</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (semana of semanas(); track semana.de) {
+          <tr>
+            <th scope="row" i18n>{{ semana.de }} a {{ semana.ate }}</th>
+            <td>{{ semana.receitas | moeda }}</td>
+            <td>{{ semana.gastos | moeda }}</td>
+            <td [class.negativo]="semana.receitas - semana.gastos < 0">
+              {{ semana.receitas - semana.gastos | moeda }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </details>
+}

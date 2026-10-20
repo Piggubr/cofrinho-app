@@ -2,13 +2,14 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
-import { Gasto, Nota } from '../../core/api/models';
+import { Gasto, Nota, Receita } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { dataIso, gradeDoMes, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
 import { Carregando } from '../../core/ui/carregando';
+import { GraficoDoMes } from './grafico-do-mes';
 
 /** Um dia da grade, com o que acontece nele. */
 interface DiaDoMes {
@@ -20,7 +21,7 @@ interface DiaDoMes {
 }
 
 /**
- * Calendario com notas e lembretes.
+ * Calendario com notas e lembretes, e o grafico de receitas e gastos do mes.
  *
  * <p>Uma nota com valor vira tambem um gasto: o backend cria os dois juntos e
  * apagar a nota apaga o gasto. Por isso a tela avisa quando um lembrete vai virar
@@ -28,7 +29,7 @@ interface DiaDoMes {
  */
 @Component({
   selector: 'app-calendar',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, GraficoDoMes],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })
@@ -44,6 +45,7 @@ export class Calendar {
 
   protected readonly notas = signal<Nota[]>([]);
   protected readonly gastos = signal<Gasto[]>([]);
+  protected readonly receitas = signal<Receita[]>([]);
   protected readonly categorias = signal<string[]>([]);
   protected readonly mesAtual = signal(mesKey(new Date()));
   protected readonly diaSelecionado = signal<string | null>(null);
@@ -88,6 +90,11 @@ export class Calendar {
   protected readonly gastosDoDia = computed(() => {
     const dia = this.diaSelecionado();
     return dia ? this.gastos().filter((gasto) => gasto.data === dia) : [];
+  });
+
+  protected readonly receitasDoDia = computed(() => {
+    const dia = this.diaSelecionado();
+    return dia ? this.receitas().filter((receita) => receita.data === dia) : [];
   });
 
   protected readonly notasSemData = computed(() => this.notas().filter((nota) => !nota.data));
@@ -166,11 +173,13 @@ export class Calendar {
     forkJoin({
       notas: this.finance.listarNotas(),
       gastos: this.finance.listarGastos(this.mesAtual()),
+      receitas: this.finance.listarReceitas(this.mesAtual()),
       categorias: this.finance.listarCategorias(),
     }).subscribe({
-      next: ({ notas, gastos, categorias }) => {
+      next: ({ notas, gastos, receitas, categorias }) => {
         this.notas.set(notas);
         this.gastos.set(gastos);
+        this.receitas.set(receitas);
         this.categorias.set(categorias.categorias);
         if (!this.categoriaDaNota()) {
           this.categoriaDaNota.set(categorias.categorias[0] ?? '');

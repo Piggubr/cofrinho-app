@@ -45,6 +45,11 @@ describe('Calendar', () => {
         gastoDeTeste({ data: dia3, item: 'Pão', valor: 12 }),
         gastoDeTeste({ id: 'g2', data: dia3, valor: 8 }),
       ]);
+    http
+      .expectOne((r) => r.url === '/api/incomes' && r.params.get('mes') === mesDosGastos)
+      .flush([
+        { id: 'r1', data: dia3, descricao: 'Salário', categoria: 'Salário', valor: 3000, usuario: null },
+      ]);
     http.expectOne('/api/categories').flush({ categorias: ['Saúde', 'Lazer'] });
   }
 
@@ -72,8 +77,23 @@ describe('Calendar', () => {
     tela.detectChanges();
     expect(pagina.textContent).toContain('Pão');
     expect(pagina.textContent).toContain('Feira');
+    expect(pagina.textContent).toMatch(/Salário\+€\s3\.000,00/);
     await tela.whenStable();
     expect(pagina.querySelector<HTMLInputElement>('#dataNota')!.value).toBe(dia3);
+  });
+
+  it('o grafico do mes soma receitas e gastos e marca o dia aberto', async () => {
+    const tela = await abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+
+    expect(pagina.querySelector('app-grafico-do-mes .sobra')?.textContent).toContain('2.980,00');
+    expect(pagina.querySelector('app-grafico-do-mes line.cursor')).toBeNull();
+
+    // O dia 1 ja aconteceu em qualquer dia do mes em que o teste rodar.
+    clicar(pagina, '1');
+    tela.detectChanges();
+
+    expect(pagina.querySelector('app-grafico-do-mes line.cursor')).not.toBeNull();
   });
 
   it('nota solta aparece em "Sem data"', async () => {
