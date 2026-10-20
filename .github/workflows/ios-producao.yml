@@ -1,0 +1,71 @@
+name: iOS producao (IPA sem assinatura)
+
+# App iOS ligado no site no ar (piggu.com.br): abre o site dentro do app, com a conta e os
+# dados reais, e acompanha cada deploy sem precisar de outro IPA. Sem dados de exemplo.
+# Instala no iPhone pelo Sideloadly, que assina com o Apple ID na hora da instalacao.
+# Roda na mao (workflow_dispatch, quando o arquivo estiver na main) e nos PRs que mexem
+# neste workflow ou na configuracao do Capacitor.
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Endereco do site que o app abre
+        default: https://piggu.com.br
+  pull_request:
+    paths:
+      - 'frontend/capacitor.config.ts'
+      - '.github/workflows/ios-producao.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    name: Gerar Piggu.ipa
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      PIGGU_SITE: ${{ inputs.site || 'https://piggu.com.br' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # O app abre as telas do site; o build de producao vai junto so porque o projeto do
+      # Xcode espera a pasta public. E o build normal, sem a demonstracao.
+      - run: npm run build
+      - run: npx cap sync ios
+      - name: Conferir que o app abre o site
+        run: |
+          grep -q "\"url\": \"$PIGGU_SITE\"" ios/App/App/capacitor.config.json
+          ! grep -rq token-da-demonstracao ios/App/App/public
+
+      - name: Compilar para iPhone, sem assinatura
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empacotar o IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry Piggu.ipa Payload
+          ls -lh Piggu.ipa
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Piggu-ipa
+          path: frontend/Piggu.ipa
+          retention-days: 30
