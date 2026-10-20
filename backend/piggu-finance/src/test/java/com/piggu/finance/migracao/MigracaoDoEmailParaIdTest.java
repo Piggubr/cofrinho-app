@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,7 +75,7 @@ class MigracaoDoEmailParaIdTest extends PostgresIntegrationTest {
 
     private Flyway flyway(String esquema, String alvo) {
         var config = Flyway.configure().dataSource(dataSource).schemas(esquema).createSchemas(true)
-                .locations("classpath:db/migration");
+                .locations("classpath:db/migration").placeholders(Map.of("esquema_analitico", esquema + "_analitico"));
         if (alvo != null) {
             config.target(alvo);
         }

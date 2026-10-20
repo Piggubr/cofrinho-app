@@ -12,6 +12,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
 | [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
+| [`backend/observabilidade/`](backend/observabilidade/) | Grafana, Prometheus e Loki no próprio servidor: performance, logs, erros, alertas e painel de uso ([como funciona](docs/observabilidade.md)) |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
 
 ## O que o app faz
@@ -48,6 +49,9 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 - **Senha esquecida:** link de 1 hora no e-mail ("Esqueci minha senha" no login); trocar
   derruba as sessões abertas. O e-mail do domínio (SPF, DKIM, DMARC) está em
   [docs/email-do-dominio.md](docs/email-do-dominio.md).
+- **Monitoramento:** painéis de saúde e performance, erros (do servidor e do app) e uso
+  do app no Grafana, alertas por e-mail, logs por 30 dias e limite de chamadas por IP,
+  tudo no próprio servidor e sem dado pessoal ([detalhes](docs/observabilidade.md)).
 - **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
   (Ctrl+K). Telas próprias para página não encontrada (404), erro (500) e sem internet,
   listas vazias que dizem o que fazer e carregamento com aviso de conexão lenta. Há um modo demo, sem backend, para mostrar o app

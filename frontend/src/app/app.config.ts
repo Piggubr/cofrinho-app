@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   inject,
   isDevMode,
   provideBrowserGlobalErrorListeners,
@@ -22,12 +23,15 @@ import { routes } from './app.routes';
 import { APP_CONFIG, appConfigPadrao } from './core/config/app-config';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { INTERCEPTORES_DA_DEMO } from './demo/modo-demo';
+import { ErrosDoApp } from './core/erros/erros-do-app';
 
 registerLocaleData(localePt);
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // Erro de JavaScript no aparelho vai para o painel "Erros e logs", sem identificar ninguem.
+    { provide: ErrorHandler, useClass: ErrosDoApp },
     provideRouter(
       routes,
       withComponentInputBinding(),

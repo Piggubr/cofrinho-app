@@ -204,6 +204,10 @@ front. Toda linha de log traz `req=` e `user=` (o UUID da conta, nunca o e-mail)
 linha de acesso por requisição com o padrão da rota, e logs de negócio só com ids.
 Detalhes e o porquê em [`docs/relatorio-lgpd-seguranca.md`](../docs/relatorio-lgpd-seguranca.md).
 
+No Compose os serviços escrevem em JSON (ECS), que o Loki separa em campos. Métricas
+(`/actuator/prometheus`), logs, erros do app, alertas e o painel analítico estão em
+[`docs/observabilidade.md`](../docs/observabilidade.md).
+
 ### Erros
 
 `BusinessException` carrega texto escrito para o usuário e vai inteiro para a
@@ -327,7 +331,7 @@ primeira paga os ~10s de startup, as demais rodam em milissegundos.
 | `piggu-lifestyle` | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
 | `piggu-media` | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, cada um vê as próprias fotos e nunca as de outra família |
 | `piggu-banking` | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, cada membro com os próprios bancos |
-| `piggu-gateway` | Toda rota existe, atuador de rotas fechado, X-Request-Id validado |
+| `piggu-gateway` | Toda rota existe, atuador de rotas fechado, X-Request-Id validado, limite por IP |
 
 ### Três testes que merecem atenção
 

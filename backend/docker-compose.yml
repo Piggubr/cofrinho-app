@@ -12,11 +12,21 @@
 # Logs no stdout de cada container, com rotacao (S5): no maximo 5 arquivos de 10 MB
 # por servico. O mais velho sai sozinho, entao log com id de usuario nao fica para
 # sempre. Prazo e destino estao em docs/implantacao-producao.md (Logs).
+# "labels" grava o nome do servico em cada linha: e por ele que o Alloy (perfil
+# observabilidade) separa os logs no Grafana sem precisar do socket do Docker.
 x-logs: &logs
   driver: json-file
   options:
     max-size: "10m"
     max-file: "5"
+    labels: com.docker.compose.service
+
+# Os containers do monitoramento nao mandam os proprios logs para o Loki (sem "labels").
+x-logs-monitoramento: &logs-monitoramento
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   postgres:
@@ -35,6 +45,8 @@ services:
       DB_PASSWORD_LIFESTYLE: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
       DB_PASSWORD_MEDIA: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
       DB_PASSWORD_BANKING: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
+      # Usuario do painel analitico (Grafana): so le contagens do schema "analitico".
+      DB_PASSWORD_ANALITICO: ${DB_PASSWORD_ANALITICO:-${DB_PASSWORD:-piggu}}
     volumes:
       - piggu-dados:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
@@ -42,7 +54,7 @@ services:
       # So na propria maquina: a senha padrao e conhecida e o banco nao pode ficar na rede.
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U piggu"]
+      test: ["CMD-SHELL", "pg_isready -U piggu -d postgres"]   # sem -d o Postgres loga FATAL a cada 5 s
       interval: 5s
       timeout: 5s
       retries: 10
@@ -56,6 +68,7 @@ services:
         MODULO: piggu-identity
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_identity
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_identity
       DB_PASSWORD: ${DB_PASSWORD_IDENTITY:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -116,6 +129,7 @@ services:
         MODULO: piggu-finance
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_finance
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_finance
       DB_PASSWORD: ${DB_PASSWORD_FINANCE:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -140,6 +154,7 @@ services:
         MODULO: piggu-rewards
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_rewards
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_rewards
       DB_PASSWORD: ${DB_PASSWORD_REWARDS:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -160,6 +175,7 @@ services:
         MODULO: piggu-lifestyle
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_lifestyle
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_lifestyle
       DB_PASSWORD: ${DB_PASSWORD_LIFESTYLE:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -182,6 +198,7 @@ services:
         MODULO: piggu-media
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_media
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_media
       DB_PASSWORD: ${DB_PASSWORD_MEDIA:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -210,6 +227,7 @@ services:
         MODULO: piggu-banking
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/piggu_banking
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       DB_USER: piggu_banking
       DB_PASSWORD: ${DB_PASSWORD_BANKING:-${DB_PASSWORD:-piggu}}
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
@@ -235,6 +253,10 @@ services:
         MODULO: piggu-gateway
     environment:
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
+      # Log em JSON (ECS), que o Loki separa em campos. PIGGU_LOG_FORMATO= (vazio) volta ao texto.
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
+      # Chamadas por minuto, por IP, na API inteira. 0 desliga.
+      PIGGU_LIMITE_GATEWAY: ${PIGGU_LIMITE_GATEWAY:-600}
       IDENTITY_URL: http://identity:8081
       FINANCE_URL: http://finance:8082
       REWARDS_URL: http://rewards:8083
@@ -276,8 +298,136 @@ services:
       - gateway
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------------
+  # Monitoramento (perfil observabilidade), tudo no proprio servidor e sem porta publica.
+  # Liga com PIGGU_OBSERVABILIDADE=true no .env (o deploy passa a subir junto) ou a mao:
+  #   docker compose --profile producao --profile observabilidade up -d
+  # O Grafana so escuta na propria maquina (127.0.0.1:3000): abra por tunel SSH.
+  # Guia: docs/observabilidade.md. Ninguem aqui guarda dado pessoal: metricas sao
+  # contagens e tempos; logs ficam 30 dias e passam por um filtro de e-mail/CPF/token.
+  # ---------------------------------------------------------------------------------
+  prometheus:
+    logging: *logs-monitoramento
+    mem_limit: ${PIGGU_MEMORIA_PROMETHEUS:-384m}
+    profiles: ["observabilidade"]
+    image: prom/prometheus:v3.13.4
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # Um ano de historia (pessoas ativas, tempos), com teto de disco.
+      - --storage.tsdb.retention.time=365d
+      - --storage.tsdb.retention.size=2GB
+    volumes:
+      - ./observabilidade/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-dados:/prometheus
+    restart: unless-stopped
+
+  loki:
+    logging: *logs-monitoramento
+    mem_limit: ${PIGGU_MEMORIA_LOKI:-384m}
+    profiles: ["observabilidade"]
+    image: grafana/loki:3.7.8
+    command: ["-config.file=/etc/loki/loki.yml"]
+    environment:
+      GOMEMLIMIT: ${PIGGU_GOMEMLIMIT_LOKI:-320MiB}   # teto do Go abaixo do mem_limit (veja o grafana)
+    volumes:
+      - ./observabilidade/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-dados:/loki
+    restart: unless-stopped
+
+  # Le os arquivos de log que o Docker grava (somente leitura) e manda para o Loki.
+  alloy:
+    logging: *logs-monitoramento
+    mem_limit: ${PIGGU_MEMORIA_ALLOY:-192m}
+    profiles: ["observabilidade"]
+    image: grafana/alloy:v1.20.1
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - --disable-reporting
+      - /etc/alloy/config.alloy
+    environment:
+      GOMEMLIMIT: ${PIGGU_GOMEMLIMIT_ALLOY:-160MiB}
+    volumes:
+      - ./observabilidade/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - alloy-dados:/var/lib/alloy/data
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  # CPU, memoria e disco da maquina. Le /proc e /sys do servidor, sem escrever nada.
+  node-exporter:
+    logging: *logs-monitoramento
+    mem_limit: ${PIGGU_MEMORIA_NODE_EXPORTER:-64m}
+    profiles: ["observabilidade"]
+    image: prom/node-exporter:v1.12.1
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/raiz
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/raiz:ro
+    restart: unless-stopped
+
+  grafana:
+    logging: *logs-monitoramento
+    mem_limit: ${PIGGU_MEMORIA_GRAFANA:-384m}
+    profiles: ["observabilidade"]
+    image: grafana/grafana-oss:13.0.2
+    # Sem GRAFANA_SENHA o Grafana nao sobe (e o resto do Piggu segue normal): sem isso ele
+    # abriria com admin/admin.
+    entrypoint: ["sh", "-c", "[ -n \"$$GF_SECURITY_ADMIN_PASSWORD\" ] || { echo 'Defina GRAFANA_SENHA no .env'; exit 1; }; exec /run.sh"]
+    environment:
+      # Go sem teto passa do mem_limit em picos (abrir varios paineis) e o kernel mata o
+      # processo. Com o teto, o coletor de lixo aperta antes. Mudou PIGGU_MEMORIA_GRAFANA? Mude junto.
+      GOMEMLIMIT: ${PIGGU_GOMEMLIMIT_GRAFANA:-300MiB}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USUARIO:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SENHA:-}
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_DEFAULT_LANGUAGE: pt-BR
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_SNAPSHOTS_EXTERNAL_ENABLED: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      # Alertas por e-mail pela Resend (SMTP), com a mesma chave dos avisos do app.
+      GF_SMTP_ENABLED: ${GRAFANA_SMTP_LIGADO:-true}
+      GF_SMTP_HOST: ${GRAFANA_SMTP_HOST:-smtp.resend.com:465}
+      GF_SMTP_USER: ${GRAFANA_SMTP_USUARIO:-resend}
+      GF_SMTP_PASSWORD: ${GRAFANA_SMTP_SENHA:-${PIGGU_EMAIL_API_KEY:-}}
+      GF_SMTP_FROM_ADDRESS: ${PIGGU_ALERTAS_REMETENTE:-alertas@piggu.invalid}
+      GF_SMTP_FROM_NAME: Piggu alertas
+      PIGGU_ALERTAS_EMAIL: ${PIGGU_ALERTAS_EMAIL:-ninguem@piggu.invalid}
+      DB_PASSWORD_ANALITICO: ${DB_PASSWORD_ANALITICO:-${DB_PASSWORD:-piggu}}
+    ports:
+      # So na propria maquina. De casa: ssh -L 3000:localhost:3000 (guia).
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./observabilidade/grafana/provisionamento/fontes:/etc/grafana/provisioning/datasources:ro
+      - ./observabilidade/grafana/provisionamento/paineis:/etc/grafana/provisioning/dashboards:ro
+      - ./observabilidade/grafana/provisionamento/alertas:/etc/grafana/provisioning/alerting:ro
+      - ./observabilidade/grafana/paineis:/var/lib/grafana/paineis-do-piggu:ro
+      - grafana-dados:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
 volumes:
   piggu-dados:
   piggu-fotos:
   caddy-dados:
   caddy-config:
+  prometheus-dados:
+  loki-dados:
+  alloy-dados:
+  grafana-dados:
