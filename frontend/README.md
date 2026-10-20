@@ -16,36 +16,59 @@ então **o backend precisa estar no ar** (`cd ../backend && docker compose up`).
 
 ```bash
 npm run build      # build de produção
-npm test           # 41 testes
+npm test           # testes unitários (Vitest)
+npm run e2e        # ponta a ponta (Playwright), contra a demo
 ```
 
 ## Telas
 
-As onze abas do app antigo viraram rotas. Cada uma carrega sob demanda: o app
-original entregava tudo num `index.html` de 678 linhas, e o navegador baixava as
-onze mesmo abrindo só uma.
+Cada tela é uma rota carregada sob demanda (`app.routes.ts`): o app original entregava
+tudo num `index.html` de 678 linhas, e o navegador baixava todas as abas mesmo abrindo
+só uma.
 
-| Rota | O que faz | Perfis |
-|---|---|---|
-| `/entrar` | Entrar ou criar conta com e-mail e senha, ou pelo Google | — |
-| `/painel` | Cofrinho, limite do mês, gastos por categoria e saldo dos bancos conectados | todos |
-| `/gastos` | Lançar, editar, apagar e ler recibo por foto | ADMIN, TITULAR |
-| `/calendario` | Grade do mês com gastos e lembretes | ADMIN, TITULAR |
-| `/compras` | Listas de compras e desejos, busca no catálogo | ADMIN, TITULAR |
-| `/lugares` | Lugares visitados, com foto e marcadores | ADMIN, TITULAR |
-| `/filmes` | Lista, busca no TMDB, sorteio e avaliação | ADMIN, TITULAR |
-| `/feed` | Fotos do mês com legenda | ADMIN, TITULAR |
-| `/premios` | Fofocoins, prêmios e resgates | ADMIN, TITULAR |
-| `/planejar` | Atalhos para Orçamento e Contas do mês | ADMIN, TITULAR, PARCEIRO |
-| `/orcamentos` | Orçamento: limite total do mês e limite por categoria (`/metas` redireciona para cá) | ADMIN, TITULAR, PARCEIRO |
-| `/contas-fixas` | Contas do mês: o que vence todo mês, lançado no dia | ADMIN, TITULAR, PARCEIRO |
-| `/contas-e-cartoes` | Cartões e bancos: contas, cartões e faturas | ADMIN, TITULAR, PARCEIRO |
-| `/perfil` | Conta e, para o admin, gestão de acessos | todos |
+Abertas, sem login:
 
-O `MEMBRO` da família só enxerga `/painel`, `/familia` e `/perfil`; o menu esconde o resto.
-Em `/familia` o titular convida pelo e-mail e remove membros; o membro pode sair.
-Isso é conveniência de navegação — quem decide de verdade é o backend, que
-recusa com 403 mesmo se a tela abrir.
+| Rota | O que faz |
+|---|---|
+| `/entrar` | Entrar ou criar conta com e-mail e senha, ou pelo Google |
+| `/privacidade` e `/termos` | Aviso de privacidade e termos de uso, para ler antes de criar a conta |
+| `/confirmar-email` | Destino do link de confirmação do e-mail, que pode abrir em outro aparelho |
+
+Com login, antes do resto (os guards levam para lá até a pessoa concluir):
+
+| Rota | O que faz |
+|---|---|
+| `/aceite` | Aceitar termos novos |
+| `/sobre-voce` | Como quer ser chamado e data de nascimento |
+| `/cpf` | Informar o documento (opcional), oferecido pelo Perfil |
+
+Dentro do app:
+
+| Rota | O que faz |
+|---|---|
+| `/painel` | Cofrinho, limite do mês, gastos por categoria e saldo dos bancos conectados |
+| `/gastos` | Lançar, editar, apagar, ler recibo por foto e importar extrato |
+| `/receitas` | O que entrou no mês |
+| `/relatorios` | Relatório do mês e do ano |
+| `/planejar` | Atalhos para Orçamento e Contas do mês |
+| `/metas` | Minhas metas: metas pessoais do mês |
+| `/orcamentos` | Limite total do mês e limite por categoria |
+| `/contas-fixas` | Contas do mês: o que vence todo mês, lançado no dia |
+| `/contas-e-cartoes` | Cartões e bancos: contas, cartões e faturas |
+| `/calendario` | Grade do mês com gastos e lembretes |
+| `/compras` | Listas de compras e desejos, busca no catálogo |
+| `/lugares` | Lugares visitados, com foto e marcadores |
+| `/filmes` | Lista, busca no TMDB, sorteio e avaliação |
+| `/feed` | Fotos do mês com legenda |
+| `/premios` | Fofocoins, prêmios e resgates |
+| `/girls-math` | O que a pessoa viu, quis e não comprou, e quanto isso deixou no bolso |
+| `/familia` | O titular convida pelo e-mail, promove e remove; o membro pode sair |
+| `/plano` | Premium (só ADMIN e TITULAR) |
+| `/perfil` | Conta, preferências, privacidade e, para o admin, gestão de acessos |
+
+Todo papel da família alcança todas as telas, cada um com os próprios dados; só o
+Premium é do titular. O guard é conveniência de navegação: quem decide de verdade é o
+backend, que recusa com 403 mesmo se a tela abrir.
 
 ## Decisões que valem explicação
 
@@ -78,7 +101,7 @@ hash de integridade (`pluggy-connect.service.ts`): é ele que recebe a senha do
 banco, então o navegador recusa qualquer versão diferente da conferida. A senha
 vai direto do widget para a Pluggy; o Piggu só recebe o id da conexão. O card
 carrega fora do `forkJoin` do painel, para que a Pluggy fora do ar não derrube o
-resto. O perfil `FAMILIAR` não vê o card.
+resto. Cada pessoa vê os bancos que ela mesma conectou.
 
 ### Imagens por URL, não em base64
 
@@ -113,10 +136,16 @@ src/app/
 ├── core/
 │   ├── api/          Um serviço por domínio do backend, mais os modelos
 │   ├── auth/         Login (senha ou Google), tokens, interceptor e guards
+│   ├── banking/      Widget da Pluggy (Open Finance)
 │   ├── config/       Configuração injetável (URL da API, client ID)
-│   └── ui/           Pipes, datas, leitura de arquivo, mensagem de erro
-├── layout/shell/     Cabeçalho, menu e área de conteúdo
-└── features/         Uma pasta por tela
+│   ├── nativo/       Só no app instalado: abas nativas, atalhos, push, ícone
+│   ├── offline/      Fila de gastos lançados sem sinal e listas guardadas
+│   ├── privacidade/  Versão vigente dos termos e pedido de consentimento
+│   └── ui/           Pipes, datas, ícones, leitura de arquivo, mensagem de erro
+├── layout/shell/     Cabeçalho, menu, busca global, assistente, lançamento rápido e tour
+├── features/         Uma pasta por tela
+├── demo/             API falsa em memória do modo demo (build `demo`)
+└── testing/          Apoio dos testes: sessão falsa e montagem de tela
 ```
 
 Os tipos em `core/api/models.ts` espelham os DTOs do backend e mantêm os nomes em
@@ -135,10 +164,13 @@ forneça outro `APP_CONFIG` em `app.config.ts` (produção).
 ## Testes
 
 ```bash
-npm test
+npm test                                   # Vitest, sem precisar de backend
+npx ng test --watch=false --coverage       # com cobertura, em coverage/
+npm run e2e                                # Playwright, contra o modo demo
 ```
 
-41 testes em Vitest, sem precisar de backend:
+Cada tela e cada serviço tem o seu `.spec.ts` ao lado. Os que guardam as regras mais
+delicadas:
 
 | Arquivo | O que protege |
 |---|---|
@@ -146,17 +178,17 @@ npm test
 | `token-storage.spec.ts` | Lembrar usa localStorage, não lembrar usa sessionStorage |
 | `datas.spec.ts` | Chave de mês, data ISO sem fuso, grade do calendário |
 | `mensagem-de-erro.spec.ts` | Mostra a mensagem do backend, nunca um objeto cru |
-| `moeda.spec.ts` | Valores na moeda escolhida pela pessoa, trocando sem recarregar |
+| `fila-de-gastos.spec.ts` | Gasto lançado sem sinal vai na ordem quando a rede volta; recusado sai da fila; de outra pessoa não é enviado |
 | `pluggy-connect.service.spec.ts` | Widget da Pluggy abre com o token do backend; item conectado é registrado; fechar não registra |
-| `shell.spec.ts` | Cotação do topo segue as moedas escolhidas e some quando desligada |
 | `dashboard.spec.ts` | Card de bancos só aparece com Open Finance ligado; fora do ar não quebra o painel |
-| `profile.spec.ts` | Preferências de moeda vão ao backend e atualizam a sessão; erro aparece na tela |
+
+A cobertura tem piso em `angular.json` (`coverageThresholds`), que só sobe.
 
 ## O que ainda falta
 
-- **Academia e metas pessoais.** Duas funcionalidades do app antigo viviam só no
-  `localStorage`, sem backend (`js/piggu-features.js`). Como não há endpoint para
-  elas, ficaram de fora — precisam primeiro existir na API.
+- **Academia.** Vivia só no `localStorage` do app antigo (`js/piggu-features.js`), sem
+  backend. Como não há endpoint para ela, ficou de fora; as metas pessoais, que vinham
+  do mesmo arquivo, já voltaram como `/metas`.
 - **Telas de erro.** Um 403 ou um erro de rede aparece como aviso no topo da
   tela; não há página dedicada.
 

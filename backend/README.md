@@ -9,7 +9,7 @@ uma plataforma de microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL.
 | Serviço | Porta | Banco | Responsabilidade |
 |---|---|---|---|
 | `piggu-gateway` | 8080 | — | Porta de entrada única, roteamento e CORS |
-| `piggu-identity` | 8081 | `piggu_identity` | Login por e-mail e senha ou Google, contas, perfis, sessões, JWKS |
+| `piggu-identity` | 8081 | `piggu_identity` | Login por e-mail e senha ou Google, contas, famílias, sessões, JWKS, Premium (Stripe e RevenueCat), avisos por e-mail e push, exportar e apagar a conta |
 | `piggu-finance` | 8082 | `piggu_finance` | Gastos, metas, cofrinho, notas, memória de preços, câmbio, recibos |
 | `piggu-rewards` | 8083 | `piggu_rewards` | Fofocoins, prêmios, resgates |
 | `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras, metas do mês e Girls Math (pessoais) |
@@ -59,9 +59,19 @@ conjunto de microserviços virar um monolito distribuído sem ninguém perceber.
 
 ### Por que quase não há chamadas entre serviços
 
-Existe uma só: `lifestyle` chama `media` para guardar a foto de um lugar (ou de um item do Girls Math). Todo
-o resto é independente. Isso não é acaso, é o critério que definiu as fronteiras:
-as operações que precisam de transação ficaram juntas.
+Nenhuma requisição comum passa de um serviço para outro, com uma exceção: `lifestyle`
+chama `media` para guardar a foto de um lugar (ou de um item do Girls Math). As outras
+chamadas saem do `identity`, fora do caminho do dia a dia:
+
+- **Exportar e apagar a conta** (`CascataDeDados`): o identity chama `/api/meus-dados` em
+  cada serviço com um token da própria pessoa. Qualquer falha aborta antes de a conta
+  sair do identity.
+- **Avisos do dia** (`AvisosDoFinanceiro`): o job diário pergunta ao finance o que avisar
+  (fatura, orçamento, conta vencendo) antes de mandar e-mail ou push.
+
+O endereço de cada serviço fica em `piggu.dados.servicos` no `application.yml` do
+identity. Isso não é acaso, é o critério que definiu as fronteiras: as operações que
+precisam de transação ficaram juntas.
 
 O exemplo mais claro é a nota com valor, que cria um gasto vinculado. No Apps
 Script eram duas escritas em abas diferentes, sem transação; uma falha no meio
@@ -109,9 +119,9 @@ classpath de teste.
 ### Famílias e papéis
 
 Cada pessoa tem conta própria e pertence a uma **família** (`households`). Cadastro
-aberto: o primeiro login Google cria a conta e uma família nova, com a pessoa como
+aberto: o primeiro login cria a conta e uma família nova, com a pessoa como
 `TITULAR`. Quem foi convidado pelo titular (`POST /api/family/invites`, vale 7 dias)
-entra na família dele como `MEMBRO`.
+entra na família dele como `MEMBRO`, e o titular pode promovê-lo a `PARCEIRO`.
 
 ### Entrar com e-mail e senha
 
@@ -141,7 +151,13 @@ cria uma senha no Perfil (`PUT /api/auth/me/senha`), que também serve para troc
 |---|---|
 | `ADMIN` | Opera a instalação (`/api/users`); dentro da própria família vale como titular |
 | `TITULAR` | Dono da família: convida, remove membros, assina o Premium, gerencia tudo dela |
-| `MEMBRO` | Só o câmbio e o cofrinho; no cofrinho vê os próprios depósitos (`PiggyBankService`) |
+| `PARCEIRO` | Promovido pelo titular: lança e edita como ele e os dois veem os dados um do outro, mas não mexe no plano, nos convites nem tira pessoas |
+| `MEMBRO` | Convidado: usa todas as telas, cada um com os próprios dados |
+
+Todo papel alcança todas as rotas de domínio; o que cada um vê é filtrado por dono
+(`DonoAtual`, `CurrentUser.visiveis()`). Ficam restritos o Premium e a gestão da família
+(titular) e o ajuste de Fofocoins e prêmios (titular e parceiro). `PermissoesDaApiTest` e
+`CadaUmVeOSeuTest` provam essas regras.
 
 O id da família vai no token (claim `familia`). Toda entidade de domínio tem a coluna
 `household_id` marcada com `@TenantId`: o Hibernate filtra **toda** consulta pela
@@ -295,7 +311,7 @@ mvn test          # a suíte inteira
 mvn -pl piggu-finance test
 ```
 
-São 204 testes. Os que precisam de banco sobem um PostgreSQL de verdade via
+Os testes que precisam de banco sobem um PostgreSQL de verdade via
 Testcontainers e deixam o Flyway aplicar as migrations reais — então **é preciso
 ter Docker rodando**. Não usamos H2: as migrations dependem de `jsonb`, arrays de
 texto, índice GIN e `gen_random_uuid`, e um banco em memória fingindo ser Postgres
@@ -306,16 +322,16 @@ primeira paga os ~10s de startup, as demais rodam em milissegundos.
 
 ### O que a suíte protege
 
-| Onde | Testes | Regra que não pode quebrar |
-|---|---|---|
-| `piggu-common` | 27 | Erro de negócio chega ao usuário; falha interna nunca vaza detalhe |
-| `piggu-identity` | 24 | Rotação de refresh, revogação ao desativar conta, claims do token, recusa subir sem chave, preferências de moeda, perfis na API |
-| `piggu-finance` | 68 | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API, câmbio de qualquer par, chave do Gemini fora da URL |
-| `piggu-rewards` | 16 | Saldo nunca negativo, resgate atômico, sem gasto duplo |
-| `piggu-lifestyle` | 30 | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
-| `piggu-media` | 19 | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, foto só para ADMIN/TITULAR e da própria família |
-| `piggu-banking` | 16 | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, familiar sem acesso |
-| `piggu-gateway` | 10 | Toda rota existe, atuador de rotas fechado, X-Request-Id validado, limite por IP |
+| Onde | Regra que não pode quebrar |
+|---|---|
+| `piggu-common` | Erro de negócio chega ao usuário; falha interna nunca vaza detalhe |
+| `piggu-identity` | Rotação de refresh, revogação ao desativar conta, claims do token, recusa subir sem chave, preferências de moeda, perfis na API |
+| `piggu-finance` | Saldo do cofrinho, média de preços, nota↔gasto, perfis na API, câmbio de qualquer par, chave do Gemini fora da URL |
+| `piggu-rewards` | Saldo nunca negativo, resgate atômico, sem gasto duplo |
+| `piggu-lifestyle` | Imagem só por HTTPS, notas por pessoa, marcadores válidos |
+| `piggu-media` | Limite de 5 MB, base64 tolerante, arquivo não fica órfão, cada um vê as próprias fotos e nunca as de outra família |
+| `piggu-banking` | Item só de quem o conectou, sincronização sem duplicar, apiKey reaproveitada, cada membro com os próprios bancos |
+| `piggu-gateway` | Toda rota existe, atuador de rotas fechado, X-Request-Id validado, limite por IP |
 
 ### Três testes que merecem atenção
 
