@@ -1,0 +1,179 @@
+/* Cores das series vem do tema (--serie-receita, --serie-gasto), com o par proprio do modo escuro. */
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.numero {
+  margin: 0.1rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.negativo {
+  color: var(--over);
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.4rem;
+}
+
+.amostra {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 0.35rem;
+  vertical-align: -1px;
+}
+
+.amostra.receita {
+  background: var(--serie-receita);
+}
+
+.amostra.gasto {
+  background: var(--serie-gasto);
+}
+
+.grafico {
+  position: relative;
+  border-radius: var(--raio-pequeno);
+  outline: none;
+  /* O dedo andando de lado percorre os dias; de cima para baixo continua rolando a tela. */
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+.grafico:focus-visible {
+  box-shadow: 0 0 0 2px var(--rose);
+}
+
+.grafico svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.grade {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.linha-base {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.eixo {
+  font-size: 11px;
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.linha {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.linha.receita {
+  stroke: var(--serie-receita);
+}
+
+.linha.gasto {
+  stroke: var(--serie-gasto);
+}
+
+.cursor {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+/* Anel da cor da superficie para o ponto se destacar da linha que cruza. */
+.ponto {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.ponto.receita {
+  fill: var(--serie-receita);
+}
+
+.ponto.gasto {
+  fill: var(--serie-gasto);
+}
+
+.dica {
+  position: absolute;
+  top: 0;
+  margin-left: 10px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--raio-pequeno);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dica.a-esquerda {
+  margin-left: -10px;
+  transform: translateX(-100%);
+}
+
+.no-dia {
+  color: var(--ink-soft);
+}
+
+details {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela th,
+.tabela td {
+  padding: 0.3rem 0.4rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabela th:first-child {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .numeros {
+    gap: 0.5rem;
+  }
+
+  .numero {
+    font-size: 0.95rem;
+  }
+}

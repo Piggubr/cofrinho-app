@@ -62,6 +62,19 @@
       }
     }
 
+    @if (receitasDoDia().length) {
+      <h3>Receitas</h3>
+      @for (receita of receitasDoDia(); track receita.id) {
+        <div class="linha">
+          <div>
+            <p class="linha-titulo">{{ receita.descricao }}</p>
+            <p class="linha-detalhe">{{ receita.categoria }}</p>
+          </div>
+          <span class="linha-valor">+{{ receita.valor | moeda }}</span>
+        </div>
+      }
+    }
+
     @if (notasDoDia().length) {
       <h3>Lembretes</h3>
       @for (nota of notasDoDia(); track nota.id) {
@@ -82,11 +95,28 @@
       }
     }
 
-    @if (!gastosDoDia().length && !notasDoDia().length) {
+    @if (!gastosDoDia().length && !receitasDoDia().length && !notasDoDia().length) {
       <p class="vazio">Nada registrado neste dia.</p>
     }
   </section>
 }
+
+<section class="cartao">
+  <div class="cartao-titulo">
+    <h2 i18n>Receitas e gastos do mês</h2>
+  </div>
+
+  @if (carregando()) {
+    <app-carregando [linhas]="3" />
+  } @else {
+    <app-grafico-do-mes
+      [mes]="mesAtual()"
+      [gastos]="gastos()"
+      [receitas]="receitas()"
+      [diaSelecionado]="diaSelecionado()"
+    />
+  }
+</section>
 
 <section class="cartao">
   <div class="cartao-titulo">
