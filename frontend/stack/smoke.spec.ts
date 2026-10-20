@@ -120,10 +120,9 @@ test.describe('smoke', { tag: '@smoke' }, () => {
     await entrar(api, { ...conta, senha: novaSenha });
   });
 
-  // O "esqueci minha senha" esta sendo feito em outra branch (POST /api/auth/senha/esqueci e
-  // /senha/redefinir, link de 1 hora no log do identity em dev). Tire o fixme quando ele
-  // entrar na develop.
-  test.fixme('esqueci a senha: pedir o link, redefinir e entrar com a nova', async ({ api }) => {
+  // "Esqueci minha senha": POST /api/auth/senha/esqueci e /senha/redefinir; em dev o link
+  // de 1 hora sai no log do identity.
+  test('esqueci a senha: pedir o link, redefinir e entrar com a nova', async ({ api }) => {
     const conta = novaConta();
     await cadastrar(api, conta);
     const sessao = await entrar(api, conta);
