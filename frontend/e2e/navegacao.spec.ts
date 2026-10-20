@@ -204,19 +204,25 @@ test('endereco que nao existe mostra a 404 e o botao leva ao painel', async ({ p
   await expect(page).toHaveURL(/\/painel$/);
 });
 
-test('tela que nao consegue abrir mostra a 500 e o "Tentar de novo" volta a ela', async ({
-  page,
-}) => {
-  await page.goto('/painel');
-  await expect(page.getByText('Olá, Ana')).toBeVisible();
+test.describe('sem o service worker', () => {
+  // Com o service worker ativo, ele entrega o arquivo da tela do proprio cache e o
+  // page.route nao ve o pedido: a tela abria normal e o teste falhava de vez em quando.
+  test.use({ serviceWorkers: 'block' });
 
-  // O arquivo da proxima tela nao chega, como numa rede que caiu ou num deploy no meio.
-  await page.route(/\.js(\?.*)?$/, (pedido) => pedido.abort());
-  await page.locator('a[href="/receitas"]:visible, a[href="/gastos"]:visible').first().click();
-  await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeVisible();
+  test('tela que nao consegue abrir mostra a 500 e o "Tentar de novo" volta a ela', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    await expect(page.getByText('Olá, Ana')).toBeVisible();
 
-  await page.unroute(/\.js(\?.*)?$/);
-  await page.getByRole('button', { name: 'Tentar de novo' }).click();
-  await expect(page).toHaveURL(/\/(receitas|gastos)$/);
-  await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeHidden();
+    // O arquivo da proxima tela nao chega, como numa rede que caiu ou num deploy no meio.
+    await page.route(/\.js(\?.*)?$/, (pedido) => pedido.abort());
+    await page.locator('a[href="/receitas"]:visible, a[href="/gastos"]:visible').first().click();
+    await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeVisible();
+
+    await page.unroute(/\.js(\?.*)?$/);
+    await page.getByRole('button', { name: 'Tentar de novo' }).click();
+    await expect(page).toHaveURL(/\/(receitas|gastos)$/);
+    await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeHidden();
+  });
 });
