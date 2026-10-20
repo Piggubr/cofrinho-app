@@ -157,6 +157,31 @@ describe('Profile', () => {
     localStorage.removeItem('piggu_tema');
   });
 
+  it('aparencia: escolher Escuro fixa o modo no aparelho e Automatico volta a seguir o sistema', () => {
+    const tela = TestBed.createComponent(Profile);
+    tela.detectChanges();
+    http.expectOne('/api/exchange-rate/currencies').flush([]);
+    tela.detectChanges();
+
+    const pagina: HTMLElement = tela.nativeElement;
+    const modos = [...pagina.querySelectorAll<HTMLButtonElement>('.modos [role="radio"]')];
+    expect(modos.map((b) => b.textContent?.trim())).toEqual(['Automático', 'Claro', 'Escuro']);
+    expect(modos[0].getAttribute('aria-checked')).toBe('true');
+
+    modos[2].click();
+    tela.detectChanges();
+
+    expect(modos[2].getAttribute('aria-checked')).toBe('true');
+    expect(modos[2].classList).toContain('ativo');
+    expect(document.documentElement.dataset['modo']).toBe('escuro');
+    expect(localStorage.getItem('piggu_modo')).toBe('escuro');
+
+    modos[0].click();
+    expect(document.documentElement.dataset['modo']).toBeUndefined();
+    expect(localStorage.getItem('piggu_modo')).toBe('automatico');
+    localStorage.removeItem('piggu_modo');
+  });
+
   it('cor do Premium: sem o plano, o titular vai para os planos e a cor nao muda', () => {
     auth.atualizarUsuario(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

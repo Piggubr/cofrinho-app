@@ -39,6 +39,7 @@ public class AbasNativasPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         let selecionada = call.getString("selecionada")
         let corClara = call.getString("corDestaque")
         let corEscura = call.getString("corDestaqueEscura")
+        let aparencia = call.getString("aparencia")
 
         DispatchQueue.main.async {
             guard let barra = self.criarBarraSeFaltar() else {
@@ -63,6 +64,10 @@ public class AbasNativasPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             }
             self.ids = ids
             self.acoes = acoes
+
+            if let aparencia = aparencia {
+                self.fixarAparencia(aparencia)
+            }
 
             if let clara = corClara.flatMap(UIColor.init(hex:)) {
                 let escura = corEscura.flatMap(UIColor.init(hex:)) ?? clara
@@ -159,6 +164,22 @@ public class AbasNativasPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         ])
         self.barra = barra
         return barra
+    }
+
+    /**
+     * Perfil > Aparencia. Claro ou Escuro fixam o modo na janela inteira (barra de status,
+     * abas, teclado); "automatico" devolve ao modo do aparelho.
+     */
+    private func fixarAparencia(_ aparencia: String) {
+        guard let controlador = bridge?.viewController else { return }
+        let estilo: UIUserInterfaceStyle
+        switch aparencia {
+        case "claro": estilo = .light
+        case "escuro": estilo = .dark
+        default: estilo = .unspecified
+        }
+        controlador.view.window?.overrideUserInterfaceStyle = estilo
+        controlador.overrideUserInterfaceStyle = estilo
     }
 
     /** Altura ocupada a partir da borda de baixo (inclui a barra de gestos); 0 com a barra escondida. */

@@ -182,21 +182,53 @@ function lerTemaSalvo(): Tema {
   }
 }
 
-function aplicar(tema: Tema): void {
+/**
+ * Perfil > Aparencia. Automatico segue o aparelho, como sempre foi; Claro e Escuro fixam o
+ * modo pelo atributo data-modo do <html>, que o styles.scss le junto com o data-tema.
+ */
+export type ModoDeAparencia = 'automatico' | 'claro' | 'escuro';
+
+export const MODOS: readonly { id: ModoDeAparencia; nome: string }[] = [
+  { id: 'automatico', nome: $localize`Automático` },
+  { id: 'claro', nome: $localize`Claro` },
+  { id: 'escuro', nome: $localize`Escuro` },
+];
+
+const CHAVE_DO_MODO = 'piggu_modo';
+
+function lerModoSalvo(): ModoDeAparencia {
+  try {
+    return (
+      MODOS.find((modo) => modo.id === localStorage.getItem(CHAVE_DO_MODO))?.id ?? 'automatico'
+    );
+  } catch {
+    return 'automatico';
+  }
+}
+
+function aplicar(tema: Tema, modo: ModoDeAparencia): void {
   const raiz = document.documentElement;
   if (tema.id === TEMAS[0].id) {
     delete raiz.dataset['tema'];
   } else {
     raiz.dataset['tema'] = tema.id;
   }
+  if (modo === 'automatico') {
+    delete raiz.dataset['modo'];
+  } else {
+    raiz.dataset['modo'] = modo;
+  }
+  // Com o modo fixo, as duas metas recebem a mesma cor: a barra do navegador acompanha o app
+  // mesmo com o aparelho no outro modo.
   document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
-    meta.content = meta.media.includes('dark') ? tema.fundoEscuro : tema.fundo;
+    const escuro = modo === 'automatico' ? meta.media.includes('dark') : modo === 'escuro';
+    meta.content = escuro ? tema.fundoEscuro : tema.fundo;
   });
 }
 
 /** Chamado no main.ts antes do Angular subir, para a tela nao piscar no Chiclete. */
 export function aplicarTemaSalvo(): void {
-  aplicar(lerTemaSalvo());
+  aplicar(lerTemaSalvo(), lerModoSalvo());
 }
 
 /** Marca que a cor ou o icone voltaram ao padrao porque o Premium acabou. */
@@ -235,6 +267,7 @@ export function esquecerQueVoltouAoPadrao(): void {
 export class Temas {
   private readonly auth = inject(AuthService);
   readonly atual = signal<Tema>(lerTemaSalvo());
+  readonly modo = signal<ModoDeAparencia>(lerModoSalvo());
 
   constructor() {
     effect(() => {
@@ -257,9 +290,20 @@ export class Temas {
     return true;
   }
 
+  /** O modo vale para todas as cores e nao depende do plano. */
+  escolherModo(modo: ModoDeAparencia): void {
+    this.modo.set(modo);
+    aplicar(this.atual(), modo);
+    try {
+      localStorage.setItem(CHAVE_DO_MODO, modo);
+    } catch {
+      // Sem armazenamento (aba privada): o modo vale ate fechar a aba.
+    }
+  }
+
   private salvar(tema: Tema): void {
     this.atual.set(tema);
-    aplicar(tema);
+    aplicar(tema, untracked(this.modo));
     try {
       localStorage.setItem(CHAVE, tema.id);
     } catch {

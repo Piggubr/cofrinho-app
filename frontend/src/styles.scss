@@ -73,61 +73,70 @@
   --font-body: 'Sora Variable', system-ui, -apple-system, sans-serif;
 }
 
-/* Versao escura: segue o modo do aparelho. O destaque vira um rosa neon sobre um fundo
- * quase preto puxado para o rosa. */
+/* Versao escura: o destaque vira um rosa neon sobre um fundo quase preto puxado para o
+ * rosa. Vale quando o aparelho esta no escuro (Perfil > Aparencia em Automatico) ou quando
+ * a pessoa escolhe Escuro; o data-modo vem do tema.ts. */
+@mixin escuro {
+  color-scheme: dark;
+
+  --pink-bg: #4a0f2e;
+  --ink: #f3e9ee;
+  --ink-soft: #cdbcc5;
+  --muted: #a08e98;
+  --rose: #ff6fb5;
+  --rose-deep: #ff8cc4;
+  --evento: #b9a0d0;
+  --ok: #8fbf8f;
+  --over: #ef6b95;
+
+  --primaria: #ff5cae;
+  --primaria-hover: #ff8cc4;
+  --primaria-contraste: #1f0012;
+  --destaque-1: #ff3d96;
+  --destaque-2: #d1006b;
+  --destaque-3: #7a0044;
+  --destaque-brilho: rgba(255, 200, 100, 0.3);
+  --anel: rgba(255, 92, 174, 0.35);
+  --ok-soft: #1f3324;
+  --ok-ink: #a9d4a9;
+  --danger: #ef6b95;
+  --danger-soft: #3d1a27;
+  --danger-ink: #f5a3bd;
+  --ouro: #e0b45a;
+  --ouro-soft: #3a2e17;
+  --ouro-ink: #f0cd85;
+  --serie-receita: #3ee08f;
+  --serie-gasto: #ff5cae;
+  --placeholder: #7d6b75;
+
+  --site-bg: #14060d;
+  --surface: #22101a;
+  --surface-sunken: #2d1523;
+  --border: #3d1a2e;
+  --border-strong: #5a2643;
+  --field-bg: #2d1523;
+  --button-bg: #4a1430;
+  --track: #3d1a2e;
+  --rose-soft: #4a1430;
+
+  --vidro-fundo: rgba(38, 14, 27, 0.66);
+  --vidro-forte: rgba(38, 14, 27, 0.78);
+  --vidro-borda: rgba(255, 255, 255, 0.12);
+  --vidro-brilho: rgba(255, 255, 255, 0.18);
+  --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-
-    --pink-bg: #4a0f2e;
-    --ink: #f3e9ee;
-    --ink-soft: #cdbcc5;
-    --muted: #a08e98;
-    --rose: #ff6fb5;
-    --rose-deep: #ff8cc4;
-    --evento: #b9a0d0;
-    --ok: #8fbf8f;
-    --over: #ef6b95;
-
-    --primaria: #ff5cae;
-    --primaria-hover: #ff8cc4;
-    --primaria-contraste: #1f0012;
-    --destaque-1: #ff3d96;
-    --destaque-2: #d1006b;
-    --destaque-3: #7a0044;
-    --destaque-brilho: rgba(255, 200, 100, 0.3);
-    --anel: rgba(255, 92, 174, 0.35);
-    --ok-soft: #1f3324;
-    --ok-ink: #a9d4a9;
-    --danger: #ef6b95;
-    --danger-soft: #3d1a27;
-    --danger-ink: #f5a3bd;
-    --ouro: #e0b45a;
-    --ouro-soft: #3a2e17;
-    --ouro-ink: #f0cd85;
-    --serie-receita: #3ee08f;
-    --serie-gasto: #ff5cae;
-    --placeholder: #7d6b75;
-
-    --site-bg: #14060d;
-    --surface: #22101a;
-    --surface-sunken: #2d1523;
-    --border: #3d1a2e;
-    --border-strong: #5a2643;
-    --field-bg: #2d1523;
-    --button-bg: #4a1430;
-    --track: #3d1a2e;
-    --rose-soft: #4a1430;
-
-    --vidro-fundo: rgba(38, 14, 27, 0.66);
-    --vidro-forte: rgba(38, 14, 27, 0.78);
-    --vidro-borda: rgba(255, 255, 255, 0.12);
-    --vidro-brilho: rgba(255, 255, 255, 0.18);
-    --vidro-sombra: 0 10px 34px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
-
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.25);
-    --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+  :root:not([data-modo='claro']) {
+    @include escuro;
   }
+}
+
+:root[data-modo='escuro'] {
+  @include escuro;
 }
 
 /* Temas de cor (Perfil > Cor do Piggu). O Chiclete e o :root acima; os outros trocam so os
@@ -135,18 +144,23 @@
  * escuro, para o escuro de um tema nunca herdar o claro dele. A barra de gasto dos
  * graficos segue o tema (rosa no Azul parecia erro); no Menta a receita vira cinza-azulado
  * para nao confundir com o gasto verde. Alerta e dourado ficam iguais em todos. */
+@mixin tokens($mapa) {
+  @each $token, $valor in $mapa {
+    --#{$token}: #{$valor};
+  }
+}
+
 @mixin tema($nome, $claro, $escuro) {
   :root[data-tema='#{$nome}'] {
-    @each $token, $valor in $claro {
-      --#{$token}: #{$valor};
-    }
+    @include tokens($claro);
   }
   @media (prefers-color-scheme: dark) {
-    :root[data-tema='#{$nome}'] {
-      @each $token, $valor in $escuro {
-        --#{$token}: #{$valor};
-      }
+    :root[data-tema='#{$nome}']:not([data-modo='claro']) {
+      @include tokens($escuro);
     }
+  }
+  :root[data-tema='#{$nome}'][data-modo='escuro'] {
+    @include tokens($escuro);
   }
 }
 

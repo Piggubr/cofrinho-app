@@ -13,6 +13,8 @@ import { Icone } from '../../core/ui/icone';
 import { BLOCOS_DO_PAINEL, PainelOrganizado } from '../../core/ui/painel';
 import {
   IdDoTema,
+  MODOS,
+  ModoDeAparencia,
   TEMAS,
   Temas,
   esquecerQueVoltouAoPadrao,
@@ -43,6 +45,8 @@ export class Profile {
   private readonly temasDoApp = inject(Temas);
   protected readonly temas = TEMAS;
   protected readonly temaAtual = this.temasDoApp.atual;
+  protected readonly modos = MODOS;
+  protected readonly modoAtual = this.temasDoApp.modo;
   protected readonly iconesDoApp = inject(IconesDoApp);
   protected readonly icones = ICONES_DO_APP;
   protected readonly iconeAtual = this.iconesDoApp.atual;
@@ -307,6 +311,10 @@ export class Profile {
         this.excluindo.set(false);
       },
     });
+  }
+
+  protected escolherModo(modo: ModoDeAparencia): void {
+    this.temasDoApp.escolherModo(modo);
   }
 
   protected escolherTema(id: IdDoTema): void {
