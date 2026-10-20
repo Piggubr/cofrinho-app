@@ -68,7 +68,7 @@ describe('Movies', () => {
     http.expectOne((r) => r.method === 'POST' && r.url === '/api/movies').flush(filme());
     tela.detectChanges();
     expect(pagina.querySelector('.destaque')).toBeNull();
-    expect(pagina.textContent).not.toContain('Nenhum filme na fila.');
+    expect(pagina.textContent).not.toContain('Nenhum filme na fila');
   });
 
   it('busca curta e recusada; a busca valida mostra os resultados', () => {
@@ -98,7 +98,7 @@ describe('Movies', () => {
       .flush(filme({ assistido: true }));
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Nenhum filme na fila.');
+    expect(pagina.textContent).toContain('Nenhum filme na fila');
     expect(pagina.textContent).toContain('Voltar para a fila');
   });
 
@@ -129,7 +129,7 @@ describe('Movies', () => {
     http.expectOne((r) => r.method === 'DELETE' && r.url === '/api/movies/f1').flush(null);
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Nenhum filme na fila.');
+    expect(pagina.textContent).toContain('Nenhum filme na fila');
   });
 
   it('erro do catalogo aparece e libera o sorteio', () => {

@@ -105,11 +105,13 @@
       </div>
     </div>
   } @empty {
-    <p i18n class="vazio">Nenhuma receita neste mês.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="descricao-receita">
-        Lançar uma receita
-      </button>
-    </p>
+    <app-vazio icone="entrada" i18n-titulo titulo="Nenhuma receita neste mês">
+      <p i18n>Salário, freela, um pix de volta: tudo que entra conta para a sobra do mês.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="descricao-receita">
+          Lançar uma receita
+        </button>
+      </p>
+    </app-vazio>
   }
 </section>

@@ -85,8 +85,8 @@ describe('Goals', () => {
     const tela = abrir({}, [gasto(80)]);
     const pagina: HTMLElement = tela.nativeElement;
 
-    expect(pagina.textContent).toContain('Nenhum limite definido para este mês ainda.');
-    expect(pagina.textContent).toContain('Nenhum limite cadastrado.');
+    expect(pagina.textContent).toContain('Nenhum limite definido para este mês ainda');
+    expect(pagina.textContent).toContain('Nenhum limite cadastrado');
   });
 
   it('valor vazio ou zero nao vai para o backend', async () => {

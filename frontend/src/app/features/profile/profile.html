@@ -464,7 +464,7 @@
     </div>
 
     @if (carregandoAdmin()) {
-      <p i18n class="carregando">Carregando...</p>
+      <app-carregando [linhas]="2" />
     } @else {
       @for (conta of contas(); track conta.id) {
         <div class="linha">

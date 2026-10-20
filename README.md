@@ -49,7 +49,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   derruba as sessões abertas. O e-mail do domínio (SPF, DKIM, DMARC) está em
   [docs/email-do-dominio.md](docs/email-do-dominio.md).
 - **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
-  (Ctrl+K). Há um modo demo, sem backend, para mostrar o app
+  (Ctrl+K). Telas próprias para página não encontrada (404), erro (500) e sem internet,
+  listas vazias que dizem o que fazer e carregamento com aviso de conexão lenta. Há um modo demo, sem backend, para mostrar o app
   ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
   `android-demo`).
 

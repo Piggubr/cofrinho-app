@@ -30,7 +30,7 @@
 </section>
 
 @if (carregando()) {
-  <p i18n class="carregando">Carregando...</p>
+  <app-carregando formato="cartoes" />
 } @else if (fotos().length) {
   <div class="grade">
     @for (foto of fotos(); track foto.id) {
@@ -50,5 +50,7 @@
     }
   </div>
 } @else {
-  <p i18n class="vazio">Nenhuma foto neste mês ainda.</p>
+  <app-vazio icone="imagem" i18n-titulo titulo="Nenhuma foto neste mês ainda">
+    <p i18n>As fotos do mês contam a história do que vocês viveram.</p>
+  </app-vazio>
 }

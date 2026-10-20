@@ -157,7 +157,7 @@
 }
 
 @if (carregando()) {
-  <p i18n class="carregando">Carregando...</p>
+  <app-carregando formato="cartoes" />
 } @else if (lugares().length) {
   <div class="grade">
     @for (lugar of lugares(); track lugar.id) {
@@ -215,8 +215,10 @@
     }
   </div>
 } @else {
-  <p i18n class="vazio">Nenhum lugar registrado ainda.</p>
-  <p class="vazio-acao">
-    <button i18n class="botao contorno pequeno" appFocar="nomeLugar">Registrar um lugar</button>
-  </p>
+  <app-vazio icone="local" i18n-titulo titulo="Nenhum lugar registrado ainda">
+    <p i18n>Guarde os restaurantes e passeios que vocês querem lembrar.</p>
+    <p class="vazio-acao">
+      <button i18n class="botao contorno pequeno" appFocar="nomeLugar">Registrar um lugar</button>
+    </p>
+  </app-vazio>
 }

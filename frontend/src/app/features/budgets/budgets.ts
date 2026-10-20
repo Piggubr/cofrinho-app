@@ -10,6 +10,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
 import { Goals } from '../goals/goals';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Orcamento: o limite total do mes (gratis) e, abaixo dele, o limite por categoria
@@ -18,7 +19,7 @@ import { Goals } from '../goals/goals';
  */
 @Component({
   selector: 'app-budgets',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, RouterLink, Goals],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, RouterLink, Goals, Vazio],
   templateUrl: './budgets.html',
   styles: `
     .progresso.atencao span {

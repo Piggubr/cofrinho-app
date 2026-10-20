@@ -115,7 +115,7 @@ describe('GirlsMath', () => {
     http.expectOne('/api/girls-math/g1').flush(null);
     tela.detectChanges();
     expect(confirmar).toHaveBeenCalled();
-    expect(pagina.textContent).toContain('Nenhum item guardado ainda.');
+    expect(pagina.textContent).toContain('Nenhum item guardado ainda');
     confirmar.mockRestore();
   });
 
