@@ -275,7 +275,7 @@ public class ExpenseService {
     private Expense paraMudar(UUID id, CurrentUser usuario) {
         Expense gasto = buscar(id);
         if (!usuario.podeGerenciar(gasto.getUserId())) {
-            throw new ForbiddenException("SÃ³ quem lanÃ§ou o gasto pode mudar ou apagar.");
+            throw new ForbiddenException("Só quem lançou o gasto pode mudar ou apagar.");
         }
         return gasto;
     }
