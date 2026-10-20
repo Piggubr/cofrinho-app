@@ -1,7 +1,20 @@
 import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
-export type IdDoTema = 'rosa' | 'menta' | 'lilas' | 'azul' | 'coral' | 'mel' | 'vinho' | 'grafite';
+export type IdDoTema =
+  | 'chiclete'
+  | 'rosa'
+  | 'menta'
+  | 'lilas'
+  | 'azul'
+  | 'coral'
+  | 'mel'
+  | 'vinho'
+  | 'grafite'
+  | 'tangerina'
+  | 'eletrico'
+  | 'turquesa'
+  | 'cobalto';
 
 export interface Tema {
   id: IdDoTema;
@@ -13,12 +26,25 @@ export interface Tema {
   /** Fundo da pagina, para a barra do navegador (meta theme-color). */
   fundo: string;
   fundoEscuro: string;
-  /** Rosa, Menta e Azul sao gratis; as outras cores sao do Premium. */
+  /** Chiclete, Rosa, Menta e Azul sao gratis; as outras cores sao do Premium. */
   premium: boolean;
 }
 
-/** Os quatro temas do app antigo e mais quatro. As cores de cada um ficam no styles.scss. */
+/**
+ * O Chiclete e o padrao; depois vem os quatro temas do app antigo, mais quatro e as cores
+ * vibrantes. As cores de cada um ficam no styles.scss.
+ */
 export const TEMAS: readonly Tema[] = [
+  {
+    id: 'chiclete',
+    nome: $localize`Chiclete`,
+    descricao: $localize`Vibrante e divertido`,
+    destaque: '#d1006b',
+    destaqueEscuro: '#ff5cae',
+    fundo: '#fff4f9',
+    fundoEscuro: '#14060d',
+    premium: false,
+  },
   {
     id: 'rosa',
     nome: $localize`Rosa Piggu`,
@@ -99,6 +125,46 @@ export const TEMAS: readonly Tema[] = [
     fundoEscuro: '#111214',
     premium: true,
   },
+  {
+    id: 'tangerina',
+    nome: $localize`Tangerina`,
+    descricao: $localize`Quente e radiante`,
+    destaque: '#c43e00',
+    destaqueEscuro: '#ff9a3c',
+    fundo: '#fff7f0',
+    fundoEscuro: '#140a04',
+    premium: true,
+  },
+  {
+    id: 'eletrico',
+    nome: $localize`Elétrico`,
+    descricao: $localize`Ousado e intenso`,
+    destaque: '#7426e0',
+    destaqueEscuro: '#c69bff',
+    fundo: '#f8f4ff',
+    fundoEscuro: '#0c0716',
+    premium: true,
+  },
+  {
+    id: 'turquesa',
+    nome: $localize`Turquesa`,
+    descricao: $localize`Fresco e vivo`,
+    destaque: '#007f8c',
+    destaqueEscuro: '#3fe0d0',
+    fundo: '#f2fcfb',
+    fundoEscuro: '#041212',
+    premium: true,
+  },
+  {
+    id: 'cobalto',
+    nome: $localize`Cobalto`,
+    descricao: $localize`Forte e confiante`,
+    destaque: '#2449e8',
+    destaqueEscuro: '#8aa8ff',
+    fundo: '#f4f7ff',
+    fundoEscuro: '#050917',
+    premium: true,
+  },
 ];
 
 /** Fica no aparelho, como no app antigo, e vale antes do login tambem. */
@@ -128,7 +194,7 @@ function aplicar(tema: Tema): void {
   });
 }
 
-/** Chamado no main.ts antes do Angular subir, para a tela nao piscar em rosa. */
+/** Chamado no main.ts antes do Angular subir, para a tela nao piscar no Chiclete. */
 export function aplicarTemaSalvo(): void {
   aplicar(lerTemaSalvo());
 }
@@ -162,7 +228,7 @@ export function esquecerQueVoltouAoPadrao(): void {
 
 /**
  * Cor escolhida no Perfil. As cores Premium so ficam enquanto o plano vale: quando alguem
- * entra sem Premium com uma delas salva, o app volta para o Rosa. Antes do login nada muda,
+ * entra sem Premium com uma delas salva, o app volta para o Chiclete. Antes do login nada muda,
  * porque ainda nao se sabe o plano. A trava e so no aparelho: e enfeite, nao dado.
  */
 @Injectable({ providedIn: 'root' })
