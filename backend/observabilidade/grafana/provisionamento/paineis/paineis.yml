@@ -1,0 +1,13 @@
+# Os paineis vem dos arquivos JSON em observabilidade/grafana/paineis (no Git). Mudou um
+# arquivo? O Grafana rele sozinho em ate um minuto. Mudanca feita na tela nao fica: para
+# guardar, exporte o JSON e troque o arquivo.
+apiVersion: 1
+
+providers:
+  - name: piggu
+    folder: Piggu
+    type: file
+    allowUiUpdates: false
+    updateIntervalSeconds: 60
+    options:
+      path: /var/lib/grafana/paineis-do-piggu

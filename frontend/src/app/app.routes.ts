@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { autenticadoGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
+import { TelaDeErro } from './features/erros/tela-de-erro';
 
 /**
  * Mapa de telas.
@@ -30,6 +31,15 @@ export const routes: Routes = [
   {
     path: 'confirmar-email',
     loadComponent: () => import('./features/confirmar-email/confirmar-email').then((m) => m.ConfirmarEmail),
+  },
+  // Abertas: quem esqueceu a senha esta sem sessao, e o link pode abrir em outro aparelho.
+  {
+    path: 'esqueci-senha',
+    loadComponent: () => import('./features/redefinir-senha/esqueci-senha').then((m) => m.EsqueciSenha),
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () => import('./features/redefinir-senha/redefinir-senha').then((m) => m.RedefinirSenha),
   },
   {
     path: 'aceite',
@@ -138,5 +148,8 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  // Telas de erro: carregadas junto com o app (ver TelaDeErro), abertas e sem moldura.
+  // A 500 tambem e aberta pelo app.config quando uma tela nao consegue carregar.
+  { path: 'erro', component: TelaDeErro, data: { tipo: 'servidor' } },
+  { path: '**', component: TelaDeErro, data: { tipo: 'nao-encontrada' } },
 ];

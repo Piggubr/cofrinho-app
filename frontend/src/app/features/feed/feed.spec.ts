@@ -135,7 +135,7 @@ describe('Feed', () => {
     http.expectOne((r) => r.method === 'DELETE' && r.url === '/api/feed/p1').flush(null);
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Nenhuma foto neste mês ainda.');
+    expect(pagina.textContent).toContain('Nenhuma foto neste mês ainda');
   });
 
   it('trocar de mes busca as fotos do outro mes', () => {

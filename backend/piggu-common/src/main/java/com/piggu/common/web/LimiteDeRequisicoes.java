@@ -47,8 +47,9 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     public enum Etapa { ANTES_DO_LOGIN, DEPOIS_DO_LOGIN }
 
     /**
-     * @param login           chamadas por minuto, por IP, no login (Google ou senha), no cadastro e na renovacao
-     * @param publico         chamadas por minuto, por IP, nas demais rotas abertas (webhooks)
+     * @param login           chamadas por minuto, por IP, no login (Google ou senha), no cadastro, na renovacao
+     *                        e no "esqueci minha senha"
+     * @param publico         chamadas por minuto, por IP, nas demais rotas abertas (webhooks, erros do app)
      * @param escrita         POST/PUT/PATCH/DELETE por minuto, por conta
      * @param envio           envios de foto ou extrato por minuto, por conta
      * @param consulta        buscas que custam (TMDB, catalogo, cambio, busca global) por minuto, por conta
@@ -152,8 +153,10 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     private static boolean ehRotaAberta(String caminho) {
         return caminho.equals("/api/auth/google") || caminho.equals("/api/auth/entrar")
                 || caminho.equals("/api/auth/cadastro") || caminho.equals("/api/auth/refresh")
+                || caminho.equals("/api/auth/confirmar-email") || caminho.equals("/api/auth/senha/esqueci")
+                || caminho.equals("/api/auth/senha/redefinir")
                 || caminho.equals("/api/auth/logout") || caminho.startsWith("/api/billing/webhooks/")
-                || caminho.startsWith("/api/billing/stores/");
+                || caminho.startsWith("/api/billing/stores/") || caminho.equals("/api/app/erros");
     }
 
     /**

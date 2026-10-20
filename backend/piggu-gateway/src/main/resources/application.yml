@@ -27,11 +27,14 @@ spring:
             - name: RequestSize
               args:
                 maxSize: 10MB
+          # Tempo e resultado de cada chamada por rota (servico), para o painel de performance.
+          metrics:
+            enabled: true
           routes:
             - id: identity
               uri: ${IDENTITY_URL:http://localhost:8081}
               predicates:
-                - Path=/api/auth/**,/api/me/**,/api/users/**,/api/family/**,/api/billing/**,/.well-known/**
+                - Path=/api/auth/**,/api/me/**,/api/users/**,/api/family/**,/api/billing/**,/api/app/**,/.well-known/**
 
             - id: finance
               uri: ${FINANCE_URL:http://localhost:8082}
@@ -64,7 +67,15 @@ management:
       exposure:
         # Sem "gateway": esse endpoint lista as rotas internas e aceita POST para
         # criar rotas novas, sem autenticacao, na unica porta publicada.
-        include: health,info
+        # prometheus: metricas do painel. A porta do gateway so escuta na propria maquina e o
+        # Caddy repassa apenas /api, entao de fora ninguem alcanca o /actuator.
+        include: health,info,prometheus
+  metrics:
+    distribution:
+      # Poucas faixas fixas de tempo: o painel tira o p95 de cada servico sem inflar o Prometheus.
+      slo:
+        http.server.requests: 50ms,100ms,250ms,500ms,1s,2s,5s
+        spring.cloud.gateway.requests: 50ms,100ms,250ms,500ms,1s,2s,5s
 
 logging:
   level:
@@ -73,3 +84,6 @@ logging:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  limite:
+    # Chamadas por minuto, por IP, para a API inteira (LimitePorIpGlobalFilter). 0 desliga.
+    gateway-por-minuto: ${PIGGU_LIMITE_GATEWAY:600}

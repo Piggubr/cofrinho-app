@@ -9,6 +9,7 @@ import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Contas do mes (as contas fixas): o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
@@ -16,7 +17,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-bills',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Vazio],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })

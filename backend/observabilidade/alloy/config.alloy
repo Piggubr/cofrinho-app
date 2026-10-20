@@ -1,0 +1,94 @@
+// Alloy do Piggu: le os logs que o Docker ja grava em disco e manda para o Loki.
+//
+// Le os arquivos (somente leitura) em vez do socket do Docker: o socket daria controle
+// total da maquina a este container. O nome do servico vem do proprio arquivo, porque o
+// docker-compose.yml pede ao Docker que grave o rotulo com.docker.compose.service em cada
+// linha (x-logs, opcao "labels"). Linha sem esse rotulo (outros containers, o proprio
+// monitoramento) e descartada.
+
+local.file_match "containers" {
+  path_targets = [{"__path__" = "/var/lib/docker/containers/*/*-json.log"}]
+  sync_period  = "15s"
+}
+
+loki.source.file "containers" {
+  targets    = local.file_match.containers.targets
+  forward_to = [loki.process.piggu.receiver]
+}
+
+loki.process "piggu" {
+  forward_to = [loki.write.local.receiver]
+
+  // Linha do Docker: {"log":"...","stream":"stdout","attrs":{...},"time":"..."}
+  stage.json {
+    expressions = {
+      saida   = "log",
+      hora    = "time",
+      servico = "attrs.\"com.docker.compose.service\"",
+    }
+  }
+
+  stage.template {
+    source   = "servico"
+    template = "{{ if .Value }}{{ .Value }}{{ else }}nenhum{{ end }}"
+  }
+
+  stage.drop {
+    source = "servico"
+    value  = "nenhum"
+  }
+
+  stage.timestamp {
+    source = "hora"
+    format = "RFC3339Nano"
+  }
+
+  stage.template {
+    source   = "saida"
+    template = "{{ TrimSpace .Value }}"
+  }
+
+  stage.output {
+    source = "saida"
+  }
+
+  // LGPD, segunda barreira: o codigo ja nao escreve e-mail, CPF nem token no log; se
+  // algum escapar (mensagem de biblioteca, texto vindo do app), sai aqui, antes de gravar.
+  stage.replace {
+    expression = "([\\w.%+-]+@[\\w-]+(?:\\.[\\w-]+)+)"
+    replace    = "[email]"
+  }
+
+  stage.replace {
+    expression = "(\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2})"
+    replace    = "[cpf]"
+  }
+
+  stage.replace {
+    expression = "(eyJ[\\w-]*\\.[\\w-]+\\.[\\w-]*)"
+    replace    = "[token]"
+  }
+
+  // Linha dos servicos Spring em JSON (ECS): o nivel vira rotulo para filtrar rapido.
+  stage.json {
+    expressions = { nivel = "log.level" }
+  }
+
+  stage.labels {
+    values = {
+      servico = "",
+      nivel   = "",
+    }
+  }
+
+  // O caminho do arquivo muda a cada container recriado: como rotulo, so multiplicaria series.
+  stage.label_drop {
+    values = ["filename"]
+  }
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

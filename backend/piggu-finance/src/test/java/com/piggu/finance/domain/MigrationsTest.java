@@ -78,4 +78,24 @@ class MigrationsTest extends PostgresIntegrationTest {
                 """,
                 Integer.class)).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("as views do painel analitico (V18) rodam e nenhuma devolve valor, texto ou id")
+    void viewsDoPainelAnalitico() {
+        jdbc.update("""
+                INSERT INTO expenses (id, household_id, expense_date, receipt_id, item, category, amount, source, created_at)
+                VALUES (gen_random_uuid(), gen_random_uuid(), current_date, gen_random_uuid(), 'Pao', 'Mercado', 9.90,
+                        'digitado por alguem', now())""");
+        for (String view : List.of("lancamentos_por_dia", "gastos_por_origem", "recursos_por_mes", "familias_por_recurso")) {
+            jdbc.queryForList("SELECT * FROM analitico." + view);
+        }
+
+        assertThat(jdbc.queryForList("SELECT DISTINCT origem FROM analitico.gastos_por_origem", String.class))
+                .contains("Outra").doesNotContain("digitado por alguem");
+        assertThat(jdbc.queryForList("""
+                SELECT column_name FROM information_schema.columns
+                WHERE table_schema = 'analitico'
+                  AND (column_name ~ '(amount|valor|item|merchant|categor|email|_id$)')""", String.class)).isEmpty();
+        jdbc.update("DELETE FROM expenses WHERE source = 'digitado por alguem'");
+    }
 }

@@ -26,13 +26,16 @@ public class IdentitySecurityConfig {
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
                         .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/cadastro", "/api/auth/entrar", "/api/auth/confirmar-email",
-                                "/api/auth/refresh", "/api/auth/logout").permitAll()
+                                "/api/auth/senha/esqueci", "/api/auth/senha/redefinir", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         // A Stripe nao manda token: o aviso e conferido pela assinatura HMAC.
                         .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
                         // Idem para o RevenueCat: a prova e o segredo no Authorization.
                         .requestMatchers(HttpMethod.POST, "/api/billing/stores/*/purchases").permitAll()
                         .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info").permitAll()
+                        // Erro de JavaScript do app: chega sem token, ate da tela de login (ErrosDoAppController).
+                        .requestMatchers(HttpMethod.POST, "/api/app/erros").permitAll()
+                        // Metricas: so a rede interna alcanca (ver ResourceServerSecurityConfig).
+                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .bearerTokenResolver(tokenForaDosAvisosDasLojas())

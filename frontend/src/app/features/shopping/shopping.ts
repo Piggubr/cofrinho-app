@@ -5,6 +5,8 @@ import { LifestyleService } from '../../core/api/lifestyle.service';
 import { ItemDeCompra, ProdutoDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 type NomeDeLista = 'Compras' | 'Desejos';
 
@@ -17,7 +19,7 @@ type NomeDeLista = 'Compras' | 'Desejos';
  */
 @Component({
   selector: 'app-shopping',
-  imports: [Focar, Icone, FormsModule],
+  imports: [Focar, Icone, FormsModule, Carregando, Vazio],
   templateUrl: './shopping.html',
   styleUrl: './shopping.scss',
 })

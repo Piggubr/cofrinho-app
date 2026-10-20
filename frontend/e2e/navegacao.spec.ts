@@ -194,3 +194,29 @@ test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ pa
   await expect(page.locator('#valor-rapido')).toBeVisible();
   await expect(page).toHaveURL(/\/perfil$/);
 });
+
+test('endereco que nao existe mostra a 404 e o botao leva ao painel', async ({ page }) => {
+  await page.goto('/endereco-que-nao-existe');
+
+  await expect(page.getByRole('heading', { name: 'Essa página fugiu do cofrinho' })).toBeVisible();
+  await expect(page).toHaveURL(/\/endereco-que-nao-existe$/);
+  await page.getByRole('link', { name: 'Ir para o início' }).click();
+  await expect(page).toHaveURL(/\/painel$/);
+});
+
+test('tela que nao consegue abrir mostra a 500 e o "Tentar de novo" volta a ela', async ({
+  page,
+}) => {
+  await page.goto('/painel');
+  await expect(page.getByText('Olá, Ana')).toBeVisible();
+
+  // O arquivo da proxima tela nao chega, como numa rede que caiu ou num deploy no meio.
+  await page.route(/\.js(\?.*)?$/, (pedido) => pedido.abort());
+  await page.locator('a[href="/receitas"]:visible, a[href="/gastos"]:visible').first().click();
+  await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeVisible();
+
+  await page.unroute(/\.js(\?.*)?$/);
+  await page.getByRole('button', { name: 'Tentar de novo' }).click();
+  await expect(page).toHaveURL(/\/(receitas|gastos)$/);
+  await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeHidden();
+});

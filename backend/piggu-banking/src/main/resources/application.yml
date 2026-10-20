@@ -47,11 +47,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # prometheus: metricas do painel (backend/observabilidade). So a rede interna do
+        # Compose chega aqui: o Caddy repassa apenas /api e o gateway nao roteia /actuator.
+        include: health,info,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+  metrics:
+    distribution:
+      # Poucas faixas fixas de tempo: o painel tira o p95 de cada rota sem inflar o Prometheus.
+      slo:
+        http.server.requests: 50ms,100ms,250ms,500ms,1s,2s,5s
 
 logging:
   pattern:

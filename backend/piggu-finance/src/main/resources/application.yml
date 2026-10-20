@@ -18,6 +18,10 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+    placeholders:
+      # Schema das views do painel analitico (V*__painel_analitico.sql). Os testes que
+      # migram um schema a parte usam outro, para nao repontar as views do principal.
+      esquema_analitico: analitico
   security:
     oauth2:
       resourceserver:
@@ -57,11 +61,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # prometheus: metricas do painel (backend/observabilidade). So a rede interna do
+        # Compose chega aqui: o Caddy repassa apenas /api e o gateway nao roteia /actuator.
+        include: health,info,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+  metrics:
+    distribution:
+      # Poucas faixas fixas de tempo: o painel tira o p95 de cada rota sem inflar o Prometheus.
+      slo:
+        http.server.requests: 50ms,100ms,250ms,500ms,1s,2s,5s
 
 logging:
   pattern:

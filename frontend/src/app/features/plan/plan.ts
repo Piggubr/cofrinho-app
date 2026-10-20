@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
 
 /**
  * Planos do Piggu.
@@ -16,7 +17,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-plan',
-  imports: [Icone, DataBrPipe],
+  imports: [Icone, DataBrPipe, Carregando],
   templateUrl: './plan.html',
   styleUrl: './plan.scss',
 })

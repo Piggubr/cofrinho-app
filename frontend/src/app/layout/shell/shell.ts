@@ -166,7 +166,7 @@ export class Shell {
   /** Trocas de tela dentro do app: sem nenhuma, o voltar do cabecalho leva ao Painel. */
   private trocasDeTela = 0;
 
-  /** O membro da familia so enxerga o painel; o resto do menu some para ele. */
+  /** Todo papel ve o menu inteiro; so o Premium e do titular (somenteTitular). */
   // prettier-ignore
   protected readonly itens: ItemDeMenu[] = [
     { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa', grupo: 'dia-a-dia' },

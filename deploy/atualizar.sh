@@ -11,6 +11,10 @@
 #
 # Variaveis (opcionais):
 #   PIGGU_RAMO   branch de producao (main)
+#
+# Com PIGGU_OBSERVABILIDADE=true no backend/.env, sobe tambem o monitoramento (perfil
+# observabilidade: Grafana, Prometheus, Loki) e o reinicia quando a configuracao dele muda.
+# Um problema no monitoramento nunca reprova o deploy: so os servicos do app contam.
 set -euo pipefail
 
 # Tudo dentro de uma funcao: o bash le a funcao inteira antes de rodar, entao o
@@ -39,6 +43,8 @@ main() {
     exit 1
   fi
   # .env, keys/ e o docker-compose.override.yml ficam fora do Git e nao sao tocados.
+  local antes
+  antes=$(git rev-parse HEAD)
   git checkout --quiet -B "$ramo" "$sha"
 
   echo "==> Compilando o site"
@@ -46,12 +52,24 @@ main() {
 
   echo "==> Subindo os servicos"
   cd backend
-  docker compose --profile producao up -d --build --remove-orphans
+  local perfis=(--profile producao) monitoramento=false
+  if grep -qE '^PIGGU_OBSERVABILIDADE=(true|sim|1)[[:space:]]*$' .env 2> /dev/null; then
+    perfis+=(--profile observabilidade)
+    monitoramento=true
+  fi
+  docker compose "${perfis[@]}" up -d --build --remove-orphans
+  # Config do monitoramento e arquivo montado: o container nao percebe a troca sozinho.
+  if $monitoramento && ! git diff --quiet "$antes" "$sha" -- observabilidade; then
+    echo "==> Reiniciando o monitoramento (configuracao mudou)"
+    docker compose "${perfis[@]}" restart prometheus loki alloy grafana || true
+  fi
 
   echo "==> Esperando os servicos ficarem saudaveis"
   local estado
   for _ in $(seq 1 60); do
-    estado=$(docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}')
+    # So os servicos do app; o monitoramento (perfil observabilidade) fica de fora.
+    estado=$(docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}' \
+      | grep -vE '^(prometheus|loki|alloy|node-exporter|grafana) ' || true)
     if ! grep -qE ' (created|restarting|exited|dead)| (starting|unhealthy)$' <<< "$estado"; then
       echo "$estado"
       docker image prune -f > /dev/null

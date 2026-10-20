@@ -113,12 +113,14 @@
       </div>
     </div>
   } @empty {
-    <p i18n class="vazio">Nenhuma conta fixa ainda.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="descricao-conta">
-        Cadastrar a primeira conta
-      </button>
-    </p>
+    <app-vazio icone="recibo" i18n-titulo titulo="Nenhuma conta fixa ainda">
+      <p i18n>Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="descricao-conta">
+          Cadastrar a primeira conta
+        </button>
+      </p>
+    </app-vazio>
   }
 </section>
 

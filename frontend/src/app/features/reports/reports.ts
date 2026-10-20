@@ -8,6 +8,7 @@ import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
+import { Vazio } from '../../core/ui/vazio';
 
 const MESES_CURTOS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -36,7 +37,7 @@ function barra(x: number, altura: number): string {
  */
 @Component({
   selector: 'app-reports',
-  imports: [Icone, MoedaPipe, RouterLink, DecimalPipe],
+  imports: [Icone, MoedaPipe, RouterLink, DecimalPipe, Vazio],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })

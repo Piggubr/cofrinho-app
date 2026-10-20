@@ -1,0 +1,254 @@
+# Alertas do Piggu (Grafana). Cada um manda e-mail para PIGGU_ALERTAS_EMAIL pelo SMTP
+# configurado no .env (GRAFANA_SMTP_*); sem SMTP, aparecem so no Grafana (Alertas).
+# Um aviso por tipo, repetido a cada 4 horas enquanto continuar. O que fazer em cada um
+# esta na descricao e no guia (guias/monitoramento-e-painel.md).
+# Os textos usam {{ .Labels.x }} e nao {{ $labels.x }}: o Grafana trocaria o $ por variavel de ambiente.
+apiVersion: 1
+contactPoints:
+- orgId: 1
+  name: E-mail
+  receivers:
+  - uid: piggu-email
+    type: email
+    settings:
+      addresses: ${PIGGU_ALERTAS_EMAIL}
+      singleEmail: true
+policies:
+- orgId: 1
+  receiver: E-mail
+  group_by:
+  - alertname
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+groups:
+- orgId: 1
+  name: piggu
+  folder: Piggu
+  interval: 1m
+  rules:
+  - uid: piggu-servico-fora
+    title: Serviço fora do ar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: up{job="piggu"}
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+    noDataState: OK
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: O serviço {{ .Labels.servico }} não responde há 2 minutos.
+      description: 'No servidor: docker compose ps e docker compose logs --tail 100 {{ .Labels.servico }}. Guia: guias/monitoramento-e-painel.md, "Quando chega um alerta".'
+    labels:
+      gravidade: alta
+  - uid: piggu-erros-no-log
+    title: Erros no log
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        refId: A
+        expr: sum by (servico) (count_over_time({nivel="ERROR"}[10m]))
+        instant: true
+        queryType: instant
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: Error
+    for: 0s
+    annotations:
+      summary: '{{ .Labels.servico }} registrou erro nos últimos 10 minutos.'
+      description: Abra o painel "Piggu - Erros e logs" e veja a mensagem e o X-Request-Id.
+    labels:
+      gravidade: media
+  - uid: piggu-lentidao
+    title: App lento
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: histogram_quantile(0.95, sum by (le) (rate(spring_cloud_gateway_requests_seconds_bucket[5m])))
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: 5% das chamadas estão levando mais de 2 segundos há 10 minutos.
+      description: 'Painel "Piggu - Saúde e performance": veja qual serviço e qual rota ficou lenta, e a CPU e a memória do servidor.'
+    labels:
+      gravidade: media
+  - uid: piggu-disco
+    title: Disco do servidor quase cheio
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: 100 * (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 85
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: O disco do servidor passou de 85%.
+      description: 'No servidor: docker system df e docker image prune -f. Os logs e as métricas já apagam sozinhos o que é velho.'
+    labels:
+      gravidade: alta
+  - uid: piggu-memoria
+    title: Memória do servidor no limite
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 90
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: A memória do servidor passou de 90% há 10 minutos.
+      description: 'Painel "Piggu - Saúde e performance", bloco Servidor: veja qual serviço cresceu. Os tetos ficam em PIGGU_MEMORIA_<SERVICO>.'
+    labels:
+      gravidade: alta
+  - uid: piggu-erros-do-app
+    title: Muitos erros no app
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 1800
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: sum(increase(piggu_erros_do_app_total[30m]))
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 20
+    noDataState: OK
+    execErrState: Error
+    for: 0s
+    annotations:
+      summary: Mais de 20 erros de JavaScript no app em 30 minutos.
+      description: 'Painel "Piggu - Erros e logs", bloco "Erros no app": veja a tela e a mensagem. Pode ser uma versão nova com defeito.'
+    labels:
+      gravidade: media
+  - uid: piggu-limite
+    title: Muitas chamadas recusadas pelo limite
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: sum(increase(http_server_requests_seconds_count{status="429"}[10m]))
+        instant: true
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 100
+    noDataState: OK
+    execErrState: Error
+    for: 0s
+    annotations:
+      summary: Mais de 100 chamadas recusadas por excesso em 10 minutos.
+      description: 'Pode ser um robô tentando senhas ou varrendo a API. Painel "Piggu - Erros e logs": busque "Limite de chamadas".'
+    labels:
+      gravidade: baixa

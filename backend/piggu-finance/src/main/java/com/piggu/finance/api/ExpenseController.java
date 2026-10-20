@@ -42,8 +42,8 @@ import java.util.UUID;
 /**
  * Gastos.
  *
- * <p>Substitui as acoes save, updateExpense e deleteExpense. O perfil MEMBRO nao
- * alcanca nada aqui, como era em autorizarAcao_.</p>
+ * <p>Substitui as acoes save, updateExpense e deleteExpense. Todo perfil da familia
+ * alcanca; cada um ve e altera so o que e dele (ver CadaUmVeOSeuTest).</p>
  */
 @RestController
 @RequestMapping("/api/expenses")

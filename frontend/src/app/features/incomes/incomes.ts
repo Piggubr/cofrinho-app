@@ -10,11 +10,12 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { ResumoDoMesCard } from '../dashboard/resumo-do-mes';
 import { Icone } from '../../core/ui/icone';
+import { Vazio } from '../../core/ui/vazio';
 
 /** Receitas do mes: com elas o painel mostra a sobra e a taxa de poupanca. */
 @Component({
   selector: 'app-incomes',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard, Vazio],
   templateUrl: './incomes.html',
   styles: `
     .repetir {

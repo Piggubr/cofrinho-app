@@ -1,5 +1,7 @@
 package com.piggu.common.error;
 
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +81,23 @@ class ApiExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.erro").value("Ocorreu um erro. Tente novamente."))
                 .andExpect(jsonPath("$.codigo").value("ERRO_INTERNO"));
+    }
+
+    @Test
+    @DisplayName("falha inesperada soma no contador do alerta, pela classe da excecao")
+    void falhaInesperadaContaNaMetrica() throws Exception {
+        SimpleMeterRegistry registro = new SimpleMeterRegistry();
+        Metrics.addRegistry(registro);
+        try {
+            mockMvc.perform(get("/teste/explode")).andExpect(status().isInternalServerError());
+            mockMvc.perform(get("/teste/negocio"));
+
+            assertThat(registro.get(ApiExceptionHandler.FALHAS).tag("excecao", "IllegalStateException")
+                    .counter().count()).isEqualTo(1.0);
+            assertThat(registro.find(ApiExceptionHandler.FALHAS).counters()).hasSize(1);
+        } finally {
+            Metrics.removeRegistry(registro);
+        }
     }
 
     @Test

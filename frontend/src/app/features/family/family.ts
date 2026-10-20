@@ -14,6 +14,7 @@ import {
 import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { Carregando } from '../../core/ui/carregando';
 
 const ACOES: Record<EventoDeAuditoria['acao'], string> = {
   CRIOU: $localize`lançou`,
@@ -53,7 +54,7 @@ const PAPEIS: Record<PigguRole, string> = {
  */
 @Component({
   selector: 'app-family',
-  imports: [FormsModule, DataBrPipe],
+  imports: [FormsModule, DataBrPipe, Carregando],
   templateUrl: './family.html',
   styleUrl: './family.scss',
 })
