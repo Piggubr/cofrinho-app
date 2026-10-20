@@ -885,7 +885,10 @@ const ROTAS: Rota[] = [
   }],
 
   // Cambio sem rede
-  ['GET', /^\/exchange-rate\/currencies$/, () => Object.keys(COTACOES).map((codigo) => ({ codigo, nome: codigo }))],
+  ['GET', /^\/exchange-rate\/currencies$/, () => {
+    const nomes = new Intl.DisplayNames(['pt-BR'], { type: 'currency' });
+    return Object.keys(COTACOES).map((codigo) => ({ codigo, nome: nomes.of(codigo) ?? codigo }));
+  }],
   ['GET', /^\/exchange-rate$/, (p) => {
     const de = p.params.get('de') ?? 'USD';
     const para = p.params.get('para') ?? 'BRL';

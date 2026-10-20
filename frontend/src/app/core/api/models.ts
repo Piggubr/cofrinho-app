@@ -145,7 +145,13 @@ export interface InfoDoPlano {
 
 /** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */
 export interface Preferencias {
+  /** Moeda em que os valores aparecem. */
   moeda: string;
+  /**
+   * As duas pontas da cotacao do topo, separadas da moeda do app. Conta de antes desta
+   * escolha nao traz a primeira: vale a moeda do app.
+   */
+  moedaCotacao?: string;
   moedaConversao: string;
   mostrarCotacao: boolean;
   /** Fuso IANA da pessoa; conta nova nasce em America/Sao_Paulo. */

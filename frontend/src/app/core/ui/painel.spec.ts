@@ -44,6 +44,21 @@ describe('PainelOrganizado', () => {
     expect(painel.blocos().map((b) => b.id)).toEqual(BLOCOS_DO_PAINEL.map((b) => b.id));
   });
 
+  it('arrastar leva o bloco direto para a posicao e empurra os outros', () => {
+    const painel = TestBed.inject(PainelOrganizado);
+    painel.moverPara('girls-math', 0);
+    expect(
+      painel
+        .blocos()
+        .map((b) => b.id)
+        .slice(0, 3),
+    ).toEqual(['girls-math', 'resumo', 'avisos']);
+
+    painel.moverPara('resumo', 99);
+    expect(painel.blocos().at(-1)?.id).toBe('resumo');
+    expect(JSON.parse(localStorage.getItem(chave)!)).toEqual(painel.blocos());
+  });
+
   it('o primeiro nao sobe e o ultimo nao desce', () => {
     const painel = TestBed.inject(PainelOrganizado);
     const antes = painel.blocos();

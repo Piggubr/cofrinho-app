@@ -98,6 +98,18 @@ export class PainelOrganizado {
     this.gravar(blocos);
   }
 
+  /** Leva o bloco para a posicao indicada, empurrando os outros: e o soltar do arrastar. */
+  moverPara(id: IdDoBloco, indice: number): void {
+    const blocos = [...this.blocos()];
+    const de = blocos.findIndex((b) => b.id === id);
+    const para = Math.max(0, Math.min(indice, blocos.length - 1));
+    if (de < 0 || de === para) {
+      return;
+    }
+    blocos.splice(para, 0, ...blocos.splice(de, 1));
+    this.gravar(blocos);
+  }
+
   alternar(id: IdDoBloco): void {
     this.gravar(this.blocos().map((b) => (b.id === id ? { ...b, visivel: !b.visivel } : b)));
   }
