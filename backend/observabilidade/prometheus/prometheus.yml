@@ -1,0 +1,47 @@
+# Prometheus do Piggu: le as metricas de cada servico pela rede interna do Compose.
+# Nada aqui e publico: o Prometheus nao publica porta; quem consulta e o Grafana.
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # Os servicos Spring (Micrometer em /actuator/prometheus). "servico" e o rotulo que os
+  # paineis e os alertas usam.
+  - job_name: piggu
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["gateway:8080"]
+        labels: { servico: gateway }
+      - targets: ["identity:8081"]
+        labels: { servico: identity }
+      - targets: ["finance:8082"]
+        labels: { servico: finance }
+      - targets: ["rewards:8083"]
+        labels: { servico: rewards }
+      - targets: ["lifestyle:8084"]
+        labels: { servico: lifestyle }
+      - targets: ["media:8085"]
+        labels: { servico: media }
+
+  # Open Finance e opcional (perfil open-finance): fora do ar nao dispara alerta.
+  - job_name: piggu-opcional
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["banking:8086"]
+        labels: { servico: banking }
+
+  # A maquina: CPU, memoria, disco e rede do servidor da Oracle.
+  - job_name: servidor
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels: { servico: servidor }
+
+  # O proprio monitoramento, para saber se ele esta de pe.
+  - job_name: monitoramento
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels: { servico: prometheus }
+      - targets: ["loki:3100"]
+        labels: { servico: loki }
+      - targets: ["alloy:12345"]
+        labels: { servico: alloy }

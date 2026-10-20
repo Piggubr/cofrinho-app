@@ -73,6 +73,8 @@ export interface MembroDaFamilia {
   foto: string | null;
   papel: PigguRole;
   premium: boolean;
+  /** O titular convidou para ser parceiro e a pessoa ainda nao respondeu. */
+  parceriaPendente?: boolean;
 }
 
 /** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */
@@ -224,6 +226,8 @@ export interface NovoLancamento {
   parcelas?: number | null;
   /** Ids das pessoas da familia que dividem o gasto. */
   dividirCom?: string[] | null;
+  /** Cada item vira tambem uma conta fixa que se lanca sozinha no mesmo dia, todo mes. */
+  recorrente?: boolean | null;
 }
 
 export interface ReciboLido {
@@ -593,6 +597,20 @@ export interface ContaFixa {
   automatico: boolean;
   vencimento: string;
   situacao: 'PAGA' | 'PENDENTE' | 'VENCIDA';
+  /** RECEITA: receita que entra todo mes (o salario). */
+  tipo?: 'GASTO' | 'RECEITA';
+  /** Cartao ou conta que paga o gasto todo mes. */
+  contaId?: string | null;
+}
+
+/** Dinheiro que alguem deve; so vira receita quando a pessoa toca em "Recebi". */
+export interface AReceber {
+  id: string;
+  quem: string;
+  descricao: string;
+  valor: number;
+  /** Data combinada para receber; depois dela o app avisa. */
+  data: string;
 }
 
 /** Orcamento de uma categoria no mes: alerta em 80% (ATENCAO) e 100% (ESTOUROU). */
@@ -616,6 +634,8 @@ export interface RegraDeCategoria {
 export interface Fatura {
   mes: string;
   inicio: string;
+  /** Vespera do fechamento: o ultimo dia de compra que ainda entra nesta fatura. */
+  ultimaCompra: string;
   fechamento: string;
   vencimento: string;
   total: number;

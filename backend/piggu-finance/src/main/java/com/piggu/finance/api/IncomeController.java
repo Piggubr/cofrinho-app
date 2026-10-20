@@ -3,6 +3,7 @@ package com.piggu.finance.api;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
+import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.Income;
 import com.piggu.finance.domain.IncomeService;
 import jakarta.validation.Valid;
@@ -35,9 +36,11 @@ import java.util.UUID;
 public class IncomeController {
 
     private final IncomeService servico;
+    private final ContasFixasService recorrentes;
 
-    public IncomeController(IncomeService servico) {
+    public IncomeController(IncomeService servico, ContasFixasService recorrentes) {
         this.servico = servico;
+        this.recorrentes = recorrentes;
     }
 
     public record IncomeRequest(
@@ -46,7 +49,8 @@ public class IncomeController {
             @Size(max = 50) String categoria,
             @NotNull(message = "Digite o valor.")
             @DecimalMin(value = "0.01", message = "Digite um valor valido.")
-            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal valor) {
+            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal valor,
+            Boolean recorrente) {
     }
 
     public record IncomeResponse(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
@@ -71,6 +75,10 @@ public class IncomeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IncomeResponse criar(@Valid @RequestBody IncomeRequest pedido, @AuthUser CurrentUser usuario) {
+        if (Boolean.TRUE.equals(pedido.recorrente())) {
+            return IncomeResponse.de(recorrentes.lancarReceitaRecorrente(pedido.data(), pedido.descricao(),
+                    pedido.categoria(), pedido.valor(), usuario.id()));
+        }
         return IncomeResponse.de(servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
                 usuario.id()));
     }

@@ -169,4 +169,5 @@ de dev criado antes disso precisa ser recriado.
 
 Contato de privacidade usado no app: `privacidade@piggu.app` (constante no front). O
 domínio `piggu.app` estava **livre** na consulta de 08/10/2026; `piggu.com` e
-`piggu.com.br` têm dono.
+`piggu.com.br` têm dono. Em 19/10/2026 o contato passou a ser `privacidade@piggu.com.br`,
+no domínio do site, com o recebimento descrito em `docs/email-do-dominio.md`.

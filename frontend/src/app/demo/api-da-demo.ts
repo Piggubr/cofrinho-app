@@ -244,8 +244,9 @@ function orcamentos(mes: string): Orcamento[] {
     .sort((a, b) => a.categoria.localeCompare(b.categoria));
 }
 
-function contasFixas(mes: string): ContaFixa[] {
+function contasFixas(mes: string, tipo = 'GASTO'): ContaFixa[] {
   return estado.contasFixas
+    .filter((c) => (c.tipo ?? 'GASTO') === tipo)
     .map((c) => {
       const vencimento = diaNoMes(mes, c.dia);
       const paga = estado.contasPagas.has(`${c.id}|${mes}`);
@@ -257,17 +258,17 @@ function contasFixas(mes: string): ContaFixa[] {
 
 function periodo(conta: ContaDemo, mes: string): Omit<Fatura, 'total'> {
   const fechamento = diaNoMes(mes, conta.fechamento!);
-  const anterior = new Date(`${diaNoMes(somarMes(mes, -1), conta.fechamento!)}T12:00:00`);
-  anterior.setDate(anterior.getDate() + 1);
+  const vespera = new Date(`${fechamento}T12:00:00`);
+  vespera.setDate(vespera.getDate() - 1);
   const vencimento =
     conta.vencimento! > conta.fechamento! ? diaNoMes(mes, conta.vencimento!) : diaNoMes(somarMes(mes, 1), conta.vencimento!);
-  return { mes, inicio: dataIso(anterior), fechamento, vencimento };
+  return { mes, inicio: diaNoMes(somarMes(mes, -1), conta.fechamento!), ultimaCompra: dataIso(vespera), fechamento, vencimento };
 }
 
 function gastosDaFatura(conta: ContaDemo, mes: string): { fatura: Fatura; gastos: Gasto[] } {
   const p = periodo(conta, mes);
   const gastos = estado.gastos
-    .filter((g) => g.contaId === conta.id && g.data >= p.inicio && g.data <= p.fechamento)
+    .filter((g) => g.contaId === conta.id && g.data >= p.inicio && g.data <= p.ultimaCompra)
     .sort((a, b) => a.data.localeCompare(b.data));
   return { fatura: { ...p, total: somar(gastos.map((g) => g.valor)) }, gastos };
 }
@@ -277,7 +278,7 @@ function contaComFaturas(conta: ContaDemo): ContaOuCartao {
     return { ...conta, faturaAberta: null, faturaAPagar: null };
   }
   const hoje = hojeIso();
-  const aberta = hoje > diaNoMes(mesAtual(), conta.fechamento!) ? somarMes(mesAtual(), 1) : mesAtual();
+  const aberta = hoje >= diaNoMes(mesAtual(), conta.fechamento!) ? somarMes(mesAtual(), 1) : mesAtual();
   const anterior = gastosDaFatura(conta, somarMes(aberta, -1)).fatura;
   return {
     ...conta,
@@ -572,6 +573,7 @@ const ROTAS: Rota[] = [
     return estado.titular;
   }],
   ['POST', /^\/auth\/logout$/, () => undefined],
+  ['POST', /^\/auth\/senha\/(esqueci|redefinir)$/, () => undefined],
   ['GET', /^\/auth\/me$/, () => estado.titular],
   ['PUT', /^\/auth\/me\/preferences$/, (_p, _x, c) => {
     estado.titular = { ...estado.titular, preferencias: { ...estado.titular.preferencias, ...(c as Usuario['preferencias']) } };
@@ -619,7 +621,7 @@ const ROTAS: Rota[] = [
   ['PUT', new RegExp(`^/family/members/${ID}/role$`), () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
   ['GET', /^\/family\/invites\/mine$/, () => []],
   ['GET', /^\/(family\/)?history$/, () => []],
-  ['POST', /^\/family\/(leave|invites\/.+\/accept)$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
+  ['POST', /^\/family\/(leave|invites\/.+\/accept|partnership\/(accept|decline))$/, () => { throw new ErroDaDemo(422, INDISPONIVEL); }],
 
   // Plano e pagamento: nada sai para a Stripe.
   ['GET', /^\/billing\/plan$/, () => plano()],
@@ -663,13 +665,29 @@ const ROTAS: Rota[] = [
     const mes = p.params.get('mes');
     return (mes ? doMes(mes) : estado.gastos).slice().sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm));
   }],
-  ['POST', /^\/expenses$/, (_p, _x, c) => lancar(c)],
+  ['POST', /^\/expenses$/, (_p, _x, c) => {
+    const novos = lancar(c);
+    if (c['recorrente']) {
+      for (const g of novos) {
+        const id = novoId('fixa');
+        estado.contasFixas.push({ id, descricao: g.item, categoria: g.categoria, valor: g.valor, dia: Number(g.data.slice(8)), automatico: true, contaId: g.contaId });
+        estado.contasPagas.add(`${id}|${g.data.slice(0, 7)}`);
+      }
+    }
+    return novos;
+  }],
   ['PUT', new RegExp(`^/expenses/${ID}$`), (_p, [id], c) => {
     const gasto = exigir(estado.gastos.find((g) => g.id === id), 'Gasto não encontrado.');
     Object.assign(gasto, { item: c['item'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']) });
     return gasto;
   }],
-  ['DELETE', new RegExp(`^/expenses/${ID}$`), (_p, [id]) => { remover(estado.gastos, id); delete estado.partes[id]; }],
+  ['DELETE', new RegExp(`^/expenses/${ID}$`), (p, [id]) => {
+    const gasto = exigir(estado.gastos.find((g) => g.id === id), 'Gasto não encontrado.');
+    const apagar = p.params.get('proximas') && gasto.parcelas
+      ? estado.gastos.filter((g) => g.reciboId === gasto.reciboId && g.item === gasto.item && g.parcelas === gasto.parcelas && g.parcela! >= gasto.parcela!)
+      : [gasto];
+    apagar.forEach((g) => { remover(estado.gastos, g.id); delete estado.partes[g.id]; });
+  }],
 
   // Categorias e regras
   ['GET', /^\/categories$/, () => ({ categorias: categorias() })],
@@ -704,8 +722,27 @@ const ROTAS: Rota[] = [
   ['POST', /^\/incomes$/, (_p, _x, c) => {
     const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.id };
     estado.receitas.push(receita);
+    if (c['recorrente']) {
+      const id = novoId('fixa');
+      estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA' });
+      estado.contasPagas.add(`${id}|${receita.data.slice(0, 7)}`);
+    }
     return receita;
   }],
+  ['GET', /^\/incomes\/receivables$/, () => [...estado.aReceber].sort((a, b) => a.data.localeCompare(b.data))],
+  ['POST', /^\/incomes\/receivables$/, (_p, _x, c) => {
+    const conta = { id: novoId('receber'), quem: String(c['quem']), descricao: c['descricao'] ?? '', valor: Number(c['valor']), data: c['data'] };
+    estado.aReceber.push(conta);
+    return conta;
+  }],
+  ['POST', new RegExp(`^/incomes/receivables/${ID}/receive$`), (_p, [id]) => {
+    const conta = exigir(estado.aReceber.find((a) => a.id === id), 'Valor a receber não encontrado.');
+    remover(estado.aReceber, id);
+    const receita = { id: novoId('receita'), data: hojeIso(), descricao: conta.descricao ? `${conta.quem} · ${conta.descricao}` : conta.quem, categoria: 'Reembolso', valor: conta.valor, usuario: estado.titular.id };
+    estado.receitas.push(receita);
+    return receita;
+  }],
+  ['DELETE', new RegExp(`^/incomes/receivables/${ID}$`), (_p, [id]) => remover(estado.aReceber, id)],
   ['DELETE', new RegExp(`^/incomes/${ID}$`), (_p, [id]) => remover(estado.receitas, id)],
 
   // Relatorios
@@ -713,7 +750,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/reports\/year$/, (p) => relatorioDoAno(Number(p.params.get('ano')) || new Date().getFullYear())],
 
   // Contas fixas
-  ['GET', /^\/bills$/, (p) => contasFixas(mesDe(p))],
+  ['GET', /^\/bills$/, (p) => contasFixas(mesDe(p), p.params.get('tipo') ?? 'GASTO')],
   ['POST', /^\/bills$/, (_p, _x, c) => {
     estado.contasFixas.push({ id: novoId('fixa'), descricao: c['descricao'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']), dia: Number(c['dia']), automatico: !!c['automatico'] });
   }],
@@ -725,7 +762,11 @@ const ROTAS: Rota[] = [
       throw new ErroDaDemo(409, 'Essa conta já foi paga neste mês.');
     }
     estado.contasPagas.add(`${id}|${mes}`);
-    const [gasto] = lancar({ data: diaNoMes(mes, conta.dia), origem: 'Conta fixa', itens: [{ item: conta.descricao, categoria: conta.categoria, valor: conta.valor, tipo: 'Fixo' }] });
+    if (conta.tipo === 'RECEITA') {
+      estado.receitas.push({ id: novoId('receita'), data: diaNoMes(mes, conta.dia), descricao: conta.descricao, categoria: conta.categoria, valor: conta.valor, usuario: estado.titular.id });
+      return null;
+    }
+    const [gasto] = lancar({ data: diaNoMes(mes, conta.dia), origem: 'Conta fixa', contaId: conta.contaId ?? null, itens: [{ item: conta.descricao, categoria: conta.categoria, valor: conta.valor, tipo: 'Fixo' }] });
     gasto.categoria = conta.categoria;
     return gasto;
   }],
@@ -747,7 +788,7 @@ const ROTAS: Rota[] = [
   ['GET', /^\/accounts$/, () => estado.contas.map(contaComFaturas).sort((a, b) => a.nome.localeCompare(b.nome))],
   ['POST', /^\/accounts$/, (_p, _x, c) => {
     const cartao = c['tipo'] === 'CARTAO';
-    const conta: ContaDemo = { id: novoId('conta'), nome: String(c['nome']), tipo: cartao ? 'CARTAO' : 'CONTA', fechamento: cartao ? Number(c['fechamento']) : null, vencimento: cartao ? Number(c['vencimento']) : null };
+    const conta: ContaDemo = { id: novoId('conta'), nome: String(c['nome']), tipo: cartao ? 'CARTAO' : 'CONTA', fechamento: cartao ? Number(c['fechamento'] ?? (Number(c['vencimento']) > 7 ? Number(c['vencimento']) - 7 : Number(c['vencimento']) + 24)) : null, vencimento: cartao ? Number(c['vencimento']) : null };
     estado.contas.push(conta);
     return contaComFaturas(conta);
   }],
@@ -794,6 +835,7 @@ const ROTAS: Rota[] = [
   }],
   // Assistente: respostas montadas aqui, sem IA, a partir dos dados de exemplo.
   ['GET', /^\/assistant$/, () => situacaoDoAssistente()],
+  ['POST', /^\/assistant\/consent$/, () => { estado.assistenteAutorizado = true; return situacaoDoAssistente(); }],
   ['POST', /^\/assistant\/ask$/, (_p, _x, c) => {
     if (c['autorizoIa'] === true) {
       estado.assistenteAutorizado = true;

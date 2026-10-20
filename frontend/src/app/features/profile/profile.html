@@ -302,14 +302,14 @@
           type="button"
           role="radio"
           class="icone-do-app"
-          [class.travado]="icone.id !== 'padrao' && !auth.ehPremium()"
+          [class.travado]="icone.premium && !auth.ehPremium()"
           [attr.aria-checked]="icone.id === iconeAtual()"
           [attr.aria-label]="icone.nome"
           (click)="escolherIcone(icone.id)"
         >
           <img [src]="icone.previa" alt="" width="56" height="56" />
           <small>{{ icone.nome }}</small>
-          @if (icone.id !== 'padrao' && !auth.ehPremium()) {
+          @if (icone.premium && !auth.ehPremium()) {
             <span class="selo-premium" aria-hidden="true"
               ><app-icone nome="estrela" [tamanho]="11"
             /></span>
@@ -464,7 +464,7 @@
     </div>
 
     @if (carregandoAdmin()) {
-      <p i18n class="carregando">Carregando...</p>
+      <app-carregando [linhas]="2" />
     } @else {
       @for (conta of contas(); track conta.id) {
         <div class="linha">

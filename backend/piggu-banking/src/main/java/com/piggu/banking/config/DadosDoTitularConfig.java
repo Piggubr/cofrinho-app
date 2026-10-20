@@ -27,7 +27,8 @@ public class DadosDoTitularConfig {
     @Bean
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
-                new Tabela("bank_accounts", null, true),
+                // Como no app, cada um ve so as contas do banco que ele conectou.
+                Tabela.daDona("bank_accounts", new DadosDaFamilia.Dona("connection_id", "bank_connections", "user_id")),
                 Tabela.pessoal("bank_connections", "user_id"),
                 Tabela.pessoal("consents", "user_id")
         ), extras.orderedStream().toList(), List.of(contasAcompanhamAConexao(jdbc)));

@@ -1,0 +1,7 @@
+# Ajustes do scripts/smoke.sh por cima do backend/docker-compose.yml.
+services:
+  identity:
+    environment:
+      # Os testes criam varias contas do mesmo IP em menos de um minuto; o padrao (20 por
+      # minuto nas rotas de login) derrubaria a suite com 429.
+      PIGGU_LIMITE_LOGIN: "200"

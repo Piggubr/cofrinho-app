@@ -27,7 +27,10 @@ done
 for servico in identity finance rewards lifestyle; do
   pasta="$AQUI/../piggu-$servico/src/main/resources/db/migration"
   for arquivo in $(find "$pasta" -name "V*.sql" -printf "%f\n" | sort -V); do
-    docker exec -i "$NOME" psql -U piggu -d "piggu_$servico" -qX -v ON_ERROR_STOP=1 < "$pasta/$arquivo" > /dev/null 2>&1 \
+    # Faz o papel do Flyway: troca o placeholder do schema do painel analitico.
+    # shellcheck disable=SC2016 # o ${...} e literal, e o placeholder do Flyway
+    sed 's/${esquema_analitico}/analitico/g' "$pasta/$arquivo" \
+      | docker exec -i "$NOME" psql -U piggu -d "piggu_$servico" -qX -v ON_ERROR_STOP=1 > /dev/null 2>&1 \
       || falhar "migracao $servico/$arquivo"
   done
 done

@@ -22,8 +22,11 @@
             </p>
             @if (conta.faturaAberta; as f) {
               <p i18n class="linha-detalhe">
-                Fatura aberta ({{ rotuloDoMes(f.mes) }}): {{ f.total | moeda }}, fecha em
-                {{ f.fechamento | dataBr }}
+                Fatura aberta ({{ rotuloDoMes(f.mes) }}): {{ f.total | moeda }}
+              </p>
+              <p i18n class="linha-detalhe destaque-fechamento">
+                Compras até {{ f.ultimaCompra | dataBr }} entram nesta fatura. A partir de
+                {{ f.fechamento | dataBr }}, dia do fechamento, vão para a próxima.
               </p>
             }
             @if (conta.faturaAPagar; as f) {
@@ -91,8 +94,8 @@
       </button>
     </div>
     <p i18n class="linha-detalhe">
-      De {{ a.fatura.inicio | dataBr }} a {{ a.fatura.fechamento | dataBr }} · vence em
-      {{ a.fatura.vencimento | dataBr }}
+      Compras de {{ a.fatura.inicio | dataBr }} a {{ a.fatura.ultimaCompra | dataBr }} · fecha em
+      {{ a.fatura.fechamento | dataBr }} · vence em {{ a.fatura.vencimento | dataBr }}
     </p>
     <p class="numero">{{ a.fatura.total | moeda }}</p>
     @for (gasto of a.gastos; track gasto.id) {
@@ -139,29 +142,36 @@
     </div>
     @if (tipo() === 'CARTAO') {
       <div class="campo">
-        <label i18n for="fechamento">Dia do fechamento</label>
-        <input
-          id="fechamento"
-          type="number"
-          min="1"
-          max="31"
-          [ngModel]="fechamento()"
-          (ngModelChange)="fechamento.set($event)"
-        />
-      </div>
-      <div class="campo">
-        <label i18n for="vencimento">Dia do vencimento</label>
+        <label i18n for="vencimento">Dia do vencimento da fatura</label>
         <input
           id="vencimento"
           type="number"
           min="1"
           max="31"
           [ngModel]="vencimento()"
-          (ngModelChange)="vencimento.set($event)"
+          (ngModelChange)="trocarVencimento($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n for="fechamento">Dia do fechamento</label>
+        <input
+          id="fechamento"
+          type="number"
+          min="1"
+          max="31"
+          aria-describedby="dica-fechamento"
+          [ngModel]="fechamento()"
+          (ngModelChange)="fechamento.set($event)"
         />
       </div>
     }
   </div>
+  @if (tipo() === 'CARTAO') {
+    <p i18n id="dica-fechamento" class="dica">
+      O fechamento fica 7 dias antes do vencimento; mude se o seu banco usar outro dia. Compras
+      feitas do dia do fechamento em diante vão para a fatura seguinte.
+    </p>
+  }
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="salvar()" [disabled]="ocupado()">
       Salvar

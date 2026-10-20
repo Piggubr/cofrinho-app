@@ -26,6 +26,7 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     @DisplayName("a chave publica e aberta; o resto pede token")
     void publicoEProtegido() throws Exception {
         mockMvc.perform(get("/.well-known/jwks.json")).andExpect(status().isOk());
+        mockMvc.perform(get("/actuator/prometheus")).andExpect(status().isOk());
         mockMvc.perform(get("/api/users")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
         mockMvc.perform(put("/api/me/foto")).andExpect(status().isUnauthorized());

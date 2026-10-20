@@ -53,9 +53,141 @@
       />
     </div>
   </div>
+  <label class="repetir">
+    <input type="checkbox" [checked]="repetir()" (change)="repetir.set($any($event.target).checked)" />
+    <span i18n>Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span>
+  </label>
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
       Lançar receita
+    </button>
+  </div>
+</section>
+
+@if (recorrentes().length) {
+  <section class="cartao" aria-labelledby="titulo-recorrentes">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-recorrentes">Entram todo mês</h2>
+    </div>
+    @for (fixa of recorrentes(); track fixa.id) {
+      <div class="linha">
+        <div>
+          <p class="linha-titulo">{{ fixa.descricao }}</p>
+          <p i18n class="linha-detalhe">Todo dia {{ fixa.dia }} · {{ fixa.categoria }}</p>
+        </div>
+        <div class="linha-acoes">
+          <strong>{{ fixa.valor | moeda }}</strong>
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="pararDeRepetir(fixa)"
+            aria-label="Parar de repetir"
+            i18n-aria-label
+            title="Parar de repetir"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+<section class="cartao" aria-labelledby="titulo-a-receber">
+  <div class="cartao-titulo">
+    <h2 i18n id="titulo-a-receber">A receber</h2>
+  </div>
+  <p i18n class="linha-detalhe">
+    Dinheiro que alguém te deve. Só conta como receita quando você toca em Recebi; passou da
+    data combinada, o Piggu te avisa.
+  </p>
+  @for (conta of aReceber(); track conta.id) {
+    <div class="linha" [class.atrasada]="conta.data < hoje">
+      <div>
+        <p class="linha-titulo">
+          {{ conta.quem }}
+          @if (conta.descricao) {
+            · {{ conta.descricao }}
+          }
+        </p>
+        @if (conta.data < hoje) {
+          <p i18n class="linha-detalhe atraso">Está te devendo desde {{ conta.data | dataBr }}</p>
+        } @else {
+          <p i18n class="linha-detalhe">Combinado para {{ conta.data | dataBr }}</p>
+        }
+      </div>
+      <div class="linha-acoes">
+        <strong>{{ conta.valor | moeda }}</strong>
+        <button i18n type="button" class="botao contorno pequeno" (click)="receber(conta)">
+          Recebi
+        </button>
+        <button
+          type="button"
+          class="botao icone-so perigo"
+          (click)="excluirAReceber(conta)"
+          aria-label="Apagar"
+          i18n-aria-label
+          title="Apagar"
+          i18n-title
+        >
+          <app-icone nome="lixeira" [tamanho]="18" />
+        </button>
+      </div>
+    </div>
+  } @empty {
+    <p i18n class="vazio">Ninguém te deve nada agora.</p>
+  }
+  <div class="linha-de-campos">
+    <div class="campo">
+      <label i18n for="quem-deve">Quem deve</label>
+      <input
+        id="quem-deve"
+        maxlength="80"
+        [attr.aria-invalid]="faltouNoAReceber() === 'quem'"
+        [ngModel]="quem()"
+        (ngModelChange)="quem.set($event)"
+        placeholder="Ex.: João"
+        i18n-placeholder
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="motivo-a-receber">Do quê (opcional)</label>
+      <input
+        id="motivo-a-receber"
+        maxlength="200"
+        [ngModel]="motivo()"
+        (ngModelChange)="motivo.set($event)"
+        placeholder="Ex.: Metade da pizza"
+        i18n-placeholder
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="valor-a-receber">Valor</label>
+      <input
+        id="valor-a-receber"
+        type="number"
+        min="0.01"
+        step="0.01"
+        inputmode="decimal"
+        [attr.aria-invalid]="faltouNoAReceber() === 'valor'"
+        [ngModel]="valorAReceber()"
+        (ngModelChange)="valorAReceber.set($event)"
+      />
+    </div>
+    <div class="campo">
+      <label i18n for="data-a-receber">Combinado para</label>
+      <input
+        id="data-a-receber"
+        type="date"
+        [ngModel]="dataAReceber()"
+        (ngModelChange)="dataAReceber.set($event)"
+      />
+    </div>
+  </div>
+  <div class="acoes">
+    <button i18n type="button" class="botao contorno" (click)="criarAReceber()" [disabled]="salvando()">
+      Guardar a receber
     </button>
   </div>
 </section>
@@ -105,11 +237,13 @@
       </div>
     </div>
   } @empty {
-    <p i18n class="vazio">Nenhuma receita neste mês.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="descricao-receita">
-        Lançar uma receita
-      </button>
-    </p>
+    <app-vazio icone="entrada" i18n-titulo titulo="Nenhuma receita neste mês">
+      <p i18n>Salário, freela, um pix de volta: tudo que entra conta para a sobra do mês.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="descricao-receita">
+          Lançar uma receita
+        </button>
+      </p>
+    </app-vazio>
   }
 </section>

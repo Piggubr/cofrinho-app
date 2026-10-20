@@ -76,7 +76,7 @@
 </section>
 
 @if (carregando()) {
-  <p i18n class="carregando">Carregando...</p>
+  <section class="cartao"><app-carregando [linhas]="4" /></section>
 } @else if (itens().length) {
   <section class="cartao" aria-label="Itens guardados" i18n-aria-label>
     @for (item of itens(); track item.id) {
@@ -113,5 +113,7 @@
     }
   </section>
 } @else {
-  <p i18n class="vazio">Nenhum item guardado ainda.</p>
+  <app-vazio icone="sacola" i18n-titulo titulo="Nenhum item guardado ainda">
+    <p i18n>Registre o que você viu, quis e não comprou, e veja quanto ficou no bolso.</p>
+  </app-vazio>
 }

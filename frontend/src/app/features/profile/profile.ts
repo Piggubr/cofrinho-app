@@ -22,6 +22,7 @@ import { ICONES_DO_APP, IconesDoApp, IdDoIcone } from '../../core/nativo/icone-d
 import { Tutorial } from '../../core/ui/tutorial';
 import { AutorizacoesDeIa } from './autorizacoes-de-ia';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
+import { Carregando } from '../../core/ui/carregando';
 
 /**
  * Perfil e, para o administrador, as contas da instalacao.
@@ -31,7 +32,7 @@ import { problemaDaSenha } from '../../core/auth/regras-da-senha';
  */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, RouterLink, Icone, AutorizacoesDeIa],
+  imports: [FormsModule, RouterLink, Icone, AutorizacoesDeIa, Carregando],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })

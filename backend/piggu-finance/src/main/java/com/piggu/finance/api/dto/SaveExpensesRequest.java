@@ -21,6 +21,7 @@ import java.util.UUID;
  * @param contaId  conta ou cartao que pagou; opcional
  * @param parcelas 2 a 48 divide cada item em uma linha por mes; nulo ou 1 e a vista
  * @param dividirCom ids das pessoas da familia que dividem o gasto em partes iguais (quem lancou pagou)
+ * @param recorrente cada item vira tambem uma conta fixa que se lanca sozinha no mesmo dia, todo mes
  */
 public record SaveExpensesRequest(
         @NotNull(message = "A data do gasto e invalida.")
@@ -46,12 +47,19 @@ public record SaveExpensesRequest(
         Integer parcelas,
 
         @Size(max = 20, message = "Divisao com gente demais.")
-        List<UUID> dividirCom
+        List<UUID> dividirCom,
+
+        Boolean recorrente
 ) {
+
+    public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
+                               List<ExpenseItemRequest> itens, UUID contaId, Integer parcelas, List<UUID> dividirCom) {
+        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, null);
+    }
 
     /** Lancamento a vista, sem conta: o caso de quase todo o codigo interno. */
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens) {
-        this(data, estabelecimento, reciboId, origem, itens, null, null, null);
+        this(data, estabelecimento, reciboId, origem, itens, null, null, null, null);
     }
 }

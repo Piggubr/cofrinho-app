@@ -4,6 +4,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { ContaOuCartao, Fatura, Gasto } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mesPorExtenso } from '../../core/ui/datas';
+import { fechamentoPadrao } from '../../core/ui/fatura';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
@@ -33,6 +34,17 @@ export class Accounts {
     this.carregar();
   }
 
+  /** O fechamento acompanha o vencimento (7 dias antes) ate a pessoa mudar ele a mao. */
+  protected trocarVencimento(dia: number | null): void {
+    const anterior = this.vencimento();
+    const acompanhava =
+      this.fechamento() === null || (anterior !== null && this.fechamento() === fechamentoPadrao(anterior));
+    this.vencimento.set(dia);
+    if (acompanhava && this.diaValido(dia)) {
+      this.fechamento.set(fechamentoPadrao(dia!));
+    }
+  }
+
   protected rotuloDoMes(mes: string): string {
     return mesPorExtenso(mes);
   }
@@ -43,8 +55,12 @@ export class Accounts {
       this.erro.set($localize`Digite o nome da conta ou do cartão.`);
       return;
     }
-    if (cartao && (!this.diaValido(this.fechamento()) || !this.diaValido(this.vencimento()))) {
-      this.erro.set($localize`Informe os dias de fechamento e de vencimento (1 a 31).`);
+    if (cartao && !this.diaValido(this.vencimento())) {
+      this.erro.set($localize`Informe o dia do vencimento da fatura (1 a 31).`);
+      return;
+    }
+    if (cartao && !this.diaValido(this.fechamento())) {
+      this.erro.set($localize`Informe o dia do fechamento (1 a 31).`);
       return;
     }
     this.ocupado.set(true);

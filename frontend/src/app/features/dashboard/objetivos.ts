@@ -11,6 +11,7 @@ import { Focar } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
+import { Carregando } from '../../core/ui/carregando';
 
 /**
  * Cofrinhos por objetivo no painel: quanto juntar, ate quando e quanto guardar por mes.
@@ -21,7 +22,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
  */
 @Component({
   selector: 'app-objetivos',
-  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, Focar, Icone],
+  imports: [FormsModule, RouterLink, MoedaPipe, DataBrPipe, Focar, Icone, Carregando],
   template: `
     <section class="cartao" aria-labelledby="titulo-objetivos">
       <div class="cartao-titulo">
@@ -33,7 +34,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
       }
 
       @if (carregando()) {
-        <p i18n class="carregando">Carregando...</p>
+        <app-carregando [linhas]="2" />
       } @else {
         @for (objetivo of objetivos(); track objetivo.id) {
           <article class="objetivo">

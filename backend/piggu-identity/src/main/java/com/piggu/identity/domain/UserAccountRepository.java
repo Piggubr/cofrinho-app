@@ -15,6 +15,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     Optional<UserAccount> findByEmailTokenHash(String emailTokenHash);
 
+    Optional<UserAccount> findByPasswordResetHash(String passwordResetHash);
+
     List<UserAccount> findAllByOrderByEmailAsc();
 
     List<UserAccount> findByCpfIndice(String cpfIndice);

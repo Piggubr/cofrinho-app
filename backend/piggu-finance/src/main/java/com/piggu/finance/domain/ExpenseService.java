@@ -249,10 +249,21 @@ public class ExpenseService {
 
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
+        excluir(id, usuario, false);
+    }
+
+    /** @param eAsProximas na parcela, apaga tambem as parcelas seguintes do mesmo item */
+    @Transactional
+    public void excluir(UUID id, CurrentUser usuario, boolean eAsProximas) {
         Expense gasto = paraMudar(id, usuario);
-        repositorio.delete(gasto);
-        trilha.apagou("gasto", id, Resumos.gasto(gasto));
-        log.info("Gasto apagado: id={}", id);
+        List<Expense> apagar = !eAsProximas || gasto.getInstallmentCount() == null ? List.of(gasto)
+                : repositorio.findByReceiptIdAndItemAndInstallmentCount(gasto.getReceiptId(), gasto.getItem(),
+                                gasto.getInstallmentCount()).stream()
+                        .filter(p -> p.getInstallmentNumber() >= gasto.getInstallmentNumber())
+                        .toList();
+        repositorio.deleteAll(apagar);
+        apagar.forEach(p -> trilha.apagou("gasto", p.getId(), Resumos.gasto(p)));
+        log.info("Gasto apagado: id={} parcelas={}", id, apagar.size());
     }
 
     /** Remocao silenciosa, usada quando uma nota vinculada e apagada. */
@@ -275,7 +286,7 @@ public class ExpenseService {
     private Expense paraMudar(UUID id, CurrentUser usuario) {
         Expense gasto = buscar(id);
         if (!usuario.podeGerenciar(gasto.getUserId())) {
-            throw new ForbiddenException("SÃ³ quem lanÃ§ou o gasto pode mudar ou apagar.");
+            throw new ForbiddenException("Só quem lançou o gasto pode mudar ou apagar.");
         }
         return gasto;
     }

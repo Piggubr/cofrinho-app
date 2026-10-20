@@ -44,4 +44,15 @@ class RotasDoGatewayTest {
         web.get().uri("/actuator/gateway/routes").exchange().expectStatus().isNotFound();
         web.get().uri("/actuator/health").exchange().expectStatus().isOk();
     }
+
+    @Test
+    @DisplayName("metricas para o Prometheus, com as faixas de tempo do p95")
+    void metricas() {
+        web.get().uri("/actuator/health").exchange();
+
+        web.get().uri("/actuator/prometheus").exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(texto -> assertThat(texto).contains("jvm_memory_used_bytes", "http_server_requests_seconds_bucket"));
+    }
 }

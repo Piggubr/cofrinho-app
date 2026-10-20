@@ -7,6 +7,8 @@ import { Filme, FilmeDoCatalogo } from '../../core/api/models';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { PessoaPipe } from '../../core/api/pessoas-da-familia';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 /** Generos do TMDB que cabem em um sorteio de noite de filme. */
 const GENEROS: { id: string; nome: string }[] = [
@@ -30,7 +32,7 @@ const GENEROS: { id: string; nome: string }[] = [
  */
 @Component({
   selector: 'app-movies',
-  imports: [Focar, Icone, FormsModule, PessoaPipe],
+  imports: [Focar, Icone, FormsModule, PessoaPipe, Carregando, Vazio],
   templateUrl: './movies.html',
   styleUrl: './movies.scss',
 })

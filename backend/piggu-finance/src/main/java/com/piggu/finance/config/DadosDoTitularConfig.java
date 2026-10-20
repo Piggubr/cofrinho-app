@@ -34,6 +34,7 @@ public class DadosDoTitularConfig {
                 Tabela.pessoal("notes", "user_id"),
                 Tabela.pessoal("expense_shares", "member_id"),
                 Tabela.pessoal("expenses", "user_id"),
+                Tabela.pessoal("receivables", "user_id"),
                 Tabela.pessoal("incomes", "user_id"),
                 Tabela.pessoal("recurring_bills", "user_id"),
                 Tabela.pessoal("category_budgets", "user_id"),
@@ -65,6 +66,10 @@ public class DadosDoTitularConfig {
             jdbc.update("""
                     UPDATE expenses e SET account_id = NULL WHERE e.household_id IN (?, ?) AND e.account_id IS NOT NULL
                         AND NOT EXISTS (SELECT 1 FROM payment_accounts a WHERE a.id = e.account_id AND a.household_id = e.household_id)
+                    """, origem, destino);
+            jdbc.update("""
+                    UPDATE recurring_bills r SET account_id = NULL WHERE r.household_id IN (?, ?) AND r.account_id IS NOT NULL
+                        AND NOT EXISTS (SELECT 1 FROM payment_accounts a WHERE a.id = r.account_id AND a.household_id = r.household_id)
                     """, origem, destino);
             jdbc.update("""
                     UPDATE piggy_deposits d SET goal_id = NULL WHERE d.household_id IN (?, ?) AND d.goal_id IS NOT NULL

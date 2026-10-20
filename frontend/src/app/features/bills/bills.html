@@ -30,11 +30,41 @@
     </button>
   </div>
   <p i18n class="linha-detalhe">Em aberto: {{ totalEmAberto() | moeda }}</p>
+  @if (emAberto().length > 1) {
+    <div class="pagar-varias">
+      <label>
+        <input
+          type="checkbox"
+          [checked]="todasMarcadas()"
+          (change)="marcarTodas($any($event.target).checked)"
+        />
+        <span i18n>Todas em aberto</span>
+      </label>
+      <button
+        i18n
+        type="button"
+        class="botao pequeno"
+        (click)="pagarMarcadas()"
+        [disabled]="ocupado() || !marcadas().length"
+      >
+        Pagar {{ marcadas().length }} · {{ totalMarcado() | moeda }}
+      </button>
+    </div>
+  }
 
   @for (conta of contas(); track conta.id) {
     <div class="conta-fixa">
       <div class="linha conta">
-        <div>
+        @if (conta.situacao !== 'PAGA' && emAberto().length > 1) {
+          <input
+            type="checkbox"
+            class="marcar-conta"
+            [attr.aria-label]="conta.descricao"
+            [checked]="marcadas().includes(conta.id)"
+            (change)="marcar(conta.id, $any($event.target).checked)"
+          />
+        }
+        <div class="conta-texto">
           <p class="linha-titulo">{{ conta.descricao }}</p>
           <p class="linha-detalhe">
             {{ conta.vencimento | dataBr }} · {{ conta.categoria }}
@@ -83,12 +113,14 @@
       </div>
     </div>
   } @empty {
-    <p i18n class="vazio">Nenhuma conta fixa ainda.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="descricao-conta">
-        Cadastrar a primeira conta
-      </button>
-    </p>
+    <app-vazio icone="recibo" i18n-titulo titulo="Nenhuma conta fixa ainda">
+      <p i18n>Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="descricao-conta">
+          Cadastrar a primeira conta
+        </button>
+      </p>
+    </app-vazio>
   }
 </section>
 

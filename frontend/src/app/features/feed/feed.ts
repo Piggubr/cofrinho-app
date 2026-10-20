@@ -8,6 +8,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Feed de fotos do mes.
@@ -18,7 +20,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-feed',
-  imports: [Icone, FormsModule, RouterLink],
+  imports: [Icone, FormsModule, RouterLink, Carregando, Vazio],
   templateUrl: './feed.html',
   styleUrl: './feed.scss',
 })

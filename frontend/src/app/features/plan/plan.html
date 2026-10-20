@@ -147,5 +147,5 @@
     valor integral. Se o Premium acabar, nada do que você guardou some: tudo continua visível.
   </p>
 } @else if (!erro()) {
-  <p i18n class="vazio">Carregando...</p>
+  <app-carregando formato="cartoes" [linhas]="2" />
 }

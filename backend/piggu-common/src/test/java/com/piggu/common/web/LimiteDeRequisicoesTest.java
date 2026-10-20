@@ -58,6 +58,15 @@ class LimiteDeRequisicoesTest {
     }
 
     @Test
+    @DisplayName("esqueci a senha, o link de nova senha e o de confirmar e-mail contam no limite do login")
+    void linksDoEmailTemLimite() throws Exception {
+        assertThat(login("203.0.113.9", "/api/auth/senha/esqueci").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/senha/redefinir").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/confirmar-email").getStatus()).isEqualTo(200);
+        assertThat(login("203.0.113.9", "/api/auth/senha/esqueci").getStatus()).isEqualTo(429);
+    }
+
+    @Test
     @DisplayName("a janela de um minuto passa e o login volta a responder")
     void janelaPassa() throws Exception {
         for (int i = 0; i < 4; i++) {

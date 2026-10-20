@@ -1,5 +1,6 @@
 package com.piggu.common.error;
 
+import io.micrometer.core.instrument.Metrics;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,14 @@ import java.util.List;
  * <p>Regra: {@link BusinessException} carrega texto escrito para o usuario e vai inteiro
  * para a resposta. Qualquer outra excecao vira 500 com mensagem generica, e o detalhe
  * real fica apenas no log do servidor.</p>
+ *
+ * <p>Cada falha inesperada tambem soma no contador {@value #FALHAS}, por classe da excecao:
+ * e dele que sai o alerta de erros do painel (backend/observabilidade).</p>
  */
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    static final String FALHAS = "piggu.falhas.inesperadas";
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
@@ -102,6 +108,7 @@ public class ApiExceptionHandler {
                     .body(ApiError.de("Outra alteracao chegou antes. Tente de novo.", "CONFLITO"));
         }
         log.error("Falha inesperada em {} {}", pedido.getMethod(), rota == null ? "(rota desconhecida)" : rota, erro);
+        Metrics.counter(FALHAS, "excecao", erro.getClass().getSimpleName()).increment();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.de("Ocorreu um erro. Tente novamente.", "ERRO_INTERNO"));
     }

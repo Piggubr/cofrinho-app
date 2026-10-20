@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Prova do e-mail de quem cadastrou por senha: um link de 24 horas. Do link o banco so
@@ -26,6 +28,12 @@ public class ConfirmacaoDeEmail {
 
     static final Duration VALIDADE = Duration.ofHours(24);
     static final Duration INTERVALO = Duration.ofMinutes(1);
+    /** Um aviso de cadastro repetido por conta neste intervalo: o cadastro nao vira disparador. */
+    static final Duration INTERVALO_DO_AVISO = Duration.ofHours(6);
+    private static final int AVISOS_ANTES_DE_LIMPAR = 10_000;
+
+    /** ponytail: em memoria, por instancia; com mais de uma replica vira Redis. */
+    private final Map<UUID, Instant> ultimoAviso = new ConcurrentHashMap<>();
 
     private final UserAccountRepository usuarios;
     private final TokenService tokens;
@@ -69,9 +77,26 @@ public class ConfirmacaoDeEmail {
 
     /**
      * Alguem tentou cadastrar um e-mail que ja tem conta. A resposta do cadastro e a mesma
-     * de um cadastro novo; quem fica sabendo e so o dono do e-mail.
+     * de um cadastro novo; quem fica sabendo e so o dono do e-mail, uma vez a cada
+     * {@link #INTERVALO_DO_AVISO} (repetir o cadastro em loop nao enche a caixa dele).
      */
     public void avisarCadastroRepetido(UserAccount conta) {
+        Instant agora = Instant.now();
+        boolean[] mandar = {false};
+        ultimoAviso.compute(conta.getId(), (id, anterior) -> {
+            if (anterior != null && anterior.plus(INTERVALO_DO_AVISO).isAfter(agora)) {
+                return anterior;
+            }
+            mandar[0] = true;
+            return agora;
+        });
+        if (!mandar[0]) {
+            log.info("Aviso de cadastro repetido ja enviado ha pouco: conta={}", conta.getId());
+            return;
+        }
+        if (ultimoAviso.size() > AVISOS_ANTES_DE_LIMPAR) {
+            ultimoAviso.values().removeIf(quando -> !quando.plus(INTERVALO_DO_AVISO).isAfter(agora));
+        }
         if (!email.ligado()) {
             log.info("E-mail desligado; aviso de cadastro repetido nao enviado: conta={}", conta.getId());
             return;

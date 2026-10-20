@@ -45,6 +45,8 @@ export class Login {
   protected readonly modo = signal<Modo>('entrar');
   protected readonly lembrar = signal(true);
   protected readonly erro = signal('');
+  /** Campo do cadastro que faltou ou esta errado: fica com a borda vermelha. */
+  protected readonly campoComProblema = signal('');
   protected readonly informacao = signal('');
   protected readonly entrando = signal(false);
   /** Conta nova pelo Google: ele ja confirmou, falta o aceite dos termos para criar. */
@@ -148,38 +150,48 @@ export class Login {
 
   /** Confere aqui o que da para conferir sem o servidor; o backend confere de novo. */
   private problemaDoCadastro(): string {
+    const [campo, problema] = this.campoEProblema();
+    this.campoComProblema.set(campo);
+    return problema;
+  }
+
+  /** O primeiro campo que falta ou esta errado e o aviso dele; vazio quando esta tudo certo. */
+  private campoEProblema(): [string, string] {
     if (!this.nome().trim()) {
-      return $localize`Conte como podemos te chamar.`;
+      return ['nome', $localize`Conte como podemos te chamar.`];
     }
     const nascimentoRuim = problemaDoNascimento(this.nascimento());
     if (nascimentoRuim) {
-      return nascimentoRuim;
+      return ['nascimento', nascimentoRuim];
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email().trim())) {
-      return $localize`Confira o e-mail.`;
+      return ['email', $localize`Confira o e-mail.`];
     }
     const senhaRuim = problemaDaSenha(this.senha(), this.email());
     if (senhaRuim) {
-      return senhaRuim;
+      return ['senha', senhaRuim];
     }
     if (this.senha() !== this.confirmacao()) {
-      return $localize`As duas senhas nao sao iguais.`;
+      return ['confirmacao', $localize`As duas senhas nao sao iguais.`];
     }
     if (this.telefone().replace(/\D/g, '').length < 6) {
-      return $localize`Informe seu celular.`;
+      return ['telefone', $localize`Informe seu celular.`];
     }
     const doc = this.documentoPedido();
     const obrigatorio = this.pais() === BRASIL;
     if (doc && (obrigatorio || this.documento().trim()) && !doc.valido(this.documento())) {
-      return this.documento().trim()
-        ? $localize`${doc.nome}:nome: inválido. Confira o número.`
-        : $localize`Informe o número do seu documento (${doc.nome}:nome:).`;
+      return [
+        'documento',
+        this.documento().trim()
+          ? $localize`${doc.nome}:nome: inválido. Confira o número.`
+          : $localize`Informe o número do seu documento (${doc.nome}:nome:).`,
+      ];
     }
     if (!this.aceitou()) {
-      return $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`;
+      return ['aceite', $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`];
     }
-    return '';
+    return ['', ''];
   }
 
   /** Outro pais pede outro documento: o numero digitado para o anterior nao serve. */

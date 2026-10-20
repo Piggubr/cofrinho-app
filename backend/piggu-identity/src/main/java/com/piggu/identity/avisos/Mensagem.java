@@ -50,6 +50,8 @@ public record Mensagem(String titulo, List<String> linhas) {
             case "CONTA_VENCENDO" -> aviso.assunto() + " vence em " + DIA.format(aviso.data()) + ": " + valor;
             case "CONTA_VENCIDA" -> aviso.assunto() + " venceu em " + DIA.format(aviso.data()) + " e nao foi paga: "
                     + valor;
+            case "A_RECEBER_ATRASADO" -> aviso.assunto() + " ainda nao te pagou " + valor + " (combinado para "
+                    + DIA.format(aviso.data()) + ")";
             default -> aviso.assunto();
         };
     }

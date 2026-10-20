@@ -12,14 +12,14 @@ test.describe('no celular', () => {
     await expect(abas.locator('.aba')).toHaveText([
       'Painel',
       'Gastos',
+      'Receitas',
       'Relatórios',
-      'Planejar',
       'Mais',
     ]);
     await abas.getByRole('link', { name: 'Relatórios' }).click();
     await expect(page).toHaveURL(/\/relatorios$/);
-    await abas.getByRole('link', { name: 'Planejar' }).click();
-    await expect(page).toHaveURL(/\/planejar$/);
+    await abas.getByRole('link', { name: 'Receitas' }).click();
+    await expect(page).toHaveURL(/\/receitas$/);
   });
 
 
@@ -38,9 +38,9 @@ test.describe('no celular', () => {
     await expect(menu.locator('.menu-grupo-titulo').first()).toBeHidden();
     const rola = await menu.evaluate((nav) => nav.scrollHeight > nav.clientHeight);
     expect(rola).toBe(false);
-    await menu.getByRole('link', { name: 'Receitas' }).click();
+    await menu.getByRole('link', { name: 'Planejar' }).click();
 
-    await expect(page).toHaveURL(/\/receitas$/);
+    await expect(page).toHaveURL(/\/planejar$/);
     await expect(menu).not.toHaveClass(/aberto/);
   });
 
@@ -193,4 +193,36 @@ test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ pa
   await expect(page.locator('app-tutorial')).toHaveCount(0);
   await expect(page.locator('#valor-rapido')).toBeVisible();
   await expect(page).toHaveURL(/\/perfil$/);
+});
+
+test('endereco que nao existe mostra a 404 e o botao leva ao painel', async ({ page }) => {
+  await page.goto('/endereco-que-nao-existe');
+
+  await expect(page.getByRole('heading', { name: 'Essa página fugiu do cofrinho' })).toBeVisible();
+  await expect(page).toHaveURL(/\/endereco-que-nao-existe$/);
+  await page.getByRole('link', { name: 'Ir para o início' }).click();
+  await expect(page).toHaveURL(/\/painel$/);
+});
+
+test.describe('sem o service worker', () => {
+  // Com o service worker ativo, ele entrega o arquivo da tela do proprio cache e o
+  // page.route nao ve o pedido: a tela abria normal e o teste falhava de vez em quando.
+  test.use({ serviceWorkers: 'block' });
+
+  test('tela que nao consegue abrir mostra a 500 e o "Tentar de novo" volta a ela', async ({
+    page,
+  }) => {
+    await page.goto('/painel');
+    await expect(page.getByText('Olá, Ana')).toBeVisible();
+
+    // O arquivo da proxima tela nao chega, como numa rede que caiu ou num deploy no meio.
+    await page.route(/\.js(\?.*)?$/, (pedido) => pedido.abort());
+    await page.locator('a[href="/receitas"]:visible, a[href="/gastos"]:visible').first().click();
+    await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeVisible();
+
+    await page.unroute(/\.js(\?.*)?$/);
+    await page.getByRole('button', { name: 'Tentar de novo' }).click();
+    await expect(page).toHaveURL(/\/(receitas|gastos)$/);
+    await expect(page.getByRole('heading', { name: 'O Piggu tropeçou' })).toBeHidden();
+  });
 });

@@ -19,10 +19,12 @@
       }
     </p>
   } @else {
-    <p i18n class="vazio">Nenhum limite definido para este mês ainda.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="limite">Definir o limite do mês</button>
-    </p>
+    <app-vazio icone="alvo" i18n-titulo titulo="Nenhum limite definido para este mês ainda">
+      <p i18n>Com um limite, o Piggu avisa quando o mês estiver chegando perto.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="limite">Definir o limite do mês</button>
+      </p>
+    </app-vazio>
   }
 </section>
 
@@ -72,7 +74,7 @@
   </div>
 
   @if (carregando()) {
-    <p i18n class="carregando">Carregando...</p>
+    <app-carregando />
   } @else if (lista().length) {
     @for (meta of lista(); track meta.mes) {
       <div class="linha">
@@ -94,6 +96,6 @@
       </div>
     }
   } @else {
-    <p i18n class="vazio">Nenhum limite cadastrado.</p>
+    <app-vazio icone="calendario" i18n-titulo titulo="Nenhum limite cadastrado" [compacto]="true" />
   }
 </section>

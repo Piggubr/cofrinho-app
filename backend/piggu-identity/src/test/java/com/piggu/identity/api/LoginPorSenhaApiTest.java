@@ -74,6 +74,21 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("esqueci a senha e o link de nova senha sao abertos: 202 com ou sem conta, link ruim da erro legivel")
+    void esqueciASenhaSemSessao() throws Exception {
+        mockMvc.perform(post("/api/auth/senha/esqueci").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"ninguem@exemplo.test\"}"))
+                .andExpect(status().isAccepted());
+        mockMvc.perform(post("/api/auth/senha/esqueci").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"\"}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/auth/senha/redefinir").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"inventado\",\"novaSenha\":\"porquinho456\"}"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.codigo").value("LINK_INVALIDO"));
+    }
+
+    @Test
     @DisplayName("e-mail invalido e recusado antes de chegar ao servico")
     void emailInvalido() throws Exception {
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)

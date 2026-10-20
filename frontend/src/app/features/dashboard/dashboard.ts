@@ -24,6 +24,8 @@ import { IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
 import { GirlsMathDoPainel } from './girls-math-do-painel';
 import { MetasDoPainel } from './metas-do-painel';
 import { NotasDoPainel } from './notas-do-painel';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -54,8 +56,7 @@ interface TotalPorCategoria {
     Objetivos,
     MetasDoPainel,
     GirlsMathDoPainel,
-    NotasDoPainel,
-  ],
+    NotasDoPainel, Carregando, Vazio],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

@@ -73,6 +73,34 @@ jobs:
       # Dados de exemplo do dev sobre as migracoes reais, so na familia pedida.
       - run: backend/scripts/teste-dos-dados-de-exemplo.sh
 
+  # Configuracao do monitoramento (backend/observabilidade): um erro aqui so apareceria no
+  # servidor, com o Grafana ou o Prometheus caindo depois do deploy. Mesmas versoes do Compose.
+  observabilidade:
+    name: Monitoramento (configuracao)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Compose com todos os perfis
+        run: >-
+          GOOGLE_CLIENT_ID=x DOMINIO=x EMAIL_DO_CERTIFICADO=x
+          docker compose --profile producao --profile observabilidade --profile open-finance config -q
+      - name: Prometheus
+        run: >-
+          docker run --rm -v "$PWD/observabilidade/prometheus:/c:ro" --entrypoint promtool
+          prom/prometheus:v3.13.4 check config /c/prometheus.yml
+      - name: Loki
+        run: docker run --rm -v "$PWD/observabilidade/loki:/c:ro" grafana/loki:3.7.8 -config.file=/c/loki.yml -verify-config
+      - name: Alloy
+        run: docker run --rm -v "$PWD/observabilidade/alloy:/c:ro" grafana/alloy:v1.20.1 fmt /c/config.alloy > /dev/null
+      - name: Paineis e provisionamento do Grafana
+        run: |
+          for f in observabilidade/grafana/paineis/*.json; do jq -e '.uid and .title and (.panels | length > 0)' "$f" > /dev/null; done
+          for f in observabilidade/grafana/provisionamento/*/*.yml; do python3 -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1]))' "$f"; done
+      - run: shellcheck -x ../deploy/atualizar.sh
+
   backend:
     name: Backend (mvn verify)
     runs-on: ubuntu-latest
@@ -171,6 +199,34 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 14
 
+  # O backend inteiro do jeito que vai para o servidor (imagens do Dockerfile, Postgres novo
+  # com as migracoes reais, gateway e JWKS) e o front com o proxy de /api, no navegador.
+  # Smoke: cadastro, e-mail, login, sessao, senha e um gasto. Regressao: o que ja quebrou.
+  stack:
+    name: Smoke e regressao (stack inteira)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Acento quebrado em mensagem (18/10): falha antes de gastar tempo com o build.
+      - run: bash scripts/conferir-acentos.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - run: bash scripts/smoke.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: relatorio-da-stack
+          path: frontend/playwright-report-stack/
+          retention-days: 14
+
   # Atualiza o servidor depois que todos os jobs acima passam num push na main (a
   # branch de producao). Desligado ate a variavel DEPLOY_LIGADO=true existir no
   # repositorio (Settings > Secrets and variables > Actions > Variables); os segredos
@@ -178,7 +234,7 @@ jobs:
   # docs/implantacao-producao.md, secao 8.
   publicar:
     name: Publicar no servidor
-    needs: [segredos, backup, backend, frontend, e2e]
+    needs: [segredos, backup, backend, frontend, e2e, stack]
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&

@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Focar } from '../../core/ui/focar';
-import { Observable } from 'rxjs';
+import { Observable, concat, toArray } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { ContaFixa } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
@@ -9,6 +9,7 @@ import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Contas do mes (as contas fixas): o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
@@ -16,7 +17,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-bills',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Vazio],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })
@@ -40,6 +41,18 @@ export class Bills {
   protected readonly totalEmAberto = computed(() =>
     this.contas()
       .filter((c) => c.situacao !== 'PAGA')
+      .reduce((soma, c) => soma + c.valor, 0),
+  );
+
+  protected readonly emAberto = computed(() => this.contas().filter((c) => c.situacao !== 'PAGA'));
+  /** Contas marcadas para pagar de uma vez. */
+  protected readonly marcadas = signal<string[]>([]);
+  protected readonly todasMarcadas = computed(
+    () => this.emAberto().length > 0 && this.emAberto().every((c) => this.marcadas().includes(c.id)),
+  );
+  protected readonly totalMarcado = computed(() =>
+    this.emAberto()
+      .filter((c) => this.marcadas().includes(c.id))
       .reduce((soma, c) => soma + c.valor, 0),
   );
 
@@ -90,6 +103,26 @@ export class Bills {
     );
   }
 
+  protected marcar(id: string, marcada: boolean): void {
+    this.marcadas.update((lista) => (marcada ? [...lista, id] : lista.filter((x) => x !== id)));
+  }
+
+  protected marcarTodas(marcadas: boolean): void {
+    this.marcadas.set(marcadas ? this.emAberto().map((c) => c.id) : []);
+  }
+
+  /** Lanca uma por vez; se uma falhar, as seguintes ficam para depois e a lista mostra o que entrou. */
+  protected pagarMarcadas(): void {
+    const ids = this.emAberto()
+      .map((c) => c.id)
+      .filter((id) => this.marcadas().includes(id));
+    this.executar(
+      concat(...ids.map((id) => this.finance.pagarContaFixa(id, this.mesAtual()))).pipe(toArray()),
+      $localize`${ids.length}:quantas: contas lançadas nos gastos.`,
+      () => this.marcadas.set([]),
+    );
+  }
+
   protected excluir(conta: ContaFixa): void {
     if (
       !confirm(
@@ -120,6 +153,7 @@ export class Bills {
   }
 
   private carregar(): void {
+    this.marcadas.set([]);
     this.finance.contasFixas(this.mesAtual()).subscribe({
       next: (contas) => this.contas.set(contas),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),

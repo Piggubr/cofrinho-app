@@ -6,6 +6,7 @@ import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.api.dto.SaveExpensesRequest;
 import com.piggu.finance.api.dto.UpdateExpenseRequest;
+import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.DivisaoDeGastos;
 import com.piggu.finance.domain.ExpenseService;
 import com.piggu.finance.domain.LeitorDeExtrato;
@@ -41,8 +42,8 @@ import java.util.UUID;
 /**
  * Gastos.
  *
- * <p>Substitui as acoes save, updateExpense e deleteExpense. O perfil MEMBRO nao
- * alcanca nada aqui, como era em autorizarAcao_.</p>
+ * <p>Substitui as acoes save, updateExpense e deleteExpense. Todo perfil da familia
+ * alcanca; cada um ve e altera so o que e dele (ver CadaUmVeOSeuTest).</p>
  */
 @RestController
 @RequestMapping("/api/expenses")
@@ -50,10 +51,12 @@ public class ExpenseController {
 
     private final ExpenseService servico;
     private final DivisaoDeGastos divisao;
+    private final ContasFixasService contasFixas;
 
-    public ExpenseController(ExpenseService servico, DivisaoDeGastos divisao) {
+    public ExpenseController(ExpenseService servico, DivisaoDeGastos divisao, ContasFixasService contasFixas) {
         this.servico = servico;
         this.divisao = divisao;
+        this.contasFixas = contasFixas;
     }
 
     public record ExtratoRequest(
@@ -138,7 +141,8 @@ public class ExpenseController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<ExpenseResponse> salvar(@Valid @RequestBody SaveExpensesRequest pedido,
                                         @AuthUser CurrentUser usuario) {
-        return servico.salvar(pedido, usuario.id());
+        return Boolean.TRUE.equals(pedido.recorrente()) ? contasFixas.lancarGastoRecorrente(pedido, usuario.id())
+                : servico.salvar(pedido, usuario.id());
     }
 
     @PutMapping("/{id}")
@@ -149,8 +153,9 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
-        servico.excluir(id, usuario);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario,
+                                        @RequestParam(defaultValue = "false") boolean proximas) {
+        servico.excluir(id, usuario, proximas);
 
         return ResponseEntity.noContent().build();
     }

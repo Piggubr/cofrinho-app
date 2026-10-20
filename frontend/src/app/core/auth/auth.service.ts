@@ -6,6 +6,7 @@ import { APP_CONFIG } from '../config/app-config';
 import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
 import { esquecerListasGuardadas } from '../offline/listas-guardadas';
+import { esquecerConversa } from '../privacidade/conversa-do-assistente';
 import { GoogleIdentityService } from './google-identity.service';
 import { TokenStorage } from './token-storage';
 
@@ -138,6 +139,18 @@ export class AuthService {
     }
   }
 
+  /** Pede o link de senha nova; o backend responde igual com ou sem conta. */
+  async esqueciSenha(email: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/senha/esqueci`, { email }));
+  }
+
+  /** Senha nova pelo link do e-mail; nao abre sessao, a pessoa entra com a senha nova. */
+  async redefinirSenha(token: string, novaSenha: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.config.apiUrl}/auth/senha/redefinir`, { token, novaSenha }),
+    );
+  }
+
   /** Manda outro link de confirmacao; o anterior deixa de valer. */
   async reenviarConfirmacao(): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${this.config.apiUrl}/auth/me/email/reenviar`, {}));
@@ -237,6 +250,7 @@ export class AuthService {
   async encerrarLocalmente(): Promise<void> {
     this.storage.limpar();
     esquecerPerfilOffline();
+    esquecerConversa();
     this.usuarioAtual.set(null);
     await esquecerListasGuardadas();
     await this.google.esquecerConta();
