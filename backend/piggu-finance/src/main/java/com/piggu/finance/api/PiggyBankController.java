@@ -23,9 +23,9 @@ import java.util.UUID;
 /**
  * Cofrinho.
  *
- * <p>Unico recurso do financeiro aberto ao perfil MEMBRO: ele deposita e ve o
- * proprio total. A separacao do que cada perfil enxerga esta em PiggyBankService,
- * nao aqui, para que a regra valha em qualquer caminho de chamada.</p>
+ * <p>O MEMBRO deposita e ve o proprio total. A separacao do que cada perfil enxerga
+ * esta em PiggyBankService, nao aqui, para que a regra valha em qualquer caminho de
+ * chamada.</p>
  */
 @RestController
 @RequestMapping("/api/piggy-bank")
