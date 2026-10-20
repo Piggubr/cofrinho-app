@@ -87,6 +87,10 @@ public class UserAccount {
     @Column(name = "conversion_currency", nullable = false, length = 3)
     private String conversionCurrency = "USD";
 
+    /** Outra ponta da cotacao do topo, separada da moeda em que os valores aparecem. */
+    @Column(name = "quote_currency", nullable = false, length = 3)
+    private String quoteCurrency = "BRL";
+
     @Column(name = "show_exchange_rate", nullable = false)
     private boolean showExchangeRate = true;
 
@@ -473,10 +477,13 @@ public class UserAccount {
         return lastLoginAt;
     }
 
-    /** Os codigos chegam ja validados como ISO 4217. */
-    public void alterarPreferencias(String currency, String conversionCurrency, boolean showExchangeRate,
-                                    String timezone) {
+    /** Os codigos chegam ja validados como ISO 4217; moeda da cotacao ou fuso nulos mantem os atuais. */
+    public void alterarPreferencias(String currency, String quoteCurrency, String conversionCurrency,
+                                    boolean showExchangeRate, String timezone) {
         this.currency = currency;
+        if (quoteCurrency != null) {
+            this.quoteCurrency = quoteCurrency;
+        }
         this.conversionCurrency = conversionCurrency;
         this.showExchangeRate = showExchangeRate;
         if (timezone != null) {
@@ -519,6 +526,10 @@ public class UserAccount {
 
     public String getConversionCurrency() {
         return conversionCurrency;
+    }
+
+    public String getQuoteCurrency() {
+        return quoteCurrency;
     }
 
     public boolean isShowExchangeRate() {

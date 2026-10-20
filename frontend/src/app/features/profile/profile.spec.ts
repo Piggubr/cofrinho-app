@@ -29,7 +29,7 @@ describe('Profile', () => {
 
   afterEach(() => http.verify());
 
-  it('salva as moedas escolhidas e atualiza a sessao com a resposta', async () => {
+  async function abrirComMoedas() {
     const tela = TestBed.createComponent(Profile);
     tela.detectChanges();
     http.expectOne('/api/exchange-rate/currencies').flush([
@@ -39,46 +39,79 @@ describe('Profile', () => {
     ]);
     tela.detectChanges();
     await tela.whenStable();
+    return tela;
+  }
 
+  function escolher(pagina: HTMLElement, id: string, valor: string): void {
+    const campo = pagina.querySelector<HTMLSelectElement>(`#${id}`)!;
+    campo.value = valor;
+    campo.dispatchEvent(new Event('change'));
+  }
+
+  it('trocar a moeda do app ja salva, sem botao, e nao mexe no par da cotacao', async () => {
+    const tela = await abrirComMoedas();
     const pagina: HTMLElement = tela.nativeElement;
-    const moeda = pagina.querySelector<HTMLSelectElement>('#moeda')!;
-    moeda.value = 'USD';
-    moeda.dispatchEvent(new Event('change'));
-    const cotacao = pagina.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
-    cotacao.click();
-    tela.detectChanges();
+    expect(pagina.textContent).not.toContain('Salvar preferências');
 
-    [...pagina.querySelectorAll('button')]
-      .find((b) => b.textContent?.includes('Salvar preferências'))!
-      .click();
+    escolher(pagina, 'moeda', 'USD');
+    tela.detectChanges();
 
     const pedido = http.expectOne('/api/auth/me/preferences');
     expect(pedido.request.method).toBe('PUT');
     expect(pedido.request.body).toEqual({
       moeda: 'USD',
+      moedaCotacao: 'EUR',
       moedaConversao: 'BRL',
-      mostrarCotacao: false,
+      mostrarCotacao: true,
     });
-
-    const salvo = usuarioDeTeste({
-      preferencias: { moeda: 'USD', moedaConversao: 'BRL', mostrarCotacao: false },
-    });
-    pedido.flush(salvo);
+    pedido.flush(
+      usuarioDeTeste({
+        preferencias: {
+          moeda: 'USD',
+          moedaCotacao: 'EUR',
+          moedaConversao: 'BRL',
+          mostrarCotacao: true,
+        },
+      }),
+    );
     tela.detectChanges();
 
     expect(auth.usuario()?.preferencias.moeda).toBe('USD');
-    expect(pagina.textContent).toContain('Preferências salvas.');
+    expect(auth.usuario()?.preferencias.moedaCotacao).toBe('EUR');
   });
 
-  it('erro do backend aparece para a pessoa e nada muda na sessao', async () => {
-    const tela = TestBed.createComponent(Profile);
+  it('a chave da cotacao salva no toque e mostra ou esconde a escolha do par', async () => {
+    const tela = await abrirComMoedas();
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.querySelector('#moedaCotacao')).not.toBeNull();
+
+    const chave = [...pagina.querySelectorAll('label.caixa')]
+      .find((l) => l.textContent?.includes('Mostrar a cotação'))!
+      .querySelector('input')!;
+    chave.click();
     tela.detectChanges();
-    http.expectOne('/api/exchange-rate/currencies').flush([{ codigo: 'EUR', nome: 'Euro' }]);
+    await tela.whenStable();
+
+    const pedido = http.expectOne('/api/auth/me/preferences');
+    expect(pedido.request.body.mostrarCotacao).toBe(false);
+    pedido.flush(
+      usuarioDeTeste({
+        preferencias: { moeda: 'EUR', moedaConversao: 'BRL', mostrarCotacao: false },
+      }),
+    );
     tela.detectChanges();
 
-    [...tela.nativeElement.querySelectorAll('button')]
-      .find((b: HTMLButtonElement) => b.textContent?.includes('Salvar preferências'))!
-      .click();
+    expect(auth.usuario()?.preferencias.mostrarCotacao).toBe(false);
+    expect(pagina.querySelector('#moedaCotacao')).toBeNull();
+    expect(pagina.querySelector('#moedaConversao')).toBeNull();
+  });
+
+  it('erro do backend aparece para a pessoa e o campo volta ao que esta gravado', async () => {
+    const tela = await abrirComMoedas();
+    const pagina: HTMLElement = tela.nativeElement;
+
+    escolher(pagina, 'moedaConversao', 'USD');
+    tela.detectChanges();
     http
       .expectOne('/api/auth/me/preferences')
       .flush(
@@ -86,9 +119,114 @@ describe('Profile', () => {
         { status: 422, statusText: 'Unprocessable' },
       );
     tela.detectChanges();
+    await tela.whenStable();
 
-    expect(tela.nativeElement.textContent).toContain('Moeda desconhecida');
-    expect(auth.usuario()?.preferencias.moeda).toBe('EUR');
+    expect(pagina.textContent).toContain('Moeda desconhecida');
+    expect(auth.usuario()?.preferencias.moedaConversao).toBe('BRL');
+    expect(pagina.querySelector<HTMLSelectElement>('#moedaConversao')!.value).toBe('BRL');
+  });
+
+  describe('Organizar o Painel', () => {
+    afterEach(() => localStorage.clear());
+
+    function linhas(pagina: HTMLElement): HTMLElement[] {
+      return [...pagina.querySelectorAll<HTMLElement>('.ordem-do-painel li')];
+    }
+
+    function ordem(pagina: HTMLElement): (string | undefined)[] {
+      return linhas(pagina).map((li) => li.dataset['bloco']);
+    }
+
+    /** O jsdom nao desenha: cada linha ganha 40px de altura, uma embaixo da outra. */
+    function desenharLinhas(pagina: HTMLElement): void {
+      linhas(pagina).forEach((li) => {
+        li.getBoundingClientRect = () => {
+          const top = linhas(pagina).indexOf(li) * 40;
+          return { top, height: 40, bottom: top + 40 } as DOMRect;
+        };
+      });
+    }
+
+    function ponteiro(tipo: string, clientY: number, pointerType: string): Event {
+      const evento = new MouseEvent(tipo, { bubbles: true, cancelable: true, clientY, button: 0 });
+      Object.defineProperty(evento, 'pointerType', { value: pointerType });
+      return evento;
+    }
+
+    function abrir() {
+      const tela = TestBed.createComponent(Profile);
+      tela.detectChanges();
+      http.expectOne('/api/exchange-rate/currencies').flush([]);
+      tela.detectChanges();
+      return tela;
+    }
+
+    it('nao tem mais as setas de subir e descer', () => {
+      const pagina: HTMLElement = abrir().nativeElement;
+      expect(pagina.querySelector('[aria-label^="Subir"]')).toBeNull();
+      expect(pagina.querySelector('[aria-label^="Descer"]')).toBeNull();
+      expect(linhas(pagina)[0].querySelector('.alca')).not.toBeNull();
+    });
+
+    it('arrastar com o dedo pelo pontilhado leva o bloco para onde soltar', () => {
+      const tela = abrir();
+      const pagina: HTMLElement = tela.nativeElement;
+      desenharLinhas(pagina);
+      const alca = linhas(pagina)[0].querySelector('.alca')!;
+
+      alca.dispatchEvent(ponteiro('pointerdown', 20, 'touch'));
+      tela.detectChanges();
+      expect(linhas(pagina)[0].classList).toContain('arrastando');
+      // Passa do meio da terceira linha (100px).
+      window.dispatchEvent(ponteiro('pointermove', 105, 'touch'));
+      window.dispatchEvent(ponteiro('pointerup', 105, 'touch'));
+      tela.detectChanges();
+
+      expect(ordem(pagina).slice(0, 3)).toEqual(['avisos', 'mes', 'resumo']);
+      expect(pagina.querySelector('.arrastando')).toBeNull();
+    });
+
+    it('o dedo fora do pontilhado nao arrasta, para a tela poder rolar', () => {
+      const tela = abrir();
+      const pagina: HTMLElement = tela.nativeElement;
+      desenharLinhas(pagina);
+      const antes = ordem(pagina);
+
+      linhas(pagina)[0]
+        .querySelector('.nome-do-bloco')!
+        .dispatchEvent(ponteiro('pointerdown', 20, 'touch'));
+      window.dispatchEvent(ponteiro('pointermove', 105, 'touch'));
+      window.dispatchEvent(ponteiro('pointerup', 105, 'touch'));
+      tela.detectChanges();
+
+      expect(ordem(pagina)).toEqual(antes);
+    });
+
+    it('com o mouse a linha toda arrasta, para cima tambem', () => {
+      const tela = abrir();
+      const pagina: HTMLElement = tela.nativeElement;
+      desenharLinhas(pagina);
+
+      linhas(pagina)[3]
+        .querySelector('.nome-do-bloco')!
+        .dispatchEvent(ponteiro('pointerdown', 140, 'mouse'));
+      window.dispatchEvent(ponteiro('pointermove', 10, 'mouse'));
+      window.dispatchEvent(ponteiro('pointerup', 10, 'mouse'));
+      tela.detectChanges();
+
+      expect(ordem(pagina)[0]).toBe('cofrinho');
+    });
+
+    it('no teclado, as setas na alca mudam a ordem', () => {
+      const tela = abrir();
+      const pagina: HTMLElement = tela.nativeElement;
+      linhas(pagina)[1]
+        .querySelector('.alca')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+      tela.detectChanges();
+
+      expect(ordem(pagina).slice(0, 2)).toEqual(['avisos', 'resumo']);
+    });
   });
 
   it('avisos: liga o e-mail e grava; no navegador nao oferece a notificacao do iPhone', async () => {

@@ -243,14 +243,16 @@ export class Shell {
     }
 
     // Refaz a consulta quando a pessoa troca as moedas ou liga a cotacao no perfil.
+    // O par da cotacao e escolhido a parte: trocar a moeda do app nao mexe nele.
     effect((onCleanup) => {
       const preferencias = this.auth.usuario()?.preferencias;
-      if (!preferencias?.mostrarCotacao || preferencias.moeda === preferencias.moedaConversao) {
+      const de = preferencias?.moedaCotacao ?? preferencias?.moeda;
+      if (!preferencias?.mostrarCotacao || !de || de === preferencias.moedaConversao) {
         this.cotacao.set(null);
         return;
       }
       const pedido = this.finance
-        .consultarCotacao(preferencias.moeda, preferencias.moedaConversao)
+        .consultarCotacao(de, preferencias.moedaConversao)
         .subscribe({
           next: (cotacao) => this.cotacao.set(cotacao),
           // A cotacao e informativa: sem ela o app segue normalmente.
@@ -514,11 +516,17 @@ export class Shell {
     await this.auth.sair();
   }
 
-  /** "EUR → R$ 6,15": uma unidade da moeda da pessoa na moeda de conversao. */
+  /**
+   * "1 USD = R$ 5,00": uma unidade da moeda mais forte do par, escrita na mais fraca,
+   * qualquer que seja a ordem em que a pessoa escolheu as duas.
+   */
   protected taxaFormatada(): string {
     const cotacao = this.cotacao();
-    return cotacao?.taxa
-      ? `${cotacao.de} → ${formatadorDe(cotacao.para).format(cotacao.taxa)}`
-      : '';
+    if (!cotacao?.taxa) {
+      return '';
+    }
+    return cotacao.taxa >= 1
+      ? `1 ${cotacao.de} = ${formatadorDe(cotacao.para).format(cotacao.taxa)}`
+      : `1 ${cotacao.para} = ${formatadorDe(cotacao.de).format(1 / cotacao.taxa)}`;
   }
 }

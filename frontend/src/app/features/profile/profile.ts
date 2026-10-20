@@ -1,4 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FinanceService } from '../../core/api/finance.service';
 import { FormsModule } from '@angular/forms';
 import { Observable, firstValueFrom } from 'rxjs';
@@ -10,7 +18,7 @@ import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
-import { BLOCOS_DO_PAINEL, PainelOrganizado } from '../../core/ui/painel';
+import { BLOCOS_DO_PAINEL, IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
 import {
   IdDoTema,
   MODOS,
@@ -64,6 +72,11 @@ export class Profile {
       }));
   });
 
+  /** Bloco que esta sendo arrastado no Organizar o Painel. */
+  protected readonly arrastando = signal<IdDoBloco | null>(null);
+  private readonly listaDoPainel = viewChild<ElementRef<HTMLElement>>('listaDoPainel');
+  private pararDeArrastar = (): void => undefined;
+
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly contas = signal<Usuario[]>([]);
@@ -74,6 +87,10 @@ export class Profile {
   private readonly finance = inject(FinanceService);
   protected readonly moedas = signal<MoedaDisponivel[]>([]);
   protected readonly moeda = signal(this.auth.usuario()?.preferencias?.moeda ?? 'EUR');
+  /** Uma ponta da cotacao do topo; conta antiga, sem ela, usa a moeda do app. */
+  protected readonly moedaCotacao = signal(
+    this.auth.usuario()?.preferencias?.moedaCotacao ?? this.moeda(),
+  );
   protected readonly moedaConversao = signal(
     this.auth.usuario()?.preferencias?.moedaConversao ?? 'BRL',
   );
@@ -115,6 +132,60 @@ export class Profile {
     if (this.auth.ehAdmin()) {
       this.carregarAdmin();
     }
+    inject(DestroyRef).onDestroy(() => this.pararDeArrastar());
+  }
+
+  /**
+   * Comeca a arrastar um bloco: o mouse pega a linha toda, o dedo so o pontilhado. Os
+   * movimentos sao ouvidos na janela, e nao no item, porque o item troca de lugar na
+   * lista enquanto anda.
+   */
+  protected comecarArrastar(evento: PointerEvent, id: IdDoBloco): void {
+    const alvo = evento.target as HTMLElement;
+    const pelaAlca = alvo.closest('.alca') !== null;
+    const peloMouse = evento.pointerType === 'mouse' && !alvo.closest('input');
+    if (evento.button !== 0 || !(pelaAlca || peloMouse)) {
+      return;
+    }
+    evento.preventDefault();
+    this.pararDeArrastar();
+    this.arrastando.set(id);
+    const mover = (e: PointerEvent): void => this.arrastarAte(id, e.clientY);
+    const soltar = (): void => this.pararDeArrastar();
+    window.addEventListener('pointermove', mover);
+    window.addEventListener('pointerup', soltar);
+    window.addEventListener('pointercancel', soltar);
+    this.pararDeArrastar = () => {
+      window.removeEventListener('pointermove', mover);
+      window.removeEventListener('pointerup', soltar);
+      window.removeEventListener('pointercancel', soltar);
+      this.arrastando.set(null);
+      this.pararDeArrastar = () => undefined;
+    };
+  }
+
+  /** O bloco vai para depois de todos os outros cujo meio ja ficou acima do ponteiro. */
+  private arrastarAte(id: IdDoBloco, y: number): void {
+    const linhas = [...(this.listaDoPainel()?.nativeElement.children ?? [])] as HTMLElement[];
+    const acima = linhas.filter((linha) => {
+      if (linha.dataset['bloco'] === id) {
+        return false;
+      }
+      const caixa = linha.getBoundingClientRect();
+      return caixa.top + caixa.height / 2 < y;
+    }).length;
+    this.painel.moverPara(id, acima);
+  }
+
+  /** Setas do teclado na alca; o foco acompanha o bloco no novo lugar. */
+  protected moverPeloTeclado(evento: Event, id: IdDoBloco, passo: -1 | 1): void {
+    evento.preventDefault();
+    this.painel.mover(id, passo);
+    setTimeout(() =>
+      this.listaDoPainel()
+        ?.nativeElement.querySelector<HTMLElement>(`[data-bloco="${id}"] .alca`)
+        ?.focus(),
+    );
   }
 
   /** Manda outro link de confirmacao do e-mail; o aviso aparece no cartao da senha. */
@@ -164,6 +235,10 @@ export class Profile {
     }
   }
 
+  /**
+   * Grava a cada troca, sem botao. Nao ha recado de sucesso: a cotacao do topo aparece ou
+   * some na hora, e um aviso no alto da pagina empurraria a tela.
+   */
   protected salvarPreferencias(): void {
     this.salvandoPreferencias.set(true);
     this.erro.set('');
@@ -171,16 +246,22 @@ export class Profile {
     this.users
       .salvarPreferencias({
         moeda: this.moeda(),
+        moedaCotacao: this.moedaCotacao(),
         moedaConversao: this.moedaConversao(),
         mostrarCotacao: this.mostrarCotacao(),
       })
       .subscribe({
         next: (usuario) => {
           this.auth.atualizarUsuario(usuario);
-          this.aviso.set($localize`Preferências salvas.`);
           this.salvandoPreferencias.set(false);
         },
         error: (falha) => {
+          // Os campos voltam para o que esta gravado: nao podem mostrar o que nao salvou.
+          const gravadas = this.auth.usuario()?.preferencias;
+          this.moeda.set(gravadas?.moeda ?? 'EUR');
+          this.moedaCotacao.set(gravadas?.moedaCotacao ?? this.moeda());
+          this.moedaConversao.set(gravadas?.moedaConversao ?? 'BRL');
+          this.mostrarCotacao.set(gravadas?.mostrarCotacao ?? true);
           this.erro.set(mensagemDeErro(falha));
           this.salvandoPreferencias.set(false);
         },
