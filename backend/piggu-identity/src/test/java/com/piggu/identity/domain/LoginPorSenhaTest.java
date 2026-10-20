@@ -135,17 +135,35 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("cinco senhas erradas travam a entrada por senha, mesmo com a certa depois")
+    @DisplayName("cinco senhas erradas de um IP travam a senha para esse IP; a dona entra de outro")
     void travaPorTentativas() {
         cadastrar(EMAIL);
         for (int i = 0; i < AuthService.TENTATIVAS_DE_SENHA; i++) {
-            assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null))
+            assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null, "203.0.113.9"))
                     .isInstanceOf(UnauthorizedException.class);
         }
 
-        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null))
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null, "203.0.113.9"))
                 .as("travada responde como senha errada")
                 .isInstanceOf(UnauthorizedException.class).hasMessageStartingWith("E-mail ou senha incorretos.");
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().senhaTravada(java.time.Instant.now())).isFalse();
+        assertThat(auth.entrarComSenha(EMAIL, SENHA, true, null, "198.51.100.7").accessToken())
+                .as("quem errou de um lugar nao tranca a dona")
+                .isNotBlank();
+    }
+
+    @Test
+    @DisplayName("cinquenta senhas erradas, de IPs diferentes, travam a senha da conta para todos")
+    void travaDaContaComMuitosIps() {
+        cadastrar(EMAIL);
+        for (int i = 0; i < AuthService.TENTATIVAS_DA_CONTA; i++) {
+            String ip = "203.0.113." + i;
+            assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null, ip))
+                    .isInstanceOf(UnauthorizedException.class);
+        }
+
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null, "198.51.100.7"))
+                .isInstanceOf(UnauthorizedException.class);
         assertThat(usuarios.findByEmail(EMAIL).orElseThrow().senhaTravada(java.time.Instant.now())).isTrue();
     }
 

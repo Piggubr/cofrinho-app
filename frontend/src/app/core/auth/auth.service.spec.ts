@@ -207,6 +207,7 @@ describe('AuthService', () => {
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     auth.atualizarUsuario(usuarioDeTeste());
     storage.guardar(tokens());
+    localStorage.setItem('piggu_conversa_do_assistente', '{"usuario":"x","falas":[]}');
 
     const saida = auth.sair();
     http.expectOne('/api/auth/logout').flush({});
@@ -215,6 +216,8 @@ describe('AuthService', () => {
     expect(auth.autenticado()).toBe(false);
     expect(storage.accessToken).toBeNull();
     expect(contasEsquecidas).toBe(1);
+    // A conversa com o assistente traz numeros da familia: nao fica para quem vier depois.
+    expect(localStorage.getItem('piggu_conversa_do_assistente')).toBeNull();
     expect(navegar).toHaveBeenCalledWith(['/entrar']);
   });
 

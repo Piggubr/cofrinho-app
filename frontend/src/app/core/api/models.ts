@@ -73,6 +73,8 @@ export interface MembroDaFamilia {
   foto: string | null;
   papel: PigguRole;
   premium: boolean;
+  /** O titular convidou para ser parceiro e a pessoa ainda nao respondeu. */
+  parceriaPendente?: boolean;
 }
 
 /** Uma mudanca nos dados da familia: quem fez, o que e quando (trilha de auditoria). */

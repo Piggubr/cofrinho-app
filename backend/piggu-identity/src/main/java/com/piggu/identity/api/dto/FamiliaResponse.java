@@ -20,8 +20,12 @@ import java.util.UUID;
 public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFamilia, List<Membro> membros,
                               List<Convite> convites) {
 
-    /** @param premium esta pessoa tem Premium (no individual, so quem assinou) */
-    public record Membro(UUID id, String nome, String email, String foto, PigguRole papel, boolean premium) {
+    /**
+     * @param premium           esta pessoa tem Premium (no individual, so quem assinou)
+     * @param parceriaPendente  o titular convidou para ser parceiro e a pessoa ainda nao respondeu
+     */
+    public record Membro(UUID id, String nome, String email, String foto, PigguRole papel, boolean premium,
+                         boolean parceriaPendente) {
     }
 
     /** @param familia nome da familia que convidou, para quem recebe o convite */
@@ -37,7 +41,7 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFa
                 membros.stream()
                         .map(conta -> new Membro(conta.getId(), conta.nomeExibicao(), conta.getEmail(),
                                 conta.fotoExibida(), conta.getRole(),
-                                familia.planoPara(conta.getId()) == Plano.PREMIUM))
+                                familia.planoPara(conta.getId()) == Plano.PREMIUM, conta.convidadoParaParceria()))
                         .toList(),
                 convites.stream()
                         .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),

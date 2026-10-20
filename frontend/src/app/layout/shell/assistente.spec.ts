@@ -12,6 +12,7 @@ describe('Assistente', () => {
   let auth: AuthFalso;
 
   beforeEach(() => {
+    localStorage.clear();
     auth = new AuthFalso();
     TestBed.configureTestingModule({
       imports: [Assistente],
@@ -47,22 +48,25 @@ describe('Assistente', () => {
     expect(pagina.querySelector('#pergunta-ao-assistente')).toBeNull();
   });
 
-  it('primeiro uso: pede a autorizacao e a manda junto com a primeira pergunta', () => {
+  it('primeiro uso: grava a autorizacao no toque e a primeira pergunta ja nao a repete', () => {
     const tela = abrir(false);
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('Google (Gemini)');
     expect(pagina.querySelector('#pergunta-ao-assistente')).toBeNull();
 
     botao(pagina, 'Autorizo').click();
+    const autorizacao = http.expectOne('/api/assistant/consent');
+    expect(autorizacao.request.method).toBe('POST');
+    expect(autorizacao.request.body).toEqual({ versaoDoAviso: VERSAO_DO_AVISO });
+    autorizacao.flush({ habilitado: true, autorizado: true, limite: 150, restantes: 150 });
     tela.detectChanges();
+
     botao(pagina, 'Quanto gastei este mês?').click();
     const pedido = http.expectOne('/api/assistant/ask');
     expect(pedido.request.body).toEqual({
       pergunta: 'Quanto gastei este mês?',
       historico: [],
       moeda: 'EUR',
-      autorizoIa: true,
-      versaoDoAviso: VERSAO_DO_AVISO,
     });
     pedido.flush({ texto: 'Você gastou R$ 1.200,00.', tela: 'relatorios', restantes: 149 });
     tela.detectChanges();
@@ -72,6 +76,23 @@ describe('Assistente', () => {
       'Abrir Relatórios',
     );
     expect(pagina.textContent).toContain('149 de 150 perguntas');
+  });
+
+  it('se gravar a autorizacao falha, ela vai junto com a primeira pergunta', () => {
+    const tela = abrir(false);
+    const pagina: HTMLElement = tela.nativeElement;
+
+    botao(pagina, 'Autorizo').click();
+    http
+      .expectOne('/api/assistant/consent')
+      .flush({ erro: 'fora', codigo: 'NEGOCIO', campos: [] }, { status: 503, statusText: 'Unavailable' });
+    tela.detectChanges();
+
+    botao(pagina, 'Quanto gastei este mês?').click();
+    const pedido = http.expectOne('/api/assistant/ask');
+    expect(pedido.request.body.autorizoIa).toBe(true);
+    expect(pedido.request.body.versaoDoAviso).toBe(VERSAO_DO_AVISO);
+    pedido.flush({ texto: 'Ok.', tela: null, restantes: 149 });
   });
 
   it('segunda pergunta leva o historico e nao repete a autorizacao', async () => {
@@ -116,5 +137,53 @@ describe('Assistente', () => {
     expect((pagina.querySelector('#pergunta-ao-assistente') as HTMLInputElement).value).toBe(
       'Quanto gastei?',
     );
+  });
+
+  async function perguntar(tela: ReturnType<typeof abrir>, pergunta: string, resposta: string) {
+    const pagina: HTMLElement = tela.nativeElement;
+    digitar(pagina, '#pergunta-ao-assistente', pergunta);
+    (pagina.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    const pedido = http.expectOne('/api/assistant/ask');
+    pedido.flush({ texto: resposta, tela: null, restantes: 149 });
+    tela.detectChanges();
+    return pedido;
+  }
+
+  it('a conversa volta ao abrir de novo e "Nova conversa" apaga do aparelho', async () => {
+    const primeira = abrir();
+    await primeira.whenStable();
+    await perguntar(primeira, 'E com mercado?', 'R$ 300,00.');
+    primeira.destroy();
+
+    const segunda = abrir();
+    const pagina: HTMLElement = segunda.nativeElement;
+    expect(pagina.textContent).toContain('E com mercado?');
+    expect(pagina.textContent).toContain('R$ 300,00.');
+
+    botao(pagina, 'Nova conversa').click();
+    segunda.detectChanges();
+    expect(pagina.textContent).not.toContain('R$ 300,00.');
+    segunda.destroy();
+
+    const terceira = abrir();
+    expect((terceira.nativeElement as HTMLElement).textContent).not.toContain('R$ 300,00.');
+  });
+
+  it('manda para a IA so as ultimas 10 falas da conversa guardada', async () => {
+    const falas = Array.from({ length: 30 }, (_, i) => ({
+      pessoa: i % 2 === 0,
+      texto: `fala ${i}`,
+      em: new Date().toISOString(),
+    }));
+    localStorage.setItem(
+      'piggu_conversa_do_assistente',
+      JSON.stringify({ usuario: auth.usuario()!.id, falas }),
+    );
+    const tela = abrir();
+    await tela.whenStable();
+
+    const pedido = await perguntar(tela, 'E agora?', 'Certo.');
+    expect(pedido.request.body.historico).toHaveLength(10);
+    expect(pedido.request.body.historico[0]).toEqual({ pessoa: true, texto: 'fala 20' });
   });
 });
