@@ -57,6 +57,10 @@
           {
             "context": "Ponta a ponta (Playwright na demo)",
             "integration_id": 15368
+          },
+          {
+            "context": "Smoke e regressao (stack inteira)",
+            "integration_id": 15368
           }
         ]
       }
