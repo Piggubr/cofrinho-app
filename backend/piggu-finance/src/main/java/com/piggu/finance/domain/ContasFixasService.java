@@ -136,9 +136,11 @@ public class ContasFixasService {
                 """, ateODia, mes.toString());
         int lancadas = 0;
         for (Map<String, Object> devida : devidas) {
+            UUID dono = (UUID) devida.get("user_id");
             try {
-                FamiliaAtual.como((UUID) devida.get("household_id"), () -> transacao.executeWithoutResult(status ->
-                        pagar((UUID) devida.get("id"), mes, (UUID) devida.get("user_id"))));
+                // No historico, em nome do dono: o resto da familia nao ve a conta fixa dele.
+                FamiliaAtual.como((UUID) devida.get("household_id"), () -> TrilhaDeAuditoria.emNomeDe(dono, () ->
+                        transacao.executeWithoutResult(status -> pagar((UUID) devida.get("id"), mes, dono))));
                 lancadas++;
             } catch (RuntimeException erro) {
                 log.warn("Conta fixa {} nao lancada automaticamente", devida.get("id"), erro);

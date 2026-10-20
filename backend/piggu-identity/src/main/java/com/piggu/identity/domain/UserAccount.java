@@ -178,6 +178,10 @@ public class UserAccount {
     @Column(name = "password_locked_until")
     private Instant passwordLockedUntil;
 
+    /** Quando o titular convidou para ser parceiro; nulo sem convite. Vira parceiro ao aceitar. */
+    @Column(name = "partner_invited_at")
+    private Instant partnerInvitedAt;
+
     /** Quando a conta usou o teste gratis; nulo = ainda pode usar. */
     @Column(name = "trial_used_at")
     private Instant trialUsedAt;
@@ -499,6 +503,20 @@ public class UserAccount {
     public void mudarDeFamilia(UUID householdId, PigguRole role) {
         this.householdId = householdId;
         this.role = role;
+        this.partnerInvitedAt = null;
+    }
+
+    public boolean convidadoParaParceria() {
+        return partnerInvitedAt != null;
+    }
+
+    public void convidarParaParceria(Instant quando) {
+        this.partnerInvitedAt = quando;
+    }
+
+    /** Aceitou ou recusou o convite, ou o titular desistiu: o convite sai. */
+    public void encerrarConviteDeParceria() {
+        this.partnerInvitedAt = null;
     }
 
     /** Aceite dos termos e do aviso de privacidade, com a versao do texto. */

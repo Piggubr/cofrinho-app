@@ -47,22 +47,25 @@ describe('Assistente', () => {
     expect(pagina.querySelector('#pergunta-ao-assistente')).toBeNull();
   });
 
-  it('primeiro uso: pede a autorizacao e a manda junto com a primeira pergunta', () => {
+  it('primeiro uso: grava a autorizacao no toque e a primeira pergunta ja nao a repete', () => {
     const tela = abrir(false);
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('Google (Gemini)');
     expect(pagina.querySelector('#pergunta-ao-assistente')).toBeNull();
 
     botao(pagina, 'Autorizo').click();
+    const autorizacao = http.expectOne('/api/assistant/consent');
+    expect(autorizacao.request.method).toBe('POST');
+    expect(autorizacao.request.body).toEqual({ versaoDoAviso: VERSAO_DO_AVISO });
+    autorizacao.flush({ habilitado: true, autorizado: true, limite: 150, restantes: 150 });
     tela.detectChanges();
+
     botao(pagina, 'Quanto gastei este mês?').click();
     const pedido = http.expectOne('/api/assistant/ask');
     expect(pedido.request.body).toEqual({
       pergunta: 'Quanto gastei este mês?',
       historico: [],
       moeda: 'EUR',
-      autorizoIa: true,
-      versaoDoAviso: VERSAO_DO_AVISO,
     });
     pedido.flush({ texto: 'Você gastou R$ 1.200,00.', tela: 'relatorios', restantes: 149 });
     tela.detectChanges();
@@ -72,6 +75,23 @@ describe('Assistente', () => {
       'Abrir Relatórios',
     );
     expect(pagina.textContent).toContain('149 de 150 perguntas');
+  });
+
+  it('se gravar a autorizacao falha, ela vai junto com a primeira pergunta', () => {
+    const tela = abrir(false);
+    const pagina: HTMLElement = tela.nativeElement;
+
+    botao(pagina, 'Autorizo').click();
+    http
+      .expectOne('/api/assistant/consent')
+      .flush({ erro: 'fora', codigo: 'NEGOCIO', campos: [] }, { status: 503, statusText: 'Unavailable' });
+    tela.detectChanges();
+
+    botao(pagina, 'Quanto gastei este mês?').click();
+    const pedido = http.expectOne('/api/assistant/ask');
+    expect(pedido.request.body.autorizoIa).toBe(true);
+    expect(pedido.request.body.versaoDoAviso).toBe(VERSAO_DO_AVISO);
+    pedido.flush({ texto: 'Ok.', tela: null, restantes: 149 });
   });
 
   it('segunda pergunta leva o historico e nao repete a autorizacao', async () => {

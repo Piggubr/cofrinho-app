@@ -71,6 +71,19 @@ public class AssistantController {
                 pedido.moeda() == null ? "BRL" : pedido.moeda(), pedido.autorizoIa(), pedido.versaoDoAviso(), usuario);
     }
 
+    public record AutorizacaoRequest(@NotBlank @Size(max = 20) String versaoDoAviso) {
+    }
+
+    /**
+     * Grava a autorizacao no toque em "Autorizo", sem esperar a primeira pergunta: quem
+     * autoriza e fecha o assistente nao precisa autorizar de novo. Vale ate o aviso mudar.
+     */
+    @PostMapping("/consent")
+    public AssistenteService.Situacao autorizar(@Valid @RequestBody AutorizacaoRequest pedido,
+                                                @AuthUser CurrentUser usuario) {
+        return servico.autorizar(usuario, pedido.versaoDoAviso());
+    }
+
     /** Retira a autorizacao de enviar perguntas e totais ao Gemini; a proxima pergunta pede de novo. */
     @DeleteMapping("/consent")
     @ResponseStatus(HttpStatus.NO_CONTENT)

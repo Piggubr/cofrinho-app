@@ -76,12 +76,25 @@ public class FamiliaController {
     public record PapelRequest(@NotNull(message = "Escolha o papel.") PigguRole papel) {
     }
 
-    /** Promove a parceiro ou volta a membro. */
+    /** Convida para ser parceiro (vale quando a pessoa aceita) ou volta a membro. */
     @PutMapping("/members/{id}/role")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse mudarPapel(@PathVariable UUID id, @Valid @RequestBody PapelRequest pedido,
                                       @AuthUser CurrentUser usuario) {
         return servico.mudarPapel(usuario, id, pedido.papel());
+    }
+
+    /** Aceita o convite do titular para ser parceiro; precisa entrar de novo. */
+    @PostMapping("/partnership/accept")
+    public ResponseEntity<Void> aceitarParceria(@AuthUser CurrentUser usuario) {
+        servico.aceitarParceria(usuario);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Recusa o convite para ser parceiro: continua membro. */
+    @PostMapping("/partnership/decline")
+    public FamiliaResponse recusarParceria(@AuthUser CurrentUser usuario) {
+        return servico.recusarParceria(usuario);
     }
 
     /** Convites de outras familias para o e-mail de quem esta logado. */

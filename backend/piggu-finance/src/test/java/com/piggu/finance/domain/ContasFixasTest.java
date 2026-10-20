@@ -85,6 +85,25 @@ class ContasFixasTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$[0].usuario").value(TokensDeTeste.idDe("auto-" + familia + "@piggu.test").toString()));
     }
 
+    @Test
+    @DisplayName("o historico do lancamento automatico fica com o dono da conta: o membro nao ve a do titular")
+    void historicoDoAutomaticoEDoDono() throws Exception {
+        UUID familia = UUID.randomUUID();
+        String titular = "auto-titular-" + familia + "@piggu.test";
+        RequestPostProcessor doTitular = TokensDeTeste.da(familia, titular, PigguRole.TITULAR);
+        RequestPostProcessor membro = TokensDeTeste.da(familia, "auto-membro-" + familia + "@piggu.test", PigguRole.MEMBRO);
+        criarConta(doTitular, "Terapia", 5, true);
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 10, 9));
+
+        mockMvc.perform(get("/api/history").with(membro))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/history").param("entidade", "gasto").with(doTitular))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(titular).toString()));
+    }
+
     private void criarConta(RequestPostProcessor quem, String descricao, int dia, boolean automatico) throws Exception {
         mockMvc.perform(post("/api/bills").with(quem).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"descricao\":\"%s\",\"categoria\":\"Casa\",\"valor\":100,\"dia\":%d,\"automatico\":%s}"
