@@ -8,6 +8,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { dataIso, gradeDoMes, hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
 
 /** Um dia da grade, com o que acontece nele. */
 interface DiaDoMes {
@@ -27,7 +28,7 @@ interface DiaDoMes {
  */
 @Component({
   selector: 'app-calendar',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })

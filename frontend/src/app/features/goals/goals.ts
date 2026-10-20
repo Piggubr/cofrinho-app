@@ -8,6 +8,8 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 interface MetaNaTela {
   readonly mes: string;
@@ -24,7 +26,7 @@ interface MetaNaTela {
  */
 @Component({
   selector: 'app-goals',
-  imports: [Focar, Icone, FormsModule, MoedaPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, Carregando, Vazio],
   templateUrl: './goals.html',
   styleUrl: './goals.scss',
 })

@@ -118,7 +118,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `PIGGU_LEITOR_PROPRIO` | `false` (padrao desde 11/10/2026): recibo lido so pelo Gemini, 10 por mes por familia no gratuito; `true` volta o leitor proprio (Tesseract) primeiro |
 | `GEMINI_API_KEY`, `PLUGGY_*`, `STRIPE_*`, `TMDB_READ_TOKEN`, `DRIVE_*` | integrações; vazias, o recurso fica desligado |
 | `PIGGU_ASSISTENTE_PERGUNTAS_POR_MES` | perguntas ao assistente de IA por pessoa no mês (padrão 150); o assistente usa a mesma `GEMINI_API_KEY` |
-| `PIGGU_EMAIL_API_KEY`, `PIGGU_EMAIL_REMETENTE` | avisos por e-mail (fatura, orçamento, conta do mês), pela API da Resend; o remetente precisa ser de um domínio verificado lá (ex.: `Piggu <avisos@piggu.app>`) |
+| `PIGGU_EMAIL_API_KEY`, `PIGGU_EMAIL_REMETENTE` | avisos por e-mail (fatura, orçamento, conta do mês), pela API da Resend; o remetente precisa ser de um domínio verificado lá (ex.: `Piggu <nao-responda@piggu.com.br>`; SPF, DKIM e DMARC em [email-do-dominio.md](email-do-dominio.md)). Também levam o link de confirmar e-mail e o de "esqueci minha senha" |
 | `APNS_TEAM_ID`, `APNS_KEY_ID`, `APNS_CHAVE`, `APNS_BUNDLE_ID` | push no iPhone: a chave `.p8` de "Apple Push Notifications service" criada em developer.apple.com (Keys), o Team ID, o Key ID e o bundle do app. `APNS_SANDBOX=true` para o app instalado pelo Xcode |
 
 Nenhuma delas vai para o Git: o `.env` está no `.gitignore` e o `.env.example` só tem

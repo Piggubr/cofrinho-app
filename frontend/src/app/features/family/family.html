@@ -17,6 +17,22 @@
   </section>
 }
 
+@if (conviteDeParceria()) {
+  <section i18n-aria-label class="cartao destaque" aria-label="Convite para ser parceiro">
+    <p i18n class="linha-titulo">O titular convidou você para ser parceiro</p>
+    <p i18n class="linha-detalhe">
+      Se aceitar, você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam
+      os menores de 18 anos. Se recusar, continua vendo só o que você lança.
+    </p>
+    <div class="acoes">
+      <button i18n type="button" class="botao" (click)="aceitarParceria()">Aceitar</button>
+      <button i18n type="button" class="botao contorno" (click)="recusarParceria()" [disabled]="ocupado()">
+        Recusar
+      </button>
+    </div>
+  </section>
+}
+
 @if (familia(); as casa) {
   <section class="cartao" aria-labelledby="titulo-familia">
     <div class="cartao-titulo">
@@ -48,7 +64,9 @@
         <li i18n class="linha">
           <div>
             <p class="linha-titulo">{{ pessoa.nome }}</p>
-            <p class="linha-detalhe">{{ pessoa.email }} · {{ papel(pessoa.papel) }}</p>
+            <p class="linha-detalhe">
+              {{ pessoa.email }} · {{ papel(pessoa.papel) }}{{ pessoa.parceriaPendente ? ' · convidado para parceiro' : '' }}
+            </p>
           </div>
           @if (auth.ehTitular() && (pessoa.papel === 'MEMBRO' || pessoa.papel === 'PARCEIRO')) {
             <div class="acoes-da-pessoa">
@@ -58,7 +76,13 @@
                 (click)="mudarPapel(pessoa)"
                 [disabled]="ocupado()"
               >
-                {{ pessoa.papel === 'PARCEIRO' ? 'Voltar a membro' : 'Tornar parceiro' }}
+                {{
+                  pessoa.parceriaPendente
+                    ? 'Cancelar convite de parceiro'
+                    : pessoa.papel === 'PARCEIRO'
+                      ? 'Voltar a membro'
+                      : 'Convidar para parceiro'
+                }}
               </button>
               <button
                 type="button"
@@ -112,8 +136,9 @@
       </div>
       <p i18n class="linha-detalhe">
         A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
-        convite vale 7 dias. Cada membro vê só o que lança. Para o seu marido ou sua esposa ver
-        tudo como você, use "Tornar parceiro" na lista acima.
+        convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa
+        verem o que um e o outro lançam, use "Convidar para parceiro" na lista acima; vale quando
+        a pessoa aceitar.
       </p>
       <div class="linha-de-campos">
         <div class="campo">
@@ -158,5 +183,5 @@
     </section>
   }
 } @else if (!erro()) {
-  <p i18n class="carregando">Carregando...</p>
+  <app-carregando formato="cartoes" [linhas]="2" />
 }

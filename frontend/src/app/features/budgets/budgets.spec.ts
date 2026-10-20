@@ -162,6 +162,6 @@ describe('Budgets', () => {
     http.expectOne((r) => r.url === '/api/budgets' && r.method === 'GET').flush([]);
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Nenhuma categoria com limite ainda.');
+    expect(pagina.textContent).toContain('Nenhuma categoria com limite ainda');
   });
 });

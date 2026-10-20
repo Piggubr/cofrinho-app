@@ -142,7 +142,7 @@
   </div>
 
   @if (carregando()) {
-    <p i18n class="carregando">Carregando...</p>
+    <app-carregando [linhas]="2" />
   } @else if (notasSemData().length) {
     @for (nota of notasSemData(); track nota.id) {
       <div class="linha">

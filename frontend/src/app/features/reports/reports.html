@@ -85,10 +85,12 @@
         }
       </ul>
     } @else {
-      <p i18n class="vazio">Nenhum gasto neste mês.</p>
-      <p class="vazio-acao">
-        <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
-      </p>
+      <app-vazio icone="grafico" i18n-titulo titulo="Nenhum gasto neste mês">
+        <p i18n>Assim que houver gastos, o relatório mostra para onde o dinheiro foi.</p>
+        <p class="vazio-acao">
+          <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
+        </p>
+      </app-vazio>
     }
   }
 </section>

@@ -11,6 +11,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso } from '../../core/ui/datas';
 import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { Icone } from '../../core/ui/icone';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 /**
  * Lugares visitados e avaliados.
@@ -21,7 +23,7 @@ import { Icone } from '../../core/ui/icone';
  */
 @Component({
   selector: 'app-places',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, Vazio],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })

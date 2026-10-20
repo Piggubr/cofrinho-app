@@ -38,6 +38,8 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
 import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
+import { Carregando } from '../../core/ui/carregando';
+import { Vazio } from '../../core/ui/vazio';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -55,7 +57,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato],
+  imports: [Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato, Carregando, Vazio],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })

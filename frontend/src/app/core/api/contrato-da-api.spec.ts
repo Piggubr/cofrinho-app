@@ -241,6 +241,14 @@ const CASOS: Caso[] = [
     '/receipts/consent',
   ],
   [
+    'autorizar o assistente',
+    (s) => s.finance.autorizarAssistente('2026-10-16'),
+    'POST',
+    '/assistant/consent',
+    {},
+    { versaoDoAviso: '2026-10-16' },
+  ],
+  [
     'retirar a autorizacao do assistente',
     (s) => s.finance.retirarAutorizacaoDoAssistente(),
     'DELETE',
@@ -314,6 +322,8 @@ const CASOS: Caso[] = [
     {},
     { papel: 'PARCEIRO' },
   ],
+  ['aceitar parceria', (s) => s.family.aceitarParceria(), 'POST', '/family/partnership/accept', {}, {}],
+  ['recusar parceria', (s) => s.family.recusarParceria(), 'POST', '/family/partnership/decline', {}, {}],
   ['convites para mim', (s) => s.family.convitesParaMim(), 'GET', '/family/invites/mine'],
   [
     'aceitar convite',

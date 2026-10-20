@@ -17,6 +17,15 @@
     <meta name="apple-mobile-web-app-title" content="Piggu" />
   </head>
   <body>
-    <app-root></app-root>
+    <!-- Abertura enquanto o app baixa (estilo em styles.scss, .abertura). O Angular troca
+         pelo mesmo desenho no app.ts, que fica ate a primeira tela abrir. Sem script: o
+         aviso de conexao lenta aparece por atraso de animacao. -->
+    <app-root>
+      <div class="abertura" role="status">
+        <img class="abertura-icone" src="icons/icon-192.png" alt="" width="88" height="88" />
+        <p class="abertura-texto">Abrindo o Piggu…</p>
+        <p class="abertura-lenta">Sua conexão parece lenta. Já já abre.</p>
+      </div>
+    </app-root>
   </body>
 </html>

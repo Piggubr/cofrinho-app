@@ -1,0 +1,55 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    @switch (estado()) {
+      @case ('formulario') {
+        <h1 i18n>Senha nova</h1>
+        <p i18n class="subtitulo">Escolha a senha que você vai usar para entrar no Piggu.</p>
+        @if (erro()) {
+          <p class="aviso erro" role="alert">{{ erro() }}</p>
+        }
+        <form class="formulario" (ngSubmit)="salvar()" novalidate>
+          <div class="campo">
+            <label i18n for="senha-nova">Senha nova</label>
+            <input
+              id="senha-nova"
+              name="senha"
+              type="password"
+              autocomplete="new-password"
+              aria-describedby="dica-da-senha-nova"
+              [ngModel]="senha()"
+              (ngModelChange)="senha.set($event)"
+            />
+            <p i18n id="dica-da-senha-nova" class="dica">Pelo menos 8 caracteres, com letras e números.</p>
+          </div>
+          <div class="campo">
+            <label i18n for="senha-nova-repetida">Repita a senha</label>
+            <input
+              id="senha-nova-repetida"
+              name="confirmacao"
+              type="password"
+              autocomplete="new-password"
+              [ngModel]="confirmacao()"
+              (ngModelChange)="confirmacao.set($event)"
+            />
+          </div>
+          <button i18n type="submit" class="botao largo" [disabled]="salvando()">Salvar a senha nova</button>
+        </form>
+      }
+      @case ('ok') {
+        <h1 i18n>Senha nova salva</h1>
+        <p i18n class="subtitulo">
+          Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova.
+        </p>
+        <a i18n routerLink="/entrar" class="botao largo">Entrar</a>
+      }
+      @case ('link-ruim') {
+        <h1 i18n>Link vencido</h1>
+        <p class="aviso erro" role="alert" i18n>
+          Este link venceu ou já foi usado. Peça outro e use em até 1 hora.
+        </p>
+        <a i18n routerLink="/esqueci-senha" class="botao largo">Pedir outro link</a>
+      }
+    }
+  </section>
+</div>

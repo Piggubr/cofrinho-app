@@ -94,6 +94,7 @@
             />
           </div>
           <button i18n type="submit" class="botao largo" [disabled]="entrando()">Entrar</button>
+          <a i18n routerLink="/esqueci-senha" class="esqueci">Esqueci minha senha</a>
         </form>
       } @else {
         <form class="formulario" (ngSubmit)="cadastrar()" novalidate>

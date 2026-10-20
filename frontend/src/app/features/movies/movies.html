@@ -107,7 +107,7 @@
   </div>
 
   @if (carregando()) {
-    <p i18n class="carregando">Carregando...</p>
+    <app-carregando formato="cartoes" />
   } @else if (paraVer().length) {
     <div class="grade">
       @for (filme of paraVer(); track filme.id) {
@@ -137,10 +137,12 @@
       }
     </div>
   } @else {
-    <p i18n class="vazio">Nenhum filme na fila.</p>
-    <p class="vazio-acao">
-      <button i18n class="botao contorno pequeno" appFocar="buscaFilme">Buscar um filme</button>
-    </p>
+    <app-vazio icone="filme" i18n-titulo titulo="Nenhum filme na fila">
+      <p i18n>Busque um filme e guarde para a próxima noite de sofá.</p>
+      <p class="vazio-acao">
+        <button i18n class="botao contorno pequeno" appFocar="buscaFilme">Buscar um filme</button>
+      </p>
+    </app-vazio>
   }
 </section>
 
@@ -202,6 +204,6 @@
       }
     </div>
   } @else {
-    <p i18n class="vazio">Nenhum filme assistido ainda.</p>
+    <app-vazio icone="estrela" i18n-titulo titulo="Nenhum filme assistido ainda" [compacto]="true" />
   }
 </section>
