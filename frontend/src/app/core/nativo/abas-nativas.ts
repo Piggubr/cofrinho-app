@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
-import { Temas } from '../ui/tema';
+import { ModoDeAparencia, Temas } from '../ui/tema';
 
 /** Uma aba da barra nativa. O simbolo e um nome de SF Symbol ("house", "chart.bar"...). */
 export interface AbaNativa {
@@ -18,6 +18,8 @@ interface PluginAbasNativas {
     selecionada?: string | null;
     corDestaque?: string;
     corDestaqueEscura?: string;
+    /** Perfil > Aparencia: o app inteiro (barra de status, abas) segue o modo escolhido. */
+    aparencia?: ModoDeAparencia;
   }): Promise<void>;
   selecionar(opcoes: { id: string | null }): Promise<void>;
   mostrar(): Promise<void>;
@@ -53,9 +55,10 @@ export class AbasNativas {
       this.plugin.configurar({
         abas,
         selecionada,
-        // Le o tema dentro do effect do shell: trocar a cor no Perfil refaz a barra.
+        // Le o tema dentro do effect do shell: trocar a cor ou o modo no Perfil refaz a barra.
         corDestaque: this.temas.atual().destaque,
         corDestaqueEscura: this.temas.atual().destaqueEscuro,
+        aparencia: this.temas.modo(),
       }),
     );
   }

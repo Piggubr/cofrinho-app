@@ -14,8 +14,10 @@ describe('Temas', () => {
 
   afterEach(() => {
     localStorage.removeItem('piggu_tema');
+    localStorage.removeItem('piggu_modo');
     esquecerQueVoltouAoPadrao();
     delete document.documentElement.dataset['tema'];
+    delete document.documentElement.dataset['modo'];
   });
 
   it('aplica o tema salvo e ignora um valor desconhecido', () => {
@@ -42,6 +44,47 @@ describe('Temas', () => {
 
     expect(claro.content).toBe('#faf8fc');
     expect(escuro.content).toBe('#131017');
+    claro.remove();
+    escuro.remove();
+  });
+
+  it('modo salvo: Claro ou Escuro vao para o data-modo; automatico ou desconhecido seguem o sistema', () => {
+    localStorage.setItem('piggu_modo', 'escuro');
+    aplicarTemaSalvo();
+    expect(document.documentElement.dataset['modo']).toBe('escuro');
+    expect(TestBed.inject(Temas).modo()).toBe('escuro');
+
+    localStorage.setItem('piggu_modo', 'sepia');
+    aplicarTemaSalvo();
+    expect(document.documentElement.dataset['modo']).toBeUndefined();
+  });
+
+  it('modo fixo pinta as duas metas da barra do navegador com a cor do modo escolhido', () => {
+    const claro = document.createElement('meta');
+    claro.name = 'theme-color';
+    claro.media = '(prefers-color-scheme: light)';
+    const escuro = document.createElement('meta');
+    escuro.name = 'theme-color';
+    escuro.media = '(prefers-color-scheme: dark)';
+    document.head.append(claro, escuro);
+    const temas = TestBed.inject(Temas);
+    temas.escolher('azul');
+
+    temas.escolherModo('escuro');
+    expect([claro.content, escuro.content]).toEqual(['#0f1317', '#0f1317']);
+    expect(localStorage.getItem('piggu_modo')).toBe('escuro');
+
+    temas.escolherModo('claro');
+    expect(document.documentElement.dataset['modo']).toBe('claro');
+    expect([claro.content, escuro.content]).toEqual(['#f7fafc', '#f7fafc']);
+
+    // Trocar a cor mantem o modo escolhido.
+    temas.escolher('menta');
+    expect([claro.content, escuro.content]).toEqual(['#f7fbfa', '#f7fbfa']);
+
+    temas.escolherModo('automatico');
+    expect(document.documentElement.dataset['modo']).toBeUndefined();
+    expect([claro.content, escuro.content]).toEqual(['#f7fbfa', '#0f1513']);
     claro.remove();
     escuro.remove();
   });
