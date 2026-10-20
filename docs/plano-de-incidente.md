@@ -3,7 +3,7 @@
 Para quando houver suspeita de que dado pessoal vazou, foi alterado ou ficou acessível a
 quem não devia (LGPD art. 46 a 48). Curto de propósito: é para ser seguido sob pressão.
 
-**Canal:** privacidade@piggu.app (o mesmo do aviso de privacidade) recebe relatos de
+**Canal:** privacidade@piggu.com.br (o mesmo do aviso de privacidade) recebe relatos de
 titulares e de terceiros. Quem opera a instalação (ADMIN) responde.
 
 ## 1. Primeira hora: conter

@@ -80,6 +80,11 @@ export class FinanceService extends ApiBase {
     return this.http.post<RespostaDoAssistente>(this.url('/assistant/ask'), pedido);
   }
 
+  /** Grava a autorizacao de enviar perguntas e totais ao Gemini, no toque em "Autorizo". */
+  autorizarAssistente(versaoDoAviso: string): Observable<SituacaoDoAssistente> {
+    return this.http.post<SituacaoDoAssistente>(this.url('/assistant/consent'), { versaoDoAviso });
+  }
+
   /** Retira a autorizacao de enviar perguntas e totais ao Gemini (LGPD art. 8, par. 5). */
   retirarAutorizacaoDoAssistente(): Observable<void> {
     return this.http.delete<void>(this.url('/assistant/consent'));

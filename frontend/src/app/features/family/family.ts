@@ -147,20 +147,50 @@ export class Family {
     this.executar(this.familias.cancelarConvite(id), $localize`Convite cancelado.`);
   }
 
-  /** O parceiro ve e edita tudo como o titular, mas nao mexe no plano nem nas pessoas. */
+  /**
+   * O titular convida para parceiro, desiste do convite ou volta o parceiro a membro. Virar
+   * parceiro so vale quando a pessoa aceita: dali em diante um ve o que o outro lanca.
+   */
   protected mudarPapel(membro: MembroDaFamilia): void {
+    if (membro.parceriaPendente) {
+      this.executar(this.familias.mudarPapel(membro.id, 'MEMBRO'), $localize`Convite de parceria cancelado.`);
+      return;
+    }
     const papel = membro.papel === 'PARCEIRO' ? 'MEMBRO' : 'PARCEIRO';
     const texto =
       papel === 'PARCEIRO'
-        ? $localize`Tornar ${membro.nome} parceiro? Vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você.`
+        ? $localize`Convidar ${membro.nome} para ser parceiro? Quando a pessoa aceitar, vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você.`
         : $localize`Voltar ${membro.nome} a membro? Essa pessoa passa a ver só o que ela lança, e você deixa de ver o dela.`;
     if (!confirm(texto)) {
       return;
     }
     this.executar(
       this.familias.mudarPapel(membro.id, papel),
-      $localize`Papel alterado. A mudança vale quando a pessoa entrar de novo.`,
+      papel === 'PARCEIRO'
+        ? $localize`Convite enviado. ${membro.nome} vê o convite na tela Família e decide se aceita.`
+        : $localize`Papel alterado. A mudança vale quando a pessoa entrar de novo.`,
     );
+  }
+
+  /** Convite do titular para quem esta logado ser parceiro, se houver. */
+  protected conviteDeParceria(): boolean {
+    const eu = this.auth.usuario()?.id;
+    return !!this.familia()?.membros.some((pessoa) => pessoa.id === eu && pessoa.parceriaPendente);
+  }
+
+  protected aceitarParceria(): void {
+    const texto = $localize`Aceitar ser parceiro? Você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Depois disso é preciso entrar de novo.`;
+    if (!confirm(texto)) {
+      return;
+    }
+    this.familias.aceitarParceria().subscribe({
+      next: () => void this.auth.encerrarLocalmente(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  protected recusarParceria(): void {
+    this.executar(this.familias.recusarParceria(), $localize`Convite recusado. Você continua vendo só o que lança.`);
   }
 
   protected remover(membro: MembroDaFamilia): void {

@@ -26,9 +26,19 @@ export class FamilyService extends ApiBase {
     return this.http.delete<Familia>(this.url(`/family/members/${id}`));
   }
 
-  /** O titular promove a parceiro ou volta a membro. */
+  /** O titular convida para parceiro (vale quando a pessoa aceita) ou volta a membro. */
   mudarPapel(id: string, papel: 'PARCEIRO' | 'MEMBRO'): Observable<Familia> {
     return this.http.put<Familia>(this.url(`/family/members/${id}/role`), { papel });
+  }
+
+  /** Aceita o convite do titular para ser parceiro; e preciso entrar de novo. */
+  aceitarParceria(): Observable<void> {
+    return this.http.post<void>(this.url('/family/partnership/accept'), {});
+  }
+
+  /** Recusa o convite para ser parceiro: continua membro. */
+  recusarParceria(): Observable<Familia> {
+    return this.http.post<Familia>(this.url('/family/partnership/decline'), {});
   }
 
   /** Convites de outras familias para o meu e-mail. */

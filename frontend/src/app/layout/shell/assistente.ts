@@ -42,7 +42,8 @@ interface FalaNaTela extends FalaDoAssistente {
  *
  * <p>A conversa fica so na memoria desta aba: o servidor nao guarda, e nada vai para o
  * armazenamento do aparelho. No primeiro uso a pessoa autoriza o envio ao Gemini; a
- * autorizacao segue no pedido, como na leitura de nota pela IA.</p>
+ * autorizacao e gravada no toque e vale ate o aviso de privacidade mudar. Se a gravacao
+ * falhar, ela segue na primeira pergunta, como na leitura de nota pela IA.</p>
  */
 @Component({
   selector: 'app-assistente',
@@ -375,6 +376,14 @@ export class Assistente {
   protected autorizar(): void {
     this.autorizandoAgora.set(true);
     this.focar();
+    this.finance.autorizarAssistente(VERSAO_DO_AVISO).subscribe({
+      next: (situacao) => {
+        this.situacao.set(situacao);
+        this.autorizandoAgora.set(false);
+      },
+      // Sem gravar agora, a autorizacao vai junto com a primeira pergunta.
+      error: () => undefined,
+    });
   }
 
   protected perguntar(texto: string): void {

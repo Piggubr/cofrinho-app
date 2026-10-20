@@ -1,0 +1,37 @@
+<div class="tela-de-login">
+  <section class="cartao caixa">
+    <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
+    <h1 i18n>Esqueci minha senha</h1>
+
+    @if (enviado()) {
+      <p class="aviso sucesso" role="status" i18n>
+        Se {{ email().trim() }} tem conta no Piggu, mandamos um link para criar uma senha nova.
+        Ele vale por 1 hora. Confira também a caixa de spam.
+      </p>
+      <a i18n routerLink="/entrar" class="botao largo">Voltar para entrar</a>
+    } @else {
+      <p i18n class="subtitulo">Informe o e-mail da sua conta e mandamos um link para criar uma senha nova.</p>
+      @if (erro()) {
+        <p class="aviso erro" role="alert">{{ erro() }}</p>
+      }
+      <form class="formulario" (ngSubmit)="pedir()" novalidate>
+        <div class="campo">
+          <label i18n for="email-esqueci">E-mail</label>
+          <input
+            id="email-esqueci"
+            name="email"
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+            autocapitalize="off"
+            maxlength="320"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+          />
+        </div>
+        <button i18n type="submit" class="botao largo" [disabled]="enviando()">Mandar o link</button>
+      </form>
+      <p class="nota"><a i18n routerLink="/entrar">Voltar para entrar</a></p>
+    }
+  </section>
+</div>

@@ -10,6 +10,7 @@ import {
   Router,
   RouterOutlet,
 } from '@angular/router';
+import { AvisoDeCookies } from './core/privacidade/aviso-de-cookies';
 
 /**
  * Raiz do app: a tela atual e o que se ve enquanto ela abre.
@@ -22,7 +23,7 @@ import {
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, AvisoDeCookies],
   template: `
     @if (abrindo()) {
       <div class="abertura" role="status" [style.animation-delay]="atrasoDaAbertura">
@@ -39,6 +40,7 @@ import {
       </div>
     }
     <router-outlet />
+    <app-aviso-de-cookies />
   `,
 })
 export class App {

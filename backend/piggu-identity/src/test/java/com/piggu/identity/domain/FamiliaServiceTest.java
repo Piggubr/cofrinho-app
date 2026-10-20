@@ -127,18 +127,57 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("titular promove o membro a parceiro e volta atras; a pessoa entra de novo")
+    @DisplayName("titular convida o membro para parceiro; so vira parceiro quando aceita, e volta atras na hora")
     void promoverAParceiro() {
         sessoes.save(new RefreshSession(membro.getId(), "hash-do-membro", null, Instant.now().plusSeconds(3600)));
 
-        FamiliaResponse depois = familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        FamiliaResponse convidado = familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
 
-        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.PARCEIRO);
-        assertThat(depois.membros()).extracting(FamiliaResponse.Membro::papel).contains(PigguRole.PARCEIRO);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole())
+                .as("sem aceitar, ninguem passa a ver o que a pessoa lanca").isEqualTo(PigguRole.MEMBRO);
+        assertThat(convidado.membros()).filteredOn(pessoa -> pessoa.id().equals(membro.getId()))
+                .extracting(FamiliaResponse.Membro::parceriaPendente).containsExactly(true);
+        assertThat(sessoes.count()).isEqualTo(1);
+
+        familias.aceitarParceria(como(membro));
+
+        UserAccount parceiro = usuarios.findById(membro.getId()).orElseThrow();
+        assertThat(parceiro.getRole()).isEqualTo(PigguRole.PARCEIRO);
+        assertThat(parceiro.convidadoParaParceria()).isFalse();
         assertThat(sessoes.count()).as("o token antigo ainda diz MEMBRO").isZero();
 
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.MEMBRO);
         assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
+    @Test
+    @DisplayName("quem e convidado para parceiro pode recusar; o titular pode desistir do convite")
+    void recusarOuCancelarParceria() {
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.recusarParceria(como(membro));
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().convidadoParaParceria()).isFalse();
+        assertThatThrownBy(() -> familias.aceitarParceria(como(membro))).isInstanceOf(NotFoundException.class);
+
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.MEMBRO);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().convidadoParaParceria()).isFalse();
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
+    @Test
+    @DisplayName("um parceiro por familia: com parceiro ou convite pendente, outro convite e recusado")
+    void umParceiroPorFamilia() {
+        familias.convidar(como(titular), "caio@familia.test");
+        UserAccount caio = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), caio.getId(), PigguRole.PARCEIRO))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("ja tem um parceiro");
+
+        familias.aceitarParceria(como(membro));
+        assertThatThrownBy(() -> familias.mudarPapel(como(titular), caio.getId(), PigguRole.PARCEIRO))
+                .isInstanceOf(BusinessException.class);
+        assertThat(usuarios.findById(caio.getId()).orElseThrow().convidadoParaParceria()).isFalse();
     }
 
     @Test
@@ -147,6 +186,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         familias.convidar(como(titular), "caio@familia.test");
         UserAccount terceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.aceitarParceria(como(membro));
         UserAccount parceiro = usuarios.findById(membro.getId()).orElseThrow();
 
         assertThatThrownBy(() -> familias.convidar(como(parceiro), "x@familia.test")).isInstanceOf(ForbiddenException.class);
@@ -169,21 +209,24 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         familias.convidar(como(titular), "caio@familia.test");
         UserAccount outro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
-        familias.mudarPapel(como(titular), outro.getId(), PigguRole.PARCEIRO);
-
+        familias.aceitarParceria(como(membro));
         familias.removerMembro(como(titular), membro.getId());
+
+        familias.mudarPapel(como(titular), outro.getId(), PigguRole.PARCEIRO);
+        familias.aceitarParceria(como(outro));
         familias.sair(como(usuarios.findById(outro.getId()).orElseThrow()));
 
         assertThat(familias.ver(como(titular)).membros()).hasSize(1);
     }
 
     @Test
-    @DisplayName("promover, remover e sair ficam no historico da familia, com quem fez")
+    @DisplayName("convidar para parceiro, aceitar, remover e sair ficam no historico da familia, com quem fez")
     void historicoDaFamilia() {
         familias.convidar(como(titular), "caio@familia.test");
         UserAccount caio = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
 
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.aceitarParceria(como(membro));
         familias.removerMembro(como(titular), caio.getId());
         familias.sair(como(usuarios.findById(membro.getId()).orElseThrow()));
 
@@ -195,8 +238,11 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
                                 "membro · PARCEIRO", null),
                         org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.REMOVEU, titular.getId(),
                                 "caio · MEMBRO", null),
-                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, titular.getId(),
-                                "membro · MEMBRO", "membro · PARCEIRO"));
+                        // Quem aceitou ja saiu: o que ela fez fica na familia, sem autor.
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, null,
+                                "membro · MEMBRO", "membro · PARCEIRO"),
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.CONVIDOU, titular.getId(),
+                                null, "membro · PARCEIRO"));
         assertThat(trilha.recentes(vizinho.getHouseholdId(), null, 10)).isEmpty();
     }
 
