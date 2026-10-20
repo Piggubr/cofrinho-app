@@ -12,6 +12,7 @@ describe('Assistente', () => {
   let auth: AuthFalso;
 
   beforeEach(() => {
+    localStorage.clear();
     auth = new AuthFalso();
     TestBed.configureTestingModule({
       imports: [Assistente],
@@ -136,5 +137,53 @@ describe('Assistente', () => {
     expect((pagina.querySelector('#pergunta-ao-assistente') as HTMLInputElement).value).toBe(
       'Quanto gastei?',
     );
+  });
+
+  async function perguntar(tela: ReturnType<typeof abrir>, pergunta: string, resposta: string) {
+    const pagina: HTMLElement = tela.nativeElement;
+    digitar(pagina, '#pergunta-ao-assistente', pergunta);
+    (pagina.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    const pedido = http.expectOne('/api/assistant/ask');
+    pedido.flush({ texto: resposta, tela: null, restantes: 149 });
+    tela.detectChanges();
+    return pedido;
+  }
+
+  it('a conversa volta ao abrir de novo e "Nova conversa" apaga do aparelho', async () => {
+    const primeira = abrir();
+    await primeira.whenStable();
+    await perguntar(primeira, 'E com mercado?', 'R$ 300,00.');
+    primeira.destroy();
+
+    const segunda = abrir();
+    const pagina: HTMLElement = segunda.nativeElement;
+    expect(pagina.textContent).toContain('E com mercado?');
+    expect(pagina.textContent).toContain('R$ 300,00.');
+
+    botao(pagina, 'Nova conversa').click();
+    segunda.detectChanges();
+    expect(pagina.textContent).not.toContain('R$ 300,00.');
+    segunda.destroy();
+
+    const terceira = abrir();
+    expect((terceira.nativeElement as HTMLElement).textContent).not.toContain('R$ 300,00.');
+  });
+
+  it('manda para a IA so as ultimas 10 falas da conversa guardada', async () => {
+    const falas = Array.from({ length: 30 }, (_, i) => ({
+      pessoa: i % 2 === 0,
+      texto: `fala ${i}`,
+      em: new Date().toISOString(),
+    }));
+    localStorage.setItem(
+      'piggu_conversa_do_assistente',
+      JSON.stringify({ usuario: auth.usuario()!.id, falas }),
+    );
+    const tela = abrir();
+    await tela.whenStable();
+
+    const pedido = await perguntar(tela, 'E agora?', 'Certo.');
+    expect(pedido.request.body.historico).toHaveLength(10);
+    expect(pedido.request.body.historico[0]).toEqual({ pessoa: true, texto: 'fala 20' });
   });
 });
