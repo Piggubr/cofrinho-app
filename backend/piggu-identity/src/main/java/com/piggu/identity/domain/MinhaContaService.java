@@ -216,7 +216,7 @@ public class MinhaContaService {
             throw new BusinessException("Confira a data de nascimento.");
         }
         if (data.isAfter(hoje.minusYears(UserAccount.IDADE_MINIMA))) {
-            throw new BusinessException("O Piggu Ã© para quem tem " + UserAccount.IDADE_MINIMA + " anos ou mais.",
+            throw new BusinessException("O Piggu é para quem tem " + UserAccount.IDADE_MINIMA + " anos ou mais.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "IDADE_MINIMA");
         }
         return data;
