@@ -28,25 +28,21 @@
           }
         </select>
       </div>
-      @if (documentoPedido(); as doc) {
-        <div class="campo">
-          <label for="documento">{{ doc.nome }}</label>
-          <input
-            #campo
-            id="documento"
-            name="documento"
-            [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
-            autocomplete="off"
-            autocapitalize="characters"
-            [placeholder]="doc.exemplo"
-            [attr.maxlength]="doc.tamanhoMaximo"
-            [value]="documento()"
-            (input)="digitar(campo.value, campo)"
-          />
-        </div>
-      } @else {
-        <p i18n class="dica">No seu país o Piggu não pede documento. É só continuar.</p>
-      }
+      <div class="campo">
+        <label for="documento">{{ doc.nome }}</label>
+        <input
+          #campo
+          id="documento"
+          name="documento"
+          [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
+          autocomplete="off"
+          autocapitalize="characters"
+          [placeholder]="doc.exemplo"
+          [attr.maxlength]="doc.tamanhoMaximo"
+          [value]="documento()"
+          (input)="digitar(campo.value, campo)"
+        />
+      </div>
       <button i18n type="submit" class="botao" [disabled]="salvando()">Continuar</button>
     </form>
 
