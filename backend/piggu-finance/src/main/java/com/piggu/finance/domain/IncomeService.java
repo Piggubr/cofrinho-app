@@ -33,7 +33,7 @@ public class IncomeService {
 
     @Transactional(readOnly = true)
     public List<Income> doMes(YearMonth mes) {
-        return repositorio.findByIncomeDateBetweenOrderByIncomeDateDesc(mes.atDay(1), mes.atEndOfMonth());
+        return repositorio.findByIncomeDateBetweenOrderByIncomeDateDescCreatedAtDesc(mes.atDay(1), mes.atEndOfMonth());
     }
 
     @Transactional
