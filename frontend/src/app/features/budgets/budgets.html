@@ -98,10 +98,8 @@
       <div class="campo">
         <label i18n for="limite-orcamento">Limite no mês</label>
         <input
+          appValor
           id="limite-orcamento"
-          type="number"
-          min="0.01"
-          step="0.01"
           [ngModel]="limite()"
           (ngModelChange)="limite.set($event)"
         />

@@ -99,7 +99,7 @@ test('assistente: autorizar, perguntar e abrir a tela sugerida', async ({ page }
 test('atalho de lancamento rapido: valor preenchido e cursor no campo', async ({ page }) => {
   await abrirPainel(page);
   await page.goto('/gastos?rapido=1&valor=18.90');
-  await expect(page.locator('#valor')).toHaveValue('18.9');
+  await expect(page.locator('#valor')).toHaveValue('18,90');
   await expect(page.locator('#valor')).toBeFocused();
 });
 

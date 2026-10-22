@@ -151,10 +151,8 @@
     <div class="campo">
       <label i18n for="valor-conta">Valor</label>
       <input
+        appValor
         id="valor-conta"
-        type="number"
-        min="0.01"
-        step="0.01"
         [ngModel]="valor()"
         (ngModelChange)="valor.set($event)"
       />

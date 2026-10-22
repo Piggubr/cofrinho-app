@@ -41,6 +41,7 @@ import { Icone } from '../../core/ui/icone';
 import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -58,7 +59,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato, Carregando, Vazio],
+  imports: [CampoDeValor, Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato, Carregando, Vazio],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -450,7 +451,7 @@ export class Expenses {
   protected atualizarItemDoRecibo(
     indice: number,
     campo: keyof ItemEmConferencia,
-    valor: string,
+    valor: string | number | null,
   ): void {
     this.itensEmConferencia.update((itens) =>
       itens.map((item, i) =>

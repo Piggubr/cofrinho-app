@@ -10,6 +10,7 @@ import { dataIso, gradeDoMes, hojeIso, mesKey, mesPorExtenso, somarMeses } from 
 import { Icone } from '../../core/ui/icone';
 import { Carregando } from '../../core/ui/carregando';
 import { GraficoDoMes } from './grafico-do-mes';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /** Um dia da grade, com o que acontece nele. */
 interface DiaDoMes {
@@ -29,7 +30,7 @@ interface DiaDoMes {
  */
 @Component({
   selector: 'app-calendar',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, GraficoDoMes],
+  imports: [CampoDeValor, Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, GraficoDoMes],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
 })

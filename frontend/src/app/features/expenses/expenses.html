@@ -50,11 +50,8 @@
     <div class="campo">
       <label i18n for="valor">Valor ({{ moeda.simbolo() }})</label>
       <input
+        appValor
         id="valor"
-        type="number"
-        min="0"
-        step="0.01"
-        inputmode="decimal"
         [ngModel]="novoValor()"
         (ngModelChange)="novoValor.set($event)"
         (blur)="conferirPreco()"
@@ -389,12 +386,11 @@
         <div class="campo">
           <label i18n [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
           <input
+            appValor
             [id]="'confValor' + $index"
-            type="number"
-            min="0"
-            step="0.01"
-            [value]="item.valor"
-            (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)"
+            [ngModel]="item.valor"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="atualizarItemDoRecibo($index, 'valor', $event)"
           />
         </div>
         <div class="campo alinhado">
@@ -483,10 +479,8 @@
           <div class="campo">
             <label i18n [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input
+              appValor
               [id]="'edVal' + gasto.id"
-              type="number"
-              min="0"
-              step="0.01"
               [ngModel]="valorEditado()"
               (ngModelChange)="valorEditado.set($event)"
             />

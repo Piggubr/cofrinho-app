@@ -26,6 +26,7 @@ import { MetasDoPainel } from './metas-do-painel';
 import { NotasDoPainel } from './notas-do-painel';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 interface TotalPorCategoria {
   readonly categoria: string;
@@ -42,7 +43,7 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [
+  imports: [CampoDeValor, 
     Focar,
     Icone,
     FormsModule,
