@@ -17,10 +17,9 @@ import java.util.UUID;
  * Perfil publico do usuario — o mesmo formato que {@code usuarioPublico_} devolvia,
  * acrescido do id.
  *
- * <p>{@code cpfInformado} falso faz o Perfil oferecer informar o documento (opcional): o
- * CPF de quem mora no Brasil, ou o documento do pais ({@code pais}) quando la se pede um
- * (veja {@code DocumentosDeIdentidade}). O nome ficou do tempo em que so havia CPF. O
- * numero nunca vem aqui; so na exportacao dos dados.</p>
+ * <p>{@code cpfInformado} falso faz o Perfil oferecer informar o CPF (opcional). Conta
+ * antiga com documento de outro pais ja conta como informada. O numero nunca vem aqui;
+ * so na exportacao dos dados.</p>
  *
  * <p>{@code foto} e a que o app mostra (a propria, senao a do Google); {@code fotoPropria} e
  * {@code temFotoDoGoogle} dizem quais botoes o Perfil oferece.</p>
@@ -58,8 +57,16 @@ public record UserResponse(
         boolean temSenha,
         boolean emailConfirmado,
         String pais,
-        LocalDate nascimento
+        LocalDate nascimento,
+        Compartilhamento compartilhamento
 ) {
+
+    /**
+     * @param mostraTudoAoParceiro o parceiro ve tudo o que a pessoa lanca, nao so o compartilhado
+     * @param compartilharPorPadrao lancamentos novos ja comecam marcados como compartilhados
+     */
+    public record Compartilhamento(boolean mostraTudoAoParceiro, boolean compartilharPorPadrao) {
+    }
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
     public record Avisos(boolean email, boolean push) {
@@ -92,8 +99,8 @@ public record UserResponse(
                 new Preferencias(conta.getCurrency(), conta.getQuoteCurrency(), conta.getConversionCurrency(),
                         conta.isShowExchangeRate(),
                         conta.getTimezone(), conta.getLocale(), conta.getModulos()),
-                familia.planoPara(conta.getId()),
-                familia.planoPara(conta.getId()) == Plano.PREMIUM ? familia.getPremiumUntil() : null,
+                familia.planoPara(conta),
+                familia.planoPara(conta) == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId(),
                 new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
                 conta.documentoEmDia(),
@@ -103,7 +110,8 @@ public record UserResponse(
                 conta.temSenha(),
                 conta.isEmailVerified(),
                 conta.getPais(),
-                conta.getBirthDate()
+                conta.getBirthDate(),
+                new Compartilhamento(conta.getShowsAllTo() != null, conta.isSharesByDefault())
         );
     }
 }

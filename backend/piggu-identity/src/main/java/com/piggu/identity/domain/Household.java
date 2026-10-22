@@ -1,6 +1,8 @@
 package com.piggu.identity.domain;
 
+import com.piggu.common.security.PigguRole;
 import com.piggu.common.security.Plano;
+import com.piggu.identity.billing.TipoDePlano;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,7 +17,8 @@ import java.util.UUID;
  * Familia: o titular, os membros e tudo o que eles lancam.
  *
  * <p>A assinatura mora aqui. No plano individual o Premium vale so para quem assinou; no
- * plano familia vale para a casa inteira, que fica limitada a 5 pessoas.</p>
+ * casal, para o titular e o parceiro; no familia, para a casa inteira, que fica limitada a
+ * 5 pessoas.</p>
  */
 @Entity
 @Table(name = "households")
@@ -43,7 +46,7 @@ public class Household {
     @Column(name = "first_charge_at")
     private Instant firstChargeAt;
 
-    /** INDIVIDUAL ou FAMILIA. */
+    /** INDIVIDUAL, CASAL ou FAMILIA ({@link TipoDePlano}). */
     @Column(name = "plan_kind", nullable = false, length = 20)
     private String planKind = "INDIVIDUAL";
 
@@ -76,16 +79,48 @@ public class Household {
         updatedAt = Instant.now();
     }
 
-    /** Plano de uma pessoa da casa: no individual so quem assinou e Premium. */
+    /**
+     * Plano de uma pessoa da casa: no individual so quem assinou e Premium; no casal, quem
+     * assinou e o casal (titular e parceiro); no familia, todos.
+     */
+    public Plano planoPara(UserAccount conta) {
+        PigguRole papel = conta.getRole();
+        return planoPara(conta.getId(),
+                papel == PigguRole.TITULAR || papel == PigguRole.ADMIN || papel == PigguRole.PARCEIRO);
+    }
+
+    /** Sem saber o papel: no casal, so quem assinou. */
     public Plano planoPara(UUID contaId) {
+        return planoPara(contaId, false);
+    }
+
+    /** @param doCasal a pessoa e titular ou parceiro da casa */
+    public Plano planoPara(UUID contaId, boolean doCasal) {
         if (planoVigente() == Plano.GRATUITO) {
             return Plano.GRATUITO;
         }
-        return isFamilia() || contaId.equals(subscriberId) ? Plano.PREMIUM : Plano.GRATUITO;
+        boolean coberta = switch (getTipo()) {
+            case FAMILIA -> true;
+            case CASAL -> doCasal || contaId.equals(subscriberId);
+            case INDIVIDUAL -> contaId.equals(subscriberId);
+        };
+        return coberta ? Plano.PREMIUM : Plano.GRATUITO;
     }
 
     public boolean isFamilia() {
-        return "FAMILIA".equals(planKind);
+        return getTipo() == TipoDePlano.FAMILIA;
+    }
+
+    public boolean isCasal() {
+        return getTipo() == TipoDePlano.CASAL;
+    }
+
+    public TipoDePlano getTipo() {
+        try {
+            return TipoDePlano.valueOf(planKind);
+        } catch (IllegalArgumentException | NullPointerException desconhecido) {
+            return TipoDePlano.INDIVIDUAL;
+        }
     }
 
     public UUID getSubscriberId() {
@@ -116,10 +151,20 @@ public class Household {
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
                                      boolean familia, UUID assinante) {
+        return aplicarAssinatura(origem, ate, momento, inicio,
+                familia ? TipoDePlano.FAMILIA : TipoDePlano.INDIVIDUAL, assinante);
+    }
+
+    /**
+     * @param tipo      quem da casa fica Premium
+     * @param assinante conta que pagou
+     */
+    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
+                                     TipoDePlano tipo, UUID assinante) {
         if (!aplicarAssinatura(origem, ate, momento, inicio)) {
             return false;
         }
-        this.planKind = familia ? "FAMILIA" : "INDIVIDUAL";
+        this.planKind = tipo.name();
         this.subscriberId = assinante;
         return true;
     }

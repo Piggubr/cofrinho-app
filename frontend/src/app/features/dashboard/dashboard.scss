@@ -43,6 +43,11 @@
   padding-bottom: 0.25rem;
 }
 
+/* Tudo, meu ou compartilhado: so para quem mora com alguem. */
+.visao {
+  margin-bottom: 1rem;
+}
+
 /* Os blocos seguem a ordem escolhida no Perfil (CSS order); o HTML fica na ordem padrao. */
 .blocos {
   display: flex;

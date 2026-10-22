@@ -44,385 +44,8 @@
   <div class="cartao-titulo">
     <h2 i18n>Lançar gasto</h2>
   </div>
-
-  <!-- Lancamento rapido: valor, categoria e descricao; o resto ja vem preenchido. -->
-  <div class="linha-de-campos">
-    <div class="campo">
-      <label i18n for="valor">Valor ({{ moeda.simbolo() }})</label>
-      <input
-        id="valor"
-        type="number"
-        min="0"
-        step="0.01"
-        inputmode="decimal"
-        [ngModel]="novoValor()"
-        (ngModelChange)="novoValor.set($event)"
-        (blur)="conferirPreco()"
-        placeholder="0,00"
-      />
-      @if (precoAcima(); as p) {
-        <p i18n class="linha-detalhe alerta-preco" role="status">
-          <app-icone nome="alerta" [tamanho]="14" /> {{ p.percentual }}% acima da média deste item
-          ({{ p.media | moeda }})
-        </p>
-      }
-    </div>
-    <div class="campo">
-      <label i18n for="categoria">Categoria</label>
-      <select
-        id="categoria"
-        [ngModel]="novaCategoria()"
-        (ngModelChange)="novaCategoria.set($event)"
-      >
-        <option i18n value="">Automática</option>
-        @for (categoria of categorias(); track categoria) {
-          <option [value]="categoria">{{ categoria }}</option>
-        }
-      </select>
-    </div>
-    <div class="campo">
-      <label i18n for="item">Descrição</label>
-      <input
-        i18n-placeholder
-        id="item"
-        maxlength="200"
-        type="text"
-        [ngModel]="novoItem()"
-        (ngModelChange)="novoItem.set($event)"
-        placeholder="Ex.: Leite"
-      />
-    </div>
-  </div>
-
-  <div class="linha-de-campos escolhas-do-gasto">
-    <fieldset class="campo escolha">
-      <legend i18n>Como pagou</legend>
-      <div class="alternador" role="radiogroup">
-        <button
-          i18n
-          type="button"
-          role="radio"
-          [attr.aria-checked]="forma() === 'CARTAO'"
-          [class.ativo]="forma() === 'CARTAO'"
-          (click)="trocarForma('CARTAO')"
-        >
-          Cartão de crédito
-        </button>
-        <button
-          i18n
-          type="button"
-          role="radio"
-          [attr.aria-checked]="forma() === 'DEBITO'"
-          [class.ativo]="forma() === 'DEBITO'"
-          (click)="trocarForma('DEBITO')"
-        >
-          Débito/Pix
-        </button>
-      </div>
-    </fieldset>
-    @if (forma() === 'CARTAO') {
-      @if (cartoes().length) {
-        <div class="campo">
-          <label i18n for="cartao">Cartão</label>
-          <select
-            id="cartao"
-            [attr.aria-invalid]="faltou() === 'conta'"
-            [ngModel]="novaConta()"
-            (ngModelChange)="escolherConta($event)"
-          >
-            <option i18n value="">Escolha o cartão</option>
-            @for (cartao of cartoes(); track cartao.id) {
-              <option [value]="cartao.id">{{ cartao.nome }}</option>
-            }
-          </select>
-          @if (faturaDoLancamento(); as f) {
-            <p i18n class="linha-detalhe destaque-fechamento" role="status">
-              Vai para a fatura de {{ rotuloDe(f.mes) }}, que vence em {{ f.vencimento | dataBr }}.
-            </p>
-          }
-        </div>
-      } @else {
-        <p i18n class="linha-detalhe">
-          Nenhum cartão cadastrado ainda.
-          <a routerLink="/contas-e-cartoes">Cadastrar cartão</a>
-        </p>
-      }
-    } @else if (bancos().length) {
-      <div class="campo">
-        <label i18n for="conta-debito">Saiu de qual conta</label>
-        <select
-          id="conta-debito"
-          [attr.aria-invalid]="faltou() === 'conta'"
-          [ngModel]="novaConta()"
-          (ngModelChange)="escolherConta($event)"
-        >
-          <option i18n value="">Escolha a conta</option>
-          @for (banco of bancos(); track banco.id) {
-            <option [value]="banco.id">{{ banco.nome }}</option>
-          }
-        </select>
-      </div>
-    }
-  </div>
-
-  <div class="linha-de-campos escolhas-do-gasto">
-    <fieldset class="campo escolha">
-      <legend i18n>Como foi a compra</legend>
-      <div class="alternador" role="radiogroup">
-        <button
-          i18n
-          type="button"
-          role="radio"
-          [attr.aria-checked]="modo() === 'VISTA'"
-          [class.ativo]="modo() === 'VISTA'"
-          (click)="trocarModo('VISTA')"
-        >
-          À vista
-        </button>
-        <button
-          i18n
-          type="button"
-          role="radio"
-          [attr.aria-checked]="modo() === 'PARCELADO'"
-          [class.ativo]="modo() === 'PARCELADO'"
-          (click)="trocarModo('PARCELADO')"
-        >
-          Parcelado
-        </button>
-        <button
-          i18n
-          type="button"
-          role="radio"
-          [attr.aria-checked]="modo() === 'RECORRENTE'"
-          [class.ativo]="modo() === 'RECORRENTE'"
-          (click)="trocarModo('RECORRENTE')"
-        >
-          Recorrente
-        </button>
-      </div>
-    </fieldset>
-    @if (modo() === 'PARCELADO') {
-      <div class="campo">
-        <label i18n for="parcelas">Quantas parcelas</label>
-        <input
-          id="parcelas"
-          type="number"
-          inputmode="numeric"
-          min="2"
-          max="48"
-          step="1"
-          [attr.aria-invalid]="faltou() === 'parcelas'"
-          [ngModel]="novasParcelas()"
-          (ngModelChange)="novasParcelas.set($event)"
-        />
-        @if (valorDaParcela(); as parcela) {
-          <p i18n class="linha-detalhe">
-            {{ novasParcelas() }}x de {{ parcela | moeda }}, uma em cada mês
-          </p>
-        }
-      </div>
-    } @else if (modo() === 'RECORRENTE') {
-      <p i18n class="linha-detalhe">
-        Lança sozinho todo dia {{ diaDaCompra() }}, até você desligar em
-        <a routerLink="/contas-fixas">Contas do mês</a>.
-      </p>
-    }
-  </div>
-
-  <details
-    class="mais-opcoes"
-    [open]="maisOpcoes()"
-    (toggle)="maisOpcoes.set($any($event.target).open)"
-  >
-    <summary>
-      <span i18n>Mais opções</span>
-      <span class="linha-detalhe">{{ resumoDasOpcoes() }}</span>
-    </summary>
-    <div class="linha-de-campos">
-      <div class="campo">
-        <label i18n for="data">Data</label>
-        <input
-          id="data"
-          type="date"
-          [ngModel]="novaData()"
-          (ngModelChange)="novaData.set($event)"
-        />
-      </div>
-      <div class="campo">
-        <label i18n for="moeda-compra">Moeda da compra</label>
-        <select id="moeda-compra" [ngModel]="moedaDaCompra()" (ngModelChange)="trocarMoeda($event)">
-          @for (codigo of moedasDaCompra(); track codigo) {
-            <option [value]="codigo">{{ codigo }}</option>
-          }
-        </select>
-        @if (convertido() !== null) {
-          <p i18n class="linha-detalhe">≈ {{ convertido() | moeda }} (cotação de hoje)</p>
-        }
-      </div>
-      <div class="campo">
-        <label i18n for="tipo">Tipo</label>
-        <select id="tipo" [ngModel]="novoTipo()" (ngModelChange)="novoTipo.set($event)">
-          <option i18n value="Variavel">Variável</option>
-          <option i18n value="Fixo">Fixo</option>
-        </select>
-      </div>
-      @if (membros().length > 1) {
-        <fieldset class="campo dividir">
-          <legend i18n>Dividir com</legend>
-          @for (membro of membros(); track membro.id) {
-            <label>
-              <input
-                type="checkbox"
-                [checked]="dividirCom().includes(membro.id)"
-                (change)="alternarDivisao(membro.id)"
-              />
-              {{ membro.nome }}
-            </label>
-          }
-        </fieldset>
-      }
-    </div>
-  </details>
-
-  <div class="acoes">
-    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
-      @if (salvando()) {
-        Guardando...
-      } @else {
-        Lançar
-      }
-    </button>
-
-    @if (leiturasRestantes() === 0) {
-      <a i18n routerLink="/plano" class="botao contorno"
-        ><app-icone nome="camera" [tamanho]="18" /> Ler recibo por foto · Premium</a
-      >
-    } @else {
-      <label i18n class="botao secundario arquivo">
-        @if (lendoRecibo()) {
-          Lendo recibo...
-        } @else {
-          Ler recibo por foto
-        }
-        <input
-          type="file"
-          accept="image/*"
-          (change)="escolherFoto($event)"
-          [disabled]="lendoRecibo()"
-          hidden
-        />
-      </label>
-    }
-  </div>
-  @if (leiturasRestantes() !== null) {
-    <p i18n class="linha-detalhe">
-      @if (leiturasRestantes() === 0) {
-        As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode lançar
-        os itens à mão.
-      } @else {
-        Restam {{ leiturasRestantes() }} leituras de nota grátis neste mês.
-      }
-    </p>
-  }
+  <app-formulario-de-gasto (lancado)="aoLancar($event)" />
 </section>
-
-@if (pedidoDeIa(); as pedido) {
-  <section class="cartao" role="alertdialog" aria-labelledby="titulo-ia">
-    <h2 i18n id="titulo-ia">Ler com a IA do Google?</h2>
-    <p>{{ pedido.mensagem }}</p>
-    <p i18n class="linha-detalhe">
-      A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os itens.
-      Sua autorização fica registrada e vale para as próximas fotos. Detalhes no
-      <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
-    </p>
-    <div class="acoes">
-      <button i18n type="button" class="botao" (click)="autorizarIa()">Autorizar e ler</button>
-      <button i18n type="button" class="botao contorno" (click)="recusarIa()">Agora não</button>
-    </div>
-  </section>
-}
-
-@if (recibo(); as lido) {
-  <section class="cartao">
-    <div class="cartao-titulo">
-      <h2 i18n>Conferir recibo</h2>
-      <span class="etiqueta">{{ totalEmConferencia() | moeda }}</span>
-    </div>
-
-    <p class="linha-detalhe">
-      {{ lido.estabelecimento || 'Estabelecimento não identificado' }} · {{ lido.data | dataBr }} ·
-      {{ lido.origem === 'OCR' ? 'lido pelo Piggu' : 'lido pelo Gemini' }}
-    </p>
-
-    @if (lido.aviso) {
-      <p class="aviso" role="status">{{ lido.aviso }}</p>
-    }
-
-    @if (previaDoRecibo()) {
-      <img i18n-alt [src]="previaDoRecibo()" alt="Foto do recibo" class="previa" />
-    }
-
-    @for (item of itensEmConferencia(); track $index) {
-      <div class="linha-de-campos item-conferido">
-        <div class="campo">
-          <label i18n [for]="'confItem' + $index">Item</label>
-          <input
-            [id]="'confItem' + $index"
-            type="text"
-            [value]="item.item"
-            maxlength="200"
-            (input)="atualizarItemDoRecibo($index, 'item', $any($event.target).value)"
-          />
-        </div>
-        <div class="campo">
-          <label i18n [for]="'confCat' + $index">Categoria</label>
-          <select
-            [id]="'confCat' + $index"
-            [value]="item.categoria"
-            (change)="atualizarItemDoRecibo($index, 'categoria', $any($event.target).value)"
-          >
-            @for (categoria of categorias(); track categoria) {
-              <option [value]="categoria">{{ categoria }}</option>
-            }
-          </select>
-        </div>
-        <div class="campo">
-          <label i18n [for]="'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
-          <input
-            [id]="'confValor' + $index"
-            type="number"
-            min="0"
-            step="0.01"
-            [value]="item.valor"
-            (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)"
-          />
-        </div>
-        <div class="campo alinhado">
-          <button
-            type="button"
-            class="botao icone-so perigo"
-            (click)="removerItemDoRecibo($index)"
-            aria-label="Remover"
-            i18n-aria-label
-            title="Remover"
-            i18n-title
-          >
-            <app-icone nome="lixeira" [tamanho]="18" />
-          </button>
-        </div>
-      </div>
-    }
-
-    <div class="acoes">
-      <button i18n type="button" class="botao" (click)="confirmarRecibo()" [disabled]="salvando()">
-        Lançar {{ itensEmConferencia().length }} item(ns)
-      </button>
-      <button i18n type="button" class="botao contorno" (click)="cancelarRecibo()">
-        Descartar
-      </button>
-    </div>
-  </section>
-}
 
 <section class="cartao">
   <div class="cartao-titulo">
@@ -468,29 +91,34 @@
               (ngModelChange)="itemEditado.set($event)"
             />
           </div>
-          <div class="campo">
-            <label i18n [for]="'edCat' + gasto.id">Categoria</label>
-            <select
-              [id]="'edCat' + gasto.id"
-              [ngModel]="categoriaEditada()"
-              (ngModelChange)="categoriaEditada.set($event)"
-            >
-              @for (categoria of categorias(); track categoria) {
-                <option [value]="categoria">{{ categoria }}</option>
-              }
-            </select>
-          </div>
+          <app-campo-de-categoria
+            class="campo"
+            [campoId]="'edCat' + gasto.id"
+            [categorias]="categorias()"
+            [automatica]="false"
+            [valor]="categoriaEditada()"
+            (valorChange)="categoriaEditada.set($event)"
+            (criou)="categorias.set($event)"
+          />
           <div class="campo">
             <label i18n [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input
+              appValor
               [id]="'edVal' + gasto.id"
-              type="number"
-              min="0"
-              step="0.01"
               [ngModel]="valorEditado()"
               (ngModelChange)="valorEditado.set($event)"
             />
           </div>
+          @if (ehMeu(gasto) && membros().length > 1) {
+            <label class="campo alinhado compartilhar">
+              <input
+                type="checkbox"
+                [checked]="compartilhadoEditado()"
+                (change)="compartilhadoEditado.set($any($event.target).checked)"
+              />
+              <span i18n>Compartilhado</span>
+            </label>
+          }
           <div class="campo alinhado acoes-edicao">
             <button i18n type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">
               Salvar
@@ -518,6 +146,12 @@
               @if (gasto.moedaOriginal) {
                 · {{ gasto.valorOriginal | moeda: gasto.moedaOriginal }}
               }
+              @if (gasto.compartilhado) {
+                <ng-container i18n>· compartilhado</ng-container>
+              }
+              @if (!ehMeu(gasto) && membros().length > 1) {
+                <ng-container i18n>· de {{ nomeDe(gasto.usuario) }}</ng-container>
+              }
             </p>
           </div>
           <div class="linha-acoes">
@@ -533,17 +167,19 @@
             >
               <app-icone nome="lapis" [tamanho]="18" />
             </button>
-            <button
-              type="button"
-              class="botao icone-so perigo"
-              (click)="excluir(gasto)"
-              aria-label="Apagar"
-              i18n-aria-label
-              title="Apagar"
-              i18n-title
-            >
-              <app-icone nome="lixeira" [tamanho]="18" />
-            </button>
+            @if (!gasto.compartilhado || ehMeu(gasto)) {
+              <button
+                type="button"
+                class="botao icone-so perigo"
+                (click)="excluir(gasto)"
+                aria-label="Apagar"
+                i18n-aria-label
+                title="Apagar"
+                i18n-title
+              >
+                <app-icone nome="lixeira" [tamanho]="18" />
+              </button>
+            }
           </div>
         </div>
       }
@@ -566,6 +202,12 @@
     <div class="cartao-titulo">
       <h2 i18n id="titulo-acerto">Divisão do mês</h2>
     </div>
+    @for (transferencia of transferencias(); track $index) {
+      <p i18n class="acerto-resumo" role="status">
+        {{ nomeDe(transferencia.de) }} paga {{ transferencia.valor | moeda }} para
+        {{ nomeDe(transferencia.para) }}.
+      </p>
+    }
     @for (pessoa of acerto(); track pessoa.pessoa) {
       <div class="linha">
         <div>

@@ -30,7 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-/** Receitas da familia. Como os gastos, so o titular (e o admin) lanca e ve. */
+/** Receitas. Como os gastos, cada um ve as suas e as que os outros compartilharam. */
 @RestController
 @RequestMapping("/api/incomes")
 public class IncomeController {
@@ -50,15 +50,16 @@ public class IncomeController {
             @NotNull(message = "Digite o valor.")
             @DecimalMin(value = "0.01", message = "Digite um valor valido.")
             @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal valor,
-            Boolean recorrente) {
+            Boolean recorrente,
+            Boolean compartilhado) {
     }
 
     public record IncomeResponse(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                 UUID usuario) {
+                                 UUID usuario, boolean compartilhado) {
 
         static IncomeResponse de(Income receita) {
             return new IncomeResponse(receita.getId(), receita.getIncomeDate(), receita.getDescription(),
-                    receita.getCategory(), receita.getAmount(), receita.getUserId());
+                    receita.getCategory(), receita.getAmount(), receita.getUserId(), receita.isShared());
         }
     }
 
@@ -75,22 +76,25 @@ public class IncomeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IncomeResponse criar(@Valid @RequestBody IncomeRequest pedido, @AuthUser CurrentUser usuario) {
+        boolean compartilhado = Boolean.TRUE.equals(pedido.compartilhado());
         if (Boolean.TRUE.equals(pedido.recorrente())) {
             return IncomeResponse.de(recorrentes.lancarReceitaRecorrente(pedido.data(), pedido.descricao(),
-                    pedido.categoria(), pedido.valor(), usuario.id()));
+                    pedido.categoria(), pedido.valor(), usuario.id(), compartilhado));
         }
         return IncomeResponse.de(servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
-                usuario.id()));
+                usuario.id(), compartilhado));
     }
 
     @PutMapping("/{id}")
-    public IncomeResponse atualizar(@PathVariable UUID id, @Valid @RequestBody IncomeRequest pedido) {
-        return IncomeResponse.de(servico.atualizar(id, pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor()));
+    public IncomeResponse atualizar(@PathVariable UUID id, @Valid @RequestBody IncomeRequest pedido,
+                                    @AuthUser CurrentUser usuario) {
+        return IncomeResponse.de(servico.atualizar(id, pedido.data(), pedido.descricao(), pedido.categoria(),
+                pedido.valor(), pedido.compartilhado(), usuario));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        servico.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 }

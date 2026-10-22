@@ -2,8 +2,8 @@
  * folha de vidro acima da barra de abas (as regras de posicao ficam no shell). */
 :host {
   display: block;
-  width: min(380px, calc(100vw - 2rem));
-  max-height: min(78vh, 640px);
+  width: min(440px, calc(100vw - 2rem));
+  max-height: min(82vh, 720px);
   overflow-y: auto;
   padding: 1rem 1.1rem 1.1rem;
   border: 1px solid var(--vidro-borda);
@@ -70,49 +70,4 @@
 .fechar:hover {
   background: var(--surface-sunken);
   color: var(--ink);
-}
-
-.aviso {
-  margin-bottom: 0.7rem;
-}
-
-.foto {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-}
-
-.foto.desabilitado {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.link-mais {
-  margin-top: 0.7rem;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.8rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
-.recibo .linha-detalhe {
-  margin: 0 0 0.6rem;
-}
-
-.item-do-recibo {
-  display: grid;
-  grid-template-columns: 1fr 6.5rem auto;
-  gap: 0.4rem;
-  align-items: center;
-  margin-bottom: 0.4rem;
-
-  input {
-    min-width: 0;
-  }
 }

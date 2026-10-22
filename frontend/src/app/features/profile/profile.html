@@ -160,7 +160,7 @@
         </select>
       </div>
       <div class="campo">
-        <label i18n for="moedaConversao">e</label>
+        <label i18n for="moedaConversao" class="so-leitor">para</label>
         <select
           id="moedaConversao"
           [ngModel]="moedaConversao()"
@@ -174,7 +174,7 @@
       </div>
     </div>
     <p i18n class="linha-detalhe">
-      A cotação mostra quanto vale 1 da moeda mais forte na outra, como 1 USD = R$ 5,00. Ela não
+      A cotação mostra quanto vale 1 da primeira moeda na segunda, como 1 USD = R$ 5,00. Ela não
       muda com a moeda do app.
     </p>
   }
@@ -212,6 +212,40 @@
     </label>
   }
 </section>
+
+@if (pessoas.temCompanhia()) {
+  <section class="cartao" aria-labelledby="titulo-compartilhamento">
+    <div class="cartao-titulo">
+      <h2 i18n id="titulo-compartilhamento">Compartilhamento</h2>
+    </div>
+    <p i18n class="linha-detalhe">
+      Cada um vê o que é seu e o que foi marcado como compartilhado. O que é só seu continua só
+      seu, a não ser que você libere abaixo.
+    </p>
+    @if (pessoas.parceiro(); as parceiro) {
+      <label class="caixa linha-chave">
+        <span i18n>{{ parceiro.nome }} vê tudo o que eu lanço</span>
+        <input
+          type="checkbox"
+          class="chave"
+          [ngModel]="mostrarTudoAoParceiro()"
+          [disabled]="salvandoCompartilhamento()"
+          (ngModelChange)="mostrarTudoAoParceiro.set($event); salvarCompartilhamento()"
+        />
+      </label>
+    }
+    <label class="caixa linha-chave">
+      <span i18n>Lançamentos novos já nascem compartilhados</span>
+      <input
+        type="checkbox"
+        class="chave"
+        [ngModel]="compartilharPorPadrao()"
+        [disabled]="salvandoCompartilhamento()"
+        (ngModelChange)="compartilharPorPadrao.set($event); salvarCompartilhamento()"
+      />
+    </label>
+  </section>
+}
 
 <section class="cartao" id="organizar-painel" aria-labelledby="titulo-painel">
   <div class="cartao-titulo">

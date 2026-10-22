@@ -6,8 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.YearMonth;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,6 +31,10 @@ public class DivisaoDeGastos {
      * @param saldo positivo: tem a receber; negativo: deve
      */
     public record Acerto(UUID pessoa, BigDecimal pagou, BigDecimal parte, BigDecimal saldo) {
+    }
+
+    /** Uma transferencia que zera o mes: {@code de} paga {@code valor} para {@code para}. */
+    public record Transferencia(UUID de, UUID para, BigDecimal valor) {
     }
 
     /** Partes iguais; o centavo que sobra vai para a primeira pessoa. */
@@ -60,6 +66,44 @@ public class DivisaoDeGastos {
             BigDecimal d = parte.getOrDefault(pessoa, BigDecimal.ZERO);
             return new Acerto(pessoa, p, d, p.subtract(d));
         }).sorted(Comparator.comparing(Acerto::saldo).reversed()).toList();
+    }
+
+    /**
+     * Quem deve quanto a quem no mes, com o menor numero de transferencias: quem mais deve
+     * paga quem mais tem a receber, ate todo mundo zerar. No casal e uma transferencia so.
+     */
+    @Transactional(readOnly = true)
+    public List<Transferencia> quemDeveAQuem(YearMonth mes) {
+        return transferencias(acerto(mes));
+    }
+
+    static List<Transferencia> transferencias(List<Acerto> saldos) {
+        Deque<Acerto> credores = new ArrayDeque<>(saldos.stream()
+                .filter(a -> a.pessoa() != null && a.saldo().signum() > 0)
+                .sorted(Comparator.comparing(Acerto::saldo).reversed()).toList());
+        Deque<Acerto> devedores = new ArrayDeque<>(saldos.stream()
+                .filter(a -> a.pessoa() != null && a.saldo().signum() < 0)
+                .sorted(Comparator.comparing(Acerto::saldo)).toList());
+        Map<UUID, BigDecimal> falta = new HashMap<>();
+        saldos.forEach(a -> falta.put(a.pessoa(), a.saldo().abs()));
+        List<Transferencia> resultado = new ArrayList<>();
+        while (!credores.isEmpty() && !devedores.isEmpty()) {
+            UUID credor = credores.peek().pessoa();
+            UUID devedor = devedores.peek().pessoa();
+            BigDecimal valor = falta.get(credor).min(falta.get(devedor));
+            if (valor.signum() > 0) {
+                resultado.add(new Transferencia(devedor, credor, valor));
+            }
+            falta.merge(credor, valor.negate(), BigDecimal::add);
+            falta.merge(devedor, valor.negate(), BigDecimal::add);
+            if (falta.get(credor).signum() == 0) {
+                credores.pop();
+            }
+            if (falta.get(devedor).signum() == 0) {
+                devedores.pop();
+            }
+        }
+        return resultado;
     }
 
     private static Map<UUID, BigDecimal> somas(List<Object[]> linhas) {

@@ -67,17 +67,17 @@ test('liga e desliga a cotacao do topo sem botao de salvar', async ({ page, isMo
 
   await cartao.getByRole('checkbox', { name: 'Mostrar a cotação no topo do app' }).check();
   await expect(cartao.getByLabel('Cotação entre')).toHaveValue('BRL');
-  await expect(cartao.getByLabel('e', { exact: true })).toHaveValue('USD');
+  await expect(cartao.getByLabel('para', { exact: true })).toHaveValue('USD');
   if (!isMobile) {
-    // A demo tem 1 USD a R$ 5,50: a mais forte vem primeiro, mesmo escolhida por ultimo.
-    await expect(page.locator('.cotacao')).toHaveText(/1 USD = R\$\s5,50/);
+    // A demo tem 1 USD a R$ 5,50: na ordem escolhida, BRL primeiro, com 4 casas.
+    await expect(page.locator('.cotacao')).toHaveText(/1 BRL = US\$\s0,1818/);
   }
 
   // A moeda do app nao mexe no par da cotacao.
   await cartao.getByLabel('Moeda do app').selectOption('EUR');
   await expect(cartao.getByLabel('Cotação entre')).toHaveValue('BRL');
   if (!isMobile) {
-    await expect(page.locator('.cotacao')).toHaveText(/1 USD = R\$\s5,50/);
+    await expect(page.locator('.cotacao')).toHaveText(/1 BRL = US\$\s0,1818/);
   }
 
   await cartao.getByRole('checkbox', { name: 'Mostrar a cotação no topo do app' }).uncheck();

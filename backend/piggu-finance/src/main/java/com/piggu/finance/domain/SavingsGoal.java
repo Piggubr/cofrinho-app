@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /** Cofrinho por objetivo: quanto juntar e, se a familia quiser, ate quando. */
-@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID_OU_COMPARTILHADO, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "savings_goals")
 public class SavingsGoal {
@@ -35,6 +35,10 @@ public class SavingsGoal {
     private BigDecimal targetAmount;
 
     private LocalDate deadline;
+
+    /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
+    @Column(nullable = false)
+    private boolean shared;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -86,5 +90,14 @@ public class SavingsGoal {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
+    public void compartilhar(boolean compartilhado) {
+        this.shared = compartilhado;
+    }
+
+    public boolean isShared() {
+        return shared;
     }
 }

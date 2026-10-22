@@ -116,6 +116,21 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("lista do mes traz o mais recente em cima, tambem entre gastos do mesmo dia")
+    void maisRecenteEmCima() {
+        LocalDate dia = LocalDate.of(2026, 9, 10);
+        for (String item : List.of("Primeiro", "Segundo", "Terceiro")) {
+            gastos.salvar(new SaveExpensesRequest(dia, "Loja", null, "Manual",
+                    List.of(new ExpenseItemRequest(item, "Lazer", BigDecimal.ONE, null))), PESSOA);
+        }
+        lancar(LocalDate.of(2026, 9, 5));
+
+        assertThat(gastos.listarDoMes("2026-09"))
+                .extracting(ExpenseResponse::item)
+                .containsExactly("Terceiro", "Segundo", "Primeiro", "Item 2026-09-05");
+    }
+
+    @Test
     @DisplayName("gasto inexistente da erro claro, nao falha generica")
     void gastoInexistente() {
         UUID ausente = UUID.randomUUID();

@@ -13,6 +13,7 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { Icone } from '../../core/ui/icone';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /**
  * Lugares visitados e avaliados.
@@ -23,7 +24,7 @@ import { Vazio } from '../../core/ui/vazio';
  */
 @Component({
   selector: 'app-places',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, Vazio],
+  imports: [CampoDeValor, Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Carregando, Vazio],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })

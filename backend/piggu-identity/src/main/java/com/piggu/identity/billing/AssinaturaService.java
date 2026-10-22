@@ -83,7 +83,7 @@ public class AssinaturaService {
             dias = diasDeTesteDe(conta, null);
         }
         return PlanoResponse.de(conta, familias.daConta(conta), pagamentos.habilitado(),
-                pagamentos.familiaHabilitado(), dias, openFinance);
+                pagamentos.familiaHabilitado(), pagamentos.casalHabilitado(), dias, openFinance);
     }
 
     /**
@@ -132,7 +132,7 @@ public class AssinaturaService {
         if (familia.planoVigente() == Plano.PREMIUM) {
             throw new BusinessException(conta.getId().equals(familia.getSubscriberId())
                     ? "Você já é Premium. Para trocar de plano, use Gerenciar assinatura."
-                    : "Já há uma assinatura nesta família. Quem assinou pode trocar para o plano família.");
+                    : "Já há uma assinatura nesta família. Quem assinou pode trocar para o plano casal ou família.");
         }
         if (periodo.familia() && familias.pessoasNaCasa(familia.getId()) > Periodo.PESSOAS_NO_FAMILIA) {
             throw new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
@@ -167,7 +167,7 @@ public class AssinaturaService {
                     }
                     Household familia = familias.daConta(conta);
                     boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
-                            evento.inicio(), evento.familia(), conta.getId());
+                            evento.inicio(), evento.tipo(), conta.getId());
                     if (aplicado) {
                         familia.registrarPrimeiraCobranca(evento.primeiraCobranca());
                     }
@@ -254,7 +254,7 @@ public class AssinaturaService {
                 }
                 Household familia = familias.daConta(conta);
                 boolean aplicado = familia.aplicarAssinatura(aviso.origem(), evento.premiumAte(), evento.momento(),
-                        evento.inicio(), evento.familia(), conta.getId());
+                        evento.inicio(), evento.tipo(), conta.getId());
                 log.info("Assinatura na loja: conta={} familia={} origem={} plano={} aplicado={}",
                         conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
             }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));

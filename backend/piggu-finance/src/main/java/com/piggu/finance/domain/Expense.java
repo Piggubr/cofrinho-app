@@ -1,6 +1,7 @@
 package com.piggu.finance.domain;
 
 import com.piggu.common.security.DonoAtual;
+import com.piggu.common.security.VisaoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,13 +29,17 @@ import java.util.UUID;
         @ParamDef(name = DonoAtual.VISIVEIS, type = String.class, resolver = DonoAtual.Visiveis.class),
         @ParamDef(name = DonoAtual.SEM_DONO, type = Boolean.class, resolver = DonoAtual.SemDono.class),
         @ParamDef(name = DonoAtual.EU, type = String.class, resolver = DonoAtual.Eu.class)})
+@FilterDef(name = VisaoAtual.FILTRO, autoEnabled = true, parameters = {
+        @ParamDef(name = VisaoAtual.MODO, type = String.class, resolver = VisaoAtual.Modo.class),
+        @ParamDef(name = VisaoAtual.EU, type = String.class, resolver = DonoAtual.Eu.class)})
 @Filter(name = DonoAtual.FILTRO, condition = Expense.VISIVEL, deduceAliasInjectionPoints = false)
+@Filter(name = VisaoAtual.FILTRO, condition = VisaoAtual.CONDICAO, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "expenses")
 public class Expense {
 
-    /** O de quem a pessoa ve (DonoAtual) e o gasto dividido com ela. */
-    static final String VISIVEL = "(:todos OR {alias}.user_id = ANY(CAST(:visiveis AS uuid[]))"
+    /** O de quem a pessoa ve (DonoAtual), o compartilhado e o gasto dividido com ela. */
+    static final String VISIVEL = "(:todos OR {alias}.shared OR {alias}.user_id = ANY(CAST(:visiveis AS uuid[]))"
             + " OR ({alias}.user_id IS NULL AND :semDono)"
             + " OR {alias}.id IN (SELECT s.expense_id FROM expense_shares s"
             + " WHERE s.member_id = ANY(CAST(:visiveis AS uuid[]))))";
@@ -70,6 +75,10 @@ public class Expense {
 
     @Column(nullable = false, length = 30)
     private String source = "Manual";
+
+    /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
+    @Column(nullable = false)
+    private boolean shared;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -211,5 +220,14 @@ public class Expense {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
+    public void compartilhar(boolean compartilhado) {
+        this.shared = compartilhado;
+    }
+
+    public boolean isShared() {
+        return shared;
     }
 }

@@ -51,19 +51,20 @@ public class BillController {
             @DecimalMax(value = "1000000", message = "O valor e alto demais.") BigDecimal valor,
             @NotNull(message = "Escolha o dia do vencimento.")
             @Min(value = 1, message = "O dia vai de 1 a 31.") @Max(value = 31, message = "O dia vai de 1 a 31.") Integer dia,
-            Boolean automatico) {
+            Boolean automatico,
+            Boolean compartilhado) {
     }
 
     /** @param contaId cartao ou conta que paga o gasto; nulo quando nao foi informado */
     public record BillResponse(UUID id, String descricao, String categoria, BigDecimal valor, int dia,
                                boolean automatico, LocalDate vencimento, ContasFixasService.Situacao situacao,
-                               RecurringBill.Tipo tipo, UUID contaId) {
+                               RecurringBill.Tipo tipo, UUID contaId, UUID usuario, boolean compartilhado) {
 
         static BillResponse de(ContasFixasService.ContaDoMes item) {
             RecurringBill conta = item.conta();
             return new BillResponse(conta.getId(), conta.getDescription(), conta.getCategory(), conta.getAmount(),
                     conta.getDueDay(), conta.isAutoLaunch(), item.vencimento(), item.situacao(), conta.getKind(),
-                    conta.getAccountId());
+                    conta.getAccountId(), conta.getUserId(), conta.isShared());
         }
     }
 
@@ -77,20 +78,21 @@ public class BillController {
     @PostMapping
     public ResponseEntity<Void> criar(@Valid @RequestBody BillRequest pedido, @AuthUser CurrentUser usuario) {
         servico.criar(pedido.descricao(), pedido.categoria(), pedido.valor(), pedido.dia(),
-                Boolean.TRUE.equals(pedido.automatico()), usuario.id());
+                Boolean.TRUE.equals(pedido.automatico()), usuario.id(), Boolean.TRUE.equals(pedido.compartilhado()));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> atualizar(@PathVariable UUID id, @Valid @RequestBody BillRequest pedido) {
+    public ResponseEntity<Void> atualizar(@PathVariable UUID id, @Valid @RequestBody BillRequest pedido,
+                                          @AuthUser CurrentUser usuario) {
         servico.atualizar(id, pedido.descricao(), pedido.categoria(), pedido.valor(), pedido.dia(),
-                Boolean.TRUE.equals(pedido.automatico()));
+                Boolean.TRUE.equals(pedido.automatico()), pedido.compartilhado(), usuario);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        servico.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 
