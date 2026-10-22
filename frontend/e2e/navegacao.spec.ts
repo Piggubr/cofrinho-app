@@ -41,7 +41,9 @@ test.describe('no celular', () => {
     await menu.getByRole('link', { name: 'Planejar' }).click();
 
     await expect(page).toHaveURL(/\/planejar$/);
-    await expect(menu).not.toHaveClass(/aberto/);
+    // Fechado, o menu fica com visibility: hidden depois da animacao e some da
+    // arvore de acessibilidade: o localizador por papel nao acha mais a classe.
+    await expect(menu).toBeHidden();
   });
 
   test('o "+" se recolhe ao rolar para baixo, volta no topo e a pontinha abre o balao', async ({
@@ -87,7 +89,7 @@ test.describe('no celular', () => {
     await page.mouse.down();
     await page.mouse.move(x, y + 250, { steps: 10 });
     await page.mouse.up();
-    await expect(menu).not.toHaveClass(/aberto/);
+    await expect(menu).toBeHidden();
   });
 });
 
