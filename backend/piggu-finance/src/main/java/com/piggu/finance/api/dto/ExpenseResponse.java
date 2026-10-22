@@ -23,7 +23,8 @@ public record ExpenseResponse(
         Short parcela,
         Short parcelas,
         String moedaOriginal,
-        BigDecimal valorOriginal
+        BigDecimal valorOriginal,
+        boolean compartilhado
 ) {
 
     public static ExpenseResponse de(Expense gasto) {
@@ -43,7 +44,8 @@ public record ExpenseResponse(
                 gasto.getInstallmentNumber(),
                 gasto.getInstallmentCount(),
                 gasto.getOriginalCurrency(),
-                gasto.getOriginalAmount()
+                gasto.getOriginalAmount(),
+                gasto.isShared()
         );
     }
 }

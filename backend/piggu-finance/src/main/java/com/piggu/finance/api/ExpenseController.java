@@ -43,7 +43,8 @@ import java.util.UUID;
  * Gastos.
  *
  * <p>Substitui as acoes save, updateExpense e deleteExpense. Todo perfil da familia
- * alcanca; cada um ve e altera so o que e dele (ver CadaUmVeOSeuTest).</p>
+ * alcanca; cada um ve e altera o que e dele e o que os outros compartilharam (ver
+ * CadaUmVeOSeuTest e CompartilhadoTest). Listas e somas aceitam {@code visao=meu|casal}.</p>
  */
 @RestController
 @RequestMapping("/api/expenses")
@@ -127,6 +128,12 @@ public class ExpenseController {
     @GetMapping("/splits")
     public List<DivisaoDeGastos.Acerto> acerto(@RequestParam(required = false) String mes) {
         return divisao.acerto(Meses.ouAtual(mes));
+    }
+
+    /** Quem deve quanto a quem nos gastos divididos do mes, com o menor numero de transferencias. */
+    @GetMapping("/splits/transfers")
+    public List<DivisaoDeGastos.Transferencia> quemDeveAQuem(@RequestParam(required = false) String mes) {
+        return divisao.quemDeveAQuem(Meses.ouAtual(mes));
     }
 
     /**

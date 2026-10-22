@@ -29,6 +29,10 @@ import java.util.List;
  * @param appFamilia           precos do plano familia no app (+15%)
  * @param pessoasNoFamilia     quantas pessoas o plano familia cobre
  * @param casaTemAssinatura    ha assinatura vigente na casa (talvez de outra pessoa, no individual)
+ * @param planoCasal           a assinatura vigente da casa e o plano casal
+ * @param casalDisponivel      o plano casal tem preco configurado
+ * @param siteCasal            precos do plano casal no site
+ * @param appCasal             precos do plano casal no app (+15%)
  */
 public record PlanoResponse(
         Plano plano,
@@ -47,7 +51,11 @@ public record PlanoResponse(
         Precos siteFamilia,
         Precos appFamilia,
         int pessoasNoFamilia,
-        boolean casaTemAssinatura
+        boolean casaTemAssinatura,
+        boolean planoCasal,
+        boolean casalDisponivel,
+        Precos siteCasal,
+        Precos appCasal
 ) {
 
     /** Em reais. */
@@ -59,6 +67,9 @@ public record PlanoResponse(
     /** Plano familia, ate 5 pessoas (Eduardo, 2026-10-11). App: +15%, arredondado para baixo. */
     public static final Precos PRECOS_FAMILIA_SITE = new Precos("39,99", "399,90");
     public static final Precos PRECOS_FAMILIA_APP = new Precos("45,99", "459,89");
+    /** Plano casal, titular e parceiro (Eduardo, 2026-10-22). App: +15%. */
+    public static final Precos PRECOS_CASAL_SITE = new Precos("29,90", "299,00");
+    public static final Precos PRECOS_CASAL_APP = new Precos("34,39", "343,85");
 
     private static final List<String> GRATUITO = List.of(
             "Gastos, receitas, categorias, meta do mês e calendário",
@@ -85,8 +96,9 @@ public record PlanoResponse(
 
     /** @param openFinance falso esconde o Open Finance da lista (recurso desligado por enquanto) */
     public static PlanoResponse de(UserAccount conta, Household familia, boolean assinaturaDisponivel,
-                                   boolean familiaDisponivel, int diasDeTeste, boolean openFinance) {
-        Plano vigente = familia.planoPara(conta.getId());
+                                   boolean familiaDisponivel, boolean casalDisponivel, int diasDeTeste,
+                                   boolean openFinance) {
+        Plano vigente = familia.planoPara(conta);
         boolean voceAssinou = familia.planoVigente() == Plano.PREMIUM && conta.getId().equals(familia.getSubscriberId());
         // Sem cobranca ainda e o teste: a primeira cobranca vem no fim dele (premiumAte).
         Instant primeiraCobranca = familia.getPrimeiraCobranca() != null
@@ -100,6 +112,8 @@ public record PlanoResponse(
                 openFinance ? PREMIUM : PREMIUM.stream().filter(item -> !item.contains("Open Finance")).toList(),
                 familia.planoVigente() == Plano.PREMIUM && familia.isFamilia(), voceAssinou,
                 familiaDisponivel, PRECOS_FAMILIA_SITE, PRECOS_FAMILIA_APP, Periodo.PESSOAS_NO_FAMILIA,
-                familia.planoVigente() == Plano.PREMIUM);
+                familia.planoVigente() == Plano.PREMIUM,
+                familia.planoVigente() == Plano.PREMIUM && familia.isCasal(),
+                casalDisponivel, PRECOS_CASAL_SITE, PRECOS_CASAL_APP);
     }
 }

@@ -21,11 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -369,6 +371,41 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
         conta.escolherModulos(modulos);
         return UserResponse.de(conta, familias.daConta(conta));
+    }
+
+    /**
+     * Cada um decide se o parceiro ve tudo o que ele lanca (sem isso, so o compartilhado) e se
+     * os lancamentos novos ja comecam compartilhados. A permissao e dada a pessoa que e o
+     * parceiro agora: trocar de parceiro nao a passa adiante.
+     */
+    @Transactional
+    public UserResponse escolherCompartilhamento(java.util.UUID usuarioId, boolean mostrarTudoAoParceiro,
+                                                 boolean compartilharPorPadrao) {
+        UserAccount conta = usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        if (mostrarTudoAoParceiro) {
+            UserAccount parceiro = parceiroDe(conta).orElseThrow(() -> new BusinessException(
+                    "Você ainda não tem parceiro na família. Convide alguém como parceiro primeiro.",
+                    HttpStatus.CONFLICT, "SEM_PARCEIRO"));
+            conta.mostrarTudoPara(parceiro.getId());
+        } else {
+            conta.mostrarTudoPara(null);
+        }
+        conta.compartilharPorPadrao(compartilharPorPadrao);
+        return UserResponse.de(conta, familias.daConta(conta));
+    }
+
+    /** O outro do casal: para o titular, o parceiro; para o parceiro, o titular. */
+    private Optional<UserAccount> parceiroDe(UserAccount conta) {
+        Predicate<UserAccount> outroLado = switch (conta.getRole()) {
+            case TITULAR, ADMIN -> outro -> outro.getRole() == PigguRole.PARCEIRO;
+            case PARCEIRO -> outro -> outro.getRole() == PigguRole.TITULAR || outro.getRole() == PigguRole.ADMIN;
+            case MEMBRO -> outro -> false;
+        };
+        return usuarios.findByHouseholdIdOrderByCreatedAtAsc(conta.getHouseholdId()).stream()
+                .filter(outro -> !outro.getId().equals(conta.getId()))
+                .filter(outroLado)
+                .min(Comparator.comparing(outro -> outro.getRole() == PigguRole.TITULAR ? 0 : 1));
     }
 
     @Transactional

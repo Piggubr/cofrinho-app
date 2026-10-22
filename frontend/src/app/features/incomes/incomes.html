@@ -57,6 +57,16 @@
     <input type="checkbox" [checked]="repetir()" (change)="repetir.set($any($event.target).checked)" />
     <span i18n>Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span>
   </label>
+  @if (pessoas.temCompanhia()) {
+    <label class="repetir">
+      <input
+        type="checkbox"
+        [checked]="compartilhadaEfetiva()"
+        (change)="compartilhada.set($any($event.target).checked)"
+      />
+      <span i18n>Compartilhada: aparece para quem mora com você</span>
+    </label>
+  }
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
       Lançar receita
@@ -219,21 +229,31 @@
     <div class="linha">
       <div>
         <p class="linha-titulo">{{ receita.descricao }}</p>
-        <p class="linha-detalhe">{{ receita.data | dataBr }} · {{ receita.categoria }}</p>
+        <p class="linha-detalhe">
+          {{ receita.data | dataBr }} · {{ receita.categoria }}
+          @if (receita.compartilhado) {
+            <ng-container i18n>· compartilhada</ng-container>
+          }
+          @if (receita.usuario !== eu() && pessoas.temCompanhia()) {
+            <ng-container i18n>· de {{ pessoas.nome(receita.usuario) }}</ng-container>
+          }
+        </p>
       </div>
       <div class="linha-acoes">
         <strong>{{ receita.valor | moeda }}</strong>
-        <button
-          type="button"
-          class="botao icone-so perigo"
-          (click)="excluir(receita)"
-          aria-label="Apagar"
-          i18n-aria-label
-          title="Apagar"
-          i18n-title
-        >
-          <app-icone nome="lixeira" [tamanho]="18" />
-        </button>
+        @if (!receita.compartilhado || receita.usuario === eu()) {
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="excluir(receita)"
+            aria-label="Apagar"
+            i18n-aria-label
+            title="Apagar"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
+        }
       </div>
     </div>
   } @empty {

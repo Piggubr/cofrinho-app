@@ -42,14 +42,18 @@ public class SavingsGoalController {
         this.servico = servico;
     }
 
-    /** @param prazo ultimo dia para juntar; ausente e sem prazo */
+    /**
+     * @param prazo         ultimo dia para juntar; ausente e sem prazo
+     * @param compartilhado meta a dois; na edicao, nulo mantem como esta
+     */
     public record ObjetivoRequest(
             @NotBlank(message = "De um nome ao objetivo.") @Size(max = 60, message = "O nome e longo demais.")
             String nome,
             @NotNull(message = "Digite quanto quer juntar.")
             @DecimalMin(value = "0.01", message = "Digite quanto quer juntar.")
             @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal alvo,
-            LocalDate prazo) {
+            LocalDate prazo,
+            Boolean compartilhado) {
     }
 
     @GetMapping
@@ -60,18 +64,20 @@ public class SavingsGoalController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ObjetivosService.Situacao criar(@Valid @RequestBody ObjetivoRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido.nome(), pedido.alvo(), pedido.prazo(), usuario);
+        return servico.criar(pedido.nome(), pedido.alvo(), pedido.prazo(), Boolean.TRUE.equals(pedido.compartilhado()),
+                usuario);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> alterar(@PathVariable UUID id, @Valid @RequestBody ObjetivoRequest pedido) {
-        servico.alterar(id, pedido.nome(), pedido.alvo(), pedido.prazo());
+    public ResponseEntity<Void> alterar(@PathVariable UUID id, @Valid @RequestBody ObjetivoRequest pedido,
+                                        @AuthUser CurrentUser usuario) {
+        servico.alterar(id, pedido.nome(), pedido.alvo(), pedido.prazo(), pedido.compartilhado(), usuario);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        servico.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 }

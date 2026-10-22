@@ -58,8 +58,16 @@ public record UserResponse(
         boolean temSenha,
         boolean emailConfirmado,
         String pais,
-        LocalDate nascimento
+        LocalDate nascimento,
+        Compartilhamento compartilhamento
 ) {
+
+    /**
+     * @param mostraTudoAoParceiro o parceiro ve tudo o que a pessoa lanca, nao so o compartilhado
+     * @param compartilharPorPadrao lancamentos novos ja comecam marcados como compartilhados
+     */
+    public record Compartilhamento(boolean mostraTudoAoParceiro, boolean compartilharPorPadrao) {
+    }
 
     /** Por onde chegam os avisos de fatura, orcamento e conta fixa quando o app esta fechado. */
     public record Avisos(boolean email, boolean push) {
@@ -92,8 +100,8 @@ public record UserResponse(
                 new Preferencias(conta.getCurrency(), conta.getQuoteCurrency(), conta.getConversionCurrency(),
                         conta.isShowExchangeRate(),
                         conta.getTimezone(), conta.getLocale(), conta.getModulos()),
-                familia.planoPara(conta.getId()),
-                familia.planoPara(conta.getId()) == Plano.PREMIUM ? familia.getPremiumUntil() : null,
+                familia.planoPara(conta),
+                familia.planoPara(conta) == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getId(),
                 new Avisos(conta.isAlertsByEmail(), conta.isAlertsByPush()),
                 conta.documentoEmDia(),
@@ -103,7 +111,8 @@ public record UserResponse(
                 conta.temSenha(),
                 conta.isEmailVerified(),
                 conta.getPais(),
-                conta.getBirthDate()
+                conta.getBirthDate(),
+                new Compartilhamento(conta.getShowsAllTo() != null, conta.isSharesByDefault())
         );
     }
 }

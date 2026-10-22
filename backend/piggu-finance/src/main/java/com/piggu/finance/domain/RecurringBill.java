@@ -18,7 +18,7 @@ import java.time.YearMonth;
 import java.util.UUID;
 
 /** Conta fixa que se repete todo mes; com o tipo RECEITA, a receita que entra todo mes (o salario). */
-@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID_OU_COMPARTILHADO, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "recurring_bills")
 public class RecurringBill {
@@ -53,6 +53,10 @@ public class RecurringBill {
 
     @Column(name = "last_paid_month", length = 7)
     private String lastPaidMonth;
+
+    /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
+    @Column(nullable = false)
+    private boolean shared;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -151,5 +155,14 @@ public class RecurringBill {
 
     public void pagarCom(UUID accountId) {
         this.accountId = accountId;
+    }
+
+    /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
+    public void compartilhar(boolean compartilhado) {
+        this.shared = compartilhado;
+    }
+
+    public boolean isShared() {
+        return shared;
     }
 }

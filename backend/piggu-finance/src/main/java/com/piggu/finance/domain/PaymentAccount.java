@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /** Conta ou cartao de credito da familia. */
-@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID_OU_COMPARTILHADO, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "payment_accounts")
 public class PaymentAccount {
@@ -42,6 +42,10 @@ public class PaymentAccount {
 
     @Column(name = "due_day")
     private Short dueDay;
+
+    /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
+    @Column(nullable = false)
+    private boolean shared;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -82,7 +86,20 @@ public class PaymentAccount {
         return closingDay;
     }
 
+    public UUID getUserId() {
+        return userId;
+    }
+
     public Short getDueDay() {
         return dueDay;
+    }
+
+    /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
+    public void compartilhar(boolean compartilhado) {
+        this.shared = compartilhado;
+    }
+
+    public boolean isShared() {
+        return shared;
     }
 }

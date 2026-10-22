@@ -8,4 +8,7 @@ import java.util.UUID;
 public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, UUID> {
 
     List<SavingsGoal> findAllByOrderByCreatedAtAsc();
+
+    /** Os criados pela pessoa: o compartilhado pelo parceiro nao gasta o cofrinho do gratuito dela. */
+    long countByUserId(UUID userId);
 }

@@ -52,7 +52,22 @@ export interface Usuario {
   pais?: string | null;
   /** aaaa-mm-dd; nula ate a pessoa informar (o app pede). Ausente (demo) conta como informada. */
   nascimento?: string | null;
+  /** O que o parceiro ve do que a pessoa lanca. Ausente (demo antiga) conta como tudo desligado. */
+  compartilhamento?: Compartilhamento;
 }
+
+/**
+ * Cada um ve o seu e compartilha o que quiser.
+ * mostraTudoAoParceiro: o parceiro ve tudo o que a pessoa lanca, nao so o compartilhado.
+ * compartilharPorPadrao: lancamentos novos ja comecam marcados como compartilhados.
+ */
+export interface Compartilhamento {
+  mostraTudoAoParceiro: boolean;
+  compartilharPorPadrao: boolean;
+}
+
+/** Recorte do painel: tudo o que a pessoa ve, so o que ela lancou ou so o compartilhado. */
+export type Visao = 'tudo' | 'meu' | 'casal';
 
 
 /** Familia de quem esta logado; convites so chegam para o titular. */
@@ -64,6 +79,8 @@ export interface Familia {
   planoFamilia: boolean;
   membros: MembroDaFamilia[];
   convites: ConviteDaFamilia[];
+  /** A assinatura da casa e o plano casal (titular e parceiro). Ausente na demo antiga. */
+  planoCasal?: boolean;
 }
 
 export interface MembroDaFamilia {
@@ -109,7 +126,13 @@ export interface ConviteDaFamilia {
 }
 
 export type Plano = 'GRATUITO' | 'PREMIUM';
-export type Periodo = 'MENSAL' | 'ANUAL' | 'FAMILIA_MENSAL' | 'FAMILIA_ANUAL';
+export type Periodo =
+  | 'MENSAL'
+  | 'ANUAL'
+  | 'CASAL_MENSAL'
+  | 'CASAL_ANUAL'
+  | 'FAMILIA_MENSAL'
+  | 'FAMILIA_ANUAL';
 
 /** Precos em reais, ja formatados ("19,90"). */
 export interface Precos {
@@ -141,6 +164,11 @@ export interface InfoDoPlano {
   pessoasNoFamilia: number;
   /** Ha assinatura vigente na casa, talvez individual de outra pessoa. */
   casaTemAssinatura: boolean;
+  /** A assinatura da casa e o plano casal. Ausente na demo antiga. */
+  planoCasal?: boolean;
+  casalDisponivel?: boolean;
+  siteCasal?: Precos;
+  appCasal?: Precos;
 }
 
 /** Moeda em que os valores aparecem e a cotacao que fica no topo do app. */
@@ -210,6 +238,8 @@ export interface Gasto {
   /** Compra em outra moeda: o valor acima ja e o convertido. */
   moedaOriginal?: string | null;
   valorOriginal?: number | null;
+  /** Aparece para todos da familia, nao so para quem lancou. Ausente na demo antiga. */
+  compartilhado?: boolean;
 }
 
 export interface ItemDeGasto {
@@ -234,6 +264,8 @@ export interface NovoLancamento {
   dividirCom?: string[] | null;
   /** Cada item vira tambem uma conta fixa que se lanca sozinha no mesmo dia, todo mes. */
   recorrente?: boolean | null;
+  /** Aparece para todos da familia; ausente segue a conta (a do casal compartilha). */
+  compartilhado?: boolean | null;
 }
 
 export interface ReciboLido {
@@ -283,12 +315,18 @@ export interface ObjetivoDoCofrinho {
   porMes: number | null;
   concluido: boolean;
   atrasado: boolean;
+  /** Quem criou: so essa pessoa apaga. Ausente na demo antiga. */
+  usuario?: string | null;
+  /** Meta a dois: todos da familia veem e depositam. */
+  compartilhado?: boolean;
 }
 
 export interface PedidoDeObjetivo {
   nome: string;
   alvo: number;
   prazo: string | null;
+  /** Na edicao, ausente mantem como esta. */
+  compartilhado?: boolean | null;
 }
 
 /** Assistente de IA: se esta ligado, se a pessoa ja autorizou o envio e quanto sobra no mes. */
@@ -563,6 +601,7 @@ export interface Receita {
   valor: number;
   /** Id de quem lancou; nulo quando a conta foi excluida. */
   usuario: string | null;
+  compartilhado?: boolean;
 }
 
 /** Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca. */
@@ -607,6 +646,9 @@ export interface ContaFixa {
   tipo?: 'GASTO' | 'RECEITA';
   /** Cartao ou conta que paga o gasto todo mes. */
   contaId?: string | null;
+  /** Quem criou; so essa pessoa apaga. */
+  usuario?: string | null;
+  compartilhado?: boolean;
 }
 
 /** Dinheiro que alguem deve; so vira receita quando a pessoa toca em "Recebi". */
@@ -656,6 +698,10 @@ export interface ContaOuCartao {
   vencimento: number | null;
   faturaAberta: Fatura | null;
   faturaAPagar: Fatura | null;
+  /** Quem criou; so essa pessoa apaga ou desfaz o compartilhamento. */
+  usuario?: string | null;
+  /** Conta ou cartao do casal: o que for lancado nela ja nasce compartilhado. */
+  compartilhado?: boolean;
 }
 
 /** Acerto dos gastos divididos: saldo positivo tem a receber; negativo deve. */
@@ -665,6 +711,13 @@ export interface AcertoDeDivisao {
   pagou: number;
   parte: number;
   saldo: number;
+}
+
+/** Quem deve quanto a quem no mes: `de` paga `valor` para `para`. */
+export interface TransferenciaDoAcerto {
+  de: string | null;
+  para: string | null;
+  valor: number;
 }
 
 /** Preco digitado contra a media do produto: acima quando passa 15% com 2 compras ou mais. */

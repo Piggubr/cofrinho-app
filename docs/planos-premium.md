@@ -69,6 +69,8 @@ confirmar, principalmente o contrato com a Pluggy.
 |---|---|---|
 | Individual, site (Stripe) | R$ 19,90 | R$ 199,00 (2 meses grátis) |
 | Individual, app iOS/Android (+15% pela taxa das lojas) | R$ 22,89 | R$ 228,85 |
+| Casal (2 pessoas), site | R$ 29,90 | R$ 299,00 |
+| Casal (2 pessoas), app (+15%, arredondado para baixo) | R$ 34,39 | R$ 343,85 |
 | Família (até 5 pessoas), site | R$ 39,99 | R$ 399,90 |
 | Família (até 5 pessoas), app (+15%, arredondado para baixo) | R$ 45,99 | R$ 459,89 |
 
@@ -78,6 +80,37 @@ pendentes). Uma assinatura por casa. Assinaturas que já existiam viraram indivi
 quem pagou, na hora (migration `V18`). O tipo vem do preço cobrado na Stripe
 (`STRIPE_PRICE_FAMILIA_*`) ou do produto da loja com "familia" no id, então trocar de
 plano pelo Portal do Cliente funciona sem código novo.
+
+**Plano casal (Eduardo, 2026-10-22).** Fica entre o individual e o família: libera o
+Premium para quem assinou e para o parceiro (o titular e o parceiro da casa, nunca um
+membro). O tipo vem do preço (`STRIPE_PRICE_CASAL_*`) ou do produto da loja com "casal"
+no id, como o família (migration `V34`). Sem os preços do casal na Stripe, o card some
+da tela e o Checkout recusa.
+
+## Compartilhamento entre o casal e a família
+
+Compartilhar é grátis em qualquer plano; o plano casal só paga o Premium dos dois.
+
+- **Cada um vê o que é seu.** Gasto, receita, conta fixa, conta ou cartão e objetivo do
+  cofrinho têm a marca "compartilhado" (`shared`, migration `V20` do finance). O que é
+  compartilhado aparece para toda a casa; o resto, só para quem lançou.
+- **Quem pode mexer.** Num item compartilhado, todos que veem editam; só quem criou
+  apaga ou volta para "só meu".
+- **Conta ou cartão do casal.** Marcada como compartilhada, tudo o que entra nela já nasce
+  compartilhado (conta conjunta, cartão adicional). No Perfil, "Lançamentos novos já
+  nascem compartilhados" faz o mesmo para tudo o que a pessoa lança.
+- **Ver tudo do parceiro só com consentimento.** No Perfil, cada um liga "{parceiro} vê
+  tudo o que eu lanço" (`users.shows_all_to`, migration `V34` do identity). O
+  consentimento é dado a uma pessoa: se o parceiro sai ou deixa de ser parceiro, ele cai.
+  Casais que já existiam continuam vendo tudo, porque a migration liga para os dois. O
+  outro lado vê a mudança quando o token renova (até 5 minutos).
+- **Família.** Titular e parceiro podem ver tudo um do outro (com o consentimento acima);
+  os demais veem o próprio e o compartilhado. O titular só vê tudo de quem é menor de
+  idade, nunca de um adulto da casa.
+- **Painel.** Quem mora com alguém escolhe "Tudo / Meu / Compartilhado" (parâmetro
+  `visao=meu|casal` em `/api/expenses` e `/api/reports/month`).
+- **Quem deve a quem.** `GET /api/expenses/splits/transfers?mes=` resume a divisão do mês
+  no menor número de transferências ("Bia paga R$ 30 para Ana").
 
 Apple e Google exigem a compra dentro do app para assinatura digital vendida no app,
 por isso o preço do app é separado. A tela web mostra só o preço do site.

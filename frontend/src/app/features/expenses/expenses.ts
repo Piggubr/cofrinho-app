@@ -28,6 +28,7 @@ import {
   NovoLancamento,
   ReciboLido,
   RegraDeCategoria,
+  TransferenciaDoAcerto,
 } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
@@ -148,6 +149,17 @@ export class Expenses {
 
   protected readonly membros = signal<MembroDaFamilia[]>([]);
   protected readonly dividirCom = signal<string[]>([]);
+  /** Escolha da pessoa; nula segue o cartao (o do casal compartilha) e o padrao do perfil. */
+  protected readonly compartilhado = signal<boolean | null>(null);
+  protected readonly compartilhadoEfetivo = computed(
+    () =>
+      this.compartilhado() ??
+      (this.contas().find((conta) => conta.id === this.novaConta())?.compartilhado ||
+        this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ||
+        false),
+  );
+  protected readonly compartilhadoEditado = signal(false);
+  protected readonly transferencias = signal<TransferenciaDoAcerto[]>([]);
   protected readonly acerto = signal<AcertoDeDivisao[]>([]);
   protected readonly precoAcima = signal<ConferenciaDePreco | null>(null);
   protected readonly termoDaRegra = signal('');
@@ -171,6 +183,7 @@ export class Expenses {
       partes.push(this.moedaDaCompra());
     }
     if (this.dividirCom().length) partes.push($localize`dividido`);
+    if (this.membros().length > 1 && this.compartilhadoEfetivo()) partes.push($localize`compartilhado`);
     return partes.join(' · ');
   });
 
@@ -350,6 +363,7 @@ export class Expenses {
       parcelas: parcelas > 1 ? parcelas : null,
       dividirCom: this.dividirCom().length ? this.dividirCom() : null,
       recorrente: this.modo() === 'RECORRENTE' || null,
+      compartilhado: this.compartilhadoEfetivo(),
     };
     this.finance.lancarGastos(pedido).subscribe({
       next: (salvos) => {
@@ -381,6 +395,7 @@ export class Expenses {
     this.trocarModo('VISTA');
     this.precoAcima.set(null);
     this.dividirCom.set([]);
+    this.compartilhado.set(null);
     this.salvando.set(false);
   }
 
@@ -487,6 +502,7 @@ export class Expenses {
         origem: 'Foto',
         itens: itens as ItemDeGasto[],
         contaId: this.novaConta() || null,
+        compartilhado: this.compartilhadoEfetivo(),
       })
       .subscribe({
         next: () => {
@@ -507,6 +523,12 @@ export class Expenses {
     this.itemEditado.set(gasto.item);
     this.categoriaEditada.set(gasto.categoria);
     this.valorEditado.set(gasto.valor);
+    this.compartilhadoEditado.set(gasto.compartilhado ?? false);
+  }
+
+  /** Do compartilhado, so quem lancou apaga ou volta para "só meu". */
+  protected ehMeu(gasto: Gasto): boolean {
+    return gasto.usuario === this.auth.usuario()?.id;
   }
 
   protected cancelarEdicao(): void {
@@ -522,11 +544,15 @@ export class Expenses {
 
     const antes = this.gastos().find((g) => g.id === id);
     this.finance
-      .editarGasto(id, {
-        item: this.itemEditado().trim(),
-        categoria: this.categoriaEditada(),
-        valor,
-      })
+      .editarGasto(
+        id,
+        {
+          item: this.itemEditado().trim(),
+          categoria: this.categoriaEditada(),
+          valor,
+        },
+        antes && this.ehMeu(antes) ? this.compartilhadoEditado() : undefined,
+      )
       .subscribe({
         next: (salvo) => {
           if (antes && antes.categoria !== salvo.categoria) {
@@ -629,9 +655,20 @@ export class Expenses {
   }
 
   private carregarAcerto(): void {
-    this.finance
-      .acertoDoMes(this.mesAtual())
-      .subscribe({ next: (lista) => this.acerto.set(lista) });
+    const mes = this.mesAtual();
+    this.finance.acertoDoMes(mes).subscribe({
+      next: (lista) => {
+        this.acerto.set(lista);
+        // Sem gasto dividido no mes nao ha acerto: poupa o pedido de quem paga quem.
+        if (!lista.length) {
+          this.transferencias.set([]);
+          return;
+        }
+        this.finance
+          .quemDeveAQuem(mes)
+          .subscribe({ next: (transferencias) => this.transferencias.set(transferencias) });
+      },
+    });
   }
 
   private carregar(): void {

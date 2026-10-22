@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FinanceService } from '../../core/api/finance.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
+import { AuthService } from '../../core/auth/auth.service';
 import { ContaOuCartao, Fatura, Gasto } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mesPorExtenso } from '../../core/ui/datas';
@@ -26,6 +28,11 @@ export class Accounts {
   protected readonly tipo = signal<'CONTA' | 'CARTAO'>('CARTAO');
   protected readonly fechamento = signal<number | null>(null);
   protected readonly vencimento = signal<number | null>(null);
+  /** Conta ou cartao do casal: o que for lancado nela ja nasce compartilhado. */
+  protected readonly compartilhada = signal(false);
+  protected readonly pessoas = inject(PessoasDaFamilia);
+  private readonly auth = inject(AuthService);
+  protected readonly eu = computed(() => this.auth.usuario()?.id ?? null);
 
   /** Fatura aberta na tela: um cartao por vez. */
   protected readonly aberta = signal<{ cartao: ContaOuCartao; fatura: Fatura; gastos: Gasto[] } | null>(null);
@@ -71,12 +78,14 @@ export class Accounts {
         tipo: this.tipo(),
         fechamento: cartao ? this.fechamento() : null,
         vencimento: cartao ? this.vencimento() : null,
+        compartilhado: this.pessoas.temCompanhia() && this.compartilhada(),
       })
       .subscribe({
         next: () => {
           this.nome.set('');
           this.fechamento.set(null);
           this.vencimento.set(null);
+          this.compartilhada.set(false);
           this.ocupado.set(false);
           this.carregar();
         },
@@ -85,6 +94,14 @@ export class Accounts {
           this.ocupado.set(false);
         },
       });
+  }
+
+  /** So quem criou liga ou desliga; os gastos ja lancados nao mudam. */
+  protected alternarCompartilhamento(conta: ContaOuCartao): void {
+    this.finance.compartilharConta(conta.id, !conta.compartilhado).subscribe({
+      next: () => this.carregar(),
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
   }
 
   protected excluir(conta: ContaOuCartao): void {

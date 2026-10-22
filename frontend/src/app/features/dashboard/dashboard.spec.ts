@@ -1,9 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Dashboard } from './dashboard';
 
@@ -15,8 +17,11 @@ describe('Dashboard', () => {
   let http: HttpTestingController;
 
   let auth: AuthFalso;
+  /** Sozinho, o painel nao oferece "Meu / Compartilhado"; o teste da visao liga a companhia. */
+  const pessoas = { temCompanhia: signal(false), nome: () => '' };
 
   beforeEach(() => {
+    pessoas.temCompanhia.set(false);
     auth = new AuthFalso();
     TestBed.configureTestingModule({
       imports: [Dashboard],
@@ -26,6 +31,7 @@ describe('Dashboard', () => {
         provideHttpClientTesting(),
         { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
         { provide: AuthService, useValue: auth },
+        { provide: PessoasDaFamilia, useValue: pessoas },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -43,17 +49,51 @@ describe('Dashboard', () => {
     http.expectOne('/api/monthly-goals').flush({});
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
+    responderCards();
+    return tela;
+  }
+
+  function responderCards(): void {
     for (const extra of http.match((req) =>
       /\/api\/(reports|bills|budgets|accounts|incomes\/receivables|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
     )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
-    return tela;
   }
 
   function cardDeBancos(tela: ReturnType<typeof abrir>): Element | null {
     return tela.nativeElement.querySelector('#titulo-bancos');
   }
+
+  it('quem mora com alguem escolhe ver so o seu ou so o compartilhado', () => {
+    pessoas.temCompanhia.set(true);
+    const tela = abrir();
+    http.expectOne('/api/banking/status').flush({ habilitado: false });
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    const botoes = [...pagina.querySelectorAll<HTMLButtonElement>('.visao button')];
+    expect(botoes.map((b) => b.textContent?.trim())).toEqual(['Tudo', 'Meu', 'Compartilhado']);
+
+    botoes[2].click();
+    tela.detectChanges();
+    http.expectOne('/api/piggy-bank').flush({ depositos: [], totalDepositos: 0, totalGastos: 0, saldo: 0 });
+    const gastos = http.expectOne((req) => req.url === '/api/expenses');
+    expect(gastos.request.params.get('visao')).toBe('casal');
+    gastos.flush([]);
+    http.expectOne('/api/monthly-goals').flush({});
+    tela.detectChanges();
+    const resumo = http.expectOne((req) => req.url === '/api/reports/month');
+    expect(resumo.request.params.get('visao')).toBe('casal');
+    resumo.flush(null);
+    responderCards();
+  });
+
+  it('sozinho, o painel nao mostra a escolha de visao', () => {
+    const tela = abrir();
+    http.expectOne('/api/banking/status').flush({ habilitado: false });
+    tela.detectChanges();
+    expect(tela.nativeElement.querySelector('.visao')).toBeNull();
+  });
 
   it('Open Finance desligado: sem card e sem buscar contas', () => {
     const tela = abrir();

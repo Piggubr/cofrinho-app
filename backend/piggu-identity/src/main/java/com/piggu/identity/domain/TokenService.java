@@ -90,7 +90,7 @@ public class TokenService {
                 .claim("nome", conta.nomeExibicao())
                 // Plano no token: os outros servicos barram o Premium sem consultar o
                 // identity. Mudou o plano? Vale na proxima renovacao (ate 5 min).
-                .claim("plano", familia.planoPara(conta.getId()).name())
+                .claim("plano", familia.planoPara(conta).name())
                 // Familia no token: cada servico filtra os proprios dados por ela.
                 .claim("familia", familia.getId().toString());
         if (exclusao != null) {
@@ -99,8 +99,9 @@ public class TokenService {
         if (destino != null) {
             claims.claim(EscopoDeExclusao.CLAIM_DESTINO, destino.toString());
         }
-        // Titular e parceiro veem tambem os dados um do outro e dos menores (DonoAtual nos
-        // servicos). Fez 18 anos, mudou de papel ou de familia? Vale na proxima renovacao (ate 5 min).
+        // Titular e parceiro veem tambem os dados dos menores e, se o outro escolheu mostrar,
+        // tudo o que o outro lanca (DonoAtual nos servicos). Fez 18 anos, mudou de papel, de
+        // familia ou de escolha? Vale na proxima renovacao (ate 5 min).
         List<String> tambemVe = tambemVisiveis(conta, familia);
         if (!tambemVe.isEmpty()) {
             claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_TAMBEM_VE, tambemVe);
@@ -111,8 +112,9 @@ public class TokenService {
     }
 
     /**
-     * Para o titular e o parceiro (o casal): o outro responsavel e os menores. Um menor
-     * promovido a parceiro nao ganha a vista dos adultos.
+     * Para o titular e o parceiro (o casal): os menores e o outro responsavel, quando este
+     * escolheu mostrar tudo para esta conta. Sem isso, o casal ve um do outro so o que foi
+     * marcado como compartilhado. Um menor promovido a parceiro nao ganha a vista dos adultos.
      */
     private List<String> tambemVisiveis(UserAccount conta, Household familia) {
         LocalDate hoje = LocalDate.now(ZoneId.of(conta.getTimezone()));
@@ -121,7 +123,7 @@ public class TokenService {
         }
         return usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId()).stream()
                 .filter(outro -> !outro.getId().equals(conta.getId())
-                        && (outro.menorDeIdade(hoje) || responsavel(outro)))
+                        && (outro.menorDeIdade(hoje) || (responsavel(outro) && outro.mostraTudoPara(conta.getId()))))
 
                 .map(outro -> outro.getId().toString())
                 .toList();

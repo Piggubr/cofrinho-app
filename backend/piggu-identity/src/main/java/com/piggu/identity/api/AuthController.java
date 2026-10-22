@@ -183,6 +183,21 @@ public class AuthController {
         return servico.salvarPreferencias(usuario.id(), pedido);
     }
 
+    public record CompartilhamentoRequest(@NotNull Boolean mostrarTudoAoParceiro,
+                                          @NotNull Boolean compartilharPorPadrao) {
+    }
+
+    /**
+     * O que o parceiro ve do que a pessoa lanca: so o compartilhado ou tudo. Cada um decide
+     * sobre os proprios dados; vale para o parceiro na proxima renovacao do token (ate 5 min).
+     */
+    @PutMapping("/me/sharing")
+    public UserResponse compartilhamento(@Valid @RequestBody CompartilhamentoRequest pedido,
+                                         @AuthUser CurrentUser usuario) {
+        return servico.escolherCompartilhamento(usuario.id(), pedido.mostrarTudoAoParceiro(),
+                pedido.compartilharPorPadrao());
+    }
+
     /**
      * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
      * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica.

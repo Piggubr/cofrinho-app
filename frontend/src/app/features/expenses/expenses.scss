@@ -31,6 +31,21 @@
   margin-top: 0.25rem;
 }
 
+.compartilhar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.acerto-resumo {
+  margin: 0 0 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  background: var(--rose-soft);
+  font-weight: 600;
+}
+
 .dividir {
   border: 0;
   padding: 0;

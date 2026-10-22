@@ -169,12 +169,20 @@ describe('Expenses', () => {
         { pessoa: 'u-bia', pagou: 0, parte: 30, saldo: -30 },
         { pessoa: null, pagou: 0, parte: 20, saldo: -20 },
       ],
+      [],
+      [
+        { de: 'u-bia', para: eu.id, valor: 30 },
+        { de: null, para: eu.id, valor: 20 },
+      ],
     );
     tela.detectChanges();
     const pagina: HTMLElement = tela.nativeElement;
     const nomes = [...pagina.querySelectorAll('.linha-titulo')].map((l) => l.textContent?.trim());
     expect(nomes).toEqual(expect.arrayContaining(['Titular', 'Bia', 'Ex-membro']));
     expect(pagina.textContent).not.toContain('@piggu.test');
+    const acerto = pagina.querySelector('.acerto-resumo')?.textContent?.replace(/\s+/g, ' ');
+    expect(acerto).toContain('Bia paga');
+    expect(acerto).toContain('para Titular');
 
     const caixas = [...pagina.querySelectorAll<HTMLInputElement>('.dividir input[type=checkbox]')];
     caixas.forEach((caixa) => caixa.dispatchEvent(new Event('change')));
@@ -293,11 +301,17 @@ describe('Expenses', () => {
     membros: unknown[] = [],
     acerto: unknown[] = [],
     contas: unknown[] = [],
+    transferencias: unknown[] = [],
   ): void {
     tela.detectChanges();
     http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
     http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
     http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush(acerto);
+    if (acerto.length) {
+      http
+        .expectOne((pedido) => pedido.url === '/api/expenses/splits/transfers')
+        .flush(transferencias);
+    }
     http
       .expectOne('/api/family')
       .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] });

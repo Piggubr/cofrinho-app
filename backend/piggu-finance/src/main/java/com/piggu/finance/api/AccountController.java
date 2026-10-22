@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,7 +42,11 @@ public class AccountController {
             @NotBlank(message = "Digite o nome.") @Size(max = 60) String nome,
             @NotNull(message = "Escolha conta ou cartao.") PaymentAccount.Tipo tipo,
             @Min(value = 1, message = "Dia invalido.") @Max(value = 31, message = "Dia invalido.") Integer fechamento,
-            @Min(value = 1, message = "Dia invalido.") @Max(value = 31, message = "Dia invalido.") Integer vencimento) {
+            @Min(value = 1, message = "Dia invalido.") @Max(value = 31, message = "Dia invalido.") Integer vencimento,
+            Boolean compartilhado) {
+    }
+
+    public record CompartilhamentoRequest(@NotNull Boolean compartilhado) {
     }
 
     /** Cada conta; no cartao, a fatura aberta e a fechada que ainda vai vencer. */
@@ -53,12 +58,21 @@ public class AccountController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ContasECartoes.Conta criar(@Valid @RequestBody AccountRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.criar(pedido.nome(), pedido.tipo(), pedido.fechamento(), pedido.vencimento(), usuario.id());
+        return servico.criar(pedido.nome(), pedido.tipo(), pedido.fechamento(), pedido.vencimento(), usuario.id(),
+                Boolean.TRUE.equals(pedido.compartilhado()));
+    }
+
+    /** Conta ou cartao do casal: so quem criou liga ou desliga. */
+    @PutMapping("/{id}/sharing")
+    public ResponseEntity<Void> compartilhar(@PathVariable UUID id, @Valid @RequestBody CompartilhamentoRequest pedido,
+                                             @AuthUser CurrentUser usuario) {
+        servico.compartilhar(id, pedido.compartilhado(), usuario);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        servico.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        servico.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 
