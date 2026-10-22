@@ -48,7 +48,7 @@ function normalizar(texto: string): string {
       <app-icone nome="busca" />
     </button>
     @if (aberta()) {
-      <div class="fundo" (click)="fechar()"></div>
+      <div class="fundo" aria-hidden="true" (click)="fechar()"></div>
       <div class="busca" role="dialog" aria-modal="true" aria-label="Buscar no Piggu" i18n-aria-label>
         <input
           #campo
@@ -69,6 +69,8 @@ function normalizar(texto: string): string {
             @if (i === 0 || resultados()[i - 1].grupo !== r.grupo) {
               <li class="grupo" role="presentation">{{ r.grupo }}</li>
             }
+            <!-- As setas e o Enter ficam no campo (aria-activedescendant): a opcao nao recebe foco. -->
+            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
             <li
               [id]="'resultado-' + i"
               role="option"

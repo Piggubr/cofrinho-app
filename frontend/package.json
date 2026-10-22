@@ -12,7 +12,8 @@
     "build:demo": "ng build --configuration demo",
     "e2e": "playwright test",
     "smoke": "playwright test -c playwright.stack.config.ts --grep @smoke",
-    "regressao": "playwright test -c playwright.stack.config.ts --grep @regressao"
+    "regressao": "playwright test -c playwright.stack.config.ts --grep @regressao",
+    "lint": "ng lint"
   },
   "private": true,
   "packageManager": "npm@11.13.0",
@@ -38,16 +39,21 @@
     "@angular/cli": "^22.2.1",
     "@angular/compiler-cli": "^22.2.1",
     "@capacitor/cli": "^8.5.3",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.56.1",
     "@vitest/coverage-v8": "^4.1.11",
+    "angular-eslint": "22.6.0",
+    "eslint": "^10.12.0",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
+    "typescript-eslint": "8.71.0",
     "vitest": "^4.0.8"
   },
   "overrides": {
     "xcode": {
       "uuid": "^11.1.1"
-    }
+    },
+    "vite": "8.3.5"
   }
 }

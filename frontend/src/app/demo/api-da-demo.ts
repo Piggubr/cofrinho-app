@@ -59,6 +59,8 @@ class ErroDaDemo extends Error {
 
 const INDISPONIVEL = 'Indisponível na demonstração: aqui os dados são de exemplo.';
 
+// A API falsa le o corpo de qualquer pedido sem conhecer o tipo de cada um.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Corpo = Record<string, any>;
 type Rota = [string, RegExp, (pedido: HttpRequest<unknown>, partes: string[], corpo: Corpo) => unknown];
 
@@ -475,7 +477,7 @@ function previaDoExtrato(conteudo: string): LinhaDoExtrato[] {
     }
     return linhas;
   }
-  const [cabecalho, ...resto] = conteudo.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
+  const [cabecalho, ...resto] = conteudo.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim());
   const sep = cabecalho?.includes(';') ? ';' : ',';
   const lidas = resto.map((l, i) => {
     const [data, descricao, valorTexto] = l.split(sep).map((c) => c.trim().replace(/^"|"$/g, ''));

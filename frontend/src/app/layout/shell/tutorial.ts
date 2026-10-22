@@ -41,7 +41,7 @@ interface Posicao {
   imports: [Icone],
   template: `
     @if (tutorial.passo(); as passo) {
-      <div class="fundo" [class.escuro]="!posicao()" (click)="tutorial.concluir()"></div>
+      <div class="fundo" aria-hidden="true" [class.escuro]="!posicao()" (click)="tutorial.concluir()"></div>
       @if (posicao(); as p) {
         <div
           class="recorte"
