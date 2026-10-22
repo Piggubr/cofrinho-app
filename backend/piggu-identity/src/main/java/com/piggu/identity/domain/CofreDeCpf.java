@@ -19,7 +19,7 @@ import java.util.HexFormat;
  * que acha contas com o mesmo documento (pode repetir desde a V25/V26).
  *
  * <p>Duas colunas: {@code cpf_cifrado} (AES-256-GCM, para devolver o numero na
- * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; desde a V25 pode repetir). O indice
+ * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; unico de novo desde a V34). O indice
  * nao se reverte e, sem a chave, nao da para testar os CPFs possiveis contra ele, como
  * daria com um SHA-256 simples (sao so 10^9 combinacoes). Um dump do banco sozinho nao
  * entrega CPF de ninguem.</p>

@@ -339,11 +339,19 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("o mesmo CPF pode estar em duas contas")
+    @DisplayName("um CPF por conta: o app recusa o CPF de outra conta e o banco tambem (V34)")
     void cpfRepetido() {
         contas.informarCpf(titular.getId(), "529.982.247-25");
 
-        assertThat(contas.informarCpf(membro.getId(), "52998224725").cpfInformado()).isTrue();
+        assertThatThrownBy(() -> contas.informarCpf(membro.getId(), "52998224725"))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já está em outra conta");
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().temCpf()).isFalse();
+
+        // Dois cadastros ao mesmo tempo passariam pela conferencia: quem barra e o indice unico.
+        UserAccount outra = usuarios.findById(membro.getId()).orElseThrow();
+        outra.informarCpf("cifrado", usuarios.findById(titular.getId()).orElseThrow().getCpfIndice());
+        assertThatThrownBy(() -> usuarios.saveAndFlush(outra))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
     }
 
     @Test

@@ -9,18 +9,16 @@ import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas'
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { ResumoDoMesCard } from '../dashboard/resumo-do-mes';
+import { FormularioDeReceita, ReceitaLancada } from './formulario-de-receita';
 import { Icone } from '../../core/ui/icone';
 import { Vazio } from '../../core/ui/vazio';
 
 /** Receitas do mes: com elas o painel mostra a sobra e a taxa de poupanca. */
 @Component({
   selector: 'app-incomes',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard, Vazio],
+  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, ResumoDoMesCard, Vazio, FormularioDeReceita],
   templateUrl: './incomes.html',
   styles: `
-    .repetir {
-      margin-top: 0.85rem;
-    }
     .atrasada .atraso {
       color: var(--danger);
     }
@@ -31,18 +29,10 @@ export class Incomes {
 
   protected readonly mesAtual = signal(mesKey(new Date()));
   protected readonly receitas = signal<Receita[]>([]);
-  protected readonly categorias = signal<string[]>([]);
   protected readonly erro = signal('');
   protected readonly aviso = signal('');
   protected readonly salvando = signal(false);
 
-  protected readonly data = signal(hojeIso());
-  protected readonly descricao = signal('');
-  protected readonly categoria = signal('Salário');
-  protected readonly valor = signal<number | null>(null);
-  /** Receita que entra sozinha todo mes no mesmo dia. */
-  protected readonly repetir = signal(false);
-  protected readonly diaDaReceita = computed(() => Number(this.data().slice(8, 10)));
   protected readonly recorrentes = signal<ContaFixa[]>([]);
 
   protected readonly hoje = hojeIso();
@@ -68,7 +58,6 @@ export class Incomes {
       }
       untracked(() => this.carregar());
     });
-    this.finance.categoriasDeReceita().subscribe({ next: (lista) => this.categorias.set(lista) });
     this.carregar();
   }
 
@@ -78,40 +67,12 @@ export class Incomes {
     this.carregar();
   }
 
-  protected lancar(): void {
-    const descricao = this.descricao().trim();
-    const valor = this.valor();
-    if (!descricao) {
-      this.erro.set($localize`Digite a descrição da receita.`);
-      return;
-    }
-    if (valor === null || valor <= 0) {
-      this.erro.set($localize`Digite um valor válido.`);
-      return;
-    }
-    this.salvando.set(true);
+  /** Lancou pelo formulario: mostra o mes em que a receita entrou. */
+  protected aoLancar(lancada: ReceitaLancada): void {
     this.erro.set('');
-    this.finance
-      .lancarReceita({ data: this.data(), descricao, categoria: this.categoria(), valor }, this.repetir())
-      .subscribe({
-        next: () => {
-          this.descricao.set('');
-          this.valor.set(null);
-          this.aviso.set(
-            this.repetir()
-              ? $localize`Receita lançada. Ela entra sozinha todo dia ${this.diaDaReceita()}:dia:.`
-              : $localize`Receita lançada.`,
-          );
-          this.repetir.set(false);
-          this.salvando.set(false);
-          this.mesAtual.set(this.data().slice(0, 7));
-          this.carregar();
-        },
-        error: (falha) => {
-          this.erro.set(mensagemDeErro(falha));
-          this.salvando.set(false);
-        },
-      });
+    this.aviso.set(lancada.mensagem);
+    this.mesAtual.set(lancada.mes);
+    this.carregar();
   }
 
   protected excluir(receita: Receita): void {

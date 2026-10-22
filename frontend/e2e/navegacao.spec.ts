@@ -153,9 +153,9 @@ test('o "+" abre o balao e o lancamento por cima da tela; lancou, o painel fecha
   await mais.click();
   await expect(page.getByRole('menuitem', { name: 'Foto do recibo' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Lançar gasto' }).click();
-  await painel.locator('#valor-rapido').fill('12.5');
-  await painel.locator('#descricao-rapida').fill('Pão de queijo');
-  await painel.getByRole('button', { name: 'Lançar gasto' }).click();
+  await painel.locator('#rapido-valor').fill('12.5');
+  await painel.locator('#rapido-item').fill('Pão de queijo');
+  await painel.getByRole('button', { name: 'Lançar', exact: true }).click();
 
   await expect(painel).toBeHidden();
   await expect(page.getByRole('status').getByText('Gasto lançado.')).toBeVisible();
@@ -165,8 +165,8 @@ test('o "+" abre o balao e o lancamento por cima da tela; lancou, o painel fecha
   await mais.click();
   await page.getByRole('menuitem', { name: 'Lançar receita' }).click();
   await expect(painel.getByRole('tab', { name: 'Receita' })).toHaveAttribute('aria-selected', 'true');
-  await painel.locator('#valor-rapido').fill('300');
-  await painel.locator('#descricao-rapida').fill('Freela');
+  await painel.locator('#rapido-valor-receita').fill('300');
+  await painel.locator('#rapido-descricao-receita').fill('Freela');
   await painel.getByRole('button', { name: 'Lançar receita' }).click();
   await expect(painel).toBeHidden();
   await expect(page.getByRole('status').getByText('Receita lançada.')).toBeVisible();
@@ -191,7 +191,7 @@ test('o tour das funcoes principais abre pelo perfil e leva ao "+"', async ({ pa
   await page.getByRole('button', { name: 'Lançar meu primeiro gasto' }).click();
 
   await expect(page.locator('app-tutorial')).toHaveCount(0);
-  await expect(page.locator('#valor-rapido')).toBeVisible();
+  await expect(page.locator('#rapido-valor')).toBeVisible();
   await expect(page).toHaveURL(/\/perfil$/);
 });
 

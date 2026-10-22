@@ -139,19 +139,27 @@ public class MinhaContaService {
         return UserResponse.de(conta, familia.daConta(conta));
     }
 
-    /**
-     * Confere o CPF (digitos e formato). CPF ja usado em outra conta nao barra (Eduardo,
-     * 2026-10-13): {@link #prenderCpf} registra as contas no log, para investigar abuso.
-     */
+    /** Confere o CPF (digitos e formato). Se ja esta em outra conta, quem barra e {@link #prenderCpf}. */
     public Cpf conferirCpf(String digitado) {
         return Cpf.de(digitado);
     }
 
-    /** Grava o CPF ja conferido. */
+    /**
+     * Grava o CPF ja conferido. Um CPF por conta (Eduardo, 2026-10-22, desfaz a V25): CPF
+     * de outra conta e recusado, e o indice unico da V34 garante mesmo com dois cadastros
+     * ao mesmo tempo.
+     */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
         String indice = cofre.indice(cpf);
-        avisarRepetido("CPF", conta, usuarios.findByCpfIndice(indice));
+        boolean deOutraConta = usuarios.findByCpfIndice(indice).stream()
+                .anyMatch(outra -> !outra.getId().equals(conta.getId()));
+        if (deOutraConta) {
+            log.warn("CPF de outra conta recusado: conta={}", conta.getId());
+            throw new BusinessException(
+                    "Esse CPF já está em outra conta do Piggu. Se não foi você, fale com a gente pelo canal de privacidade.",
+                    HttpStatus.CONFLICT, "CPF_EM_USO");
+        }
         conta.informarCpf(cofre.cifrar(cpf), indice);
         usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
