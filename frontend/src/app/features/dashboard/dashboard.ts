@@ -8,7 +8,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { BankingService } from '../../core/api/banking.service';
 import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
-import { Cofrinho, ContaBancaria, Gasto } from '../../core/api/models';
+import { Cofrinho, ContaBancaria, Gasto, Visao } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
@@ -19,7 +19,7 @@ import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
-import { PessoaPipe } from '../../core/api/pessoas-da-familia';
+import { PessoaPipe, PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
 import { IdDoBloco, PainelOrganizado } from '../../core/ui/painel';
 import { GirlsMathDoPainel } from './girls-math-do-painel';
 import { MetasDoPainel } from './metas-do-painel';
@@ -75,6 +75,9 @@ export class Dashboard {
   protected readonly gastos = signal<Gasto[]>([]);
   protected readonly metas = signal<Record<string, number>>({});
   protected readonly mesAtual = signal(mesKey(new Date()));
+  /** Quem mora com alguem escolhe ver tudo, so o seu ou so o que e do casal. */
+  protected readonly visao = signal<Visao>('tudo');
+  protected readonly pessoas = inject(PessoasDaFamilia);
 
   protected readonly novoDeposito = signal<number | null>(null);
   protected readonly salvandoDeposito = signal(false);
@@ -252,6 +255,11 @@ export class Dashboard {
     this.carregar();
   }
 
+  protected trocarVisao(visao: Visao): void {
+    this.visao.set(visao);
+    this.carregar();
+  }
+
   protected depositar(): void {
     const valor = this.novoDeposito();
     if (!valor || valor <= 0) {
@@ -300,7 +308,7 @@ export class Dashboard {
     // dispara os tres ao mesmo tempo.
     forkJoin({
       cofrinho: this.finance.consultarCofrinho(),
-      gastos: this.finance.listarGastos(this.mesAtual()),
+      gastos: this.finance.listarGastos(this.mesAtual(), this.visao()),
       metas: this.finance.listarMetas(),
     }).subscribe({
       next: ({ cofrinho, gastos, metas }) => {

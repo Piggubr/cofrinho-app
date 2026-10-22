@@ -15,7 +15,15 @@
           ><app-icone [nome]="conta.tipo === 'CARTAO' ? 'cartao' : 'banco'" [tamanho]="18"
         /></span>
         <div>
-          <p class="linha-titulo">{{ conta.nome }}</p>
+          <p class="linha-titulo">
+            {{ conta.nome }}
+            @if (conta.compartilhado) {
+              <span i18n class="etiqueta">do casal</span>
+            }
+          </p>
+          @if (conta.usuario && conta.usuario !== eu() && pessoas.temCompanhia()) {
+            <p i18n class="linha-detalhe">De {{ pessoas.nome(conta.usuario) }}</p>
+          }
           @if (conta.tipo === 'CARTAO') {
             <p i18n class="linha-detalhe">
               Fecha dia {{ conta.fechamento }} · vence dia {{ conta.vencimento }}
@@ -50,17 +58,28 @@
             Ver fatura
           </button>
         }
-        <button
-          type="button"
-          class="botao icone-so perigo"
-          (click)="excluir(conta)"
-          aria-label="Apagar"
-          i18n-aria-label
-          title="Apagar"
-          i18n-title
-        >
-          <app-icone nome="lixeira" [tamanho]="18" />
-        </button>
+        @if (!conta.usuario || conta.usuario === eu()) {
+          @if (pessoas.temCompanhia()) {
+            <button type="button" class="botao contorno pequeno" (click)="alternarCompartilhamento(conta)">
+              @if (conta.compartilhado) {
+                <ng-container i18n>Deixar só meu</ng-container>
+              } @else {
+                <ng-container i18n>Compartilhar</ng-container>
+              }
+            </button>
+          }
+          <button
+            type="button"
+            class="botao icone-so perigo"
+            (click)="excluir(conta)"
+            aria-label="Apagar"
+            i18n-aria-label
+            title="Apagar"
+            i18n-title
+          >
+            <app-icone nome="lixeira" [tamanho]="18" />
+          </button>
+        }
       </div>
     </div>
   } @empty {
@@ -171,6 +190,18 @@
       O fechamento fica 7 dias antes do vencimento; mude se o seu banco usar outro dia. Compras
       feitas do dia do fechamento em diante vão para a fatura seguinte.
     </p>
+  }
+  @if (pessoas.temCompanhia()) {
+    <label class="dica">
+      <input
+        type="checkbox"
+        [checked]="compartilhada()"
+        (change)="compartilhada.set($any($event.target).checked)"
+      />
+      <ng-container i18n>
+        Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão adicional)
+      </ng-container>
+    </label>
   }
   <div class="acoes">
     <button i18n type="button" class="botao" (click)="salvar()" [disabled]="ocupado()">

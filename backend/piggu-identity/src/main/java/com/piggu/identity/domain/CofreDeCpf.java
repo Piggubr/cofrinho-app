@@ -15,8 +15,8 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /**
- * Guarda o CPF (e o documento de quem mora fora do Brasil) cifrado e calcula o indice
- * que acha contas com o mesmo documento (pode repetir desde a V25/V26).
+ * Guarda o CPF cifrado e calcula o indice que acha contas com o mesmo CPF (pode repetir
+ * desde a V25). Tambem abre o documento de outro pais das contas antigas que tem um.
  *
  * <p>Duas colunas: {@code cpf_cifrado} (AES-256-GCM, para devolver o numero na
  * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; desde a V25 pode repetir). O indice
@@ -64,14 +64,6 @@ public class CofreDeCpf {
     /** Sempre o mesmo para o mesmo CPF: e o que a coluna unica compara. */
     public String indice(Cpf cpf) {
         return indiceDe(cpf.numero());
-    }
-
-    /**
-     * Indice do documento de quem mora fora. Leva o tipo junto ("PT_NIF:123456789"):
-     * o mesmo numero em paises diferentes e de pessoas diferentes.
-     */
-    public String indice(DocumentosDeIdentidade.Tipo tipo, String numero) {
-        return indiceDe(tipo.name() + ":" + numero);
     }
 
     /** Nonce aleatorio + texto cifrado, em base64. */

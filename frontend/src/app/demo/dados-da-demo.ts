@@ -38,6 +38,7 @@ export interface ContaDemo {
   tipo: 'CONTA' | 'CARTAO';
   fechamento: number | null;
   vencimento: number | null;
+  compartilhado?: boolean;
 }
 
 export interface ObjetivoDemo {

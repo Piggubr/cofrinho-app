@@ -40,7 +40,7 @@ Com login, antes do resto (os guards levam para lá até a pessoa concluir):
 |---|---|
 | `/aceite` | Aceitar termos novos |
 | `/sobre-voce` | Como quer ser chamado e data de nascimento |
-| `/cpf` | Informar o documento (opcional), oferecido pelo Perfil |
+| `/cpf` | Informar o CPF (opcional, aqui e fora), oferecido pelo Perfil |
 
 Dentro do app:
 

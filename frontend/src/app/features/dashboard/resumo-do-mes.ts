@@ -2,7 +2,7 @@ import { Component, effect, inject, input, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
-import { ResumoDoMes } from '../../core/api/models';
+import { ResumoDoMes, Visao } from '../../core/api/models';
 import { Icone } from '../../core/ui/icone';
 import { MoedaPipe } from '../../core/ui/moeda';
 
@@ -136,11 +136,13 @@ export class ResumoDoMesCard {
 
   /** Mes no formato AAAA-MM. */
   readonly mes = input.required<string>();
+  /** Tudo, so o que e da pessoa ou so o compartilhado (ver VisaoAtual no backend). */
+  readonly visao = input<Visao>('tudo');
   protected readonly resumo = signal<ResumoDoMes | null>(null);
 
   constructor() {
     effect((onCleanup) => {
-      const pedido = this.finance.resumoDoMes(this.mes()).subscribe({
+      const pedido = this.finance.resumoDoMes(this.mes(), this.visao()).subscribe({
         next: (resumo) => this.resumo.set(resumo),
         // O card e informativo: sem ele o painel segue.
         error: () => this.resumo.set(null),

@@ -14,7 +14,7 @@ import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.config.JwtProperties;
 import com.piggu.identity.domain.AuthService;
 import com.piggu.identity.domain.ConfirmacaoDeEmail;
-import com.piggu.identity.domain.DocumentosDeIdentidade;
+import com.piggu.identity.domain.Paises;
 import com.piggu.identity.domain.RedefinicaoDeSenha;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -79,7 +79,7 @@ public class AuthController {
      */
     @PostMapping("/cadastro")
     public ResponseEntity<Void> cadastrar(@Valid @RequestBody CadastroRequest pedido) {
-        String pais = pedido.pais() == null ? DocumentosDeIdentidade.BRASIL : pedido.pais();
+        String pais = pedido.pais() == null ? Paises.BRASIL : pedido.pais();
         servico.cadastrar(pedido.nome(), pedido.email(), pedido.senha(), pais, pedido.documento(),
                 pedido.telefone(), pedido.versaoDosTermos(), pedido.nascimento());
 
@@ -181,6 +181,21 @@ public class AuthController {
     public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
                                      @AuthUser CurrentUser usuario) {
         return servico.salvarPreferencias(usuario.id(), pedido);
+    }
+
+    public record CompartilhamentoRequest(@NotNull Boolean mostrarTudoAoParceiro,
+                                          @NotNull Boolean compartilharPorPadrao) {
+    }
+
+    /**
+     * O que o parceiro ve do que a pessoa lanca: so o compartilhado ou tudo. Cada um decide
+     * sobre os proprios dados; vale para o parceiro na proxima renovacao do token (ate 5 min).
+     */
+    @PutMapping("/me/sharing")
+    public UserResponse compartilhamento(@Valid @RequestBody CompartilhamentoRequest pedido,
+                                         @AuthUser CurrentUser usuario) {
+        return servico.escolherCompartilhamento(usuario.id(), pedido.mostrarTudoAoParceiro(),
+                pedido.compartilharPorPadrao());
     }
 
     /**

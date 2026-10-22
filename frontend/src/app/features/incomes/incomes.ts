@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { FinanceService } from '../../core/api/finance.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
+import { AuthService } from '../../core/auth/auth.service';
 import { AReceber, ContaFixa, Receita } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
@@ -43,6 +45,14 @@ export class Incomes {
   protected readonly valor = signal<number | null>(null);
   /** Receita que entra sozinha todo mes no mesmo dia. */
   protected readonly repetir = signal(false);
+  protected readonly pessoas = inject(PessoasDaFamilia);
+  private readonly auth = inject(AuthService);
+  /** Nula segue o padrao do perfil. */
+  protected readonly compartilhada = signal<boolean | null>(null);
+  protected readonly eu = computed(() => this.auth.usuario()?.id ?? null);
+  protected readonly compartilhadaEfetiva = computed(
+    () => this.compartilhada() ?? this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ?? false,
+  );
   protected readonly diaDaReceita = computed(() => Number(this.data().slice(8, 10)));
   protected readonly recorrentes = signal<ContaFixa[]>([]);
 
@@ -93,7 +103,16 @@ export class Incomes {
     this.salvando.set(true);
     this.erro.set('');
     this.finance
-      .lancarReceita({ data: this.data(), descricao, categoria: this.categoria(), valor }, this.repetir())
+      .lancarReceita(
+        {
+          data: this.data(),
+          descricao,
+          categoria: this.categoria(),
+          valor,
+          compartilhado: this.pessoas.temCompanhia() && this.compartilhadaEfetiva(),
+        },
+        this.repetir(),
+      )
       .subscribe({
         next: () => {
           this.descricao.set('');
@@ -104,6 +123,7 @@ export class Incomes {
               : $localize`Receita lançada.`,
           );
           this.repetir.set(false);
+          this.compartilhada.set(null);
           this.salvando.set(false);
           this.mesAtual.set(this.data().slice(0, 7));
           this.carregar();

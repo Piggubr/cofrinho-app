@@ -11,7 +11,7 @@ import java.time.LocalDate;
  * Cadastro por e-mail e senha.
  *
  * @param pais            onde mora (ISO 3166, duas letras); nulo conta como Brasil
- * @param documento       opcional: CPF no Brasil, o documento de la nos paises que pedem um
+ * @param documento       o CPF, obrigatorio aqui e fora
  * @param telefone        celular; sem "+" e no Brasil vale DDD + numero
  * @param versaoDosTermos versao dos termos e do aviso que a pessoa aceitou ao se cadastrar
  * @param nascimento      decide se e menor de idade; menos de 13 anos nao cria conta

@@ -94,9 +94,8 @@ public class MinhaContaService {
                     "informadoEm", conta.getCpfInformadoEm()));
         }
         if (conta.temDocumento()) {
-            String nome = DocumentosDeIdentidade.tipo(conta.getTipoDoDocumento())
-                    .map(DocumentosDeIdentidade.Tipo::nome).orElse(conta.getTipoDoDocumento());
-            arquivo.put("documento", Map.of("tipo", nome,
+            // Documento de outro pais, de quando o cadastro pedia um (PT_NIF, ES_DNI...).
+            arquivo.put("documento", Map.of("tipo", conta.getTipoDoDocumento(),
                     "numero", cofre.decifrarTexto(conta.getDocumentoCifrado()),
                     "informadoEm", conta.getDocumentoInformadoEm()));
         }
@@ -160,21 +159,16 @@ public class MinhaContaService {
     }
 
     /**
-     * O pais onde a pessoa mora e, se ela ja digitou, o documento de la (o CPF no Brasil).
-     * Trocar de pais nao apaga documento nenhum: o que ja foi informado fica preso a conta,
-     * e quem ja tem um documento nao precisa de outro.
+     * O pais onde a pessoa mora e, se ela ja digitou, o CPF (pedido aqui e fora). Trocar
+     * de pais nao apaga documento nenhum: o que ja foi informado fica preso a conta, e quem
+     * ja tem um documento (o CPF ou o de outro pais, de conta antiga) nao precisa de outro.
      */
     @Transactional
     public UserResponse informarPais(UUID contaId, String paisDigitado, String documento) {
         UserAccount conta = conta(contaId);
-        String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        String pais = Paises.pais(paisDigitado);
         if (!Texto.vazio(documento) && !conta.temCpf() && !conta.temDocumento()) {
-            if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
-                prenderCpf(conta, conferirCpf(documento));
-            } else {
-                DocumentosDeIdentidade.pedidoEm(pais).ifPresent(tipo ->
-                        prenderDocumento(conta, tipo, conferirDocumento(tipo, documento)));
-            }
+            prenderCpf(conta, conferirCpf(documento));
         }
         if (!pais.equals(conta.getPais())) {
             conta.declararPais(pais);
@@ -222,30 +216,12 @@ public class MinhaContaService {
         return data;
     }
 
-    /** Confere o documento de fora; devolve o numero limpo. Repetido nao barra. */
-
-    public String conferirDocumento(DocumentosDeIdentidade.Tipo tipo, String digitado) {
-        return tipo.normalizar(digitado);
-    }
-
     /** So ids no log: o numero nunca sai do cofre. */
     private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
         List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
         if (!ids.isEmpty()) {
             log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
         }
-    }
-
-    /** Grava o documento ja conferido; como o CPF, pode repetir entre contas. */
-    @Transactional
-    public void prenderDocumento(UserAccount conta, DocumentosDeIdentidade.Tipo tipo, String numero) {
-        String indice = cofre.indice(tipo, numero);
-        avisarRepetido(tipo.nome(), conta, usuarios.findByIdDocIndice(indice));
-        conta.informarDocumento(tipo, cofre.cifrar(numero), indice);
-        usuarios.save(conta);
-        trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
-                conta.getId(), null, tipo.nome() + " informado");
-        log.info("Documento informado: conta={} tipo={}", conta.getId(), tipo);
     }
 
     /**

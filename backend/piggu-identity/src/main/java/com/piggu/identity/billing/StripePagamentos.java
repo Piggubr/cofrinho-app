@@ -86,11 +86,19 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     @Override
+    public boolean casalHabilitado() {
+        return propriedades.casalHabilitado();
+    }
+
+    @Override
     public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste, String campanha) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("mode", "subscription");
         if (periodo.familia() && !propriedades.familiaHabilitado()) {
             throw new BusinessException("O plano família ainda não está disponível.");
+        }
+        if (periodo.casal() && !propriedades.casalHabilitado()) {
+            throw new BusinessException("O plano casal ainda não está disponível.");
         }
         form.add("line_items[0][price]", propriedades.precoDe(periodo));
         form.add("line_items[0][quantity]", "1");
@@ -223,7 +231,7 @@ public class StripePagamentos implements ProvedorDePagamento {
                 "trialing".equals(assinaturaStripe.path("status").asString()),
                 // O tipo sai do preco cobrado, nao do metadata: trocar de plano pelo portal
                 // muda o preco e nao o metadata.
-                propriedades.ehPrecoDoFamilia(
+                propriedades.tipoDoPreco(
                         assinaturaStripe.path("items").path("data").path(0).path("price").path("id").asString("")),
                 primeiraCobranca == 0 ? null : Instant.ofEpochSecond(primeiraCobranca),
                 assinaturaStripe.path("metadata").path("campanha").asString(null),

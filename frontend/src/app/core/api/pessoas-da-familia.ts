@@ -1,4 +1,4 @@
-import { Injectable, Pipe, PipeTransform, effect, inject, signal } from '@angular/core';
+import { Injectable, Pipe, PipeTransform, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { FamilyService } from './family.service';
 import { MembroDaFamilia } from './models';
@@ -46,6 +46,21 @@ export class PessoasDaFamilia {
       }
     });
   }
+
+  /** Mora mais alguem na casa: so assim faz sentido oferecer "compartilhado". */
+  readonly temCompanhia = computed(() => (this.membros()?.length ?? 0) > 1);
+
+  /** O outro do casal: para o titular, o parceiro; para o parceiro, o titular. */
+  readonly parceiro = computed(() => {
+    const eu = this.auth.usuario();
+    const outros = (this.membros() ?? []).filter((membro) => membro.id !== eu?.id);
+    const doOutroLado = (membro: MembroDaFamilia): boolean =>
+      eu?.role === 'PARCEIRO'
+        ? membro.papel === 'TITULAR' || membro.papel === 'ADMIN'
+        : (eu?.role === 'TITULAR' || eu?.role === 'ADMIN') && membro.papel === 'PARCEIRO';
+    const candidatos = outros.filter(doOutroLado);
+    return candidatos.find((membro) => membro.papel === 'TITULAR') ?? candidatos[0] ?? null;
+  });
 
   /** Vazio enquanto os membros nao chegam, para a tela nao piscar "Ex-membro". */
   nome(id: string | null | undefined): string {

@@ -3,6 +3,7 @@ package com.piggu.finance.domain;
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
@@ -86,16 +87,30 @@ public class ContasFixasService {
     @Transactional
     public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
                                UUID autor) {
-        RecurringBill conta = repositorio.save(new RecurringBill(Texto.limitar(descricao, 200),
-                categoriaDo(RecurringBill.Tipo.GASTO, categoria), valor, dia, automatico, autor));
+        return criar(descricao, categoria, valor, dia, automatico, autor, false);
+    }
+
+    /** @param compartilhado a conta e o gasto que ela lanca aparecem para todos da familia */
+    @Transactional
+    public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
+                               UUID autor, boolean compartilhado) {
+        RecurringBill nova = new RecurringBill(Texto.limitar(descricao, 200),
+                categoriaDo(RecurringBill.Tipo.GASTO, categoria), valor, dia, automatico, autor);
+        nova.compartilhar(compartilhado);
+        RecurringBill conta = repositorio.save(nova);
         trilha.criou("conta-fixa", conta.getId(), Resumos.contaFixa(conta));
         return conta;
     }
 
+    /** @param compartilhado nulo mantem como esta; so quem criou muda */
     @Transactional
     public RecurringBill atualizar(UUID id, String descricao, String categoria, BigDecimal valor, int dia,
-                                   boolean automatico) {
+                                   boolean automatico, Boolean compartilhado, CurrentUser usuario) {
         RecurringBill conta = buscar(id);
+        Compartilhamento.exigirEdicao(usuario, conta.getUserId(), conta.isShared(), "a conta fixa");
+        if (Compartilhamento.muda(usuario, conta.getUserId(), conta.isShared(), compartilhado, "a conta fixa")) {
+            conta.compartilhar(compartilhado);
+        }
         String antes = Resumos.contaFixa(conta);
         conta.editar(Texto.limitar(descricao, 200), categoriaDo(conta.getKind(), categoria), valor, dia, automatico);
         trilha.editou("conta-fixa", id, antes, Resumos.contaFixa(conta));
@@ -103,8 +118,9 @@ public class ContasFixasService {
     }
 
     @Transactional
-    public void excluir(UUID id) {
+    public void excluir(UUID id, CurrentUser usuario) {
         RecurringBill conta = buscar(id);
+        Compartilhamento.exigirDono(usuario, conta.getUserId(), "a conta fixa");
         repositorio.delete(conta);
         trilha.apagou("conta-fixa", id, Resumos.contaFixa(conta));
     }
@@ -123,6 +139,7 @@ public class ContasFixasService {
         for (ExpenseResponse gasto : salvos) {
             RecurringBill conta = new RecurringBill(RecurringBill.Tipo.GASTO, gasto.item(), gasto.categoria(),
                     gasto.valor(), pedido.data().getDayOfMonth(), true, pedido.contaId(), autor);
+            conta.compartilhar(gasto.compartilhado());
             conta.marcarPaga(mes);
             trilha.criou("conta-fixa", repositorio.save(conta).getId(), Resumos.contaFixa(conta));
         }
@@ -133,9 +150,16 @@ public class ContasFixasService {
     @Transactional
     public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
                                           UUID autor) {
-        Income receita = receitas.criar(data, descricao, categoria, valor, autor);
+        return lancarReceitaRecorrente(data, descricao, categoria, valor, autor, false);
+    }
+
+    @Transactional
+    public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
+                                          UUID autor, boolean compartilhado) {
+        Income receita = receitas.criar(data, descricao, categoria, valor, autor, compartilhado);
         RecurringBill conta = new RecurringBill(RecurringBill.Tipo.RECEITA, receita.getDescription(),
                 receita.getCategory(), valor, data.getDayOfMonth(), true, null, autor);
+        conta.compartilhar(compartilhado);
         conta.marcarPaga(YearMonth.from(data));
         trilha.criou("receita-recorrente", repositorio.save(conta).getId(), Resumos.contaFixa(conta));
         return receita;
@@ -155,11 +179,12 @@ public class ContasFixasService {
         ExpenseResponse gasto = null;
         if (conta.getKind() == RecurringBill.Tipo.RECEITA) {
             receitas.criar(conta.vencimentoEm(mes), conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                    autor);
+                    autor, conta.isShared());
         } else {
+            // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou.
             gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
                     List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                            "Fixo")), conta.getAccountId(), null, null), autor).get(0);
+                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared()), autor).get(0);
         }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,

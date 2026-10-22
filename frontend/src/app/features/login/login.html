@@ -210,28 +210,26 @@
               }
             </select>
           </div>
-          @if (documentoPedido(); as doc) {
-            <div class="campo">
-              <label for="documento-cadastro">{{ doc.nome }}@if (pais() !== 'BR') { <ng-container i18n>(opcional)</ng-container>}</label>
-              <input
-                #campoDocumento
-                id="documento-cadastro"
+          <div class="campo">
+            <label for="documento-cadastro">{{ doc.nome }}</label>
+            <input
+              #campoDocumento
+              id="documento-cadastro"
               [attr.aria-invalid]="campoComProblema() === 'documento'"
-                name="documento"
-                [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
-                autocomplete="off"
-                autocapitalize="characters"
-                [placeholder]="doc.exemplo"
-                [attr.maxlength]="doc.tamanhoMaximo"
-                aria-describedby="dica-do-documento"
-                [value]="documento()"
-                (input)="digitarDocumento(campoDocumento.value, campoDocumento)"
-              />
-              <p i18n id="dica-do-documento" class="dica">
-                Fica guardado cifrado e não aparece para a sua família.
-              </p>
-            </div>
-          }
+              name="documento"
+              [attr.inputmode]="doc.numerico ? 'numeric' : 'text'"
+              autocomplete="off"
+              autocapitalize="characters"
+              [placeholder]="doc.exemplo"
+              [attr.maxlength]="doc.tamanhoMaximo"
+              aria-describedby="dica-do-documento"
+              [value]="documento()"
+              (input)="digitarDocumento(campoDocumento.value, campoDocumento)"
+            />
+            <p i18n id="dica-do-documento" class="dica">
+              Fica guardado cifrado e não aparece para a sua família.
+            </p>
+          </div>
           <label class="lembrar aceite-do-cadastro">
             <input
               type="checkbox"

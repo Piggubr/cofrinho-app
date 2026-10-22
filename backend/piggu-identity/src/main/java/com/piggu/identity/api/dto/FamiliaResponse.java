@@ -16,9 +16,10 @@ import java.util.UUID;
  *
  * @param plano        plano da casa: PREMIUM quando ha assinatura vigente, mesmo individual
  * @param planoFamilia a assinatura vigente e o plano familia (vale para todos)
+ * @param planoCasal   a assinatura vigente e o plano casal (vale para titular e parceiro)
  */
 public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFamilia, List<Membro> membros,
-                              List<Convite> convites) {
+                              List<Convite> convites, boolean planoCasal) {
 
     /**
      * @param premium           esta pessoa tem Premium (no individual, so quem assinou)
@@ -41,11 +42,12 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFa
                 membros.stream()
                         .map(conta -> new Membro(conta.getId(), conta.nomeExibicao(), conta.getEmail(),
                                 conta.fotoExibida(), conta.getRole(),
-                                familia.planoPara(conta.getId()) == Plano.PREMIUM, conta.convidadoParaParceria()))
+                                familia.planoPara(conta) == Plano.PREMIUM, conta.convidadoParaParceria()))
                         .toList(),
                 convites.stream()
                         .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),
                                 familia.getName()))
-                        .toList());
+                        .toList(),
+                familia.planoVigente() == Plano.PREMIUM && familia.isCasal());
     }
 }

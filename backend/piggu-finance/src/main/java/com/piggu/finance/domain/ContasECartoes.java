@@ -2,6 +2,7 @@ package com.piggu.finance.domain;
 
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseResponse;
@@ -44,11 +45,18 @@ public class ContasECartoes {
     }
 
     /**
-     * @param faturaAberta a que ainda recebe compras (so cartao)
-     * @param faturaAPagar a ja fechada que ainda nao venceu (so cartao): e o lembrete
+     * @param faturaAberta  a que ainda recebe compras (so cartao)
+     * @param faturaAPagar  a ja fechada que ainda nao venceu (so cartao): e o lembrete
+     * @param usuario       quem criou; so essa pessoa apaga ou desfaz o compartilhamento
+     * @param compartilhado do casal (ou da familia): o que for lancado nela ja nasce compartilhado
      */
     public record Conta(UUID id, String nome, PaymentAccount.Tipo tipo, Short fechamento, Short vencimento,
-                        Fatura faturaAberta, Fatura faturaAPagar) {
+                        Fatura faturaAberta, Fatura faturaAPagar, UUID usuario, boolean compartilhado) {
+
+        Conta(PaymentAccount conta, Fatura faturaAberta, Fatura faturaAPagar) {
+            this(conta.getId(), conta.getName(), conta.getKind(), conta.getClosingDay(), conta.getDueDay(),
+                    faturaAberta, faturaAPagar, conta.getUserId(), conta.isShared());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -56,19 +64,25 @@ public class ContasECartoes {
         LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         return contas.findAllByOrderByNameAsc().stream().map(conta -> {
             if (conta.getKind() != PaymentAccount.Tipo.CARTAO) {
-                return new Conta(conta.getId(), conta.getName(), conta.getKind(), null, null, null, null);
+                return new Conta(conta, null, null);
             }
             YearMonth aberta = mesDaFaturaAberta(conta.getClosingDay(), hoje);
             Periodo anterior = periodo(conta.getClosingDay(), conta.getDueDay(), aberta.minusMonths(1));
             Fatura aPagar = anterior.vencimento().isBefore(hoje) ? null : fatura(conta, anterior);
-            return new Conta(conta.getId(), conta.getName(), conta.getKind(), conta.getClosingDay(), conta.getDueDay(),
-                    fatura(conta, periodo(conta.getClosingDay(), conta.getDueDay(), aberta)), aPagar);
+            return new Conta(conta, fatura(conta, periodo(conta.getClosingDay(), conta.getDueDay(), aberta)), aPagar);
         }).toList();
     }
 
     @Transactional
     public Conta criar(String nomeBruto, PaymentAccount.Tipo tipo, Integer fechamento, Integer vencimento,
                        UUID pessoa) {
+        return criar(nomeBruto, tipo, fechamento, vencimento, pessoa, false);
+    }
+
+    /** @param compartilhado conta ou cartao do casal: o que for lancado nela ja nasce compartilhado */
+    @Transactional
+    public Conta criar(String nomeBruto, PaymentAccount.Tipo tipo, Integer fechamento, Integer vencimento,
+                       UUID pessoa, boolean compartilhado) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 60);
         if (nome.length() < 2) {
             throw new BusinessException("Digite o nome da conta ou do cartao.");
@@ -82,16 +96,27 @@ public class ContasECartoes {
             throw new BusinessException("Informe o dia de vencimento da fatura.");
         }
         Integer fecha = cartao && fechamento == null ? Integer.valueOf(fechamentoPadrao(vencimento)) : fechamento;
-        PaymentAccount conta = contas.save(new PaymentAccount(nome, tipo,
-                cartao ? fecha.shortValue() : null, cartao ? vencimento.shortValue() : null, pessoa));
-        return new Conta(conta.getId(), conta.getName(), conta.getKind(), conta.getClosingDay(), conta.getDueDay(),
-                null, null);
+        PaymentAccount nova = new PaymentAccount(nome, tipo,
+                cartao ? fecha.shortValue() : null, cartao ? vencimento.shortValue() : null, pessoa);
+        nova.compartilhar(compartilhado);
+        return new Conta(contas.save(nova), null, null);
+    }
+
+    /** Marca a conta como do casal (ou volta a ser so de quem criou). Os gastos ja lancados nao mudam. */
+    @Transactional
+    public void compartilhar(UUID id, boolean compartilhado, CurrentUser usuario) {
+        PaymentAccount conta = buscar(id);
+        if (Compartilhamento.muda(usuario, conta.getUserId(), conta.isShared(), compartilhado, "a conta")) {
+            conta.compartilhar(compartilhado);
+        }
     }
 
     /** Os gastos ficam; so perdem a conta (ON DELETE SET NULL). */
     @Transactional
-    public void excluir(UUID id) {
-        contas.delete(buscar(id));
+    public void excluir(UUID id, CurrentUser usuario) {
+        PaymentAccount conta = buscar(id);
+        Compartilhamento.exigirDono(usuario, conta.getUserId(), "a conta");
+        contas.delete(conta);
     }
 
     @Transactional(readOnly = true)
