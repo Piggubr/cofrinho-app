@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Lancamentos } from '../../core/ui/lancamentos';
 import { Focar } from '../../core/ui/focar';
 import { FinanceService } from '../../core/api/finance.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
+import { AuthService } from '../../core/auth/auth.service';
 import { AReceber, ContaFixa, Receita } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
@@ -33,6 +35,9 @@ export class Incomes {
   protected readonly aviso = signal('');
   protected readonly salvando = signal(false);
 
+  protected readonly pessoas = inject(PessoasDaFamilia);
+  private readonly auth = inject(AuthService);
+  protected readonly eu = computed(() => this.auth.usuario()?.id ?? null);
   protected readonly recorrentes = signal<ContaFixa[]>([]);
 
   protected readonly hoje = hojeIso();

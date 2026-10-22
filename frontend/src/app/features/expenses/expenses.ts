@@ -24,6 +24,7 @@ import {
   Gasto,
   MembroDaFamilia,
   RegraDeCategoria,
+  TransferenciaDoAcerto,
 } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
@@ -32,6 +33,7 @@ import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
 import { FilaDeGastos } from '../../core/offline/fila-de-gastos';
+import { AuthService } from '../../core/auth/auth.service';
 import { FormularioDeGasto, GastoLancado } from './formulario-de-gasto';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
@@ -55,6 +57,7 @@ import { Vazio } from '../../core/ui/vazio';
 })
 export class Expenses {
   protected readonly moeda = inject(MoedaService);
+  private readonly auth = inject(AuthService);
   private readonly finance = inject(FinanceService);
   protected readonly fila = inject(FilaDeGastos);
   private readonly familia = inject(FamilyService);
@@ -79,6 +82,8 @@ export class Expenses {
   protected readonly regras = signal<RegraDeCategoria[]>([]);
   protected readonly contas = signal<ContaOuCartao[]>([]);
   protected readonly membros = signal<MembroDaFamilia[]>([]);
+  protected readonly compartilhadoEditado = signal(false);
+  protected readonly transferencias = signal<TransferenciaDoAcerto[]>([]);
   protected readonly acerto = signal<AcertoDeDivisao[]>([]);
   protected readonly termoDaRegra = signal('');
   protected readonly categoriaDaRegra = signal('');
@@ -162,6 +167,12 @@ export class Expenses {
     this.itemEditado.set(gasto.item);
     this.categoriaEditada.set(gasto.categoria);
     this.valorEditado.set(gasto.valor);
+    this.compartilhadoEditado.set(gasto.compartilhado ?? false);
+  }
+
+  /** Do compartilhado, so quem lancou apaga ou volta para "só meu". */
+  protected ehMeu(gasto: Gasto): boolean {
+    return gasto.usuario === this.auth.usuario()?.id;
   }
 
   protected cancelarEdicao(): void {
@@ -177,11 +188,15 @@ export class Expenses {
 
     const antes = this.gastos().find((g) => g.id === id);
     this.finance
-      .editarGasto(id, {
-        item: this.itemEditado().trim(),
-        categoria: this.categoriaEditada(),
-        valor,
-      })
+      .editarGasto(
+        id,
+        {
+          item: this.itemEditado().trim(),
+          categoria: this.categoriaEditada(),
+          valor,
+        },
+        antes && this.ehMeu(antes) ? this.compartilhadoEditado() : undefined,
+      )
       .subscribe({
         next: (salvo) => {
           if (antes && antes.categoria !== salvo.categoria) {
@@ -250,9 +265,20 @@ export class Expenses {
   }
 
   private carregarAcerto(): void {
-    this.finance
-      .acertoDoMes(this.mesAtual())
-      .subscribe({ next: (lista) => this.acerto.set(lista) });
+    const mes = this.mesAtual();
+    this.finance.acertoDoMes(mes).subscribe({
+      next: (lista) => {
+        this.acerto.set(lista);
+        // Sem gasto dividido no mes nao ha acerto: poupa o pedido de quem paga quem.
+        if (!lista.length) {
+          this.transferencias.set([]);
+          return;
+        }
+        this.finance
+          .quemDeveAQuem(mes)
+          .subscribe({ next: (transferencias) => this.transferencias.set(transferencias) });
+      },
+    });
   }
 
   private carregar(): void {

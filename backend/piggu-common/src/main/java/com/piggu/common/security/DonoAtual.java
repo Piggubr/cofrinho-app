@@ -10,8 +10,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Cada pessoa ve so o que lancou; titular e parceiro veem tambem o um do outro e o dos
- * menores (13 a 17 anos).
+ * Cada pessoa ve o que lancou e o que os outros da familia marcaram como compartilhado;
+ * titular e parceiro veem tambem o dos menores (13 a 17 anos) e, quando o outro escolhe
+ * mostrar, tudo o que o outro lanca.
  *
  * <p>Como o {@link FamiliaAtual}, fica no Hibernate e nao em cada consulta: as entidades
  * com dono declaram o filtro {@link #FILTRO} (ligado sozinho, inclusive no
@@ -34,6 +35,15 @@ public final class DonoAtual {
 
     /** Condicao para a coluna {@code user_id}; {@code {alias}} e a tabela na consulta. */
     public static final String POR_USER_ID = "(:todos OR {alias}.user_id = ANY(CAST(:visiveis AS uuid[]))"
+            + " OR ({alias}.user_id IS NULL AND :semDono))";
+
+    /**
+     * {@link #POR_USER_ID} mais o que o dono marcou como compartilhado (coluna {@code shared}):
+     * gastos, receitas, contas fixas, contas e cartoes e cofrinhos. Compartilhado aparece para
+     * todos da familia; o filtro por familia ({@link FamiliaAtual}) ja deixou as outras de fora.
+     */
+    public static final String POR_USER_ID_OU_COMPARTILHADO = "(:todos OR {alias}.shared"
+            + " OR {alias}.user_id = ANY(CAST(:visiveis AS uuid[]))"
             + " OR ({alias}.user_id IS NULL AND :semDono))";
 
     /**

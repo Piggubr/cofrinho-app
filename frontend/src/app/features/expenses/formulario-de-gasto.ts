@@ -126,6 +126,15 @@ export class FormularioDeGasto {
 
   protected readonly membros = signal<MembroDaFamilia[]>([]);
   protected readonly dividirCom = signal<string[]>([]);
+  /** Escolha da pessoa; nula segue o cartao (o do casal compartilha) e o padrao do perfil. */
+  protected readonly compartilhado = signal<boolean | null>(null);
+  protected readonly compartilhadoEfetivo = computed(
+    () =>
+      this.compartilhado() ??
+      (this.contas().find((conta) => conta.id === this.novaConta())?.compartilhado ||
+        this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ||
+        false),
+  );
   protected readonly precoAcima = signal<ConferenciaDePreco | null>(null);
 
   protected readonly totalEmConferencia = computed(() =>
@@ -139,6 +148,7 @@ export class FormularioDeGasto {
       partes.push(this.moedaDaCompra());
     }
     if (this.dividirCom().length) partes.push($localize`dividido`);
+    if (this.membros().length > 1 && this.compartilhadoEfetivo()) partes.push($localize`compartilhado`);
     return partes.join(' · ');
   });
 
@@ -273,6 +283,7 @@ export class FormularioDeGasto {
       parcelas: parcelas > 1 ? parcelas : null,
       dividirCom: this.dividirCom().length ? this.dividirCom() : null,
       recorrente: this.modo() === 'RECORRENTE' || null,
+      compartilhado: this.compartilhadoEfetivo(),
     };
     this.finance.lancarGastos(pedido).subscribe({
       next: (salvos) => {
@@ -326,6 +337,7 @@ export class FormularioDeGasto {
     this.trocarModo('VISTA');
     this.precoAcima.set(null);
     this.dividirCom.set([]);
+    this.compartilhado.set(null);
     this.salvando.set(false);
   }
 
@@ -427,6 +439,7 @@ export class FormularioDeGasto {
         origem: 'Foto',
         itens: itens as ItemDeGasto[],
         contaId: this.novaConta() || null,
+        compartilhado: this.compartilhadoEfetivo(),
       })
       .subscribe({
         next: () => {

@@ -34,7 +34,7 @@ describe('Expenses', () => {
 
   function abrir(restantes: number): HTMLElement {
     const tela = TestBed.createComponent(Expenses);
-    abrirCom(tela, [], [], [], restantes);
+    abrirCom(tela, [], [], [], [], restantes);
     tela.detectChanges();
     return tela.nativeElement;
   }
@@ -154,12 +154,20 @@ describe('Expenses', () => {
         { pessoa: 'u-bia', pagou: 0, parte: 30, saldo: -30 },
         { pessoa: null, pagou: 0, parte: 20, saldo: -20 },
       ],
+      [],
+      [
+        { de: 'u-bia', para: eu.id, valor: 30 },
+        { de: null, para: eu.id, valor: 20 },
+      ],
     );
     tela.detectChanges();
     const pagina: HTMLElement = tela.nativeElement;
     const nomes = [...pagina.querySelectorAll('.linha-titulo')].map((l) => l.textContent?.trim());
     expect(nomes).toEqual(expect.arrayContaining(['Titular', 'Bia', 'Ex-membro']));
     expect(pagina.textContent).not.toContain('@piggu.test');
+    const acerto = pagina.querySelector('.acerto-resumo')?.textContent?.replace(/\s+/g, ' ');
+    expect(acerto).toContain('Bia paga');
+    expect(acerto).toContain('para Titular');
 
     const caixas = [...pagina.querySelectorAll<HTMLInputElement>('.dividir input[type=checkbox]')];
     caixas.forEach((caixa) => caixa.dispatchEvent(new Event('change')));
@@ -312,6 +320,7 @@ describe('Expenses', () => {
     membros = [] as unknown[],
     acerto = [] as unknown[],
     contas = [] as unknown[],
+    transferencias = [] as unknown[],
     restantes = 10,
   } = {}): void {
     const corpos: Record<string, unknown> = {
@@ -321,6 +330,7 @@ describe('Expenses', () => {
       '/api/family': { id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] },
       '/api/categories/rules': [],
       '/api/accounts': contas,
+      '/api/expenses/splits/transfers': transferencias,
       '/api/receipts/usage': { usadas: 10 - restantes, limite: 10, restantes },
     };
     // Responder umas listas pede outras (o acerto vem depois dos gastos).
@@ -337,9 +347,10 @@ describe('Expenses', () => {
     membros: unknown[] = [],
     acerto: unknown[] = [],
     contas: unknown[] = [],
+    transferencias: unknown[] = [],
     restantes = 10,
   ): void {
     tela.detectChanges();
-    responder({ membros, acerto, contas, restantes });
+    responder({ membros, acerto, contas, transferencias, restantes });
   }
 });

@@ -332,6 +332,14 @@
             </label>
           }
         </fieldset>
+        <label class="campo alinhado compartilhar">
+          <input
+            type="checkbox"
+            [checked]="compartilhadoEfetivo()"
+            (change)="compartilhado.set($any($event.target).checked)"
+          />
+          <span i18n>Compartilhado: aparece para quem mora com você</span>
+        </label>
       }
     </div>
   </details>

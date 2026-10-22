@@ -26,6 +26,9 @@ import java.util.UUID;
  * objetivos que ja existem seguem recebendo deposito, so nao nasce outro. O saldo do
  * objetivo e a soma dos depositos feitos para ele, sem descontar gasto: o desconto de
  * gastos vale so para o cofrinho geral.</p>
+ *
+ * <p>Compartilhado e a meta a dois: os dois (ou a familia) veem, depositam e editam; o total
+ * soma o deposito de todos. So quem criou apaga ou volta para "so meu".</p>
  */
 @Service
 public class ObjetivosService {
@@ -40,10 +43,12 @@ public class ObjetivosService {
      * @param mesesRestantes meses ate o prazo contando o atual; nulo sem prazo
      * @param porMes         quanto guardar por mes para chegar no prazo; nulo sem prazo
      * @param atrasado       o prazo passou e ainda falta dinheiro
+     * @param usuario        quem criou
+     * @param compartilhado  meta a dois: todos da familia veem e depositam
      */
     public record Situacao(UUID id, String nome, BigDecimal alvo, LocalDate prazo, BigDecimal guardado,
                            BigDecimal falta, int percentual, Integer mesesRestantes, BigDecimal porMes,
-                           boolean concluido, boolean atrasado) {
+                           boolean concluido, boolean atrasado, UUID usuario, boolean compartilhado) {
     }
 
     private final SavingsGoalRepository objetivos;
@@ -71,19 +76,35 @@ public class ObjetivosService {
 
     @Transactional
     public Situacao criar(String nome, BigDecimal alvo, LocalDate prazo, CurrentUser usuario) {
-        if (!usuario.isPremium() && objetivos.count() >= LIMITE_NO_GRATUITO) {
+        return criar(nome, alvo, prazo, false, usuario);
+    }
+
+    @Transactional
+    public Situacao criar(String nome, BigDecimal alvo, LocalDate prazo, boolean compartilhado, CurrentUser usuario) {
+        if (!usuario.isPremium() && objetivos.countByUserId(usuario.id()) >= LIMITE_NO_GRATUITO) {
             throw new BusinessException("Mais de um cofrinho por objetivo faz parte do Piggu Premium.",
                     HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
         }
-        SavingsGoal objetivo = objetivos.save(new SavingsGoal(nome.strip(), alvo, prazo, usuario.id()));
+        SavingsGoal novo = new SavingsGoal(nome.strip(), alvo, prazo, usuario.id());
+        novo.compartilhar(compartilhado);
+        SavingsGoal objetivo = objetivos.save(novo);
         trilha.criou("objetivo", objetivo.getId(), Resumos.objetivo(objetivo));
         return situacao(objetivo, BigDecimal.ZERO, LocalDate.now());
     }
 
-    /** Mudar nome, alvo ou prazo e livre, inclusive com o Premium vencido. */
+    /**
+     * Mudar nome, alvo ou prazo e livre, inclusive com o Premium vencido.
+     *
+     * @param compartilhado nulo mantem como esta; so quem criou muda
+     */
     @Transactional
-    public void alterar(UUID id, String nome, BigDecimal alvo, LocalDate prazo) {
+    public void alterar(UUID id, String nome, BigDecimal alvo, LocalDate prazo, Boolean compartilhado,
+                        CurrentUser usuario) {
         SavingsGoal objetivo = buscar(id);
+        Compartilhamento.exigirEdicao(usuario, objetivo.getUserId(), objetivo.isShared(), "o cofrinho");
+        if (Compartilhamento.muda(usuario, objetivo.getUserId(), objetivo.isShared(), compartilhado, "o cofrinho")) {
+            objetivo.compartilhar(compartilhado);
+        }
         String antes = Resumos.objetivo(objetivo);
         objetivo.alterar(nome.strip(), alvo, prazo);
         trilha.editou("objetivo", id, antes, Resumos.objetivo(objetivo));
@@ -91,8 +112,9 @@ public class ObjetivosService {
 
     /** Os depositos do objetivo voltam para o cofrinho geral (ON DELETE SET NULL). */
     @Transactional
-    public void excluir(UUID id) {
+    public void excluir(UUID id, CurrentUser usuario) {
         SavingsGoal objetivo = buscar(id);
+        Compartilhamento.exigirDono(usuario, objetivo.getUserId(), "o cofrinho");
         objetivos.delete(objetivo);
         trilha.apagou("objetivo", id, Resumos.objetivo(objetivo));
     }
@@ -119,7 +141,7 @@ public class ObjetivosService {
             porMes = falta.divide(BigDecimal.valueOf(Math.max(1, meses)), 2, RoundingMode.CEILING);
         }
         return new Situacao(objetivo.getId(), objetivo.getName(), alvo, prazo, guardado, falta, percentual, meses,
-                porMes, concluido, atrasado);
+                porMes, concluido, atrasado, objetivo.getUserId(), objetivo.isShared());
     }
 
     /** Meses que ainda cabem deposito: o atual e o do prazo contam; prazo passado da zero. */

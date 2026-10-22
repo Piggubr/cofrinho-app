@@ -1,6 +1,8 @@
 import { Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FinanceService } from '../../core/api/finance.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
+import { AuthService } from '../../core/auth/auth.service';
 import { hojeIso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
@@ -27,6 +29,8 @@ export interface ReceitaLancada {
 export class FormularioDeReceita {
   private readonly finance = inject(FinanceService);
   private readonly elemento = inject(ElementRef<HTMLElement>);
+  protected readonly pessoas = inject(PessoasDaFamilia);
+  private readonly auth = inject(AuthService);
 
   /** Prefixo dos ids: a tela de Receitas e o painel do "+" podem estar abertos juntos. */
   readonly prefixo = input('');
@@ -42,6 +46,11 @@ export class FormularioDeReceita {
   protected readonly valor = signal<number | null>(null);
   /** Receita que entra sozinha todo mes no mesmo dia. */
   protected readonly repetir = signal(false);
+  /** Nula segue o padrao do perfil. */
+  protected readonly compartilhada = signal<boolean | null>(null);
+  protected readonly compartilhadaEfetiva = computed(
+    () => this.compartilhada() ?? this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ?? false,
+  );
   protected readonly diaDaReceita = computed(() => Number(this.data().slice(8, 10)));
 
   constructor() {
@@ -68,7 +77,16 @@ export class FormularioDeReceita {
     this.salvando.set(true);
     this.erro.set('');
     this.finance
-      .lancarReceita({ data: this.data(), descricao, categoria: this.categoria(), valor }, this.repetir())
+      .lancarReceita(
+        {
+          data: this.data(),
+          descricao,
+          categoria: this.categoria(),
+          valor,
+          compartilhado: this.pessoas.temCompanhia() && this.compartilhadaEfetiva(),
+        },
+        this.repetir(),
+      )
       .subscribe({
         next: () => {
           const mensagem = this.repetir()
@@ -77,6 +95,7 @@ export class FormularioDeReceita {
           this.descricao.set('');
           this.valor.set(null);
           this.repetir.set(false);
+          this.compartilhada.set(null);
           this.salvando.set(false);
           this.lancado.emit({ mensagem, mes: this.data().slice(0, 7) });
         },

@@ -2,6 +2,7 @@ package com.piggu.finance.domain;
 
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Texto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +39,34 @@ public class IncomeService {
 
     @Transactional
     public Income criar(LocalDate data, String descricao, String categoria, BigDecimal valor, UUID usuarioId) {
-        Income receita = repositorio.save(new Income(data, Texto.limitar(descricao, 200), categoria(categoria), valor, usuarioId));
+        return criar(data, descricao, categoria, valor, usuarioId, false);
+    }
+
+    /** @param compartilhado aparece para todos da familia, nao so para quem lancou */
+    @Transactional
+    public Income criar(LocalDate data, String descricao, String categoria, BigDecimal valor, UUID usuarioId,
+                        boolean compartilhado) {
+        Income nova = new Income(data, Texto.limitar(descricao, 200), categoria(categoria), valor, usuarioId);
+        nova.compartilhar(compartilhado);
+        Income receita = repositorio.save(nova);
         trilha.criou("receita", receita.getId(), Resumos.receita(receita));
         log.info("Receita lancada: id={}", receita.getId());
         return receita;
     }
 
+    /**
+     * Compartilhada, os dois editam; so quem lancou muda o compartilhamento.
+     *
+     * @param compartilhado nulo mantem como esta
+     */
     @Transactional
-    public Income atualizar(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor) {
+    public Income atualizar(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
+                            Boolean compartilhado, CurrentUser usuario) {
         Income receita = buscar(id);
+        Compartilhamento.exigirEdicao(usuario, receita.getUserId(), receita.isShared(), "a receita");
+        if (Compartilhamento.muda(usuario, receita.getUserId(), receita.isShared(), compartilhado, "a receita")) {
+            receita.compartilhar(compartilhado);
+        }
         String antes = Resumos.receita(receita);
         receita.editar(data, Texto.limitar(descricao, 200), categoria(categoria), valor);
         trilha.editou("receita", id, antes, Resumos.receita(receita));
@@ -54,8 +74,9 @@ public class IncomeService {
     }
 
     @Transactional
-    public void excluir(UUID id) {
+    public void excluir(UUID id, CurrentUser usuario) {
         Income receita = buscar(id);
+        Compartilhamento.exigirDono(usuario, receita.getUserId(), "a receita");
         repositorio.delete(receita);
         trilha.apagou("receita", id, Resumos.receita(receita));
         log.info("Receita apagada: id={}", id);

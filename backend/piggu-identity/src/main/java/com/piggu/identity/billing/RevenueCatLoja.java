@@ -82,8 +82,14 @@ public class RevenueCatLoja implements LojaDeApps {
                         Instant.ofEpochMilli(evento.path("event_timestamp_ms").asLong()),
                         comprou == 0 ? null : Instant.ofEpochMilli(comprou),
                         "TRIAL".equals(evento.path("period_type").asString("")),
-                        // Produtos do familia nas lojas tem "familia" no id (ex.: piggu_familia_mensal).
-                        evento.path("product_id").asString("").toLowerCase(java.util.Locale.ROOT).contains("familia"))));
+                        tipoDoProduto(evento.path("product_id").asString("")))));
+    }
+
+    /** Produtos do familia e do casal nas lojas tem o plano no id (ex.: piggu_familia_mensal, piggu_casal_anual). */
+    static TipoDePlano tipoDoProduto(String produto) {
+        String id = produto.toLowerCase(java.util.Locale.ROOT);
+        return id.contains("familia") ? TipoDePlano.FAMILIA
+                : id.contains("casal") ? TipoDePlano.CASAL : TipoDePlano.INDIVIDUAL;
     }
 
     /** Aceita o segredo puro ou "Bearer segredo", como o painel do RevenueCat permite configurar. */

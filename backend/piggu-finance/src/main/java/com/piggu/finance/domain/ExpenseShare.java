@@ -17,10 +17,10 @@ import java.util.UUID;
 @Table(name = "expense_shares")
 public class ExpenseShare {
 
-    /** A parte da pessoa, e todas as partes dos gastos que ela ve por ser dona. */
+    /** A parte da pessoa, e todas as partes dos gastos que ela ve (por ser dona ou compartilhados). */
     static final String VISIVEL = "(:todos OR {alias}.member_id = ANY(CAST(:visiveis AS uuid[]))"
             + " OR {alias}.expense_id IN (SELECT e.id FROM expenses e"
-            + " WHERE e.user_id = ANY(CAST(:visiveis AS uuid[])) OR (e.user_id IS NULL AND :semDono)))";
+            + " WHERE e.shared OR e.user_id = ANY(CAST(:visiveis AS uuid[])) OR (e.user_id IS NULL AND :semDono)))";
 
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */

@@ -19,6 +19,9 @@ public interface ProvedorDePagamento {
     /** O plano familia tem preco configurado no provedor. */
     boolean familiaHabilitado();
 
+    /** O plano casal tem preco configurado no provedor. */
+    boolean casalHabilitado();
+
     /**
      * Endereco da pagina de pagamento do provedor.
      *

@@ -14,6 +14,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { UsersService } from '../../core/api/users.service';
 import { AvisosNoCelular } from '../../core/nativo/avisos-no-celular';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
 import { MoedaDisponivel, PigguRole, Usuario } from '../../core/api/models';
 import { baixar, prepararFotoDePerfil } from '../../core/ui/arquivo';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
@@ -102,6 +103,14 @@ export class Profile {
   protected readonly avisoPorEmail = signal(this.auth.usuario()?.avisos?.email ?? false);
   protected readonly avisoNoCelular = signal(this.auth.usuario()?.avisos?.push ?? false);
   protected readonly salvandoAvisos = signal(false);
+  protected readonly pessoas = inject(PessoasDaFamilia);
+  protected readonly mostrarTudoAoParceiro = signal(
+    this.auth.usuario()?.compartilhamento?.mostraTudoAoParceiro ?? false,
+  );
+  protected readonly compartilharPorPadrao = signal(
+    this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ?? false,
+  );
+  protected readonly salvandoCompartilhamento = signal(false);
 
   protected readonly excluindo = signal(false);
 
@@ -365,6 +374,32 @@ export class Profile {
         this.salvandoAvisos.set(false);
       },
     });
+  }
+
+  /** Cada pessoa decide o que o parceiro ve; a mudanca vale para ele no proximo login ou em minutos. */
+  protected salvarCompartilhamento(): void {
+    this.salvandoCompartilhamento.set(true);
+    this.erro.set('');
+    this.aviso.set('');
+    this.users
+      .salvarCompartilhamento({
+        mostraTudoAoParceiro: this.mostrarTudoAoParceiro() && this.pessoas.parceiro() !== null,
+        compartilharPorPadrao: this.compartilharPorPadrao(),
+      })
+      .subscribe({
+        next: (usuario) => {
+          this.auth.atualizarUsuario(usuario);
+          this.aviso.set($localize`Compartilhamento salvo.`);
+          this.salvandoCompartilhamento.set(false);
+        },
+        error: (falha) => {
+          const salvo = this.auth.usuario()?.compartilhamento;
+          this.mostrarTudoAoParceiro.set(salvo?.mostraTudoAoParceiro ?? false);
+          this.compartilharPorPadrao.set(salvo?.compartilharPorPadrao ?? false);
+          this.erro.set(mensagemDeErro(falha));
+          this.salvandoCompartilhamento.set(false);
+        },
+      });
   }
 
   protected baixarMeusDados(): void {

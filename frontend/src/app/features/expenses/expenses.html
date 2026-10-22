@@ -114,6 +114,16 @@
               (ngModelChange)="valorEditado.set($event)"
             />
           </div>
+          @if (ehMeu(gasto) && membros().length > 1) {
+            <label class="campo alinhado compartilhar">
+              <input
+                type="checkbox"
+                [checked]="compartilhadoEditado()"
+                (change)="compartilhadoEditado.set($any($event.target).checked)"
+              />
+              <span i18n>Compartilhado</span>
+            </label>
+          }
           <div class="campo alinhado acoes-edicao">
             <button i18n type="button" class="botao pequeno" (click)="salvarEdicao(gasto.id)">
               Salvar
@@ -141,6 +151,12 @@
               @if (gasto.moedaOriginal) {
                 · {{ gasto.valorOriginal | moeda: gasto.moedaOriginal }}
               }
+              @if (gasto.compartilhado) {
+                <ng-container i18n>· compartilhado</ng-container>
+              }
+              @if (!ehMeu(gasto) && membros().length > 1) {
+                <ng-container i18n>· de {{ nomeDe(gasto.usuario) }}</ng-container>
+              }
             </p>
           </div>
           <div class="linha-acoes">
@@ -156,17 +172,19 @@
             >
               <app-icone nome="lapis" [tamanho]="18" />
             </button>
-            <button
-              type="button"
-              class="botao icone-so perigo"
-              (click)="excluir(gasto)"
-              aria-label="Apagar"
-              i18n-aria-label
-              title="Apagar"
-              i18n-title
-            >
-              <app-icone nome="lixeira" [tamanho]="18" />
-            </button>
+            @if (!gasto.compartilhado || ehMeu(gasto)) {
+              <button
+                type="button"
+                class="botao icone-so perigo"
+                (click)="excluir(gasto)"
+                aria-label="Apagar"
+                i18n-aria-label
+                title="Apagar"
+                i18n-title
+              >
+                <app-icone nome="lixeira" [tamanho]="18" />
+              </button>
+            }
           </div>
         </div>
       }
@@ -189,6 +207,12 @@
     <div class="cartao-titulo">
       <h2 i18n id="titulo-acerto">Divisão do mês</h2>
     </div>
+    @for (transferencia of transferencias(); track $index) {
+      <p i18n class="acerto-resumo" role="status">
+        {{ nomeDe(transferencia.de) }} paga {{ transferencia.valor | moeda }} para
+        {{ nomeDe(transferencia.para) }}.
+      </p>
+    }
     @for (pessoa of acerto(); track pessoa.pessoa) {
       <div class="linha">
         <div>

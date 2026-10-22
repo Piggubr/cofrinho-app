@@ -51,6 +51,16 @@
   <input type="checkbox" [checked]="repetir()" (change)="repetir.set($any($event.target).checked)" />
   <span i18n>Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span>
 </label>
+@if (pessoas.temCompanhia()) {
+  <label class="repetir">
+    <input
+      type="checkbox"
+      [checked]="compartilhadaEfetiva()"
+      (change)="compartilhada.set($any($event.target).checked)"
+    />
+    <span i18n>Compartilhada: aparece para quem mora com você</span>
+  </label>
+}
 <div class="acoes">
   <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
     Lançar receita
