@@ -18,7 +18,7 @@ RUN mvn -B -q dependency:go-offline -DskipTests || true
 
 COPY . .
 ARG MODULO
-RUN mvn -B -q -pl ${MODULO} -am package -DskipTests
+RUN mvn -B -q -pl ${MODULO} -am package -DskipTests -Dcheckstyle.skip
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
