@@ -14,7 +14,7 @@ import java.math.BigDecimal;
  *
  * @param item      nome do produto ou servico
  * @param categoria categoria; se nao for uma das conhecidas, o servidor usa Outros
- * @param valor     valor em euro
+ * @param valor     valor na moeda da conta
  * @param tipo      Fixo ou Variavel
  * @param moedaOriginal codigo ISO da moeda da compra, quando nao e a da pessoa; o valor ja vem convertido
  * @param valorOriginal valor na moeda da compra

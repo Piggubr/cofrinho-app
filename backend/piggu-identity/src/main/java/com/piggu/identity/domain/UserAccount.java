@@ -135,14 +135,16 @@ public class UserAccount {
     private Instant cpfInformadoEm;
 
     /**
-     * Pais onde mora (ISO 3166). No Brasil o CPF e obrigatorio; nos paises de
-     * {@link DocumentosDeIdentidade} o documento de la; nos demais, nenhum. Nulo so em
-     * conta que disse "fora do Brasil" antes de existir a lista de paises.
+     * Pais onde mora (ISO 3166). O CPF e pedido em qualquer pais. Nulo so em conta que
+     * disse "fora do Brasil" antes de existir a lista de paises.
      */
     @Column(name = "country", length = 2)
-    private String country = DocumentosDeIdentidade.BRASIL;
+    private String country = Paises.BRASIL;
 
-    /** Documento de quem mora fora ({@link DocumentosDeIdentidade.Tipo}), cifrado como o CPF. */
+    /**
+     * Documento de outro pais (PT_NIF, ES_DNI...), cifrado como o CPF. So em conta antiga:
+     * o cadastro pedia um a quem morava fora; hoje pede o CPF a todos.
+     */
     @Column(name = "id_doc_type", length = 20)
     private String idDocType;
 
@@ -620,28 +622,11 @@ public class UserAccount {
     }
 
     /**
-     * Nada falta de documento: ja informou um (CPF ou o de fora), ou mora num pais onde
-     * o Piggu nao pede nenhum. Quem ja informou um documento nao precisa de outro ao mudar.
+     * Nada falta de documento: ja informou o CPF ou, em conta antiga, o documento de outro
+     * pais. Quem ja informou um documento nao precisa de outro.
      */
     public boolean documentoEmDia() {
-        if (temCpf() || temDocumento()) {
-            return true;
-        }
-        if (DocumentosDeIdentidade.BRASIL.equals(country)) {
-            return false;
-        }
-        return DocumentosDeIdentidade.pedidoEm(country).isEmpty();
-    }
-
-    /** Como o CPF: entra uma vez e fica preso a conta. */
-    public void informarDocumento(DocumentosDeIdentidade.Tipo tipo, String cifrado, String indice) {
-        if (temDocumento()) {
-            throw new IllegalStateException("A conta ja tem documento");
-        }
-        this.idDocType = tipo.name();
-        this.idDocCifrado = cifrado;
-        this.idDocIndice = indice;
-        this.idDocInformadoEm = Instant.now();
+        return temCpf() || temDocumento();
     }
 
     public String getTipoDoDocumento() {

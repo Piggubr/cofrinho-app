@@ -75,6 +75,9 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Autowired
+    private CofreDeCpf cofre;
+
+    @Autowired
     private com.piggu.identity.billing.AssinaturaService assinaturas;
 
     private UserAccount titular;
@@ -315,27 +318,35 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("o documento cobrado depende do pais; o que ja foi informado fica e vale ao mudar")
-    void documentoPorPais() {
+    @DisplayName("o CPF e pedido em qualquer pais; o que ja foi informado fica e vale ao mudar")
+    void cpfEmQualquerPais() {
         assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado()).as("no Brasil, sem CPF").isFalse();
 
         UserResponse eua = contas.informarPais(titular.getId(), "us", null);
         assertThat(eua.pais()).isEqualTo("US");
-        assertThat(eua.cpfInformado()).as("nos EUA nada fica pendente").isTrue();
+        assertThat(eua.cpfInformado()).as("nos EUA tambem pede CPF").isFalse();
 
-        assertThat(contas.informarPais(titular.getId(), "ES", null).cpfInformado()).as("Espanha pede DNI").isFalse();
-        assertThatThrownBy(() -> contas.informarPais(titular.getId(), "ES", "12345678A"))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_INVALIDO"));
-        assertThat(contas.informarPais(titular.getId(), "ES", "12345678-z").cpfInformado()).isTrue();
-
-        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
-        assertThat(salvo.getTipoDoDocumento()).isEqualTo("ES_DNI");
-        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("documento")
-                .asString().contains("12345678Z", "DNI/NIE");
+        assertThatThrownBy(() -> contas.informarPais(titular.getId(), "ES", "12345678Z"))
+                .as("documento de outro pais nao serve mais")
+                .isInstanceOf(BusinessException.class).hasMessageContaining("CPF");
+        assertThat(contas.informarPais(titular.getId(), "ES", "529.982.247-25").cpfInformado()).isTrue();
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().temCpf()).isTrue();
 
         assertThat(contas.informarPais(titular.getId(), "BR", null).cpfInformado())
-                .as("quem ja tem documento nao precisa de outro ao voltar").isTrue();
+                .as("quem ja tem CPF nao precisa de outro ao voltar").isTrue();
+    }
+
+    @Test
+    @DisplayName("conta antiga com documento de outro pais fica em dia e o exporta")
+    void documentoAntigoDeOutroPais() {
+        jdbc.update("UPDATE users SET country = 'ES', id_doc_type = 'ES_DNI', id_doc_cifrado = ?,"
+                        + " id_doc_indice = 'indice-antigo', id_doc_informado_em = now() WHERE id = ?",
+                cofre.cifrar("12345678Z"), titular.getId());
+
+        UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(contas.informarPais(titular.getId(), "ES", null).cpfInformado()).isTrue();
+        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("documento")
+                .asString().contains("12345678Z", "ES_DNI");
     }
 
     @Test
