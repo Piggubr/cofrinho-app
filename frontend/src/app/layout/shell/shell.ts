@@ -506,27 +506,28 @@ export class Shell {
     this.fotoDoRecibo.set(null);
   }
 
-  /** "Mais opções" do painel: parcelas, moeda e divisao ficam na tela de Gastos. */
-  protected abrirGastos(): void {
-    this.lancamentoAberto.set(false);
-    void this.router.navigate(['/gastos'], { queryParams: { rapido: 1 } });
-  }
-
   protected async sair(): Promise<void> {
     await this.auth.sair();
   }
 
   /**
-   * "1 USD = R$ 5,00": uma unidade da moeda mais forte do par, escrita na mais fraca,
-   * qualquer que seja a ordem em que a pessoa escolheu as duas.
+   * "1 BRL = US$ 0,1786": uma unidade da primeira moeda escolhida, escrita na segunda, na
+   * ordem que a pessoa escolheu. Abaixo de 1 mostra ate 4 casas, para nao virar US$ 0,18.
    */
   protected taxaFormatada(): string {
     const cotacao = this.cotacao();
     if (!cotacao?.taxa) {
       return '';
     }
-    return cotacao.taxa >= 1
-      ? `1 ${cotacao.de} = ${formatadorDe(cotacao.para).format(cotacao.taxa)}`
-      : `1 ${cotacao.para} = ${formatadorDe(cotacao.de).format(1 / cotacao.taxa)}`;
+    const formatador =
+      cotacao.taxa < 1
+        ? new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: cotacao.para,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          })
+        : formatadorDe(cotacao.para);
+    return `1 ${cotacao.de} = ${formatador.format(cotacao.taxa)}`;
   }
 }

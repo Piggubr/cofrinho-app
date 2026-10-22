@@ -100,7 +100,7 @@ describe('Budgets', () => {
     pagina.querySelector<HTMLButtonElement>('button[aria-label=Mudar]')!.click();
     tela.detectChanges();
     await tela.whenStable();
-    expect(pagina.querySelector<HTMLInputElement>('#limite-orcamento')!.value).toBe('100');
+    expect(pagina.querySelector<HTMLInputElement>('#limite-orcamento')!.value).toBe('100,00');
 
     const limite = pagina.querySelector<HTMLInputElement>('#limite-orcamento')!;
     limite.value = '150';

@@ -136,7 +136,7 @@ public class GeminiReceiptReader {
         List<String> linhas = new ArrayList<>(List.of(
                 "Leia esta foto de um recibo ou nota fiscal.",
                 "Extraia cada item e classifique-o em: " + String.join(", ", categorias.listar()) + ".",
-                "Valores devem ser numeros em euro, sem simbolo.",
+                "Valores devem ser numeros na moeda impressa na nota (em geral reais), sem simbolo.",
                 "Data no formato AAAA-MM-DD. Se nao conseguir ler, use " + hoje + ".",
                 "Se nao der para separar os itens, devolva um item com o total e categoria Outros.",
                 "Nunca invente itens ou valores que nao estejam visiveis."

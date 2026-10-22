@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { ObjetivoDoCofrinho } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
+import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso } from '../../core/ui/datas';
 import { Focar } from '../../core/ui/focar';
@@ -19,6 +20,8 @@ import { Carregando } from '../../core/ui/carregando';
  * <p>O gratuito tem um objetivo; o Premium, quantos quiser. Quem barra e o backend; aqui
  * o formulario de criar so some e da lugar ao convite do Premium. O membro nao ve este
  * bloco: o total do objetivo soma o deposito de todos.</p>
+ *
+ * <p>Compartilhado e a meta a dois: os dois depositam e editam, so quem criou apaga.</p>
  */
 @Component({
   selector: 'app-objetivos',
@@ -40,10 +43,18 @@ import { Carregando } from '../../core/ui/carregando';
           <article class="objetivo">
             <div class="linha">
               <div>
-                <p class="linha-titulo">{{ objetivo.nome }}</p>
+                <p class="linha-titulo">
+                  {{ objetivo.nome }}
+                  @if (objetivo.compartilhado) {
+                    <span i18n class="etiqueta">a dois</span>
+                  }
+                </p>
                 <p i18n class="linha-detalhe">
                   {{ objetivo.guardado | moeda }} de {{ objetivo.alvo | moeda }}
                 </p>
+                @if (!ehMeu(objetivo) && pessoas.temCompanhia()) {
+                  <p i18n class="linha-detalhe">Criado por {{ pessoas.nome(objetivo.usuario) }}</p>
+                }
               </div>
               <div class="linha-acoes">
                 <button
@@ -57,17 +68,19 @@ import { Carregando } from '../../core/ui/carregando';
                 >
                   <app-icone nome="lapis" [tamanho]="18" />
                 </button>
-                <button
-                  type="button"
-                  class="botao icone-so perigo"
-                  (click)="excluir(objetivo)"
-                  aria-label="Apagar"
-                  i18n-aria-label
-                  title="Apagar"
-                  i18n-title
-                >
-                  <app-icone nome="lixeira" [tamanho]="18" />
-                </button>
+                @if (ehMeu(objetivo)) {
+                  <button
+                    type="button"
+                    class="botao icone-so perigo"
+                    (click)="excluir(objetivo)"
+                    aria-label="Apagar"
+                    i18n-aria-label
+                    title="Apagar"
+                    i18n-title
+                  >
+                    <app-icone nome="lixeira" [tamanho]="18" />
+                  </button>
+                }
               </div>
             </div>
             <div class="progresso" [class.concluido]="objetivo.concluido">
@@ -175,6 +188,16 @@ import { Carregando } from '../../core/ui/carregando';
                 (ngModelChange)="prazo.set($event)"
               />
             </div>
+            @if (pessoas.temCompanhia() && podeCompartilhar()) {
+              <label class="campo alinhado a-dois">
+                <input
+                  type="checkbox"
+                  [checked]="compartilhado()"
+                  (change)="compartilhado.set($any($event.target).checked)"
+                />
+                <span i18n>A dois: quem mora com você vê e deposita junto</span>
+              </label>
+            }
             <div class="campo alinhado acoes">
               <button i18n type="button" class="botao" (click)="salvar()" [disabled]="salvando()">
                 Salvar objetivo
@@ -217,6 +240,11 @@ import { Carregando } from '../../core/ui/carregando';
     .convite {
       margin-top: 0.8rem;
     }
+    .a-dois {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
   `,
 })
 export class Objetivos {
@@ -226,6 +254,7 @@ export class Objetivos {
   protected readonly moeda = inject(MoedaService);
   private readonly finance = inject(FinanceService);
   private readonly auth = inject(AuthService);
+  protected readonly pessoas = inject(PessoasDaFamilia);
 
   protected readonly hoje = hojeIso();
   protected readonly carregando = signal(true);
@@ -238,15 +267,27 @@ export class Objetivos {
   protected readonly nome = signal('');
   protected readonly alvo = signal<number | null>(null);
   protected readonly prazo = signal<string | null>(null);
+  protected readonly compartilhado = signal(false);
   protected readonly salvando = signal(false);
 
-  /** Espelha o backend: o gratuito tem um objetivo. */
+  /** Espelha o backend: o gratuito tem um objetivo (o que o parceiro compartilhou nao conta). */
   protected readonly podeCriar = computed(
-    () => this.auth.ehPremium() || this.objetivos().length < 1,
+    () =>
+      this.auth.ehPremium() || this.objetivos().filter((objetivo) => this.ehMeu(objetivo)).length < 1,
   );
+  /** So quem criou decide se e a dois. */
+  protected readonly podeCompartilhar = computed(() => {
+    const id = this.editando();
+    const objetivo = this.objetivos().find((o) => o.id === id);
+    return !objetivo || this.ehMeu(objetivo);
+  });
 
   constructor() {
     this.recarregar();
+  }
+
+  protected ehMeu(objetivo: ObjetivoDoCofrinho): boolean {
+    return !objetivo.usuario || objetivo.usuario === this.auth.usuario()?.id;
   }
 
   protected guardarValor(id: string, valor: number | null): void {
@@ -280,6 +321,7 @@ export class Objetivos {
     this.nome.set(objetivo.nome);
     this.alvo.set(objetivo.alvo);
     this.prazo.set(objetivo.prazo);
+    this.compartilhado.set(objetivo.compartilhado ?? false);
   }
 
   protected limpar(): void {
@@ -287,6 +329,7 @@ export class Objetivos {
     this.nome.set('');
     this.alvo.set(null);
     this.prazo.set(null);
+    this.compartilhado.set(false);
   }
 
   protected salvar(): void {
@@ -300,7 +343,15 @@ export class Objetivos {
       this.erro.set($localize`Digite quanto quer juntar.`);
       return;
     }
-    const pedido = { nome, alvo, prazo: this.prazo() || null };
+    const pedido = {
+      nome,
+      alvo,
+      prazo: this.prazo() || null,
+      // So vai quando a pessoa pode escolher: ausente, o backend deixa como esta.
+      ...(this.podeCompartilhar() && this.pessoas.temCompanhia()
+        ? { compartilhado: this.compartilhado() }
+        : {}),
+    };
     const id = this.editando();
     this.salvando.set(true);
     this.erro.set('');

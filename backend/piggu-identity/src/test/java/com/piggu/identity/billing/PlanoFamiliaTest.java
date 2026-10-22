@@ -25,7 +25,10 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-/** Individual libera so quem assinou; familia libera a casa. Sem banco: regra e Stripe simulada. */
+/**
+ * Individual libera so quem assinou; casal, o titular e o parceiro; familia, a casa. Sem
+ * banco: regra e Stripe simulada.
+ */
 class PlanoFamiliaTest {
 
     private final RestClient.Builder builder = RestClient.builder();
@@ -33,9 +36,13 @@ class PlanoFamiliaTest {
     private final UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, UUID.randomUUID());
 
     private StripePagamentos stripe(String familiaMensal, String familiaAnual) {
+        return stripe(familiaMensal, familiaAnual, null, null);
+    }
+
+    private StripePagamentos stripe(String familiaMensal, String familiaAnual, String casalMensal, String casalAnual) {
         return new StripePagamentos(builder,
                 new StripeProperties("https://stripe.test", "sk_test_x", "whsec_x", "price_m", "price_a", null,
-                        familiaMensal, familiaAnual),
+                        familiaMensal, familiaAnual, casalMensal, casalAnual),
                 new ObjectMapper(), Clock.systemUTC());
     }
 
@@ -56,6 +63,51 @@ class PlanoFamiliaTest {
 
         casa.aplicarAssinatura("WEB", null, agora.plusSeconds(2));
         assertThat(casa.planoPara(assinante)).as("cancelado: ninguem").isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
+    @DisplayName("casal: quem assinou e o parceiro sao Premium; o membro, nao")
+    void casal() {
+        Household casa = new Household("Casa");
+        UserAccount parceiro = new UserAccount("parceiro@piggu.test", PigguRole.PARCEIRO, casa.getId());
+        UserAccount membro = new UserAccount("filho@piggu.test", PigguRole.MEMBRO, casa.getId());
+        Instant agora = Instant.now();
+
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora, agora, TipoDePlano.CASAL, conta.getId());
+
+        assertThat(casa.isCasal()).isTrue();
+        assertThat(casa.planoPara(conta)).isEqualTo(Plano.PREMIUM);
+        assertThat(casa.planoPara(parceiro)).isEqualTo(Plano.PREMIUM);
+        assertThat(casa.planoPara(membro)).isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
+    @DisplayName("checkout do casal cobra o preco do casal; sem preco, e recusado")
+    void checkoutCasal() {
+        servidor.expect(requestTo("https://stripe.test/v1/checkout/sessions"))
+                .andExpect(content().string(containsString("line_items%5B0%5D%5Bprice%5D=price_cm")))
+                .andRespond(withSuccess("{\"url\":\"https://checkout.stripe.test/s\"}", MediaType.APPLICATION_JSON));
+
+        StripePagamentos comCasal = stripe(null, null, "price_cm", "price_ca");
+        assertThat(comCasal.casalHabilitado()).isTrue();
+        comCasal.abrirCheckout(conta, Periodo.CASAL_MENSAL, 0);
+        servidor.verify();
+
+        assertThatThrownBy(() -> stripe(null, null).abrirCheckout(conta, Periodo.CASAL_ANUAL, 0))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("o aviso da Stripe e o produto da loja dizem casal")
+    void avisoDoCasal() {
+        StripePagamentos pagamentos = stripe("price_fm", "price_fa", "price_cm", "price_ca");
+
+        assertThat(aviso(pagamentos, "price_ca").tipo()).isEqualTo(TipoDePlano.CASAL);
+        assertThat(aviso(pagamentos, "price_fm").tipo()).isEqualTo(TipoDePlano.FAMILIA);
+        assertThat(aviso(pagamentos, "price_m").tipo()).isEqualTo(TipoDePlano.INDIVIDUAL);
+        assertThat(RevenueCatLoja.tipoDoProduto("piggu_casal_anual")).isEqualTo(TipoDePlano.CASAL);
+        assertThat(RevenueCatLoja.tipoDoProduto("piggu_familia_mensal")).isEqualTo(TipoDePlano.FAMILIA);
+        assertThat(RevenueCatLoja.tipoDoProduto("piggu_premium_mensal")).isEqualTo(TipoDePlano.INDIVIDUAL);
     }
 
     @Test

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
-    List<Income> findByIncomeDateBetweenOrderByIncomeDateDesc(LocalDate inicio, LocalDate fim);
+    List<Income> findByIncomeDateBetweenOrderByIncomeDateDescCreatedAtDesc(LocalDate inicio, LocalDate fim);
 
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i WHERE i.incomeDate >= :inicio AND i.incomeDate <= :fim")
     BigDecimal somarNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);

@@ -10,6 +10,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /**
  * Contas do mes (as contas fixas): o que se repete todo mes. "Marcar como paga" lanca o gasto do mes;
@@ -17,7 +18,7 @@ import { Vazio } from '../../core/ui/vazio';
  */
 @Component({
   selector: 'app-bills',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Vazio],
+  imports: [CampoDeValor, Focar, Icone, FormsModule, MoedaPipe, DataBrPipe, Vazio],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })

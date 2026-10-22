@@ -10,6 +10,7 @@ import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 interface MetaNaTela {
   readonly mes: string;
@@ -26,7 +27,7 @@ interface MetaNaTela {
  */
 @Component({
   selector: 'app-goals',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, Carregando, Vazio],
+  imports: [CampoDeValor, Focar, Icone, FormsModule, MoedaPipe, Carregando, Vazio],
   templateUrl: './goals.html',
   styleUrl: './goals.scss',
 })

@@ -314,25 +314,19 @@ describe('Login', () => {
     ).toContain('Confira o celular');
   });
 
-  it('o campo do documento muda com o pais; onde nao se pede documento, some', async () => {
+  it('quem mora fora tambem informa o CPF; o DDI segue o pais', async () => {
     const tela = await abrir();
     await irParaCadastro(tela);
     const pagina: HTMLElement = tela.nativeElement;
     const pais = pagina.querySelector<HTMLSelectElement>('#pais-cadastro')!;
     expect(pais.options.length).toBeGreaterThan(200);
     expect(pais.options[0].textContent).toContain('Brasil');
-    const escolher = async (codigo: string) => {
-      pais.value = codigo;
-      pais.dispatchEvent(new Event('change'));
-      tela.detectChanges();
-      await tela.whenStable();
-    };
+    pais.value = 'PT';
+    pais.dispatchEvent(new Event('change'));
+    tela.detectChanges();
+    await tela.whenStable();
 
-    await escolher('US');
-    expect(pagina.querySelector('#documento-cadastro')).toBeNull();
-
-    await escolher('PT');
-    expect(pagina.querySelector('label[for=documento-cadastro]')?.textContent).toContain('NIF');
+    expect(pagina.querySelector('label[for=documento-cadastro]')?.textContent).toContain('CPF');
     preencher(tela, 'nome-cadastro', 'Rita');
     preencher(tela, 'nascimento-cadastro', '1990-05-20');
     preencher(tela, 'email-cadastro', 'rita@piggu.test');
@@ -344,18 +338,19 @@ describe('Login', () => {
     )!;
     aceite.checked = true;
     aceite.dispatchEvent(new Event('change'));
-    preencher(tela, 'documento-cadastro', '123456780');
     await enviar(tela);
-    expect(pagina.querySelector('[role=alert]')?.textContent).toContain('NIF inválido');
+    expect(pagina.querySelector('[role=alert]')?.textContent).toContain(
+      'Informe o número do seu documento (CPF)',
+    );
 
-    preencher(tela, 'documento-cadastro', '123 456 789');
+    preencher(tela, 'documento-cadastro', '529.982.247-25');
     await enviar(tela);
     expect(cadastros[0]).toEqual({
       nome: 'Rita',
       email: 'rita@piggu.test',
       senha: 'cofrinho123',
       pais: 'PT',
-      documento: '123456789',
+      documento: '52998224725',
       telefone: '+351 912 345 678',
       nascimento: '1990-05-20',
     });

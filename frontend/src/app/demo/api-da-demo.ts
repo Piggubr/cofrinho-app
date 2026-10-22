@@ -8,6 +8,7 @@ import {
 import { Observable, delay, from, map, of, throwError } from 'rxjs';
 import {
   AcertoDeDivisao,
+  Compartilhamento,
   ContaFixa,
   ContaOuCartao,
   Familia,
@@ -22,6 +23,7 @@ import {
   Produto,
   RelatorioDoAno,
   ResumoDoMes,
+  TransferenciaDoAcerto,
   Preferencias,
   Usuario,
 } from '../core/api/models';
@@ -313,6 +315,23 @@ function acerto(mes: string): AcertoDeDivisao[] {
     .sort((a, b) => b.saldo - a.saldo);
 }
 
+/** Quem deve a quem, com o menor numero de transferencias (como DivisaoDeGastos). */
+function transferencias(mes: string): TransferenciaDoAcerto[] {
+  const devem = acerto(mes).filter((a) => a.saldo < 0).map((a) => ({ ...a, falta: -a.saldo }));
+  const recebem = acerto(mes).filter((a) => a.saldo > 0).map((a) => ({ ...a, falta: a.saldo }));
+  const lista: TransferenciaDoAcerto[] = [];
+  while (devem.length && recebem.length) {
+    const [de, para] = [devem[0], recebem[0]];
+    const valor = arredondar(Math.min(de.falta, para.falta));
+    lista.push({ de: de.pessoa, para: para.pessoa, valor });
+    de.falta = arredondar(de.falta - valor);
+    para.falta = arredondar(para.falta - valor);
+    if (de.falta <= 0) devem.shift();
+    if (para.falta <= 0) recebem.shift();
+  }
+  return lista;
+}
+
 function produtos(): Produto[] {
   const grupos: Record<string, Gasto[]> = {};
   for (const g of estado.gastos.filter((g) => !g.parcelas)) {
@@ -437,6 +456,10 @@ function plano(): InfoDoPlano {
     familiaDisponivel: false,
     siteFamilia: { mensal: '39,99', anual: '399,90' },
     appFamilia: { mensal: '45,99', anual: '459,89' },
+    planoCasal: false,
+    casalDisponivel: false,
+    siteCasal: { mensal: '29,90', anual: '299,00' },
+    appCasal: { mensal: '34,39', anual: '343,85' },
     pessoasNoFamilia: 5,
     casaTemAssinatura: true,
   };
@@ -538,6 +561,7 @@ function lancar(corpo: Corpo): Gasto[] {
         tipo: item['tipo'] ?? 'Variavel',
         origem: corpo['origem'] ?? 'Manual',
         usuario: estado.titular.id,
+        compartilhado: Boolean(corpo['compartilhado']),
         registradoEm: new Date().toISOString(),
         contaId: corpo['contaId'] ?? null,
         parcela: parcelas > 1 ? i + 1 : null,
@@ -583,6 +607,14 @@ const ROTAS: Rota[] = [
   }],
   ['PUT', /^\/auth\/me\/alerts$/, (_p, _x, c) => {
     estado.titular = { ...estado.titular, avisos: c as { email: boolean; push: boolean } };
+    return estado.titular;
+  }],
+  ['PUT', /^\/auth\/me\/sharing$/, (_p, _x, c) => {
+    const compartilhamento: Compartilhamento = {
+      mostraTudoAoParceiro: Boolean(c['mostrarTudoAoParceiro']),
+      compartilharPorPadrao: Boolean(c['compartilharPorPadrao']),
+    };
+    estado.titular = { ...estado.titular, compartilhamento };
     return estado.titular;
   }],
   ['PUT', /^\/auth\/me\/modules$/, (_p, _x, c) => {
@@ -646,6 +678,7 @@ const ROTAS: Rota[] = [
       .slice(0, 20);
   }],
   ['GET', /^\/expenses\/splits$/, (p) => acerto(mesDe(p))],
+  ['GET', /^\/expenses\/splits\/transfers$/, (p) => transferencias(mesDe(p))],
   ['GET', /^\/expenses\/export$/, (p) => csvDoMes(mesDe(p))],
   ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
   ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
@@ -665,7 +698,10 @@ const ROTAS: Rota[] = [
   }],
   ['GET', /^\/expenses$/, (p) => {
     const mes = p.params.get('mes');
-    return (mes ? doMes(mes) : estado.gastos).slice().sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm));
+    const visao = p.params.get('visao');
+    return (mes ? doMes(mes) : estado.gastos)
+      .filter((g) => visao !== 'meu' || g.usuario === estado.titular.id)
+      .filter((g) => visao !== 'casal' || g.compartilhado).sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm));
   }],
   ['POST', /^\/expenses$/, (_p, _x, c) => {
     const novos = lancar(c);
@@ -791,7 +827,13 @@ const ROTAS: Rota[] = [
   ['POST', /^\/accounts$/, (_p, _x, c) => {
     const cartao = c['tipo'] === 'CARTAO';
     const conta: ContaDemo = { id: novoId('conta'), nome: String(c['nome']), tipo: cartao ? 'CARTAO' : 'CONTA', fechamento: cartao ? Number(c['fechamento'] ?? (Number(c['vencimento']) > 7 ? Number(c['vencimento']) - 7 : Number(c['vencimento']) + 24)) : null, vencimento: cartao ? Number(c['vencimento']) : null };
+    conta.compartilhado = Boolean(c['compartilhado']);
     estado.contas.push(conta);
+    return contaComFaturas(conta);
+  }],
+  ['PUT', new RegExp(`^/accounts/${ID}/sharing$`), (_p, [id], c) => {
+    const conta = exigir(estado.contas.find((c) => c.id === id), 'Conta ou cartão não encontrado.');
+    conta.compartilhado = Boolean(c['compartilhado']);
     return contaComFaturas(conta);
   }],
   ['DELETE', new RegExp(`^/accounts/${ID}$`), (_p, [id]) => {

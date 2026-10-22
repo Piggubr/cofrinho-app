@@ -11,6 +11,7 @@ import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
 import { Goals } from '../goals/goals';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /**
  * Orcamento: o limite total do mes (gratis) e, abaixo dele, o limite por categoria
@@ -19,7 +20,7 @@ import { Vazio } from '../../core/ui/vazio';
  */
 @Component({
   selector: 'app-budgets',
-  imports: [Focar, Icone, FormsModule, MoedaPipe, RouterLink, Goals, Vazio],
+  imports: [CampoDeValor, Focar, Icone, FormsModule, MoedaPipe, RouterLink, Goals, Vazio],
   templateUrl: './budgets.html',
   styles: `
     .progresso.atencao span {

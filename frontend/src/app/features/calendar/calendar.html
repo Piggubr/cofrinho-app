@@ -134,7 +134,7 @@
     </div>
     <div class="campo">
       <label i18n for="valorNota">Valor do evento ({{ moeda.simbolo() }})</label>
-      <input i18n-placeholder id="valorNota" type="number" min="0" step="0.01" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
+      <input appValor i18n-placeholder id="valorNota" [ngModel]="valorDaNota()" (ngModelChange)="valorDaNota.set($event)" placeholder="Deixe vazio se não for pago" />
     </div>
     @if (viraGasto()) {
       <div class="campo">

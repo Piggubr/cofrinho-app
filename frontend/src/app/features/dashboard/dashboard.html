@@ -10,10 +10,45 @@
   <app-primeiros-passos [temLimite]="temLimite()" [temGasto]="temGasto()" />
 
   <!-- A ordem e o que aparece vem do Perfil (PainelOrganizado); o CSS order arruma. -->
+  @if (pessoas.temCompanhia()) {
+    <div class="alternador visao" role="radiogroup" aria-label="O que ver" i18n-aria-label>
+      <button
+        i18n
+        type="button"
+        role="radio"
+        [attr.aria-checked]="visao() === 'tudo'"
+        [class.ativo]="visao() === 'tudo'"
+        (click)="trocarVisao('tudo')"
+      >
+        Tudo
+      </button>
+      <button
+        i18n
+        type="button"
+        role="radio"
+        [attr.aria-checked]="visao() === 'meu'"
+        [class.ativo]="visao() === 'meu'"
+        (click)="trocarVisao('meu')"
+      >
+        Meu
+      </button>
+      <button
+        i18n
+        type="button"
+        role="radio"
+        [attr.aria-checked]="visao() === 'casal'"
+        [class.ativo]="visao() === 'casal'"
+        (click)="trocarVisao('casal')"
+      >
+        Compartilhado
+      </button>
+    </div>
+  }
+
   <div class="blocos">
     @if (mostra('resumo')) {
       <div class="bloco" [style.order]="ordem('resumo')">
-        <app-resumo-do-mes [mes]="mesAtual()" />
+        <app-resumo-do-mes [mes]="mesAtual()" [visao]="visao()" />
       </div>
     }
     @if (mostra('avisos')) {
@@ -59,11 +94,8 @@
           <div class="campo">
             <label i18n for="valorDeposito">Novo depósito ({{ moeda.simbolo() }})</label>
             <input
+              appValor
               id="valorDeposito"
-              type="number"
-              min="0.01"
-              step="0.01"
-              inputmode="decimal"
               [ngModel]="novoDeposito()"
               (ngModelChange)="novoDeposito.set($event)"
               placeholder="0,00"

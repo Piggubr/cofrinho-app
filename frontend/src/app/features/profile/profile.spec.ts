@@ -27,7 +27,15 @@ describe('Profile', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    // Os membros da familia (para o cartao de compartilhamento) chegam em toda abertura.
+    http.match('/api/family').forEach((pedido) => pedido.flush(familiaSo()));
+    http.verify();
+  });
+
+  function familiaSo(membros: unknown[] = []) {
+    return { id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] };
+  }
 
   async function abrirComMoedas() {
     const tela = TestBed.createComponent(Profile);
@@ -486,5 +494,36 @@ describe('Profile', () => {
     expect(auth.senhasDefinidas).toEqual([['cofrinho123', undefined]]);
     expect(pagina.textContent).toContain('Senha criada.');
     expect(pagina.querySelector('#senha-atual')).not.toBeNull();
+  });
+
+  it('compartilhamento: o titular libera tudo para o parceiro e grava na hora', async () => {
+    const tela = await abrirComMoedas();
+    const eu = { id: usuarioDeTeste().id, nome: 'Ana', email: 'a@x', foto: null, papel: 'TITULAR' };
+    const bia = { id: 'u-bia', nome: 'Bia', email: 'b@x', foto: null, papel: 'PARCEIRO' };
+    http.expectOne('/api/family').flush(familiaSo([eu, bia]));
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    const cartao = pagina.querySelector('[aria-labelledby=titulo-compartilhamento]')!;
+    expect(cartao.textContent).toContain('Bia vê tudo o que eu lanço');
+
+    const chave = cartao.querySelector<HTMLInputElement>('input.chave')!;
+    chave.checked = true;
+    chave.dispatchEvent(new Event('change'));
+    const pedido = http.expectOne('/api/auth/me/sharing');
+    expect(pedido.request.method).toBe('PUT');
+    expect(pedido.request.body).toEqual({ mostrarTudoAoParceiro: true, compartilharPorPadrao: false });
+    pedido.flush(
+      usuarioDeTeste({
+        compartilhamento: { mostraTudoAoParceiro: true, compartilharPorPadrao: false },
+      }),
+    );
+    expect(auth.usuario()?.compartilhamento?.mostraTudoAoParceiro).toBe(true);
+  });
+
+  it('compartilhamento: quem mora sozinho nao ve o cartao', async () => {
+    const tela = await abrirComMoedas();
+    http.expectOne('/api/family').flush(familiaSo([{ id: usuarioDeTeste().id, nome: 'Ana' }]));
+    tela.detectChanges();
+    expect(tela.nativeElement.querySelector('[aria-labelledby=titulo-compartilhamento]')).toBeNull();
   });
 });

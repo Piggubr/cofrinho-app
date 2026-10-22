@@ -22,13 +22,29 @@ describe('LancamentoRapido', () => {
   async function abrir() {
     const tela = TestBed.createComponent(LancamentoRapido);
     tela.detectChanges();
-    http.expectOne('/api/categories').flush({ categorias: ['Mercado', 'Lazer'] });
-    http.expectOne('/api/incomes/categories').flush(['Salário', 'Extra']);
-    http.expectOne('/api/accounts').flush([]);
+    responder();
     tela.detectChanges();
     // Os campos dentro de <form> se registram num microtask.
     await tela.whenStable();
     return tela;
+  }
+
+  /** Os formularios pedem as listas ao abrir; responde todas pela URL. */
+  function responder(): void {
+    const corpos: Record<string, unknown> = {
+      '/api/categories': { categorias: ['Mercado', 'Lazer'] },
+      '/api/incomes/categories': ['Salário', 'Extra'],
+      '/api/accounts': [],
+      '/api/family': { id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] },
+      '/api/receipts/usage': { usadas: 0, limite: 10, restantes: 10 },
+    };
+    // Responder umas listas pede outras (o acerto vem depois dos gastos).
+    for (let pedidos = http.match(() => true); pedidos.length; pedidos = http.match(() => true)) {
+      for (const pedido of pedidos) {
+        expect(corpos).toHaveProperty([pedido.request.url]);
+        pedido.flush(corpos[pedido.request.url] as object);
+      }
+    }
   }
 
   function clicar(pagina: HTMLElement, texto: string): void {
@@ -46,11 +62,11 @@ describe('LancamentoRapido', () => {
     const lancados: string[] = [];
     tela.componentInstance.lancado.subscribe((mensagem) => lancados.push(mensagem));
 
-    digitar(pagina, '#valor-rapido', '23.9');
-    digitar(pagina, '#descricao-rapida', 'Padaria');
+    digitar(pagina, '#rapido-valor', '23.9');
+    digitar(pagina, '#rapido-item', 'Padaria');
     // Como no navegador, cada evento de digitacao passa pela deteccao de mudancas.
     tela.detectChanges();
-    clicar(pagina, 'Lançar gasto');
+    clicar(pagina, 'Lançar');
 
     const pedido = http.expectOne((p) => p.method === 'POST' && p.url === '/api/expenses');
     expect(pedido.request.body.itens[0]).toEqual(
@@ -62,7 +78,7 @@ describe('LancamentoRapido', () => {
 
     expect(lancados).toEqual(['Gasto lançado.']);
     expect(TestBed.inject(Lancamentos).versao()).toBe(versao + 1);
-    expect((pagina.querySelector('#valor-rapido') as HTMLInputElement).value).toBe('');
+    expect((pagina.querySelector('#rapido-valor') as HTMLInputElement).value).toBe('');
   });
 
   it('na aba Receita lanca uma receita com a categoria escolhida', async () => {
@@ -73,10 +89,12 @@ describe('LancamentoRapido', () => {
 
     clicar(pagina, 'Receita');
     tela.detectChanges();
+    responder();
+    tela.detectChanges();
     await tela.whenStable();
-    digitar(pagina, '#valor-rapido', '5000');
-    digitar(pagina, '#descricao-rapida', 'Salário de outubro');
-    digitar(pagina, '#categoria-rapida', 'Salário');
+    digitar(pagina, '#rapido-valor-receita', '5000');
+    digitar(pagina, '#rapido-descricao-receita', 'Salário de outubro');
+    digitar(pagina, '#rapido-categoria-receita', 'Salário');
     clicar(pagina, 'Lançar receita');
 
     const pedido = http.expectOne((p) => p.method === 'POST' && p.url === '/api/incomes');
@@ -103,14 +121,25 @@ describe('LancamentoRapido', () => {
     expect(ativa?.textContent?.trim()).toBe('Receita');
   });
 
+  it('o gasto tem todos os campos da tela de Gastos: cartão, parcelas e mais opções', async () => {
+    const tela = await abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+    clicar(pagina, 'Cartão de crédito');
+    tela.detectChanges();
+    expect(pagina.textContent).toContain('Como foi a compra');
+    expect(pagina.querySelector('details.mais-opcoes')).not.toBeNull();
+    expect(pagina.querySelector('#rapido-moeda-compra')).not.toBeNull();
+  });
+
   it('sem valor nao manda nada e diz o que falta', async () => {
     const tela = await abrir();
     const pagina: HTMLElement = tela.nativeElement;
 
-    digitar(pagina, '#descricao-rapida', 'Padaria');
-    clicar(pagina, 'Lançar gasto');
+    digitar(pagina, '#rapido-item', 'Padaria');
+    clicar(pagina, 'Lançar');
     tela.detectChanges();
 
     expect(pagina.textContent).toContain('Digite um valor válido.');
+    expect(http.match((p) => p.method === 'POST')).toEqual([]);
   });
 });

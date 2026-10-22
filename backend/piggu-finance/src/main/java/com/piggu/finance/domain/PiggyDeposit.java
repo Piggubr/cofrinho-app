@@ -15,10 +15,14 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /** Deposito no cofrinho — uma linha da aba "Cofrinho". */
-@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
+@Filter(name = DonoAtual.FILTRO, condition = PiggyDeposit.VISIVEL, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "piggy_deposits")
 public class PiggyDeposit {
+
+    /** O de quem a pessoa ve e todo deposito num cofrinho compartilhado (a meta a dois). */
+    static final String VISIVEL = "(" + DonoAtual.POR_USER_ID + " OR {alias}.goal_id IN"
+            + " (SELECT g.id FROM savings_goals g WHERE g.shared))";
 
     /** Familia dona do registro: o Hibernate filtra as consultas e preenche ao gravar (ver FamiliaAtual). */
     @TenantId

@@ -36,6 +36,8 @@ module.exports = defineConfig([
       ],
       // Parametro com _ na frente e de proposito: a assinatura precisa dele, o corpo nao.
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // () => {} e o "nao faz nada" de callback vazio (ControlValueAccessor, subscribe).
+      '@typescript-eslint/no-empty-function': ['error', { allow: ['arrowFunctions'] }],
     },
   },
   {

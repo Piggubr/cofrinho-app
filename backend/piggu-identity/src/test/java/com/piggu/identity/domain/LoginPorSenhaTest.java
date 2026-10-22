@@ -250,7 +250,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("no Brasil o CPF e obrigatorio e valido; fora, o documento e opcional. O celular fica em E.164")
+    @DisplayName("o CPF e obrigatorio e valido, aqui e fora. O celular fica em E.164")
     void cpfNoCadastro() {
         assertThatThrownBy(() -> auth.cadastrar("Duda", EMAIL, SENHA, "BR", " ", CELULAR,
                 Consentimentos.VERSAO_DO_AVISO, ADULTO))
@@ -261,11 +261,11 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
                 .isInstanceOf(BusinessException.class).hasMessageContaining("CPF");
         assertThat(usuarios.findByEmail(EMAIL)).isEmpty();
 
-        auth.cadastrar("Ana", "ana@exemplo.test", SENHA, "PT", " ", "+351 912 345 678",
-                Consentimentos.VERSAO_DO_AVISO, ADULTO);
-        TokenResponse semCpf = auth.entrarComSenha("ana@exemplo.test", SENHA, true, null);
-        assertThat(semCpf.usuario().cpfInformado()).isFalse();
-        assertThat(usuarios.findByEmail("ana@exemplo.test").orElseThrow().getPhone()).isEqualTo("+351912345678");
+        assertThatThrownBy(() -> auth.cadastrar("Ana", "ana@exemplo.test", SENHA, "PT", " ", "+351 912 345 678",
+                Consentimentos.VERSAO_DO_AVISO, ADULTO))
+                .as("fora do Brasil tambem pede CPF")
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("CPF_NECESSARIO"));
 
         TokenResponse acesso = cadastrar(EMAIL);
 
@@ -323,51 +323,30 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("CPF que ja esta em outra conta nao barra o cadastro")
+    @DisplayName("CPF que ja esta em outra conta barra o cadastro e nao sobra conta pela metade")
     void cpfRepetido() {
         cadastrar(EMAIL);
 
-        auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725", CELULAR,
-                Consentimentos.VERSAO_DO_AVISO, ADULTO);
-        TokenResponse outra = auth.entrarComSenha("outra@exemplo.test", SENHA, true, null);
-
-        assertThat(outra.usuario().cpfInformado()).isTrue();
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725",
+                CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já está em outra conta");
+        assertThat(usuarios.findByEmail("outra@exemplo.test")).isEmpty();
     }
 
     @Test
-    @DisplayName("quem mora num pais sem documento no catalogo cadastra sem documento e o app nao pede")
-    void foraDoBrasilSemCpf() {
-        auth.cadastrar("Ana", EMAIL, SENHA, "US", null, CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO);
-        TokenResponse acesso = auth.entrarComSenha(EMAIL, SENHA, true, null);
-
-        assertThat(acesso.usuario().pais()).isEqualTo("US");
-        assertThat(acesso.usuario().cpfInformado()).as("nada pendente de CPF").isTrue();
-        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().temCpf()).isFalse();
-    }
-
-    @Test
-    @DisplayName("em Portugal o NIF informado precisa ser valido, guarda cifrado e nao deixa repetir")
-    void documentoDePortugal() {
-        assertThatThrownBy(() -> auth.cadastrar("Rita", EMAIL, SENHA, "PT", "123456780", CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO))
-                .isInstanceOfSatisfying(BusinessException.class,
-                        erro -> assertThat(erro.getCodigo()).isEqualTo("DOCUMENTO_INVALIDO"));
-        assertThat(usuarios.findByEmail(EMAIL)).isEmpty();
-
-        auth.cadastrar("Rita", EMAIL, SENHA, "pt", "123 456 789", CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO);
+    @DisplayName("quem mora fora cadastra com CPF e celular de la")
+    void foraDoBrasilComCpf() {
+        auth.cadastrar("Ana", EMAIL, SENHA, "pt", CPF, "+351 912 345 678", Consentimentos.VERSAO_DO_AVISO, ADULTO);
         TokenResponse acesso = auth.entrarComSenha(EMAIL, SENHA, true, null);
 
         assertThat(acesso.usuario().pais()).isEqualTo("PT");
-        assertThat(acesso.usuario().cpfInformado()).as("documento em dia").isTrue();
+        assertThat(acesso.usuario().cpfInformado()).isTrue();
         UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
-        assertThat(conta.temDocumento()).isTrue();
-        assertThat(conta.getTipoDoDocumento()).isEqualTo("PT_NIF");
-        assertThat(conta.getDocumentoCifrado()).doesNotContain("123456789");
+        assertThat(conta.temCpf()).isTrue();
+        assertThat(conta.temDocumento()).as("nao guarda documento de fora").isFalse();
+        assertThat(conta.getPhone()).isEqualTo("+351912345678");
 
-        auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "PT", "123456789", CELULAR,
-                Consentimentos.VERSAO_DO_AVISO, ADULTO);
-        assertThat(auth.entrarComSenha("outra@exemplo.test", SENHA, true, null).usuario().cpfInformado())
-                .as("documento repetido nao barra").isTrue();
-        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra2@exemplo.test", SENHA, "XX", null, CELULAR,
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra2@exemplo.test", SENHA, "XX", CPF, CELULAR,
                 Consentimentos.VERSAO_DO_AVISO, ADULTO))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo("PAIS_INVALIDO"));

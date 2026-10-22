@@ -1,12 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  afterNextRender,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, ElementRef, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
@@ -15,9 +7,8 @@ import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
-import { BRASIL, ddiDoPais, documentoDoPais, listaDePaises } from '../../core/ui/documentos';
+import { BRASIL, CPF, ddiDoPais, listaDePaises } from '../../core/ui/documentos';
 import { hojeIso, problemaDoNascimento } from '../../core/ui/nascimento';
-
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -25,9 +16,9 @@ type Modo = 'entrar' | 'cadastro';
  * Entrada no app.
  *
  * <p>Duas portas para a mesma conta: e-mail e senha, ou o Google. O cadastro por e-mail
- * pede nome, e-mail, senha (duas vezes), celular, o pais onde mora, o documento de la (o CPF, obrigatorio, no
- * Brasil; fora e opcional; veja {@link documentoDoPais}) e o aceite dos termos. Pelo Google, na primeira
- * vez o backend so cria a conta com o aceite, pedido aqui depois que o Google confirma.</p>
+ * pede nome, e-mail, senha (duas vezes), celular, o pais onde mora, o CPF (obrigatorio, aqui e
+ * fora) e o aceite dos termos. Pelo Google, na primeira vez o backend so cria a conta com o
+ * aceite, pedido aqui depois que o Google confirma.</p>
  */
 @Component({
   selector: 'app-login',
@@ -67,8 +58,7 @@ export class Login {
   protected readonly nascimento = signal('');
   protected readonly hoje = hojeIso();
   protected readonly ddi = ddiDoPais;
-  /** O documento que o pais escolhido pede; nulo nos paises onde nao se pede nenhum. */
-  protected readonly documentoPedido = computed(() => documentoDoPais(this.pais()));
+  protected readonly doc = CPF;
 
   constructor() {
     afterNextRender(() => void this.prepararBotao());
@@ -132,7 +122,7 @@ export class Login {
         email: this.email().trim(),
         senha: this.senha(),
         pais: this.pais(),
-        documento: this.documentoPedido()?.limpar(this.documento()) || undefined,
+        documento: CPF.limpar(this.documento()),
         telefone: `+${ddiDoPais(this.paisDoDdi())} ${this.telefone().trim()}`,
         nascimento: this.nascimento(),
       });
@@ -178,32 +168,32 @@ export class Login {
     if (this.telefone().replace(/\D/g, '').length < 6) {
       return ['telefone', $localize`Informe seu celular.`];
     }
-    const doc = this.documentoPedido();
-    const obrigatorio = this.pais() === BRASIL;
-    if (doc && (obrigatorio || this.documento().trim()) && !doc.valido(this.documento())) {
+    if (!CPF.valido(this.documento())) {
       return [
         'documento',
         this.documento().trim()
-          ? $localize`${doc.nome}:nome: inválido. Confira o número.`
-          : $localize`Informe o número do seu documento (${doc.nome}:nome:).`,
+          ? $localize`${CPF.nome}:nome: inválido. Confira o número.`
+          : $localize`Informe o número do seu documento (${CPF.nome}:nome:).`,
       ];
     }
     if (!this.aceitou()) {
-      return ['aceite', $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`];
+      return [
+        'aceite',
+        $localize`Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.`,
+      ];
     }
     return ['', ''];
   }
 
-  /** Outro pais pede outro documento: o numero digitado para o anterior nao serve. */
+  /** O DDI segue o pais onde mora; o CPF digitado vale em qualquer pais. */
   protected trocarPais(pais: string): void {
     this.pais.set(pais);
     this.paisDoDdi.set(pais);
-    this.documento.set('');
   }
 
-  /** Mascara enquanto digita (so o CPF tem), como na tela do documento. */
+  /** Mascara do CPF enquanto digita, como na tela do documento. */
   protected digitarDocumento(texto: string, campo: HTMLInputElement): void {
-    const formatado = this.documentoPedido()?.formatar(texto) ?? texto;
+    const formatado = CPF.formatar(texto);
     this.documento.set(formatado);
     campo.value = formatado;
   }

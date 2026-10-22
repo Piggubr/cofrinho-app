@@ -25,7 +25,9 @@
         }
       </div>
       @if (!plano.voceAssinou) {
-        <p i18n class="linha-detalhe">Quem assinou o plano família da sua casa cuida da assinatura.</p>
+        <p i18n class="linha-detalhe">
+          Quem assinou o plano {{ plano.planoCasal ? 'casal' : 'família' }} da sua casa cuida da assinatura.
+        </p>
       } @else if (plano.origem === 'WEB') {
         <p i18n class="linha-detalhe">Troque o cartão, veja os recibos ou cancele quando quiser.</p>
         <div class="acoes">
@@ -52,6 +54,11 @@
     </section>
   } @else if (auth.ehPremium()) {
     <p i18n class="aviso">Como administrador, você já usa tudo do Premium.</p>
+  } @else if (plano.casaTemAssinatura && plano.planoCasal) {
+    <p i18n class="aviso">
+      Sua casa tem o Premium casal, que vale para o titular e o parceiro. Quem assinou pode trocar
+      para o plano família em Gerenciar assinatura e liberar o Premium para todos.
+    </p>
   } @else if (plano.casaTemAssinatura) {
     <p i18n class="aviso">
       Alguém da sua família assinou o Premium individual, que vale só para essa pessoa. Ela pode
@@ -113,6 +120,34 @@
         }
       }
     </section>
+    @if ((plano.casalDisponivel || plano.planoCasal) && plano.siteCasal; as precos) {
+      <section i18n class="cartao destaque" aria-labelledby="titulo-casal">
+        <div class="cartao-titulo">
+          <h2 id="titulo-casal">Premium casal</h2>
+          <span class="etiqueta">você e seu parceiro</span>
+        </div>
+        <p class="preco">
+          R$ {{ precos.mensal }}<small>/mês</small>
+          <span class="ou">ou R$ {{ precos.anual }}/ano (2 meses grátis)</span>
+        </p>
+        <ul class="itens">
+          <li>Tudo do Premium para você e seu parceiro</li>
+          <li>Cada um vê o seu e escolhe o que compartilhar</li>
+          <li>Painel do casal, com quem deve quanto a quem no mês</li>
+          <li>Cofrinhos a dois, em que os dois depositam</li>
+        </ul>
+        @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura && plano.assinaturaDisponivel) {
+          <div class="acoes">
+            <button type="button" class="botao" (click)="assinar('CASAL_MENSAL')" [disabled]="ocupado()">
+              Assinar casal mensal
+            </button>
+            <button type="button" class="botao secundario" (click)="assinar('CASAL_ANUAL')" [disabled]="ocupado()">
+              Assinar casal anual
+            </button>
+          </div>
+        }
+      </section>
+    }
     @if (plano.familiaDisponivel || plano.planoFamilia) {
       <section i18n class="cartao destaque" aria-labelledby="titulo-familia">
         <div class="cartao-titulo">
@@ -126,6 +161,7 @@
         <ul class="itens">
           <li>Tudo do Premium para todas as pessoas da sua família</li>
           <li>A família pode ter até {{ plano.pessoasNoFamilia }} pessoas, contando você</li>
+          <li>Você e seu parceiro podem ver tudo um do outro; os demais veem só o próprio</li>
         </ul>
         @if (plano.plano === 'GRATUITO' && !auth.ehAdmin() && !plano.casaTemAssinatura && plano.assinaturaDisponivel) {
           <div class="acoes">
