@@ -115,22 +115,30 @@
       />
     </div>
     <div class="linha-de-campos">
-      <div class="campo">
-        <label i18n for="categoria-rapida">Categoria</label>
-        <select
-          id="categoria-rapida"
-          name="categoria"
-          [ngModel]="categoria()"
-          (ngModelChange)="categoria.set($event)"
-        >
-          @if (tipo() === 'gasto') {
-            <option i18n value="">Automática</option>
-          }
-          @for (opcao of categorias(); track opcao) {
-            <option [value]="opcao">{{ opcao }}</option>
-          }
-        </select>
-      </div>
+      @if (tipo() === 'gasto') {
+        <app-campo-de-categoria
+          class="campo"
+          campoId="categoria-rapida"
+          [categorias]="categoriasDeGasto()"
+          [valor]="categoria()"
+          (valorChange)="categoria.set($event)"
+          (criou)="categoriasDeGasto.set($event)"
+        />
+      } @else {
+        <div class="campo">
+          <label i18n for="categoria-rapida">Categoria</label>
+          <select
+            id="categoria-rapida"
+            name="categoria"
+            [ngModel]="categoria()"
+            (ngModelChange)="categoria.set($event)"
+          >
+            @for (opcao of categoriasDeReceita(); track opcao) {
+              <option [value]="opcao">{{ opcao }}</option>
+            }
+          </select>
+        </div>
+      }
       <div class="campo">
         <label i18n for="data-rapida">Data</label>
         <input

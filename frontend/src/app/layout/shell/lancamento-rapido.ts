@@ -24,6 +24,7 @@ import { Lancamentos } from '../../core/ui/lancamentos';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { CampoDeValor } from '../../core/ui/campo-de-valor';
+import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
 
 type Tipo = 'gasto' | 'receita';
 
@@ -43,7 +44,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-lancamento-rapido',
-  imports: [CampoDeValor, FormsModule, Icone, MoedaPipe],
+  imports: [CampoDeCategoria, CampoDeValor, FormsModule, Icone, MoedaPipe],
   templateUrl: './lancamento-rapido.html',
   styleUrl: './lancamento-rapido.scss',
   host: {

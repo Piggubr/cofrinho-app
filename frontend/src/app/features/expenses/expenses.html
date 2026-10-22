@@ -64,19 +64,14 @@
         </p>
       }
     </div>
-    <div class="campo">
-      <label i18n for="categoria">Categoria</label>
-      <select
-        id="categoria"
-        [ngModel]="novaCategoria()"
-        (ngModelChange)="novaCategoria.set($event)"
-      >
-        <option i18n value="">Automática</option>
-        @for (categoria of categorias(); track categoria) {
-          <option [value]="categoria">{{ categoria }}</option>
-        }
-      </select>
-    </div>
+    <app-campo-de-categoria
+      class="campo"
+      campoId="categoria"
+      [categorias]="categorias()"
+      [valor]="novaCategoria()"
+      (valorChange)="novaCategoria.set($event)"
+      (criou)="categorias.set($event)"
+    />
     <div class="campo">
       <label i18n for="item">Descrição</label>
       <input
@@ -464,18 +459,15 @@
               (ngModelChange)="itemEditado.set($event)"
             />
           </div>
-          <div class="campo">
-            <label i18n [for]="'edCat' + gasto.id">Categoria</label>
-            <select
-              [id]="'edCat' + gasto.id"
-              [ngModel]="categoriaEditada()"
-              (ngModelChange)="categoriaEditada.set($event)"
-            >
-              @for (categoria of categorias(); track categoria) {
-                <option [value]="categoria">{{ categoria }}</option>
-              }
-            </select>
-          </div>
+          <app-campo-de-categoria
+            class="campo"
+            [campoId]="'edCat' + gasto.id"
+            [categorias]="categorias()"
+            [automatica]="false"
+            [valor]="categoriaEditada()"
+            (valorChange)="categoriaEditada.set($event)"
+            (criou)="categorias.set($event)"
+          />
           <div class="campo">
             <label i18n [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input

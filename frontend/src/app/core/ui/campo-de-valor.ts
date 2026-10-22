@@ -84,7 +84,9 @@ export function lerValor(texto: string | null | undefined): number | null {
     decimal = unico && !/^\d{1,3}\.\d{3}$/.test(limpo) ? '.' : '';
   }
   const [inteiro, fracao = ''] = decimal ? partirNoUltimo(limpo, decimal) : [limpo];
-  const numero = Number(`${inteiro.replace(/[.,]/g, '') || '0'}.${fracao.replace(/[.,]/g, '') || '0'}`);
+  const numero = Number(
+    `${inteiro.replace(/[.,]/g, '') || '0'}.${fracao.replace(/[.,]/g, '') || '0'}`,
+  );
   if (!Number.isFinite(numero)) {
     return null;
   }

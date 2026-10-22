@@ -42,6 +42,7 @@ import { FilaDeGastos, semConexao } from '../../core/offline/fila-de-gastos';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
 import { CampoDeValor } from '../../core/ui/campo-de-valor';
+import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
 
 /** Item de recibo em conferencia, antes de virar gasto. */
 interface ItemEmConferencia {
@@ -59,7 +60,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-expenses',
-  imports: [CampoDeValor, Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato, Carregando, Vazio],
+  imports: [CampoDeCategoria, CampoDeValor, Focar, Icone, FormsModule, RouterLink, MoedaPipe, DataBrPipe, ImportarExtrato, Carregando, Vazio],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
