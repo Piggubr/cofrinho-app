@@ -22,6 +22,8 @@ import java.util.UUID;
  * @param parcelas 2 a 48 divide cada item em uma linha por mes; nulo ou 1 e a vista
  * @param dividirCom ids das pessoas da familia que dividem o gasto em partes iguais (quem lancou pagou)
  * @param recorrente cada item vira tambem uma conta fixa que se lanca sozinha no mesmo dia, todo mes
+ * @param compartilhado aparece para todos da familia; nulo segue a conta ou o cartao (o do casal
+ *                      compartilha) e, sem conta, fica so de quem lancou
  */
 public record SaveExpensesRequest(
         @NotNull(message = "A data do gasto e invalida.")
@@ -49,17 +51,25 @@ public record SaveExpensesRequest(
         @Size(max = 20, message = "Divisao com gente demais.")
         List<UUID> dividirCom,
 
-        Boolean recorrente
+        Boolean recorrente,
+
+        Boolean compartilhado
 ) {
 
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
+                               List<ExpenseItemRequest> itens, UUID contaId, Integer parcelas, List<UUID> dividirCom,
+                               Boolean recorrente) {
+        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, recorrente, null);
+    }
+
+    public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens, UUID contaId, Integer parcelas, List<UUID> dividirCom) {
-        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, null);
+        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, null, null);
     }
 
     /** Lancamento a vista, sem conta: o caso de quase todo o codigo interno. */
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens) {
-        this(data, estabelecimento, reciboId, origem, itens, null, null, null, null);
+        this(data, estabelecimento, reciboId, origem, itens, null, null, null, null, null);
     }
 }

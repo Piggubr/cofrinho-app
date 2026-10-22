@@ -106,6 +106,9 @@ piggu:
     # Plano familia (ate 5 pessoas): R$ 39,99/mes e R$ 399,90/ano. Vazio esconde o familia.
     price-familia-mensal: ${STRIPE_PRICE_FAMILIA_MENSAL:}
     price-familia-anual: ${STRIPE_PRICE_FAMILIA_ANUAL:}
+    # Plano casal (titular e parceiro): R$ 29,90/mes e R$ 299/ano. Vazio esconde o casal.
+    price-casal-mensal: ${STRIPE_PRICE_CASAL_MENSAL:}
+    price-casal-anual: ${STRIPE_PRICE_CASAL_ANUAL:}
     site-url: ${SITE_URL:http://localhost:4200}
 
 management:

@@ -15,11 +15,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param siteUrl       endereco do front, para onde a Stripe devolve a pessoa
  * @param priceFamiliaMensal id do preco do plano familia, R$ 39,99/mes; vazio esconde o familia
  * @param priceFamiliaAnual  id do preco do plano familia, R$ 399,90/ano
+ * @param priceCasalMensal   id do preco do plano casal, R$ 29,90/mes; vazio esconde o casal
+ * @param priceCasalAnual    id do preco do plano casal, R$ 299/ano
  */
 @ConfigurationProperties(prefix = "piggu.stripe")
 public record StripeProperties(String baseUrl, String secretKey, String webhookSecret,
                                String priceMensal, String priceAnual, String siteUrl,
-                               String priceFamiliaMensal, String priceFamiliaAnual) {
+                               String priceFamiliaMensal, String priceFamiliaAnual,
+                               String priceCasalMensal, String priceCasalAnual) {
 
     public StripeProperties {
         baseUrl = vazio(baseUrl) ? "https://api.stripe.com" : baseUrl;
@@ -34,6 +37,10 @@ public record StripeProperties(String baseUrl, String secretKey, String webhookS
         return habilitado() && !vazio(priceFamiliaMensal) && !vazio(priceFamiliaAnual);
     }
 
+    public boolean casalHabilitado() {
+        return habilitado() && !vazio(priceCasalMensal) && !vazio(priceCasalAnual);
+    }
+
     /** O preco que o checkout cobra para cada plano e periodo. */
     public String precoDe(com.piggu.identity.billing.Periodo periodo) {
         return switch (periodo) {
@@ -41,7 +48,19 @@ public record StripeProperties(String baseUrl, String secretKey, String webhookS
             case ANUAL -> priceAnual;
             case FAMILIA_MENSAL -> priceFamiliaMensal;
             case FAMILIA_ANUAL -> priceFamiliaAnual;
+            case CASAL_MENSAL -> priceCasalMensal;
+            case CASAL_ANUAL -> priceCasalAnual;
         };
+    }
+
+    /** Que plano o preco cobrado e; um preco desconhecido conta como individual. */
+    public com.piggu.identity.billing.TipoDePlano tipoDoPreco(String preco) {
+        if (ehPrecoDoFamilia(preco)) {
+            return com.piggu.identity.billing.TipoDePlano.FAMILIA;
+        }
+        boolean casal = preco != null && !preco.isBlank()
+                && (preco.equals(priceCasalMensal) || preco.equals(priceCasalAnual));
+        return casal ? com.piggu.identity.billing.TipoDePlano.CASAL : com.piggu.identity.billing.TipoDePlano.INDIVIDUAL;
     }
 
     /** O preco veio de uma assinatura do plano familia. */

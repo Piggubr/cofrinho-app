@@ -8,6 +8,7 @@ import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
 import com.piggu.identity.api.dto.FamiliaResponse;
+import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,9 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
 
     @Autowired
     private FamiliaService familias;
+
+    @Autowired
+    private AuthService auth;
 
     @Autowired
     private UserAccountRepository usuarios;
@@ -148,6 +152,27 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
 
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.MEMBRO);
         assertThat(usuarios.findById(membro.getId()).orElseThrow().getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
+    @Test
+    @DisplayName("mostrar tudo ao parceiro vale para aquela pessoa e acaba quando a parceria acaba")
+    void mostrarTudoAoParceiro() {
+        assertThatThrownBy(() -> auth.escolherCompartilhamento(titular.getId(), true, false))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("parceiro");
+
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
+        familias.aceitarParceria(como(membro));
+        UserResponse escolha = auth.escolherCompartilhamento(titular.getId(), true, true);
+
+        assertThat(escolha.compartilhamento().mostraTudoAoParceiro()).isTrue();
+        assertThat(escolha.compartilhamento().compartilharPorPadrao()).isTrue();
+        assertThat(usuarios.findById(titular.getId()).orElseThrow().mostraTudoPara(membro.getId())).isTrue();
+
+        familias.mudarPapel(como(titular), membro.getId(), PigguRole.MEMBRO);
+
+        UserAccount depois = usuarios.findById(titular.getId()).orElseThrow();
+        assertThat(depois.getShowsAllTo()).as("quem deixou de ser parceiro nao ve mais tudo").isNull();
+        assertThat(depois.isSharesByDefault()).isTrue();
     }
 
     @Test

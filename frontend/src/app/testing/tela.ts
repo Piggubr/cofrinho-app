@@ -24,7 +24,11 @@ export const PROVEDORES_DE_TELA: (Provider | EnvironmentProviders)[] = [
   // Nomes sem ir a API: cada tela testa o proprio pedido, nao o da familia.
   {
     provide: PessoasDaFamilia,
-    useValue: { nome: (id: string | null) => nomeNaFamilia(MEMBROS_DE_TESTE, id) },
+    useValue: {
+      nome: (id: string | null) => nomeNaFamilia(MEMBROS_DE_TESTE, id),
+      temCompanhia: () => false,
+      parceiro: () => null,
+    },
   },
 ];
 

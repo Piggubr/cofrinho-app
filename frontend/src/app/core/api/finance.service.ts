@@ -29,25 +29,33 @@ import {
   RespostaDoAssistente,
   ResumoDoMes,
   SituacaoDoAssistente,
+  TransferenciaDoAcerto,
   UsoDeLeituras,
+  Visao,
 } from './models';
 
 /** Gastos, metas, cofrinho, notas, produtos, categorias, recibos e cambio. */
 @Injectable({ providedIn: 'root' })
 export class FinanceService extends ApiBase {
-  listarGastos(mes?: string): Observable<Gasto[]> {
-    return this.http.get<Gasto[]>(this.url('/expenses'), { params: this.params({ mes }) });
+  /** @param visao recorte do painel: so o que a pessoa lancou ou so o compartilhado */
+  listarGastos(mes?: string, visao: Visao = 'tudo'): Observable<Gasto[]> {
+    return this.http.get<Gasto[]>(this.url('/expenses'), {
+      params: this.params({ mes, visao: visao === 'tudo' ? null : visao }),
+    });
   }
 
   lancarGastos(pedido: NovoLancamento): Observable<Gasto[]> {
     return this.http.post<Gasto[]>(this.url('/expenses'), pedido);
   }
 
-  editarGasto(id: string, item: ItemDeGasto): Observable<Gasto> {
+  /** @param compartilhado ausente mantem como esta; so quem lancou muda */
+  editarGasto(id: string, item: ItemDeGasto, compartilhado?: boolean): Observable<Gasto> {
     return this.http.put<Gasto>(this.url(`/expenses/${id}`), {
       item: item.item,
       categoria: item.categoria,
       valor: item.valor,
+      // Ausente, o backend deixa como esta: so quem lancou muda isso.
+      ...(compartilhado === undefined ? {} : { compartilhado }),
     });
   }
 
@@ -189,7 +197,7 @@ export class FinanceService extends ApiBase {
   }
 
   criarContaFixa(
-    conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico'>,
+    conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico' | 'compartilhado'>,
   ): Observable<void> {
     return this.http.post<void>(this.url('/bills'), conta);
   }
@@ -217,8 +225,10 @@ export class FinanceService extends ApiBase {
   }
 
   /** Receitas, gastos, sobra e taxa de poupanca do mes. */
-  resumoDoMes(mes: string): Observable<ResumoDoMes> {
-    return this.http.get<ResumoDoMes>(this.url('/reports/month'), { params: { mes } });
+  resumoDoMes(mes: string, visao: Visao = 'tudo'): Observable<ResumoDoMes> {
+    return this.http.get<ResumoDoMes>(this.url('/reports/month'), {
+      params: this.params({ mes, visao: visao === 'tudo' ? null : visao }),
+    });
   }
 
   /** Busca global: ate 20 gastos pelo item ou estabelecimento. */
@@ -256,6 +266,13 @@ export class FinanceService extends ApiBase {
     return this.http.get<AcertoDeDivisao[]>(this.url('/expenses/splits'), { params: { mes } });
   }
 
+  /** Quem deve quanto a quem nos gastos divididos do mes. */
+  quemDeveAQuem(mes: string): Observable<TransferenciaDoAcerto[]> {
+    return this.http.get<TransferenciaDoAcerto[]>(this.url('/expenses/splits/transfers'), {
+      params: { mes },
+    });
+  }
+
   /** Nulo (204) quando o produto ainda nao tem historico de preco. */
   conferirPreco(item: string, valor: number): Observable<ConferenciaDePreco | null> {
     return this.http.get<ConferenciaDePreco | null>(this.url('/products/price-check'), {
@@ -268,9 +285,14 @@ export class FinanceService extends ApiBase {
   }
 
   criarConta(
-    conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento'>,
+    conta: Pick<ContaOuCartao, 'nome' | 'tipo' | 'fechamento' | 'vencimento' | 'compartilhado'>,
   ): Observable<ContaOuCartao> {
     return this.http.post<ContaOuCartao>(this.url('/accounts'), conta);
+  }
+
+  /** Conta ou cartao do casal: so quem criou liga ou desliga. */
+  compartilharConta(id: string, compartilhado: boolean): Observable<void> {
+    return this.http.put<void>(this.url(`/accounts/${id}/sharing`), { compartilhado });
   }
 
   excluirConta(id: string): Observable<void> {

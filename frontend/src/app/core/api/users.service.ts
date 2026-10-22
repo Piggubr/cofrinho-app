@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import { ModuloDeEstiloDeVida, PigguRole, Preferencias, Usuario } from './models';
+import {
+  Compartilhamento,
+  ModuloDeEstiloDeVida,
+  PigguRole,
+  Preferencias,
+  Usuario,
+} from './models';
 
 /** Conta propria e, para o ADMIN, as contas da instalacao. */
 @Injectable({ providedIn: 'root' })
@@ -18,6 +24,14 @@ export class UsersService extends ApiBase {
   /** Avisos do dia (fatura, orcamento, conta do mes) por e-mail e no celular. */
   salvarAvisos(email: boolean, push: boolean): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/auth/me/alerts'), { email, push });
+  }
+
+  /** O que o parceiro ve do que a pessoa lanca e se o que ela lanca ja nasce compartilhado. */
+  salvarCompartilhamento(compartilhamento: Compartilhamento): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/auth/me/sharing'), {
+      mostrarTudoAoParceiro: compartilhamento.mostraTudoAoParceiro,
+      compartilharPorPadrao: compartilhamento.compartilharPorPadrao,
+    });
   }
 
   /** Token do APNs deste iPhone, para o push dos avisos. */

@@ -195,6 +195,14 @@ public class UserAccount {
     @Column(name = "partner_invited_at")
     private Instant partnerInvitedAt;
 
+    /** Para quem a pessoa mostra tudo o que lanca (o parceiro); nulo = so o compartilhado. */
+    @Column(name = "shows_all_to")
+    private UUID showsAllTo;
+
+    /** Lancamentos novos comecam marcados como compartilhados. */
+    @Column(name = "shares_by_default", nullable = false)
+    private boolean sharesByDefault;
+
     /** Quando a conta usou o teste gratis; nulo = ainda pode usar. */
     @Column(name = "trial_used_at")
     private Instant trialUsedAt;
@@ -547,6 +555,31 @@ public class UserAccount {
         this.householdId = householdId;
         this.role = role;
         this.partnerInvitedAt = null;
+        this.showsAllTo = null;
+    }
+
+    /**
+     * Mostra tudo o que lanca para {@code parceiro}, ou volta a mostrar so o compartilhado
+     * ({@code null}). A permissao vale para aquela pessoa: outro parceiro depois nao a herda.
+     */
+    public void mostrarTudoPara(UUID parceiro) {
+        this.showsAllTo = parceiro;
+    }
+
+    public boolean mostraTudoPara(UUID pessoa) {
+        return showsAllTo != null && showsAllTo.equals(pessoa);
+    }
+
+    public UUID getShowsAllTo() {
+        return showsAllTo;
+    }
+
+    public void compartilharPorPadrao(boolean compartilhar) {
+        this.sharesByDefault = compartilhar;
+    }
+
+    public boolean isSharesByDefault() {
+        return sharesByDefault;
     }
 
     public boolean convidadoParaParceria() {

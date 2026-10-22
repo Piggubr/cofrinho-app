@@ -1,6 +1,7 @@
 package com.piggu.finance.domain;
 
 import com.piggu.common.security.DonoAtual;
+import com.piggu.common.security.VisaoAtual;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,7 +16,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /** Receita da familia: salario, renda extra, reembolso. */
-@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID, deduceAliasInjectionPoints = false)
+@Filter(name = DonoAtual.FILTRO, condition = DonoAtual.POR_USER_ID_OU_COMPARTILHADO, deduceAliasInjectionPoints = false)
+@Filter(name = VisaoAtual.FILTRO, condition = VisaoAtual.CONDICAO, deduceAliasInjectionPoints = false)
 @Entity
 @Table(name = "incomes")
 public class Income {
@@ -39,6 +41,10 @@ public class Income {
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
+
+    /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
+    @Column(nullable = false)
+    private boolean shared;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -92,5 +98,14 @@ public class Income {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
+    public void compartilhar(boolean compartilhado) {
+        this.shared = compartilhado;
+    }
+
+    public boolean isShared() {
+        return shared;
     }
 }

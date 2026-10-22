@@ -268,6 +268,7 @@ public class FamiliaService {
                 .filter(outro -> !outro.getId().equals(conta.getId()))
                 .toList();
         EscopoDeExclusao escopo = outros.isEmpty() ? EscopoDeExclusao.FAMILIA : EscopoDeExclusao.PESSOA;
+        esquecerQuemMostravaTudoPara(outros, conta.getId());
 
         if (destino != null) {
             cascata.apagar(tokens.gerarTokenDeMudanca(conta, familia, destino));
@@ -321,7 +322,7 @@ public class FamiliaService {
 
     /**
      * O titular convida um membro para ser parceiro, ou volta o parceiro (ou o convite) a
-     * membro. Parceiro e titular veem os lancamentos um do outro, por isso o papel so muda
+     * membro. Parceiro e titular podem ver os lancamentos um do outro, por isso o papel so muda
      * quando a pessoa aceita ({@link #aceitarParceria}); voltar a membro vale na hora, porque
      * so diminui o que cada um ve. Um parceiro por familia: o casal.
      */
@@ -346,6 +347,9 @@ public class FamiliaService {
         } else if (membro.getRole() == PigguRole.PARCEIRO) {
             String antes = pessoa(membro);
             membro.setRole(PigguRole.MEMBRO);
+            // Deixou de ser o casal: nenhum dos dois continua vendo tudo do outro.
+            membro.mostrarTudoPara(null);
+            esquecerQuemMostravaTudoPara(usuarios.findByHouseholdIdOrderByCreatedAtAsc(usuario.familia()), membroId);
             trilha.registrar(usuario.familia(), usuario.id(), Acao.MUDOU_PAPEL, PESSOA, membroId, antes, pessoa(membro));
             usuarios.save(membro);
             sessoes.apagarPorUsuario(membro.getId());
@@ -373,8 +377,9 @@ public class FamiliaService {
     }
 
     /**
-     * A pessoa aceita ser parceira: dali em diante ela e o titular veem os lancamentos um do
-     * outro e dos menores. Entra de novo para o papel valer no token.
+     * A pessoa aceita ser parceira: dali em diante ela e o titular veem os lancamentos dos
+     * menores, o que o outro compartilhar e, se o outro escolher no perfil, tudo o que ele
+     * lanca. Entra de novo para o papel valer no token.
      */
     @Transactional
     public void aceitarParceria(CurrentUser usuario) {
@@ -427,6 +432,14 @@ public class FamiliaService {
 
         usuarios.save(conta);
         sessoes.apagarPorUsuario(conta.getId());
+    }
+
+    /** Quem mostrava tudo para {@code pessoa} volta a mostrar so o compartilhado. */
+    private void esquecerQuemMostravaTudoPara(List<UserAccount> contas, UUID pessoa) {
+        contas.stream().filter(outra -> outra.mostraTudoPara(pessoa)).forEach(outra -> {
+            outra.mostrarTudoPara(null);
+            usuarios.save(outra);
+        });
     }
 
     private UserAccount conta(CurrentUser usuario) {

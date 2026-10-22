@@ -97,16 +97,21 @@ public class ExpenseService {
         String origem = Texto.limitarOuPadrao(pedido.origem(), 30, ORIGEM_PADRAO);
 
         // A conta precisa ser da familia: o filtro do tenant faz o findById nao achar a dos outros.
-        if (pedido.contaId() != null && !contas.existsById(pedido.contaId())) {
-            throw new NotFoundException("Conta ou cartao nao encontrado.");
-        }
+        PaymentAccount conta = pedido.contaId() == null ? null : contas.findById(pedido.contaId())
+                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+        // Sem escolha, o gasto segue a conta: o cartao do casal compartilha o que passa nele.
+        boolean compartilhado = pedido.compartilhado() != null ? pedido.compartilhado()
+                : conta != null && conta.isShared();
         int parcelas = pedido.parcelas() == null ? 1 : pedido.parcelas();
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
                 .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, usuarioId,
                         regrasDaFamilia, parcelas).stream())
                 .toList();
-        gastos.forEach(gasto -> gasto.pagarCom(pedido.contaId()));
+        gastos.forEach(gasto -> {
+            gasto.pagarCom(pedido.contaId());
+            gasto.compartilhar(compartilhado);
+        });
 
         List<Expense> salvos = repositorio.saveAll(gastos);
         if (pedido.dividirCom() != null) {
@@ -167,9 +172,9 @@ public class ExpenseService {
      */
     @Transactional
     public int importar(List<LinhaImportada> linhas, UUID contaId, UUID usuarioId) {
-        if (contaId != null && !contas.existsById(contaId)) {
-            throw new NotFoundException("Conta ou cartao nao encontrado.");
-        }
+        PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
+                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+        boolean compartilhado = conta != null && conta.isShared();
         Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
                 linhas.stream().map(LinhaImportada::idExterno).toList()));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
@@ -185,6 +190,7 @@ public class ExpenseService {
                             usuarioId);
                     gasto.importadoDe(l.idExterno());
                     gasto.pagarCom(contaId);
+                    gasto.compartilhar(compartilhado);
                     return gasto;
                 })
                 .toList();
@@ -234,7 +240,18 @@ public class ExpenseService {
 
     @Transactional
     public ExpenseResponse atualizar(UUID id, UpdateExpenseRequest pedido, CurrentUser usuario) {
-        Expense gasto = paraMudar(id, usuario);
+        Expense gasto = buscar(id);
+        boolean dono = usuario.podeGerenciar(gasto.getUserId());
+        // Compartilhado, os dois editam; so quem lancou apaga ou volta para "so meu".
+        if (!dono && !gasto.isShared()) {
+            throw new ForbiddenException("Só quem lançou o gasto pode mudar ou apagar.");
+        }
+        if (pedido.compartilhado() != null && pedido.compartilhado() != gasto.isShared()) {
+            if (!dono) {
+                throw new ForbiddenException("Só quem lançou o gasto decide se ele é compartilhado.");
+            }
+            gasto.compartilhar(pedido.compartilhado());
+        }
         String antes = Resumos.gasto(gasto);
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
@@ -282,7 +299,7 @@ public class ExpenseService {
                 .orElseThrow(() -> new NotFoundException("Gasto nao encontrado."));
     }
 
-    /** Gasto dividido aparece para quem divide, mas so quem lancou muda ou apaga. */
+    /** Gasto dividido ou compartilhado aparece para os outros, mas so quem lancou apaga. */
     private Expense paraMudar(UUID id, CurrentUser usuario) {
         Expense gasto = buscar(id);
         if (!usuario.podeGerenciar(gasto.getUserId())) {

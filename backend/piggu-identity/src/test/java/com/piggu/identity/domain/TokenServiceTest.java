@@ -39,7 +39,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
     private HouseholdRepository casas;
 
     @Test
-    @DisplayName("titular e parceiro levam no token um ao outro e os menores (13 a 17); o menor e o membro adulto, nada")
+    @DisplayName("titular e parceiro levam no token os menores (13 a 17) e o outro so se ele escolheu mostrar tudo")
     void quemOsResponsaveisVeem() {
         Household casa = casas.save(new Household("Casa com menor"));
         UserAccount titular = usuarios.save(new UserAccount("titular.menores@piggu.test", PigguRole.TITULAR, casa.getId()));
@@ -53,12 +53,27 @@ class TokenServiceTest extends PostgresIntegrationTest {
         adulto.informarNascimento(LocalDate.now().minusYears(25));
         usuarios.save(adulto);
 
+        // Casal novo: cada um ve o seu (e o compartilhado, que nao passa pelo token).
         assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
-                .containsExactlyInAnyOrder(parceiro.getId().toString(), menor.getId().toString());
+                .containsExactly(menor.getId().toString());
+
+        // A titular escolhe mostrar tudo ao parceiro: so ele passa a ver o dela.
+        titular.mostrarTudoPara(parceiro.getId());
+        usuarios.save(titular);
         assertThat(decoder.decode(tokens.gerarAccessToken(parceiro, casa)).getClaimAsStringList("tambemVe"))
                 .containsExactlyInAnyOrder(titular.getId().toString(), menor.getId().toString());
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+                .containsExactly(menor.getId().toString());
+
+        parceiro.mostrarTudoPara(titular.getId());
+        usuarios.save(parceiro);
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+                .containsExactlyInAnyOrder(parceiro.getId().toString(), menor.getId().toString());
         assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa)).hasClaim("tambemVe")).isFalse();
         assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa)).hasClaim("tambemVe")).isFalse();
+
+        // O adulto promovido a parceiro nao herda a permissao dada a outra pessoa.
+        assertThat(adulto.getId()).isNotEqualTo(titular.getShowsAllTo());
     }
 
 

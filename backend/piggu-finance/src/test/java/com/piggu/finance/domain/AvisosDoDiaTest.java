@@ -53,7 +53,8 @@ class AvisosDoDiaTest {
                 cartao(nubank, "Nubank", HOJE.plusDays(3), "1200"),
                 cartao(UUID.randomUUID(), "Longe", HOJE.plusDays(4), "50"),
                 cartao(UUID.randomUUID(), "Zerada", HOJE.plusDays(1), "0"),
-                new ContasECartoes.Conta(UUID.randomUUID(), "Conta", PaymentAccount.Tipo.CONTA, null, null, null, null)));
+                new ContasECartoes.Conta(UUID.randomUUID(), "Conta", PaymentAccount.Tipo.CONTA, null, null, null, null,
+                        null, false)));
         RecurringBill luz = new RecurringBill("Luz", "Casa", new BigDecimal("180"), 22, false, null);
         RecurringBill aluguel = new RecurringBill("Aluguel", "Casa", new BigDecimal("2000"), 10, false, null);
         RecurringBill internet = new RecurringBill("Internet", "Casa", new BigDecimal("100"), 28, false, null);
@@ -88,6 +89,7 @@ class AvisosDoDiaTest {
     private static ContasECartoes.Conta cartao(UUID id, String nome, LocalDate vencimento, String total) {
         ContasECartoes.Fatura fatura = new ContasECartoes.Fatura("2026-09", vencimento.minusDays(40),
                 vencimento.minusDays(11), vencimento.minusDays(10), vencimento, new BigDecimal(total));
-        return new ContasECartoes.Conta(id, nome, PaymentAccount.Tipo.CARTAO, (short) 13, (short) 23, null, fatura);
+        return new ContasECartoes.Conta(id, nome, PaymentAccount.Tipo.CARTAO, (short) 13, (short) 23, null, fatura,
+                null, false);
     }
 }
