@@ -9,6 +9,11 @@
 # um servico que estoura cai sozinho em vez de levar o host junto. O finance tem mais
 # por causa do Tesseract (memoria nativa, fora da heap). Ajuste com PIGGU_MEMORIA_<SERVICO>.
 
+# Imagens: em desenvolvimento cada servico e compilado aqui (localhost/piggu/<servico>:dev,
+# nome que nao existe em registro nenhum). Em producao o CI ja compilou, testou e publicou
+# no GitHub (job "imagens" do .github/workflows/ci.yml) e o deploy/atualizar.sh so baixa:
+#   PIGGU_IMAGENS=ghcr.io/piggubr/cofrinho-app  PIGGU_VERSAO=<sha do commit>
+
 # Logs no stdout de cada container, com rotacao (S5): no maximo 5 arquivos de 10 MB
 # por servico. O mais velho sai sozinho, entao log com id de usuario nao fica para
 # sempre. Prazo e destino estao em docs/implantacao-producao.md (Logs).
@@ -62,6 +67,7 @@ services:
   identity:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_IDENTITY:-512m}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/identity:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -123,6 +129,7 @@ services:
   finance:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_FINANCE:-1g}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/finance:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -148,6 +155,7 @@ services:
   rewards:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_REWARDS:-384m}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/rewards:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -169,6 +177,7 @@ services:
   lifestyle:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_LIFESTYLE:-384m}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/lifestyle:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -192,6 +201,7 @@ services:
   media:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_MEDIA:-512m}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/media:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -221,6 +231,7 @@ services:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_BANKING:-384m}
     profiles: ["open-finance"]
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/banking:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -247,6 +258,7 @@ services:
   gateway:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_GATEWAY:-384m}
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/gateway:${PIGGU_VERSAO:-dev}
     build:
       context: .
       args:
@@ -280,6 +292,7 @@ services:
     logging: *logs
     mem_limit: ${PIGGU_MEMORIA_WEB:-128m}
     profiles: ["producao"]
+    image: ${PIGGU_IMAGENS:-localhost/piggu}/web:${PIGGU_VERSAO:-dev}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.web

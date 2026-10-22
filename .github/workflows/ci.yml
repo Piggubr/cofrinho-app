@@ -15,6 +15,13 @@ on:
 permissions:
   contents: read
 
+# Um push novo num PR cancela o CI que ainda rodava para o commit anterior dele. Push na
+# main ou na develop e a execucao na mao tem grupo proprio (run_id): nunca sao canceladas,
+# entao um deploy em andamento nao e interrompido.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   # PR para a main so vem da develop ou de um hotfix/...: assim tudo que chega em
   # producao passou antes pela develop (ou e uma correcao urgente com nome proprio).
@@ -59,6 +66,49 @@ jobs:
           rm gitleaks.tgz
       - name: Procurar segredos no historico
         run: '"$RUNNER_TEMP/gitleaks" git --config .gitleaks.toml --redact --no-banner -v .'
+
+  # Lint: ESLint no front (regras do angular-eslint, com acessibilidade dos templates) e
+  # Checkstyle no backend (backend/checkstyle.xml). Rapido, entao falha antes dos testes.
+  lint:
+    name: Lint (ESLint e Checkstyle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A branch de destino do PR, para saber quais arquivos ele mexeu.
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - working-directory: frontend
+        run: npm ci
+      - name: ESLint
+        working-directory: frontend
+        run: npm run lint
+      # Prettier so nos arquivos que o PR mexeu, e so como aviso: boa parte do front ainda
+      # nao passou por ele, e formatar tudo de uma vez embolaria os PRs abertos.
+      - name: Formatacao dos arquivos do PR (aviso)
+        if: github.event_name == 'pull_request'
+        working-directory: frontend
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          mapfile -t arquivos < <(git diff --name-only --relative --diff-filter=ACMR "origin/$BASE...HEAD" -- src \
+            | grep -E '\.(ts|html|scss)$' || true)
+          [ ${#arquivos[@]} -eq 0 ] && exit 0
+          npx prettier --list-different "${arquivos[@]}" | while read -r f; do
+            echo "::warning file=frontend/$f::Fora do Prettier. Para arrumar: cd frontend && npx prettier --write $f"
+          done || true
+      - name: Checkstyle
+        working-directory: backend
+        run: mvn -B -q validate
 
   backup:
     name: Backup e restauracao
@@ -268,6 +318,75 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+  # As imagens que vao para o servidor: compiladas uma vez aqui, conferidas pelo Trivy e,
+  # num push na main, publicadas no GitHub (ghcr.io/piggubr/cofrinho-app/<servico>:<sha>).
+  # O deploy so baixa: o que vai ao ar e exatamente o que foi conferido. O Trivy por
+  # enquanto so informa (nao falha); o resultado fica no log deste job.
+  imagens:
+    name: Imagens Docker (Trivy e GHCR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PIGGU_IMAGENS: ghcr.io/piggubr/cofrinho-app
+      PIGGU_VERSAO: ${{ github.sha }}
+      # Obrigatorias no Compose, mas so usadas com os servicos de pe.
+      GOOGLE_CLIENT_ID: x
+      DOMINIO: x
+      EMAIL_DO_CERTIFICADO: x
+      SERVICOS: identity finance rewards lifestyle media gateway web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      # A imagem "web" (Caddy) leva o site compilado.
+      - working-directory: frontend
+        run: npm ci
+      - working-directory: frontend
+        run: npm run build
+      - name: Montar as imagens
+        working-directory: backend
+        run: |
+          # SERVICOS e uma lista separada por espacos, de proposito sem aspas.
+          # shellcheck disable=SC2086
+          docker compose --profile producao build $SERVICOS
+      # Binario do Trivy direto, como o gitleaks: versao e hash fixos.
+      - name: Instalar o Trivy
+        env:
+          VERSAO: 0.76.1
+          SHA256: c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+        run: |
+          curl -sSfL -o trivy.tgz \
+            "https://github.com/aquasecurity/trivy/releases/download/v${VERSAO}/trivy_${VERSAO}_Linux-64bit.tar.gz"
+          echo "${SHA256}  trivy.tgz" | sha256sum -c -
+          tar -xzf trivy.tgz -C "$RUNNER_TEMP" trivy
+          rm trivy.tgz
+      # Falhas altas e criticas que ja tem correcao, no sistema da imagem e nas bibliotecas.
+      - name: Vulnerabilidades nas imagens (Trivy)
+        run: |
+          for servico in $SERVICOS; do
+            echo "::group::$servico"
+            "$RUNNER_TEMP/trivy" image --quiet --scanners vuln --severity HIGH,CRITICAL \
+              --ignore-unfixed --exit-code 0 "$PIGGU_IMAGENS/$servico:$PIGGU_VERSAO"
+            echo "::endgroup::"
+          done
+      - name: Publicar as imagens no GitHub (ghcr.io)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          TOKEN: ${{ github.token }}
+          USUARIO: ${{ github.actor }}
+        run: |
+          printf '%s' "$TOKEN" | docker login ghcr.io -u "$USUARIO" --password-stdin
+          # shellcheck disable=SC2086
+          docker compose --profile producao push $SERVICOS
+          docker logout ghcr.io
+
   # Atualiza o servidor depois que todos os jobs acima passam num push na main (a
   # branch de producao). Desligado ate a variavel DEPLOY_LIGADO=true existir no
   # repositorio (Settings > Secrets and variables > Actions > Variables); os segredos
@@ -275,13 +394,27 @@ jobs:
   # docs/implantacao-producao.md, secao 8.
   publicar:
     name: Publicar no servidor
-    needs: [segredos, backup, backend, frontend, e2e, stack]
+    needs:
+      - segredos
+      - lint
+      - backup
+      - observabilidade
+      - backend
+      - dependencias-do-backend
+      - frontend
+      - e2e
+      - stack
+      - imagens
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       vars.DEPLOY_LIGADO == 'true'
     runs-on: ubuntu-latest
     environment: producao
+    # O token deste job vai para o servidor baixar as imagens: so le, e morre com o job.
+    permissions:
+      contents: read
+      packages: read
     timeout-minutes: 40
     concurrency:
       group: publicar-producao
@@ -299,10 +432,39 @@ jobs:
           # aceitar a primeira chave que aparecer).
           printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
       # No servidor, a chave so roda deploy/atualizar.sh, que confere se o commit esta
-      # na branch de producao, compila, sobe e espera os servicos ficarem saudaveis.
+      # na branch de producao, baixa as imagens, sobe e espera os servicos ficarem
+      # saudaveis; se nao ficarem, volta sozinho para a versao anterior e o job falha.
+      # O token vai pela entrada, nunca na linha de comando.
       - name: Atualizar o servidor
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
           # Usuario do servidor; o guia cria o "ubuntu" em qualquer provedor.
           USUARIO: ${{ vars.DEPLOY_USUARIO || 'ubuntu' }}
-        run: ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$HOST" "$GITHUB_SHA"
+          TOKEN: ${{ github.token }}
+        run: >-
+          printf '%s\n' "$TOKEN" |
+          ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$HOST" "$GITHUB_SHA"
+
+  # Cada publicacao vira uma versao em Releases: tag vAAAA.MM.DD (.2, .3... se sair mais de
+  # uma no dia) e as notas geradas dos PRs que entraram desde a versao anterior. E o
+  # changelog do app e o numero que as lojas vao pedir.
+  versao:
+    name: Versao e notas
+    needs: publicar
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Criar a versao
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          base="v$(TZ=America/Sao_Paulo date +%Y.%m.%d)"
+          tag=$base
+          n=1
+          while gh api "repos/$GH_REPO/git/ref/tags/$tag" > /dev/null 2>&1; do
+            n=$((n + 1))
+            tag="$base.$n"
+          done
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes

@@ -1,5 +1,7 @@
 # A porta publica: Caddy com HTTPS automatico, servindo o front e repassando a API.
 # Construa da raiz do repositorio depois de  cd frontend && npm ci && npm run build
 FROM caddy:2-alpine
+# Liga a imagem publicada no GitHub (ghcr.io) ao repositorio.
+LABEL org.opencontainers.image.source=https://github.com/Piggubr/cofrinho-app
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY frontend/dist/frontend/browser /srv

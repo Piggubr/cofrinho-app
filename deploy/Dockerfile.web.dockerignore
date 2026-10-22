@@ -1,0 +1,5 @@
+# Contexto da imagem web e a raiz do repositorio: so vai o que o Dockerfile.web copia
+# (sem isto o node_modules inteiro do front ia junto para o build).
+*
+!deploy/Caddyfile
+!frontend/dist/frontend/browser

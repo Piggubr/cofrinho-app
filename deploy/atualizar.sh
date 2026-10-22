@@ -9,18 +9,34 @@
 # Assim, quem tiver a chave so consegue pedir "atualize para o commit X", e X precisa
 # estar na branch de producao. Tambem roda a mao:  deploy/atualizar.sh <sha>
 #
+# Imagens: o CI ja compilou, testou e publicou as imagens do commit no GitHub (ghcr.io, job
+# "imagens"); aqui elas so sao baixadas. O Actions manda pela entrada um token que so vale
+# ate o job acabar. Sem imagem no registro (commit antigo, ou a mao sem token num pacote
+# privado), o script compila aqui mesmo, como antes.
+#
+# Rollback: se a versao nova nao fica saudavel em 5 minutos, o script volta sozinho para o
+# commit que estava no ar e termina com erro (o job fica vermelho). As migracoes de banco
+# nao voltam: o Flyway da versao anterior ignora as migracoes novas e sobe, desde que a
+# versao nova so tenha acrescentado coisas ao banco (docs/implantacao-producao.md, secao 8).
+#
 # Variaveis (opcionais):
-#   PIGGU_RAMO   branch de producao (main)
+#   PIGGU_RAMO      branch de producao (main)
+#   PIGGU_REGISTRO  onde ficam as imagens (ghcr.io/piggubr/cofrinho-app)
 #
 # Com PIGGU_OBSERVABILIDADE=true no backend/.env, sobe tambem o monitoramento (perfil
 # observabilidade: Grafana, Prometheus, Loki) e o reinicia quando a configuracao dele muda.
 # Um problema no monitoramento nunca reprova o deploy: so os servicos do app contam.
 set -euo pipefail
 
-# Tudo dentro de uma funcao: o bash le a funcao inteira antes de rodar, entao o
-# git checkout abaixo pode trocar este arquivo sem atrapalhar a execucao.
+RAMO=${PIGGU_RAMO:-main}
+REGISTRO=${PIGGU_REGISTRO:-ghcr.io/piggubr/cofrinho-app}
+# Os servicos com imagem propria (build no docker-compose.yml) no perfil producao.
+SERVICOS_DO_APP=(identity finance rewards lifestyle media gateway web)
+MONITORAMENTO='prometheus|loki|alloy|node-exporter|grafana'
+
+# Tudo dentro de funcoes: o bash le cada funcao inteira antes de rodar, entao o git
+# checkout abaixo pode trocar este arquivo sem atrapalhar a execucao.
 main() {
-  local ramo=${PIGGU_RAMO:-main}
   # Pela chave do Actions o sha chega em SSH_ORIGINAL_COMMAND; a mao, no argumento.
   local sha=${SSH_ORIGINAL_COMMAND:-${1:-}}
   if [[ ! $sha =~ ^[0-9a-f]{40}$ ]]; then
@@ -36,51 +52,115 @@ main() {
   exec 9> /tmp/piggu-deploy.lock
   flock -n 9 || { echo "Outro deploy esta em andamento." >&2; exit 1; }
 
-  echo "==> Buscando $ramo"
-  git fetch --quiet origin "$ramo"
-  if ! git merge-base --is-ancestor "$sha" "origin/$ramo"; then
-    echo "O commit $sha nao esta em $ramo; nada foi feito." >&2
+  # O token do registro chega pela entrada, numa linha (so o Actions manda). A mao, no
+  # terminal, nao ha token: segue sem ele.
+  local token=""
+  if [[ ! -t 0 ]]; then
+    IFS= read -r -t 10 token || true
+  fi
+
+  echo "==> Buscando $RAMO"
+  git fetch --quiet origin "$RAMO"
+  if ! git merge-base --is-ancestor "$sha" "origin/$RAMO"; then
+    echo "O commit $sha nao esta em $RAMO; nada foi feito." >&2
     exit 1
   fi
   # .env, keys/ e o docker-compose.override.yml ficam fora do Git e nao sao tocados.
   local antes
   antes=$(git rev-parse HEAD)
-  git checkout --quiet -B "$ramo" "$sha"
 
-  echo "==> Compilando o site"
-  (cd frontend && npm ci --no-audit --no-fund --loglevel=error && npm run build)
+  if publicar "$sha" "$token"; then
+    limpar_imagens "$sha" "$antes"
+    echo "==> Piggu em ${sha:0:7}"
+    return 0
+  fi
 
-  echo "==> Subindo os servicos"
-  cd backend
+  if [[ $antes == "$sha" ]]; then
+    echo "O mesmo commit ja estava no ar; nao ha versao anterior para voltar." >&2
+    exit 1
+  fi
+  echo "==> ${sha:0:7} nao ficou saudavel; voltando para ${antes:0:7}" >&2
+  if publicar "$antes" "$token"; then
+    echo "==> Rollback feito: o servidor continua em ${antes:0:7}. O deploy de ${sha:0:7} falhou." >&2
+  else
+    echo "==> Nem ${antes:0:7} ficou saudavel. Veja: docker compose logs --tail 50 <servico>" >&2
+  fi
+  exit 1
+}
+
+# Poe o servidor no commit $1 e espera os servicos do app ficarem saudaveis.
+# Chamada dentro de um if, onde o set -e nao vale: cada passo confere o proprio erro.
+publicar() {
+  local alvo=$1 token=$2 de
+  de=$(git rev-parse HEAD)
+  git checkout --quiet -B "$RAMO" "$alvo" || return 1
+
   local perfis=(--profile producao) monitoramento=false
-  if grep -qE '^PIGGU_OBSERVABILIDADE=(true|sim|1)[[:space:]]*$' .env 2> /dev/null; then
+  if grep -qE '^PIGGU_OBSERVABILIDADE=(true|sim|1)[[:space:]]*$' backend/.env 2> /dev/null; then
     perfis+=(--profile observabilidade)
     monitoramento=true
   fi
-  docker compose "${perfis[@]}" up -d --build --remove-orphans
-  # Config do monitoramento e arquivo montado: o container nao percebe a troca sozinho.
-  if $monitoramento && ! git diff --quiet "$antes" "$sha" -- observabilidade; then
-    echo "==> Reiniciando o monitoramento (configuracao mudou)"
-    docker compose "${perfis[@]}" restart prometheus loki alloy grafana || true
+  # O docker-compose.yml monta o nome de cada imagem com estas duas.
+  export PIGGU_IMAGENS=$REGISTRO PIGGU_VERSAO=$alvo
+
+  echo "==> Baixando as imagens de ${alvo:0:7}"
+  if ! baixar_imagens "$token" "${perfis[@]}"; then
+    echo "==> Sem imagens no registro; compilando aqui"
+    (cd frontend && npm ci --no-audit --no-fund --loglevel=error && npm run build) || return 1
+    (cd backend && docker compose "${perfis[@]}" build "${SERVICOS_DO_APP[@]}") || return 1
   fi
 
+  echo "==> Subindo os servicos"
+  (cd backend && docker compose "${perfis[@]}" up -d --no-build --remove-orphans) || return 1
+  # Config do monitoramento e arquivo montado: o container nao percebe a troca sozinho.
+  if $monitoramento && ! git diff --quiet "$de" "$alvo" -- backend/observabilidade; then
+    echo "==> Reiniciando o monitoramento (configuracao mudou)"
+    (cd backend && docker compose "${perfis[@]}" restart prometheus loki alloy grafana) || true
+  fi
+
+  esperar_saude
+}
+
+# Baixa as imagens do app; falha se alguma nao existir no registro.
+baixar_imagens() {
+  local token=$1 resultado=0
+  shift
+  if [[ -n $token ]]; then
+    printf '%s' "$token" | docker login ghcr.io -u piggu-deploy --password-stdin > /dev/null 2>&1 || true
+  fi
+  (cd backend && docker compose "$@" pull --quiet "${SERVICOS_DO_APP[@]}") || resultado=1
+  # O token morre com o job, mas nao fica gravado no servidor nem ate la.
+  if [[ -n $token ]]; then
+    docker logout ghcr.io > /dev/null 2>&1 || true
+  fi
+  return $resultado
+}
+
+esperar_saude() {
   echo "==> Esperando os servicos ficarem saudaveis"
   local estado
   for _ in $(seq 1 60); do
     # So os servicos do app; o monitoramento (perfil observabilidade) fica de fora.
-    estado=$(docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}' \
-      | grep -vE '^(prometheus|loki|alloy|node-exporter|grafana) ' || true)
-    if ! grep -qE ' (created|restarting|exited|dead)| (starting|unhealthy)$' <<< "$estado"; then
+    estado=$(cd backend && docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}' \
+      | grep -vE "^($MONITORAMENTO) " || true)
+    if [[ -n $estado ]] && ! grep -qE ' (created|restarting|exited|dead)| (starting|unhealthy)$' <<< "$estado"; then
       echo "$estado"
-      docker image prune -f > /dev/null
-      echo "==> Piggu em $(git rev-parse --short HEAD)"
       return 0
     fi
     sleep 5
   done
   echo "$estado" >&2
   echo "Algum servico nao ficou saudavel em 5 minutos. Veja: docker compose logs --tail 50 <servico>" >&2
-  exit 1
+  return 1
 }
 
-main "$@"
+# Guarda so as imagens da versao no ar e da anterior (a do rollback); o resto ocupa disco.
+limpar_imagens() {
+  local manter="^$REGISTRO/[a-z-]+:($1|$2)$"
+  docker images --filter "reference=$REGISTRO/*" --format '{{.Repository}}:{{.Tag}}' \
+    | grep -vE "$manter" | xargs -r docker rmi > /dev/null 2>&1 || true
+  docker image prune -f > /dev/null
+}
+
+# Na mesma linha: depois do main o bash nao le mais nada deste arquivo, que o checkout trocou.
+main "$@"; exit
