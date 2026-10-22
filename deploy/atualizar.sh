@@ -141,8 +141,8 @@ esperar_saude() {
   local estado
   for _ in $(seq 1 60); do
     # So os servicos do app; o monitoramento (perfil observabilidade) fica de fora.
-    estado=$(cd backend && docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}' \
-      | grep -vE "^($MONITORAMENTO) " || true)
+    estado=$(cd backend && docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}') || true
+    estado=$(grep -vE "^($MONITORAMENTO) " <<< "$estado" || true)
     if [[ -n $estado ]] && ! grep -qE ' (created|restarting|exited|dead)| (starting|unhealthy)$' <<< "$estado"; then
       echo "$estado"
       return 0
