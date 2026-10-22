@@ -37,11 +37,15 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FormularioDeGasto, GastoLancado } from './formulario-de-gasto';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
+import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
 
 /** Gastos: lancar (o mesmo formulario do "+") e revisar o que ja foi lancado. */
 @Component({
   selector: 'app-expenses',
   imports: [
+    CampoDeCategoria,
+    CampoDeValor,
     Focar,
     Icone,
     FormsModule,

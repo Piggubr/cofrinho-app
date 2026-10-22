@@ -77,7 +77,7 @@ public class ExpenseService {
     @Transactional(readOnly = true)
     public List<ExpenseResponse> listarDoMes(String mes) {
         YearMonth referencia = YearMonth.parse(mes);
-        return repositorio.findByExpenseDateBetweenOrderByExpenseDateDesc(
+        return repositorio.findByExpenseDateBetweenOrderByExpenseDateDescCreatedAtDesc(
                         referencia.atDay(1), referencia.atEndOfMonth()).stream()
                 .map(ExpenseResponse::de)
                 .toList();
@@ -212,7 +212,7 @@ public class ExpenseService {
     public String exportarCsv(String mes) {
         List<Expense> gastos = Texto.vazio(mes)
                 ? repositorio.findAllByOrderByExpenseDateDescCreatedAtDesc()
-                : repositorio.findByExpenseDateBetweenOrderByExpenseDateDesc(
+                : repositorio.findByExpenseDateBetweenOrderByExpenseDateDescCreatedAtDesc(
                         YearMonth.parse(mes).atDay(1), YearMonth.parse(mes).atEndOfMonth());
         StringBuilder csv = new StringBuilder("data;item;categoria;valor;estabelecimento;origem\n");
         for (Expense g : gastos) {

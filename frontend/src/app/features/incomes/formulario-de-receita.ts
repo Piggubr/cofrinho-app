@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { FinanceService } from '../../core/api/finance.service';
 import { PessoasDaFamilia } from '../../core/api/pessoas-da-familia';
 import { AuthService } from '../../core/auth/auth.service';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 import { hojeIso } from '../../core/ui/datas';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
@@ -15,7 +16,7 @@ export interface ReceitaLancada {
 /** Formulario completo de receita: o mesmo na tela de Receitas e no painel do "+". */
 @Component({
   selector: 'app-formulario-de-receita',
-  imports: [FormsModule],
+  imports: [CampoDeValor, FormsModule],
   templateUrl: './formulario-de-receita.html',
   styles: `
     :host {

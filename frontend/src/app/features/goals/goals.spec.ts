@@ -69,7 +69,7 @@ describe('Goals', () => {
 
     expect(pagina.textContent).toContain('40% usado');
     expect(pagina.textContent).not.toContain('limite ultrapassado');
-    expect(pagina.querySelector<HTMLInputElement>('#limite')!.value).toBe('1000');
+    expect(pagina.querySelector<HTMLInputElement>('#limite')!.value).toBe('1000,00');
   });
 
   it('gasto acima da meta marca a meta como ultrapassada e a barra para em 100%', () => {
@@ -148,7 +148,7 @@ describe('Goals', () => {
     await tela.whenStable();
 
     expect(pagina.querySelector<HTMLInputElement>('#mes')!.value).toBe('2026-01');
-    expect(pagina.querySelector<HTMLInputElement>('#limite')!.value).toBe('800');
+    expect(pagina.querySelector<HTMLInputElement>('#limite')!.value).toBe('800,00');
   });
 
   it('falha ao carregar mostra o erro e para de carregar', () => {

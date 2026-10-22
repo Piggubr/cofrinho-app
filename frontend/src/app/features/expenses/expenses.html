@@ -91,25 +91,20 @@
               (ngModelChange)="itemEditado.set($event)"
             />
           </div>
-          <div class="campo">
-            <label i18n [for]="'edCat' + gasto.id">Categoria</label>
-            <select
-              [id]="'edCat' + gasto.id"
-              [ngModel]="categoriaEditada()"
-              (ngModelChange)="categoriaEditada.set($event)"
-            >
-              @for (categoria of categorias(); track categoria) {
-                <option [value]="categoria">{{ categoria }}</option>
-              }
-            </select>
-          </div>
+          <app-campo-de-categoria
+            class="campo"
+            [campoId]="'edCat' + gasto.id"
+            [categorias]="categorias()"
+            [automatica]="false"
+            [valor]="categoriaEditada()"
+            (valorChange)="categoriaEditada.set($event)"
+            (criou)="categorias.set($event)"
+          />
           <div class="campo">
             <label i18n [for]="'edVal' + gasto.id">Valor ({{ moeda.simbolo() }})</label>
             <input
+              appValor
               [id]="'edVal' + gasto.id"
-              type="number"
-              min="0"
-              step="0.01"
               [ngModel]="valorEditado()"
               (ngModelChange)="valorEditado.set($event)"
             />

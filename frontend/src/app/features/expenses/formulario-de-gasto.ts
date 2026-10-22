@@ -18,6 +18,8 @@ import { imagemCabeNoLimite, lerImagemComoBase64 } from '../../core/ui/arquivo';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { dataCurta, hojeIso, mesPorExtenso } from '../../core/ui/datas';
 import { faturaDaCompra } from '../../core/ui/fatura';
+import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
@@ -45,7 +47,7 @@ export interface GastoLancado {
  */
 @Component({
   selector: 'app-formulario-de-gasto',
-  imports: [FormsModule, RouterLink, Icone, MoedaPipe, DataBrPipe],
+  imports: [CampoDeCategoria, CampoDeValor, FormsModule, RouterLink, Icone, MoedaPipe, DataBrPipe],
   templateUrl: './formulario-de-gasto.html',
   styleUrl: './formulario-de-gasto.scss',
 })
@@ -403,7 +405,11 @@ export class FormularioDeGasto {
     });
   }
 
-  protected atualizarItemDoRecibo(indice: number, campo: keyof ItemEmConferencia, valor: string): void {
+  protected atualizarItemDoRecibo(
+    indice: number,
+    campo: keyof ItemEmConferencia,
+    valor: string | number | null,
+  ): void {
     this.itensEmConferencia.update((itens) =>
       itens.map((item, i) =>
         i === indice ? { ...item, [campo]: campo === 'valor' ? Number(valor) : valor } : item,

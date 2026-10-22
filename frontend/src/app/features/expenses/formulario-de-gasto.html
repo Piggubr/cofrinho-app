@@ -64,12 +64,11 @@
       <div class="campo">
         <label i18n [for]="prefixo() + 'confValor' + $index">Valor ({{ moeda.simbolo() }})</label>
         <input
+          appValor
           [id]="prefixo() + 'confValor' + $index"
-          type="number"
-          min="0"
-          step="0.01"
-          [value]="item.valor"
-          (input)="atualizarItemDoRecibo($index, 'valor', $any($event.target).value)"
+          [ngModel]="item.valor"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="atualizarItemDoRecibo($index, 'valor', $event)"
         />
       </div>
       <div class="campo alinhado">
@@ -102,11 +101,8 @@
     <div class="campo">
       <label i18n [for]="prefixo() + 'valor'">Valor ({{ moeda.simbolo() }})</label>
       <input
+        appValor
         [id]="prefixo() + 'valor'"
-        type="number"
-        min="0"
-        step="0.01"
-        inputmode="decimal"
         [ngModel]="novoValor()"
         (ngModelChange)="novoValor.set($event)"
         (blur)="conferirPreco()"
@@ -119,19 +115,14 @@
         </p>
       }
     </div>
-    <div class="campo">
-      <label i18n [for]="prefixo() + 'categoria'">Categoria</label>
-      <select
-        [id]="prefixo() + 'categoria'"
-        [ngModel]="novaCategoria()"
-        (ngModelChange)="novaCategoria.set($event)"
-      >
-        <option i18n value="">Automática</option>
-        @for (categoria of categorias(); track categoria) {
-          <option [value]="categoria">{{ categoria }}</option>
-        }
-      </select>
-    </div>
+    <app-campo-de-categoria
+      class="campo"
+      [campoId]="prefixo() + 'categoria'"
+      [categorias]="categorias()"
+      [valor]="novaCategoria()"
+      (valorChange)="novaCategoria.set($event)"
+      (criou)="categorias.set($event)"
+    />
     <div class="campo">
       <label i18n [for]="prefixo() + 'item'">Descrição</label>
       <input

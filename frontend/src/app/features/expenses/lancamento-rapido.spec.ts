@@ -56,7 +56,7 @@ describe('Lancamento rapido pelo atalho', () => {
     await harness.fixture.whenStable();
 
     const valor = harness.routeNativeElement!.querySelector('#valor') as HTMLInputElement;
-    expect(valor.value).toBe('12.5');
+    expect(valor.value).toBe('12,50');
     expect(document.activeElement).toBe(valor);
   });
 });
