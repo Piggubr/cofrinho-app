@@ -171,28 +171,6 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("teste gratis uma vez por CPF: outra conta com o mesmo CPF que ja testou tira o teste")
-    void testeGratisUmaVezPorCpf() {
-        Household outraCasa = familias.save(new Household("Outra casa"));
-        UserAccount testou = new UserAccount("testou@piggu.test", PigguRole.TITULAR, outraCasa.getId());
-        testou.informarCpf("cifrado", "indice-do-cpf");
-        testou.marcarTesteGratisUsado();
-        usuarios.save(testou);
-
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).as("sem CPF: vale a regra por conta").isEqualTo(14);
-
-        UserAccount mesmoCpf = usuarios.findById(conta.getId()).orElseThrow();
-        mesmoCpf.informarCpf("cifrado", "indice-do-cpf");
-        usuarios.save(mesmoCpf);
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).as("o mesmo CPF ja testou").isZero();
-
-        UserAccount outroCpf = usuarios.findById(membro.getId()).orElseThrow();
-        outroCpf.informarCpf("cifrado", "outro-indice");
-        usuarios.save(outroCpf);
-        assertThat(assinaturas.plano(membro.getId()).diasDeTeste()).as("CPF diferente segue com teste").isEqualTo(14);
-    }
-
-    @Test
     @DisplayName("CPF de conta excluida que ja testou: a conta nova com o mesmo CPF fica sem teste")
     void cpfDeContaExcluida() {
         jdbc.update("INSERT INTO trial_cpf_history (cpf_indice, used_at) VALUES ('indice-excluido', now())");

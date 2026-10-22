@@ -27,18 +27,25 @@ describe('Lancamento rapido pelo atalho', () => {
 
   afterEach(() => http.verify());
 
-  /** As listas que a tela pede ao abrir, no formato de cada uma. */
+  /** As listas que a tela e o formulario pedem ao abrir, no formato de cada uma. */
   function responderListas(): void {
-    http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
-    http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
-    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http
-      .expectOne('/api/family')
-      .flush({ id: 'f', nome: 'Casa', plano: 'PREMIUM', membros: [], convites: [] });
-    http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush([]);
-    // Premium: sem cota de leituras, e o importador pergunta pelo banco.
-    http.expectOne('/api/banking/status').flush({ habilitado: false });
+    const corpos: Record<string, unknown> = {
+      '/api/expenses': [],
+      '/api/categories': { categorias: ['Mercado'] },
+      '/api/expenses/splits': [],
+      '/api/family': { id: 'f', nome: 'Casa', plano: 'PREMIUM', membros: [], convites: [] },
+      '/api/categories/rules': [],
+      '/api/accounts': [],
+      // Premium: sem cota de leituras, e o importador pergunta pelo banco.
+      '/api/banking/status': { habilitado: false },
+    };
+    // Responder umas listas pede outras (o acerto vem depois dos gastos).
+    for (let pedidos = http.match(() => true); pedidos.length; pedidos = http.match(() => true)) {
+      for (const pedido of pedidos) {
+        expect(corpos).toHaveProperty([pedido.request.url]);
+        pedido.flush(corpos[pedido.request.url] as object);
+      }
+    }
   }
 
   it('com o valor dito a Siri, o campo ja vem preenchido e com o cursor', async () => {

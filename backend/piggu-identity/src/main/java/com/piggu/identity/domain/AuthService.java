@@ -152,7 +152,7 @@ public class AuthService {
      * familia nem vira ADMIN pela lista.
      *
      * <p>O CPF e obrigatorio e conferido (digitos) para todo mundo, inclusive quem mora
-     * fora, mas CPF repetido nao barra. O celular e obrigatorio e fica em E.164.</p>
+     * fora; CPF de outra conta barra o cadastro (ver {@link MinhaContaService#prenderCpf}). O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
     public void cadastrar(String nome, String emailBruto, String senha, String paisDigitado,

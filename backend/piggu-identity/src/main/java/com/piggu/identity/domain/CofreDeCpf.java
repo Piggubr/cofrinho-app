@@ -15,11 +15,11 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /**
- * Guarda o CPF cifrado e calcula o indice que acha contas com o mesmo CPF (pode repetir
- * desde a V25). Tambem abre o documento de outro pais das contas antigas que tem um.
+ * Guarda o CPF cifrado e calcula o indice que acha a conta do CPF (unico desde a V35).
+ * Tambem abre o documento de outro pais das contas antigas que tem um.
  *
  * <p>Duas colunas: {@code cpf_cifrado} (AES-256-GCM, para devolver o numero na
- * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; desde a V25 pode repetir). O indice
+ * exportacao dos dados) e {@code cpf_indice} (HMAC-SHA256; unico de novo desde a V35). O indice
  * nao se reverte e, sem a chave, nao da para testar os CPFs possiveis contra ele, como
  * daria com um SHA-256 simples (sao so 10^9 combinacoes). Um dump do banco sozinho nao
  * entrega CPF de ninguem.</p>

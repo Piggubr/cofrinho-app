@@ -13,63 +13,7 @@
   <div class="cartao-titulo">
     <h2 i18n id="titulo-nova-receita">Nova receita</h2>
   </div>
-  <div class="linha-de-campos">
-    <div class="campo">
-      <label i18n for="data-receita">Data</label>
-      <input id="data-receita" type="date" [ngModel]="data()" (ngModelChange)="data.set($event)" />
-    </div>
-    <div class="campo">
-      <label i18n for="descricao-receita">Descrição</label>
-      <input
-        id="descricao-receita"
-        maxlength="200"
-        [ngModel]="descricao()"
-        (ngModelChange)="descricao.set($event)"
-        placeholder="Salário de outubro"
-        i18n-placeholder
-      />
-    </div>
-    <div class="campo">
-      <label i18n for="categoria-receita">Categoria</label>
-      <select
-        id="categoria-receita"
-        [ngModel]="categoria()"
-        (ngModelChange)="categoria.set($event)"
-      >
-        @for (opcao of categorias(); track opcao) {
-          <option [value]="opcao">{{ opcao }}</option>
-        }
-      </select>
-    </div>
-    <div class="campo">
-      <label i18n for="valor-receita">Valor</label>
-      <input
-        appValor
-        id="valor-receita"
-        [ngModel]="valor()"
-        (ngModelChange)="valor.set($event)"
-      />
-    </div>
-  </div>
-  <label class="repetir">
-    <input type="checkbox" [checked]="repetir()" (change)="repetir.set($any($event.target).checked)" />
-    <span i18n>Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span>
-  </label>
-  @if (pessoas.temCompanhia()) {
-    <label class="repetir">
-      <input
-        type="checkbox"
-        [checked]="compartilhadaEfetiva()"
-        (change)="compartilhada.set($any($event.target).checked)"
-      />
-      <span i18n>Compartilhada: aparece para quem mora com você</span>
-    </label>
-  }
-  <div class="acoes">
-    <button i18n type="button" class="botao" (click)="lancar()" [disabled]="salvando()">
-      Lançar receita
-    </button>
-  </div>
+  <app-formulario-de-receita (lancado)="aoLancar($event)" />
 </section>
 
 @if (recorrentes().length) {

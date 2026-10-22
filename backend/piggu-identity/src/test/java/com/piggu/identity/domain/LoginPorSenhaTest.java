@@ -324,15 +324,14 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("CPF que ja esta em outra conta nao barra o cadastro")
+    @DisplayName("CPF que ja esta em outra conta barra o cadastro e nao sobra conta pela metade")
     void cpfRepetido() {
         cadastrar(EMAIL);
 
-        auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725", CELULAR,
-                Consentimentos.VERSAO_DO_AVISO, ADULTO);
-        TokenResponse outra = auth.entrarComSenha("outra@exemplo.test", SENHA, true, null);
-
-        assertThat(outra.usuario().cpfInformado()).isTrue();
+        assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725",
+                CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já está em outra conta");
+        assertThat(usuarios.findByEmail("outra@exemplo.test")).isEmpty();
     }
 
     @Test

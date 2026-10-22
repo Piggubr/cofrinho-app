@@ -71,14 +71,14 @@ describe('Shell', () => {
     expect(texto).toContain('5,40');
   });
 
-  it('com a mais fraca primeiro, inverte: 1 USD = R$ 5,00 e nao BRL → US$ 0,20', () => {
+  it('segue a ordem escolhida, com 4 casas abaixo de 1: 1 BRL = US$ 0,1786', () => {
     auth.preferir({ moeda: 'BRL', moedaCotacao: 'BRL', moedaConversao: 'USD' });
     const tela = abrir();
 
     http.expectOne((req) => req.url === '/api/exchange-rate').flush({
       de: 'BRL',
       para: 'USD',
-      taxa: 0.2,
+      taxa: 0.178563,
       data: '',
       fonte: '',
       estimativa: true,
@@ -87,9 +87,9 @@ describe('Shell', () => {
     tela.detectChanges();
 
     const texto: string = tela.nativeElement.querySelector('.cotacao').textContent;
-    expect(texto).toContain('1 USD =');
-    expect(texto).toContain('R$');
-    expect(texto).toContain('5,00');
+    expect(texto).toContain('1 BRL =');
+    expect(texto).toContain('US$');
+    expect(texto).toContain('0,1786');
   });
 
   it('o par da cotacao nao depende da moeda do app', () => {

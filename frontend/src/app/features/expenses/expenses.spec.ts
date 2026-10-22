@@ -1,11 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Expenses } from './expenses';
+import { FormularioDeGasto } from './formulario-de-gasto';
 
 /** Leitura de nota no gratuito: mostra quantas sobram e, sem sobra, leva ao Premium. */
 describe('Expenses', () => {
@@ -32,16 +34,7 @@ describe('Expenses', () => {
 
   function abrir(restantes: number): HTMLElement {
     const tela = TestBed.createComponent(Expenses);
-    tela.detectChanges();
-    http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
-    http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
-    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http
-      .expectOne('/api/family')
-      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
-    http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush([]);
-    http.expectOne('/api/receipts/usage').flush({ usadas: 10 - restantes, limite: 10, restantes });
+    abrirCom(tela, [], [], [], [], restantes);
     tela.detectChanges();
     return tela.nativeElement;
   }
@@ -74,15 +67,7 @@ describe('Expenses', () => {
       usuario: 'a',
       registradoEm: '',
     };
-    http.expectOne((pedido) => pedido.url === '/api/expenses').flush([gasto]);
-    http.expectOne('/api/categories').flush({ categorias: ['Outros', 'Transporte'] });
-    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush([]);
-    http
-      .expectOne('/api/family')
-      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros: [], convites: [] });
-    http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush([]);
-    http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
+    responder({ gastos: [gasto], categorias: ['Outros', 'Transporte'] });
 
     const tela$ = tela.componentInstance as unknown as {
       abrirEdicao(g: typeof gasto): void;
@@ -114,7 +99,7 @@ describe('Expenses', () => {
   it('compra em dolar grava o convertido e o original; preco acima da media avisa', () => {
     const tela = TestBed.createComponent(Expenses);
     abrirCom(tela);
-    const t = tela.componentInstance as unknown as {
+    const t = formulario(tela) as unknown as {
       novoItem: { set(v: string): void };
       novoValor: { set(v: number): void };
       trocarMoeda(c: string): void;
@@ -186,7 +171,7 @@ describe('Expenses', () => {
 
     const caixas = [...pagina.querySelectorAll<HTMLInputElement>('.dividir input[type=checkbox]')];
     caixas.forEach((caixa) => caixa.dispatchEvent(new Event('change')));
-    const t = tela.componentInstance as unknown as {
+    const t = formulario(tela) as unknown as {
       novoItem: { set(v: string): void };
       novoValor: { set(v: number): void };
       lancar(): void;
@@ -213,7 +198,7 @@ describe('Expenses', () => {
     expect(pagina.querySelector('.alternador .ativo')?.textContent).toContain('Cartão de crédito');
     expect(pagina.textContent).toContain('Vai para a fatura de');
 
-    const t = tela.componentInstance as unknown as Tela;
+    const t = formulario(tela) as unknown as Tela;
     t.trocarForma('DEBITO');
     t.novoItem.set('Mercado');
     t.novoValor.set(90);
@@ -231,7 +216,7 @@ describe('Expenses', () => {
     localStorage.removeItem('piggu_conta_padrao');
     const tela = TestBed.createComponent(Expenses);
     abrirCom(tela, [], [], [...CONTAS, { ...CONTAS[1], id: 'c3', nome: 'Inter' }]);
-    const t = tela.componentInstance as unknown as Tela;
+    const t = formulario(tela) as unknown as Tela;
     t.novoItem.set('TV');
     t.novoValor.set(900);
     t.trocarForma('CARTAO');
@@ -256,13 +241,41 @@ describe('Expenses', () => {
     expect(pedido.request.body).toEqual(
       expect.objectContaining({ contaId: 'c3', parcelas: null, recorrente: true }),
     );
+    expect(pedido.request.body.itens[0].tipo).toBe('Fixo');
+  });
+
+  it('débito/Pix é sempre à vista: sem À vista/Parcelado/Recorrente e sem o campo Tipo', () => {
+    localStorage.removeItem('piggu_conta_padrao');
+    const tela = TestBed.createComponent(Expenses);
+    abrirCom(tela, [], [], CONTAS);
+    tela.detectChanges();
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.querySelector('#tipo')).toBeNull();
+    expect(pagina.textContent).not.toContain('Como foi a compra');
+
+    const t = formulario(tela) as unknown as Tela;
+    t.trocarForma('CARTAO');
+    t.trocarModo('PARCELADO');
+    tela.detectChanges();
+    expect(pagina.textContent).toContain('Como foi a compra');
+
+    // Voltar para o débito desfaz o parcelado: não sai um Pix em 2x.
+    t.trocarForma('DEBITO');
+    t.novoItem.set('Feira');
+    t.novoValor.set(50);
+    t.lancar();
+    const pedido = http.expectOne((r) => r.url === '/api/expenses' && r.method === 'POST');
+    expect(pedido.request.body).toEqual(
+      expect.objectContaining({ contaId: 'c1', parcelas: null, recorrente: null }),
+    );
+    expect(pedido.request.body.itens[0].tipo).toBe('Variavel');
   });
 
   it('sem internet o gasto fica na fila deste aparelho e o formulario limpa', () => {
     localStorage.removeItem('piggu_fila_de_gastos');
     const tela = TestBed.createComponent(Expenses);
     abrirCom(tela);
-    const t = tela.componentInstance as unknown as {
+    const t = formulario(tela) as unknown as {
       novoItem: { set(v: string): void; (): string };
       novoValor: { set(v: number): void };
       lancar(): void;
@@ -296,27 +309,48 @@ describe('Expenses', () => {
     { id: 'c2', nome: 'Nubank', tipo: 'CARTAO', fechamento: 3, vencimento: 10, faturaAberta: null },
   ];
 
+  function formulario(tela: ComponentFixture<Expenses>): FormularioDeGasto {
+    return tela.debugElement.query(By.directive(FormularioDeGasto)).componentInstance;
+  }
+
+  /** A tela e o formulario pedem as listas ao abrir; responde todas pela URL. */
+  function responder({
+    gastos = [] as unknown[],
+    categorias = ['Mercado'],
+    membros = [] as unknown[],
+    acerto = [] as unknown[],
+    contas = [] as unknown[],
+    transferencias = [] as unknown[],
+    restantes = 10,
+  } = {}): void {
+    const corpos: Record<string, unknown> = {
+      '/api/expenses': gastos,
+      '/api/categories': { categorias },
+      '/api/expenses/splits': acerto,
+      '/api/family': { id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] },
+      '/api/categories/rules': [],
+      '/api/accounts': contas,
+      '/api/expenses/splits/transfers': transferencias,
+      '/api/receipts/usage': { usadas: 10 - restantes, limite: 10, restantes },
+    };
+    // Responder umas listas pede outras (o acerto vem depois dos gastos).
+    for (let pedidos = http.match(() => true); pedidos.length; pedidos = http.match(() => true)) {
+      for (const pedido of pedidos) {
+        expect(corpos).toHaveProperty([pedido.request.url]);
+        pedido.flush(corpos[pedido.request.url] as object);
+      }
+    }
+  }
+
   function abrirCom(
-    tela: ReturnType<typeof TestBed.createComponent<Expenses>>,
+    tela: ComponentFixture<Expenses>,
     membros: unknown[] = [],
     acerto: unknown[] = [],
     contas: unknown[] = [],
     transferencias: unknown[] = [],
+    restantes = 10,
   ): void {
     tela.detectChanges();
-    http.expectOne((pedido) => pedido.url === '/api/expenses').flush([]);
-    http.expectOne('/api/categories').flush({ categorias: ['Mercado'] });
-    http.expectOne((pedido) => pedido.url === '/api/expenses/splits').flush(acerto);
-    if (acerto.length) {
-      http
-        .expectOne((pedido) => pedido.url === '/api/expenses/splits/transfers')
-        .flush(transferencias);
-    }
-    http
-      .expectOne('/api/family')
-      .flush({ id: 'f', nome: 'Casa', plano: 'GRATUITO', membros, convites: [] });
-    http.expectOne('/api/categories/rules').flush([]);
-    http.expectOne('/api/accounts').flush(contas);
-    http.expectOne('/api/receipts/usage').flush({ usadas: 0, limite: 10, restantes: 10 });
+    responder({ membros, acerto, contas, transferencias, restantes });
   }
 });
