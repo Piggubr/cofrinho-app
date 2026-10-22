@@ -11,6 +11,7 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { Carregando } from '../../core/ui/carregando';
 import { Vazio } from '../../core/ui/vazio';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
 
 /** Quanto a pessoa deixou de gastar no mes (AAAA-MM) e desde sempre. */
 export function totaisDoGirlsMath(
@@ -37,7 +38,7 @@ export function totaisDoGirlsMath(
  */
 @Component({
   selector: 'app-girls-math',
-  imports: [FormsModule, Icone, MoedaPipe, DataBrPipe, Carregando, Vazio],
+  imports: [CampoDeValor, FormsModule, Icone, MoedaPipe, DataBrPipe, Carregando, Vazio],
   templateUrl: './girls-math.html',
   styleUrl: './girls-math.scss',
 })

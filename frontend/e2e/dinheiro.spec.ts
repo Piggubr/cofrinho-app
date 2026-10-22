@@ -29,6 +29,23 @@ test('lancar um gasto: aparece na lista e soma no mes', async ({ page }) => {
   await expect(page.getByText(/R\$\s42,50/).first()).toBeVisible();
 });
 
+test('lancar com virgula e numa categoria criada na hora', async ({ page }) => {
+  await abrirPainel(page);
+  await page.goto('/gastos');
+
+  await page.locator('#item').fill('Ração do gato');
+  await page.locator('#valor').fill('37,90');
+  await page.locator('#categoria').selectOption({ label: '+ Nova categoria…' });
+  await page.locator('#categoria').fill('Pet');
+  await page.getByRole('button', { name: 'Criar categoria' }).click();
+  await expect(page.locator('select#categoria')).toHaveValue('Pet');
+  await page.getByRole('button', { name: 'Lançar', exact: true }).click();
+
+  await expect(page.getByText('Ração do gato').first()).toBeVisible();
+  await expect(page.getByText(/R\$\s37,90/).first()).toBeVisible();
+  await expect(page.getByText(/· Pet/).first()).toBeVisible();
+});
+
 test('definir o limite do mes no Orcamento', async ({ page }) => {
   await abrirPainel(page);
   await page.goto('/orcamentos');
@@ -99,7 +116,7 @@ test('assistente: autorizar, perguntar e abrir a tela sugerida', async ({ page }
 test('atalho de lancamento rapido: valor preenchido e cursor no campo', async ({ page }) => {
   await abrirPainel(page);
   await page.goto('/gastos?rapido=1&valor=18.90');
-  await expect(page.locator('#valor')).toHaveValue('18.9');
+  await expect(page.locator('#valor')).toHaveValue('18,90');
   await expect(page.locator('#valor')).toBeFocused();
 });
 

@@ -23,6 +23,8 @@ import { Icone } from '../../core/ui/icone';
 import { Lancamentos } from '../../core/ui/lancamentos';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
+import { CampoDeValor } from '../../core/ui/campo-de-valor';
+import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
 
 type Tipo = 'gasto' | 'receita';
 
@@ -42,7 +44,7 @@ interface ItemEmConferencia {
  */
 @Component({
   selector: 'app-lancamento-rapido',
-  imports: [FormsModule, Icone, MoedaPipe],
+  imports: [CampoDeCategoria, CampoDeValor, FormsModule, Icone, MoedaPipe],
   templateUrl: './lancamento-rapido.html',
   styleUrl: './lancamento-rapido.scss',
   host: {
@@ -223,7 +225,11 @@ export class LancamentoRapido {
     this.lerRecibo(pedido.base64, pedido.mimeType, VERSAO_DO_AVISO);
   }
 
-  protected atualizarItem(indice: number, campo: keyof ItemEmConferencia, valor: string): void {
+  protected atualizarItem(
+    indice: number,
+    campo: keyof ItemEmConferencia,
+    valor: string | number | null,
+  ): void {
     this.itens.update((itens) =>
       itens.map((item, i) =>
         i === indice ? { ...item, [campo]: campo === 'valor' ? Number(valor) : valor } : item,
