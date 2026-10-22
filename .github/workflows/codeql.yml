@@ -1,0 +1,58 @@
+name: CodeQL
+
+# Analise de seguranca do codigo (SAST) do proprio GitHub: procura injecao de SQL, XSS,
+# caminho de arquivo vindo do usuario, segredo no codigo, workflow inseguro e afins, no
+# Java, no TypeScript e nos workflows. Gratis porque o repositorio e publico. Os achados
+# aparecem em Security > Code scanning e como anotacao no PR. Por enquanto so informa: nao
+# e check obrigatorio na regra das branches (docs/branches.md).
+#
+# Se o GitHub recusar com "default setup is enabled": em Settings > Code security, troque o
+# CodeQL de "Default" para "Advanced" (este arquivo passa a ser a configuracao).
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+  # Toda segunda de manha: regras novas pegam codigo que nao mudou.
+  schedule:
+    - cron: '17 9 * * 1'
+
+permissions:
+  contents: read
+
+# Um push novo num PR cancela a analise do commit anterior dele.
+concurrency:
+  group: codeql-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  analisar:
+    name: CodeQL (${{ matrix.linguagem }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # build-mode none: o CodeQL le o codigo sem compilar (Java incluso), mais rapido.
+        linguagem: [java-kotlin, javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.linguagem }}
+          build-mode: none
+          # As regras de seguranca e as de qualidade que apontam erro de verdade.
+          queries: security-and-quality
+          config: |
+            paths-ignore:
+              - '**/node_modules/**'
+              - 'frontend/android/**'
+              - 'frontend/ios/**'
+              - '**/*.spec.ts'
+              - '**/src/test/**'
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.linguagem }}

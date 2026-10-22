@@ -42,3 +42,13 @@ for revisar, suba *Required approvals* para 1 na regra da `main`.
 
 Os nomes dos checks obrigatórios são os `name:` dos jobs do `.github/workflows/ci.yml`.
 Renomeou um job? Atualize a regra, senão o PR fica esperando um check que nunca chega.
+
+Mudou a lista de checks no JSON (por exemplo, quando entraram o Lint, o Monitoramento, o
+OSV e as Imagens)? A regra no GitHub não lê o arquivo sozinha: em *Settings > Rules >
+Rulesets*, abra a regra e acrescente os checks novos em *Require status checks to pass*
+(ou apague a regra e importe o JSON de novo).
+
+Checks que só informam, sem travar o merge: **CodeQL** (análise de segurança do código,
+resultados em *Security > Code scanning*) e **Qualidade do código (SonarQube Cloud)**
+(`docs/qualidade-sonar.md`). Quando os resultados estiverem limpos e confiáveis, dá para
+torná-los obrigatórios do mesmo jeito.
