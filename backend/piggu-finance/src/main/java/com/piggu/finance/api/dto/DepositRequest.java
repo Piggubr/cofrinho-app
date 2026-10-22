@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /**
  * @param data  dia do deposito; ausente significa hoje
- * @param valor     valor em euro, sempre positivo
+ * @param valor     valor na moeda da conta, sempre positivo
  * @param objetivo  cofrinho por objetivo que recebe o deposito; ausente e o cofrinho geral
  */
 public record DepositRequest(

@@ -151,9 +151,8 @@ public class AuthService {
      * {@link ConfirmacaoDeEmail} (ou entrar pelo Google com ele): por isso nao usa convite de
      * familia nem vira ADMIN pela lista.
      *
-     * <p>No Brasil o CPF e obrigatorio e conferido (digitos), mas CPF repetido nao barra.
-     * Fora, o documento de {@link DocumentosDeIdentidade} e opcional; se vier, e conferido
-     * e tambem pode repetir. O celular e obrigatorio e fica em E.164.</p>
+     * <p>O CPF e obrigatorio e conferido (digitos) para todo mundo, inclusive quem mora
+     * fora, mas CPF repetido nao barra. O celular e obrigatorio e fica em E.164.</p>
      */
     @Transactional
     public void cadastrar(String nome, String emailBruto, String senha, String paisDigitado,
@@ -165,21 +164,12 @@ public class AuthService {
         }
         LocalDate dataDeNascimento = MinhaContaService.conferirNascimento(nascimento);
         senhas.validar(senha, email);
-        String pais = DocumentosDeIdentidade.pais(paisDigitado);
+        String pais = Paises.pais(paisDigitado);
         String celular = e164(telefone, pais);
-        Cpf cpf = null;
-        DocumentosDeIdentidade.Tipo tipo = DocumentosDeIdentidade.pedidoEm(pais).orElse(null);
-        String numero = null;
-        if (DocumentosDeIdentidade.BRASIL.equals(pais)) {
-            if (Texto.vazio(documento)) {
-                throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
-            }
-            cpf = minhaConta.conferirCpf(documento);
-        } else if (Texto.vazio(documento)) {
-            // Fora do Brasil o documento e opcional; o Perfil oferece informar depois.
-        } else if (tipo != null) {
-            numero = minhaConta.conferirDocumento(tipo, documento);
+        if (Texto.vazio(documento)) {
+            throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
         }
+        Cpf cpf = minhaConta.conferirCpf(documento);
 
         // E-mail que ja tem conta responde igual a um cadastro novo, para o cadastro nao
         // dizer a ninguem quais e-mails usam o Piggu: o dono recebe um aviso no e-mail.
@@ -198,12 +188,7 @@ public class AuthService {
         conta.definirSenha(hash);
         conta.registrarAcesso();
         usuarios.save(conta);
-        if (cpf != null) {
-            minhaConta.prenderCpf(conta, cpf);
-        }
-        if (numero != null) {
-            minhaConta.prenderDocumento(conta, tipo, numero);
-        }
+        minhaConta.prenderCpf(conta, cpf);
         confirmacao.enviar(conta);
         // TODO: confirmar o celular por SMS. Precisa de um provedor externo (Twilio, Zenvia,
         // AWS SNS); por ora o numero so fica guardado.
@@ -424,11 +409,11 @@ public class AuthService {
         String bruto = digitado == null ? "" : digitado.trim();
         boolean comCodigo = bruto.startsWith("+");
         String digitos = bruto.replaceAll("\\D", "");
-        if (!comCodigo && DocumentosDeIdentidade.BRASIL.equals(pais) && (digitos.length() == 10 || digitos.length() == 11)) {
+        if (!comCodigo && Paises.BRASIL.equals(pais) && (digitos.length() == 10 || digitos.length() == 11)) {
             digitos = "55" + digitos;
         }
         String numero = "+" + digitos;
-        if ((!comCodigo && !DocumentosDeIdentidade.BRASIL.equals(pais)) || !numero.matches("\\+[1-9]\\d{7,14}")) {
+        if ((!comCodigo && !Paises.BRASIL.equals(pais)) || !numero.matches("\\+[1-9]\\d{7,14}")) {
             throw new BusinessException("Confira o celular. Fora do Brasil, comece com + e o codigo do pais.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "TELEFONE_INVALIDO");
         }

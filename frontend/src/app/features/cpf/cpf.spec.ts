@@ -8,7 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AuthFalso, usuarioDeTeste } from '../../testing/auth-falso';
 import { Cpf } from './cpf';
 
-/** Tela do documento: o campo segue o pais e so libera o app com o que o pais pede. */
+/** Tela do documento: pede o CPF em qualquer pais e so libera o app com ele. */
 describe('Cpf', () => {
   let auth: AuthFalso;
   let enviados: [string, string | undefined][];
@@ -81,21 +81,19 @@ describe('Cpf', () => {
     expect(navegar).toHaveBeenCalledWith('/painel');
   });
 
-  it('troca o campo pelo documento do pais e, onde nao se pede nenhum, so grava o pais', async () => {
+  it('fora do Brasil tambem pede o CPF e grava o pais escolhido', async () => {
     const { pagina, digitar, escolher, continuar, alerta } = await abrir();
 
-    escolher('ES');
-    expect(pagina.querySelector('label[for=documento]')?.textContent).toContain('DNI/NIE');
-    digitar('12345678A');
+    escolher('JP');
+    expect(pagina.querySelector('label[for=documento]')?.textContent).toContain('CPF');
+    digitar('529.982.247-26');
     await continuar();
-    expect(alerta()).toContain('DNI/NIE inválido');
+    expect(alerta()).toContain('CPF inválido');
     expect(enviados).toEqual([]);
 
-    escolher('JP');
-    expect(pagina.querySelector('#documento')).toBeNull();
-    expect(pagina.textContent).toContain('não pede documento');
+    digitar('52998224725');
     await continuar();
-    expect(enviados).toEqual([['JP', undefined]]);
+    expect(enviados).toEqual([['JP', '52998224725']]);
   });
 
   it('mostra o erro do backend (documento em outra conta) e deixa tentar de novo', async () => {
@@ -105,14 +103,14 @@ describe('Cpf', () => {
           new HttpErrorResponse({
             status: 409,
             error: {
-              erro: 'Este NIF já está ligado a outra conta do Piggu.',
+              erro: 'Este CPF já está ligado a outra conta do Piggu.',
               codigo: 'DOCUMENTO_EM_USO',
             },
           }),
       );
     const { tela, digitar, escolher, continuar, alerta } = await abrir();
     escolher('PT');
-    digitar('123456789');
+    digitar('52998224725');
     await continuar();
     await tela.whenStable();
     tela.detectChanges();
