@@ -74,3 +74,21 @@
 .letras-miudas {
   margin-top: 1rem;
 }
+
+/* O plano que a pessoa usa hoje: borda mais forte e o selo em cima do titulo. */
+.atual {
+  border: 2px solid var(--primaria);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primaria) 14%, transparent);
+}
+
+.seu-plano {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--primaria);
+  color: var(--primaria-contraste);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
