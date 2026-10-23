@@ -341,8 +341,7 @@ jobs:
     env:
       PIGGU_IMAGENS: ghcr.io/piggubr/cofrinho-app
       PIGGU_VERSAO: ${{ github.sha }}
-      # O docker compose build monta para esta plataforma.
-      DOCKER_DEFAULT_PLATFORM: ${{ vars.PIGGU_PLATAFORMA || 'linux/arm64' }}
+      PLATAFORMA: ${{ vars.PIGGU_PLATAFORMA || 'linux/arm64' }}
       # Obrigatorias no Compose, mas so usadas com os servicos de pe.
       GOOGLE_CLIENT_ID: x
       DOMINIO: x
@@ -365,6 +364,9 @@ jobs:
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Montar as imagens
         working-directory: backend
+        # So neste passo: no job inteiro, o proprio emulador baixaria na plataforma errada.
+        env:
+          DOCKER_DEFAULT_PLATFORM: ${{ env.PLATAFORMA }}
         run: |
           # SERVICOS e uma lista separada por espacos, de proposito sem aspas.
           # shellcheck disable=SC2086
@@ -375,8 +377,8 @@ jobs:
           for servico in $SERVICOS; do
             plataforma=$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$PIGGU_IMAGENS/$servico:$PIGGU_VERSAO")
             echo "$servico: $plataforma"
-            if [[ $plataforma != "$DOCKER_DEFAULT_PLATFORM" ]]; then
-              echo "::error::A imagem $servico e $plataforma, e o servidor espera $DOCKER_DEFAULT_PLATFORM"
+            if [[ $plataforma != "$PLATAFORMA" ]]; then
+              echo "::error::A imagem $servico e $plataforma, e o servidor espera $PLATAFORMA"
               exit 1
             fi
           done
