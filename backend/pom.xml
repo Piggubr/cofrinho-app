@@ -28,6 +28,7 @@
     <module>piggu-lifestyle</module>
     <module>piggu-media</module>
     <module>piggu-banking</module>
+    <module>piggu-cobertura</module>
   </modules>
 
   <properties>

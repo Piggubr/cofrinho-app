@@ -16,7 +16,7 @@ public final class ChaveProduto {
 
     private static final Pattern PARENTESES = Pattern.compile("\\([^)]*\\)");
     private static final Pattern UNIDADES =
-            Pattern.compile("\\b\\d+[.,]?\\d*\\s*(kg|g|mg|l|ml|cl|un|uni|unidades?)\\b");
+            Pattern.compile("\\b\\d+(?:[.,]\\d*)?\\s*+(kg|g|mg|l|ml|cl|un|uni|unidades?)\\b");
     private static final Pattern ARTIGOS = Pattern.compile("\\b(de|da|do|das|dos|um|uma)\\b");
     private static final Pattern NAO_ALFANUMERICO = Pattern.compile("[^a-z0-9]+");
 

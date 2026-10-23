@@ -15,6 +15,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Carregando } from '../../core/ui/carregando';
+import { pareceEmail } from '../../core/ui/email';
 
 const ACOES: Record<EventoDeAuditoria['acao'], string> = {
   CRIOU: $localize`lançou`,
@@ -123,7 +124,7 @@ export class Family {
 
   protected convidar(): void {
     const email = this.email().trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    if (!pareceEmail(email)) {
       this.erro.set($localize`Digite um e-mail válido.`);
       return;
     }

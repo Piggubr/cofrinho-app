@@ -148,7 +148,7 @@ describe('Calendar', () => {
 
     clicar(tela.nativeElement, 'Apagar');
 
-    http.expectNone((r) => r.method === 'DELETE');
+    expect(http.match((r) => r.method === 'DELETE')).toEqual([]);
   });
 
   it('trocar de mes busca os gastos do mes novo', async () => {
@@ -157,6 +157,11 @@ describe('Calendar', () => {
 
     clicar(tela.nativeElement, 'Mês anterior');
 
-    responder([], anterior);
+    const gastos = http.match((r) => r.url === '/api/expenses');
+    expect(gastos.map((pedido) => pedido.request.params.get('mes'))).toEqual([anterior]);
+    gastos[0].flush([]);
+    http.expectOne('/api/notes').flush([]);
+    http.expectOne((r) => r.url === '/api/incomes').flush([]);
+    http.expectOne('/api/categories').flush({ categorias: [] });
   });
 });

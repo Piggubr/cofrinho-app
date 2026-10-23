@@ -116,7 +116,7 @@ public class ApiExceptionHandler {
     /** Pelo nome: o spring-tx e opcional aqui e nem todo servico tem banco. */
     private static boolean violouRestricao(Throwable erro) {
         for (Class<?> tipo = erro.getClass(); tipo != null; tipo = tipo.getSuperclass()) {
-            if (tipo.getName().equals("org.springframework.dao.DataIntegrityViolationException")) {
+            if (tipo.getName().equals("org.springframework.dao.DataIntegrityViolationException")) { // NOSONAR
                 return true;
             }
         }

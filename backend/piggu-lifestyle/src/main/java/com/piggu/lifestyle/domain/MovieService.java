@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Lista de filmes do casal.
@@ -23,6 +24,9 @@ import java.util.UUID;
  */
 @Service
 public class MovieService {
+
+    /** Espaco, aspas ou sinal de tag no endereco do poster. */
+    private static final Pattern PROIBIDO_NO_POSTER = Pattern.compile("[\\s\"'<>]");
 
     private final MovieRepository repositorio;
     private final TmdbClient tmdb;
@@ -75,7 +79,7 @@ public class MovieService {
      */
     static String posterDoTmdb(String url) {
         String limpo = Texto.limitar(url, 500);
-        return limpo.startsWith("https://image.tmdb.org/") && !limpo.matches(".*[\\s\"'<>].*") ? limpo : "";
+        return limpo.startsWith("https://image.tmdb.org/") && !PROIBIDO_NO_POSTER.matcher(limpo).find() ? limpo : "";
     }
 
     @Transactional

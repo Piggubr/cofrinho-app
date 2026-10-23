@@ -2,9 +2,13 @@ name: CodeQL
 
 # Analise de seguranca do codigo (SAST) do proprio GitHub: procura injecao de SQL, XSS,
 # caminho de arquivo vindo do usuario, segredo no codigo, workflow inseguro e afins, no
-# Java, no TypeScript e nos workflows. Gratis porque o repositorio e publico. Os achados
-# aparecem em Security > Code scanning e como anotacao no PR. Por enquanto so informa: nao
-# e check obrigatorio na regra das branches (docs/branches.md).
+# Java, no TypeScript e nos workflows. Por enquanto so informa: nao e check obrigatorio na
+# regra das branches (docs/branches.md).
+#
+# O repositorio e privado: o GitHub so recebe o resultado (Security > Code scanning e
+# anotacao no PR) com o GitHub Code Security, que e pago. Sem ele, a analise roda igual, os
+# achados viram aviso no proprio job e o SARIF fica como artefato. Com o Code Security
+# ligado, crie a variavel CODEQL_ENVIAR=true (Settings > Secrets and variables > Actions).
 #
 # Se o GitHub recusar com "default setup is enabled": em Settings > Code security, troque o
 # CodeQL de "Default" para "Advanced" (este arquivo passa a ser a configuracao).
@@ -33,6 +37,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      # Em repositorio privado o CodeQL le os dados da propria execucao.
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -56,3 +62,19 @@ jobs:
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: /language:${{ matrix.linguagem }}
+          upload: ${{ vars.CODEQL_ENVIAR == 'true' && 'always' || 'never' }}
+          output: codeql-resultado
+      # Sem o Code Security: cada achado de erro ou aviso vira anotacao no job (e no PR).
+      - name: Achados
+        if: vars.CODEQL_ENVIAR != 'true'
+        run: >-
+          jq -r '.runs[].results[] | select(.level == "error" or .level == "warning")
+          | .locations[0].physicalLocation as $onde
+          | "::warning file=\($onde.artifactLocation.uri),line=\($onde.region.startLine // 1)::\(.ruleId): \(.message.text | gsub("\n"; " "))"'
+          codeql-resultado/*.sarif
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: vars.CODEQL_ENVIAR != 'true'
+        with:
+          name: codeql-${{ matrix.linguagem }}
+          path: codeql-resultado/
+          retention-days: 14

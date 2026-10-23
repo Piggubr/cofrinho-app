@@ -1,4 +1,12 @@
-import { Component, ElementRef, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  afterNextRender,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
@@ -9,6 +17,7 @@ import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
 import { BRASIL, CPF, ddiDoPais, listaDePaises } from '../../core/ui/documentos';
 import { hojeIso, problemaDoNascimento } from '../../core/ui/nascimento';
+import { pareceEmail } from '../../core/ui/email';
 
 type Modo = 'entrar' | 'cadastro';
 
@@ -26,7 +35,7 @@ type Modo = 'entrar' | 'cadastro';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login {
+export class Login implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly google = inject(GoogleIdentityService);
   private readonly router = inject(Router);
@@ -62,6 +71,9 @@ export class Login {
 
   constructor() {
     afterNextRender(() => void this.prepararBotao());
+  }
+
+  ngOnInit(): void {
     void this.tentarSessaoGuardada();
   }
 
@@ -155,7 +167,7 @@ export class Login {
       return ['nascimento', nascimentoRuim];
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email().trim())) {
+    if (!pareceEmail(this.email().trim())) {
       return ['email', $localize`Confira o e-mail.`];
     }
     const senhaRuim = problemaDaSenha(this.senha(), this.email());

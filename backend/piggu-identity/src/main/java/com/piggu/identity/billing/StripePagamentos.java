@@ -186,8 +186,10 @@ public class StripePagamentos implements ProvedorDePagamento {
             cliente.delete().uri("/v1/customers/{id}", clienteNoProvedor)
                     .header("Authorization", "Bearer " + propriedades.secretKey())
                     .retrieve()
-                    // Cliente que a Stripe ja nao conhece conta como encerrado.
-                    .onStatus(status -> status.isError() && status.value() != 404, (req, res) -> {
+                    // Cliente que a Stripe ja nao conhece conta como encerrado. O 404 precisa do
+                    // proprio tratamento: sem ele o padrao do RestClient lanca erro em todo 4xx.
+                    .onStatus(status -> status.value() == 404, (req, res) -> { })
+                    .onStatus(HttpStatusCode::isError, (req, res) -> {
                         throw new UpstreamException(INDISPONIVEL);
                     })
                     .toBodilessEntity();

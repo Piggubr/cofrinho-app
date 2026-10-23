@@ -74,3 +74,46 @@
   gap: 0.5rem;
   font-size: 0.9rem;
 }
+
+/*
+ * "Como pagou" e "Como foi a compra": o alternador fica do tamanho dos botoes, numa linha so,
+ * e o que vem ao lado (cartao, conta, parcelas ou o aviso de cartao) ocupa o resto. Sem
+ * espaco, isso desce para a linha de baixo em vez de espremer o alternador. Na grade de
+ * colunas iguais, "Cartao de credito" e "Debito/Pix" quebravam um embaixo do outro.
+ */
+.escolhas-do-gasto {
+  display: flex;
+  flex-wrap: wrap;
+  /* Rotulos na mesma altura; o aviso da fatura embaixo do cartao nao empurra o resto. */
+  align-items: flex-start;
+
+  > .escolha {
+    flex: 0 1 auto;
+  }
+
+  > :not(.escolha) {
+    flex: 1 1 11rem;
+    min-width: 0;
+    max-width: 26rem;
+  }
+
+  > .linha-detalhe {
+    align-self: center;
+  }
+
+  .alternador {
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+
+  .alternador button {
+    white-space: nowrap;
+  }
+
+  /* iPhone SE e afins: um pouco menos de folga para "Cartao de credito" e "Debito/Pix" caberem lado a lado. */
+  @media (max-width: 359px) {
+    .alternador button {
+      padding-inline: 0.6rem;
+    }
+  }
+}
