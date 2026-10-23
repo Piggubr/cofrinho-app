@@ -172,7 +172,10 @@ jobs:
         if: always()
         with:
           name: cobertura-do-backend
-          path: backend/*/target/site/jacoco/
+          # Por modulo (o piso) e o relatorio unico do piggu-cobertura, que vai para o Sonar.
+          path: |
+            backend/*/target/site/jacoco/
+            backend/piggu-cobertura/target/site/jacoco-aggregate/
           retention-days: 14
 
   dependencias-do-backend:

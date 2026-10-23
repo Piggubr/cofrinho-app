@@ -8,6 +8,11 @@ O que é analisado fica em `sonar-project.properties`, na raiz. A cobertura vem 
 `backend` (JaCoCo) e `frontend` (lcov), que já rodam os testes; o job do Sonar só compila
 o backend de novo e envia tudo. Ele é informativo: não trava o merge nem o deploy.
 
+No backend o Sonar recebe um relatório só, montado pelo módulo `piggu-cobertura` (sem
+código, só o `report-aggregate` do JaCoCo). O relatório de cada módulo conta apenas os
+testes dele, e o `piggu-common` é exercitado sobretudo pelos testes dos serviços: sem
+juntar, o código comum aparecia como não testado. Os pisos continuam por módulo.
+
 ## Plano e limites
 
 - O repositório é **privado**, então o projeto está no plano **Free** do SonarQube Cloud:
