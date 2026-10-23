@@ -3,12 +3,13 @@ import Foundation
 
 /// Responde como a API, sem rede, com dados inventados. So existe em Debug: serve para
 /// o preview do SwiftUI e para ver as telas no simulador com `-PigguDemo YES`.
-/// Qualquer e-mail e senha entram.
+/// Qualquer e-mail e senha entram; `-PigguDemoLogado YES` ja abre logado.
 actor TransporteDeDemonstracao: Transporte {
-    private var logado = false
+    private var logado: Bool
     private var gastos: [[String: Any]]
 
-    init() {
+    init(logado: Bool = false) {
+        self.logado = logado
         let hoje = Date()
         func dia(_ antes: Int) -> String {
             Formatos.dia(Calendar.current.date(byAdding: .day, value: -antes, to: hoje) ?? hoje)

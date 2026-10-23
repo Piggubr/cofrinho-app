@@ -7,8 +7,9 @@ struct PigguApp: App {
     init() {
         #if DEBUG
         // -PigguDemo YES: dados inventados, sem rede (ver TransporteDeDemonstracao).
-        let cliente = UserDefaults.standard.bool(forKey: "PigguDemo")
-            ? ClienteDaAPI(transporte: TransporteDeDemonstracao())
+        let ajustes = UserDefaults.standard
+        let cliente = ajustes.bool(forKey: "PigguDemo")
+            ? ClienteDaAPI(transporte: TransporteDeDemonstracao(logado: ajustes.bool(forKey: "PigguDemoLogado")))
             : ClienteDaAPI()
         #else
         let cliente = ClienteDaAPI()
