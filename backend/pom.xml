@@ -42,6 +42,7 @@
          para todos os modulos; 1.43 e aceita por Docker 20.10 em diante. -->
     <docker.api.version>1.43</docker.api.version>
     <jacoco.version>0.8.13</jacoco.version>
+    <checkstyle.version>14.3.0</checkstyle.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
@@ -95,6 +96,36 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <!-- Lint do Java (checkstyle.xml, na pasta backend): roda no validate, antes de
+           compilar, e falha o build. Pula com -Dcheckstyle.skip (o Dockerfile pula: o CI
+           ja conferiu). -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>${maven.multiModuleProjectDirectory}/checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <consoleOutput>true</consoleOutput>
+          <violationSeverity>error</violationSeverity>
+        </configuration>
+        <executions>
+          <execution>
+            <id>lint</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <!-- Cobertura por modulo: relatorio em target/site/jacoco e piso no verify.
            O piso de cada modulo fica nas propriedades dele e so sobe. -->

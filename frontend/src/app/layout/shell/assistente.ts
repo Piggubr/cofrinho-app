@@ -68,7 +68,7 @@ const FALAS_NO_CONTEXTO = 10;
       <app-icone nome="brilho" />
     </button>
     @if (aberto()) {
-      <div class="fundo" (click)="fechar()"></div>
+      <div class="fundo" aria-hidden="true" (click)="fechar()"></div>
       <section
         class="painel"
         role="dialog"

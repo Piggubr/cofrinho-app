@@ -43,11 +43,23 @@
             "integration_id": 15368
           },
           {
+            "context": "Lint (ESLint e Checkstyle)",
+            "integration_id": 15368
+          },
+          {
             "context": "Backup e restauracao",
             "integration_id": 15368
           },
           {
+            "context": "Monitoramento (configuracao)",
+            "integration_id": 15368
+          },
+          {
             "context": "Backend (mvn verify)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Vulnerabilidades nas dependencias do backend (OSV)",
             "integration_id": 15368
           },
           {
@@ -60,6 +72,10 @@
           },
           {
             "context": "Smoke e regressao (stack inteira)",
+            "integration_id": 15368
+          },
+          {
+            "context": "Imagens Docker (Trivy e GHCR)",
             "integration_id": 15368
           }
         ]

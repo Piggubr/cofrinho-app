@@ -71,8 +71,8 @@
     </div>
 
     <div class="campo">
-      <label i18n>Nota</label>
-      <div class="estrelas">
+      <span class="rotulo-de-grupo" id="rotulo-nota" i18n>Nota</span>
+      <div class="estrelas" role="group" aria-labelledby="rotulo-nota">
         @for (valorDaNota of notasPossiveis; track valorDaNota) {
           <button
             type="button"
@@ -98,8 +98,8 @@
     </div>
 
     <div class="campo">
-      <label i18n>Marcadores</label>
-      <div class="marcadores">
+      <span class="rotulo-de-grupo" id="rotulo-marcadores" i18n>Marcadores</span>
+      <div class="marcadores" role="group" aria-labelledby="rotulo-marcadores">
         @for (marcador of marcadores(); track marcador) {
           <button
             type="button"

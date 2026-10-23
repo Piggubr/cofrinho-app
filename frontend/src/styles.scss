@@ -1025,7 +1025,9 @@ app-avisos-do-mes:empty + * {
 
 /* ---------- Formularios ---------- */
 
-label {
+/* .rotulo-de-grupo: o mesmo visual para o titulo de um grupo de botoes, que nao tem campo. */
+label,
+.rotulo-de-grupo {
   display: block;
   font-size: 0.78rem;
   font-weight: 500;
