@@ -1,6 +1,9 @@
 # Build unico para todos os servicos: o modulo desejado entra por ARG.
 # Um Dockerfile so evita varios arquivos quase identicos saindo de sincronia.
-FROM maven:3.9-eclipse-temurin-21 AS build
+# O build roda na maquina que compila (BUILDPLATFORM): o .jar e o mesmo em qualquer
+# processador. So a imagem final e da plataforma do servidor (ARM na Oracle), entao o CI
+# monta a imagem ARM sem emular o Maven, que levaria muito mais tempo.
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # As dependencias mudam bem menos que o codigo: copiar so os poms primeiro
