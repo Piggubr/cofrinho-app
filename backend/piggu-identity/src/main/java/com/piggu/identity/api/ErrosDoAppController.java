@@ -31,7 +31,7 @@ public class ErrosDoAppController {
 
     private static final Logger log = LoggerFactory.getLogger("com.piggu.erros-do-app");
 
-    private static final Pattern EMAIL = Pattern.compile("[\\w.%+-]+@[\\w-]+(\\.[\\w-]+)+");
+    private static final Pattern EMAIL = Pattern.compile("[\\w.%+-]+@[\\w-]+\\.[\\w.-]*[\\w-]");
     private static final Pattern JWT = Pattern.compile("eyJ[\\w-]*\\.[\\w-]+\\.[\\w-]*");
     private static final Pattern BEARER = Pattern.compile("(?i)bearer\\s+\\S+");
     private static final Pattern CPF = Pattern.compile("\\b\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}\\b");

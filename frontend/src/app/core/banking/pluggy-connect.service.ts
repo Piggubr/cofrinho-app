@@ -55,7 +55,8 @@ export class PluggyConnectService {
           rejeitar(new Error(erro?.message || $localize`Nao foi possivel conectar o banco.`)),
         onClose: () => resolver(null),
       });
-      widget.init();
+      // init() pode devolver promise: se falhar, a conexao falha com o erro dela.
+      Promise.resolve(widget.init()).catch(rejeitar);
     });
 
     return itemId ? firstValueFrom(this.banking.registrarItem(itemId)) : null;

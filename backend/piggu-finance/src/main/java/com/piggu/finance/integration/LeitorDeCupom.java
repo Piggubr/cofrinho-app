@@ -28,14 +28,14 @@ public final class LeitorDeCupom {
 
     /** Dinheiro com duas casas: 1.234,56 · 1234,56 · 1234.56 · -0,63. */
     private static final Pattern DINHEIRO =
-            Pattern.compile("(?<![\\d,.])-?(?:\\d{1,3}(?:\\.\\d{3})+|\\d+)[,.]\\d{2}(?![\\d,.]*\\d)");
+            Pattern.compile("(?<![\\d,.])-?(?:\\d{1,3}(?:\\.\\d{3})++|\\d++)[,.]\\d{2}(?![,.]*+\\d)");
 
     /** Lixo depois do valor: letra do IVA, "*", "%" de taxa, "€", "R$". */
-    private static final Pattern RABO = Pattern.compile("(\\s+([A-Z]|\\*|€|EUR|\\d{1,2}%))+\\s*$");
+    private static final Pattern RABO = Pattern.compile("(?:\\s++(?:EUR|[A-Z*€]|\\d{1,2}%))++\\s*+$");
 
     /** "2 UN X 24,90", "1,235 KG X 6,99", "2 X 1,15", "2x". */
     private static final Pattern QUANTIDADE = Pattern.compile(
-            "\\b\\d+(?:[,.]\\d+)?\\s*(?:UN|UND|KG|G|L|LT|ML|PC|PCT|CX)?\\s*[Xx]\\s*(?:\\d+[,.]\\d{2})?",
+            "\\b\\d+(?:[,.]\\d+)?\\s*+(?:(?:UN|UND|KG|G|L|LT|ML|PC|PCT|CX)\\s*+)?[Xx]\\s*+(?:\\d+[,.]\\d{2})?",
             Pattern.CASE_INSENSITIVE);
 
     /** Numero do item no comeco da linha e codigo de barras/produto (6 a 14 digitos). */

@@ -165,8 +165,10 @@
         <span class="opcao-icone"><app-icone nome="camera" [tamanho]="18" /></span>
         <span i18n>Foto do recibo</span>
       </button>
+      <label for="arquivo-do-recibo" hidden i18n>Foto do recibo</label>
       <input
         #campoDaFoto
+        id="arquivo-do-recibo"
         type="file"
         accept="image/*"
         hidden

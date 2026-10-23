@@ -282,14 +282,18 @@ jobs:
   # Desligado ate a variavel SONAR_LIGADO=true e o segredo SONAR_TOKEN existirem no
   # repositorio. Informativo: nao trava o merge nem o "publicar". Passo a passo em
   # docs/qualidade-sonar.md. PR de fork e do Dependabot nao recebem o segredo, entao pulam.
+  # O plano Free (repositorio privado) so analisa a develop, a branch principal do projeto
+  # no Sonar, e os PRs para ela; na main a analise seria recusada.
   qualidade:
     name: Qualidade do codigo (SonarQube Cloud)
     needs: [backend, frontend]
     if: >-
       vars.SONAR_LIGADO == 'true' &&
       github.actor != 'dependabot[bot]' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+      ((github.event_name == 'pull_request' &&
+        github.base_ref == 'develop' &&
+        github.event.pull_request.head.repo.full_name == github.repository) ||
+       (github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

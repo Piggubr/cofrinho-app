@@ -90,7 +90,7 @@ describe('Family', () => {
       .find((b) => b.textContent?.trim() === 'Convidar')!
       .click();
 
-    http.expectNone('/api/family/invites');
+    expect(http.match('/api/family/invites')).toEqual([]);
   });
 
   it('convite recebido de outra familia aparece com o nome dela', () => {

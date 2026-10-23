@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
+import { pareceEmail } from '../../core/ui/email';
 
 /**
  * Pedido do link de senha nova. A resposta e a mesma com ou sem conta, entao a tela
@@ -25,7 +26,7 @@ export class EsqueciSenha {
 
   protected async pedir(): Promise<void> {
     const email = this.email().trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!pareceEmail(email)) {
       this.erro.set($localize`Confira o e-mail.`);
       return;
     }

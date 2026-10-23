@@ -1,5 +1,8 @@
 package com.piggu.media.storage;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Onde os bytes ficam guardados.
  *
@@ -37,5 +40,24 @@ public interface StoragePort {
      * @param conteudo    bytes do arquivo
      */
     record ArquivoGuardado(String contentType, byte[] conteudo) {
+
+        @Override
+        public boolean equals(Object outro) {
+            return outro instanceof ArquivoGuardado o
+                    && Objects.equals(contentType, o.contentType)
+                    && Arrays.equals(conteudo, o.conteudo);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * Objects.hashCode(contentType) + Arrays.hashCode(conteudo);
+        }
+
+        /** Sem os bytes: so o tipo e o tamanho. */
+        @Override
+        public String toString() {
+            return "ArquivoGuardado[contentType=" + contentType + ", bytes="
+                    + (conteudo == null ? 0 : conteudo.length) + "]";
+        }
     }
 }
