@@ -7,10 +7,15 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,6 +31,10 @@ import java.util.concurrent.TimeUnit;
 public class TesseractOcr {
 
     private static final Logger log = LoggerFactory.getLogger(TesseractOcr.class);
+
+    /** A foto e da pessoa: so o dono do processo le o arquivo temporario. */
+    private static final FileAttribute<Set<PosixFilePermission>> SO_O_DONO =
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
 
     private final String comando;
     private final Duration limite;
@@ -44,8 +53,8 @@ public class TesseractOcr {
         Path arquivo = null;
         Path texto = null;
         try {
-            arquivo = Files.createTempFile("recibo-", ".img");
-            texto = Files.createTempFile("recibo-", ".txt");
+            arquivo = temporario(".img");
+            texto = temporario(".txt");
             Files.write(arquivo, imagem);
             // psm 4: uma coluna de linhas de tamanhos variados, o formato de um cupom.
             // preserve_interword_spaces mantem a coluna do valor separada da descricao.
@@ -75,6 +84,18 @@ public class TesseractOcr {
             apagar(arquivo);
             apagar(texto);
         }
+    }
+
+    /**
+     * Arquivo que so o dono le. Sem permissao POSIX (Windows) a foto iria para a pasta
+     * temporaria comum, legivel por outros usuarios: ai o OCR fica desligado e a leitura
+     * segue para o Gemini. O servidor (imagem Alpine) sempre tem POSIX.
+     */
+    private static Path temporario(String sufixo) throws IOException {
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            throw new IOException("sistema de arquivos sem permissao POSIX");
+        }
+        return Files.createTempFile("recibo-", sufixo, SO_O_DONO);
     }
 
     private static void apagar(Path arquivo) {

@@ -71,7 +71,7 @@ public record PlanoResponse(
     public static final Precos PRECOS_CASAL_SITE = new Precos("29,90", "299,00");
     public static final Precos PRECOS_CASAL_APP = new Precos("34,39", "343,85");
 
-    private static final List<String> GRATUITO = List.of(
+    private static final List<String> ITENS_GRATUITO = List.of(
             "Gastos, receitas, categorias, meta do mês e calendário",
             "Leitura de nota fiscal pela foto: 10 por mês por família",
             "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
@@ -83,7 +83,7 @@ public record PlanoResponse(
             "Tudo o que você guardou continua visível se o Premium acabar"
     );
 
-    private static final List<String> PREMIUM = List.of(
+    private static final List<String> ITENS_PREMIUM = List.of(
             "Tudo do gratuito",
             "Orçamento por categoria, com alerta em 80% e 100%",
             "Relatório do ano com gráficos",
@@ -108,8 +108,8 @@ public record PlanoResponse(
         return new PlanoResponse(vigente, vigente == Plano.PREMIUM ? familia.getPremiumUntil() : null,
                 familia.getPlanSource(),
                 reembolsoAte != null && reembolsoAte.isAfter(Instant.now()) ? reembolsoAte : null,
-                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, GRATUITO,
-                openFinance ? PREMIUM : PREMIUM.stream().filter(item -> !item.contains("Open Finance")).toList(),
+                diasDeTeste, assinaturaDisponivel, PRECOS_SITE, PRECOS_APP, ITENS_GRATUITO,
+                openFinance ? ITENS_PREMIUM : ITENS_PREMIUM.stream().filter(item -> !item.contains("Open Finance")).toList(),
                 familia.planoVigente() == Plano.PREMIUM && familia.isFamilia(), voceAssinou,
                 familiaDisponivel, PRECOS_FAMILIA_SITE, PRECOS_FAMILIA_APP, Periodo.PESSOAS_NO_FAMILIA,
                 familia.planoVigente() == Plano.PREMIUM,

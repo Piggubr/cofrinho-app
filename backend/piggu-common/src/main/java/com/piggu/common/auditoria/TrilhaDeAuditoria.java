@@ -41,8 +41,14 @@ public class TrilhaDeAuditoria {
 
     private static final int LIMITE_DO_RESUMO = 300;
 
-    /** Autor escolhido por um job para o que ele faz em nome de alguem (ver {@link #emNomeDe}). */
-    private static final ThreadLocal<java.util.Optional<UUID>> EM_NOME_DE = new ThreadLocal<>();
+    /**
+     * Autor escolhido por um job para o que ele faz em nome de alguem (ver {@link #emNomeDe}).
+     * Sem valor: nenhum job escolheu; {@code EmNomeDe(null)}: o registro ficou sem dono.
+     */
+    private static final ThreadLocal<EmNomeDe> EM_NOME_DE = new ThreadLocal<>();
+
+    private record EmNomeDe(UUID autor) {
+    }
     private static final Logger log = LoggerFactory.getLogger(TrilhaDeAuditoria.class);
 
     public enum Acao { CRIOU, EDITOU, APAGOU, IMPORTOU, PAGOU, MUDOU_PAPEL, REMOVEU, ENTROU, SAIU, CONVIDOU }
@@ -186,8 +192,8 @@ public class TrilhaDeAuditoria {
      * @param autor dono do registro; nulo quando ficou sem dono (vai para titular e parceiro)
      */
     public static void emNomeDe(UUID autor, Runnable tarefa) {
-        java.util.Optional<UUID> anterior = EM_NOME_DE.get();
-        EM_NOME_DE.set(java.util.Optional.ofNullable(autor));
+        EmNomeDe anterior = EM_NOME_DE.get();
+        EM_NOME_DE.set(new EmNomeDe(autor));
         try {
             tarefa.run();
         } finally {
@@ -209,7 +215,7 @@ public class TrilhaDeAuditoria {
             CurrentUser usuario = CurrentUserArgumentResolver.JwtClaims.toCurrentUser(jwt);
             return usuario.id();
         }
-        java.util.Optional<UUID> emNomeDe = EM_NOME_DE.get();
-        return emNomeDe != null ? emNomeDe.orElse(null) : SISTEMA;
+        EmNomeDe emNomeDe = EM_NOME_DE.get();
+        return emNomeDe != null ? emNomeDe.autor() : SISTEMA;
     }
 }

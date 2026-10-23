@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BillingService } from '../../core/api/billing.service';
@@ -21,7 +21,7 @@ import { Carregando } from '../../core/ui/carregando';
   templateUrl: './plan.html',
   styleUrl: './plan.scss',
 })
-export class Plan {
+export class Plan implements OnInit {
   private readonly billing = inject(BillingService);
   protected readonly auth = inject(AuthService);
 
@@ -34,7 +34,7 @@ export class Plan {
   /** Campanha do link de divulgacao (/plano?promo=CODIGO): pode liberar o teste gratis de novo. */
   private readonly campanha = this.parametros.get('promo');
 
-  constructor() {
+  ngOnInit(): void {
     void this.carregar();
   }
 

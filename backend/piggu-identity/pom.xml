@@ -15,8 +15,8 @@
 
   <properties>
     <!-- Piso de cobertura do JaCoCo: so sobe. -->
-    <cobertura.linhas>0.79</cobertura.linhas>
-    <cobertura.ramos>0.65</cobertura.ramos>
+    <cobertura.linhas>0.87</cobertura.linhas>
+    <cobertura.ramos>0.76</cobertura.ramos>
   </properties>
 
   <dependencies>

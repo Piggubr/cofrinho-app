@@ -133,6 +133,7 @@ describe('authInterceptor', () => {
 
     servidor.expectOne('/api/expenses').flush([]);
     servidor.expectOne('/api/notes').flush([]);
+    expect(storage.accessToken).toBe('access-2');
   });
 
   it('erro que nao seja 401 passa direto, sem tentar renovar', () => {

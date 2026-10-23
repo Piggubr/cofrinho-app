@@ -144,6 +144,8 @@ describe('Feed', () => {
 
     clicar(tela.nativeElement, 'Próximo mês');
 
-    http.expectOne((r) => r.url === '/api/feed' && r.params.get('mes') === proximo).flush([]);
+    const pedido = http.expectOne((r) => r.url === '/api/feed');
+    expect(pedido.request.params.get('mes')).toBe(proximo);
+    pedido.flush([]);
   });
 });

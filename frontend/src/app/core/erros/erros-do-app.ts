@@ -65,7 +65,7 @@ export function telaAtual(caminho = location.pathname): string {
 /** Tira e-mail, CPF, telefone, token e numeros compridos de um texto. */
 export function semDadosPessoais(texto: string): string {
   return texto
-    .replace(/[\w.%+-]+@[\w-]+(\.[\w-]+)+/g, '[email]')
+    .replace(/[\w.%+-]+@[\w-]+\.[\w.-]*[\w-]/g, '[email]')
     .replace(/eyJ[\w-]*\.[\w-]+\.[\w-]*/g, '[token]')
     .replace(/\?[^\s"')]+/g, '?[...]')
     .replace(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, '[cpf]')

@@ -137,7 +137,7 @@ public final class LeitorDeExtrato {
     }
 
     private static String celula(String[] celulas, int i) {
-        return celulas[i].trim().replaceAll("^\"|\"$", "").trim();
+        return celulas[i].trim().replaceAll("(?:^\")|(?:\"$)", "").trim();
     }
 
     private static LocalDate dataDe(String texto) {

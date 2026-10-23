@@ -124,7 +124,8 @@ Com a stack já de pé (`PIGGU_MANTER_STACK=1 bash scripts/smoke.sh`), `npm run 
 O CI roda tudo a cada pull request. A cobertura tem piso que só sobe: teste novo,
 piso novo. No front fica no `angular.json` (`coverageThresholds`); no backend, nas
 propriedades `cobertura.linhas` e `cobertura.ramos` do `pom.xml` de cada módulo
-(JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`).
+(JaCoCo, relatório em `backend/<módulo>/target/site/jacoco/`). O módulo `piggu-cobertura`
+junta todos num relatório só (`target/site/jacoco-aggregate/`), que é o que vai para o Sonar.
 
 ## Branches
 

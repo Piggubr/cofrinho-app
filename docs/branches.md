@@ -48,7 +48,8 @@ OSV e as Imagens)? A regra no GitHub não lê o arquivo sozinha: em *Settings > 
 Rulesets*, abra a regra e acrescente os checks novos em *Require status checks to pass*
 (ou apague a regra e importe o JSON de novo).
 
-Checks que só informam, sem travar o merge: **CodeQL** (análise de segurança do código,
-resultados em *Security > Code scanning*) e **Qualidade do código (SonarQube Cloud)**
+Checks que só informam, sem travar o merge: **CodeQL** (análise de segurança do código;
+com o repositório privado e sem o GitHub Code Security, os achados ficam como aviso no
+próprio job e o SARIF como artefato, veja `.github/workflows/codeql.yml`) e **Qualidade do código (SonarQube Cloud)**
 (`docs/qualidade-sonar.md`). Quando os resultados estiverem limpos e confiáveis, dá para
 torná-los obrigatórios do mesmo jeito.
