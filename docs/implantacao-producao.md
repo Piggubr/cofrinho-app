@@ -232,8 +232,27 @@ que aconteceu.
 Depois da primeira subida feita à mão, cada merge na `main` atualiza o servidor
 sozinho (as regras das branches estão em `docs/branches.md`): o CI roda e, se **todos** os jobs passarem, o job "Publicar no
 servidor" entra por SSH e roda `deploy/atualizar.sh` com o commit do merge. O script
-confere que o commit está na branch, compila o site, sobe os serviços e espera todos
-ficarem saudáveis; se algum não ficar, o job fica vermelho e o log mostra qual.
+confere que o commit está na branch, baixa as imagens daquele commit, sobe os serviços e
+espera todos ficarem saudáveis.
+
+**Imagens prontas.** O job "Imagens Docker (Trivy e GHCR)" compila as imagens uma vez no
+CI, passa o Trivy nelas e, no push da `main`, publica em
+`ghcr.io/piggubr/cofrinho-app/<serviço>:<sha do commit>`. O servidor só baixa: não
+compila mais o Java nem o site, e o que vai ao ar é exatamente o que o CI conferiu. O
+token para baixar vai do job para o script pela entrada do SSH e morre quando o job
+acaba. Se a imagem não existir no registro (um commit anterior a esta mudança, ou um
+deploy à mão sem token com o pacote privado), o script compila no servidor, como antes.
+
+**Rollback automático.** Se algum serviço não ficar saudável em 5 minutos, o script volta
+sozinho para o commit que estava no ar (as imagens dele continuam no servidor) e o job
+fica vermelho com "Rollback feito" no log. O banco não volta: o Flyway da versão anterior
+ignora as migrações novas e sobe normalmente quando elas só acrescentam (tabela, coluna,
+índice). Migração que apaga ou renomeia coluna precisa ser feita em dois deploys:
+primeiro a versão que para de usar a coluna, depois a que a remove.
+
+**Versões.** Depois de publicar, o job "Versao e notas" cria uma versão em *Releases*
+(`v2026.10.22`, `v2026.10.22.2` se sair outra no mesmo dia) com as notas geradas a partir
+dos PRs que entraram. É o histórico do que foi ao ar e quando.
 
 A chave que o Actions usa só consegue rodar esse script (`command=` no
 `authorized_keys`): quem a tivesse não abriria um terminal no servidor, só pediria para
@@ -244,7 +263,7 @@ publicar um commit que já está na branch.
 ```bash
 cd /opt/piggu && git remote -v      # um clone do repositório (não uma cópia de arquivos)
 git fetch origin main               # precisa funcionar sem pedir senha (ver abaixo)
-node -v && npm -v                   # o script compila o site no servidor
+node -v && npm -v                   # só para compilar aqui quando não há imagem no registro
 docker compose version              # e sobe os serviços com o perfil producao
 whoami                              # na Oracle: "ubuntu" na imagem Ubuntu, "opc" na Oracle Linux
 ```
@@ -316,9 +335,21 @@ Publicar de novo o mesmo commit (por exemplo, depois de mudar o `.env`): no Acti
 a última execução do CI na branch e use *Re-run all jobs*. Para publicar à mão, no
 servidor: `/opt/piggu/deploy/atualizar.sh <sha>`.
 
-Para voltar a uma versão anterior: `/opt/piggu/deploy/atualizar.sh <sha antigo>` (o sha
-precisa estar na branch). As migrações de banco não voltam sozinhas; se a versão nova
-mudou o banco, restaure o backup da noite (seção 6).
+Para voltar a uma versão anterior à mão: `/opt/piggu/deploy/atualizar.sh <sha antigo>` (o
+sha precisa estar na branch; o de cada versão está em *Releases*). Sem token, ele baixa a
+imagem se o pacote for público, ou compila no servidor. As migrações de banco não voltam
+sozinhas; se a versão nova mudou o banco de um jeito que a antiga não entende, restaure o
+backup da noite (seção 6).
+
+**Pacotes no GitHub (uma vez, depois do primeiro push na `main` com o job de imagens):**
+em *github.com/orgs/Piggubr/packages*, cada imagem (`cofrinho-app/identity`, `.../web`...)
+aparece ligada ao repositório. O deploy funciona com elas privadas (usa o token do job).
+Para baixar à mão sem login, mude a visibilidade de cada uma para *Public* em *Package
+settings*; o código já é público, então a imagem não expõe nada novo (os segredos ficam no
+`.env` do servidor, nunca na imagem).
+
+O servidor guarda só as imagens da versão no ar e da anterior; as outras são apagadas a
+cada deploy.
 
 ## 9. Monitoramento, alertas e painel analítico
 

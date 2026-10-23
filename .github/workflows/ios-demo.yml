@@ -17,6 +17,11 @@ on:
 permissions:
   contents: read
 
+# Um push novo num PR cancela o build do commit anterior dele.
+concurrency:
+  group: ios-demo-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   ipa:
     name: Gerar Piggu-demo.ipa

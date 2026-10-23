@@ -167,7 +167,7 @@ export class ImportarExtrato {
     this.banking
       .status()
       .pipe(switchMap(({ habilitado }) => (habilitado ? this.banking.listarContas() : of([]))))
-      .subscribe({ next: (contas) => this.comBanco.set(contas.length > 0), error: () => {} });
+      .subscribe({ next: (contas) => this.comBanco.set(contas.length > 0), error: () => this.comBanco.set(false) });
   }
 
   protected trazerDoBanco(): void {
