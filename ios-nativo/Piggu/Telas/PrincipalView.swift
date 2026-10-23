@@ -30,6 +30,7 @@ struct BotaoDeLancar: ToolbarContent {
             Button(action: acao) {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)
+                    .foregroundStyle(Color.accentColor)
             }
             .accessibilityLabel("Lançar gasto")
         }
@@ -51,7 +52,7 @@ struct SeletorDeMes: View {
             }
             .accessibilityLabel("Mês anterior")
             Spacer()
-            Text(Formatos.nomeDoMes(mes).capitalized(with: Formatos.localidade))
+            Text(Formatos.inicialMaiuscula(Formatos.nomeDoMes(mes)))
                 .font(.headline)
             Spacer()
             Button {

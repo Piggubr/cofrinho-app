@@ -102,6 +102,11 @@ enum Formatos {
         return data.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(localidade))
     }
 
+    /// "outubro de 2026" vira "Outubro de 2026": so a primeira letra, como se escreve em portugues.
+    static func inicialMaiuscula(_ texto: String) -> String {
+        texto.prefix(1).uppercased(with: localidade) + texto.dropFirst()
+    }
+
     static func somarMeses(_ meses: Int, a data: Date) -> Date {
         calendario.date(byAdding: .month, value: meses, to: data) ?? data
     }

@@ -44,7 +44,7 @@ struct GastosView: View {
                         .listRowBackground(Color.clear)
                     }
                     ForEach(porDia, id: \.dia) { grupo in
-                        Section(Formatos.diaPorExtenso(grupo.dia).capitalized(with: Formatos.localidade)) {
+                        Section(Formatos.inicialMaiuscula(Formatos.diaPorExtenso(grupo.dia))) {
                             ForEach(grupo.gastos) { gasto in
                                 LinhaDeGasto(gasto: gasto)
                             }

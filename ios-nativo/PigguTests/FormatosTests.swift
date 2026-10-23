@@ -33,6 +33,12 @@ struct FormatosTests {
         #expect(texto == "R$ 1.234,50")
     }
 
+    @Test func soAPrimeiraLetraFicaMaiuscula() {
+        #expect(Formatos.inicialMaiuscula("outubro de 2026") == "Outubro de 2026")
+        #expect(Formatos.inicialMaiuscula("sexta-feira, 23 de outubro") == "Sexta-feira, 23 de outubro")
+        #expect(Formatos.inicialMaiuscula("") == "")
+    }
+
     @Test func formataMesEDiaComoAAPI() throws {
         let data = try #require(Formatos.data(deDia: "2026-03-07"))
         #expect(Formatos.mes(data) == "2026-03")
