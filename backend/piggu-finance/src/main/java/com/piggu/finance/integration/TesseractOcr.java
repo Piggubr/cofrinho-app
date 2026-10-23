@@ -86,12 +86,16 @@ public class TesseractOcr {
         }
     }
 
-    /** Permissao explicita no Linux (a imagem do servidor); fora dele, o padrao do sistema. */
+    /**
+     * Arquivo que so o dono le. Sem permissao POSIX (Windows) a foto iria para a pasta
+     * temporaria comum, legivel por outros usuarios: ai o OCR fica desligado e a leitura
+     * segue para o Gemini. O servidor (imagem Alpine) sempre tem POSIX.
+     */
     private static Path temporario(String sufixo) throws IOException {
-        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-            return Files.createTempFile("recibo-", sufixo, SO_O_DONO);
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            throw new IOException("sistema de arquivos sem permissao POSIX");
         }
-        return Files.createTempFile("recibo-", sufixo);
+        return Files.createTempFile("recibo-", sufixo, SO_O_DONO);
     }
 
     private static void apagar(Path arquivo) {
