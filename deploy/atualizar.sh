@@ -12,7 +12,7 @@
 # Imagens: o CI ja compilou, testou e publicou as imagens do commit no GitHub (ghcr.io, job
 # "imagens"); aqui elas so sao baixadas. O Actions manda pela entrada um token que so vale
 # ate o job acabar. Sem imagem no registro (commit antigo, ou a mao sem token num pacote
-# privado), o script compila aqui mesmo, como antes.
+# privado) ou com imagem de outro processador, o script compila aqui mesmo, como antes.
 #
 # Rollback: se a versao nova nao fica saudavel em 5 minutos, o script volta sozinho para o
 # commit que estava no ar e termina com erro (o job fica vermelho). As migracoes de banco
@@ -133,7 +133,25 @@ baixar_imagens() {
   if [[ -n $token ]]; then
     docker logout ghcr.io > /dev/null 2>&1 || true
   fi
+  if ((resultado == 0)) && ! imagens_da_plataforma_daqui; then
+    resultado=1
+  fi
   return $resultado
+}
+
+# Imagem de outro processador (Intel num servidor ARM) baixa, mas nao roda: conta como
+# imagem que nao existe, e o script compila aqui.
+imagens_da_plataforma_daqui() {
+  local daqui servico imagem dela
+  daqui=$(docker version --format '{{.Server.Arch}}') || return 1
+  for servico in "${SERVICOS_DO_APP[@]}"; do
+    imagem="$PIGGU_IMAGENS/$servico:$PIGGU_VERSAO"
+    dela=$(docker image inspect --format '{{.Architecture}}' "$imagem") || return 1
+    if [[ $dela != "$daqui" ]]; then
+      echo "==> A imagem $imagem e $dela, e este servidor e $daqui" >&2
+      return 1
+    fi
+  done
 }
 
 esperar_saude() {

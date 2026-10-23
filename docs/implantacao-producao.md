@@ -242,6 +242,11 @@ compila mais o Java nem o site, e o que vai ao ar é exatamente o que o CI confe
 token para baixar vai do job para o script pela entrada do SSH e morre quando o job
 acaba. Se a imagem não existir no registro (um commit anterior a esta mudança, ou um
 deploy à mão sem token com o pacote privado), o script compila no servidor, como antes.
+As imagens são montadas para o processador do servidor, ARM (`linux/arm64`) na Oracle, e
+não para o do CI, que é Intel. Se o servidor um dia for Intel, crie a variável
+`PIGGU_PLATAFORMA` = `linux/amd64` em *Settings > Secrets and variables > Actions >
+Variables*. Imagem de outro processador baixa, mas não roda; por isso o script confere e,
+se não bater, compila no servidor em vez de subir.
 
 **Rollback automático.** Se algum serviço não ficar saudável em 5 minutos, o script volta
 sozinho para o commit que estava no ar (as imagens dele continuam no servidor) e o job
