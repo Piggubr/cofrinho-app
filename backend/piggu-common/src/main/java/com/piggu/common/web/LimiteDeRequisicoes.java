@@ -151,7 +151,8 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     }
 
     private static boolean ehRotaAberta(String caminho) {
-        return caminho.equals("/api/auth/google") || caminho.equals("/api/auth/entrar")
+        return caminho.equals("/api/auth/google") || caminho.startsWith("/api/auth/google/app")
+                || caminho.equals("/api/auth/entrar")
                 || caminho.equals("/api/auth/cadastro") || caminho.equals("/api/auth/refresh")
                 || caminho.equals("/api/auth/confirmar-email") || caminho.equals("/api/auth/senha/esqueci")
                 || caminho.equals("/api/auth/senha/redefinir")

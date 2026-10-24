@@ -110,6 +110,21 @@ class GoogleIdTokenVerifierTest {
     }
 
     @Test
+    @DisplayName("com nonce pedido, so passa o token que carrega o mesmo nonce")
+    void nonce() throws Exception {
+        String comNonce = token(c -> c.claim("nonce", "desafio-1"));
+        String semNonce = token(c -> { });
+
+        assertThat(verificador.verificar(comNonce, "desafio-1").email()).isEqualTo("ana@gmail.com");
+        assertThatThrownBy(() -> verificador.verificar(comNonce, "outro"))
+                .isInstanceOf(UnauthorizedException.class);
+        assertThatThrownBy(() -> verificador.verificar(semNonce, "desafio-1"))
+                .isInstanceOf(UnauthorizedException.class);
+        assertThatThrownBy(() -> verificador.verificar(comNonce, null))
+                .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
     @DisplayName("sem client ID configurado o servico nem sobe")
     void semClientId() {
         GoogleProperties semId = new GoogleProperties(List.of(" "), null, null);

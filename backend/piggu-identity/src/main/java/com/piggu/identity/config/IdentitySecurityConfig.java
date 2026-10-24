@@ -26,7 +26,9 @@ public class IdentitySecurityConfig {
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
                         .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/cadastro", "/api/auth/entrar", "/api/auth/confirmar-email",
-                                "/api/auth/senha/esqueci", "/api/auth/senha/redefinir", "/api/auth/refresh", "/api/auth/logout").permitAll()
+                                "/api/auth/senha/esqueci", "/api/auth/senha/redefinir", "/api/auth/refresh", "/api/auth/logout",
+                                // Login com Google no app instalado: a volta do Google e a troca do codigo.
+                                "/api/auth/google/app", "/api/auth/google/app/troca").permitAll()
                         // A Stripe nao manda token: o aviso e conferido pela assinatura HMAC.
                         .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
                         // Idem para o RevenueCat: a prova e o segredo no Authorization.
