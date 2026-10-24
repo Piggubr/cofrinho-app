@@ -9,6 +9,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { Carregando } from '../../core/ui/carregando';
 
+export type QualPlano = 'GRATUITO' | 'PREMIUM' | 'CASAL' | 'FAMILIA';
+
 /**
  * Planos do Piggu.
  *
@@ -33,6 +35,32 @@ export class Plan implements OnInit {
   protected readonly voltouDoPagamento = this.parametros.get('assinatura') === 'ok';
   /** Campanha do link de divulgacao (/plano?promo=CODIGO): pode liberar o teste gratis de novo. */
   private readonly campanha = this.parametros.get('promo');
+
+  /**
+   * O cartao a marcar como "Seu plano". Nulo para o administrador, que usa tudo do Premium
+   * sem ter plano nenhum.
+   */
+  protected seuPlano(plano: InfoDoPlano): QualPlano | null {
+    if (plano.plano === 'GRATUITO') {
+      return this.auth.ehPremium() ? null : 'GRATUITO';
+    }
+    if (plano.planoFamilia) {
+      return 'FAMILIA';
+    }
+    return plano.planoCasal ? 'CASAL' : 'PREMIUM';
+  }
+
+  /** Nome do plano no quadro de cima, para quem ja e Premium. */
+  protected nomeDoPlano(plano: InfoDoPlano): string {
+    switch (this.seuPlano(plano)) {
+      case 'FAMILIA':
+        return $localize`Premium família`;
+      case 'CASAL':
+        return $localize`Premium casal`;
+      default:
+        return $localize`Premium individual`;
+    }
+  }
 
   ngOnInit(): void {
     void this.carregar();
@@ -111,7 +139,10 @@ export class Plan implements OnInit {
 export function ehDaStripe(url: string): boolean {
   try {
     const endereco = new URL(url);
-    return endereco.protocol === 'https:' && (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'));
+    return (
+      endereco.protocol === 'https:' &&
+      (endereco.hostname === 'stripe.com' || endereco.hostname.endsWith('.stripe.com'))
+    );
   } catch {
     return false;
   }

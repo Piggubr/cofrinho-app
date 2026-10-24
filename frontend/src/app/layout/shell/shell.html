@@ -3,7 +3,7 @@
 }
 <div class="moldura">
   <header class="cabecalho" [class.tela-interna]="telaInterna()" [class.com-faixa]="modoDemo">
-    <a routerLink="/painel" class="marca" (click)="fecharMenu()">
+    <a i18n-aria-label routerLink="/painel" class="marca" aria-label="Piggu" (click)="fecharMenu()">
       <span class="marca-simbolo"><app-icone nome="cofrinho" [tamanho]="18" [traco]="2" /></span>
       <strong i18n>Piggu</strong>
     </a>
