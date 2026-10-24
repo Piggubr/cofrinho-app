@@ -55,4 +55,21 @@ class RotasDoGatewayTest {
                 .expectBody(String.class)
                 .value(texto -> assertThat(texto).contains("jvm_memory_used_bytes", "http_server_requests_seconds_bucket"));
     }
+
+    @Test
+    @DisplayName("a volta do Google no app passa pelo CORS; o resto segue so com as origens do site")
+    void corsDaVoltaDoGoogle() {
+        // O identity nao esta de pe no teste: passar pelo CORS e chegar ao repasse (erro 5xx).
+        web.post().uri("/api/auth/google/app")
+                .header("Origin", "https://accounts.google.com")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .bodyValue("id_token=x&state=y")
+                .exchange()
+                .expectStatus().is5xxServerError();
+
+        web.post().uri("/api/auth/google")
+                .header("Origin", "https://accounts.google.com")
+                .exchange()
+                .expectStatus().isForbidden();
+    }
 }

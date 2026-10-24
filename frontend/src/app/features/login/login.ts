@@ -8,9 +8,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { GoogleIdentityService } from '../../core/auth/google-identity.service';
+import { GoogleNoApp } from '../../core/auth/google-no-app';
+import { Atalhos } from '../../core/nativo/atalhos';
 import { VERSAO_DO_AVISO, codigoDoErro } from '../../core/privacidade/aviso';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
@@ -39,6 +42,11 @@ export class Login implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly google = inject(GoogleIdentityService);
   private readonly router = inject(Router);
+  private readonly googleNoApp = inject(GoogleNoApp);
+  private readonly atalhos = inject(Atalhos);
+
+  /** No app instalado o Google abre no navegador do celular e volta por piggu:// (GoogleNoApp). */
+  protected readonly peloNavegador = this.googleNoApp.disponivel;
 
   private readonly areaDoBotao = viewChild.required<ElementRef<HTMLDivElement>>('botaoGoogle');
 
@@ -71,10 +79,24 @@ export class Login implements OnInit {
 
   constructor() {
     afterNextRender(() => void this.prepararBotao());
+
+    // Volta do Google no app: piggu://entrar?google=codigo chega aqui como ?google=codigo.
+    inject(ActivatedRoute)
+      .queryParamMap.pipe(takeUntilDestroyed())
+      .subscribe((parametros) => {
+        const codigo = parametros.get('google');
+        if (codigo && this.peloNavegador) {
+          void this.voltarDoNavegador(codigo);
+        }
+      });
   }
 
   ngOnInit(): void {
     void this.tentarSessaoGuardada();
+    if (this.peloNavegador) {
+      // O link piggu:// so vira rota com alguem ouvindo; sem sessao o menu (que liga) nao abriu.
+      void this.atalhos.ligar();
+    }
   }
 
   protected alternarLembrar(valor: boolean): void {
@@ -98,6 +120,9 @@ export class Login implements OnInit {
   }
 
   private async prepararBotao(): Promise<void> {
+    if (this.peloNavegador) {
+      return;
+    }
     try {
       await this.google.renderizarBotao(this.areaDoBotao().nativeElement, (idToken) =>
         this.entrarPeloGoogle(idToken),
@@ -208,6 +233,29 @@ export class Login implements OnInit {
     const formatado = CPF.formatar(texto);
     this.documento.set(formatado);
     campo.value = formatado;
+  }
+
+  /** App instalado: o Google abre no navegador do celular; a volta chega em voltarDoNavegador. */
+  protected async entrarPeloNavegador(): Promise<void> {
+    this.erro.set('');
+    try {
+      await this.googleNoApp.abrir(this.lembrar());
+    } catch {
+      this.erro.set($localize`Nao consegui abrir o login do Google. Entre com e-mail e senha.`);
+    }
+  }
+
+  private async voltarDoNavegador(codigo: string): Promise<void> {
+    this.erro.set('');
+    this.entrando.set(true);
+    try {
+      const { idToken, lembrar } = await this.googleNoApp.concluir(codigo);
+      this.lembrar.set(lembrar);
+      await this.entrarPeloGoogle(idToken);
+    } catch (falha) {
+      this.erro.set(mensagemDeErro(falha, $localize`O login com Google venceu. Tente de novo.`));
+      this.entrando.set(false);
+    }
   }
 
   /** Cria a conta Google com o aceite, reaproveitando a confirmacao que ja chegou. */

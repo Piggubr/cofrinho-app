@@ -10,6 +10,14 @@ spring:
         webflux:
           globalcors:
             cors-configurations:
+              # Volta do login com Google no app instalado: a pagina do Google faz um POST de
+              # formulario para ca, com Origin de accounts.google.com (ou "null"). Sem esta
+              # entrada o CORS do gateway recusaria com 403. Vem antes do '/**' porque vale a
+              # primeira que casa. Sem credenciais: a rota nao le cookie e devolve so uma pagina.
+              '[/api/auth/google/app]':
+                allowedOriginPatterns: '*'
+                allowedMethods: [POST]
+                allowCredentials: false
               # Origens do site. Em producao troque pela lista real de dominios:
               # curinga com credenciais nao e aceito pelos navegadores.
               '[/**]':

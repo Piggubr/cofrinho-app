@@ -46,6 +46,29 @@ h1 {
   margin-bottom: 1rem;
 }
 
+/* Igual ao botao do Google (contorno, pilula, 260px), que no app nao pode ser usado. */
+.botao-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 260px;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid #dadce0;
+  border-radius: 999px;
+  background: #fff;
+  color: #3c4043;
+  font:
+    500 0.95rem/1 system-ui,
+    sans-serif;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
 .lembrar {
   display: flex;
   align-items: center;
