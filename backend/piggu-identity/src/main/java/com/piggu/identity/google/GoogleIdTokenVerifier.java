@@ -41,6 +41,22 @@ public class GoogleIdTokenVerifier {
     }
 
     public GoogleProfile verificar(String idToken) {
+        return perfil(decodificar(idToken));
+    }
+
+    /**
+     * Confere o token e tambem o nonce: no login pelo navegador do celular (LoginPeloNavegador)
+     * o app manda o nonce para o Google e so aceita de volta o token que o carrega.
+     */
+    public GoogleProfile verificar(String idToken, String nonce) {
+        Jwt token = decodificar(idToken);
+        if (Texto.vazio(nonce) || !nonce.equals(token.getClaimAsString("nonce"))) {
+            throw new UnauthorizedException("Login Google invalido para este site.");
+        }
+        return perfil(token);
+    }
+
+    private Jwt decodificar(String idToken) {
         if (Texto.vazio(idToken)) {
             throw new UnauthorizedException("Faca login com Google para continuar.");
         }
@@ -52,7 +68,10 @@ public class GoogleIdTokenVerifier {
             log.debug("ID token do Google recusado", erro);
             throw new UnauthorizedException("Seu login venceu ou e' invalido. Entre novamente.");
         }
+        return token;
+    }
 
+    private GoogleProfile perfil(Jwt token) {
         if (!propriedades.issuers().contains(token.getIssuer().toString())) {
             throw new UnauthorizedException("Login Google invalido para este site.");
         }

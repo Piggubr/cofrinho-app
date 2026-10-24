@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { AuthService, DadosDoCadastro } from '../../core/auth/auth.service';
 import { GoogleIdentityService } from '../../core/auth/google-identity.service';
+import { GoogleNoApp } from '../../core/auth/google-no-app';
+import { Atalhos } from '../../core/nativo/atalhos';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
 import { Login } from './login';
 
@@ -16,8 +18,17 @@ describe('Login', () => {
   let entradasComSenha: [string, string, boolean][];
   let cadastros: DadosDoCadastro[];
   let navegar: ReturnType<typeof vi.spyOn>;
+  let noApp: boolean;
+  let aberturas: boolean[];
+  let trocas: string[];
+  let atalhosLigados: number;
 
   beforeEach(() => {
+    credencial = undefined!;
+    noApp = false;
+    aberturas = [];
+    trocas = [];
+    atalhosLigados = 0;
     botaoFalha = false;
     sessaoGuardada = false;
     entradas = [];
@@ -57,6 +68,22 @@ describe('Login', () => {
             },
           },
         },
+        {
+          provide: GoogleNoApp,
+          useValue: {
+            get disponivel() {
+              return noApp;
+            },
+            abrir: async (lembrar: boolean) => {
+              aberturas.push(lembrar);
+            },
+            concluir: async (codigo: string) => {
+              trocas.push(codigo);
+              return { idToken: 'token-do-app', lembrar: false };
+            },
+          },
+        },
+        { provide: Atalhos, useValue: { ligar: async () => atalhosLigados++ } },
       ],
     });
     navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -353,6 +380,36 @@ describe('Login', () => {
       documento: '52998224725',
       telefone: '+351 912 345 678',
       nascimento: '1990-05-20',
+    });
+  });
+
+  describe('no app instalado', () => {
+    beforeEach(() => {
+      noApp = true;
+    });
+
+    it('o botao abre o Google no navegador do celular, sem o botao da janela do Google', async () => {
+      const tela = await abrir();
+      const google = [...(tela.nativeElement as HTMLElement).querySelectorAll('button')].find((b) =>
+        b.textContent?.includes('Fazer login com o Google'),
+      )!;
+
+      google.click();
+      await esperar(tela);
+
+      expect(aberturas).toEqual([true]);
+      expect(credencial).toBeUndefined();
+      expect(atalhosLigados).toBe(1);
+    });
+
+    it('a volta pelo piggu:// troca o codigo e entra com o ID token', async () => {
+      await TestBed.inject(Router).navigateByUrl('/?google=codigo-1');
+      const tela = await abrir();
+      await esperar(tela);
+
+      expect(trocas).toEqual(['codigo-1']);
+      expect(entradas).toEqual([['token-do-app', false, undefined]]);
+      expect(navegar).toHaveBeenCalledWith(['/painel']);
     });
   });
 });
