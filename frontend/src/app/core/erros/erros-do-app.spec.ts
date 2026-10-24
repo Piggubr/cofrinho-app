@@ -11,10 +11,13 @@ describe('erros do app', () => {
   beforeEach(() => {
     enviados = [];
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    vi.stubGlobal('fetch', vi.fn((url: string, init: RequestInit) => {
-      enviados.push({ url, corpo: JSON.parse(init.body as string), init });
-      return Promise.resolve(new Response(null, { status: 204 }));
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init: RequestInit) => {
+        enviados.push({ url, corpo: JSON.parse(init.body as string), init });
+        return Promise.resolve(new Response(null, { status: 204 }));
+      }),
+    );
     TestBed.configureTestingModule({
       providers: [
         { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
@@ -46,18 +49,41 @@ describe('erros do app', () => {
   });
 
   it('promessa rejeitada manda o motivo; falha ao enviar nao vira outro erro', () => {
-    vi.stubGlobal('fetch', vi.fn(() => { throw new Error('sem rede'); }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => {
+        throw new Error('sem rede');
+      }),
+    );
     expect(() => tratador.handleError({ rejection: new Error('motivo') })).not.toThrow();
   });
 
   it('a tela troca ids e numeros por :id', () => {
-    expect(telaAtual('/gastos/3f2a9c1e-0000-4000-8000-000000000000/editar')).toBe('/gastos/:id/editar');
+    expect(telaAtual('/gastos/3f2a9c1e-0000-4000-8000-000000000000/editar')).toBe(
+      '/gastos/:id/editar',
+    );
     expect(telaAtual('/metas/2026-10')).toBe('/metas/:id');
     expect(telaAtual('/painel')).toBe('/painel');
   });
 
   it('limpa telefone, token, busca e numero comprido', () => {
-    expect(semDadosPessoais('(11) 98765-4321 eyJa.eyJb.c /x?q=mercado 4111111111111111'))
-      .toBe('[telefone] [token] /x?[...] [numero]');
+    expect(semDadosPessoais('(11) 98765-4321 eyJa.eyJb.c /x?q=mercado 4111111111111111')).toBe(
+      '[telefone] [token] /x?[...] [numero]',
+    );
+  });
+
+  it('acha e-mail colado em outro, entre "@" soltos e sem o ponto do fim da frase', () => {
+    expect(semDadosPessoais('"ana.b+1@piggu.test" a+b@c.d+e@f.g x@y@z.com fim@piggu.com.')).toBe(
+      '"[email]" [email][email] x@[email] [email].',
+    );
+    expect(semDadosPessoais('ana@piggu. @piggu.com ana@ a@b')).toBe(
+      'ana@piggu. @piggu.com ana@ a@b',
+    );
+  });
+
+  it('texto comprido sem e-mail passa rapido', () => {
+    const inicio = performance.now();
+    semDadosPessoais('a'.repeat(50_000) + '@'.repeat(50_000));
+    expect(performance.now() - inicio).toBeLessThan(500);
   });
 });

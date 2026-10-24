@@ -26,9 +26,12 @@ import java.util.regex.Pattern;
  */
 public final class LeitorDeCupom {
 
-    /** Dinheiro com duas casas: 1.234,56 · 1234,56 · 1234.56 · -0,63. */
+    /**
+     * Dinheiro com duas casas: 1.234,56 · 1234,56 · 1234.56 · -0,63. Ancorado: so e tentado
+     * no comeco de cada numero (ver {@link #valores}), o que deixa a leitura linear.
+     */
     private static final Pattern DINHEIRO =
-            Pattern.compile("(?<![\\d,.])-?(?:\\d{1,3}(?:\\.\\d{3})++|\\d++)[,.]\\d{2}(?![,.]*+\\d)");
+            Pattern.compile("^-?(?:\\d{1,3}(?:\\.\\d{3})++|\\d++)[,.]\\d{2}(?![,.]*+\\d)");
 
     /** Lixo depois do valor: letra do IVA, "*", "%" de taxa, "€", "R$". */
     private static final Pattern RABO = Pattern.compile("(?:\\s++(?:EUR|[A-Z*€]|\\d{1,2}%))++\\s*+$");
@@ -161,18 +164,64 @@ public final class LeitorDeCupom {
     }
 
     private static BigDecimal ultimoValor(String linha) {
-        Matcher dinheiro = DINHEIRO.matcher(linha);
-        String ultimo = null;
-        while (dinheiro.find()) {
-            ultimo = dinheiro.group();
-        }
-        if (ultimo == null) {
+        List<int[]> valores = valores(linha);
+        if (valores.isEmpty()) {
             return null;
         }
+        int[] trecho = valores.get(valores.size() - 1);
+        String ultimo = linha.substring(trecho[0], trecho[1]);
         // A ultima virgula ou ponto e a casa decimal; o resto e milhar.
         int decimal = Math.max(ultimo.lastIndexOf(','), ultimo.lastIndexOf('.'));
         String inteiro = ultimo.substring(0, decimal).replace(".", "").replace(",", "");
         return new BigDecimal(inteiro + "." + ultimo.substring(decimal + 1));
+    }
+
+    /**
+     * Onde estao os valores em dinheiro da linha, como [inicio, fim). O padrao so e tentado
+     * onde um numero comeca (sem digito, virgula ou ponto antes), e a busca continua depois
+     * de cada valor achado: o mesmo que um find() com lookbehind, sem voltar atras.
+     */
+    private static List<int[]> valores(String linha) {
+        List<int[]> achados = new ArrayList<>();
+        Matcher dinheiro = DINHEIRO.matcher(linha);
+        int i = 0;
+        while (i < linha.length()) {
+            if (comecaNumero(linha, i)) {
+                dinheiro.region(i, linha.length());
+                if (dinheiro.lookingAt()) {
+                    achados.add(new int[] {i, dinheiro.end()});
+                    i = dinheiro.end();
+                    continue;
+                }
+            }
+            i++;
+        }
+        return achados;
+    }
+
+    private static boolean comecaNumero(String linha, int i) {
+        char c = linha.charAt(i);
+        boolean numero = ehDigito(c)
+                || c == '-' && i + 1 < linha.length() && ehDigito(linha.charAt(i + 1));
+        if (!numero || i == 0) {
+            return numero;
+        }
+        char antes = linha.charAt(i - 1);
+        return !ehDigito(antes) && antes != ',' && antes != '.';
+    }
+
+    private static boolean ehDigito(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private static String semValores(String texto) {
+        StringBuilder sem = new StringBuilder();
+        int copiado = 0;
+        for (int[] valor : valores(texto)) {
+            sem.append(texto, copiado, valor[0]).append(' ');
+            copiado = valor[1];
+        }
+        return sem.append(texto, copiado, texto.length()).toString();
     }
 
     /** O que sobra da linha sem numero do item, codigo, quantidade e valores. */
@@ -180,7 +229,7 @@ public final class LeitorDeCupom {
         // Quantidade antes do numero do item: em "1 UN X 4,79" o 1 e quantidade, nao item.
         String texto = QUANTIDADE.matcher(linha).replaceAll(" ");
         texto = CODIGO.matcher(texto).replaceAll(" ");
-        texto = DINHEIRO.matcher(texto).replaceAll(" ");
+        texto = semValores(texto);
         texto = NUMERO_DO_ITEM.matcher(texto.strip()).replaceFirst("");
         texto = texto.replaceAll("\\b(R\\$|UN|KG)\\s*$", " ");
         return Texto.limitar(Texto.espacoUnico(texto), 200);
