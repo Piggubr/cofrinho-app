@@ -6,6 +6,9 @@ import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.RecurringBill;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Contas fixas recorrentes da familia. */
+@Tag(name = "Contas fixas", description = "Contas que vencem todo mês e receitas recorrentes.")
 @RestController
 @RequestMapping("/api/bills")
 public class BillController {
@@ -69,12 +73,15 @@ public class BillController {
     }
 
     /** As contas no mes pedido (ou no atual), com vencimento e situacao; com tipo RECEITA, as receitas recorrentes. */
+    @Operation(summary = "Contas fixas do mês")
     @GetMapping
     public List<BillResponse> listar(@RequestParam(required = false) String mes,
                                      @RequestParam(defaultValue = "GASTO") RecurringBill.Tipo tipo) {
         return servico.doMes(Meses.ouAtual(mes), tipo).stream().map(BillResponse::de).toList();
     }
 
+    @Operation(summary = "Criar conta fixa")
+    @ApiResponse(responseCode = "201", description = "Conta fixa criada")
     @PostMapping
     public ResponseEntity<Void> criar(@Valid @RequestBody BillRequest pedido, @AuthUser CurrentUser usuario) {
         servico.criar(pedido.descricao(), pedido.categoria(), pedido.valor(), pedido.dia(),
@@ -82,6 +89,7 @@ public class BillController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @Operation(summary = "Alterar conta fixa")
     @PutMapping("/{id}")
     public ResponseEntity<Void> atualizar(@PathVariable UUID id, @Valid @RequestBody BillRequest pedido,
                                           @AuthUser CurrentUser usuario) {
@@ -90,6 +98,7 @@ public class BillController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Excluir conta fixa")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);
@@ -97,6 +106,7 @@ public class BillController {
     }
 
     /** Marca como paga: lanca o gasto do mes. Lancar duas vezes o mesmo mes e 409. */
+    @Operation(summary = "Marcar conta fixa como paga no mês")
     @PostMapping("/{id}/pay")
     @ResponseStatus(HttpStatus.CREATED)
     public ExpenseResponse pagar(@PathVariable UUID id, @RequestParam(required = false) String mes,

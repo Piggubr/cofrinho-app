@@ -16,6 +16,10 @@ import com.piggu.identity.domain.AuthService;
 import com.piggu.identity.domain.ConfirmacaoDeEmail;
 import com.piggu.identity.domain.Paises;
 import com.piggu.identity.domain.RedefinicaoDeSenha;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -44,6 +48,7 @@ import java.util.List;
  * um curto para as requisicoes, que o front guarda so em memoria, e um longo apenas para
  * renovar, que vive num cookie HttpOnly; Secure; SameSite=Strict; Path=/api/auth.</p>
  */
+@Tag(name = "Login e sessão", description = "Entrar, renovar e sair; perfil e preferências de quem está logado.")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -66,6 +71,8 @@ public class AuthController {
         this.limites = limites;
     }
 
+    @Operation(summary = "Entrar com o Google (ID token)")
+    @SecurityRequirements
     @PostMapping("/google")
     public ResponseEntity<TokenResponse> entrar(@Valid @RequestBody GoogleLoginRequest pedido,
                                                 @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
@@ -77,6 +84,9 @@ public class AuthController {
      * Conta nova por e-mail e senha; o aceite dos termos vem junto. Responde 202 sem
      * sessao, a mesma coisa se o e-mail ja tem conta: a pessoa confirma o e-mail e entra.
      */
+    @Operation(summary = "Criar conta com e-mail e senha")
+    @ApiResponse(responseCode = "202", description = "Pedido aceito, com ou sem conta nesse e-mail: a pessoa confirma o e-mail e depois entra")
+    @SecurityRequirements
     @PostMapping("/cadastro")
     public ResponseEntity<Void> cadastrar(@Valid @RequestBody CadastroRequest pedido) {
         String pais = pedido.pais() == null ? Paises.BRASIL : pedido.pais();
@@ -90,6 +100,8 @@ public class AuthController {
     }
 
     /** Aberto: quem clica no link pode estar sem sessao, em outro aparelho. */
+    @Operation(summary = "Confirmar o e-mail pelo link")
+    @SecurityRequirements
     @PostMapping("/confirmar-email")
     public ResponseEntity<Void> confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
         // Nada do perfil volta: quem tem o link pode nao ser o dono da sessao.
@@ -98,6 +110,7 @@ public class AuthController {
     }
 
     /** Manda outro link; o anterior deixa de valer. */
+    @Operation(summary = "Reenviar o link de confirmação do e-mail")
     @PostMapping("/me/email/reenviar")
     public ResponseEntity<Void> reenviarConfirmacao(@AuthUser CurrentUser usuario) {
         confirmacao.reenviar(usuario.id());
@@ -108,6 +121,9 @@ public class AuthController {
     }
 
     /** Aberto, e responde 202 com ou sem conta: quem esqueceu a senha nao tem sessao. */
+    @Operation(summary = "Pedir o link para redefinir a senha")
+    @ApiResponse(responseCode = "202", description = "Pedido aceito, com ou sem conta nesse e-mail")
+    @SecurityRequirements
     @PostMapping("/senha/esqueci")
     public ResponseEntity<Void> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequest pedido) {
         redefinicao.pedir(pedido.email());
@@ -119,12 +135,16 @@ public class AuthController {
     }
 
     /** Senha nova pelo link do e-mail; sem sessao nova: a pessoa entra com a senha que criou. */
+    @Operation(summary = "Redefinir a senha pelo link do e-mail")
+    @SecurityRequirements
     @PostMapping("/senha/redefinir")
     public ResponseEntity<Void> redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest pedido) {
         redefinicao.redefinir(pedido.token(), pedido.novaSenha());
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Entrar com e-mail e senha")
+    @SecurityRequirements
     @PostMapping("/entrar")
     public ResponseEntity<TokenResponse> entrarComSenha(@Valid @RequestBody SenhaLoginRequest pedido,
                                                         @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
@@ -134,6 +154,8 @@ public class AuthController {
         return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent, origem));
     }
 
+    @Operation(summary = "Renovar a sessão com o refresh token")
+    @SecurityRequirements
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> renovar(@CookieValue(name = COOKIE, required = false) String refresh,
                                                  @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
@@ -143,6 +165,8 @@ public class AuthController {
         return comCookie(servico.renovar(refresh, userAgent));
     }
 
+    @Operation(summary = "Sair e encerrar a sessão do refresh token")
+    @SecurityRequirements
     @PostMapping("/logout")
     public ResponseEntity<Void> sair(@CookieValue(name = COOKIE, required = false) String refresh) {
         if (refresh != null && !refresh.isBlank()) {
@@ -171,12 +195,14 @@ public class AuthController {
         return cookie.build();
     }
 
+    @Operation(summary = "Perfil de quem está logado")
     @GetMapping("/me")
     public UserResponse eu(@AuthUser CurrentUser usuario) {
         return servico.perfil(usuario.id());
     }
 
     /** Qualquer perfil escolhe a propria moeda; nao ha como mexer na de outra pessoa. */
+    @Operation(summary = "Salvar as moedas de exibição e de conversão")
     @PutMapping("/me/preferences")
     public UserResponse preferencias(@Valid @RequestBody PreferencesRequest pedido,
                                      @AuthUser CurrentUser usuario) {
@@ -191,6 +217,7 @@ public class AuthController {
      * O que o parceiro ve do que a pessoa lanca: so o compartilhado ou tudo. Cada um decide
      * sobre os proprios dados; vale para o parceiro na proxima renovacao do token (ate 5 min).
      */
+    @Operation(summary = "Escolher o que o parceiro vê")
     @PutMapping("/me/sharing")
     public UserResponse compartilhamento(@Valid @RequestBody CompartilhamentoRequest pedido,
                                          @AuthUser CurrentUser usuario) {
@@ -202,6 +229,7 @@ public class AuthController {
      * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
      * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica.
      */
+    @Operation(summary = "Criar ou trocar a senha")
     @PutMapping("/me/senha")
     public UserResponse definirSenha(@Valid @RequestBody DefinirSenhaRequest pedido,
                                      @AuthUser CurrentUser usuario,
@@ -213,6 +241,7 @@ public class AuthController {
     }
 
     /** Liga e desliga as telas de estilo de vida no menu da propria pessoa. */
+    @Operation(summary = "Ligar e desligar as telas de estilo de vida")
     @PutMapping("/me/modules")
     public UserResponse modulos(@Valid @RequestBody ModulosRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.escolherModulos(usuario.id(), pedido.modulos());

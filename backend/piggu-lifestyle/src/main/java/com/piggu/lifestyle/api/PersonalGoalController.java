@@ -6,6 +6,8 @@ import com.piggu.common.web.Meses;
 import com.piggu.lifestyle.api.dto.PersonalGoalRequest;
 import com.piggu.lifestyle.api.dto.PersonalGoalResponse;
 import com.piggu.lifestyle.domain.PersonalGoalService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,7 @@ import java.util.UUID;
 /**
  * Metas do mes. Cada pessoa so ve as proprias, entao todos os papeis usam.
  */
+@Tag(name = "Metas pessoais", description = "Metas do mês de cada pessoa.")
 @RestController
 @RequestMapping("/api/personal-goals")
 public class PersonalGoalController {
@@ -37,18 +40,21 @@ public class PersonalGoalController {
     }
 
     /** @param mes AAAA-MM; vazio e o mes atual de Brasilia */
+    @Operation(summary = "Metas pessoais do mês")
     @GetMapping
     public List<PersonalGoalResponse> listar(@RequestParam(required = false) String mes,
                                              @AuthUser CurrentUser usuario) {
         return servico.listar(Meses.ouAtual(mes), usuario.id());
     }
 
+    @Operation(summary = "Criar meta pessoal")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PersonalGoalResponse criar(@Valid @RequestBody PersonalGoalRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.criar(pedido, usuario.id());
     }
 
+    @Operation(summary = "Alterar meta pessoal")
     @PutMapping("/{id}")
     public PersonalGoalResponse atualizar(@PathVariable UUID id,
                                           @Valid @RequestBody PersonalGoalRequest pedido,
@@ -56,6 +62,7 @@ public class PersonalGoalController {
         return servico.atualizar(id, pedido, usuario.id());
     }
 
+    @Operation(summary = "Excluir meta pessoal")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario.id());

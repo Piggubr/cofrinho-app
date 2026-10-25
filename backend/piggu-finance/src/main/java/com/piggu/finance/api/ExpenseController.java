@@ -10,6 +10,8 @@ import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.DivisaoDeGastos;
 import com.piggu.finance.domain.ExpenseService;
 import com.piggu.finance.domain.LeitorDeExtrato;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -46,6 +48,7 @@ import java.util.UUID;
  * alcanca; cada um ve e altera o que e dele e o que os outros compartilharam (ver
  * CadaUmVeOSeuTest e CompartilhadoTest). Listas e somas aceitam {@code visao=meu|casal}.</p>
  */
+@Tag(name = "Gastos", description = "Gastos: lançar, listar, buscar, importar, exportar e dividir.")
 @RestController
 @RequestMapping("/api/expenses")
 public class ExpenseController {
@@ -80,12 +83,14 @@ public class ExpenseController {
     }
 
     /** Busca global (Ctrl+K): gastos pelo item ou estabelecimento. */
+    @Operation(summary = "Buscar gastos pelo item ou estabelecimento")
     @GetMapping("/search")
     public List<ExpenseResponse> buscar(@RequestParam @Size(max = 100) String q) {
         return servico.buscar(q);
     }
 
     /** Le o extrato (OFX ou CSV) e devolve a previa, sem gravar. */
+    @Operation(summary = "Prévia da importação de extrato (OFX ou CSV)")
     @PostMapping("/import/preview")
     public List<ExpenseService.LinhaDaPrevia> previa(@Valid @RequestBody ExtratoRequest pedido) {
         return servico.previaDoExtrato(pedido.conteudo());
@@ -97,6 +102,7 @@ public class ExpenseController {
     }
 
     /** Previa de linhas ja separadas (gastos lidos do banco conectado), sem gravar. */
+    @Operation(summary = "Prévia da importação de linhas já separadas")
     @PostMapping("/import/preview-lines")
     public List<ExpenseService.LinhaDaPrevia> previaDeLinhas(@Valid @RequestBody LinhasRequest pedido) {
         return servico.previa(pedido.linhas().stream()
@@ -105,6 +111,7 @@ public class ExpenseController {
     }
 
     /** Grava as linhas escolhidas; as ja importadas sao puladas pelo id externo. */
+    @Operation(summary = "Importar os gastos escolhidos")
     @PostMapping("/import")
     public Map<String, Integer> importar(@Valid @RequestBody ImportRequest pedido, @AuthUser CurrentUser usuario) {
         int novas = servico.importar(pedido.linhas().stream()
@@ -114,6 +121,7 @@ public class ExpenseController {
     }
 
     /** Gastos em CSV; sem mes, todos. */
+    @Operation(summary = "Exportar gastos em CSV")
     @GetMapping(value = "/export", produces = "text/csv")
     public ResponseEntity<String> exportar(@RequestParam(required = false) String mes) {
         String nome = "piggu-gastos" + (mes == null || mes.isBlank() ? "" : "-" + Meses.ouAtual(mes)) + ".csv";
@@ -125,12 +133,14 @@ public class ExpenseController {
     }
 
     /** Acerto dos gastos divididos no mes: quanto cada pessoa pagou, a parte dela e o saldo. */
+    @Operation(summary = "Acerto dos gastos divididos no mês")
     @GetMapping("/splits")
     public List<DivisaoDeGastos.Acerto> acerto(@RequestParam(required = false) String mes) {
         return divisao.acerto(Meses.ouAtual(mes));
     }
 
     /** Quem deve quanto a quem nos gastos divididos do mes, com o menor numero de transferencias. */
+    @Operation(summary = "Quem deve a quem nos gastos divididos")
     @GetMapping("/splits/transfers")
     public List<DivisaoDeGastos.Transferencia> quemDeveAQuem(@RequestParam(required = false) String mes) {
         return divisao.quemDeveAQuem(Meses.ouAtual(mes));
@@ -139,11 +149,13 @@ public class ExpenseController {
     /**
      * @param mes filtro opcional no formato AAAA-MM; ausente devolve tudo
      */
+    @Operation(summary = "Listar gastos")
     @GetMapping
     public List<ExpenseResponse> listar(@RequestParam(required = false) String mes) {
         return mes == null || mes.isBlank() ? servico.listar() : servico.listarDoMes(mes);
     }
 
+    @Operation(summary = "Lançar gasto")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<ExpenseResponse> salvar(@Valid @RequestBody SaveExpensesRequest pedido,
@@ -152,6 +164,7 @@ public class ExpenseController {
                 : servico.salvar(pedido, usuario.id());
     }
 
+    @Operation(summary = "Alterar gasto")
     @PutMapping("/{id}")
     public ExpenseResponse atualizar(@PathVariable UUID id,
                                      @Valid @RequestBody UpdateExpenseRequest pedido,
@@ -159,6 +172,7 @@ public class ExpenseController {
         return servico.atualizar(id, pedido, usuario);
     }
 
+    @Operation(summary = "Excluir gasto")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario,
                                         @RequestParam(defaultValue = "false") boolean proximas) {

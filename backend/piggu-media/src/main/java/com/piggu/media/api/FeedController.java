@@ -6,6 +6,8 @@ import com.piggu.media.api.dto.CaptionRequest;
 import com.piggu.media.api.dto.FeedPhotoRequest;
 import com.piggu.media.api.dto.FeedPhotoResponse;
 import com.piggu.media.domain.FeedService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Feed de fotos por mes. Substitui saveFeed, updateFeed, deleteFeed e getFeedPhoto. */
+@Tag(name = "Feed", description = "Fotos do feed da família.")
 @RestController
 @RequestMapping("/api/feed")
 public class FeedController {
@@ -35,11 +38,13 @@ public class FeedController {
     }
 
     /** @param mes filtro opcional no formato AAAA-MM */
+    @Operation(summary = "Listar fotos do feed")
     @GetMapping
     public List<FeedPhotoResponse> listar(@RequestParam(required = false) String mes) {
         return servico.listar(mes);
     }
 
+    @Operation(summary = "Publicar foto no feed")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FeedPhotoResponse publicar(@Valid @RequestBody FeedPhotoRequest pedido,
@@ -48,6 +53,7 @@ public class FeedController {
         return servico.publicar(pedido, usuario.id());
     }
 
+    @Operation(summary = "Trocar a legenda")
     @PatchMapping("/{id}/caption")
     public FeedPhotoResponse legendar(@PathVariable UUID id,
                                       @Valid @RequestBody CaptionRequest pedido,
@@ -55,6 +61,7 @@ public class FeedController {
         return servico.legendar(id, pedido.legenda(), usuario);
     }
 
+    @Operation(summary = "Excluir foto do feed")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);

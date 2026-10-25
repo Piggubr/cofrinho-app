@@ -4,6 +4,7 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,7 @@ public class AssistenteService {
     }
 
     /** Para a tela: se a IA esta ligada, se a pessoa ja autorizou e quanto sobra no mes. */
+    @Schema(name = "SituacaoDoAssistente")
     public record Situacao(boolean habilitado, boolean autorizado, int limite, int restantes) {
     }
 

@@ -7,6 +7,8 @@ import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.CotaDeLeituras;
 import com.piggu.finance.integration.LeitorDeRecibos;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>Este endpoint nao grava nada: devolve os itens lidos para conferencia.</p>
  */
+@Tag(name = "Recibos", description = "Leitura de recibos por foto.")
 @RestController
 @RequestMapping("/api/receipts")
 public class ReceiptController {
@@ -36,6 +39,7 @@ public class ReceiptController {
         this.consentimentos = consentimentos;
     }
 
+    @Operation(summary = "Ler um recibo pela foto")
     @PostMapping("/parse")
     public ReceiptParseResponse ler(@Valid @RequestBody ReceiptParseRequest pedido,
                                     @AuthUser CurrentUser usuario) {
@@ -43,12 +47,14 @@ public class ReceiptController {
     }
 
     /** Quantas leituras a familia ja fez no mes e quantas sobram no gratuito. */
+    @Operation(summary = "Leituras de recibo feitas no mês")
     @GetMapping("/usage")
     public CotaDeLeituras.Uso uso(@AuthUser CurrentUser usuario) {
         return cota.uso(usuario);
     }
 
     /** Retira a autorizacao de enviar a foto ao Gemini; a proxima leitura pergunta de novo. */
+    @Operation(summary = "Retirar a autorização de enviar fotos ao Gemini")
     @DeleteMapping("/consent")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void retirarConsentimento(@AuthUser CurrentUser usuario) {

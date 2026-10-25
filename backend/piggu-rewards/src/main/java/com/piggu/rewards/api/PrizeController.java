@@ -6,6 +6,8 @@ import com.piggu.rewards.api.dto.PrizeRequest;
 import com.piggu.rewards.api.dto.PrizeResponse;
 import com.piggu.rewards.api.dto.RedemptionResponse;
 import com.piggu.rewards.domain.RewardsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Premios e resgates. Substitui as acoes savePrize e redeemPrize. */
+@Tag(name = "Prêmios", description = "Prêmios e resgates com Fofocoins.")
 @RestController
 @RequestMapping("/api/prizes")
 public class PrizeController {
@@ -39,11 +42,13 @@ public class PrizeController {
      * @param todos quando verdadeiro inclui os premios desativados; so o administrador
      *              precisa disso, na tela de gestao
      */
+    @Operation(summary = "Listar prêmios")
     @GetMapping
     public List<PrizeResponse> listar(@RequestParam(defaultValue = "false") boolean todos) {
         return servico.listarPremios(!todos);
     }
 
+    @Operation(summary = "Criar prêmio")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
@@ -51,6 +56,7 @@ public class PrizeController {
         return servico.criarPremio(pedido, usuario.id());
     }
 
+    @Operation(summary = "Alterar prêmio")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public PrizeResponse atualizar(@PathVariable UUID id,
@@ -59,6 +65,7 @@ public class PrizeController {
         return servico.atualizarPremio(id, pedido, usuario.id());
     }
 
+    @Operation(summary = "Excluir prêmio")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
@@ -66,6 +73,7 @@ public class PrizeController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Resgatar prêmio")
     @PostMapping("/{id}/redemptions")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
@@ -73,6 +81,7 @@ public class PrizeController {
         return servico.resgatar(id, usuario.id());
     }
 
+    @Operation(summary = "Histórico de resgates")
     @GetMapping("/redemptions")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public List<RedemptionResponse> historicoDeResgates() {

@@ -3,6 +3,7 @@ package com.piggu.finance.domain;
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class OrcamentoService {
     static final BigDecimal LIMIAR_ESTOURO = BigDecimal.valueOf(100);
 
     /** Uma categoria no mes: limite, quanto ja foi e o alerta. */
+    @Schema(name = "SituacaoDoOrcamento")
     public record Situacao(UUID id, String categoria, BigDecimal limite, BigDecimal gasto, BigDecimal percentual,
                            Alerta alerta) {
     }

@@ -5,3 +5,5 @@ e3f5c7ccc679861d8fea0d08a8a45622cbfbfb38:backend/piggu-lifestyle/src/test/java/c
 # Cabecalho PEM de uma chave EC gerada na hora pelo teste do push (CanalDePushTest); nao e chave real.
 6baa19117bba8f58f173abd50ceb6dfb20079bd0:backend/piggu-identity/src/test/java/com/piggu/identity/avisos/CanalDePushTest.java:private-key:36
 d760e0211d9c03aaaf2b2367eac7542d71adb102:backend/piggu-lifestyle/src/test/java/com/piggu/lifestyle/integration/TmdbClientTest.java:jwt:22
+# Exemplo de resposta do login no docs/API_SPEC.md (so o comeco de um cabecalho JWT, sem token); trocado por "<JWT>" no commit seguinte.
+ca0bca2a8417292d67fe356738c2b409898b59ee:docs/API_SPEC.md:generic-api-key:57

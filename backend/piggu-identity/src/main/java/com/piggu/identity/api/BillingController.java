@@ -6,6 +6,10 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.PlanoResponse;
 import com.piggu.identity.billing.AssinaturaService;
 import com.piggu.identity.billing.Periodo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /** Plano Premium: tela de planos, pagamento no site e compra dentro dos apps. */
+@Tag(name = "Premium", description = "Plano, pagamento no site e compra dentro dos apps.")
 @RestController
 @RequestMapping("/api/billing")
 public class BillingController {
@@ -38,6 +43,7 @@ public class BillingController {
                                   @Size(max = 40) String campanha) {
     }
 
+    @Operation(summary = "Plano atual e opções de assinatura")
     @GetMapping("/plan")
     public PlanoResponse plano(@AuthUser CurrentUser usuario,
                                @RequestParam(required = false) @Size(max = 40) String campanha) {
@@ -45,6 +51,7 @@ public class BillingController {
     }
 
     /** Devolve a pagina de pagamento do provedor; o front so redireciona. */
+    @Operation(summary = "Abrir o pagamento do Premium no site")
     @PostMapping("/checkout")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, String> checkout(@Valid @RequestBody CheckoutRequest pedido, @AuthUser CurrentUser usuario) {
@@ -52,6 +59,7 @@ public class BillingController {
     }
 
     /** Trocar cartao, ver recibos e cancelar, tao facil quanto assinar. */
+    @Operation(summary = "Abrir o portal da assinatura (cartão, recibos, cancelar)")
     @PostMapping("/portal")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, String> portal(@AuthUser CurrentUser usuario) {
@@ -62,6 +70,7 @@ public class BillingController {
      * Desistir em ate 7 dias da primeira cobranca, com o dinheiro de volta (CDC art. 49).
      * {@code reembolsado} falso: cancelou no teste, sem nada a devolver.
      */
+    @Operation(summary = "Desistir em até 7 dias com reembolso")
     @PostMapping("/refund")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, Boolean> reembolso(@AuthUser CurrentUser usuario) {
@@ -69,6 +78,9 @@ public class BillingController {
     }
 
     /** Aberto: quem prova a origem e a assinatura HMAC do cabecalho, nao um token. */
+    @Operation(summary = "Aviso da Stripe (servidor para servidor, não é para o app)")
+    @ApiResponse(responseCode = "200", description = "Aviso recebido")
+    @SecurityRequirements
     @PostMapping("/webhooks/stripe")
     public ResponseEntity<Void> webhookStripe(@RequestBody String corpo,
                                               @RequestHeader(value = "Stripe-Signature", required = false) String assinatura) {
@@ -81,6 +93,9 @@ public class BillingController {
      * o recibo com as lojas (RevenueCat). Aberto como o da Stripe: quem prova a origem e o
      * segredo no cabecalho. Sem o segredo configurado, 501.
      */
+    @Operation(summary = "Aviso de compra nas lojas pelo RevenueCat (servidor para servidor, não é para o app)")
+    @ApiResponse(responseCode = "200", description = "Aviso recebido")
+    @SecurityRequirements
     @PostMapping("/stores/{loja}/purchases")
     public ResponseEntity<Void> compraNaLoja(@PathVariable String loja, @RequestBody String corpo,
                                              @RequestHeader(value = "Authorization", required = false) String autorizacao) {

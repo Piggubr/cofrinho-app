@@ -82,6 +82,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-aspectj</artifactId>
     </dependency>
+    <!-- Contrato da API (docs/api); desligado fora do perfil dev e dos testes. -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

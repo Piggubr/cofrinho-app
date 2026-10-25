@@ -5,6 +5,8 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.rewards.api.dto.CoinAdjustRequest;
 import com.piggu.rewards.api.dto.CoinBalanceResponse;
 import com.piggu.rewards.domain.RewardsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>Consultar o saldo e aberto a quem esta logado; ajustar e so do administrador,
  * como exigirAdmin_ garantia no Apps Script.</p>
  */
+@Tag(name = "Fofocoins", description = "Saldo e ajustes de Fofocoins.")
 @RestController
 @RequestMapping("/api/coins")
 public class CoinController {
@@ -29,11 +32,13 @@ public class CoinController {
         this.servico = servico;
     }
 
+    @Operation(summary = "Saldo e histórico de Fofocoins")
     @GetMapping
     public CoinBalanceResponse saldo() {
         return servico.saldo();
     }
 
+    @Operation(summary = "Creditar ou debitar Fofocoins")
     @PostMapping("/adjustments")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR', 'PARCEIRO')")
     public CoinBalanceResponse ajustar(@Valid @RequestBody CoinAdjustRequest pedido,

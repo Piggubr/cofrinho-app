@@ -1,0 +1,2722 @@
+openapi: 3.1.0
+info:
+  description: Contrato da API do Piggu. Regras de uso e de compatibilidade em docs/API_SPEC.md.
+  title: piggu-finance
+  version: "1"
+servers:
+- description: Producao
+  url: https://piggu.com.br
+- description: "Local, pelo gateway"
+  url: http://localhost:8080
+security:
+- bearer: []
+tags:
+- description: Dinheiro que ainda vai entrar.
+  name: A receber
+- description: "Assistente de IA (Premium): perguntas sobre gastos, orçamento, contas\
+    \ e cofrinho."
+  name: Assistente
+- description: Categorias de gasto e regras de categoria automática.
+  name: Categorias
+- description: Saldo e depósitos do cofrinho.
+  name: Cofrinho
+- description: "Contas, cartões e faturas."
+  name: Contas e cartões
+- description: Contas que vencem todo mês e receitas recorrentes.
+  name: Contas fixas
+- description: Cotação entre moedas.
+  name: Câmbio
+- description: "Gastos: lançar, listar, buscar, importar, exportar e dividir."
+  name: Gastos
+- description: "O que mudou na família, de quem a pessoa pode ver."
+  name: Histórico
+- description: Limite de gasto de cada mês.
+  name: Metas do mês
+- description: Notas da família; nota com valor cria um gasto junto.
+  name: Notas
+- description: Objetivos de poupança do cofrinho.
+  name: Objetivos do cofrinho
+- description: Limite de gasto por categoria no mês.
+  name: Orçamentos
+- description: Memória de preços do mercado.
+  name: Preços
+- description: Dinheiro que entrou.
+  name: Receitas
+- description: Leitura de recibos por foto.
+  name: Recibos
+- description: Relatórios do mês e do ano.
+  name: Relatórios
+paths:
+  /api/accounts:
+    get:
+      operationId: accountListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conta"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar contas e cartões
+      tags:
+      - Contas e cartões
+    post:
+      operationId: accountCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conta"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar conta ou cartão
+      tags:
+      - Contas e cartões
+  /api/accounts/{id}:
+    delete:
+      operationId: accountExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir conta ou cartão
+      tags:
+      - Contas e cartões
+  /api/accounts/{id}/sharing:
+    put:
+      operationId: accountCompartilhar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompartilhamentoRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Compartilhar ou não a conta com o casal
+      tags:
+      - Contas e cartões
+  /api/accounts/{id}/statement:
+    get:
+      operationId: accountFatura
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FaturaComGastos"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Fatura do cartão no mês
+      tags:
+      - Contas e cartões
+  /api/assistant:
+    get:
+      operationId: assistantSituacao
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SituacaoDoAssistente"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Situação do assistente (uso e autorização)
+      tags:
+      - Assistente
+  /api/assistant/ask:
+    post:
+      operationId: assistantPerguntar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PerguntaRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resposta"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Fazer uma pergunta ao assistente
+      tags:
+      - Assistente
+  /api/assistant/consent:
+    delete:
+      operationId: assistantRetirarConsentimento
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Retirar a autorização do assistente
+      tags:
+      - Assistente
+    post:
+      operationId: assistantAutorizar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AutorizacaoRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SituacaoDoAssistente"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Autorizar o envio das perguntas ao Gemini
+      tags:
+      - Assistente
+  /api/bills:
+    get:
+      operationId: billListar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: tipo
+        required: false
+        schema:
+          type: string
+          default: GASTO
+          enum:
+          - GASTO
+          - RECEITA
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BillResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Contas fixas do mês
+      tags:
+      - Contas fixas
+    post:
+      operationId: billCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillRequest"
+        required: true
+      responses:
+        "201":
+          description: Conta fixa criada
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar conta fixa
+      tags:
+      - Contas fixas
+  /api/bills/{id}:
+    delete:
+      operationId: billExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir conta fixa
+      tags:
+      - Contas fixas
+    put:
+      operationId: billAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar conta fixa
+      tags:
+      - Contas fixas
+  /api/bills/{id}/pay:
+    post:
+      operationId: billPagar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Marcar conta fixa como paga no mês
+      tags:
+      - Contas fixas
+  /api/budgets:
+    get:
+      operationId: budgetListar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SituacaoDoOrcamento"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Orçamentos do mês por categoria
+      tags:
+      - Orçamentos
+    put:
+      operationId: budgetDefinir
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Definir o orçamento de uma categoria
+      tags:
+      - Orçamentos
+  /api/budgets/{id}:
+    delete:
+      operationId: budgetExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir orçamento
+      tags:
+      - Orçamentos
+  /api/categories:
+    get:
+      operationId: categoryListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoriesResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar categorias
+      tags:
+      - Categorias
+    post:
+      operationId: categoryCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoriesResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar categoria
+      tags:
+      - Categorias
+  /api/categories/rules:
+    get:
+      operationId: categoryRegras
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Regra"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar regras de categoria automática
+      tags:
+      - Categorias
+    put:
+      operationId: categoryDefinirRegra
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Regra"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar ou trocar uma regra de categoria
+      tags:
+      - Categorias
+  /api/categories/rules/{id}:
+    delete:
+      operationId: categoryExcluirRegra
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir regra de categoria
+      tags:
+      - Categorias
+  /api/exchange-rate:
+    get:
+      operationId: exchangeRateConsultar
+      parameters:
+      - in: query
+        name: de
+        required: false
+        schema:
+          type: string
+          default: EUR
+      - in: query
+        name: para
+        required: false
+        schema:
+          type: string
+          default: BRL
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRateResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Cotação entre duas moedas
+      tags:
+      - Câmbio
+  /api/exchange-rate/currencies:
+    get:
+      operationId: exchangeRateMoedas
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CurrencyResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Moedas disponíveis
+      tags:
+      - Câmbio
+  /api/expenses:
+    get:
+      operationId: expenseListar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar gastos
+      tags:
+      - Gastos
+    post:
+      operationId: expenseSalvar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveExpensesRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Lançar gasto
+      tags:
+      - Gastos
+  /api/expenses/export:
+    get:
+      operationId: expenseExportar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Exportar gastos em CSV
+      tags:
+      - Gastos
+  /api/expenses/import:
+    post:
+      operationId: expenseImportar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+                  format: int32
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Importar os gastos escolhidos
+      tags:
+      - Gastos
+  /api/expenses/import/preview:
+    post:
+      operationId: expensePrevia
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtratoRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LinhaDaPrevia"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Prévia da importação de extrato (OFX ou CSV)
+      tags:
+      - Gastos
+  /api/expenses/import/preview-lines:
+    post:
+      operationId: expensePreviaDeLinhas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinhasRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LinhaDaPrevia"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Prévia da importação de linhas já separadas
+      tags:
+      - Gastos
+  /api/expenses/search:
+    get:
+      operationId: expenseBuscar
+      parameters:
+      - in: query
+        name: q
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+          minLength: 0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Buscar gastos pelo item ou estabelecimento
+      tags:
+      - Gastos
+  /api/expenses/splits:
+    get:
+      operationId: expenseAcerto
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Acerto"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Acerto dos gastos divididos no mês
+      tags:
+      - Gastos
+  /api/expenses/splits/transfers:
+    get:
+      operationId: expenseQuemDeveAQuem
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transferencia"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Quem deve a quem nos gastos divididos
+      tags:
+      - Gastos
+  /api/expenses/{id}:
+    delete:
+      operationId: expenseExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: proximas
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir gasto
+      tags:
+      - Gastos
+    put:
+      operationId: expenseAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExpenseRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar gasto
+      tags:
+      - Gastos
+  /api/history:
+    get:
+      operationId: historicoRecentes
+      parameters:
+      - in: query
+        name: entidade
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: limite
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 100
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Evento"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Histórico de mudanças da família
+      tags:
+      - Histórico
+  /api/incomes:
+    get:
+      operationId: incomeListar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncomeResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar receitas
+      tags:
+      - Receitas
+    post:
+      operationId: incomeCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Lançar receita
+      tags:
+      - Receitas
+  /api/incomes/categories:
+    get:
+      operationId: incomeCategorias
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Categorias de receita
+      tags:
+      - Receitas
+  /api/incomes/receivables:
+    get:
+      operationId: receivableListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReceivableResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar o que ainda não foi recebido
+      tags:
+      - A receber
+    post:
+      operationId: receivableCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceivableRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceivableResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar valor a receber
+      tags:
+      - A receber
+  /api/incomes/receivables/{id}:
+    delete:
+      operationId: receivableExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir valor a receber
+      tags:
+      - A receber
+  /api/incomes/receivables/{id}/receive:
+    post:
+      operationId: receivableReceber
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Marcar como recebido (vira receita de hoje)
+      tags:
+      - A receber
+  /api/incomes/{id}:
+    delete:
+      operationId: incomeExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir receita
+      tags:
+      - Receitas
+    put:
+      operationId: incomeAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar receita
+      tags:
+      - Receitas
+  /api/monthly-goals:
+    get:
+      operationId: monthlyGoalListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Limites de gasto por mês
+      tags:
+      - Metas do mês
+    put:
+      operationId: monthlyGoalDefinir
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonthlyGoalRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Definir o limite de gasto do mês
+      tags:
+      - Metas do mês
+  /api/notes:
+    get:
+      operationId: noteListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NoteResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar notas
+      tags:
+      - Notas
+    post:
+      operationId: noteCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar nota
+      tags:
+      - Notas
+  /api/notes/{id}:
+    delete:
+      operationId: noteExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir nota
+      tags:
+      - Notas
+  /api/piggy-bank:
+    get:
+      operationId: piggyBankConsultar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PiggyBankResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Saldo e depósitos do cofrinho
+      tags:
+      - Cofrinho
+  /api/piggy-bank/deposits:
+    post:
+      operationId: piggyBankDepositar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepositResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Depositar no cofrinho
+      tags:
+      - Cofrinho
+  /api/piggy-bank/deposits/{id}:
+    delete:
+      operationId: piggyBankExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir depósito
+      tags:
+      - Cofrinho
+  /api/piggy-bank/goals:
+    get:
+      operationId: savingsGoalListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SituacaoDoObjetivo"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar objetivos
+      tags:
+      - Objetivos do cofrinho
+    post:
+      operationId: savingsGoalCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjetivoRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SituacaoDoObjetivo"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar objetivo
+      tags:
+      - Objetivos do cofrinho
+  /api/piggy-bank/goals/{id}:
+    delete:
+      operationId: savingsGoalExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir objetivo
+      tags:
+      - Objetivos do cofrinho
+    put:
+      operationId: savingsGoalAlterar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjetivoRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar objetivo
+      tags:
+      - Objetivos do cofrinho
+  /api/products:
+    get:
+      operationId: productListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Memória de preços dos produtos
+      tags:
+      - Preços
+  /api/products/price-check:
+    get:
+      operationId: productConferir
+      parameters:
+      - in: query
+        name: item
+        required: true
+        schema:
+          type: string
+          maxLength: 200
+          minLength: 0
+      - in: query
+        name: valor
+        required: true
+        schema:
+          type: number
+          maximum: 1000000.0
+          minimum: 0.0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConferenciaDePreco"
+          description: O preço comparado com a média do produto
+        "204":
+          description: O produto ainda não tem histórico de preço
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Conferir o preço de um item contra a média
+      tags:
+      - Preços
+  /api/receipts/consent:
+    delete:
+      operationId: receiptRetirarConsentimento
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Retirar a autorização de enviar fotos ao Gemini
+      tags:
+      - Recibos
+  /api/receipts/parse:
+    post:
+      operationId: receiptLer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceiptParseRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptParseResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Ler um recibo pela foto
+      tags:
+      - Recibos
+  /api/receipts/usage:
+    get:
+      operationId: receiptUso
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Uso"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Leituras de recibo feitas no mês
+      tags:
+      - Recibos
+  /api/reports/month:
+    get:
+      operationId: reportMes
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumoDoMes"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Relatório do mês
+      tags:
+      - Relatórios
+  /api/reports/year:
+    get:
+      operationId: reportAno
+      parameters:
+      - in: query
+        name: ano
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelatorioDoAno"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Relatório do ano (Premium)
+      tags:
+      - Relatórios
+components:
+  schemas:
+    AccountRequest:
+      type: object
+      properties:
+        compartilhado:
+          type: boolean
+        fechamento:
+          type: integer
+          format: int32
+          maximum: 31
+          minimum: 1
+        nome:
+          type: string
+          maxLength: 60
+          minLength: 0
+        tipo:
+          type: string
+          enum:
+          - CONTA
+          - CARTAO
+        vencimento:
+          type: integer
+          format: int32
+          maximum: 31
+          minimum: 1
+      required:
+      - nome
+      - tipo
+    Acerto:
+      type: object
+      properties:
+        pagou:
+          type: number
+        parte:
+          type: number
+        pessoa:
+          type: string
+          format: uuid
+        saldo:
+          type: number
+    ApiError:
+      type: object
+      properties:
+        campos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampoInvalido"
+        codigo:
+          type: string
+        erro:
+          type: string
+        momento:
+          type: string
+          format: date-time
+    AutorizacaoRequest:
+      type: object
+      properties:
+        versaoDoAviso:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - versaoDoAviso
+    BillRequest:
+      type: object
+      properties:
+        automatico:
+          type: boolean
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        compartilhado:
+          type: boolean
+        descricao:
+          type: string
+          maxLength: 200
+          minLength: 0
+        dia:
+          type: integer
+          format: int32
+          maximum: 31
+          minimum: 1
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0.01
+      required:
+      - descricao
+      - dia
+      - valor
+    BillResponse:
+      type: object
+      properties:
+        automatico:
+          type: boolean
+        categoria:
+          type: string
+        compartilhado:
+          type: boolean
+        contaId:
+          type: string
+          format: uuid
+        descricao:
+          type: string
+        dia:
+          type: integer
+          format: int32
+        id:
+          type: string
+          format: uuid
+        situacao:
+          type: string
+          enum:
+          - PAGA
+          - PENDENTE
+          - VENCIDA
+        tipo:
+          type: string
+          enum:
+          - GASTO
+          - RECEITA
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+        vencimento:
+          type: string
+          format: date
+    BudgetRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        limite:
+          type: number
+          maximum: 1000000
+          minimum: 0.01
+      required:
+      - categoria
+      - limite
+    CampoInvalido:
+      type: object
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+    CategoriaNoAno:
+      type: object
+      properties:
+        categoria:
+          type: string
+        total:
+          type: number
+    CategoriaNoMes:
+      type: object
+      properties:
+        anterior:
+          type: number
+        categoria:
+          type: string
+        total:
+          type: number
+    CategoriesResponse:
+      type: object
+      properties:
+        categorias:
+          type: array
+          items:
+            type: string
+    CategoryRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          maxLength: 50
+          minLength: 2
+      required:
+      - nome
+    CompartilhamentoRequest:
+      type: object
+      properties:
+        compartilhado:
+          type: boolean
+      required:
+      - compartilhado
+    ConferenciaDePreco:
+      type: object
+      properties:
+        acima:
+          type: boolean
+        compras:
+          type: integer
+          format: int32
+        media:
+          type: number
+        percentual:
+          type: number
+    Conta:
+      type: object
+      properties:
+        compartilhado:
+          type: boolean
+        faturaAPagar:
+          $ref: "#/components/schemas/Fatura"
+        faturaAberta:
+          $ref: "#/components/schemas/Fatura"
+        fechamento:
+          type: integer
+          format: int32
+        id:
+          type: string
+          format: uuid
+        nome:
+          type: string
+        tipo:
+          type: string
+          enum:
+          - CONTA
+          - CARTAO
+        usuario:
+          type: string
+          format: uuid
+        vencimento:
+          type: integer
+          format: int32
+    CurrencyResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        nome:
+          type: string
+    DepositRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        objetivo:
+          type: string
+          format: uuid
+        valor:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
+      required:
+      - valor
+    DepositResponse:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        id:
+          type: string
+          format: uuid
+        objetivo:
+          type: string
+          format: uuid
+        registradoEm:
+          type: string
+          format: date-time
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+    Evento:
+      type: object
+      properties:
+        acao:
+          type: string
+          enum:
+          - CRIOU
+          - EDITOU
+          - APAGOU
+          - IMPORTOU
+          - PAGOU
+          - MUDOU_PAPEL
+          - REMOVEU
+          - ENTROU
+          - SAIU
+          - CONVIDOU
+        antes:
+          type: string
+        autor:
+          type: string
+          format: uuid
+        depois:
+          type: string
+        entidade:
+          type: string
+        entidadeId:
+          type: string
+        id:
+          type: integer
+          format: int64
+        quando:
+          type: string
+          format: date-time
+    ExchangeRateResponse:
+      type: object
+      properties:
+        data:
+          type: string
+        de:
+          type: string
+        desatualizada:
+          type: boolean
+        estimativa:
+          type: boolean
+        fonte:
+          type: string
+        para:
+          type: string
+        taxa:
+          type: number
+    ExpenseItemRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        item:
+          type: string
+          maxLength: 200
+          minLength: 0
+        moedaOriginal:
+          type: string
+          pattern: "[A-Z]{3}"
+        tipo:
+          type: string
+          maxLength: 30
+          minLength: 0
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0
+        valorOriginal:
+          type: number
+          maximum: 1000000
+          minimum: 0
+      required:
+      - item
+      - valor
+    ExpenseResponse:
+      type: object
+      properties:
+        categoria:
+          type: string
+        compartilhado:
+          type: boolean
+        contaId:
+          type: string
+          format: uuid
+        data:
+          type: string
+          format: date
+        estabelecimento:
+          type: string
+        id:
+          type: string
+          format: uuid
+        item:
+          type: string
+        moedaOriginal:
+          type: string
+        origem:
+          type: string
+        parcela:
+          type: integer
+          format: int32
+        parcelas:
+          type: integer
+          format: int32
+        reciboId:
+          type: string
+          format: uuid
+        registradoEm:
+          type: string
+          format: date-time
+        tipo:
+          type: string
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+        valorOriginal:
+          type: number
+    ExtratoRequest:
+      type: object
+      properties:
+        conteudo:
+          type: string
+          maxLength: 2000000
+          minLength: 0
+      required:
+      - conteudo
+    FalaRequest:
+      type: object
+      properties:
+        pessoa:
+          type: boolean
+        texto:
+          type: string
+          maxLength: 4000
+          minLength: 0
+      required:
+      - texto
+    Fatura:
+      type: object
+      properties:
+        fechamento:
+          type: string
+          format: date
+        inicio:
+          type: string
+          format: date
+        mes:
+          type: string
+        total:
+          type: number
+        ultimaCompra:
+          type: string
+          format: date
+        vencimento:
+          type: string
+          format: date
+    FaturaComGastos:
+      type: object
+      properties:
+        fatura:
+          $ref: "#/components/schemas/Fatura"
+        gastos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseResponse"
+    ImportRequest:
+      type: object
+      properties:
+        contaId:
+          type: string
+          format: uuid
+        linhas:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinhaRequest"
+          maxItems: 2000
+          minItems: 0
+      required:
+      - linhas
+    IncomeRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        compartilhado:
+          type: boolean
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+          maxLength: 200
+          minLength: 0
+        recorrente:
+          type: boolean
+        valor:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
+      required:
+      - data
+      - descricao
+      - valor
+    IncomeResponse:
+      type: object
+      properties:
+        categoria:
+          type: string
+        compartilhado:
+          type: boolean
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+        id:
+          type: string
+          format: uuid
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+    Item:
+      type: object
+      properties:
+        categoria:
+          type: string
+        item:
+          type: string
+        valor:
+          type: number
+    LinhaDaPrevia:
+      type: object
+      properties:
+        categoria:
+          type: string
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+        idExterno:
+          type: string
+        jaImportada:
+          type: boolean
+        valor:
+          type: number
+    LinhaRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+          maxLength: 200
+          minLength: 0
+        idExterno:
+          type: string
+          maxLength: 120
+          minLength: 0
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0
+      required:
+      - data
+      - descricao
+      - idExterno
+      - valor
+    LinhasRequest:
+      type: object
+      properties:
+        linhas:
+          type: array
+          items:
+            $ref: "#/components/schemas/LinhaRequest"
+          maxItems: 2000
+          minItems: 0
+      required:
+      - linhas
+    MesDoAno:
+      type: object
+      properties:
+        gastos:
+          type: number
+        mes:
+          type: string
+        receitas:
+          type: number
+        sobra:
+          type: number
+    MonthlyGoalRequest:
+      type: object
+      properties:
+        limite:
+          type: number
+          maximum: 1000000
+          minimum: 0.01
+        mes:
+          type: string
+          pattern: "^\\d{4}-\\d{2}$"
+      required:
+      - limite
+    NoteRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        data:
+          type: string
+          format: date
+        texto:
+          type: string
+          maxLength: 1500
+          minLength: 0
+        titulo:
+          type: string
+          maxLength: 150
+          minLength: 0
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0
+      required:
+      - titulo
+    NoteResponse:
+      type: object
+      properties:
+        categoria:
+          type: string
+        criadoEm:
+          type: string
+          format: date-time
+        data:
+          type: string
+          format: date
+        gastoId:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        texto:
+          type: string
+        titulo:
+          type: string
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+    ObjetivoRequest:
+      type: object
+      properties:
+        alvo:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
+        compartilhado:
+          type: boolean
+        nome:
+          type: string
+          maxLength: 60
+          minLength: 0
+        prazo:
+          type: string
+          format: date
+      required:
+      - alvo
+      - nome
+    PerguntaRequest:
+      type: object
+      properties:
+        autorizoIa:
+          type: boolean
+        historico:
+          type: array
+          items:
+            $ref: "#/components/schemas/FalaRequest"
+          maxItems: 40
+          minItems: 0
+        moeda:
+          type: string
+          pattern: "[A-Z]{3}"
+        pergunta:
+          type: string
+          maxLength: 500
+          minLength: 0
+        versaoDoAviso:
+          type: string
+      required:
+      - pergunta
+    PiggyBankResponse:
+      type: object
+      properties:
+        depositos:
+          type: array
+          items:
+            $ref: "#/components/schemas/DepositResponse"
+        saldo:
+          type: number
+        totalDepositos:
+          type: number
+        totalGastos:
+          type: number
+    ProductResponse:
+      type: object
+      properties:
+        categoria:
+          type: string
+        chave:
+          type: string
+        compras:
+          type: integer
+          format: int32
+        data:
+          type: string
+          format: date
+        maior:
+          type: number
+        media:
+          type: number
+        menor:
+          type: number
+        nome:
+          type: string
+        ultimo:
+          type: number
+        variacao:
+          type: number
+    ReceiptParseRequest:
+      type: object
+      properties:
+        autorizoIa:
+          type: boolean
+        imageBase64:
+          type: string
+          maxLength: 7000000
+          minLength: 0
+        mimeType:
+          type: string
+          maxLength: 50
+          minLength: 0
+        versaoDoAviso:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - imageBase64
+    ReceiptParseResponse:
+      type: object
+      properties:
+        aviso:
+          type: string
+        data:
+          type: string
+          format: date
+        estabelecimento:
+          type: string
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        leiturasRestantes:
+          type: integer
+          format: int32
+        origem:
+          type: string
+        reciboId:
+          type: string
+          format: uuid
+    ReceivableRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+          maxLength: 200
+          minLength: 0
+        quem:
+          type: string
+          maxLength: 80
+          minLength: 0
+        valor:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
+      required:
+      - data
+      - quem
+      - valor
+    ReceivableResponse:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+        id:
+          type: string
+          format: uuid
+        quem:
+          type: string
+        valor:
+          type: number
+    Regra:
+      type: object
+      properties:
+        categoria:
+          type: string
+        id:
+          type: string
+          format: uuid
+        termo:
+          type: string
+    RelatorioDoAno:
+      type: object
+      properties:
+        ano:
+          type: integer
+          format: int32
+        gastos:
+          type: number
+        meses:
+          type: array
+          items:
+            $ref: "#/components/schemas/MesDoAno"
+        porCategoria:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoriaNoAno"
+        receitas:
+          type: number
+        sobra:
+          type: number
+    Resposta:
+      type: object
+      properties:
+        restantes:
+          type: integer
+          format: int32
+        tela:
+          type: string
+        texto:
+          type: string
+    ResumoDoMes:
+      type: object
+      properties:
+        gastos:
+          type: number
+        gastosMesAnterior:
+          type: number
+        mes:
+          type: string
+        porCategoria:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoriaNoMes"
+        projecaoDeGastos:
+          type: number
+        receitas:
+          type: number
+        sobra:
+          type: number
+        taxaDePoupanca:
+          type: number
+        variacao:
+          type: number
+    RuleRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        termo:
+          type: string
+          maxLength: 100
+          minLength: 0
+      required:
+      - categoria
+      - termo
+    SaveExpensesRequest:
+      type: object
+      properties:
+        compartilhado:
+          type: boolean
+        contaId:
+          type: string
+          format: uuid
+        data:
+          type: string
+          format: date
+        dividirCom:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 20
+          minItems: 0
+        estabelecimento:
+          type: string
+          maxLength: 200
+          minLength: 0
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseItemRequest"
+          maxItems: 100
+          minItems: 0
+        origem:
+          type: string
+          maxLength: 30
+          minLength: 0
+        parcelas:
+          type: integer
+          format: int32
+          maximum: 48
+          minimum: 1
+        reciboId:
+          type: string
+          format: uuid
+        recorrente:
+          type: boolean
+      required:
+      - data
+      - itens
+    SituacaoDoAssistente:
+      type: object
+      properties:
+        autorizado:
+          type: boolean
+        habilitado:
+          type: boolean
+        limite:
+          type: integer
+          format: int32
+        restantes:
+          type: integer
+          format: int32
+    SituacaoDoObjetivo:
+      type: object
+      properties:
+        alvo:
+          type: number
+        atrasado:
+          type: boolean
+        compartilhado:
+          type: boolean
+        concluido:
+          type: boolean
+        falta:
+          type: number
+        guardado:
+          type: number
+        id:
+          type: string
+          format: uuid
+        mesesRestantes:
+          type: integer
+          format: int32
+        nome:
+          type: string
+        percentual:
+          type: integer
+          format: int32
+        porMes:
+          type: number
+        prazo:
+          type: string
+          format: date
+        usuario:
+          type: string
+          format: uuid
+    SituacaoDoOrcamento:
+      type: object
+      properties:
+        alerta:
+          type: string
+          enum:
+          - OK
+          - ATENCAO
+          - ESTOUROU
+        categoria:
+          type: string
+        gasto:
+          type: number
+        id:
+          type: string
+          format: uuid
+        limite:
+          type: number
+        percentual:
+          type: number
+    Transferencia:
+      type: object
+      properties:
+        de:
+          type: string
+          format: uuid
+        para:
+          type: string
+          format: uuid
+        valor:
+          type: number
+    UpdateExpenseRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        compartilhado:
+          type: boolean
+        item:
+          type: string
+          maxLength: 200
+          minLength: 0
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0
+      required:
+      - item
+      - valor
+    Uso:
+      type: object
+      properties:
+        limite:
+          type: integer
+          format: int32
+        restantes:
+          type: integer
+          format: int32
+        usadas:
+          type: integer
+          format: int32
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
+        \ ou /api/auth/refresh)."
+      scheme: bearer
+      type: http

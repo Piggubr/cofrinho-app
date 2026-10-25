@@ -5,6 +5,8 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.assistente.AssistenteService;
 import com.piggu.finance.assistente.ConversaComGemini;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +28,7 @@ import java.util.List;
  *
  * <p>O membro fica de fora, como do resto do financeiro.</p>
  */
+@Tag(name = "Assistente", description = "Assistente de IA (Premium): perguntas sobre gastos, orçamento, contas e cofrinho.")
 @RestController
 @RequestMapping("/api/assistant")
 public class AssistantController {
@@ -57,11 +60,13 @@ public class AssistantController {
             String versaoDoAviso) {
     }
 
+    @Operation(summary = "Situação do assistente (uso e autorização)")
     @GetMapping
     public AssistenteService.Situacao situacao(@AuthUser CurrentUser usuario) {
         return servico.situacao(usuario);
     }
 
+    @Operation(summary = "Fazer uma pergunta ao assistente")
     @PostMapping("/ask")
     public AssistenteService.Resposta perguntar(@Valid @RequestBody PerguntaRequest pedido,
                                                 @AuthUser CurrentUser usuario) {
@@ -78,6 +83,7 @@ public class AssistantController {
      * Grava a autorizacao no toque em "Autorizo", sem esperar a primeira pergunta: quem
      * autoriza e fecha o assistente nao precisa autorizar de novo. Vale ate o aviso mudar.
      */
+    @Operation(summary = "Autorizar o envio das perguntas ao Gemini")
     @PostMapping("/consent")
     public AssistenteService.Situacao autorizar(@Valid @RequestBody AutorizacaoRequest pedido,
                                                 @AuthUser CurrentUser usuario) {
@@ -85,6 +91,7 @@ public class AssistantController {
     }
 
     /** Retira a autorizacao de enviar perguntas e totais ao Gemini; a proxima pergunta pede de novo. */
+    @Operation(summary = "Retirar a autorização do assistente")
     @DeleteMapping("/consent")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void retirarConsentimento(@AuthUser CurrentUser usuario) {

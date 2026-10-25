@@ -3,6 +3,7 @@ package com.piggu.common.dados;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,7 +21,10 @@ import java.util.UUID;
  *
  * <p>Fica fora da tabela de rotas do gateway: so o identity chama, para montar o
  * arquivo unico de exportacao e para a exclusao em cascata.</p>
+ *
+ * <p>Fora do contrato da API (docs/api). Interna: so o identity chama, ao exportar ou apagar a conta; o gateway nao roteia /api/meus-dados.</p>
  */
+@Hidden
 @RestController
 @RequestMapping("/api/meus-dados")
 public class MeusDadosController {

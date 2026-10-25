@@ -11,6 +11,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
 | [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
+| [`docs/API_SPEC.md`](docs/API_SPEC.md) e [`docs/api/`](docs/api/) | Contrato da API para os apps nativos (iOS e Android): endereços, login, erros, convenções e o OpenAPI de cada serviço, gerado do código |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | [`backend/observabilidade/`](backend/observabilidade/) | Grafana, Prometheus e Loki no próprio servidor: performance, logs, erros, alertas e painel de uso ([como funciona](docs/observabilidade.md)) |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
