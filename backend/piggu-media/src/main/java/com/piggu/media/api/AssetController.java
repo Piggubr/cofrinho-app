@@ -6,6 +6,8 @@ import com.piggu.media.api.dto.AssetResponse;
 import com.piggu.media.api.dto.AssetUploadRequest;
 import com.piggu.media.domain.AssetService;
 import com.piggu.media.storage.StoragePort;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,7 @@ import java.util.UUID;
  * como bytes, com tipo e cache, em vez de uma data URL em base64 dentro de um JSON.
  * Base64 inflava cada foto em um terco e impedia o navegador de guardar em cache.</p>
  */
+@Tag(name = "Imagens", description = "Fotos guardadas (feed, lugares, Girls Math).")
 @RestController
 @RequestMapping("/api/assets")
 public class AssetController {
@@ -40,6 +43,7 @@ public class AssetController {
         this.servico = servico;
     }
 
+    @Operation(summary = "Enviar imagem")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AssetResponse enviar(@Valid @RequestBody AssetUploadRequest pedido,
@@ -54,6 +58,7 @@ public class AssetController {
      * <p>Cache privado de 30 dias: o conteudo de um asset nunca muda, uma troca de
      * foto gera um id novo.</p>
      */
+    @Operation(summary = "Baixar a imagem (bytes)")
     @GetMapping("/{id}/content")
     public ResponseEntity<byte[]> baixar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         StoragePort.ArquivoGuardado arquivo = servico.baixar(id, usuario.id());
@@ -63,6 +68,7 @@ public class AssetController {
                 .body(arquivo.conteudo());
     }
 
+    @Operation(summary = "Apagar imagem")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> apagar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.apagar(id, usuario);

@@ -44,6 +44,10 @@
     <docker.api.version>1.43</docker.api.version>
     <jacoco.version>0.8.13</jacoco.version>
     <checkstyle.version>14.3.0</checkstyle.version>
+    <!-- Gera o contrato da API (docs/api) a partir dos controllers. A linha 3.0 e a do
+         Spring Boot 4.0 (a 3.1 em diante ja e compilada contra o Boot 4.1). So liga no
+         perfil dev e nos testes: em producao /v3/api-docs e o Swagger UI ficam desligados. -->
+    <springdoc.version>3.0.3</springdoc.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
@@ -69,6 +73,11 @@
         <groupId>com.piggu</groupId>
         <artifactId>piggu-common</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc.version}</version>
       </dependency>
       <dependency>
         <groupId>com.piggu</groupId>
@@ -193,6 +202,8 @@
             </environmentVariables>
             <systemPropertyVariables>
               <api.version>${docker.api.version}</api.version>
+              <!-- Onde fica o contrato da API que o ContratoDaApiTest compara (docs/api na raiz). -->
+              <piggu.contrato.pasta>${project.basedir}/../../docs/api</piggu.contrato.pasta>
             </systemPropertyVariables>
           </configuration>
         </plugin>

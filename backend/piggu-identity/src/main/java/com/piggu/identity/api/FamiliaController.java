@@ -5,6 +5,8 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
 import com.piggu.identity.api.dto.FamiliaResponse;
 import com.piggu.identity.domain.FamiliaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** A familia de quem esta logado: ver, renomear, convidar, remover e sair. */
+@Tag(name = "Família", description = "A família de quem está logado: ver, renomear, convidar, remover e sair.")
 @RestController
 @RequestMapping("/api/family")
 public class FamiliaController {
@@ -44,29 +47,34 @@ public class FamiliaController {
                                  @Size(max = 320, message = "O e-mail e longo demais.") String email) {
     }
 
+    @Operation(summary = "Ver a família")
     @GetMapping
     public FamiliaResponse ver(@AuthUser CurrentUser usuario) {
         return servico.ver(usuario);
     }
 
+    @Operation(summary = "Renomear a família")
     @PutMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse renomear(@Valid @RequestBody NomeRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.renomear(usuario, pedido.nome());
     }
 
+    @Operation(summary = "Convidar uma pessoa por e-mail")
     @PostMapping("/invites")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse convidar(@Valid @RequestBody ConviteRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.convidar(usuario, pedido.email());
     }
 
+    @Operation(summary = "Cancelar um convite")
     @DeleteMapping("/invites/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse cancelarConvite(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.cancelarConvite(usuario, id);
     }
 
+    @Operation(summary = "Tirar uma pessoa da família")
     @DeleteMapping("/members/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse removerMembro(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
@@ -77,6 +85,7 @@ public class FamiliaController {
     }
 
     /** Convida para ser parceiro (vale quando a pessoa aceita) ou volta a membro. */
+    @Operation(summary = "Convidar para parceiro ou voltar a membro")
     @PutMapping("/members/{id}/role")
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public FamiliaResponse mudarPapel(@PathVariable UUID id, @Valid @RequestBody PapelRequest pedido,
@@ -85,6 +94,7 @@ public class FamiliaController {
     }
 
     /** Aceita o convite do titular para ser parceiro; precisa entrar de novo. */
+    @Operation(summary = "Aceitar ser parceiro")
     @PostMapping("/partnership/accept")
     public ResponseEntity<Void> aceitarParceria(@AuthUser CurrentUser usuario) {
         servico.aceitarParceria(usuario);
@@ -92,18 +102,21 @@ public class FamiliaController {
     }
 
     /** Recusa o convite para ser parceiro: continua membro. */
+    @Operation(summary = "Recusar ser parceiro")
     @PostMapping("/partnership/decline")
     public FamiliaResponse recusarParceria(@AuthUser CurrentUser usuario) {
         return servico.recusarParceria(usuario);
     }
 
     /** Convites de outras familias para o e-mail de quem esta logado. */
+    @Operation(summary = "Convites recebidos de outras famílias")
     @GetMapping("/invites/mine")
     public List<FamiliaResponse.Convite> convitesParaMim(@AuthUser CurrentUser usuario) {
         return servico.convitesParaMim(usuario);
     }
 
     /** Entra na familia que convidou; os dados da familia atual saem. Precisa entrar de novo. */
+    @Operation(summary = "Aceitar o convite de outra família")
     @PostMapping("/invites/{id}/accept")
     public ResponseEntity<Void> aceitar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.aceitarConvite(usuario, id);
@@ -111,6 +124,7 @@ public class FamiliaController {
     }
 
     /** O membro sai e passa a ter uma familia propria; precisa entrar de novo. */
+    @Operation(summary = "Sair da família")
     @PostMapping("/leave")
     public ResponseEntity<Void> sair(@AuthUser CurrentUser usuario) {
         servico.sair(usuario);

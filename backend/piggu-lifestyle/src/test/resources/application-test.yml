@@ -27,3 +27,8 @@ piggu:
   integracoes:
     tmdb:
       token: ""
+
+# O teste de contrato (ContratoDaApiTest) le /v3/api-docs.yaml.
+springdoc:
+  api-docs:
+    enabled: true

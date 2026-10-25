@@ -4,6 +4,8 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.api.dto.MonthlyGoalRequest;
 import com.piggu.finance.domain.MonthlyGoalService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 /** Limites de gasto por mes. Substitui a acao setMonthlyGoal. */
+@Tag(name = "Metas do mês", description = "Limite de gasto de cada mês.")
 @RestController
 @RequestMapping("/api/monthly-goals")
 public class MonthlyGoalController {
@@ -26,11 +29,13 @@ public class MonthlyGoalController {
     }
 
     /** @return mapa de AAAA-MM para limite, o formato que o painel consome */
+    @Operation(summary = "Limites de gasto por mês")
     @GetMapping
     public Map<String, BigDecimal> listar() {
         return servico.listar();
     }
 
+    @Operation(summary = "Definir o limite de gasto do mês")
     @PutMapping
     public Map<String, BigDecimal> definir(@Valid @RequestBody MonthlyGoalRequest pedido,
                                            @AuthUser CurrentUser usuario) {

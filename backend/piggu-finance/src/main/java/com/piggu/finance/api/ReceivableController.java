@@ -4,6 +4,8 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.domain.AReceberService;
 import com.piggu.finance.domain.Receivable;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Dinheiro que alguem deve para a pessoa; fica dentro de receitas. */
+@Tag(name = "A receber", description = "Dinheiro que ainda vai entrar.")
 @RestController
 @RequestMapping("/api/incomes/receivables")
 public class ReceivableController {
@@ -55,11 +58,13 @@ public class ReceivableController {
     }
 
     /** O que ainda nao foi recebido. */
+    @Operation(summary = "Listar o que ainda não foi recebido")
     @GetMapping
     public List<ReceivableResponse> listar() {
         return servico.pendentes().stream().map(ReceivableResponse::de).toList();
     }
 
+    @Operation(summary = "Criar valor a receber")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ReceivableResponse criar(@Valid @RequestBody ReceivableRequest pedido, @AuthUser CurrentUser usuario) {
@@ -68,11 +73,13 @@ public class ReceivableController {
     }
 
     /** "Recebi": vira receita de hoje. */
+    @Operation(summary = "Marcar como recebido (vira receita de hoje)")
     @PostMapping("/{id}/receive")
     public IncomeController.IncomeResponse receber(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return IncomeController.IncomeResponse.de(servico.receber(id, usuario.id()));
     }
 
+    @Operation(summary = "Excluir valor a receber")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
         servico.excluir(id);

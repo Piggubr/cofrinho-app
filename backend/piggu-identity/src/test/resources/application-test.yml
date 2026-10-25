@@ -40,3 +40,8 @@ piggu:
       lifestyle: ""
       media: ""
       banking: ""
+
+# O teste de contrato (ContratoDaApiTest) le /v3/api-docs.yaml.
+springdoc:
+  api-docs:
+    enabled: true

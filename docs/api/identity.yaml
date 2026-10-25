@@ -1,0 +1,1889 @@
+openapi: 3.1.0
+info:
+  description: Contrato da API do Piggu. Regras de uso e de compatibilidade em docs/API_SPEC.md.
+  title: piggu-identity
+  version: "1"
+servers:
+- description: Producao
+  url: https://piggu.com.br
+- description: "Local, pelo gateway"
+  url: http://localhost:8080
+security:
+- bearer: []
+tags:
+- description: Contas da instalação. Só para ADMIN.
+  name: Administração
+- description: Canais de aviso (e-mail e push) e aparelhos que recebem push.
+  name: Avisos
+- description: "Erros que aconteceram no aparelho, para o painel de erros."
+  name: Erros do app
+- description: "A família de quem está logado: ver, renomear, convidar, remover e\
+    \ sair."
+  name: Família
+- description: "O que mudou na família, de quem a pessoa pode ver."
+  name: Histórico
+- description: "Entrar, renovar e sair; perfil e preferências de quem está logado."
+  name: Login e sessão
+- description: "CPF, país, foto, termos, cópia dos dados e exclusão da conta."
+  name: Minha conta
+- description: "Plano, pagamento no site e compra dentro dos apps."
+  name: Premium
+paths:
+  /api/app/erros:
+    post:
+      operationId: errosDoAppRegistrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErroDoApp"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Registrar um erro que aconteceu no app
+      tags:
+      - Erros do app
+  /api/auth/cadastro:
+    post:
+      operationId: authCadastrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CadastroRequest"
+        required: true
+      responses:
+        "202":
+          description: "Pedido aceito, com ou sem conta nesse e-mail: a pessoa confirma\
+            \ o e-mail e depois entra"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Criar conta com e-mail e senha
+      tags:
+      - Login e sessão
+  /api/auth/confirmar-email:
+    post:
+      operationId: authConfirmarEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmarEmailRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Confirmar o e-mail pelo link
+      tags:
+      - Login e sessão
+  /api/auth/entrar:
+    post:
+      operationId: authEntrarComSenha
+      parameters:
+      - in: header
+        name: User-Agent
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SenhaLoginRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Entrar com e-mail e senha
+      tags:
+      - Login e sessão
+  /api/auth/google:
+    post:
+      operationId: authEntrar
+      parameters:
+      - in: header
+        name: User-Agent
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleLoginRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Entrar com o Google (ID token)
+      tags:
+      - Login e sessão
+  /api/auth/google/app:
+    post:
+      operationId: loginNoAppVoltarDoGoogle
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                id_token:
+                  type: string
+                state:
+                  type: string
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Volta do Google no navegador do celular (login no app)
+      tags:
+      - Login e sessão
+  /api/auth/google/app/troca:
+    post:
+      operationId: loginNoAppTrocar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrocaRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrocaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Trocar o código do login no app pelo ID token do Google
+      tags:
+      - Login e sessão
+  /api/auth/logout:
+    post:
+      operationId: authSair
+      parameters:
+      - in: cookie
+        name: piggu_refresh
+        required: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Sair e encerrar a sessão do refresh token
+      tags:
+      - Login e sessão
+  /api/auth/me:
+    get:
+      operationId: authEu
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Perfil de quem está logado
+      tags:
+      - Login e sessão
+  /api/auth/me/alerts:
+    put:
+      operationId: avisosAvisos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvisosRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Escolher os canais de aviso
+      tags:
+      - Avisos
+  /api/auth/me/devices:
+    post:
+      operationId: avisosRegistrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AparelhoRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Registrar o aparelho para receber push
+      tags:
+      - Avisos
+  /api/auth/me/devices/{token}:
+    delete:
+      operationId: avisosRemover
+      parameters:
+      - in: path
+        name: token
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Parar de mandar push para o aparelho
+      tags:
+      - Avisos
+  /api/auth/me/email/reenviar:
+    post:
+      operationId: authReenviarConfirmacao
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Reenviar o link de confirmação do e-mail
+      tags:
+      - Login e sessão
+  /api/auth/me/modules:
+    put:
+      operationId: authModulos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModulosRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Ligar e desligar as telas de estilo de vida
+      tags:
+      - Login e sessão
+  /api/auth/me/preferences:
+    put:
+      operationId: authPreferencias
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreferencesRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Salvar as moedas de exibição e de conversão
+      tags:
+      - Login e sessão
+  /api/auth/me/senha:
+    put:
+      operationId: authDefinirSenha
+      parameters:
+      - in: cookie
+        name: piggu_refresh
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DefinirSenhaRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar ou trocar a senha
+      tags:
+      - Login e sessão
+  /api/auth/me/sharing:
+    put:
+      operationId: authCompartilhamento
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompartilhamentoRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Escolher o que o parceiro vê
+      tags:
+      - Login e sessão
+  /api/auth/refresh:
+    post:
+      operationId: authRenovar
+      parameters:
+      - in: cookie
+        name: piggu_refresh
+        required: false
+        schema:
+          type: string
+      - in: header
+        name: User-Agent
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Renovar a sessão com o refresh token
+      tags:
+      - Login e sessão
+  /api/auth/senha/esqueci:
+    post:
+      operationId: authEsqueciSenha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EsqueciSenhaRequest"
+        required: true
+      responses:
+        "202":
+          description: "Pedido aceito, com ou sem conta nesse e-mail"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Pedir o link para redefinir a senha
+      tags:
+      - Login e sessão
+  /api/auth/senha/redefinir:
+    post:
+      operationId: authRedefinirSenha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedefinirSenhaRequest"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Redefinir a senha pelo link do e-mail
+      tags:
+      - Login e sessão
+  /api/billing/checkout:
+    post:
+      operationId: billingCheckout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Abrir o pagamento do Premium no site
+      tags:
+      - Premium
+  /api/billing/plan:
+    get:
+      operationId: billingPlano
+      parameters:
+      - in: query
+        name: campanha
+        required: false
+        schema:
+          type: string
+          maxLength: 40
+          minLength: 0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanoResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Plano atual e opções de assinatura
+      tags:
+      - Premium
+  /api/billing/portal:
+    post:
+      operationId: billingPortal
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: "Abrir o portal da assinatura (cartão, recibos, cancelar)"
+      tags:
+      - Premium
+  /api/billing/refund:
+    post:
+      operationId: billingReembolso
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: boolean
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Desistir em até 7 dias com reembolso
+      tags:
+      - Premium
+  /api/billing/stores/{loja}/purchases:
+    post:
+      operationId: billingCompraNaLoja
+      parameters:
+      - in: path
+        name: loja
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: Authorization
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: Aviso recebido
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: "Aviso de compra nas lojas pelo RevenueCat (servidor para servidor,\
+        \ não é para o app)"
+      tags:
+      - Premium
+  /api/billing/webhooks/stripe:
+    post:
+      operationId: billingWebhookStripe
+      parameters:
+      - in: header
+        name: Stripe-Signature
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: Aviso recebido
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: "Aviso da Stripe (servidor para servidor, não é para o app)"
+      tags:
+      - Premium
+  /api/family:
+    get:
+      operationId: familiaVer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Ver a família
+      tags:
+      - Família
+    put:
+      operationId: familiaRenomear
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NomeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Renomear a família
+      tags:
+      - Família
+  /api/family/history:
+    get:
+      operationId: historicoRecentes
+      parameters:
+      - in: query
+        name: entidade
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: limite
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 100
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Evento"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Histórico de mudanças da família
+      tags:
+      - Histórico
+  /api/family/invites:
+    post:
+      operationId: familiaConvidar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConviteRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Convidar uma pessoa por e-mail
+      tags:
+      - Família
+  /api/family/invites/mine:
+    get:
+      operationId: familiaConvitesParaMim
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Convite"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Convites recebidos de outras famílias
+      tags:
+      - Família
+  /api/family/invites/{id}:
+    delete:
+      operationId: familiaCancelarConvite
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Cancelar um convite
+      tags:
+      - Família
+  /api/family/invites/{id}/accept:
+    post:
+      operationId: familiaAceitar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Aceitar o convite de outra família
+      tags:
+      - Família
+  /api/family/leave:
+    post:
+      operationId: familiaSair
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Sair da família
+      tags:
+      - Família
+  /api/family/members/{id}:
+    delete:
+      operationId: familiaRemoverMembro
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Tirar uma pessoa da família
+      tags:
+      - Família
+  /api/family/members/{id}/role:
+    put:
+      operationId: familiaMudarPapel
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PapelRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Convidar para parceiro ou voltar a membro
+      tags:
+      - Família
+  /api/family/partnership/accept:
+    post:
+      operationId: familiaAceitarParceria
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Aceitar ser parceiro
+      tags:
+      - Família
+  /api/family/partnership/decline:
+    post:
+      operationId: familiaRecusarParceria
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamiliaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Recusar ser parceiro
+      tags:
+      - Família
+  /api/me:
+    delete:
+      operationId: minhaContaExcluir
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir a conta
+      tags:
+      - Minha conta
+  /api/me/cpf:
+    put:
+      operationId: minhaContaInformarCpf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CpfRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Informar o CPF
+      tags:
+      - Minha conta
+  /api/me/export:
+    get:
+      operationId: minhaContaExportar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Baixar uma cópia de todos os meus dados (LGPD)
+      tags:
+      - Minha conta
+  /api/me/foto:
+    delete:
+      operationId: minhaContaRemoverFoto
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Remover a foto de perfil
+      tags:
+      - Minha conta
+    put:
+      operationId: minhaContaTrocarFoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FotoRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Trocar a foto de perfil
+      tags:
+      - Minha conta
+  /api/me/foto/google:
+    put:
+      operationId: minhaContaUsarFotoDoGoogle
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Usar a foto da conta Google
+      tags:
+      - Minha conta
+  /api/me/pais:
+    put:
+      operationId: minhaContaInformarPais
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaisRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Informar o país onde mora (e o CPF)
+      tags:
+      - Minha conta
+  /api/me/sobre-voce:
+    put:
+      operationId: minhaContaSobreVoce
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SobreVoceRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Salvar apelido e data de nascimento
+      tags:
+      - Minha conta
+  /api/me/termos:
+    put:
+      operationId: minhaContaAceitarTermos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TermosRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Aceitar a versão nova dos termos
+      tags:
+      - Minha conta
+  /api/users:
+    get:
+      operationId: userListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar as contas (admin)
+      tags:
+      - Administração
+  /api/users/{id}:
+    patch:
+      operationId: userAlterar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: "Ativar, desativar ou mudar uma conta (admin)"
+      tags:
+      - Administração
+components:
+  schemas:
+    AparelhoRequest:
+      type: object
+      properties:
+        plataforma:
+          type: string
+          minLength: 1
+          pattern: IOS
+        token:
+          type: string
+          minLength: 1
+          pattern: "[0-9a-fA-F]{32,200}"
+      required:
+      - plataforma
+      - token
+    ApiError:
+      type: object
+      properties:
+        campos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampoInvalido"
+        codigo:
+          type: string
+        erro:
+          type: string
+        momento:
+          type: string
+          format: date-time
+    Avisos:
+      type: object
+      properties:
+        email:
+          type: boolean
+        push:
+          type: boolean
+    AvisosRequest:
+      type: object
+      properties:
+        email:
+          type: boolean
+        push:
+          type: boolean
+      required:
+      - email
+      - push
+    CadastroRequest:
+      type: object
+      properties:
+        documento:
+          type: string
+          maxLength: 40
+          minLength: 0
+        email:
+          type: string
+          format: email
+          maxLength: 320
+          minLength: 0
+        nascimento:
+          type: string
+          format: date
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 0
+        pais:
+          type: string
+          maxLength: 2
+          minLength: 0
+        senha:
+          type: string
+          maxLength: 200
+          minLength: 0
+        telefone:
+          type: string
+          maxLength: 30
+          minLength: 0
+        versaoDosTermos:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - email
+      - nascimento
+      - nome
+      - senha
+      - telefone
+    CampoInvalido:
+      type: object
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+    CheckoutRequest:
+      type: object
+      properties:
+        campanha:
+          type: string
+          maxLength: 40
+          minLength: 0
+        periodo:
+          type: string
+          enum:
+          - MENSAL
+          - ANUAL
+          - FAMILIA_MENSAL
+          - FAMILIA_ANUAL
+          - CASAL_MENSAL
+          - CASAL_ANUAL
+      required:
+      - periodo
+    Compartilhamento:
+      type: object
+      properties:
+        compartilharPorPadrao:
+          type: boolean
+        mostraTudoAoParceiro:
+          type: boolean
+    CompartilhamentoRequest:
+      type: object
+      properties:
+        compartilharPorPadrao:
+          type: boolean
+        mostrarTudoAoParceiro:
+          type: boolean
+      required:
+      - compartilharPorPadrao
+      - mostrarTudoAoParceiro
+    ConfirmarEmailRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          maxLength: 100
+          minLength: 0
+      required:
+      - token
+    Convite:
+      type: object
+      properties:
+        email:
+          type: string
+        familia:
+          type: string
+        id:
+          type: string
+          format: uuid
+        venceEm:
+          type: string
+          format: date-time
+    ConviteRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 320
+          minLength: 0
+      required:
+      - email
+    CpfRequest:
+      type: object
+      properties:
+        cpf:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - cpf
+    DefinirSenhaRequest:
+      type: object
+      properties:
+        novaSenha:
+          type: string
+          maxLength: 200
+          minLength: 0
+        senhaAtual:
+          type: string
+          maxLength: 200
+          minLength: 0
+      required:
+      - novaSenha
+    ErroDoApp:
+      type: object
+      properties:
+        mensagem:
+          type: string
+        pilha:
+          type: string
+        tela:
+          type: string
+        versao:
+          type: string
+    EsqueciSenhaRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          maxLength: 320
+          minLength: 0
+      required:
+      - email
+    Evento:
+      type: object
+      properties:
+        acao:
+          type: string
+          enum:
+          - CRIOU
+          - EDITOU
+          - APAGOU
+          - IMPORTOU
+          - PAGOU
+          - MUDOU_PAPEL
+          - REMOVEU
+          - ENTROU
+          - SAIU
+          - CONVIDOU
+        antes:
+          type: string
+        autor:
+          type: string
+          format: uuid
+        depois:
+          type: string
+        entidade:
+          type: string
+        entidadeId:
+          type: string
+        id:
+          type: integer
+          format: int64
+        quando:
+          type: string
+          format: date-time
+    FamiliaResponse:
+      type: object
+      properties:
+        convites:
+          type: array
+          items:
+            $ref: "#/components/schemas/Convite"
+        id:
+          type: string
+          format: uuid
+        membros:
+          type: array
+          items:
+            $ref: "#/components/schemas/Membro"
+        nome:
+          type: string
+        plano:
+          type: string
+          enum:
+          - GRATUITO
+          - PREMIUM
+        planoCasal:
+          type: boolean
+        planoFamilia:
+          type: boolean
+    FotoRequest:
+      type: object
+      properties:
+        imagemBase64:
+          type: string
+          maxLength: 250000
+          minLength: 0
+        mimeType:
+          type: string
+          maxLength: 40
+          minLength: 0
+      required:
+      - imagemBase64
+      - mimeType
+    GoogleLoginRequest:
+      type: object
+      properties:
+        idToken:
+          type: string
+          maxLength: 4096
+          minLength: 0
+        lembrar:
+          type: boolean
+        versaoDosTermos:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - idToken
+    Membro:
+      type: object
+      properties:
+        email:
+          type: string
+        foto:
+          type: string
+        id:
+          type: string
+          format: uuid
+        nome:
+          type: string
+        papel:
+          type: string
+          enum:
+          - ADMIN
+          - TITULAR
+          - PARCEIRO
+          - MEMBRO
+        parceriaPendente:
+          type: boolean
+        premium:
+          type: boolean
+    ModulosRequest:
+      type: object
+      properties:
+        modulos:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+          minItems: 0
+      required:
+      - modulos
+    NomeRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 0
+      required:
+      - nome
+    PaisRequest:
+      type: object
+      properties:
+        documento:
+          type: string
+          maxLength: 40
+          minLength: 0
+        pais:
+          type: string
+          maxLength: 2
+          minLength: 0
+      required:
+      - pais
+    PapelRequest:
+      type: object
+      properties:
+        papel:
+          type: string
+          enum:
+          - ADMIN
+          - TITULAR
+          - PARCEIRO
+          - MEMBRO
+      required:
+      - papel
+    PlanoResponse:
+      type: object
+      properties:
+        app:
+          $ref: "#/components/schemas/Precos"
+        appCasal:
+          $ref: "#/components/schemas/Precos"
+        appFamilia:
+          $ref: "#/components/schemas/Precos"
+        assinaturaDisponivel:
+          type: boolean
+        casaTemAssinatura:
+          type: boolean
+        casalDisponivel:
+          type: boolean
+        diasDeTeste:
+          type: integer
+          format: int32
+        familiaDisponivel:
+          type: boolean
+        gratuito:
+          type: array
+          items:
+            type: string
+        origem:
+          type: string
+        pessoasNoFamilia:
+          type: integer
+          format: int32
+        plano:
+          type: string
+          enum:
+          - GRATUITO
+          - PREMIUM
+        planoCasal:
+          type: boolean
+        planoFamilia:
+          type: boolean
+        premium:
+          type: array
+          items:
+            type: string
+        premiumAte:
+          type: string
+          format: date-time
+        reembolsoAte:
+          type: string
+          format: date-time
+        site:
+          $ref: "#/components/schemas/Precos"
+        siteCasal:
+          $ref: "#/components/schemas/Precos"
+        siteFamilia:
+          $ref: "#/components/schemas/Precos"
+        voceAssinou:
+          type: boolean
+    Precos:
+      type: object
+      properties:
+        anual:
+          type: string
+        mensal:
+          type: string
+    PreferencesRequest:
+      type: object
+      properties:
+        fuso:
+          type: string
+          maxLength: 50
+          minLength: 0
+        moeda:
+          type: string
+          minLength: 1
+          pattern: "[A-Z]{3}"
+        moedaConversao:
+          type: string
+          minLength: 1
+          pattern: "[A-Z]{3}"
+        moedaCotacao:
+          type: string
+          pattern: "[A-Z]{3}"
+        mostrarCotacao:
+          type: boolean
+      required:
+      - moeda
+      - moedaConversao
+      - mostrarCotacao
+    Preferencias:
+      type: object
+      properties:
+        fuso:
+          type: string
+        idioma:
+          type: string
+        modulos:
+          type: array
+          items:
+            type: string
+        moeda:
+          type: string
+        moedaConversao:
+          type: string
+        moedaCotacao:
+          type: string
+        mostrarCotacao:
+          type: boolean
+    RedefinirSenhaRequest:
+      type: object
+      properties:
+        novaSenha:
+          type: string
+          maxLength: 200
+          minLength: 0
+        token:
+          type: string
+          maxLength: 100
+          minLength: 0
+      required:
+      - novaSenha
+      - token
+    SenhaLoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          maxLength: 320
+          minLength: 0
+        lembrar:
+          type: boolean
+        senha:
+          type: string
+          maxLength: 200
+          minLength: 0
+      required:
+      - email
+      - senha
+    SobreVoceRequest:
+      type: object
+      properties:
+        apelido:
+          type: string
+          maxLength: 120
+          minLength: 0
+        nascimento:
+          type: string
+          format: date
+      required:
+      - apelido
+    TermosRequest:
+      type: object
+      properties:
+        versao:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - versao
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+          format: int64
+        usuario:
+          $ref: "#/components/schemas/UserResponse"
+    TrocaRequest:
+      type: object
+      properties:
+        codigo:
+          type: string
+          maxLength: 100
+          minLength: 0
+        verificador:
+          type: string
+          maxLength: 200
+          minLength: 0
+      required:
+      - codigo
+      - verificador
+    TrocaResponse:
+      type: object
+      properties:
+        idToken:
+          type: string
+    UpdateUserRequest:
+      type: object
+      properties:
+        apelido:
+          type: string
+          maxLength: 120
+          minLength: 0
+        ativo:
+          type: boolean
+        role:
+          type: string
+          enum:
+          - ADMIN
+          - TITULAR
+          - PARCEIRO
+          - MEMBRO
+    UserResponse:
+      type: object
+      properties:
+        apelido:
+          type: string
+        ativo:
+          type: boolean
+        avisos:
+          $ref: "#/components/schemas/Avisos"
+        compartilhamento:
+          $ref: "#/components/schemas/Compartilhamento"
+        cpfInformado:
+          type: boolean
+        email:
+          type: string
+        emailConfirmado:
+          type: boolean
+        familia:
+          type: string
+          format: uuid
+        foto:
+          type: string
+        fotoPropria:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        nascimento:
+          type: string
+          format: date
+        nome:
+          type: string
+        pais:
+          type: string
+        permissoes:
+          type: object
+          additionalProperties: {}
+        plano:
+          type: string
+          enum:
+          - GRATUITO
+          - PREMIUM
+        preferencias:
+          $ref: "#/components/schemas/Preferencias"
+        premiumAte:
+          type: string
+          format: date-time
+        primeiroNome:
+          type: string
+        role:
+          type: string
+          enum:
+          - ADMIN
+          - TITULAR
+          - PARCEIRO
+          - MEMBRO
+        temFotoDoGoogle:
+          type: boolean
+        temSenha:
+          type: boolean
+        termosAceitos:
+          type: string
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
+        \ ou /api/auth/refresh)."
+      scheme: bearer
+      type: http

@@ -5,6 +5,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,7 @@ public class ObjetivosService {
      * @param usuario        quem criou
      * @param compartilhado  meta a dois: todos da familia veem e depositam
      */
+    @Schema(name = "SituacaoDoObjetivo")
     public record Situacao(UUID id, String nome, BigDecimal alvo, LocalDate prazo, BigDecimal guardado,
                            BigDecimal falta, int percentual, Integer mesesRestantes, BigDecimal porMes,
                            boolean concluido, boolean atrasado, UUID usuario, boolean compartilhado) {

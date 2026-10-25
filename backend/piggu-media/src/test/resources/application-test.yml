@@ -27,3 +27,8 @@ piggu:
   storage:
     # Adaptador local em pasta temporaria: os testes nao tocam o Google Drive.
     local-path: ${java.io.tmpdir}/piggu-testes-media
+
+# O teste de contrato (ContratoDaApiTest) le /v3/api-docs.yaml.
+springdoc:
+  api-docs:
+    enabled: true

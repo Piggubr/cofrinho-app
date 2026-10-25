@@ -1,0 +1,1018 @@
+openapi: 3.1.0
+info:
+  description: Contrato da API do Piggu. Regras de uso e de compatibilidade em docs/API_SPEC.md.
+  title: piggu-lifestyle
+  version: "1"
+servers:
+- description: Producao
+  url: https://piggu.com.br
+- description: "Local, pelo gateway"
+  url: http://localhost:8080
+security:
+- bearer: []
+tags:
+- description: Listas de compras e de desejos.
+  name: Compras
+- description: "Lista de filmes da família, com busca no TMDB."
+  name: Filmes
+- description: O que a pessoa decidiu não comprar.
+  name: Girls Math
+- description: Lugares para ir e marcadores.
+  name: Lugares
+- description: Metas do mês de cada pessoa.
+  name: Metas pessoais
+paths:
+  /api/girls-math:
+    get:
+      operationId: girlsMathListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GirlsMathResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar itens do Girls Math
+      tags:
+      - Girls Math
+    post:
+      operationId: girlsMathCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GirlsMathRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GirlsMathResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar item do Girls Math
+      tags:
+      - Girls Math
+  /api/girls-math/{id}:
+    delete:
+      operationId: girlsMathExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir item do Girls Math
+      tags:
+      - Girls Math
+  /api/movies:
+    get:
+      operationId: movieListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MovieResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar filmes
+      tags:
+      - Filmes
+    post:
+      operationId: movieAdicionar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TmdbMovie"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Adicionar filme à lista
+      tags:
+      - Filmes
+  /api/movies/random:
+    get:
+      operationId: movieSortear
+      parameters:
+      - in: query
+        name: genero
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TmdbMovie"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Sortear um filme
+      tags:
+      - Filmes
+  /api/movies/search:
+    get:
+      operationId: movieBuscar
+      parameters:
+      - in: query
+        name: busca
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TmdbMovie"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Buscar filme no TMDB
+      tags:
+      - Filmes
+  /api/movies/{id}:
+    delete:
+      operationId: movieExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir filme
+      tags:
+      - Filmes
+  /api/movies/{id}/rating:
+    put:
+      operationId: movieAvaliar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovieRatingRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Avaliar filme
+      tags:
+      - Filmes
+  /api/movies/{id}/watched:
+    patch:
+      operationId: movieMarcarAssistido
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: assistido
+        required: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Marcar ou desmarcar filme como assistido
+      tags:
+      - Filmes
+  /api/personal-goals:
+    get:
+      operationId: personalGoalListar
+      parameters:
+      - in: query
+        name: mes
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PersonalGoalResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Metas pessoais do mês
+      tags:
+      - Metas pessoais
+    post:
+      operationId: personalGoalCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonalGoalRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalGoalResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar meta pessoal
+      tags:
+      - Metas pessoais
+  /api/personal-goals/{id}:
+    delete:
+      operationId: personalGoalExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir meta pessoal
+      tags:
+      - Metas pessoais
+    put:
+      operationId: personalGoalAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonalGoalRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalGoalResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar meta pessoal
+      tags:
+      - Metas pessoais
+  /api/places:
+    get:
+      operationId: placeListar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlaceResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar lugares
+      tags:
+      - Lugares
+    post:
+      operationId: placeCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar lugar
+      tags:
+      - Lugares
+  /api/places/tags:
+    get:
+      operationId: placeListarMarcadores
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar marcadores de lugar
+      tags:
+      - Lugares
+    post:
+      operationId: placeCriarMarcador
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceTagRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar marcador de lugar
+      tags:
+      - Lugares
+  /api/places/{id}:
+    delete:
+      operationId: placeExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir lugar
+      tags:
+      - Lugares
+    put:
+      operationId: placeAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar lugar
+      tags:
+      - Lugares
+  /api/shopping/catalog:
+    get:
+      operationId: shoppingBuscarNoCatalogo
+      parameters:
+      - in: query
+        name: busca
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogProduct"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Buscar produto no catálogo aberto
+      tags:
+      - Compras
+  /api/shopping/items:
+    get:
+      operationId: shoppingListar
+      parameters:
+      - in: query
+        name: lista
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShoppingItemResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar itens de compras ou desejos
+      tags:
+      - Compras
+    post:
+      operationId: shoppingCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingItemRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingItemResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Adicionar item
+      tags:
+      - Compras
+  /api/shopping/items/{id}:
+    delete:
+      operationId: shoppingExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir item
+      tags:
+      - Compras
+  /api/shopping/items/{id}/purchased:
+    patch:
+      operationId: shoppingAlternar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: comprado
+        required: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingItemResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Marcar ou desmarcar como comprado
+      tags:
+      - Compras
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        campos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampoInvalido"
+        codigo:
+          type: string
+        erro:
+          type: string
+        momento:
+          type: string
+          format: date-time
+    CampoInvalido:
+      type: object
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+    CatalogProduct:
+      type: object
+      properties:
+        codigo:
+          type: string
+        imagem:
+          type: string
+        marca:
+          type: string
+        nome:
+          type: string
+        quantidade:
+          type: string
+    GirlsMathRequest:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        imageBase64:
+          type: string
+          maxLength: 7000000
+          minLength: 0
+        loja:
+          type: string
+          maxLength: 120
+          minLength: 0
+        mimeType:
+          type: string
+          pattern: "image/[a-z0-9.+-]{1,30}"
+        produto:
+          type: string
+          maxLength: 120
+          minLength: 0
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0.01
+      required:
+      - produto
+      - valor
+    GirlsMathResponse:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date
+        fotoAssetId:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        loja:
+          type: string
+        produto:
+          type: string
+        temFoto:
+          type: boolean
+        valor:
+          type: number
+    MovieRatingRequest:
+      type: object
+      properties:
+        nota:
+          type: integer
+          format: int32
+          maximum: 5
+          minimum: 1
+      required:
+      - nota
+    MovieResponse:
+      type: object
+      properties:
+        ano:
+          type: string
+        assistido:
+          type: boolean
+        avaliacoes:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+        id:
+          type: string
+          format: uuid
+        nota:
+          type: number
+        poster:
+          type: string
+        sinopse:
+          type: string
+        titulo:
+          type: string
+        tmdbId:
+          type: string
+        usuario:
+          type: string
+          format: uuid
+    PersonalGoalRequest:
+      type: object
+      properties:
+        alvo:
+          type: integer
+          format: int32
+          maximum: 1000000
+          minimum: 1
+        atual:
+          type: integer
+          format: int32
+          maximum: 1000000
+          minimum: 0
+        titulo:
+          type: string
+          maxLength: 80
+          minLength: 0
+      required:
+      - alvo
+      - titulo
+    PersonalGoalResponse:
+      type: object
+      properties:
+        alvo:
+          type: integer
+          format: int32
+        atual:
+          type: integer
+          format: int32
+        concluida:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        mes:
+          type: string
+        titulo:
+          type: string
+    PlaceRequest:
+      type: object
+      properties:
+        categoria:
+          type: string
+          maxLength: 50
+          minLength: 0
+        comentario:
+          type: string
+          maxLength: 500
+          minLength: 0
+        data:
+          type: string
+          format: date
+        imageBase64:
+          type: string
+          maxLength: 7000000
+          minLength: 0
+        localizacao:
+          type: string
+          maxLength: 200
+          minLength: 0
+        marcacoes:
+          type: array
+          items:
+            type: string
+            maxLength: 40
+            minLength: 0
+          maxItems: 20
+          minItems: 0
+        mimeType:
+          type: string
+          pattern: "image/[a-z0-9.+-]{1,30}"
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 0
+        nota:
+          type: integer
+          format: int32
+          maximum: 5
+          minimum: 1
+        valor:
+          type: number
+          maximum: 1000000
+          minimum: 0
+      required:
+      - data
+      - nome
+      - nota
+    PlaceResponse:
+      type: object
+      properties:
+        categoria:
+          type: string
+        comentario:
+          type: string
+        data:
+          type: string
+          format: date
+        fotoAssetId:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        localizacao:
+          type: string
+        marcacoes:
+          type: array
+          items:
+            type: string
+        nome:
+          type: string
+        nota:
+          type: integer
+          format: int32
+        temFoto:
+          type: boolean
+        usuario:
+          type: string
+          format: uuid
+        valor:
+          type: number
+    PlaceTagRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          maxLength: 50
+          minLength: 2
+      required:
+      - nome
+    ShoppingItemRequest:
+      type: object
+      properties:
+        codigo:
+          type: string
+          maxLength: 20
+          minLength: 0
+        imagem:
+          type: string
+          maxLength: 1000
+          minLength: 0
+        item:
+          type: string
+          maxLength: 150
+          minLength: 0
+        lista:
+          type: string
+          pattern: Compras|Desejos
+        marca:
+          type: string
+          maxLength: 100
+          minLength: 0
+        quantidade:
+          type: string
+          maxLength: 50
+          minLength: 0
+      required:
+      - item
+    ShoppingItemResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        comprado:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        imagem:
+          type: string
+        item:
+          type: string
+        lista:
+          type: string
+        marca:
+          type: string
+        quantidade:
+          type: string
+        usuario:
+          type: string
+          format: uuid
+    TmdbMovie:
+      type: object
+      properties:
+        ano:
+          type: string
+          maxLength: 10
+          minLength: 0
+        nota:
+          type: number
+          maximum: 10
+          minimum: 0
+        poster:
+          type: string
+          maxLength: 500
+          minLength: 0
+        sinopse:
+          type: string
+          maxLength: 5000
+          minLength: 0
+        titulo:
+          type: string
+          maxLength: 300
+          minLength: 0
+        tmdbId:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - titulo
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
+        \ ou /api/auth/refresh)."
+      scheme: bearer
+      type: http

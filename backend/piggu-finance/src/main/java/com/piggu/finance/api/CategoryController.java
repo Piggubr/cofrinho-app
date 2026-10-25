@@ -6,6 +6,8 @@ import com.piggu.finance.api.dto.CategoriesResponse;
 import com.piggu.finance.api.dto.CategoryRequest;
 import com.piggu.finance.domain.CategoryService;
 import com.piggu.finance.domain.RegrasDeCategoria;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Categorias de gasto e as regras de categoria automatica. */
+@Tag(name = "Categorias", description = "Categorias de gasto e regras de categoria automática.")
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
@@ -42,11 +45,13 @@ public class CategoryController {
             @NotBlank(message = "Escolha a categoria.") @Size(max = 50) String categoria) {
     }
 
+    @Operation(summary = "Listar categorias")
     @GetMapping
     public CategoriesResponse listar() {
         return new CategoriesResponse(servico.listar());
     }
 
+    @Operation(summary = "Criar categoria")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CategoriesResponse criar(@Valid @RequestBody CategoryRequest pedido,
@@ -55,17 +60,20 @@ public class CategoryController {
         return new CategoriesResponse(servico.listar());
     }
 
+    @Operation(summary = "Listar regras de categoria automática")
     @GetMapping("/rules")
     public List<RegrasDeCategoria.Regra> regras() {
         return regras.listar();
     }
 
     /** Cria a regra; se o termo ja tem uma, troca a categoria. */
+    @Operation(summary = "Criar ou trocar uma regra de categoria")
     @PutMapping("/rules")
     public RegrasDeCategoria.Regra definirRegra(@Valid @RequestBody RuleRequest pedido, @AuthUser CurrentUser usuario) {
         return regras.definir(pedido.termo(), pedido.categoria(), usuario.id());
     }
 
+    @Operation(summary = "Excluir regra de categoria")
     @DeleteMapping("/rules/{id}")
     public ResponseEntity<Void> excluirRegra(@PathVariable UUID id) {
         regras.excluir(id);

@@ -1,0 +1,351 @@
+openapi: 3.1.0
+info:
+  description: Contrato da API do Piggu. Regras de uso e de compatibilidade em docs/API_SPEC.md.
+  title: piggu-rewards
+  version: "1"
+servers:
+- description: Producao
+  url: https://piggu.com.br
+- description: "Local, pelo gateway"
+  url: http://localhost:8080
+security:
+- bearer: []
+tags:
+- description: Saldo e ajustes de Fofocoins.
+  name: Fofocoins
+- description: Prêmios e resgates com Fofocoins.
+  name: Prêmios
+paths:
+  /api/coins:
+    get:
+      operationId: coinSaldo
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinBalanceResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Saldo e histórico de Fofocoins
+      tags:
+      - Fofocoins
+  /api/coins/adjustments:
+    post:
+      operationId: coinAjustar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoinAdjustRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinBalanceResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Creditar ou debitar Fofocoins
+      tags:
+      - Fofocoins
+  /api/prizes:
+    get:
+      operationId: prizeListar
+      parameters:
+      - in: query
+        name: todos
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrizeResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Listar prêmios
+      tags:
+      - Prêmios
+    post:
+      operationId: prizeCriar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrizeRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrizeResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Criar prêmio
+      tags:
+      - Prêmios
+  /api/prizes/redemptions:
+    get:
+      operationId: prizeHistoricoDeResgates
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RedemptionResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Histórico de resgates
+      tags:
+      - Prêmios
+  /api/prizes/{id}:
+    delete:
+      operationId: prizeExcluir
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Excluir prêmio
+      tags:
+      - Prêmios
+    put:
+      operationId: prizeAtualizar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrizeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrizeResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Alterar prêmio
+      tags:
+      - Prêmios
+  /api/prizes/{id}/redemptions:
+    post:
+      operationId: prizeResgatar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedemptionResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Resgatar prêmio
+      tags:
+      - Prêmios
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        campos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampoInvalido"
+        codigo:
+          type: string
+        erro:
+          type: string
+        momento:
+          type: string
+          format: date-time
+    CampoInvalido:
+      type: object
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+    CoinAdjustRequest:
+      type: object
+      properties:
+        motivo:
+          type: string
+          maxLength: 200
+          minLength: 0
+        valor:
+          type: integer
+          format: int32
+          maximum: 1000000
+          minimum: -1000000
+      required:
+      - motivo
+      - valor
+    CoinBalanceResponse:
+      type: object
+      properties:
+        historico:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movimento"
+        saldo:
+          type: integer
+          format: int32
+    Movimento:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        motivo:
+          type: string
+        usuario:
+          type: string
+        valor:
+          type: integer
+          format: int32
+    PrizeRequest:
+      type: object
+      properties:
+        ativo:
+          type: boolean
+        descricao:
+          type: string
+          maxLength: 300
+          minLength: 0
+        nome:
+          type: string
+          maxLength: 100
+          minLength: 0
+        preco:
+          type: integer
+          format: int32
+          maximum: 10000000
+          minimum: 1
+      required:
+      - nome
+      - preco
+    PrizeResponse:
+      type: object
+      properties:
+        ativo:
+          type: boolean
+        descricao:
+          type: string
+        id:
+          type: string
+          format: uuid
+        nome:
+          type: string
+        preco:
+          type: integer
+          format: int32
+    RedemptionResponse:
+      type: object
+      properties:
+        data:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        preco:
+          type: integer
+          format: int32
+        premio:
+          type: string
+        saldo:
+          type: integer
+          format: int32
+        status:
+          type: string
+        usuario:
+          type: string
+          format: uuid
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
+        \ ou /api/auth/refresh)."
+      scheme: bearer
+      type: http
