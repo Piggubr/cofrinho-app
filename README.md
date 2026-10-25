@@ -3,6 +3,8 @@
 Aplicação de controle financeiro doméstico, migrada de um Google Apps Script com
 planilha como banco de dados para uma plataforma em Java e Angular.
 
+Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## O que tem aqui
 
 | Pasta | O que é |
