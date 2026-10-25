@@ -14,6 +14,7 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | [`backend/observabilidade/`](backend/observabilidade/) | Grafana, Prometheus e Loki no próprio servidor: performance, logs, erros, alertas e painel de uso ([como funciona](docs/observabilidade.md)) |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
+| [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) | Modelo de dados: as tabelas dos seis bancos, como cada família fica isolada e as regras que moram nos dados |
 
 ## O que o app faz
 
