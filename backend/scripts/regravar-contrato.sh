@@ -10,13 +10,13 @@
 set -e
 cd "$(dirname "$0")/.."
 
-modulos=""
+modulos=()
 if [ -n "$1" ]; then
-  modulos="-pl piggu-$1 -am"
+  modulos=(-pl "piggu-$1" -am)
 fi
 
 # -am compila o common e o testing junto; so os testes de contrato rodam.
-mvn -B -q $modulos test -Dtest=ContratoTest -Dsurefire.failIfNoSpecifiedTests=false \
+mvn -B -q "${modulos[@]}" test -Dtest=ContratoTest -Dsurefire.failIfNoSpecifiedTests=false \
   -Djacoco.skip=true -Dpiggu.regravar-contrato=true
 
 git -C .. status --short docs/api

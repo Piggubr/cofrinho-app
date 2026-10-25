@@ -54,7 +54,7 @@ HTTP/1.1 200 OK
 Set-Cookie: piggu_refresh=...; Max-Age=2592000; Path=/api/auth; Secure; HttpOnly; SameSite=Strict
 Content-Type: application/json
 
-{ "accessToken": "eyJhbGciOiJSUzI1NiJ9...", "expiresIn": 300,
+{ "accessToken": "<JWT>", "expiresIn": 300,
   "usuario": { "id": "…", "nome": "Ana", "role": "TITULAR", "plano": "PREMIUM", "…": "…" } }
 ```
 
