@@ -1,0 +1,7 @@
+// Copie para Config/Google.xcconfig (fora do Git) e troque pelos valores do ID OAuth do tipo
+// iOS criado no Google Cloud (passo a passo no README, em "Entrar com Google").
+
+// O "ID do cliente".
+GOOGLE_IOS_CLIENT_ID = 000000000000-abcdefghijklmnopqrstuvwxyz012345.apps.googleusercontent.com
+// O "esquema de URL do iOS": o mesmo ID ao contrario.
+GOOGLE_IOS_URL_SCHEME = com.googleusercontent.apps.000000000000-abcdefghijklmnopqrstuvwxyz012345

@@ -4,6 +4,8 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>GIDClientID</key>
+	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
 	<key>PigguAPIURL</key>
 	<string>$(PIGGU_API_URL)</string>
 	<key>PigguRefreshNoCorpo</key>
@@ -16,6 +18,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>piggu</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>google</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_IOS_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>

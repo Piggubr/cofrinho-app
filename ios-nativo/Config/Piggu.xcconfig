@@ -1,0 +1,8 @@
+// Ajustes do alvo Piggu que nao cabem no projeto. O ID OAuth do Google para iOS fica no
+// Google.xcconfig, que nao vai para o Git: copie o Google.exemplo.xcconfig e preencha.
+// Sem ele o app compila e o botao "Entrar com Google" nao aparece.
+
+GOOGLE_IOS_CLIENT_ID =
+GOOGLE_IOS_URL_SCHEME = br.com.piggu.app.sem-google
+
+#include? "Google.xcconfig"
