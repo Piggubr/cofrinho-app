@@ -39,6 +39,11 @@ export class UsersService extends ApiBase {
     return this.http.post<void>(this.url('/auth/me/devices'), { token, plataforma: 'IOS' });
   }
 
+  /** Ao sair: este iPhone para de receber os avisos de quem saiu. */
+  removerAparelho(token: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/auth/me/devices/${token}`));
+  }
+
   /** Liga e desliga as telas de estilo de vida no menu da propria pessoa. */
   salvarModulos(modulos: ModuloDeEstiloDeVida[]): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/auth/me/modules'), { modulos });

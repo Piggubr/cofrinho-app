@@ -8,6 +8,7 @@ import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { usuarioDeTeste } from '../../testing/auth-falso';
 import { AuthService } from './auth.service';
 import { GoogleIdentityService } from './google-identity.service';
+import { AvisosNoCelular, PUSH_NATIVO } from '../nativo/avisos-no-celular';
 import { TokenStorage } from './token-storage';
 
 function tokens(usuario: Usuario = usuarioDeTeste()): ParDeTokens {
@@ -32,6 +33,19 @@ describe('AuthService', () => {
         {
           provide: GoogleIdentityService,
           useValue: { esquecerConta: async () => void contasEsquecidas++ },
+        },
+        // iPhone de mentira: o sistema da o token abc123 quando o app registra.
+        {
+          provide: PUSH_NATIVO,
+          useValue: {
+            disponivel: true,
+            plugin: {
+              checkPermissions: async () => ({ receive: 'granted' }),
+              register: async () => undefined,
+              addListener: async (_evento: string, ouvir: (token: { value: string }) => void) =>
+                ouvir({ value: 'abc123' }),
+            },
+          },
         },
       ],
     });
@@ -210,6 +224,7 @@ describe('AuthService', () => {
     localStorage.setItem('piggu_conversa_do_assistente', '{"usuario":"x","falas":[]}');
 
     const saida = auth.sair();
+    await new Promise((pronto) => setTimeout(pronto));
     http.expectOne('/api/auth/logout').flush({});
     await saida;
 
@@ -226,7 +241,25 @@ describe('AuthService', () => {
     auth.atualizarUsuario(usuarioDeTeste());
 
     const saida = auth.sair();
+    await new Promise((pronto) => setTimeout(pronto));
     http.expectOne('/api/auth/logout').flush(null, { status: 503, statusText: 'Indisponivel' });
+    await saida;
+
+    expect(auth.autenticado()).toBe(false);
+  });
+
+  it('sair descadastra o celular dos avisos, e sai mesmo se isso falhar', async () => {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    await TestBed.inject(AvisosNoCelular).renovar();
+    http.expectOne('/api/auth/me/devices').flush(null);
+    auth.atualizarUsuario(usuarioDeTeste());
+
+    const saida = auth.sair();
+    const remocao = http.expectOne('/api/auth/me/devices/abc123');
+    expect(remocao.request.method).toBe('DELETE');
+    remocao.flush(null, { status: 500, statusText: 'Erro' });
+    await new Promise((pronto) => setTimeout(pronto));
+    http.expectOne('/api/auth/logout').flush({});
     await saida;
 
     expect(auth.autenticado()).toBe(false);

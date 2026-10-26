@@ -29,6 +29,8 @@ export class AvisosNoCelular {
   private readonly users = inject(UsersService);
   private readonly nativo = inject(PUSH_NATIVO);
   private ouvindo = false;
+  /** O ultimo token que o sistema deu, para descadastrar ao sair. */
+  private token: string | null = null;
 
   readonly disponivel = this.nativo.disponivel;
 
@@ -60,11 +62,19 @@ export class AvisosNoCelular {
     if (!this.ouvindo) {
       this.ouvindo = true;
       await this.nativo.plugin.addListener('registration', ({ value }) => {
+        this.token = value;
         firstValueFrom(this.users.registrarAparelho(value)).catch(() => {
           // Sem rede agora: a proxima abertura do app registra de novo.
         });
       });
     }
     await this.nativo.plugin.register();
+  }
+
+  /** Ao sair, com a sessao ainda valendo; falhar aqui nao impede de sair. */
+  async esquecerAparelho(): Promise<void> {
+    if (this.token) {
+      await firstValueFrom(this.users.removerAparelho(this.token)).catch(() => null);
+    }
   }
 }

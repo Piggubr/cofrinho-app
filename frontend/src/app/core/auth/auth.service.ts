@@ -5,6 +5,7 @@ import { Observable, firstValueFrom, shareReplay, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
 import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { ParDeTokens, PigguRole, Usuario } from '../api/models';
+import { AvisosNoCelular } from '../nativo/avisos-no-celular';
 import { esquecerListasGuardadas } from '../offline/listas-guardadas';
 import { esquecerConversa } from '../privacidade/conversa-do-assistente';
 import { GoogleIdentityService } from './google-identity.service';
@@ -44,6 +45,7 @@ export class AuthService {
   private readonly storage = inject(TokenStorage);
   private readonly google = inject(GoogleIdentityService);
   private readonly router = inject(Router);
+  private readonly avisos = inject(AvisosNoCelular);
 
   private readonly usuarioAtual = signal<Usuario | null>(null);
   private renovacaoEmCurso?: Observable<ParDeTokens>;
@@ -238,6 +240,8 @@ export class AuthService {
   }
 
   async sair(): Promise<void> {
+    // Antes do logout, que invalida o acesso: o celular para de receber os avisos desta conta.
+    await this.avisos.esquecerAparelho();
     // Avisar o servidor e o que encerra a sessao e apaga o cookie; falhar aqui nao
     // pode impedir o usuario de sair desta maquina.
     await firstValueFrom(
