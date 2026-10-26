@@ -116,7 +116,7 @@ rota responde `501` com o código `EM_BREVE`.
 |---|---|
 | Refresh token no corpo da resposta e aceito no corpo de `/api/auth/refresh`, `/api/auth/logout` e `/api/auth/me/senha` | **Pronto** (26/10/2026) |
 | Entrar com Apple | **Pronto** (26/10/2026). Falta revogar o token na Apple ao apagar a conta, que a App Store exige |
-| Push no Android | **Planejado.** `POST /api/auth/me/devices` só aceita `plataforma: "IOS"` (APNs) |
+| Push no Android | **Em parte.** `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio). O envio pelo FCM ainda não existe: por enquanto só o iPhone recebe |
 
 ## Erros
 

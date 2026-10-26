@@ -19,6 +19,12 @@
       <groupId>com.piggu</groupId>
       <artifactId>piggu-common</artifactId>
     </dependency>
+    <!-- So para o ChavesEstrangeirasComIndice; cada servico com banco ja traz o seu. -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
