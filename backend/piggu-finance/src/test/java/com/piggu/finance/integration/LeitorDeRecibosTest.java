@@ -111,17 +111,17 @@ class LeitorDeRecibosTest {
     void gratuitoContaNaCota() {
         when(ocr.ler(any())).thenReturn(Optional.of(FECHA));
         when(memoria.findByProductKey(anyString())).thenReturn(Optional.empty());
-        when(cota.registrar(GRATUITA)).thenReturn(7);
+        when(cota.reservar(GRATUITA)).thenReturn(7);
 
         assertThat(leitor.ler(FOTO, GRATUITA).leiturasRestantes()).isEqualTo(7);
-        verify(cota).exigirDisponivel(GRATUITA);
+        verify(cota, never()).devolver(any());
     }
 
     @Test
     @DisplayName("gratuito sem cota no mes nem chega a ler a foto")
     void gratuitoSemCota() {
-        doThrow(new BusinessException("limite", HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM))
-                .when(cota).exigirDisponivel(GRATUITA);
+        when(cota.reservar(GRATUITA))
+                .thenThrow(new BusinessException("limite", HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM));
 
         assertThatThrownBy(() -> leitor.ler(FOTO, GRATUITA)).isInstanceOf(BusinessException.class);
         verify(ocr, never()).ler(any());
@@ -170,13 +170,12 @@ class LeitorDeRecibosTest {
                 List.of(), "GEMINI", null);
         when(gemini.habilitado()).thenReturn(true);
         when(gemini.ler(FOTO)).thenReturn(doGemini);
-        when(cota.registrar(GRATUITA)).thenReturn(9);
+        when(cota.reservar(GRATUITA)).thenReturn(9);
 
         ReceiptParseResponse resposta = soGemini.ler(FOTO, GRATUITA);
 
         assertThat(resposta.origem()).isEqualTo("GEMINI");
         assertThat(resposta.leiturasRestantes()).isEqualTo(9);
-        verify(cota).exigirDisponivel(GRATUITA);
         verify(consentimentos).exigir(eq(GRATUITA), eq("GEMINI"), anyString(), isNull(), isNull());
         verify(ocr, never()).ler(any());
     }
@@ -190,7 +189,7 @@ class LeitorDeRecibosTest {
         assertThatThrownBy(() -> soGemini.ler(FOTO, USUARIO)).isInstanceOf(BusinessException.class)
                 .hasMessageContaining("desligada");
         verify(ocr, never()).ler(any());
-        verify(cota, never()).registrar(any());
+        verify(cota).devolver(USUARIO);
     }
 
     @Test

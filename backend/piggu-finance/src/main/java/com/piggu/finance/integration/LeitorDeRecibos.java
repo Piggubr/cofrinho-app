@@ -81,8 +81,13 @@ public class LeitorDeRecibos {
     // O consentimento gravado fica mesmo que a leitura falhe depois: a pessoa autorizou.
     @Transactional(noRollbackFor = BusinessException.class)
     public ReceiptParseResponse ler(ReceiptParseRequest pedido, CurrentUser usuario) {
-        cota.exigirDisponivel(usuario);
-        return lerDentroDaCota(pedido, usuario).comRestantes(cota.registrar(usuario));
+        Integer restantes = cota.reservar(usuario);
+        try {
+            return lerDentroDaCota(pedido, usuario).comRestantes(restantes);
+        } catch (RuntimeException falhou) {
+            cota.devolver(usuario);
+            throw falhou;
+        }
     }
 
     private ReceiptParseResponse lerDentroDaCota(ReceiptParseRequest pedido, CurrentUser usuario) {
