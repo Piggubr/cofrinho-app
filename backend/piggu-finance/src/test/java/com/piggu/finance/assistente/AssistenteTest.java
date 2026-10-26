@@ -16,10 +16,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.YearMonth;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -162,6 +164,20 @@ class AssistenteTest extends PostgresIntegrationTest {
                 Integer.class)).isPositive();
 
         perguntar(casas.casaA, true).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("a IA e chamada sem transacao aberta: a espera nao prende uma conexao do banco")
+    void semTransacaoNaIa() throws Exception {
+        AtomicBoolean emTransacao = new AtomicBoolean(true);
+        doAnswer(chamada -> {
+            emTransacao.set(TransactionSynchronizationManager.isActualTransactionActive());
+            return "Tudo certo.";
+        }).when(gemini).responder(anyString(), anyList(), anyString(), anyList(), any());
+
+        perguntar(casas.casaA, true).andExpect(status().isOk());
+
+        org.assertj.core.api.Assertions.assertThat(emTransacao).isFalse();
     }
 
     @Test

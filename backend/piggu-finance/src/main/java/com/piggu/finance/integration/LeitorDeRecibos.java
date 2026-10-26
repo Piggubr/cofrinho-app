@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Base64;
@@ -78,8 +77,8 @@ public class LeitorDeRecibos {
      * Premium. A foto so sai do servidor (para o Gemini) depois que a pessoa autorizou,
      * uma vez por versao do aviso. Sem autorizacao o front recebe o codigo e pergunta.
      */
-    // O consentimento gravado fica mesmo que a leitura falhe depois: a pessoa autorizou.
-    @Transactional(noRollbackFor = BusinessException.class)
+    // Sem transacao: o Gemini leva ate um minuto e prenderia uma conexao do banco. O
+    // consentimento grava na hora e fica mesmo que a leitura falhe depois.
     public ReceiptParseResponse ler(ReceiptParseRequest pedido, CurrentUser usuario) {
         Integer restantes = cota.reservar(usuario);
         try {

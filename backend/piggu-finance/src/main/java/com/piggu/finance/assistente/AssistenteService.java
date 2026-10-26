@@ -87,8 +87,8 @@ public class AssistenteService {
     /**
      * @param moeda codigo da moeda em que a pessoa ve os valores no app
      */
-    // O consentimento gravado fica mesmo que a pergunta falhe depois: a pessoa autorizou.
-    @Transactional(noRollbackFor = BusinessException.class)
+    // Sem transacao: a IA leva ate minutos e prenderia uma conexao do banco. O consentimento
+    // e a contagem gravam na hora; as ferramentas leem cada uma na sua.
     public Resposta perguntar(String pergunta, List<ConversaComGemini.Fala> historico, String moeda,
                               Boolean autorizo, String versaoDoAviso, CurrentUser usuario) {
         usuario.exigirPremium("O assistente de IA");
