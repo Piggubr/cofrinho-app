@@ -16,8 +16,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -153,9 +153,10 @@ class RedefinicaoDeSenhaTest extends PostgresIntegrationTest {
         cadastrarEEntrar();
         clearInvocations(email);
         CountDownLatch provedorLento = new CountDownLatch(1);
-        AtomicBoolean gravado = new AtomicBoolean();
+        // Future e nao boolean: o Mockito registra a chamada antes de a resposta rodar.
+        CompletableFuture<Boolean> gravado = new CompletableFuture<>();
         given(email.enviar(eq(EMAIL), eq("Piggu: crie uma senha nova"), anyString())).willAnswer(chamada -> {
-            gravado.set(usuarios.findByEmail(EMAIL).orElseThrow().linkDeSenhaValido(Instant.now()));
+            gravado.complete(usuarios.findByEmail(EMAIL).orElseThrow().linkDeSenhaValido(Instant.now()));
             provedorLento.await();
             return true;
         });
@@ -164,7 +165,8 @@ class RedefinicaoDeSenhaTest extends PostgresIntegrationTest {
         provedorLento.countDown();
 
         assertThat(tokenDoEmail()).isNotBlank();
-        assertThat(gravado).as("o link ja estava gravado quando o e-mail saiu").isTrue();
+        assertThat(gravado).as("o link ja estava gravado quando o e-mail saiu")
+                .succeedsWithin(Duration.ofSeconds(5)).isEqualTo(true);
     }
 
     private TokenResponse cadastrarEEntrar() {
