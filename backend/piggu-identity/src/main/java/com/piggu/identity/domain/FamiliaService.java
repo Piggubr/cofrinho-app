@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -431,9 +432,21 @@ public class FamiliaService {
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }
 
-    /** Cria a familia nova antes de sair: os dados da pessoa precisam de um lugar para ir. */
+    /**
+     * Cria a familia nova antes de sair: os dados da pessoa precisam de um lugar para ir. O id
+     * sai da conta e da familia de onde ela sai, e nao do acaso: se um servico falha no meio, o
+     * identity desfaz tudo, mas quem ja moveu os dados nao desfaz; a nova tentativa precisa
+     * mandar para o mesmo lugar. Um id ja usado por uma saida anterior que deu certo passa ao
+     * proximo da sequencia, que tambem se repete numa nova tentativa.
+     */
     private void mudarParaFamiliaPropria(UserAccount conta) {
-        Household nova = familias.save(new Household(nomePadrao(conta.primeiroNomeExibicao())));
+        UUID id;
+        int vez = 0;
+        do {
+            id = UUID.nameUUIDFromBytes(("propria:" + conta.getId() + ":" + conta.getHouseholdId() + ":" + vez++)
+                    .getBytes(StandardCharsets.UTF_8));
+        } while (familias.existsById(id));
+        Household nova = familias.save(new Household(id, nomePadrao(conta.primeiroNomeExibicao())));
         sairDeOndeEsta(conta, nova.getId());
         conta.mudarDeFamilia(nova.getId(), PigguRole.TITULAR);
 

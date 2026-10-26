@@ -64,7 +64,11 @@ public class Household {
     }
 
     public Household(String name) {
-        this.id = UUID.randomUUID();
+        this(UUID.randomUUID(), name);
+    }
+
+    public Household(UUID id, String name) {
+        this.id = id;
         this.name = name;
     }
 

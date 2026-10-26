@@ -275,6 +275,22 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
                 .isInstanceOf(com.piggu.common.error.NotFoundException.class);
     }
 
+    @Test
+    @DisplayName("sair falha no meio da cascata: a nova tentativa manda os dados para a mesma familia nova")
+    void sairDeNovoMesmoDestino() {
+        // A primeira chamada cai como se o rewards nao respondesse depois de o finance ja mover.
+        willThrow(new UpstreamException("fora do ar")).willDoNothing().given(cascata).apagar(anyString());
+        assertThatThrownBy(() -> familias.sair(como(membro))).isInstanceOf(UpstreamException.class);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getHouseholdId()).isEqualTo(titular.getHouseholdId());
+
+        familias.sair(como(membro));
+
+        List<Jwt> mudancas = tokensEnviados().stream().filter(t -> "MUDAR".equals(t.getClaimAsString("exclusao"))).toList();
+        assertThat(mudancas).hasSize(2);
+        assertThat(mudancas.get(1).getClaimAsString("destino")).isEqualTo(mudancas.get(0).getClaimAsString("destino"))
+                .isEqualTo(usuarios.findById(membro.getId()).orElseThrow().getHouseholdId().toString());
+    }
+
     private String escopoEnviado() {
         ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
         verify(cascata).apagar(token.capture());
