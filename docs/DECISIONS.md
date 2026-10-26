@@ -3,7 +3,7 @@
 Registro das decisões de arquitetura e de produto: o que foi escolhido, por quê e o que
 isso obriga. Leia antes de mudar algo que pareça estranho, porque muitas vezes há um motivo.
 
-**Como acrescentar uma decisão:** use o próximo número livre (D-069, D-070...) e nunca
+**Como acrescentar uma decisão:** use o próximo número livre (D-072, D-073...) e nunca
 apague uma decisão. Se uma decisão mudar, escreva a nova e troque a situação da antiga para
 "Substituída por D-0xx". A decisão entra no mesmo PR da mudança que ela explica.
 
@@ -56,6 +56,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-035](#d-035-imagens-montadas-no-ci-para-arm-com-rollback-automático) | Imagens montadas no CI, para ARM, com rollback automático | Valendo |
 | [D-036](#d-036-monitoramento-no-próprio-servidor) | Monitoramento no próprio servidor | Valendo |
 | [D-037](#d-037-versão-de-produção-pela-data) | Versão de produção pela data | Valendo |
+| [D-069](#d-069-repositório-privado) | Repositório privado | Valendo |
+| [D-070](#d-070-e-mails-pela-resend) | E-mails pela Resend | Valendo |
 | **Pagamentos e Premium** | | |
 | [D-038](#d-038-o-backend-aplica-os-limites-do-premium) | O backend aplica os limites do Premium | Valendo |
 | [D-039](#d-039-premium-da-família-inteira) | Premium da família inteira | Substituída por D-040 |
@@ -81,6 +83,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-058](#d-058-tokens-no-app-nativo) | Tokens no app nativo | Valendo |
 | [D-059](#d-059-a-api-só-acrescenta-campos) | A API só acrescenta campos | Valendo |
 | [D-060](#d-060-features-novas-no-site-durante-a-migração) | Features novas no site durante a migração | Em aberto |
+| [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -100,7 +103,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Situação: Valendo
 - Contexto: o sistema era um `Code.gs` de 1542 linhas com 32 ações num `else if` e uma planilha Google de 14 abas como banco. Sem transação, com uma trava (`LockService`) que parava o script inteiro e um front de 21 arquivos JS com variáveis globais.
 - Decisão: sete microserviços em Java 21 com Spring Boot (hoje 4.0) e PostgreSQL, mais a biblioteca `piggu-common`. As regras de negócio do Apps Script foram mantidas, inclusive as menos óbvias.
-- Alternativas: não registradas (veja a pergunta 1).
+- Alternativas: um monolito ou outras linguagens. Segundo o Dudu (26/10/2026), os microserviços facilitam a manutenção do código, e Java e Spring são as tecnologias que ele conhece.
 - Consequências: cada ação antiga tem um endereço novo no mapa de migração. O histórico da planilha ainda precisa de um importador.
 - Onde ver: [backend/README.md](../backend/README.md), [Mapa de migração](../backend/README.md#mapa-de-migração), [README.md, "De onde veio"](../README.md#de-onde-veio)
 
@@ -146,7 +149,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o id do Drive ficava solto numa célula, e a foto ia em base64 dentro do JSON, um terço maior e sem cache no navegador.
 - Decisão: cada arquivo tem um registro em `assets` (tipo, tamanho e dono). O acesso ao armazenamento fica atrás da interface `StoragePort`, e a imagem sai de `/api/assets/{id}/content` com `Content-Type` e 30 dias de cache.
 - Alternativas: S3 ou MinIO cabem num adaptador novo, sem mudar regra de negócio.
-- Consequências: o `src` da imagem aponta direto para a API. Sem credenciais do Google, o adaptador local é usado (veja a pergunta 6).
+- Consequências: o `src` da imagem aponta direto para a API. Sem credenciais do Google, o adaptador local é usado. Em produção as fotos ficam nesse adaptador, no volume `piggu-fotos` do servidor, que entra no backup (D-032); o Google Drive não é usado lá (Dudu, 26/10/2026).
 - Onde ver: [Imagens (backend)](../backend/README.md#imagens), [Imagens por URL (frontend)](../frontend/README.md#imagens-por-url-não-em-base64)
 
 ## D-007: Integração fora do ar avisa em vez de quebrar
@@ -163,7 +166,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Situação: Valendo (desligado por padrão, veja D-045)
 - Contexto: mostrar saldo e trazer débitos dos bancos sem guardar a senha de ninguém.
 - Decisão: a pessoa conecta o banco no widget Pluggy Connect, e a senha vai direto para a Pluggy. O backend confere que o `clientUserId` do item é de quem está logado antes de gravar. O script do widget tem versão fixa e hash de integridade.
-- Alternativas: forçar a ida ao banco na hora (webhook) ficou de fora. A escolha da Pluggy entre os agregadores não tem registro (veja a pergunta 3).
+- Alternativas: forçar a ida ao banco na hora (webhook) ficou de fora. A Pluggy foi sugestão do Claude, sem comparação registrada com outros agregadores; o Dudu pediu (26/10/2026) para avaliar opções mais baratas.
 - Consequências: o serviço `piggu-banking` só sobe no perfil `open-finance`. Cada pessoa vê os bancos que ela mesma conectou.
 - Onde ver: [Open Finance (Pluggy)](../backend/README.md#open-finance-pluggy), [Bancos conectados (frontend)](../frontend/README.md#bancos-conectados-open-finance)
 
@@ -434,6 +437,24 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o sha de cada versão fica em *Releases*, para voltar à mão. Os apps têm a própria versão (1.0.0 desde 12/10/2026; o nativo será a 2.0.0, D-057).
 - Onde ver: [implantação, seção 8, "Versões"](implantacao-producao.md#8-deploy-automático-pelo-github-actions)
 
+## D-069: Repositório privado
+- Data: confirmada em 26/10/2026
+- Situação: Valendo
+- Contexto: os documentos se contradiziam. O guia de implantação e o PR #58 tratavam o repositório como público; o `docs/qualidade-sonar.md`, o `docs/branches.md` e a revisão de segurança, como privado.
+- Decisão: o repositório é privado (resposta do Dudu).
+- Alternativas: público. A revisão de segurança pediu para não abrir enquanto o GitHub não limpar os commits antigos, de antes da reescrita do histórico.
+- Consequências: o servidor busca o código com uma deploy key só de leitura. As imagens do GHCR ficam privadas, porque levam o código compilado. O CodeQL só avisa (sem o GitHub Code Security) e o Sonar fica no plano Free para privado (D-064).
+- Onde ver: [implantação, seção 8](implantacao-producao.md#8-deploy-automático-pelo-github-actions), [revisão de segurança, seção 8](revisao-seguranca-pre-publicacao.md), [branches](branches.md)
+
+## D-070: E-mails pela Resend
+- Data: 11/10/2026
+- Situação: Valendo
+- Contexto: o Piggu manda e-mail de confirmação, de "esqueci minha senha", os avisos do dia e os alertas do monitoramento.
+- Decisão: tudo sai pela API da Resend, com remetente `@piggu.com.br` (`PIGGU_EMAIL_API_KEY` e `PIGGU_EMAIL_REMETENTE`).
+- Alternativas: a Resend foi escolha do Claude, sem comparação registrada com outros serviços (Dudu, 26/10/2026).
+- Consequências: o domínio precisa de SPF, DKIM e DMARC verificados na Resend. Em 19/10/2026 o DNS não tinha nenhum deles, e o Dudu disse em 26/10/2026 que os e-mails parecem não estar funcionando. Sem e-mail configurado, o identity escreve no log o link que mandaria.
+- Onde ver: [e-mail do domínio](email-do-dominio.md), [implantação, seção 4](implantacao-producao.md#4-demais-variáveis)
+
 # Pagamentos e Premium
 
 ## D-038: O backend aplica os limites do Premium
@@ -502,10 +523,10 @@ no fim, em vez de ganhar um motivo inventado.
 ## D-045: Open Finance desligado por enquanto
 - Data: 11/10/2026, antes da 1.0.0
 - Situação: Valendo (com lembrete de reverter)
-- Contexto: não registrado (veja a pergunta 4).
+- Contexto: custo (resposta do Dudu em 26/10/2026). A Pluggy cobra por conexão (planos Premium, "Divisão").
 - Decisão: `PIGGU_OPEN_FINANCE=false` por padrão: o card de bancos some, conexão nova é recusada e o recurso sai da lista do Premium.
 - Alternativas: deixar ligado com a Pluggy configurada, como antes.
-- Consequências: para voltar, `PIGGU_OPEN_FINANCE=true`, as variáveis `PLUGGY_*` e o perfil `open-finance`, sem mexer no código.
+- Consequências: para voltar, `PIGGU_OPEN_FINANCE=true`, as variáveis `PLUGGY_*` e o perfil `open-finance`, sem mexer no código. Quando religar ainda não foi definido (veja as perguntas).
 - Onde ver: [planos Premium, "Desligado por enquanto"](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)
 
 ## D-046: Leitor próprio de nota primeiro, Gemini de reserva
@@ -520,7 +541,7 @@ no fim, em vez de ganhar um motivo inventado.
 ## D-047: Nota fiscal direto no Gemini
 - Data: 11/10/2026 ([PR #11](https://github.com/Piggubr/cofrinho-app/pull/11))
 - Situação: Valendo (com lembrete de reverter)
-- Contexto: não registrado (veja a pergunta 4).
+- Contexto: custo (resposta do Dudu em 26/10/2026). O Gemini foi a primeira opção de IA considerada, sem comparação com outros provedores.
 - Decisão: `PIGGU_LEITOR_PROPRIO=false` por padrão: toda foto vai ao Gemini, com o mesmo consentimento, 10 por mês por família no grátis e sem limite no Premium.
 - Alternativas: o leitor próprio de D-046.
 - Consequências: ao religar o leitor próprio, volte também o texto do aviso de privacidade ("Foto da nota fiscal" e Google Gemini).
@@ -542,7 +563,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Situação: Valendo
 - Contexto: o app original entregava tudo num `index.html` de 678 linhas, e o navegador baixava todas as abas mesmo abrindo uma só.
 - Decisão: Angular 22 com componentes standalone, signals e uma rota carregada sob demanda por tela. O guard é conveniência; quem decide o acesso é o backend, que recusa com 403.
-- Alternativas: não registradas (veja a pergunta 1).
+- Alternativas: outros frameworks. Angular foi escolhido por ser a tecnologia que o Dudu conhece (resposta de 26/10/2026).
 - Consequências: tela nova entra como rota sob demanda em `app.routes.ts`.
 - Onde ver: [frontend/README.md, "Telas"](../frontend/README.md#telas)
 
@@ -645,6 +666,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: até decidir, toda feature nova no site deve ser anotada para o nativo.
 - Onde ver: este registro
 
+## D-071: Chiclete como cor padrão e Porquinho Neon como ícone
+- Data: 20/10/2026 ([PR #42](https://github.com/Piggubr/cofrinho-app/pull/42))
+- Situação: Valendo
+- Contexto: o app abria no Rosa Piggu, em tons pastel.
+- Decisão: o app abre no Chiclete, um rosa-choque, e o ícone padrão é o Porquinho Neon. Segundo o Dudu (26/10/2026), é uma cor mais chamativa, que pega mais as pessoas.
+- Alternativas: o Rosa Piggu e o ícone Clássico continuam disponíveis e grátis.
+- Consequências: quem não escolheu cor vê o Chiclete; quem tinha escolhido Rosa continua no Rosa.
+- Onde ver: [PR #42](https://github.com/Piggubr/cofrinho-app/pull/42)
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
@@ -726,24 +756,8 @@ no fim, em vez de ganhar um motivo inventado.
 Decisões que parecem tomadas, mas sem o porquê escrito em lugar nenhum. Quando a resposta
 vier, ela entra como Contexto ou Alternativas da decisão citada (ou vira uma decisão nova).
 
-1. **Por que microserviços em Java e Spring, e Angular no front?** (D-001, D-049) O README
-   explica as fronteiras entre os serviços, mas não por que sete serviços em vez de um
-   monolito para um app de família, nem por que Java e Angular em vez de outras opções.
-2. **Por que o Gemini como IA** da nota fiscal e do assistente, em vez de outro provedor?
-   (D-047)
-3. **Por que a Pluggy** entre os agregadores de Open Finance? (D-008)
-4. **Por que o Open Finance e o leitor próprio de nota foram desligados em 11/10/2026?**
-   (D-045, D-047) O documento de planos diz "lembrar de reverter", mas não diz o motivo nem
-   o que precisa acontecer para religar.
-5. **O repositório é público ou privado?** O guia de implantação diz que o servidor busca o
-   código sem chave "porque o repositório é público", e o PR #58 diz que o CodeQL é grátis
-   por isso. Já o `docs/qualidade-sonar.md` e o `docs/branches.md` tratam o repositório como
-   privado, e a revisão de segurança pediu para mantê-lo privado até o GitHub limpar o
-   histórico antigo. Qual vale hoje, e por quê?
-6. **Onde ficam as fotos em produção?** O backend README diz que os bytes continuam no
-   Google Drive, mas o backup copia o volume `piggu-fotos` do adaptador local. Qual é o
-   armazenamento de verdade hoje? (D-006)
-7. **Por que a Resend** para os e-mails (avisos, confirmação, alertas)?
-8. **Por que o Chiclete virou a cor padrão e o Porquinho Neon o ícone** em 20/10/2026
-   ([PR #42](https://github.com/Piggubr/cofrinho-app/pull/42))? O PR descreve a mudança,
-   mas não o motivo.
+1. **O que precisa acontecer para religar o Open Finance e o leitor próprio de nota?** Por
+   exemplo, um número de assinantes Premium ou uma receita mínima. (D-045, D-047)
+
+As oito perguntas de 25/10/2026 foram respondidas em 26/10/2026 e estão em D-001, D-006,
+D-008, D-045, D-047, D-049, D-069, D-070 e D-071.

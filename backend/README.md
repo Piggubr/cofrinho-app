@@ -189,7 +189,9 @@ numa célula da planilha.
 O acesso ao Drive está atrás da interface `StoragePort`. Trocar por S3 ou MinIO
 é escrever um adaptador; nenhuma regra de negócio muda. Existe também um
 adaptador local, usado automaticamente quando não há credenciais do Google, para
-que o ambiente de desenvolvimento suba sem depender de conta de serviço.
+que o ambiente de desenvolvimento suba sem depender de conta de serviço. Em produção, as
+fotos ficam nesse adaptador local, no volume `piggu-fotos` do servidor, que entra no
+backup (D-006 em [`docs/DECISIONS.md`](../docs/DECISIONS.md)).
 
 As imagens são entregues como bytes, com `Content-Type` e cache de 30 dias, em
 vez da data URL em base64 dentro do JSON que o Apps Script devolvia. Base64
