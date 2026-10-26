@@ -54,6 +54,7 @@ public class AvisosController {
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void registrar(@Valid @RequestBody AparelhoRequest pedido, @AuthUser CurrentUser usuario) {
+        servico.exigirEmailConfirmado(usuario.id());
         aparelhos.registrar(usuario.id(), pedido.token().toLowerCase(), pedido.plataforma());
     }
 

@@ -33,6 +33,10 @@ public class Aparelhos {
         jdbc.update("DELETE FROM push_devices WHERE token = ?", token);
     }
 
+    public void esquecerDoUsuario(UUID usuario) {
+        jdbc.update("DELETE FROM push_devices WHERE user_id = ?", usuario);
+    }
+
     public List<String> doUsuario(UUID usuario) {
         return jdbc.queryForList("SELECT token FROM push_devices WHERE user_id = ? ORDER BY created_at", String.class,
                 usuario);

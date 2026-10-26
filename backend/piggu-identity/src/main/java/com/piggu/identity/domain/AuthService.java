@@ -124,14 +124,9 @@ public class AuthService {
 
         if (!conta.isEmailVerified()) {
             // Alguem cadastrou este e-mail por senha antes, sem provar que era dele. O Google
-            // acabou de provar quem e o dono: a senha de quem cadastrou deixa de valer e as
-            // sessoes abertas com ela caem. Se foi o proprio dono, ele cria outra no Perfil.
-            if (conta.temSenha()) {
-                conta.apagarSenha();
-                sessoes.apagarPorUsuario(conta.getId());
-                log.warn("Senha apagada no primeiro login Google de conta sem e-mail confirmado: conta={}",
-                        conta.getId());
-            }
+            // acabou de provar quem e o dono: sai o que quem cadastrou deixou (senha, sessoes,
+            // aparelhos, dados presos a conta). Se foi o proprio dono, ele refaz no Perfil.
+            familias.devolverAoDono(conta);
             conta.confirmarEmail();
         }
         conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
@@ -369,6 +364,7 @@ public class AuthService {
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
         if (mostrarTudoAoParceiro) {
+            FamiliaService.exigirEmailConfirmado(conta);
             UserAccount parceiro = parceiroDe(conta).orElseThrow(() -> new BusinessException(
                     "Você ainda não tem parceiro na família. Convide alguém como parceiro primeiro.",
                     HttpStatus.CONFLICT, "SEM_PARCEIRO"));
@@ -391,6 +387,13 @@ public class AuthService {
                 .filter(outro -> !outro.getId().equals(conta.getId()))
                 .filter(outroLado)
                 .min(Comparator.comparing(outro -> outro.getRole() == PigguRole.TITULAR ? 0 : 1));
+    }
+
+    /** O aparelho de push recebe os avisos da conta: so com o e-mail provado. */
+    @Transactional(readOnly = true)
+    public void exigirEmailConfirmado(java.util.UUID usuarioId) {
+        FamiliaService.exigirEmailConfirmado(usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente.")));
     }
 
     @Transactional

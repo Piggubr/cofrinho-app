@@ -77,7 +77,9 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         jdbc.update("DELETE FROM trial_cpf_history");
         jdbc.update("DELETE FROM billing_events");
         Household familia = familias.save(new Household("Familia de teste"));
-        conta = usuarios.save(new UserAccount("titular@piggu.test", PigguRole.TITULAR, familia.getId()));
+        UserAccount nova = new UserAccount("titular@piggu.test", PigguRole.TITULAR, familia.getId());
+        nova.confirmarEmail();
+        conta = usuarios.save(nova);
         membro = usuarios.save(new UserAccount("membro@piggu.test", PigguRole.MEMBRO, familia.getId()));
     }
 

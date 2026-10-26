@@ -90,7 +90,9 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         usuarios.deleteAll();
         titular = familias.criarConta("ana@familia.test", "Ana", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "bia@familia.test");
-        membro = familias.criarConta("bia@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        membro = Convidados.entrar(familias, convites, usuarios, "bia@familia.test", "Bia");
+        // Entrar pelo convite ja chama a cascata; os testes olham so o que vem depois.
+        org.mockito.Mockito.clearInvocations(cascata);
     }
 
     @Test
@@ -119,7 +121,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @DisplayName("titular sai e ha um parceiro: o parceiro assume, mesmo sendo mais novo que o membro")
     void titularSaiParceiroAssume() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount parceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount parceiro = Convidados.entrar(familias, convites, usuarios, "caio@familia.test", "Caio");
         familias.mudarPapel(como(titular), parceiro.getId(), PigguRole.PARCEIRO);
         familias.aceitarParceria(como(parceiro));
 

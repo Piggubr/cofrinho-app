@@ -275,6 +275,23 @@ public class UserAccount {
         definirSenha(null);
     }
 
+    /**
+     * O dono provou o e-mail numa conta cadastrada sem prova, que outra pessoa pode ter aberto:
+     * sai a senha e o que quem cadastrou escolheu e a conta nao deixa trocar depois (nascimento,
+     * CPF) ou que mostra os dados a alguem (parceria). O app pede de novo o que faltar.
+     */
+    public void esquecerQuemCadastrou() {
+        apagarSenha();
+        this.nickname = null;
+        this.birthDate = null;
+        this.phone = null;
+        this.cpfCifrado = null;
+        this.cpfIndice = null;
+        this.cpfInformadoEm = null;
+        this.showsAllTo = null;
+        this.partnerInvitedAt = null;
+    }
+
     public boolean isEmailVerified() {
         return emailVerified;
     }

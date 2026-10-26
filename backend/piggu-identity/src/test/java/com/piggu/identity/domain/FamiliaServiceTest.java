@@ -52,7 +52,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         usuarios.deleteAll();
         titular = familias.criarConta("titular@familia.test", "Ana", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "membro@familia.test");
-        membro = familias.criarConta("membro@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        membro = entrar("membro@familia.test", "Bia");
         vizinho = familias.criarConta("vizinho@outra.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
     }
 
@@ -80,6 +80,21 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
 
         familias.convidar(como(titular), "vizinho@outra.test");
         assertThat(familias.convitesParaMim(como(vizinho)))
+                .extracting(FamiliaResponse.Convite::familia).containsExactly("Familia de Ana");
+    }
+
+    @Test
+    @DisplayName("convidado que cria conta nasce na propria familia: so entra na que convidou se aceitar")
+    void conviteNaoEntraSozinho() {
+        familias.convidar(como(titular), "nova@familia.test");
+
+        UserAccount nova = familias.criarConta("nova@familia.test", "Duda", Consentimentos.VERSAO_DO_AVISO);
+
+        assertThat(nova.getHouseholdId()).isNotEqualTo(titular.getHouseholdId());
+        assertThat(nova.getRole()).isEqualTo(PigguRole.TITULAR);
+        assertThat(familias.ver(como(titular)).membros()).extracting(FamiliaResponse.Membro::email)
+                .doesNotContain("nova@familia.test");
+        assertThat(familias.convitesParaMim(como(nova)))
                 .extracting(FamiliaResponse.Convite::familia).containsExactly("Familia de Ana");
     }
 
@@ -193,7 +208,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @DisplayName("um parceiro por familia: com parceiro ou convite pendente, outro convite e recusado")
     void umParceiroPorFamilia() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount caio = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount caio = entrar("caio@familia.test", "Caio");
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
 
         assertThatThrownBy(() -> familias.mudarPapel(como(titular), caio.getId(), PigguRole.PARCEIRO))
@@ -209,7 +224,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @DisplayName("parceiro nao convida, nao remove nem muda papel; ninguem vira titular ou admin por aqui")
     void limitesDoParceiro() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount terceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount terceiro = entrar("caio@familia.test", "Caio");
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
         familias.aceitarParceria(como(membro));
         UserAccount parceiro = usuarios.findById(membro.getId()).orElseThrow();
@@ -232,7 +247,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @DisplayName("parceiro pode ser removido pelo titular e pode sair sozinho")
     void parceiroSaiOuERemovido() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount outro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount outro = entrar("caio@familia.test", "Caio");
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
         familias.aceitarParceria(como(membro));
         familias.removerMembro(como(titular), membro.getId());
@@ -248,7 +263,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @DisplayName("convidar para parceiro, aceitar, remover e sair ficam no historico da familia, com quem fez")
     void historicoDaFamilia() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount caio = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount caio = entrar("caio@familia.test", "Caio");
 
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
         familias.aceitarParceria(como(membro));
@@ -267,8 +282,16 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
                         org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.MUDOU_PAPEL, null,
                                 "membro · MEMBRO", "membro · PARCEIRO"),
                         org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.CONVIDOU, titular.getId(),
-                                null, "membro · PARCEIRO"));
+                                null, "membro · PARCEIRO"),
+                        // Os dois entraram aceitando o convite e ja sairam: sem autor.
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.ENTROU, null, null, "caio · MEMBRO"),
+                        org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.ENTROU, null, null,
+                                "membro · MEMBRO"));
         assertThat(trilha.recentes(vizinho.getHouseholdId(), null, 10)).isEmpty();
+    }
+
+    private UserAccount entrar(String email, String nome) {
+        return Convidados.entrar(familias, convites, usuarios, email, nome);
     }
 
     private static CurrentUser como(UserAccount conta) {
