@@ -242,7 +242,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         UserAccount nova = familias.criarConta("bia2@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
         nova.informarCpf("cifrado", "indice-que-testou");
         usuarios.save(nova);
-        assertThat(assinaturas.plano(nova.getId()).diasDeTeste()).isZero();
+        assertThat(assinaturas.plano(nova.getId(), null).diasDeTeste()).isZero();
     }
 
     @Test

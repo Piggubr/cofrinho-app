@@ -62,7 +62,7 @@ class StripePagamentosTest {
                 .andExpect(content().string(allOf(containsString("customer=cus_1"), not(containsString("customer_email")))))
                 .andRespond(json("{\"url\":\"https://checkout.stripe.test/s\"}"));
 
-        assertThat(pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0)).isEqualTo("https://checkout.stripe.test/s");
+        assertThat(pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0, null)).isEqualTo("https://checkout.stripe.test/s");
         stripe.verify();
     }
 
@@ -87,7 +87,7 @@ class StripePagamentosTest {
         assertThat(desligado.habilitado()).isFalse();
         assertThat(desligado.familiaHabilitado()).isFalse();
         assertThat(desligado.casalHabilitado()).isFalse();
-        assertThatThrownBy(() -> desligado.abrirCheckout(conta, Periodo.MENSAL, 0)).isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> desligado.abrirCheckout(conta, Periodo.MENSAL, 0, null)).isInstanceOf(BusinessException.class);
         assertThatThrownBy(() -> desligado.cancelarComReembolso("cus_1", Duration.ofDays(7)))
                 .isInstanceOf(BusinessException.class);
         assertThatThrownBy(() -> desligado.encerrarCliente("cus_1")).isInstanceOf(UpstreamException.class);
@@ -145,8 +145,8 @@ class StripePagamentosTest {
             assertThatThrownBy(() -> pagamentos.cancelarComReembolso("cus_1", Duration.ofDays(7)))
                     .isInstanceOf(UpstreamException.class);
         }
-        assertThatThrownBy(() -> pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0)).isInstanceOf(UpstreamException.class);
-        assertThatThrownBy(() -> pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0)).isInstanceOf(UpstreamException.class);
+        assertThatThrownBy(() -> pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0, null)).isInstanceOf(UpstreamException.class);
+        assertThatThrownBy(() -> pagamentos.abrirCheckout(conta, Periodo.MENSAL, 0, null)).isInstanceOf(UpstreamException.class);
         stripe.verify();
     }
 

@@ -82,7 +82,7 @@ public class RevenueCatLoja implements LojaDeApps {
                         Instant.ofEpochMilli(evento.path("event_timestamp_ms").asLong()),
                         comprou == 0 ? null : Instant.ofEpochMilli(comprou),
                         "TRIAL".equals(evento.path("period_type").asString("")),
-                        tipoDoProduto(evento.path("product_id").asString("")))));
+                        tipoDoProduto(evento.path("product_id").asString("")), null, null, null)));
     }
 
     /** Produtos do familia e do casal nas lojas tem o plano no id (ex.: piggu_familia_mensal, piggu_casal_anual). */

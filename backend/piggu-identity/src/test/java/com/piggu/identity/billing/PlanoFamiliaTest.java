@@ -54,11 +54,12 @@ class PlanoFamiliaTest {
         Household casa = new Household("Casa");
         Instant agora = Instant.now();
 
-        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora, agora, false, assinante);
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora, agora, TipoDePlano.INDIVIDUAL, assinante);
         assertThat(casa.planoPara(assinante)).isEqualTo(Plano.PREMIUM);
         assertThat(casa.planoPara(outra)).isEqualTo(Plano.GRATUITO);
 
-        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora.plusSeconds(1), agora, true, assinante);
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora.plusSeconds(1), agora, TipoDePlano.FAMILIA,
+                assinante);
         assertThat(casa.planoPara(outra)).isEqualTo(Plano.PREMIUM);
 
         casa.aplicarAssinatura("WEB", null, agora.plusSeconds(2));
@@ -106,10 +107,10 @@ class PlanoFamiliaTest {
 
         StripePagamentos comCasal = stripe(null, null, "price_cm", "price_ca");
         assertThat(comCasal.casalHabilitado()).isTrue();
-        comCasal.abrirCheckout(conta, Periodo.CASAL_MENSAL, 0);
+        comCasal.abrirCheckout(conta, Periodo.CASAL_MENSAL, 0, null);
         servidor.verify();
 
-        assertThatThrownBy(() -> stripe(null, null).abrirCheckout(conta, Periodo.CASAL_ANUAL, 0))
+        assertThatThrownBy(() -> stripe(null, null).abrirCheckout(conta, Periodo.CASAL_ANUAL, 0, null))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -133,7 +134,7 @@ class PlanoFamiliaTest {
                 .andExpect(content().string(containsString("line_items%5B0%5D%5Bprice%5D=price_fa")))
                 .andRespond(withSuccess("{\"url\":\"https://checkout.stripe.test/s\"}", MediaType.APPLICATION_JSON));
 
-        stripe("price_fm", "price_fa").abrirCheckout(conta, Periodo.FAMILIA_ANUAL, 0);
+        stripe("price_fm", "price_fa").abrirCheckout(conta, Periodo.FAMILIA_ANUAL, 0, null);
         servidor.verify();
     }
 
@@ -143,7 +144,7 @@ class PlanoFamiliaTest {
         StripePagamentos semFamilia = stripe(null, null);
 
         assertThat(semFamilia.familiaHabilitado()).isFalse();
-        assertThatThrownBy(() -> semFamilia.abrirCheckout(conta, Periodo.FAMILIA_MENSAL, 0))
+        assertThatThrownBy(() -> semFamilia.abrirCheckout(conta, Periodo.FAMILIA_MENSAL, 0, null))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -152,8 +153,8 @@ class PlanoFamiliaTest {
     void avisoPeloPreco() {
         StripePagamentos pagamentos = stripe("price_fm", "price_fa");
 
-        assertThat(aviso(pagamentos, "price_fm").familia()).isTrue();
-        assertThat(aviso(pagamentos, "price_m").familia()).isFalse();
+        assertThat(aviso(pagamentos, "price_fm").tipo()).isEqualTo(TipoDePlano.FAMILIA);
+        assertThat(aviso(pagamentos, "price_m").tipo()).isEqualTo(TipoDePlano.INDIVIDUAL);
     }
 
     private EventoDeAssinatura aviso(StripePagamentos pagamentos, String preco) {

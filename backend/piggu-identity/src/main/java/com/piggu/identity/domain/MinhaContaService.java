@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -222,14 +221,6 @@ public class MinhaContaService {
                     HttpStatus.UNPROCESSABLE_CONTENT, "IDADE_MINIMA");
         }
         return data;
-    }
-
-    /** So ids no log: o numero nunca sai do cofre. */
-    private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
-        List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
-        if (!ids.isEmpty()) {
-            log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
-        }
     }
 
     /**

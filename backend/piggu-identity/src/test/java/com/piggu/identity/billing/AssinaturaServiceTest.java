@@ -84,7 +84,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     }
 
     private Plano planoDe(UserAccount quem) {
-        return assinaturas.plano(quem.getId()).plano();
+        return assinaturas.plano(quem.getId(), null).plano();
     }
 
     @Test
@@ -97,10 +97,10 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         UserAccount salva = usuarios.findById(conta.getId()).orElseThrow();
         assertThat(planoDe(conta)).isEqualTo(Plano.PREMIUM);
         assertThat(planoDe(membro)).as("no individual o resto da casa segue gratuito").isEqualTo(Plano.GRATUITO);
-        assertThat(assinaturas.plano(membro.getId()).reembolsoAte()).as("so quem assinou desiste").isNull();
+        assertThat(assinaturas.plano(membro.getId(), null).reembolsoAte()).as("so quem assinou desiste").isNull();
         assertThat(salva.getStripeCustomerId()).isEqualTo("cus_123");
-        assertThat(assinaturas.plano(conta.getId()).premiumAte()).isEqualTo(Instant.ofEpochSecond(fim.getEpochSecond()));
-        assertThat(assinaturas.plano(conta.getId()).reembolsoAte())
+        assertThat(assinaturas.plano(conta.getId(), null).premiumAte()).isEqualTo(Instant.ofEpochSecond(fim.getEpochSecond()));
+        assertThat(assinaturas.plano(conta.getId(), null).reembolsoAte())
                 .as("assinou agora: dentro dos 7 dias do arrependimento").isNotNull();
     }
 
@@ -112,8 +112,8 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
 
         assertThat(planoDe(conta)).isEqualTo(Plano.PREMIUM);
         assertThat(planoDe(membro)).isEqualTo(Plano.PREMIUM);
-        assertThat(assinaturas.plano(membro.getId()).planoFamilia()).isTrue();
-        assertThat(assinaturas.plano(membro.getId()).voceAssinou()).isFalse();
+        assertThat(assinaturas.plano(membro.getId(), null).planoFamilia()).isTrue();
+        assertThat(assinaturas.plano(membro.getId(), null).voceAssinou()).isFalse();
     }
 
     @Test
@@ -131,7 +131,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     void umaAssinaturaPorCasa() {
         receber(evento("customer.subscription.created", "active", Instant.now().plus(Duration.ofDays(30)), Instant.now()));
 
-        assertThatThrownBy(() -> assinaturas.checkout(membro.getId(), Periodo.MENSAL))
+        assertThatThrownBy(() -> assinaturas.checkout(membro.getId(), Periodo.MENSAL, null))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("Já há uma assinatura");
     }
 
@@ -142,7 +142,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
             usuarios.save(new UserAccount("extra" + i + "@piggu.test", PigguRole.MEMBRO, conta.getHouseholdId()));
         }
 
-        assertThatThrownBy(() -> assinaturas.checkout(conta.getId(), Periodo.FAMILIA_MENSAL))
+        assertThatThrownBy(() -> assinaturas.checkout(conta.getId(), Periodo.FAMILIA_MENSAL, null))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("até 5 pessoas");
     }
 
@@ -164,12 +164,12 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("teste gratis: a conta tem 14 dias ate a Stripe avisar que o teste comecou; depois, nunca mais")
     void testeGratisUmaVez() {
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).isEqualTo(14);
+        assertThat(assinaturas.plano(conta.getId(), null).diasDeTeste()).isEqualTo(14);
 
         receber(evento("customer.subscription.created", "trialing", Instant.now().plus(Duration.ofDays(14)), Instant.now()));
 
         assertThat(planoDe(conta)).as("em teste ja e Premium").isEqualTo(Plano.PREMIUM);
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).isZero();
+        assertThat(assinaturas.plano(conta.getId(), null).diasDeTeste()).isZero();
     }
 
     @Test
@@ -180,7 +180,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         nova.informarCpf("cifrado", "indice-excluido");
         usuarios.save(nova);
 
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).isZero();
+        assertThat(assinaturas.plano(conta.getId(), null).diasDeTeste()).isZero();
     }
 
     @Test
@@ -191,7 +191,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
                 Instant.now().minusSeconds(60)));
         receber(evento("customer.subscription.deleted", "canceled", Instant.now(), Instant.now()));
 
-        assertThat(assinaturas.plano(conta.getId()).diasDeTeste()).as("ja testou").isZero();
+        assertThat(assinaturas.plano(conta.getId(), null).diasDeTeste()).as("ja testou").isZero();
         assertThat(assinaturas.plano(conta.getId(), " volta30 ").diasDeTeste()).as("o link da campanha").isEqualTo(30);
 
         // A Stripe avisa o teste da campanha: o uso fica registrado e a campanha nao vale de novo.
@@ -254,7 +254,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         Instant fimDoTeste = agora.plus(Duration.ofDays(14));
         receber(evento("customer.subscription.created", "trialing", fimDoTeste, agora.minusSeconds(10)));
 
-        assertThat(assinaturas.plano(conta.getId()).reembolsoAte())
+        assertThat(assinaturas.plano(conta.getId(), null).reembolsoAte())
                 .isEqualTo(Instant.ofEpochSecond(fimDoTeste.getEpochSecond()).plus(Duration.ofDays(7)));
 
         // Fim do teste, primeira cobranca paga: a Stripe manda a assinatura ativa com trial_end.
@@ -262,7 +262,7 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
         receber(evento("customer.subscription.updated", "active", agora.plus(Duration.ofDays(29)), agora)
                 .replace("\"start_date\"", "\"trial_end\":" + cobranca.getEpochSecond() + ",\"start_date\""));
 
-        assertThat(assinaturas.plano(conta.getId()).reembolsoAte())
+        assertThat(assinaturas.plano(conta.getId(), null).reembolsoAte())
                 .isEqualTo(Instant.ofEpochSecond(cobranca.getEpochSecond()).plus(Duration.ofDays(7)));
     }
 

@@ -67,11 +67,6 @@ public class AssinaturaService {
         this.diasDeTeste = diasDeTeste;
     }
 
-    @Transactional(readOnly = true)
-    public PlanoResponse plano(UUID usuarioId) {
-        return plano(usuarioId, null);
-    }
-
     /** @param campanha codigo de promocao do link; invalido mostra o teste normal (o checkout explica o erro) */
     @Transactional(readOnly = true)
     public PlanoResponse plano(UUID usuarioId, String campanha) {
@@ -87,14 +82,12 @@ public class AssinaturaService {
     }
 
     /**
-     * Teste gratis uma vez por pessoa: por conta e, para quem informou o CPF, por CPF (outra
-     * conta com o mesmo CPF, ativa ou ja excluida, que testou tira o teste desta). A busca e
-     * pelo HMAC do CPF.
+     * Teste gratis uma vez por pessoa: por conta e, para quem informou o CPF, por CPF (uma conta
+     * ja excluida com o mesmo CPF que testou tira o teste desta; ativa nao ha, o CPF e unico). A
+     * busca e pelo HMAC do CPF.
      */
     private boolean jaTestou(UserAccount conta) {
-        return conta.usouTesteGratis() || (conta.temCpf()
-                && (usuarios.existsByCpfIndiceAndIdNotAndTrialUsedAtIsNotNull(conta.getCpfIndice(), conta.getId())
-                || testes.cpfDeContaExcluidaTestou(conta.getCpfIndice())));
+        return conta.usouTesteGratis() || (conta.temCpf() && testes.cpfDeContaExcluidaTestou(conta.getCpfIndice()));
     }
 
     /**
@@ -117,11 +110,6 @@ public class AssinaturaService {
             throw new BusinessException("Esta promoção é para quem ainda não usou o teste grátis.");
         }
         return valida.diasDeTeste();
-    }
-
-    @Transactional(readOnly = true)
-    public String checkout(UUID usuarioId, Periodo periodo) {
-        return checkout(usuarioId, periodo, null);
     }
 
     @Transactional(readOnly = true)

@@ -30,10 +30,6 @@ public interface ProvedorDePagamento {
      */
     String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste, String campanha);
 
-    default String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste) {
-        return abrirCheckout(conta, periodo, diasDeTeste, null);
-    }
-
     /** Endereco onde a pessoa troca cartao, ve recibos e cancela. */
     String abrirPortal(UserAccount conta);
 

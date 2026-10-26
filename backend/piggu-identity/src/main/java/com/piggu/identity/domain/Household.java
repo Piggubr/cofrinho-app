@@ -150,16 +150,6 @@ public class Household {
     /**
      * Assinatura com o tipo do plano e quem assinou.
      *
-     * @param familia   plano familia (a casa toda) ou individual (so {@code assinante})
-     * @param assinante conta que pagou
-     */
-    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
-                                     boolean familia, UUID assinante) {
-        return aplicarAssinatura(origem, ate, momento, inicio,
-                familia ? TipoDePlano.FAMILIA : TipoDePlano.INDIVIDUAL, assinante);
-    }
-
-    /**
      * @param tipo      quem da casa fica Premium
      * @param assinante conta que pagou
      */

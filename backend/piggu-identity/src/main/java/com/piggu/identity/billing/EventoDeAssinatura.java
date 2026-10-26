@@ -25,29 +25,4 @@ public record EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Insta
     public EventoDeAssinatura {
         tipo = tipo == null ? TipoDePlano.INDIVIDUAL : tipo;
     }
-
-    public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
-                              Instant inicio, boolean emTeste, TipoDePlano tipo) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, inicio, emTeste, tipo, null, null, null);
-    }
-
-    public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
-                              Instant inicio, boolean emTeste, boolean familia) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, inicio, emTeste,
-                familia ? TipoDePlano.FAMILIA : TipoDePlano.INDIVIDUAL);
-    }
-
-    /** Plano familia: a casa toda. */
-    public boolean familia() {
-        return tipo == TipoDePlano.FAMILIA;
-    }
-
-    public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
-                              Instant inicio, boolean emTeste) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, inicio, emTeste, false);
-    }
-
-    public EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento) {
-        this(usuarioId, clienteNoProvedor, premiumAte, momento, null, false, false);
-    }
 }
