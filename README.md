@@ -62,6 +62,8 @@ Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
   ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
   `android-demo`).
 
+O que está sendo feito agora, o que vem depois e o que é só ideia: [docs/ROADMAP.md](docs/ROADMAP.md).
+
 ## Subindo tudo
 
 ```bash
