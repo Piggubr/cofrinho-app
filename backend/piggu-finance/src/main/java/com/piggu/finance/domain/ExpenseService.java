@@ -115,7 +115,7 @@ public class ExpenseService {
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
                 .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, usuarioId,
-                        regrasDaFamilia, parcelas).stream())
+                        regrasDaFamilia, parcelas, conta).stream())
                 .toList();
         gastos.forEach(gasto -> {
             gasto.pagarCom(pedido.contaId());
@@ -376,7 +376,7 @@ public class ExpenseService {
     /** Um item vira uma linha; parcelado, uma linha por mes com o valor dividido (o centavo que sobra vai na ultima). */
     private List<Expense> montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
                                  String estabelecimento, String origem, UUID usuarioId,
-                                 List<CategoryRule> regrasDaFamilia, int parcelas) {
+                                 List<CategoryRule> regrasDaFamilia, int parcelas, PaymentAccount conta) {
         if ((item.moedaOriginal() == null) != (item.valorOriginal() == null)) {
             throw new BusinessException("Informe a moeda e o valor original juntos.");
         }
@@ -385,7 +385,7 @@ public class ExpenseService {
         BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
         return IntStream.range(0, parcelas).mapToObj(i -> {
             Expense gasto = new Expense(
-                    data.plusMonths(i),
+                    dataDaParcela(data, i, conta),
                     reciboId,
                     estabelecimento,
                     Texto.limitar(item.item(), 200),
@@ -407,5 +407,21 @@ public class ExpenseService {
             }
             return gasto;
         }).toList();
+    }
+
+    /**
+     * Um mes depois da anterior; no cartao, dentro da fatura seguinte. Com fechamento no dia 29,
+     * 28/01 mais um mes cai no fechamento de fevereiro e pularia para a fatura de marco.
+     */
+    private static LocalDate dataDaParcela(LocalDate data, int i, PaymentAccount conta) {
+        LocalDate dia = data.plusMonths(i);
+        if (conta == null || conta.getKind() != PaymentAccount.Tipo.CARTAO || conta.getClosingDay() == null
+                || conta.getDueDay() == null) {
+            return dia;
+        }
+        // So passa do fim da fatura, nunca fica antes do inicio.
+        LocalDate ultimaCompra = ContasECartoes.periodo(conta.getClosingDay(), conta.getDueDay(),
+                ContasECartoes.mesDaFaturaAberta(conta.getClosingDay(), data).plusMonths(i)).ultimaCompra();
+        return dia.isAfter(ultimaCompra) ? ultimaCompra : dia;
     }
 }

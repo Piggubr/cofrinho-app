@@ -641,7 +641,9 @@ erDiagram
 
 Um gasto parcelado em N vezes (2 a 48) vira N linhas em `expenses`, uma por mês:
 
-- `expense_date` avança um mês por parcela (a primeira é a data da compra);
+- `expense_date` avança um mês por parcela (a primeira é a data da compra); no cartão, a
+  parcela que passaria do fim da fatura seguinte fica no último dia de compra dela (fechamento
+  no dia 29: a de 28/01 vai para 27/02, não para a fatura de março);
 - todas têm o mesmo `receipt_id` e o mesmo `item`, `installment_count = N` e
   `installment_number` de 1 a N;
 - o valor é dividido para baixo e o centavo que sobra vai na **última** parcela (o valor

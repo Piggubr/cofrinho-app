@@ -63,6 +63,21 @@ class ContasECartoesTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("cartao que fecha dia 29, 3x em 28/01: fevereiro curto nao fica sem parcela")
+    void parcelasEmFevereiro() throws Exception {
+        String cartao = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Inter\",\"tipo\":\"CARTAO\",\"fechamento\":29,\"vencimento\":8}").path("id").asString();
+
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2027-01-28\",\"contaId\":\"" + cartao
+                + "\",\"parcelas\":3,\"itens\":[{\"item\":\"Geladeira\",\"valor\":300}]}");
+
+        for (String mes : new String[] {"2027-01", "2027-02", "2027-03"}) {
+            mockMvc.perform(get("/api/accounts/" + cartao + "/statement").param("mes", mes).with(casas.casaA))
+                    .andExpect(jsonPath("$.fatura.total").value(100.0));
+        }
+    }
+
+    @Test
     @DisplayName("cartao de outra familia nao serve para lancar nem para ver fatura; conta apagada solta os gastos")
     void isolamento() throws Exception {
         String conta = casas.criar("/api/accounts", casas.casaA, "{\"nome\":\"Conta corrente\",\"tipo\":\"CONTA\"}")
