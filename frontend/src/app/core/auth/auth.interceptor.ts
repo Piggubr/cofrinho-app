@@ -17,8 +17,8 @@ const ROTAS_ABERTAS = [
 /**
  * Anexa o token em cada chamada e renova quando ele vence.
  *
- * <p>Um 401 dispara uma renovacao e a chamada e repetida uma unica vez. Se a
- * renovacao tambem falhar, a sessao acabou de verdade e o app volta para o login.</p>
+ * <p>Um 401 dispara uma renovacao e a chamada e repetida uma unica vez. Se o servidor
+ * recusar a renovacao (401 ou 403), a sessao acabou de verdade e o app volta para o login.</p>
  */
 export function authInterceptor(
   pedido: HttpRequest<unknown>,
@@ -41,15 +41,23 @@ export function authInterceptor(
         return throwError(() => erro);
       }
 
+      // So a renovacao recusada encerra a sessao; o erro da chamada repetida segue para quem chamou.
       return auth.renovar().pipe(
-        switchMap((tokens) => proximo(comToken(pedido, tokens.accessToken))),
         catchError((falhaNaRenovacao: unknown) => {
-          void auth.encerrarLocalmente();
+          // Sem sinal ou servidor fora nao e sessao vencida: o app segue com o perfil guardado.
+          if (sessaoRecusada(falhaNaRenovacao)) {
+            void auth.encerrarLocalmente();
+          }
           return throwError(() => falhaNaRenovacao);
         }),
+        switchMap((tokens) => proximo(comToken(pedido, tokens.accessToken))),
       );
     }),
   );
+}
+
+function sessaoRecusada(erro: unknown): boolean {
+  return erro instanceof HttpErrorResponse && (erro.status === 401 || erro.status === 403);
 }
 
 function comToken(pedido: HttpRequest<unknown>, token: string | null): HttpRequest<unknown> {
