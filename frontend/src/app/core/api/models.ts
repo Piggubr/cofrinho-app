@@ -266,6 +266,11 @@ export interface NovoLancamento {
   recorrente?: boolean | null;
   /** Aparece para todos da familia; ausente segue a conta (a do casal compartilha). */
   compartilhado?: boolean | null;
+  /**
+   * UUID de cada lancamento: o servidor grava uma vez so por id, entao reenviar da fila
+   * depois de uma resposta perdida nao duplica o gasto.
+   */
+  idDoEnvio?: string | null;
 }
 
 export interface ReciboLido {

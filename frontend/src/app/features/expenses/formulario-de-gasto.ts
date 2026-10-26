@@ -286,6 +286,8 @@ export class FormularioDeGasto {
       dividirCom: this.dividirCom().length ? this.dividirCom() : null,
       recorrente: this.modo() === 'RECORRENTE' || null,
       compartilhado: this.compartilhadoEfetivo(),
+      // Sem resposta (status 0) o servidor pode ter gravado: a fila reenvia com o mesmo id.
+      idDoEnvio: crypto.randomUUID(),
     };
     this.finance.lancarGastos(pedido).subscribe({
       next: (salvos) => {
