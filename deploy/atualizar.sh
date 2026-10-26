@@ -10,9 +10,11 @@
 # estar na branch de producao. Tambem roda a mao:  deploy/atualizar.sh <sha>
 #
 # Imagens: o CI ja compilou, testou e publicou as imagens do commit no GitHub (ghcr.io, job
-# "imagens"); aqui elas so sao baixadas. O Actions manda pela entrada um token que so vale
-# ate o job acabar. Sem imagem no registro (commit antigo, ou a mao sem token num pacote
-# privado) ou com imagem de outro processador, o script compila aqui mesmo, como antes.
+# "imagens-da-main"); aqui elas so sao baixadas. O Actions manda pela entrada um token que
+# so vale ate o job acabar e, na linha seguinte, o digest de cada imagem que publicou: so
+# esses sao baixados. A tag do registro nunca: qualquer token com escrita no pacote pode
+# reescreve-la depois do CI. Sem digests (rollback, ou a mao) valem as imagens do commit que
+# ja estao aqui; sem elas, ou com imagem de outro processador, o script compila aqui mesmo.
 #
 # Rollback: se a versao nova nao fica saudavel em 5 minutos, o script volta sozinho para o
 # commit que estava no ar e termina com erro (o job fica vermelho). As migracoes de banco
@@ -54,9 +56,14 @@ main() {
 
   # O token do registro chega pela entrada, numa linha (so o Actions manda). A mao, no
   # terminal, nao ha token: segue sem ele.
-  local token=""
+  local token="" digests=""
   if [[ ! -t 0 ]]; then
     IFS= read -r -t 10 token || true
+    IFS= read -r -t 10 digests || true
+  fi
+  if [[ -n $digests ]] && ! digests_validos "$digests"; then
+    echo "Os digests das imagens nao vieram certos; nada foi feito." >&2
+    exit 2
   fi
 
   echo "==> Buscando $RAMO"
@@ -69,7 +76,7 @@ main() {
   local antes
   antes=$(git rev-parse HEAD)
 
-  if publicar "$sha" "$token"; then
+  if publicar "$sha" "$token" "$digests"; then
     limpar_imagens "$sha" "$antes"
     echo "==> Piggu em ${sha:0:7}"
     return 0
@@ -80,7 +87,8 @@ main() {
     exit 1
   fi
   echo "==> ${sha:0:7} nao ficou saudavel; voltando para ${antes:0:7}" >&2
-  if publicar "$antes" "$token"; then
+  # Sem digests: a versao anterior volta com as imagens que ja estao aqui.
+  if publicar "$antes" "$token" ""; then
     echo "==> Rollback feito: o servidor continua em ${antes:0:7}. O deploy de ${sha:0:7} falhou." >&2
   else
     echo "==> Nem ${antes:0:7} ficou saudavel. Veja: docker compose logs --tail 50 <servico>" >&2
@@ -91,7 +99,7 @@ main() {
 # Poe o servidor no commit $1 e espera os servicos do app ficarem saudaveis.
 # Chamada dentro de um if, onde o set -e nao vale: cada passo confere o proprio erro.
 publicar() {
-  local alvo=$1 token=$2 de
+  local alvo=$1 token=$2 digests=$3 de
   de=$(git rev-parse HEAD)
   git checkout --quiet -B "$RAMO" "$alvo" || return 1
 
@@ -103,9 +111,9 @@ publicar() {
   # O docker-compose.yml monta o nome de cada imagem com estas duas.
   export PIGGU_IMAGENS=$REGISTRO PIGGU_VERSAO=$alvo
 
-  echo "==> Baixando as imagens de ${alvo:0:7}"
-  if ! baixar_imagens "$token" "${perfis[@]}"; then
-    echo "==> Sem imagens no registro; compilando aqui"
+  echo "==> Imagens de ${alvo:0:7}"
+  if ! imagens_de "$token" "$digests"; then
+    echo "==> Sem as imagens conferidas; compilando aqui"
     (cd frontend && npm ci --no-audit --no-fund --loglevel=error && npm run build) || return 1
     (cd backend && docker compose "${perfis[@]}" build "${SERVICOS_DO_APP[@]}") || return 1
   fi
@@ -121,14 +129,43 @@ publicar() {
   esperar_saude
 }
 
-# Baixa as imagens do app; falha se alguma nao existir no registro.
+# "servico@sha256:<64 hex>" para cada servico do app, separados por espaco.
+digests_validos() {
+  local item servico
+  for item in $1; do
+    [[ $item =~ ^[a-z-]+@sha256:[0-9a-f]{64}$ ]] || return 1
+  done
+  for servico in "${SERVICOS_DO_APP[@]}"; do
+    [[ " $1 " == *" $servico@sha256:"* ]] || return 1
+  done
+}
+
+# Com digests, baixa exatamente essas imagens; sem eles, usa as do commit ja guardadas aqui.
+imagens_de() {
+  local token=$1 digests=$2 servico
+  if [[ -n $digests ]]; then
+    baixar_imagens "$token" "$digests"
+    return
+  fi
+  for servico in "${SERVICOS_DO_APP[@]}"; do
+    docker image inspect "$PIGGU_IMAGENS/$servico:$PIGGU_VERSAO" > /dev/null 2>&1 || return 1
+  done
+  imagens_da_plataforma_daqui
+}
+
+# Baixa cada imagem pelo digest e da a ela a tag que o docker-compose.yml usa.
 baixar_imagens() {
-  local token=$1 resultado=0
-  shift
+  local token=$1 digests=$2 resultado=0 item
   if [[ -n $token ]]; then
     printf '%s' "$token" | docker login ghcr.io -u piggu-deploy --password-stdin > /dev/null 2>&1 || true
   fi
-  (cd backend && docker compose "$@" pull --quiet "${SERVICOS_DO_APP[@]}") || resultado=1
+  for item in $digests; do
+    if ! docker pull --quiet "$REGISTRO/$item" > /dev/null \
+      || ! docker tag "$REGISTRO/$item" "$PIGGU_IMAGENS/${item%@*}:$PIGGU_VERSAO"; then
+      resultado=1
+      break
+    fi
+  done
   # O token morre com o job, mas nao fica gravado no servidor nem ate la.
   if [[ -n $token ]]; then
     docker logout ghcr.io > /dev/null 2>&1 || true

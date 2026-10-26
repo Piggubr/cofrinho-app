@@ -340,8 +340,10 @@ a última execução do CI na branch e use *Re-run all jobs*. Para publicar à m
 servidor: `/opt/piggu/deploy/atualizar.sh <sha>`.
 
 Para voltar a uma versão anterior à mão: `/opt/piggu/deploy/atualizar.sh <sha antigo>` (o
-sha precisa estar na branch; o de cada versão está em *Releases*). Sem token, ele baixa a
-imagem se o pacote for público, ou compila no servidor. As migrações de banco não voltam
+sha precisa estar na branch; o de cada versão está em *Releases*). À mão não há os digests
+que o CI manda, então ele usa as imagens daquele commit que já estão no servidor (as da
+versão no ar e da anterior ficam guardadas) ou compila no servidor; a tag do registro nunca
+é baixada, porque pode ter sido reescrita depois do CI. As migrações de banco não voltam
 sozinhas; se a versão nova mudou o banco de um jeito que a antiga não entende, restaure o
 backup da noite (seção 6).
 
