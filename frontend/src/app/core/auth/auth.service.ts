@@ -163,6 +163,8 @@ export class AuthService {
     const tokens = await firstValueFrom(
       this.http.post<ParDeTokens>(`${this.config.apiUrl}${rota}`, corpo, { withCredentials: true }),
     );
+    // O cache das listas e por endereco: as de quem entrou antes nao servem para esta conta.
+    await esquecerListasGuardadas();
     this.storage.guardar(tokens);
     this.usuarioAtual.set(tokens.usuario);
     if (lembrar) {
@@ -184,10 +186,16 @@ export class AuthService {
       return true;
     } catch (erro) {
       this.storage.limpar();
+      const status = erro instanceof HttpErrorResponse ? erro.status : null;
+      if (status === 401 || status === 403) {
+        // Sessao vencida: o perfil e as listas de quem estava aqui nao ficam no aparelho.
+        esquecerPerfilOffline();
+        await esquecerListasGuardadas();
+        return false;
+      }
       // Sem sinal (status 0) nao e sessao vencida: abre com o perfil guardado, e o
       // primeiro pedido com rede renova o token pelo cookie.
-      const perfil =
-        erro instanceof HttpErrorResponse && erro.status === 0 ? lerPerfilOffline() : null;
+      const perfil = status === 0 ? lerPerfilOffline() : null;
       if (perfil) {
         this.usuarioAtual.set(perfil);
         return true;

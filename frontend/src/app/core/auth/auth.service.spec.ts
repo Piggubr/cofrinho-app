@@ -183,6 +183,19 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBeNull();
   });
 
+  it('sessao vencida esquece o perfil guardado; sem sinal ele fica', async () => {
+    localStorage.setItem('piggu_perfil_offline', JSON.stringify(tokens().usuario));
+    let restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').error(new ProgressEvent('error'), { status: 0 });
+    expect(await restaurada).toBe(true);
+    expect(localStorage.getItem('piggu_perfil_offline')).not.toBeNull();
+
+    restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+    expect(await restaurada).toBe(false);
+    expect(localStorage.getItem('piggu_perfil_offline')).toBeNull();
+  });
+
   it('sem sinal e com "manter conectado": abre com o perfil guardado', async () => {
     localStorage.setItem('piggu_perfil_offline', JSON.stringify(tokens().usuario));
     const restaurada = auth.restaurarSessao();
