@@ -3,7 +3,7 @@ import Testing
 @testable import Piggu
 
 /// Dublê que responde na ordem combinada e guarda o que recebeu.
-private actor TransporteRoteirizado: Transporte {
+actor TransporteRoteirizado: Transporte {
     private var roteiro: [(status: Int, corpo: String)]
     private(set) var recebidos: [URLRequest] = []
 
@@ -19,7 +19,7 @@ private actor TransporteRoteirizado: Transporte {
     }
 }
 
-private let tokensNovos = """
+let tokensNovos = """
 {"accessToken":"novo","expiresIn":1800,"usuario":{"id":"u1","email":"ana@example.com","nome":"Ana Souza",
 "primeiroNome":"Ana","apelido":null,"foto":null,"role":"MEMBRO","ativo":true,"plano":"GRATUITO",
 "premiumAte":null,"familia":"f1"}}
@@ -94,7 +94,7 @@ struct ClienteDaAPITests {
         let transporte = TransporteRoteirizado([(400, #"{"erro":"E-mail ou senha incorretos.","codigo":"X"}"#)])
         let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
 
-        await #expect(throws: ErroDaAPI.servidor(status: 400, mensagem: "E-mail ou senha incorretos.")) {
+        await #expect(throws: ErroDaAPI.servidor(status: 400, mensagem: "E-mail ou senha incorretos.", codigo: "X")) {
             let _: ParDeTokens = try await cliente.post(
                 "/auth/entrar", corpo: PedidoDeLogin(email: "a@b.c", senha: "x", lembrar: true), aberta: true)
         }

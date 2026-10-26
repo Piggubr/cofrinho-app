@@ -16,6 +16,14 @@ struct RotaTests {
         ("piggu://perfil", .aba(.mais)),
         ("https://piggu.com.br/relatorios", .aba(.relatorios)),
         ("https://www.piggu.com.br/", .aba(.painel)),
+        // Os links dos e-mails do backend (ConfirmacaoDeEmail, RedefinicaoDeSenha).
+        ("https://piggu.com.br/confirmar-email?token=abc", .confirmarEmail(token: "abc")),
+        ("https://piggu.com.br/redefinir-senha?token=xyz", .redefinirSenha(token: "xyz")),
+        ("https://piggu.com.br/redefinir-senha", .redefinirSenha(token: "")),
+        ("piggu://termos", .textoLegal(.termos)),
+        ("piggu://privacidade", .textoLegal(.privacidade)),
+        ("https://piggu.com.br/esqueci-senha", .esqueciSenha),
+        ("piggu://cpf", .cpf),
     ])
     func abreARota(link: String, esperada: Rota) {
         #expect(Rota(url: URL(string: link)!) == esperada)
