@@ -73,12 +73,6 @@ public class ContasECartoes {
         }).toList();
     }
 
-    @Transactional
-    public Conta criar(String nomeBruto, PaymentAccount.Tipo tipo, Integer fechamento, Integer vencimento,
-                       UUID pessoa) {
-        return criar(nomeBruto, tipo, fechamento, vencimento, pessoa, false);
-    }
-
     /** @param compartilhado conta ou cartao do casal: o que for lancado nela ja nasce compartilhado */
     @Transactional
     public Conta criar(String nomeBruto, PaymentAccount.Tipo tipo, Integer fechamento, Integer vencimento,

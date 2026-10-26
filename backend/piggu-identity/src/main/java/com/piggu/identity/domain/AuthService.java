@@ -159,14 +159,11 @@ public class AuthService {
 
         if (!conta.isEmailVerified()) {
             // Alguem cadastrou este e-mail por senha antes, sem provar que era dele. O provedor
-            // acabou de provar quem e o dono: a senha de quem cadastrou deixa de valer e as
-            // sessoes abertas com ela caem. Se foi o proprio dono, ele cria outra no Perfil.
-            if (conta.temSenha()) {
-                conta.apagarSenha();
-                sessoes.apagarPorUsuario(conta.getId());
-                log.warn("Senha apagada no primeiro login {} de conta sem e-mail confirmado: conta={}",
-                        provedor, conta.getId());
-            }
+            // acabou de provar quem e o dono: sai o que quem cadastrou deixou (senha, sessoes,
+            // aparelhos, dados presos a conta). Se foi o proprio dono, ele refaz no Perfil.
+            familias.devolverAoDono(conta);
+            log.warn("Primeiro login {} em conta sem e-mail confirmado: conta devolvida ao dono, conta={}",
+                    provedor, conta.getId());
             conta.confirmarEmail();
         }
         return conta;
@@ -250,7 +247,7 @@ public class AuthService {
     public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent,
                                         String origem) {
         Instant agora = Instant.now();
-        UserAccount conta = usuarios.findByEmail(Texto.email(emailBruto)).orElse(null);
+        UserAccount conta = usuarios.travarParaLogin(Texto.email(emailBruto)).orElse(null);
         if (conta == null) {
             senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
@@ -289,6 +286,10 @@ public class AuthService {
     /** Conta um erro deste IP na conta; no limite trava este IP e recomeca a contagem. */
     private void errouDe(String chave, Instant agora) {
         errosPorOrigem.compute(chave, (k, atual) -> {
+            // Trava ainda valendo fica: um erro que chega depois nao a desfaz.
+            if (atual != null && atual.travadaAte() != null && atual.travadaAte().isAfter(agora)) {
+                return atual;
+            }
             int erros = (atual == null || atual.travadaAte() != null ? 0 : atual.erros()) + 1;
             return erros >= TENTATIVAS_DE_SENHA ? new ErrosDaOrigem(0, agora.plus(TRAVA_DA_SENHA))
                     : new ErrosDaOrigem(erros, null);
@@ -407,6 +408,7 @@ public class AuthService {
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
         if (mostrarTudoAoParceiro) {
+            FamiliaService.exigirEmailConfirmado(conta);
             UserAccount parceiro = parceiroDe(conta).orElseThrow(() -> new BusinessException(
                     "Você ainda não tem parceiro na família. Convide alguém como parceiro primeiro.",
                     HttpStatus.CONFLICT, "SEM_PARCEIRO"));
@@ -429,6 +431,13 @@ public class AuthService {
                 .filter(outro -> !outro.getId().equals(conta.getId()))
                 .filter(outroLado)
                 .min(Comparator.comparing(outro -> outro.getRole() == PigguRole.TITULAR ? 0 : 1));
+    }
+
+    /** O aparelho de push recebe os avisos da conta: so com o e-mail provado. */
+    @Transactional(readOnly = true)
+    public void exigirEmailConfirmado(java.util.UUID usuarioId) {
+        FamiliaService.exigirEmailConfirmado(usuarios.findById(usuarioId)
+                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente.")));
     }
 
     @Transactional

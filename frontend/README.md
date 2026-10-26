@@ -174,7 +174,7 @@ delicadas:
 
 | Arquivo | O que protege |
 |---|---|
-| `auth.interceptor.spec.ts` | Anexa token, renova no 401, uma renovação para chamadas simultâneas, encerra sessão quando o refresh falha |
+| `auth.interceptor.spec.ts` | Anexa token, renova no 401, uma renovação para chamadas simultâneas, encerra sessão só quando o refresh é recusado (401 ou 403) |
 | `token-storage.spec.ts` | Lembrar usa localStorage, não lembrar usa sessionStorage |
 | `datas.spec.ts` | Chave de mês, data ISO sem fuso, grade do calendário |
 | `mensagem-de-erro.spec.ts` | Mostra a mensagem do backend, nunca um objeto cru |

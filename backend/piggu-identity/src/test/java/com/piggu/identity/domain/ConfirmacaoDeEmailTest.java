@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 class ConfirmacaoDeEmailTest {
@@ -32,7 +32,7 @@ class ConfirmacaoDeEmailTest {
         }
         confirmacao.avisarCadastroRepetido(outra);
 
-        verify(email, times(1)).enviar(eq("dona@exemplo.test"), anyString(), anyString());
-        verify(email, times(1)).enviar(eq("outra@exemplo.test"), anyString(), anyString());
+        verify(email, timeout(5000).times(1)).enviar(eq("dona@exemplo.test"), anyString(), anyString());
+        verify(email, timeout(5000).times(1)).enviar(eq("outra@exemplo.test"), anyString(), anyString());
     }
 }

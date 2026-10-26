@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -102,6 +103,36 @@ class ContasFixasTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/history").param("entidade", "gasto").with(doTitular))
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(titular).toString()));
+    }
+
+    @Test
+    @DisplayName("no casal com o mesmo produto na memoria, o job lanca a conta com a categoria dela")
+    void automaticoNoCasal() throws Exception {
+        UUID familia = UUID.randomUUID();
+        String titular = "casal-titular-" + familia + "@piggu.test";
+        RequestPostProcessor ela = TokensDeTeste.da(familia, titular, PigguRole.TITULAR);
+        RequestPostProcessor ele = TokensDeTeste.da(familia, "casal-parceiro-" + familia + "@piggu.test",
+                PigguRole.PARCEIRO);
+        for (RequestPostProcessor quem : new RequestPostProcessor[] {ela, ele}) {
+            mockMvc.perform(post("/api/expenses").with(quem).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Celular\",\"valor\":50}]}"))
+                    .andExpect(status().isCreated());
+        }
+        // A regra dele nao vale para a conta dela.
+        mockMvc.perform(put("/api/categories/rules").with(ele).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"termo\":\"celular\",\"categoria\":\"Lazer\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/bills").with(ela).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"descricao\":\"Celular\",\"categoria\":\"Assinaturas\",\"valor\":60,\"dia\":5,\"automatico\":true}"))
+                .andExpect(status().isCreated());
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 10, 9));
+
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-10").with(ela))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].categoria").value("Assinaturas"));
+        mockMvc.perform(get("/api/products").with(ela))
+                .andExpect(jsonPath("$[0].compras").value(2));
     }
 
     private void criarConta(RequestPostProcessor quem, String descricao, int dia, boolean automatico) throws Exception {

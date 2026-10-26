@@ -153,10 +153,6 @@ public class RecurringBill {
         return accountId;
     }
 
-    public void pagarCom(UUID accountId) {
-        this.accountId = accountId;
-    }
-
     /** So quem lancou decide; quem chama confere ({@code CurrentUser#podeGerenciar}). */
     public void compartilhar(boolean compartilhado) {
         this.shared = compartilhado;

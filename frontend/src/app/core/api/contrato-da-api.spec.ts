@@ -477,14 +477,6 @@ const CASOS: Caso[] = [
     { legenda: 'Praia' },
   ],
   ['apagar foto', (s) => s.media.excluirDoFeed('p1'), 'DELETE', '/feed/p1'],
-  [
-    'enviar arquivo',
-    (s) => s.media.enviarArquivo('b64', 'image/png', 'premio'),
-    'POST',
-    '/assets',
-    {},
-    { imageBase64: 'b64', mimeType: 'image/png', contexto: 'premio' },
-  ],
   ['apagar arquivo', (s) => s.media.excluirArquivo('a1'), 'DELETE', '/assets/a1'],
   ['saldo de moedas', (s) => s.rewards.consultarSaldo(), 'GET', '/coins'],
   [

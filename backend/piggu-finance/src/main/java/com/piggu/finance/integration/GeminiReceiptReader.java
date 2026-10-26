@@ -2,6 +2,7 @@ package com.piggu.finance.integration;
 
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
+import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
@@ -73,7 +74,7 @@ public class GeminiReceiptReader {
                     "A leitura de recibos por foto nao esta configurada. Adicione os itens a mao.");
         }
 
-        LocalDate hoje = LocalDate.now();
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         String resposta = chamarGemini(pedido, hoje);
         JsonNode lido = desserializar(resposta);
 

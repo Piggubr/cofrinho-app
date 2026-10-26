@@ -4,6 +4,7 @@ import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.DepositRequest;
 import com.piggu.finance.api.dto.DepositResponse;
 import com.piggu.finance.api.dto.PiggyBankResponse;
@@ -69,7 +70,7 @@ public class PiggyBankService {
 
     @Transactional
     public DepositResponse depositar(DepositRequest pedido, CurrentUser usuario) {
-        LocalDate data = pedido.data() == null ? LocalDate.now() : pedido.data();
+        LocalDate data = pedido.data() == null ? LocalDate.now(Meses.BRASILIA) : pedido.data();
         UUID objetivo = pedido.objetivo();
         if (objetivo != null) {
             // Objetivo de outra pessoa ou familia nem aparece: os filtros respondem 404.

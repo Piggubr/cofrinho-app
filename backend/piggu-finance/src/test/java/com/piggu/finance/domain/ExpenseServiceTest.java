@@ -135,7 +135,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
     void gastoInexistente() {
         UUID ausente = UUID.randomUUID();
 
-        assertThatThrownBy(() -> gastos.excluir(ausente, DONO))
+        assertThatThrownBy(() -> gastos.excluir(ausente, DONO, false))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Gasto nao encontrado.");
     }

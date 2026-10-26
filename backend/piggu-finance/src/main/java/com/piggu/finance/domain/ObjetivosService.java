@@ -5,6 +5,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import com.piggu.common.web.Meses;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -70,15 +71,10 @@ public class ObjetivosService {
         for (Object[] linha : depositos.somarPorObjetivo()) {
             guardados.put((UUID) linha[0], (BigDecimal) linha[1]);
         }
-        LocalDate hoje = LocalDate.now();
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         return objetivos.findAllByOrderByCreatedAtAsc().stream()
                 .map(objetivo -> situacao(objetivo, guardados.getOrDefault(objetivo.getId(), BigDecimal.ZERO), hoje))
                 .toList();
-    }
-
-    @Transactional
-    public Situacao criar(String nome, BigDecimal alvo, LocalDate prazo, CurrentUser usuario) {
-        return criar(nome, alvo, prazo, false, usuario);
     }
 
     @Transactional
@@ -91,7 +87,7 @@ public class ObjetivosService {
         novo.compartilhar(compartilhado);
         SavingsGoal objetivo = objetivos.save(novo);
         trilha.criou("objetivo", objetivo.getId(), Resumos.objetivo(objetivo));
-        return situacao(objetivo, BigDecimal.ZERO, LocalDate.now());
+        return situacao(objetivo, BigDecimal.ZERO, LocalDate.now(Meses.BRASILIA));
     }
 
     /**

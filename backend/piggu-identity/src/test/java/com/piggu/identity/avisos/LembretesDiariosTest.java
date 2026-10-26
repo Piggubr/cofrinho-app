@@ -146,7 +146,7 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     void membroFora() {
         familias.convidar(new CurrentUser(ana.getId(), ana.getEmail(), ana.getRole(), null, ana.getHouseholdId()),
                 "bia@familia.test");
-        UserAccount bia = familias.criarConta("bia@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount bia = com.piggu.identity.domain.Convidados.entrar(familias, convites, usuarios, "bia@familia.test", "Bia");
         auth.escolherAvisos(bia.getId(), true, true);
 
         assertThat(usuarios.comAvisosLigados()).isEmpty();

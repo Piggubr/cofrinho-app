@@ -331,14 +331,19 @@ jobs:
   # enquanto so informa (nao falha); o resultado fica no log deste job.
   # As imagens sao da plataforma do servidor, nao da do CI: o servidor da Oracle e ARM
   # (linux/arm64). Servidor Intel: crie a variavel PIGGU_PLATAFORMA=linux/amd64.
+  #
+  # O mesmo job duas vezes (o segundo repete env e passos pelo anchor do YAML), so com o
+  # token diferente. Aqui roda codigo de dependencia (npm ci, build da imagem): num PR, do
+  # Dependabot inclusive, o token so le, para ninguem conseguir reescrever imagem no
+  # registro. So o "na main", com o codigo ja na branch, escreve e publica.
   imagens:
     name: Imagens Docker (Trivy e GHCR)
+    if: github.event_name != 'push' || github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:
       contents: read
-      packages: write
-    env:
+    env: &env-das-imagens
       PIGGU_IMAGENS: ghcr.io/piggubr/cofrinho-app
       PIGGU_VERSAO: ${{ github.sha }}
       PLATAFORMA: ${{ vars.PIGGU_PLATAFORMA || 'linux/arm64' }}
@@ -347,8 +352,11 @@ jobs:
       DOMINIO: x
       EMAIL_DO_CERTIFICADO: x
       SERVICOS: identity finance rewards lifestyle media gateway web
-    steps:
+    steps: &passos-das-imagens
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # O token nao fica no .git/config, ao alcance do npm ci e do build.
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
@@ -403,6 +411,7 @@ jobs:
             echo "::endgroup::"
           done
       - name: Publicar as imagens no GitHub (ghcr.io)
+        id: publicacao
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: backend
         env:
@@ -413,6 +422,26 @@ jobs:
           # shellcheck disable=SC2086
           docker compose --profile producao push $SERVICOS
           docker logout ghcr.io
+          # O servidor baixa por estes digests, nao pela tag: tag no registro pode ser reescrita.
+          digests=""
+          for servico in $SERVICOS; do
+            digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "$PIGGU_IMAGENS/$servico:$PIGGU_VERSAO")
+            digests+="$servico@${digest#*@} "
+          done
+          echo "digests=${digests% }" >> "$GITHUB_OUTPUT"
+
+  imagens-da-main:
+    name: Imagens Docker (Trivy e GHCR) na main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digests: ${{ steps.publicacao.outputs.digests }}
+    env: *env-das-imagens
+    steps: *passos-das-imagens
 
   # Atualiza o servidor depois que todos os jobs acima passam num push na main (a
   # branch de producao). Desligado ate a variavel DEPLOY_LIGADO=true existir no
@@ -431,7 +460,7 @@ jobs:
       - frontend
       - e2e
       - stack
-      - imagens
+      - imagens-da-main
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
@@ -461,15 +490,17 @@ jobs:
       # No servidor, a chave so roda deploy/atualizar.sh, que confere se o commit esta
       # na branch de producao, baixa as imagens, sobe e espera os servicos ficarem
       # saudaveis; se nao ficarem, volta sozinho para a versao anterior e o job falha.
-      # O token vai pela entrada, nunca na linha de comando.
+      # O token vai pela entrada, nunca na linha de comando; na linha seguinte, os digests
+      # das imagens que este CI publicou, que sao as unicas que o servidor aceita baixar.
       - name: Atualizar o servidor
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
           # Usuario do servidor; o guia cria o "ubuntu" em qualquer provedor.
           USUARIO: ${{ vars.DEPLOY_USUARIO || 'ubuntu' }}
           TOKEN: ${{ github.token }}
+          DIGESTS: ${{ needs.imagens-da-main.outputs.digests }}
         run: >-
-          printf '%s\n' "$TOKEN" |
+          printf '%s\n%s\n' "$TOKEN" "$DIGESTS" |
           ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o BatchMode=yes "$USUARIO@$HOST" "$GITHUB_SHA"
 
   # Cada publicacao vira uma versao em Releases: tag vAAAA.MM.DD (.2, .3... se sair mais de

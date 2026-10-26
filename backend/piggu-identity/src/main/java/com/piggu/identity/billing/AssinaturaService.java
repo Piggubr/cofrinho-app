@@ -43,17 +43,17 @@ public class AssinaturaService {
 
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
-    private final ProvedorDePagamento pagamentos;
+    private final StripePagamentos pagamentos;
 
-    private final LojaDeApps lojas;
+    private final RevenueCatLoja lojas;
     private final JdbcTemplate jdbc;
     private final TestesGratis testes;
     private final CanalDeEmail email;
     private final int diasDeTeste;
     private final boolean openFinance;
 
-    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
-                             LojaDeApps lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, StripePagamentos pagamentos,
+                             RevenueCatLoja lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
                              @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
                              @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
         this.openFinance = openFinance;
@@ -65,11 +65,6 @@ public class AssinaturaService {
         this.testes = testes;
         this.email = email;
         this.diasDeTeste = diasDeTeste;
-    }
-
-    @Transactional(readOnly = true)
-    public PlanoResponse plano(UUID usuarioId) {
-        return plano(usuarioId, null);
     }
 
     /** @param campanha codigo de promocao do link; invalido mostra o teste normal (o checkout explica o erro) */
@@ -87,14 +82,12 @@ public class AssinaturaService {
     }
 
     /**
-     * Teste gratis uma vez por pessoa: por conta e, para quem informou o CPF, por CPF (outra
-     * conta com o mesmo CPF, ativa ou ja excluida, que testou tira o teste desta). A busca e
-     * pelo HMAC do CPF.
+     * Teste gratis uma vez por pessoa: por conta e, para quem informou o CPF, por CPF (uma conta
+     * ja excluida com o mesmo CPF que testou tira o teste desta; ativa nao ha, o CPF e unico). A
+     * busca e pelo HMAC do CPF.
      */
     private boolean jaTestou(UserAccount conta) {
-        return conta.usouTesteGratis() || (conta.temCpf()
-                && (usuarios.existsByCpfIndiceAndIdNotAndTrialUsedAtIsNotNull(conta.getCpfIndice(), conta.getId())
-                || testes.cpfDeContaExcluidaTestou(conta.getCpfIndice())));
+        return conta.usouTesteGratis() || (conta.temCpf() && testes.cpfDeContaExcluidaTestou(conta.getCpfIndice()));
     }
 
     /**
@@ -117,11 +110,6 @@ public class AssinaturaService {
             throw new BusinessException("Esta promoção é para quem ainda não usou o teste grátis.");
         }
         return valida.diasDeTeste();
-    }
-
-    @Transactional(readOnly = true)
-    public String checkout(UUID usuarioId, Periodo periodo) {
-        return checkout(usuarioId, periodo, null);
     }
 
     @Transactional(readOnly = true)

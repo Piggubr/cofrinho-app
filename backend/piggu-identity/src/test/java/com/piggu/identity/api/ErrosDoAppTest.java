@@ -11,7 +11,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,5 +62,15 @@ class ErrosDoAppTest extends PostgresIntegrationTest {
         assertThat(ErrosDoAppController.limpar(null, 10)).isEqualTo("-");
         assertThat(ErrosDoAppController.limpar("   ", 10)).isEqualTo("-");
         assertThat(ErrosDoAppController.limpar("Por que?", 50)).isEqualTo("Por que?");
+    }
+
+    @Test
+    @DisplayName("campo enorme sem '@' nao prende a CPU; e-mail perto do corte continua escondido")
+    void campoEnorme() {
+        assertTimeoutPreemptively(Duration.ofSeconds(1),
+                () -> ErrosDoAppController.limpar("a".repeat(50_000), 2000));
+
+        String texto = "x ".repeat(40) + "fulana@exemplo.test " + "y".repeat(500);
+        assertThat(ErrosDoAppController.limpar(texto, 100)).doesNotContain("fulana");
     }
 }

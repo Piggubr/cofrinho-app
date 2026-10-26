@@ -35,6 +35,11 @@ spring:
             - name: RequestSize
               args:
                 maxSize: 10MB
+          # Sem isto o gateway apaga o X-Forwarded-For e todo cliente chega aos servicos com o IP
+          # do gateway: um limite de login e uma trava de senha para todo mundo. O filtro so
+          # mantem os IPs que casam aqui, inclusive o do cliente, por isso '.*'. Seguro porque o
+          # gateway so escuta na propria maquina e na rede interna; o Caddy reescreve o cabecalho.
+          trusted-proxies: '.*'
           # Tempo e resultado de cada chamada por rota (servico), para o painel de performance.
           metrics:
             enabled: true

@@ -261,6 +261,22 @@ describe('FormularioDeGasto', () => {
     expect(alerta(tela)).toBe('Categoria inexistente.');
   });
 
+  it('sem resposta, a fila guarda o mesmo idDoEnvio que foi no POST', () => {
+    const tela = abrir([conta({ id: 'b1' })], []);
+    const pagina: HTMLElement = tela.nativeElement;
+    const guardar = vi.spyOn(TestBed.inject(FilaDeGastos), 'guardar').mockImplementation(() => undefined);
+
+    digitar(pagina, '#item', 'Café');
+    digitar(pagina, '#valor', '5');
+    clicar(pagina, 'Lançar');
+    const envio = http.expectOne((r) => r.method === 'POST');
+    const id = envio.request.body.idDoEnvio;
+    envio.error(new ProgressEvent('error'), { status: 0 });
+
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(guardar.mock.calls[0][0].idDoEnvio).toBe(id);
+  });
+
   it('recorrente vira gasto fixo; cartao sem cadastro pede para cadastrar', () => {
     const tela = abrir([conta({ id: 'c1', tipo: 'CARTAO' })], []);
     const pagina: HTMLElement = tela.nativeElement;

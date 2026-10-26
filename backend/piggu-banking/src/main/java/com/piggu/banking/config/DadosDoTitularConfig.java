@@ -29,7 +29,8 @@ public class DadosDoTitularConfig {
         return new DadosDaFamilia(jdbc, json, List.of(
                 // Como no app, cada um ve so as contas do banco que ele conectou.
                 Tabela.daDona("bank_accounts", new DadosDaFamilia.Dona("connection_id", "bank_connections", "user_id")),
-                Tabela.pessoal("bank_connections", "user_id"),
+                // Cada um ve so os bancos que conectou, titular incluido: a exportacao tambem.
+                Tabela.privada("bank_connections", "user_id"),
                 Tabela.pessoal("consents", "user_id")
         ), extras.orderedStream().toList(), List.of(contasAcompanhamAConexao(jdbc)));
     }

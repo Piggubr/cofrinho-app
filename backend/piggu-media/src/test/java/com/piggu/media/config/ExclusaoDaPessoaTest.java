@@ -44,6 +44,21 @@ class ExclusaoDaPessoaTest extends PostgresIntegrationTest {
         assertThat(dono(privadaDeOutra)).isEqualTo(quemFica);
     }
 
+    @Test
+    @DisplayName("a exportacao do titular nao leva as fotos privadas do menor, que o app esconde dele")
+    void exportacaoSemAsPrivadasDosOutros() {
+        UUID familia = UUID.randomUUID();
+        UUID titular = UUID.randomUUID();
+        UUID menor = UUID.randomUUID();
+        UUID minha = foto(familia, titular, "FEED");
+        foto(familia, menor, "GIRLS_MATH");
+
+        var exportado = dados.exportar(new CurrentUser(titular, "titular@piggu.test", PigguRole.TITULAR,
+                Plano.GRATUITO, familia, java.util.List.of(menor)));
+
+        assertThat(exportado.get("assets").findValuesAsString("id")).containsExactly(minha.toString());
+    }
+
     private UUID foto(UUID familia, UUID dono, String contexto) {
         UUID id = UUID.randomUUID();
         jdbc.update("INSERT INTO assets (id, drive_file_id, content_type, size_bytes, context, owner_id, household_id)"

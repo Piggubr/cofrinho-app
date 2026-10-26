@@ -54,6 +54,13 @@ public class DivisaoDeGastos {
         partes.saveAll(novas);
     }
 
+    /** O valor do gasto mudou: as partes sao refeitas entre as mesmas pessoas. */
+    void redividir(Expense gasto) {
+        List<ExpenseShare> antigas = partes.findByExpenseIdOrderByAmountDesc(gasto.getId());
+        partes.deleteAll(antigas);
+        dividir(List.of(gasto), antigas.stream().map(ExpenseShare::getMemberId).toList());
+    }
+
     @Transactional(readOnly = true)
     public List<Acerto> acerto(YearMonth mes) {
         Map<UUID, BigDecimal> parte = somas(partes.partesNoPeriodo(mes.atDay(1), mes.atEndOfMonth()));

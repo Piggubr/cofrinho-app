@@ -53,10 +53,12 @@ public class OrcamentoService {
         return orcamentos.findAllByOrderByCategoryAsc().stream()
                 .map(orcamento -> {
                     BigDecimal gasto = porCategoria.getOrDefault(orcamento.getCategory(), BigDecimal.ZERO);
-                    BigDecimal percentual = gasto.multiply(BigDecimal.valueOf(100))
-                            .divide(orcamento.getLimitAmount(), 0, RoundingMode.HALF_UP);
-                    Alerta alerta = percentual.compareTo(LIMIAR_ESTOURO) >= 0 ? Alerta.ESTOUROU
-                            : percentual.compareTo(LIMIAR_DE_ATENCAO) >= 0 ? Alerta.ATENCAO : Alerta.OK;
+                    BigDecimal limite = orcamento.getLimitAmount();
+                    BigDecimal vezesCem = gasto.multiply(BigDecimal.valueOf(100));
+                    BigDecimal percentual = vezesCem.divide(limite, 0, RoundingMode.HALF_UP);
+                    // O alerta sai do valor sem arredondar: 99,5% aparece como 100, mas nao estourou.
+                    Alerta alerta = vezesCem.compareTo(limite.multiply(LIMIAR_ESTOURO)) >= 0 ? Alerta.ESTOUROU
+                            : vezesCem.compareTo(limite.multiply(LIMIAR_DE_ATENCAO)) >= 0 ? Alerta.ATENCAO : Alerta.OK;
                     return new Situacao(orcamento.getId(), orcamento.getCategory(), orcamento.getLimitAmount(), gasto,
                             percentual, alerta);
                 })

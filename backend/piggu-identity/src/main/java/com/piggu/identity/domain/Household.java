@@ -64,7 +64,11 @@ public class Household {
     }
 
     public Household(String name) {
-        this.id = UUID.randomUUID();
+        this(UUID.randomUUID(), name);
+    }
+
+    public Household(UUID id, String name) {
+        this.id = id;
         this.name = name;
     }
 
@@ -146,21 +150,16 @@ public class Household {
     /**
      * Assinatura com o tipo do plano e quem assinou.
      *
-     * @param familia   plano familia (a casa toda) ou individual (so {@code assinante})
-     * @param assinante conta que pagou
-     */
-    public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
-                                     boolean familia, UUID assinante) {
-        return aplicarAssinatura(origem, ate, momento, inicio,
-                familia ? TipoDePlano.FAMILIA : TipoDePlano.INDIVIDUAL, assinante);
-    }
-
-    /**
      * @param tipo      quem da casa fica Premium
      * @param assinante conta que pagou
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
                                      TipoDePlano tipo, UUID assinante) {
+        // Fim de assinatura de quem nao paga mais esta casa (entrou depois do fim da dele) nao derruba a de quem paga.
+        boolean encerra = ate == null || !ate.isAfter(Instant.now());
+        if (encerra && subscriberId != null && !subscriberId.equals(assinante) && planoVigente() == Plano.PREMIUM) {
+            return false;
+        }
         if (!aplicarAssinatura(origem, ate, momento, inicio)) {
             return false;
         }

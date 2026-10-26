@@ -7,7 +7,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
-import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.StripePagamentos;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     private CascataDeDados cascata;
 
     @MockitoBean
-    private ProvedorDePagamento pagamentos;
+    private StripePagamentos pagamentos;
 
     @Autowired
     private MinhaContaService contas;
@@ -90,7 +90,9 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         usuarios.deleteAll();
         titular = familias.criarConta("ana@familia.test", "Ana", Consentimentos.VERSAO_DO_AVISO);
         familias.convidar(como(titular), "bia@familia.test");
-        membro = familias.criarConta("bia@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        membro = Convidados.entrar(familias, convites, usuarios, "bia@familia.test", "Bia");
+        // Entrar pelo convite ja chama a cascata; os testes olham so o que vem depois.
+        org.mockito.Mockito.clearInvocations(cascata);
     }
 
     @Test
@@ -119,7 +121,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @DisplayName("titular sai e ha um parceiro: o parceiro assume, mesmo sendo mais novo que o membro")
     void titularSaiParceiroAssume() {
         familias.convidar(como(titular), "caio@familia.test");
-        UserAccount parceiro = familias.criarConta("caio@familia.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount parceiro = Convidados.entrar(familias, convites, usuarios, "caio@familia.test", "Caio");
         familias.mudarPapel(como(titular), parceiro.getId(), PigguRole.PARCEIRO);
         familias.aceitarParceria(como(parceiro));
 
@@ -240,7 +242,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         UserAccount nova = familias.criarConta("bia2@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
         nova.informarCpf("cifrado", "indice-que-testou");
         usuarios.save(nova);
-        assertThat(assinaturas.plano(nova.getId()).diasDeTeste()).isZero();
+        assertThat(assinaturas.plano(nova.getId(), null).diasDeTeste()).isZero();
     }
 
     @Test
@@ -271,6 +273,22 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> familias.aceitarConvite(como(vizinho), alheio.getId()))
                 .isInstanceOf(com.piggu.common.error.NotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("sair falha no meio da cascata: a nova tentativa manda os dados para a mesma familia nova")
+    void sairDeNovoMesmoDestino() {
+        // A primeira chamada cai como se o rewards nao respondesse depois de o finance ja mover.
+        willThrow(new UpstreamException("fora do ar")).willDoNothing().given(cascata).apagar(anyString());
+        assertThatThrownBy(() -> familias.sair(como(membro))).isInstanceOf(UpstreamException.class);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getHouseholdId()).isEqualTo(titular.getHouseholdId());
+
+        familias.sair(como(membro));
+
+        List<Jwt> mudancas = tokensEnviados().stream().filter(t -> "MUDAR".equals(t.getClaimAsString("exclusao"))).toList();
+        assertThat(mudancas).hasSize(2);
+        assertThat(mudancas.get(1).getClaimAsString("destino")).isEqualTo(mudancas.get(0).getClaimAsString("destino"))
+                .isEqualTo(usuarios.findById(membro.getId()).orElseThrow().getHouseholdId().toString());
     }
 
     private String escopoEnviado() {

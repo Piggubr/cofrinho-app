@@ -93,6 +93,18 @@ class MeusDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("o titular que ve os menores ainda exporta so os bancos que ele conectou")
+    void exportacaoDoResponsavelLevaSoOsSeus() throws Exception {
+        conectar("item-titular-" + familia, TokensDeTeste.idDe(TokensDeTeste.EMAIL_TITULAR));
+        conectar("item-menor-" + familia, TokensDeTeste.idDe(quemFica));
+
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.responsavelVendo(familia, quemFica)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bank_connections.length()").value(1))
+                .andExpect(jsonPath("$.bank_connections[0].pluggy_item_id").value("item-titular-" + familia));
+    }
+
+    @Test
     @DisplayName("se a Pluggy falha, nada e apagado aqui")
     void pluggyFalha() throws Exception {
         conectar("item-falha-" + familia, TokensDeTeste.idDe(quemSai));

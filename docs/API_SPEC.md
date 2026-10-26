@@ -166,7 +166,7 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `CPF_NECESSARIO`, `CPF_EM_USO`, `PAIS_INVALIDO`, `TELEFONE_INVALIDO`, `IDADE_MINIMA` | 422, 409 | Cadastro e dados da conta |
 | `SENHA_FRACA`, `SENHA_ATUAL_ERRADA`, `SENHA_TRAVADA` | 422, 429 | Senha |
 | `LINK_INVALIDO`, `LINK_RECENTE` | 422, 429 | Links por e-mail (confirmar e-mail, redefinir senha) |
-| `JA_E_DA_FAMILIA`, `JA_TEM_PARCEIRO`, `SEM_PARCEIRO`, `LIMITE_DE_CONVITES`, `LIMITE_DO_FAMILIA` | 409, 422 | Família e convites |
+| `JA_E_DA_FAMILIA`, `JA_TEM_PARCEIRO`, `SEM_PARCEIRO`, `LIMITE_DE_CONVITES`, `LIMITE_DO_FAMILIA`, `ASSINATURA_ATIVA` | 409, 422 | Família e convites |
 | `PRAZO_DE_REEMBOLSO`, `EM_BREVE` | 409, 501 | Premium |
 | `JA_PAGA`, `JA_RECEBIDO` | 409 | Conta fixa e valor a receber já lançados |
 | `CONFLITO` | 409 | Recarregar e tentar de novo |
@@ -193,6 +193,10 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
 - **Cabeçalhos**: `Authorization: Bearer ...` em toda rota que não é de login e
   `Content-Type: application/json` em todo corpo. Opcionais: `User-Agent` (fica na sessão,
   ex.: `Piggu-iOS/1.4.0`) e `X-Request-Id` (até 64 letras, números e `-`; volta na resposta).
+- **Reenvio sem duplicar**: `POST /api/expenses` aceita `idDoEnvio` (UUID que o app gera uma
+  vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com o mesmo id: na
+  mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos da primeira
+  vez. Sem o campo, cada envio lança.
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por

@@ -9,7 +9,7 @@ import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
-import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.StripePagamentos;
 import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class MinhaContaService {
     private final HouseholdRepository familias;
     private final FamiliaService familia;
     private final CascataDeDados cascata;
-    private final ProvedorDePagamento pagamentos;
+    private final StripePagamentos pagamentos;
     private final TrilhaDeAuditoria trilha;
     private final CofreDeCpf cofre;
     private final Aparelhos aparelhos;
@@ -57,7 +56,7 @@ public class MinhaContaService {
                              HouseholdRepository familias,
                              FamiliaService familia,
                              CascataDeDados cascata,
-                             ProvedorDePagamento pagamentos,
+                             StripePagamentos pagamentos,
                              TrilhaDeAuditoria trilha,
                              CofreDeCpf cofre,
                              Aparelhos aparelhos,
@@ -222,14 +221,6 @@ public class MinhaContaService {
                     HttpStatus.UNPROCESSABLE_CONTENT, "IDADE_MINIMA");
         }
         return data;
-    }
-
-    /** So ids no log: o numero nunca sai do cofre. */
-    private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
-        List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
-        if (!ids.isEmpty()) {
-            log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
-        }
     }
 
     /**

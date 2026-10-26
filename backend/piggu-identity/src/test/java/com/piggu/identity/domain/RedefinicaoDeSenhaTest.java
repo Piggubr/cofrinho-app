@@ -13,18 +13,23 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 /** "Esqueci minha senha": o link no e-mail, a senha nova e o que acontece com as sessoes. */
@@ -124,7 +129,7 @@ class RedefinicaoDeSenhaTest extends PostgresIntegrationTest {
         clearInvocations(email);
         redefinicao.pedir(EMAIL);
         redefinicao.pedir(EMAIL);
-        verify(email, times(1)).enviar(eq(EMAIL), anyString(), anyString());
+        verify(email, timeout(5000).times(1)).enviar(eq(EMAIL), anyString(), anyString());
     }
 
     @Test
@@ -142,15 +147,39 @@ class RedefinicaoDeSenhaTest extends PostgresIntegrationTest {
         assertThat(usuarios.findByEmail(EMAIL).orElseThrow().temSenha()).isTrue();
     }
 
+    @Test
+    @DisplayName("o pedido nao espera o provedor de e-mail, e o link sai depois de gravado")
+    void naoEsperaOEmail() {
+        cadastrarEEntrar();
+        clearInvocations(email);
+        CountDownLatch provedorLento = new CountDownLatch(1);
+        // Future e nao boolean: o Mockito registra a chamada antes de a resposta rodar.
+        CompletableFuture<Boolean> gravado = new CompletableFuture<>();
+        given(email.enviar(eq(EMAIL), eq("Piggu: crie uma senha nova"), anyString())).willAnswer(chamada -> {
+            gravado.complete(usuarios.findByEmail(EMAIL).orElseThrow().linkDeSenhaValido(Instant.now()));
+            provedorLento.await();
+            return true;
+        });
+
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> redefinicao.pedir(EMAIL));
+        provedorLento.countDown();
+
+        assertThat(tokenDoEmail()).isNotBlank();
+        assertThat(gravado).as("o link ja estava gravado quando o e-mail saiu")
+                .succeedsWithin(Duration.ofSeconds(5)).isEqualTo(true);
+    }
+
     private TokenResponse cadastrarEEntrar() {
         auth.cadastrar("Duda", EMAIL, SENHA, "BR", "529.982.247-25", "+55 11 99999-8888",
                 Consentimentos.VERSAO_DO_AVISO, LocalDate.of(1990, 5, 20));
+        // O e-mail do cadastro sai em outra thread: esperar, para nao cair no meio do teste.
+        verify(email, timeout(5000)).enviar(eq(EMAIL), eq("Piggu: confirme seu e-mail"), anyString());
         return auth.entrarComSenha(EMAIL, SENHA, true, "navegador");
     }
 
     private String tokenDoEmail() {
         ArgumentCaptor<String> texto = ArgumentCaptor.forClass(String.class);
-        verify(email).enviar(eq(EMAIL), eq("Piggu: crie uma senha nova"), texto.capture());
+        verify(email, timeout(5000)).enviar(eq(EMAIL), eq("Piggu: crie uma senha nova"), texto.capture());
         Matcher link = LINK.matcher(texto.getValue());
         assertThat(link.find()).as("o e-mail traz o link").isTrue();
         return link.group(1);

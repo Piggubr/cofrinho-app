@@ -35,6 +35,10 @@ public class Aparelhos {
         jdbc.update("DELETE FROM push_devices WHERE token = ?", token);
     }
 
+    public void esquecerDoUsuario(UUID usuario) {
+        jdbc.update("DELETE FROM push_devices WHERE user_id = ?", usuario);
+    }
+
     /** Aparelhos da pessoa numa plataforma: o APNs so entrega no iPhone (IOS). */
     public List<String> doUsuario(UUID usuario, String plataforma) {
         return jdbc.queryForList("SELECT token FROM push_devices WHERE user_id = ? AND platform = ? ORDER BY created_at",

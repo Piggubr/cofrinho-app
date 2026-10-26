@@ -42,7 +42,7 @@ public class ContasFixasService {
     }
 
     private static final Logger log = LoggerFactory.getLogger(ContasFixasService.class);
-    private static final String ORIGEM = "Conta fixa";
+    static final String ORIGEM = "Conta fixa";
 
     private final RecurringBillRepository repositorio;
     private final ExpenseService gastos;
@@ -82,12 +82,6 @@ public class ContasFixasService {
                     return new ContaDoMes(conta, vencimento, situacao);
                 })
                 .toList();
-    }
-
-    @Transactional
-    public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
-                               UUID autor) {
-        return criar(descricao, categoria, valor, dia, automatico, autor, false);
     }
 
     /** @param compartilhado a conta e o gasto que ela lanca aparecem para todos da familia */
@@ -149,12 +143,6 @@ public class ContasFixasService {
     /** Receita que entra todo mes no mesmo dia: lanca a deste mes e liga o automatico para os proximos. */
     @Transactional
     public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                          UUID autor) {
-        return lancarReceitaRecorrente(data, descricao, categoria, valor, autor, false);
-    }
-
-    @Transactional
-    public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
                                           UUID autor, boolean compartilhado) {
         Income receita = receitas.criar(data, descricao, categoria, valor, autor, compartilhado);
         RecurringBill conta = new RecurringBill(RecurringBill.Tipo.RECEITA, receita.getDescription(),
@@ -173,7 +161,12 @@ public class ContasFixasService {
     @Transactional
     public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
         RecurringBill conta = buscar(id);
-        if (conta.pagaEm(mes)) {
+        // Conferir e lancar separados deixava dois toques ao mesmo tempo lancarem duas vezes:
+        // o UPDATE condicional trava a linha e so um passa.
+        if (conta.pagaEm(mes) || jdbc.update("""
+                UPDATE recurring_bills SET last_paid_month = ?
+                WHERE id = ? AND household_id = ? AND (last_paid_month IS NULL OR last_paid_month < ?)
+                """, mes.toString(), id, FamiliaAtual.atual(), mes.toString()) == 0) {
             throw new BusinessException("Esta conta já foi lançada em " + mes + ".", HttpStatus.CONFLICT, "JA_PAGA");
         }
         ExpenseResponse gasto = null;
@@ -184,7 +177,7 @@ public class ContasFixasService {
             // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou.
             gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
                     List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared()), autor).get(0);
+                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared(), null), autor).get(0);
         }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,

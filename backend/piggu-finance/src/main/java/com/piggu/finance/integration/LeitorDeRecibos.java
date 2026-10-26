@@ -5,6 +5,7 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.Categorias;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Base64;
@@ -78,18 +78,23 @@ public class LeitorDeRecibos {
      * Premium. A foto so sai do servidor (para o Gemini) depois que a pessoa autorizou,
      * uma vez por versao do aviso. Sem autorizacao o front recebe o codigo e pergunta.
      */
-    // O consentimento gravado fica mesmo que a leitura falhe depois: a pessoa autorizou.
-    @Transactional(noRollbackFor = BusinessException.class)
+    // Sem transacao: o Gemini leva ate um minuto e prenderia uma conexao do banco. O
+    // consentimento grava na hora e fica mesmo que a leitura falhe depois.
     public ReceiptParseResponse ler(ReceiptParseRequest pedido, CurrentUser usuario) {
-        cota.exigirDisponivel(usuario);
-        return lerDentroDaCota(pedido, usuario).comRestantes(cota.registrar(usuario));
+        Integer restantes = cota.reservar(usuario);
+        try {
+            return lerDentroDaCota(pedido, usuario).comRestantes(restantes);
+        } catch (RuntimeException falhou) {
+            cota.devolver(usuario);
+            throw falhou;
+        }
     }
 
     private ReceiptParseResponse lerDentroDaCota(ReceiptParseRequest pedido, CurrentUser usuario) {
         if (!leitorProprio) {
             return soPeloGemini(pedido, usuario);
         }
-        LocalDate hoje = LocalDate.now();
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         Optional<LeitorDeCupom.Leitura> propria = ocr.ler(imagem(pedido.imageBase64()))
                 .map(texto -> LeitorDeCupom.ler(texto, hoje));
 
