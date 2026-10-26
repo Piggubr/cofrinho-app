@@ -49,4 +49,8 @@ public class ExpenseShare {
         this.memberId = memberId;
         this.amount = amount;
     }
+
+    public UUID getMemberId() {
+        return memberId;
+    }
 }

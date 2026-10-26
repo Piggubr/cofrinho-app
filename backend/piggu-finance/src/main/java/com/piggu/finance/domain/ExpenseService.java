@@ -253,11 +253,15 @@ public class ExpenseService {
             gasto.compartilhar(pedido.compartilhado());
         }
         String antes = Resumos.gasto(gasto);
+        boolean valorMudou = gasto.getAmount().compareTo(pedido.valor()) != 0;
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
+        if (valorMudou) {
+            divisao.redividir(gasto);
+        }
         log.info("Gasto editado: id={}", id);
         Expense salvo = repositorio.save(gasto);
         trilha.editou("gasto", id, antes, Resumos.gasto(salvo));

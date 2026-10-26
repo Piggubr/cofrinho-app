@@ -10,6 +10,9 @@ import java.util.UUID;
 
 public interface ExpenseShareRepository extends JpaRepository<ExpenseShare, UUID> {
 
+    /** A primeira e a que levou o centavo que sobrou. */
+    List<ExpenseShare> findByExpenseIdOrderByAmountDesc(UUID expenseId);
+
     /** Parte de cada pessoa nos gastos divididos do periodo. */
     @Query("SELECT s.memberId, SUM(s.amount) FROM ExpenseShare s, Expense e "
             + "WHERE s.expenseId = e.id AND e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY s.memberId")

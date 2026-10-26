@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,6 +67,23 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$[?(@.pessoa=='" + quemPagou + "')].pagou").value(100.0));
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-09").with(casas.casaB))
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("gasto dividido editado de 100 para 80: as partes viram 40 e 40")
+    void divisaoEditada() throws Exception {
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-08-10\",\"dividirCom\":"
+                + "[\"" + ANA + "\",\"" + BETO + "\"],\"itens\":[{\"item\":\"Mercado\",\"valor\":100}]}");
+        String id = json.readTree(mockMvc.perform(get("/api/expenses").param("mes", "2026-08").with(casas.casaA))
+                .andReturn().getResponse().getContentAsString()).get(0).path("id").asString();
+
+        mockMvc.perform(put("/api/expenses/" + id).with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"item\":\"Mercado\",\"valor\":80}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-08").with(casas.casaA))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + ANA + "')].parte").value(40.0))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + BETO + "')].parte").value(40.0));
     }
 
     @Test
