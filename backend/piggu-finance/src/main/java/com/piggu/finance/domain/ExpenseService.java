@@ -277,6 +277,9 @@ public class ExpenseService {
                 : repositorio.findByReceiptIdAndItemAndInstallmentCount(gasto.getReceiptId(), gasto.getItem(),
                                 gasto.getInstallmentCount()).stream()
                         .filter(p -> p.getInstallmentNumber() >= gasto.getInstallmentNumber())
+                        // O recibo vem do app: so as parcelas de quem lancou esta, nunca as de outro
+                        // com o mesmo recibo que o filtro da familia tambem mostra.
+                        .filter(p -> p.getUserId().equals(gasto.getUserId()))
                         .toList();
         repositorio.deleteAll(apagar);
         apagar.forEach(p -> trilha.apagou("gasto", p.getId(), Resumos.gasto(p)));

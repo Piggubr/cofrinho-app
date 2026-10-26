@@ -67,6 +67,29 @@ class CompartilhadoTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("apagar as proximas parcelas com o recibo do outro nao leva as parcelas dele")
+    void parcelasDoOutroFicam() throws Exception {
+        UUID casa = UUID.randomUUID();
+        RequestPostProcessor ela = TokensDeTeste.da(casa, ELA, PigguRole.TITULAR);
+        RequestPostProcessor ele = TokensDeTeste.da(casa, ELE, PigguRole.PARCEIRO);
+        String tvDela = mockMvc.perform(post("/api/expenses").with(ela).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":\"2026-09-10\",\"parcelas\":3,\"compartilhado\":true,"
+                                + "\"itens\":[{\"item\":\"TV\",\"valor\":900}]}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String recibo = json.readTree(tvDela).path(0).path("reciboId").asString();
+
+        // Ele copia o recibo, o item e as parcelas que ve na lista e apaga a propria parcela 1 "com as proximas".
+        String copia = mockMvc.perform(post("/api/expenses").with(ele).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":\"2026-09-10\",\"parcelas\":3,\"reciboId\":\"" + recibo + "\","
+                                + "\"itens\":[{\"item\":\"TV\",\"valor\":3}]}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        mockMvc.perform(delete("/api/expenses/" + json.readTree(copia).path(0).path("id").asString())
+                .param("proximas", "true").with(ele)).andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/expenses").with(ela)).andExpect(jsonPath("$.length()").value(3));
+    }
+
+    @Test
     @DisplayName("o cartao do casal compartilha o que passa nele; so quem criou apaga o cartao")
     void cartaoDoCasal() throws Exception {
         UUID casa = UUID.randomUUID();
