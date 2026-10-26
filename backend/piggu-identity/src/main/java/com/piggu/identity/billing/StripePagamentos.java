@@ -35,13 +35,15 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Stripe Checkout + Portal do Cliente, pela API REST (sem SDK: sao duas chamadas e um HMAC).
+ * Cobranca do Premium no site: Stripe Checkout + Portal do Cliente, pela API REST (sem SDK:
+ * sao duas chamadas e um HMAC). Nenhum dado de cartao passa pelo Piggu: a pessoa paga numa
+ * pagina da Stripe e o Piggu so fica sabendo pelo webhook.
  *
  * <p>O id do usuario vai em {@code subscription_data.metadata.userId}; e por ele que o
  * webhook sabe de quem e a assinatura. Vai o UUID, nao o e-mail.</p>
  */
 @Component
-public class StripePagamentos implements ProvedorDePagamento {
+public class StripePagamentos {
 
     private static final Logger log = LoggerFactory.getLogger(StripePagamentos.class);
 
@@ -81,22 +83,26 @@ public class StripePagamentos implements ProvedorDePagamento {
         this.relogio = relogio;
     }
 
-    @Override
     public boolean habilitado() {
         return propriedades.habilitado();
     }
 
-    @Override
+    /** O plano familia tem preco configurado na Stripe. */
     public boolean familiaHabilitado() {
         return propriedades.familiaHabilitado();
     }
 
-    @Override
+    /** O plano casal tem preco configurado na Stripe. */
     public boolean casalHabilitado() {
         return propriedades.casalHabilitado();
     }
 
-    @Override
+    /**
+     * Endereco da pagina de pagamento da Stripe.
+     *
+     * @param diasDeTeste dias gratis antes da primeira cobranca; 0 cobra na hora
+     * @param campanha    campanha de teste gratis, devolvida no webhook para registrar o uso; pode ser nula
+     */
     public String abrirCheckout(UserAccount conta, Periodo periodo, int diasDeTeste, String campanha) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("mode", "subscription");
@@ -128,7 +134,7 @@ public class StripePagamentos implements ProvedorDePagamento {
         return postar("/v1/checkout/sessions", form).path("url").asString();
     }
 
-    @Override
+    /** Endereco onde a pessoa troca cartao, ve recibos e cancela. */
     public String abrirPortal(UserAccount conta) {
         if (conta.getStripeCustomerId() == null) {
             throw new BusinessException("Você ainda não tem assinatura pelo site.");
@@ -140,11 +146,15 @@ public class StripePagamentos implements ProvedorDePagamento {
     }
 
     /**
-     * Acha a assinatura viva do cliente e as cobrancas pagas dela (feitas desde o inicio que a
-     * propria Stripe guarda). O prazo conta da primeira cobranca paga, nao do inicio: o teste
-     * gratis nao gasta os 7 dias. Sem cobranca ainda (no teste), so cancela.
+     * Arrependimento (CDC art. 49): cancela na hora e devolve tudo o que foi cobrado nesta
+     * assinatura, se a primeira cobranca paga tem menos de {@code prazo}. Acha a assinatura viva
+     * do cliente e as cobrancas pagas dela (feitas desde o inicio que a propria Stripe guarda). O
+     * prazo conta da primeira cobranca paga, nao do inicio: o teste gratis nao gasta os 7 dias.
+     * Sem cobranca ainda (no teste), so cancela.
+     *
+     * @return se alguma cobranca foi devolvida; falso quando cancelou no teste
+     * @throws BusinessException quando passou do prazo ou nao ha assinatura
      */
-    @Override
     public boolean cancelarComReembolso(String clienteNoProvedor, Duration prazo) {
         JsonNode assinatura = StreamSupport.stream(
                         obter("/v1/subscriptions?customer={c}&status=all&limit=10", clienteNoProvedor)
@@ -183,7 +193,10 @@ public class StripePagamentos implements ProvedorDePagamento {
         return devolvidas > 0;
     }
 
-    @Override
+    /**
+     * Apaga o cliente na Stripe, o que cancela na hora qualquer assinatura dele. Usado quando a
+     * conta e excluida: ninguem continua pagando por uma conta que nao existe.
+     */
     public void encerrarCliente(String clienteNoProvedor) {
         if (!habilitado()) {
             throw new UpstreamException(INDISPONIVEL);
@@ -207,7 +220,12 @@ public class StripePagamentos implements ProvedorDePagamento {
         }
     }
 
-    @Override
+    /**
+     * Confere a assinatura do aviso e o traduz.
+     *
+     * @return vazio quando o aviso e valido mas nao muda a assinatura de ninguem
+     * @throws UnauthorizedException quando a assinatura nao confere
+     */
     public Optional<EventoDeAssinatura> lerWebhook(String corpo, String assinatura) {
         conferirAssinatura(corpo, assinatura);
         JsonNode evento;

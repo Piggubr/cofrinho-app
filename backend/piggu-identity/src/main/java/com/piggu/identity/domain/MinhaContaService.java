@@ -9,7 +9,7 @@ import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
-import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.StripePagamentos;
 import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class MinhaContaService {
     private final HouseholdRepository familias;
     private final FamiliaService familia;
     private final CascataDeDados cascata;
-    private final ProvedorDePagamento pagamentos;
+    private final StripePagamentos pagamentos;
     private final TrilhaDeAuditoria trilha;
     private final CofreDeCpf cofre;
     private final Aparelhos aparelhos;
@@ -56,7 +56,7 @@ public class MinhaContaService {
                              HouseholdRepository familias,
                              FamiliaService familia,
                              CascataDeDados cascata,
-                             ProvedorDePagamento pagamentos,
+                             StripePagamentos pagamentos,
                              TrilhaDeAuditoria trilha,
                              CofreDeCpf cofre,
                              Aparelhos aparelhos,

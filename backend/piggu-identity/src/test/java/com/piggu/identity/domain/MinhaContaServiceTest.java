@@ -7,7 +7,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
-import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.StripePagamentos;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     private CascataDeDados cascata;
 
     @MockitoBean
-    private ProvedorDePagamento pagamentos;
+    private StripePagamentos pagamentos;
 
     @Autowired
     private MinhaContaService contas;

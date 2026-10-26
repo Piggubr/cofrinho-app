@@ -15,7 +15,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Avisos do RevenueCat pela API REST de webhooks, sem SDK.
+ * Assinatura comprada dentro do app (App Store / Google Play, que exigem a compra no app para
+ * conteudo digital): avisos do RevenueCat pela API REST de webhooks, sem SDK.
  *
  * <p>O RevenueCat valida o recibo com a Apple e o Google e manda o resultado. A prova de
  * que o aviso veio dele e o cabecalho Authorization com o segredo combinado no painel
@@ -23,12 +24,19 @@ import java.util.UUID;
  * id da conta Piggu como app_user_id, senao o aviso nao tem dono e e ignorado.</p>
  */
 @Component
-public class RevenueCatLoja implements LojaDeApps {
+public class RevenueCatLoja {
 
     /** EXPIRATION encerra; CANCELLATION so desliga a renovacao: o Premium vai ate expirar. */
     private static final Set<String> MUDAM_A_ASSINATURA = Set.of("INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION",
             "PRODUCT_CHANGE", "CANCELLATION", "BILLING_ISSUE", "SUBSCRIPTION_EXTENDED", "EXPIRATION");
     private static final String SEM_ASSINATURA = "Aviso da loja sem autenticacao valida.";
+
+    /**
+     * @param id     identificador unico do aviso, para processar cada um uma vez so
+     * @param origem APP_STORE ou PLAY_STORE
+     */
+    public record AvisoDaLoja(String id, String origem, EventoDeAssinatura evento) {
+    }
 
     private final String segredo;
     private final boolean aceitaSandbox;
@@ -42,12 +50,18 @@ public class RevenueCatLoja implements LojaDeApps {
         this.json = json;
     }
 
-    @Override
     public boolean habilitada() {
         return !segredo.isEmpty();
     }
 
-    @Override
+    /**
+     * Confere a autenticacao do aviso e o traduz.
+     *
+     * @param loja        a loja do caminho: APP_STORE ou PLAY_STORE
+     * @param autorizacao o cabecalho Authorization que o intermediario mandou
+     * @return vazio quando o aviso e valido mas nao muda a assinatura de ninguem
+     * @throws UnauthorizedException quando a autenticacao nao confere
+     */
     public Optional<AvisoDaLoja> lerAviso(String loja, String corpo, String autorizacao) {
         conferir(autorizacao);
         JsonNode evento;

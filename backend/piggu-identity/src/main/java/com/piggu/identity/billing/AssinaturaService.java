@@ -43,17 +43,17 @@ public class AssinaturaService {
 
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
-    private final ProvedorDePagamento pagamentos;
+    private final StripePagamentos pagamentos;
 
-    private final LojaDeApps lojas;
+    private final RevenueCatLoja lojas;
     private final JdbcTemplate jdbc;
     private final TestesGratis testes;
     private final CanalDeEmail email;
     private final int diasDeTeste;
     private final boolean openFinance;
 
-    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, ProvedorDePagamento pagamentos,
-                             LojaDeApps lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+    public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, StripePagamentos pagamentos,
+                             RevenueCatLoja lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
                              @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
                              @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
         this.openFinance = openFinance;
