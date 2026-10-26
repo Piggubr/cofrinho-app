@@ -52,8 +52,14 @@ public class StripePagamentos implements ProvedorDePagamento {
     private static final Set<String> EVENTOS = Set.of("customer.subscription.created",
             "customer.subscription.updated", "customer.subscription.deleted", "customer.subscription.trial_will_end");
 
-    /** past_due segue Premium ate o fim do periodo pago enquanto a Stripe tenta cobrar de novo. */
+    /** past_due segue Premium enquanto a Stripe tenta cobrar de novo, mas so pela {@link #CARENCIA}. */
     private static final Set<String> STATUS_PAGOS = Set.of("active", "trialing", "past_due");
+
+    /**
+     * Em past_due a Stripe ja moveu o fim do periodo para o fim do periodo nao pago: no anual, um
+     * cartao recusado daria mais um ano. A carencia conta do inicio desse periodo.
+     */
+    private static final Duration CARENCIA = Duration.ofDays(7);
 
     private static final String INDISPONIVEL = "O pagamento está indisponível agora. Tente de novo em instantes.";
     private static final String SEM_ASSINATURA = "Aviso de pagamento sem assinatura válida.";
@@ -227,7 +233,7 @@ public class StripePagamentos implements ProvedorDePagamento {
         return Optional.of(new EventoDeAssinatura(
                 UUID.fromString(usuario),
                 assinaturaStripe.path("customer").asString(null),
-                paga ? fimDoPeriodo(assinaturaStripe) : null,
+                paga ? premiumAte(assinaturaStripe) : null,
                 Instant.ofEpochSecond(evento.path("created").asLong()),
                 inicio == 0 ? null : Instant.ofEpochSecond(inicio),
                 "trialing".equals(assinaturaStripe.path("status").asString()),
@@ -240,13 +246,21 @@ public class StripePagamentos implements ProvedorDePagamento {
                 tipo.endsWith(".trial_will_end") && trialEnd != 0 ? Instant.ofEpochSecond(trialEnd) : null));
     }
 
-    /** Nas versoes novas da API o fim do periodo mora no item, nao na assinatura. */
-    private static Instant fimDoPeriodo(JsonNode assinatura) {
-        long fim = assinatura.path("current_period_end").asLong(0);
-        if (fim == 0) {
-            fim = assinatura.path("items").path("data").path(0).path("current_period_end").asLong(0);
+    private static Instant premiumAte(JsonNode assinatura) {
+        if ("past_due".equals(assinatura.path("status").asString())) {
+            Instant inicio = doPeriodo(assinatura, "current_period_start");
+            return inicio == null ? null : inicio.plus(CARENCIA);
         }
-        return fim == 0 ? null : Instant.ofEpochSecond(fim);
+        return doPeriodo(assinatura, "current_period_end");
+    }
+
+    /** Nas versoes novas da API o periodo mora no item, nao na assinatura. */
+    private static Instant doPeriodo(JsonNode assinatura, String campo) {
+        long momento = assinatura.path(campo).asLong(0);
+        if (momento == 0) {
+            momento = assinatura.path("items").path("data").path(0).path(campo).asLong(0);
+        }
+        return momento == 0 ? null : Instant.ofEpochSecond(momento);
     }
 
     /** Cabecalho {@code Stripe-Signature: t=...,v1=...}: HMAC-SHA256 de "t.corpo" com o segredo do webhook. */

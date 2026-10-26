@@ -184,6 +184,20 @@ class StripePagamentosTest {
     }
 
     @Test
+    @DisplayName("renovacao anual recusada (past_due): Premium so ate 7 dias depois do inicio do periodo nao pago")
+    void cobrancaRecusada() {
+        long inicio = AGORA.getEpochSecond() - 86400;
+        String recusada = evento("customer.subscription.updated", """
+                {"customer":"cus_1","status":"past_due","metadata":{"userId":"%s"},"start_date":1,
+                 "items":{"data":[{"current_period_start":%d,"current_period_end":%d}]}}""".formatted(
+                conta.getId(), inicio, inicio + 365 * 86400));
+
+        EventoDeAssinatura evento = pagamentos.lerWebhook(recusada, assinar(recusada)).orElseThrow();
+
+        assertThat(evento.premiumAte()).isEqualTo(Instant.ofEpochSecond(inicio).plus(Duration.ofDays(7)));
+    }
+
+    @Test
     @DisplayName("aviso ilegivel e recusado")
     void avisoIlegivel() {
         String corpo = "isto nao e json";
