@@ -173,7 +173,12 @@ public class ContasFixasService {
     @Transactional
     public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
         RecurringBill conta = buscar(id);
-        if (conta.pagaEm(mes)) {
+        // Conferir e lancar separados deixava dois toques ao mesmo tempo lancarem duas vezes:
+        // o UPDATE condicional trava a linha e so um passa.
+        if (conta.pagaEm(mes) || jdbc.update("""
+                UPDATE recurring_bills SET last_paid_month = ?
+                WHERE id = ? AND household_id = ? AND (last_paid_month IS NULL OR last_paid_month < ?)
+                """, mes.toString(), id, FamiliaAtual.atual(), mes.toString()) == 0) {
             throw new BusinessException("Esta conta já foi lançada em " + mes + ".", HttpStatus.CONFLICT, "JA_PAGA");
         }
         ExpenseResponse gasto = null;
