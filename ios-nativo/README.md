@@ -36,15 +36,35 @@ No Xcode, em *Product → Scheme → Edit Scheme → Run → Arguments* (já cad
 | `-PigguAPIURL http://localhost:8080/api` | Troca a API (o padrão é `https://piggu.com.br/api`, do build setting `PIGGU_API_URL`). |
 | `-PigguDemo YES` | Dados inventados, sem rede. Qualquer e-mail e senha entram. |
 | `-PigguDemoLogado YES` | Com a demonstração, já abre logado. |
-| `-PigguAba gastos` / `mais` | Abre direto numa aba. |
+| `-PigguDemoFalha rede` / `servidor` / `vazio` | Com a demonstração: sem internet, erro 500 ou mês sem gastos, para ver os estados das telas. |
+| `-PigguAba gastos` / `relatorios` / `mais` | Abre direto numa aba. |
 | `-PigguLancar YES` | Abre direto o lançamento de gasto. |
+| `-piggu_tema azul` | Abre com outra cor do Piggu (`chiclete`, `rosa`, `menta`, `azul`, `lilas`). |
+| `-PigguRefreshNoCorpo YES` | Refresh no corpo e no Keychain em vez do cookie (veja *Sessão*). |
 
-A demonstração e esses atalhos só existem em Debug; não vão para o build de Release.
+A demonstração e esses atalhos só existem em Debug; não vão para o build de Release (o
+`-PigguRefreshNoCorpo` vale nos dois).
+
+### Links
+
+`piggu://gasto?valor=12.50` abre o lançamento com o valor preenchido. Os links do app Capacitor
+continuam valendo (`piggu://gastos?rapido=1&valor=12.50`, do atalho do ícone e da Siri), e as
+rotas do site abrem a aba certa: `piggu://painel`, `piggu://gastos`, `piggu://relatorios`,
+`piggu://perfil`. Para testar no simulador:
+
+```bash
+xcrun simctl openurl booted 'piggu://gasto?valor=12.50'
+```
 
 ## Bibliotecas
 
-Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Swift Testing) e, quando
-chegar o login do Google, o Google Sign-In (D-055). Nada além disso sem uma decisão nova.
+Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Network, Security, Swift
+Testing) e, quando chegar o login do Google, o Google Sign-In (D-055). Nada além disso sem uma
+decisão nova.
+
+A fonte Sora (`Piggu/Recursos/Sora.woff2`) é o mesmo arquivo do pacote
+`@fontsource-variable/sora` do site, sob a licença SIL Open Font License 1.1
+(`Piggu/Recursos/Sora-OFL.txt`).
 
 ## Regras e CI
 
@@ -53,32 +73,57 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 
 ## O que já tem
 
+- **Visual do site** (`Core/Design`): as cores do `styles.scss` no claro e no escuro, com os
+  temas Chiclete, Rosa Piggu, Menta, Azul e Lilás (Premium), escolhidos em Mais e guardados
+  no aparelho, a fonte Sora e os formatos de R$ e data em pt_BR.
+- **Liquid Glass** só no que flutua: o `+` de lançar e o seletor de mês (`pigguVidro()`,
+  `GrupoDeVidro`, `botaoPrincipal()`). No iOS 17 e 18 vira o material translúcido do sistema;
+  com Reduzir Transparência, fundo sólido.
+- **Navegação**: abas Painel, Gastos, Relatórios e Mais (`Tab` e `.sidebarAdaptable` no iOS
+  18+, barra que encolhe ao rolar no 26), um `NavigationStack` por aba, o `+` flutuante e os
+  links `piggu://`.
+- **Estados** de toda tela: carregando (esqueleto), vazio, erro, erro do servidor e sem
+  internet, com os textos do site.
+- **Sem internet**: o resumo e os gastos de cada mês aberto ficam no SwiftData. A tela mostra
+  o guardado na hora e atualiza em seguida; sem rede, avisa de quando é o que está na tela. O
+  `NWPathMonitor` recarrega quando a rede volta. O cache é apagado ao sair da conta.
 - **Login por e-mail e senha** (`POST /api/auth/entrar`) com "Continuar conectado".
 - **Sessão como no app web**: o access token fica só em memória; o refresh vem no cookie
   HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema.
   Em 401 o app faz uma única renovação (`POST /api/auth/refresh`) e repete o pedido; chamadas
   simultâneas esperam a mesma renovação. Ao abrir o app, a sessão é recuperada pelo cookie.
-  Sair chama `POST /api/auth/logout` e apaga o cookie.
+  Sair chama `POST /api/auth/logout` e apaga o cookie. Sem rede ao abrir, o app entra com o
+  perfil guardado e renova a sessão quando a rede volta.
+- **Sessão no Keychain (desligada)**: com `PIGGU_REFRESH_NO_CORPO = YES` (build setting) ou
+  `-PigguRefreshNoCorpo YES`, o login pede `refreshNoCorpo` e o refresh vai para o Keychain
+  (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, só com "Continuar conectado"), e
+  `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). Fica desligada até a etapa 1 do
+  backend chegar à produção.
 - **Painel**: resumo do mês (`GET /api/reports/month`): sobra, receitas, gastos, projeção,
   comparação com o mês anterior e gastos por categoria, com troca de mês.
 - **Gastos**: lista do mês (`GET /api/expenses?mes=`), agrupada por dia, com total.
+- **Relatórios**: o mês do relatório do site (gastos, mês anterior, projeção e cada categoria
+  contra o mês anterior).
 - **Lançar gasto** (botão +): `POST /api/expenses`, valor aceitando vírgula (`12,50`,
   `1.234,56`), categoria vinda de `GET /api/categories`, data e estabelecimento.
-- **Mais**: nome, e-mail, plano e Sair.
-- Cor principal `#d1006b` (claro) / `#ff5cae` (escuro), textos em português, valores em R$.
+- **Mais**: nome, e-mail, plano, Cor do Piggu e Sair.
+- Textos em pt-BR no String Catalog (`Piggu/Localizable.xcstrings`), valores em R$.
 - Testes (Swift Testing): decodificação dos modelos com JSON no formato do backend, parse de
-  valor com vírgula, formatos pt_BR e o fluxo 401 → refresh → repetição.
+  valor com vírgula, formatos pt_BR, o fluxo 401 → refresh → repetição, o refresh no corpo e
+  no Keychain, o cache e os links.
 
-Prints em [`docs/prints/`](docs/prints/) (tirados com `-PigguDemo`, sem dados reais).
+Prints em [`docs/prints/`](docs/prints/) (tirados com `-PigguDemo`, sem dados reais); os da
+etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/).
 
 ## O que falta
 
 - **Entrar com Google**: os botões estão na tela, desabilitados. Falta o Google Sign-In e o
   `POST /api/auth/google` com o ID token.
-- **Entrar com Apple**: botão desabilitado; o backend ainda não tem a rota.
-- **Keychain para o refresh**: hoje o cookie fica no armazenamento de cookies do app (protegido
-  pelo sandbox do iOS). O ideal é o backend aceitar o refresh no corpo para clientes nativos e
-  o app guardar no Keychain.
+- **Entrar com Apple**: botão desabilitado. O backend já tem `POST /api/auth/apple` na
+  `develop` (D-072).
+- **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
+  estiver em produção.
+- **Relatório do ano** (Premium) e os demais relatórios: etapa 5.
 - **Demais telas** do app web: receitas, contas fixas, orçamentos, cofrinho, metas, família,
   assistente, recibos, importação de extrato, perfil, cadastro, esqueci a senha, termos etc.
 - Editar e excluir gasto, parcelas, divisão e compartilhamento no lançamento.
