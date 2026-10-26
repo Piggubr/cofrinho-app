@@ -41,6 +41,16 @@ No Xcode, em *Product → Scheme → Edit Scheme → Run → Arguments* (já cad
 
 A demonstração e esses atalhos só existem em Debug; não vão para o build de Release.
 
+## Bibliotecas
+
+Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Swift Testing) e, quando
+chegar o login do Google, o Google Sign-In (D-055). Nada além disso sem uma decisão nova.
+
+## Regras e CI
+
+As regras de cada etapa estão em [`CLAUDE.md`](CLAUDE.md). Todo PR que mexe em `ios-nativo/`
+compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.yml`).
+
 ## O que já tem
 
 - **Login por e-mail e senha** (`POST /api/auth/entrar`) com "Continuar conectado".
