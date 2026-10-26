@@ -207,7 +207,7 @@ public class AuthService {
     public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent,
                                         String origem) {
         Instant agora = Instant.now();
-        UserAccount conta = usuarios.findByEmail(Texto.email(emailBruto)).orElse(null);
+        UserAccount conta = usuarios.travarParaLogin(Texto.email(emailBruto)).orElse(null);
         if (conta == null) {
             senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
@@ -246,6 +246,10 @@ public class AuthService {
     /** Conta um erro deste IP na conta; no limite trava este IP e recomeca a contagem. */
     private void errouDe(String chave, Instant agora) {
         errosPorOrigem.compute(chave, (k, atual) -> {
+            // Trava ainda valendo fica: um erro que chega depois nao a desfaz.
+            if (atual != null && atual.travadaAte() != null && atual.travadaAte().isAfter(agora)) {
+                return atual;
+            }
             int erros = (atual == null || atual.travadaAte() != null ? 0 : atual.erros()) + 1;
             return erros >= TENTATIVAS_DE_SENHA ? new ErrosDaOrigem(0, agora.plus(TRAVA_DA_SENHA))
                     : new ErrosDaOrigem(erros, null);

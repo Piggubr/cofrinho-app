@@ -1,6 +1,8 @@
 package com.piggu.identity.domain;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +14,14 @@ import java.util.UUID;
 public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> {
 
     Optional<UserAccount> findByEmail(String email);
+
+    /**
+     * Para o login por senha: a linha fica presa ate o fim da transacao, entao tentativas ao
+     * mesmo tempo na mesma conta contam uma a uma (sem isso uma rajada perdia os erros e a trava).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM UserAccount u WHERE u.email = :email")
+    Optional<UserAccount> travarParaLogin(@Param("email") String email);
 
     Optional<UserAccount> findByEmailTokenHash(String emailTokenHash);
 

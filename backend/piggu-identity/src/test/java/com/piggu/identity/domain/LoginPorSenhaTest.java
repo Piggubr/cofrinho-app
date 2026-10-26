@@ -155,6 +155,32 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("rajada de senhas erradas ao mesmo tempo nao desfaz a trava do IP")
+    void rajadaNaoDesfazATrava() throws Exception {
+        cadastrar(EMAIL);
+        int tentativas = AuthService.TENTATIVAS_DE_SENHA + 2;
+        java.util.concurrent.CountDownLatch largada = new java.util.concurrent.CountDownLatch(1);
+        try (var threads = java.util.concurrent.Executors.newFixedThreadPool(tentativas)) {
+            java.util.List<java.util.concurrent.Future<?>> rajada = new java.util.ArrayList<>();
+            for (int i = 0; i < tentativas; i++) {
+                rajada.add(threads.submit(() -> {
+                    largada.await();
+                    return assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null, "203.0.113.9"))
+                            .isInstanceOf(UnauthorizedException.class);
+                }));
+            }
+            largada.countDown();
+            for (var tentativa : rajada) {
+                tentativa.get();
+            }
+        }
+
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null, "203.0.113.9"))
+                .as("o IP continua travado")
+                .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
     @DisplayName("cinquenta senhas erradas, de IPs diferentes, travam a senha da conta para todos")
     void travaDaContaComMuitosIps() {
         cadastrar(EMAIL);
