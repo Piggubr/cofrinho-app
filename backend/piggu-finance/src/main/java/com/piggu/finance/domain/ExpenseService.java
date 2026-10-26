@@ -319,7 +319,10 @@ public class ExpenseService {
      */
     private String categoriaDe(ExpenseItemRequest item, String estabelecimento, String origem,
                                List<CategoryRule> regrasDaFamilia) {
-        boolean escolhidaAMao = ORIGEM_PADRAO.equals(origem) && !Texto.vazio(item.categoria());
+        // A conta fixa lanca com a categoria que o dono escolheu; no job, sem token, as regras
+        // carregadas seriam as de toda a familia.
+        boolean escolhidaAMao = (ORIGEM_PADRAO.equals(origem) || ContasFixasService.ORIGEM.equals(origem))
+                && !Texto.vazio(item.categoria());
         if (escolhidaAMao) {
             return categorias.normalizar(item.categoria());
         }

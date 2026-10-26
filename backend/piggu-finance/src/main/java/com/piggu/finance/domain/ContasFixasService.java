@@ -42,7 +42,7 @@ public class ContasFixasService {
     }
 
     private static final Logger log = LoggerFactory.getLogger(ContasFixasService.class);
-    private static final String ORIGEM = "Conta fixa";
+    static final String ORIGEM = "Conta fixa";
 
     private final RecurringBillRepository repositorio;
     private final ExpenseService gastos;
