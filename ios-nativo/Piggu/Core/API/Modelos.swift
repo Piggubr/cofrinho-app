@@ -36,6 +36,19 @@ struct Usuario: Codable, Equatable, Sendable {
     let emailConfirmado: Bool?
     let pais: String?
     let nascimento: String?
+    /// Falso: o Perfil oferece informar o CPF. Ausente conta como informado.
+    var cpfInformado: Bool?
+    /// Versao dos Termos aceita por ultimo; nula em conta antiga.
+    var termosAceitos: String?
+    var temSenha: Bool?
+
+    /// Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo.
+    var termosPendentes: Bool { termosAceitos != Conta.versaoDosTermos }
+
+    /// Falta como chamar ou a data de nascimento: o app pede os dois antes do resto.
+    var sobreVocePendente: Bool {
+        (apelido ?? "").trimmingCharacters(in: .whitespaces).isEmpty || (nascimento ?? "").isEmpty
+    }
 
     /// Como o app chama a pessoa: o apelido, senao o primeiro nome.
     var comoChamar: String {
@@ -147,4 +160,71 @@ struct PedidoDeLogin: Codable, Sendable {
 /// Corpo de /auth/refresh e /auth/logout (RefreshRequest). Sem refresh, vai `{}` e vale o cookie.
 struct PedidoDeRefresh: Codable, Sendable {
     let refreshToken: String?
+}
+
+// MARK: - Entrada e conta (auth.service.ts e users.service.ts)
+
+/// POST /auth/google. `versaoDosTermos` so na conta nova, depois do TERMOS_NECESSARIOS.
+struct PedidoDoGoogle: Codable, Sendable {
+    let idToken: String
+    var versaoDosTermos: String?
+    let lembrar: Bool
+    var refreshNoCorpo: Bool?
+}
+
+/// POST /auth/apple (AppleLoginRequest): o nonce vai sem hash; `nome` so vem na primeira vez.
+struct PedidoDaApple: Codable, Sendable {
+    let idToken: String
+    let nonce: String
+    var nome: String?
+    var versaoDosTermos: String?
+    let lembrar: Bool
+    var refreshNoCorpo: Bool?
+}
+
+/// POST /auth/cadastro (CadastroRequest). Responde 202 sem abrir sessao.
+struct PedidoDeCadastro: Codable, Equatable, Sendable {
+    let nome: String
+    let email: String
+    let senha: String
+    /// ISO 3166, duas letras.
+    let pais: String
+    /// O CPF so com os digitos.
+    let documento: String
+    /// "+55 11 99999-8888"
+    let telefone: String
+    /// aaaa-mm-dd
+    let nascimento: String
+    var versaoDosTermos = Conta.versaoDosTermos
+}
+
+/// Corpo de /auth/confirmar-email.
+struct PedidoComToken: Codable, Sendable {
+    let token: String
+}
+
+struct PedidoDeEmail: Codable, Sendable {
+    let email: String
+}
+
+struct PedidoDeSenhaNova: Codable, Sendable {
+    let token: String
+    let novaSenha: String
+}
+
+/// PUT /me/pais
+struct PedidoDePais: Codable, Sendable {
+    let pais: String
+    let documento: String?
+}
+
+/// PUT /me/sobre-voce: a data so na primeira vez.
+struct PedidoSobreVoce: Codable, Sendable {
+    let apelido: String
+    let nascimento: String?
+}
+
+/// PUT /me/termos
+struct PedidoDeTermos: Codable, Sendable {
+    let versao: String
 }

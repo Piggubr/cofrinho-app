@@ -7,6 +7,11 @@ import Foundation
 ///
 /// `-PigguDemoFalha rede|servidor|vazio` simula, fora do login, a falta de internet, o erro
 /// 500 e o mes sem nenhum gasto, para ver os estados das telas.
+///
+/// `-PigguDemoConta termos|sobre-voce|cpf|email` abre a conta com o que falta nela: os Termos
+/// mudaram, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar. Na demonstracao,
+/// a Apple e o Google sempre criam conta nova (pedem o aceite), e o token "vencido" nos links
+/// do e-mail responde LINK_INVALIDO.
 actor TransporteDeDemonstracao: Transporte {
     enum Falha: String {
         case rede, servidor, vazio
@@ -15,10 +20,28 @@ actor TransporteDeDemonstracao: Transporte {
     private var logado: Bool
     private var gastos: [[String: Any]]
     private let falha: Falha?
+    private var usuario = TransporteDeDemonstracao.usuarioPadrao
 
-    init(logado: Bool = false, falha: Falha? = UserDefaults.standard.string(forKey: "PigguDemoFalha").flatMap(Falha.init)) {
+    init(
+        logado: Bool = false,
+        falha: Falha? = UserDefaults.standard.string(forKey: "PigguDemoFalha").flatMap(Falha.init),
+        conta: String? = UserDefaults.standard.string(forKey: "PigguDemoConta")
+    ) {
         self.logado = logado
         self.falha = falha
+        switch conta {
+        case "termos":
+            usuario["termosAceitos"] = "2026-01-01"
+        case "sobre-voce":
+            usuario["apelido"] = NSNull()
+            usuario["nascimento"] = NSNull()
+        case "cpf":
+            usuario["cpfInformado"] = false
+        case "email":
+            usuario["emailConfirmado"] = false
+        default:
+            break
+        }
         let hoje = Date()
         func dia(_ antes: Int) -> String {
             Formatos.dia(Calendar.current.date(byAdding: .day, value: -antes, to: hoje) ?? hoje)
@@ -50,18 +73,18 @@ actor TransporteDeDemonstracao: Transporte {
             "valor": valor,
             "tipo": "Variavel",
             "origem": "manual",
-            "usuario": Self.usuario["id"] as Any,
+            "usuario": Self.usuarioPadrao["id"] as Any,
             "registradoEm": ISO8601DateFormatter().string(from: Date()),
             "compartilhado": false,
         ]
     }
 
-    nonisolated(unsafe) private static let usuario: [String: Any] = [
+    nonisolated(unsafe) private static let usuarioPadrao: [String: Any] = [
         "id": "8a5c2f0e-0000-4000-8000-000000000001",
         "email": "demo@piggu.app",
         "nome": "Pessoa de Demonstração",
         "primeiroNome": "Pessoa",
-        "apelido": NSNull(),
+        "apelido": "Pessoa",
         "foto": NSNull(),
         "role": "TITULAR",
         "ativo": true,
@@ -71,6 +94,9 @@ actor TransporteDeDemonstracao: Transporte {
         "emailConfirmado": true,
         "pais": "BR",
         "nascimento": "1990-01-01",
+        "cpfInformado": true,
+        "termosAceitos": Conta.versaoDosTermos,
+        "temSenha": true,
     ]
 
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
@@ -98,6 +124,49 @@ actor TransporteDeDemonstracao: Transporte {
         case ("POST", "/auth/entrar"):
             logado = true
             return responder(url, 200, tokens(noCorpo: corpo["refreshNoCorpo"] as? Bool == true))
+        case ("POST", "/auth/google"), ("POST", "/auth/apple"):
+            guard corpo["versaoDosTermos"] as? String == Conta.versaoDosTermos else {
+                return responder(url, 422, erro(
+                    "Para criar sua conta, leia e aceite os Termos de Uso e o Aviso de Privacidade.",
+                    codigo: "TERMOS_NECESSARIOS"))
+            }
+            logado = true
+            // Conta nova: o nome da Apple vira o apelido; falta a data de nascimento.
+            usuario["apelido"] = corpo["nome"] as? String ?? usuario["primeiroNome"]
+            usuario["nascimento"] = NSNull()
+            return responder(url, 200, tokens(noCorpo: corpo["refreshNoCorpo"] as? Bool == true))
+        case ("POST", "/auth/cadastro"), ("POST", "/auth/senha/esqueci"):
+            return responder(url, 202, nil)
+        case ("POST", "/auth/senha/redefinir"):
+            return corpo["token"] as? String == "vencido"
+                ? responder(url, 422, erro("Este link venceu ou ja foi usado. Peca outro em \"Esqueci minha senha\".",
+                                           codigo: "LINK_INVALIDO"))
+                : responder(url, 204, nil)
+        case ("POST", "/auth/confirmar-email"):
+            guard corpo["token"] as? String != "vencido" else {
+                return responder(url, 422, erro("Este link de confirmacao venceu ou ja foi usado. Peca outro no Perfil.",
+                                                codigo: "LINK_INVALIDO"))
+            }
+            usuario["emailConfirmado"] = true
+            return responder(url, 204, nil)
+        case ("POST", "/auth/me/email/reenviar"):
+            return responder(url, 204, nil)
+        case ("PUT", "/me/termos"):
+            usuario["termosAceitos"] = corpo["versao"]
+            return responder(url, 200, usuario)
+        case ("PUT", "/me/sobre-voce"):
+            usuario["apelido"] = corpo["apelido"]
+            if let nascimento = corpo["nascimento"] {
+                usuario["nascimento"] = nascimento
+            }
+            return responder(url, 200, usuario)
+        case ("PUT", "/me/pais"):
+            usuario["pais"] = corpo["pais"]
+            usuario["cpfInformado"] = corpo["documento"] is String
+            return responder(url, 200, usuario)
+        case ("DELETE", "/me"):
+            logado = false
+            return responder(url, 204, nil)
         case ("POST", "/auth/refresh"):
             // Como o backend: quem renovou pelo corpo recebe o novo no corpo.
             return logado
@@ -107,7 +176,7 @@ actor TransporteDeDemonstracao: Transporte {
             logado = false
             return responder(url, 204, nil)
         case ("GET", "/auth/me"):
-            return responder(url, 200, Self.usuario)
+            return responder(url, 200, usuario)
         case ("GET", "/categories"):
             return responder(url, 200, ["categorias": [
                 "Alimentação", "Casa", "Educação", "Lazer", "Mercado", "Outros", "Saúde", "Transporte",
@@ -127,15 +196,15 @@ actor TransporteDeDemonstracao: Transporte {
     }
 
     private func tokens(noCorpo: Bool) -> [String: Any] {
-        var tokens: [String: Any] = ["accessToken": "demo." + UUID().uuidString, "expiresIn": 1800, "usuario": Self.usuario]
+        var tokens: [String: Any] = ["accessToken": "demo." + UUID().uuidString, "expiresIn": 1800, "usuario": usuario]
         if noCorpo {
             tokens["refreshToken"] = "demo-refresh." + UUID().uuidString
         }
         return tokens
     }
 
-    private func erro(_ mensagem: String) -> [String: Any] {
-        ["erro": mensagem, "codigo": "DEMO", "campos": [], "momento": ISO8601DateFormatter().string(from: Date())]
+    private func erro(_ mensagem: String, codigo: String = "DEMO") -> [String: Any] {
+        ["erro": mensagem, "codigo": codigo, "campos": [], "momento": ISO8601DateFormatter().string(from: Date())]
     }
 
     private func lancar(_ corpo: Data?) -> [[String: Any]] {

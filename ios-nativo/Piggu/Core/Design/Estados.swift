@@ -79,7 +79,7 @@ struct EstadoDeErro: View {
                     Text("Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo."))
         }
         switch erro {
-        case .respostaInvalida, .servidor(status: 500..., mensagem: _):
+        case .respostaInvalida, .servidor(status: 500..., mensagem: _, codigo: _):
             return ("exclamationmark.triangle", "O Piggu tropeçou",
                     Text("Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes."))
         default:

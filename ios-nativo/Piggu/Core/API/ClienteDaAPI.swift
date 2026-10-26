@@ -34,8 +34,14 @@ enum ErroDaAPI: LocalizedError, Equatable {
     case bloqueadoPeloAccess
     /// O 401 persistiu depois da renovacao: so entrando de novo.
     case sessaoEncerrada
-    case servidor(status: Int, mensagem: String?)
+    /// `codigo` e o do corpo de erro (TERMOS_NECESSARIOS, LINK_INVALIDO, EM_BREVE...).
+    case servidor(status: Int, mensagem: String?, codigo: String? = nil)
     case respostaInvalida
+
+    /// O codigo do backend, para as telas que tratam um erro especifico.
+    var codigo: String? {
+        if case let .servidor(_, _, codigo) = self { codigo } else { nil }
+    }
 
     var errorDescription: String? {
         switch self {
@@ -45,7 +51,7 @@ enum ErroDaAPI: LocalizedError, Equatable {
             return String(localized: "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção.")
         case .sessaoEncerrada:
             return String(localized: "Sua sessão venceu. Entre novamente.")
-        case let .servidor(status, mensagem):
+        case let .servidor(status, mensagem, _):
             if let mensagem, !mensagem.isEmpty {
                 return mensagem
             }
@@ -174,8 +180,28 @@ actor ClienteDaAPI {
         corpo: Corpo,
         aberta: Bool = false
     ) async throws -> Resposta {
+        try await enviar("POST", caminho, corpo: corpo, aberta: aberta)
+    }
+
+    func put<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(
+        _ caminho: String,
+        corpo: Corpo
+    ) async throws -> Resposta {
+        try await enviar("PUT", caminho, corpo: corpo, aberta: false)
+    }
+
+    func delete(_ caminho: String) async throws {
+        _ = try await executar(metodo: "DELETE", caminho: caminho, query: [:], corpo: nil, aberta: false)
+    }
+
+    private func enviar<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(
+        _ metodo: String,
+        _ caminho: String,
+        corpo: Corpo,
+        aberta: Bool
+    ) async throws -> Resposta {
         let json = try codificador.encode(corpo)
-        let dados = try await executar(metodo: "POST", caminho: caminho, query: [:], corpo: json, aberta: aberta)
+        let dados = try await executar(metodo: metodo, caminho: caminho, query: [:], corpo: json, aberta: aberta)
         return try decodificar(dados)
     }
 
@@ -196,7 +222,7 @@ actor ClienteDaAPI {
         let tokens: ParDeTokens
         do {
             tokens = try await tarefa.value
-        } catch ErroDaAPI.servidor(status: 401, _) {
+        } catch ErroDaAPI.servidor(status: 401, _, _) {
             // Refresh recusado (vencido ou revogado): nao serve mais.
             esquecerTokens()
             throw ErroDaAPI.servidor(status: 401, mensagem: nil)
@@ -311,7 +337,7 @@ actor ClienteDaAPI {
     private func validar(_ dados: Data, _ resposta: HTTPURLResponse) throws -> Data {
         guard (200..<300).contains(resposta.statusCode) else {
             let corpo = try? decodificador.decode(CorpoDeErro.self, from: dados)
-            throw ErroDaAPI.servidor(status: resposta.statusCode, mensagem: corpo?.erro)
+            throw ErroDaAPI.servidor(status: resposta.statusCode, mensagem: corpo?.erro, codigo: corpo?.codigo)
         }
         return dados
     }
