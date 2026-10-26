@@ -6,6 +6,8 @@
 	<false/>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
+	<key>GIDServerClientID</key>
+	<string>$(GOOGLE_SERVER_CLIENT_ID)</string>
 	<key>PigguAPIURL</key>
 	<string>$(PIGGU_API_URL)</string>
 	<key>PigguRefreshNoCorpo</key>

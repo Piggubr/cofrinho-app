@@ -3,6 +3,9 @@
 // Sem ele o app compila e o botao "Entrar com Google" nao aparece.
 
 GOOGLE_IOS_CLIENT_ID =
+// O ID do site (publico, o mesmo de app-config.ts): o Google emite o token com ele no aud, e o
+// backend aceita sem mudar GOOGLE_CLIENT_ID no servidor.
+GOOGLE_SERVER_CLIENT_ID = 80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com
 GOOGLE_IOS_URL_SCHEME = br.com.piggu.app.sem-google
 
 #include? "Google.xcconfig"

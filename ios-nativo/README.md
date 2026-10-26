@@ -128,8 +128,11 @@ criar:
 3. Copie `Config/Google.exemplo.xcconfig` para `Config/Google.xcconfig` e preencha
    `GOOGLE_IOS_CLIENT_ID` com o *ID do cliente* e `GOOGLE_IOS_URL_SCHEME` com o *esquema de URL
    do iOS* que a tela mostra (o mesmo ID ao contrário, `com.googleusercontent.apps....`).
-4. No servidor, acrescente o ID novo ao do site, separado por vírgula:
-   `GOOGLE_CLIENT_ID=<id do site>,<id do iOS>` (o backend confere o `aud` do token).
+
+O servidor não muda: o app pede o token para o ID do site (`GIDServerClientID`, em
+`Config/Piggu.xcconfig`), então o `aud` é o mesmo que o backend já aceita em `GOOGLE_CLIENT_ID`.
+Não ponha dois IDs separados por vírgula nessa variável: o `application.yml` a lê como um
+item só da lista e o login do site para.
 
 No CI o arquivo não existe: o app compila e o botão fica escondido.
 
