@@ -1,0 +1,44 @@
+name: iOS nativo
+
+# App iOS em SwiftUI (ios-nativo/): compila e roda os testes num simulador de iPhone em todo PR
+# que mexe nele. O Swift nao tem como ser conferido no Linux.
+on:
+  pull_request:
+    paths:
+      - 'ios-nativo/**'
+      - '.github/workflows/ios-nativo.yml'
+
+permissions:
+  contents: read
+
+# Um push novo num PR cancela o build do commit anterior dele.
+concurrency:
+  group: ios-nativo-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: Build e testes no simulador de iPhone
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios-nativo
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Os nomes dos simuladores mudam a cada imagem do macos-latest: usa o primeiro iPhone instalado.
+      - name: Escolher o simulador
+        run: |
+          xcodebuild -version
+          udid=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          test "$udid" != null
+          xcrun simctl list devices available | grep "$udid"
+          echo "SIMULADOR=$udid" >> "$GITHUB_ENV"
+
+      - name: Compilar e testar
+        run: |
+          xcodebuild \
+            -project Piggu.xcodeproj \
+            -scheme Piggu \
+            -destination "platform=iOS Simulator,id=$SIMULADOR" \
+            build test
