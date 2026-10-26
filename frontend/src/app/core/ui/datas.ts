@@ -33,10 +33,6 @@ export function dataCurta(iso: string | null | undefined): string {
   return dia ? `${dia}/${mes}/${ano}` : iso;
 }
 
-export function primeiroDiaDoMes(data: Date): Date {
-  return new Date(data.getFullYear(), data.getMonth(), 1);
-}
-
 export function somarMeses(data: Date, meses: number): Date {
   return new Date(data.getFullYear(), data.getMonth() + meses, 1);
 }

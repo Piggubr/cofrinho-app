@@ -6,7 +6,8 @@ import { UsersService } from '../../core/api/users.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icone } from '../../core/ui/icone';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
-import { hojeIso, problemaDoNascimento } from '../../core/ui/nascimento';
+import { hojeIso } from '../../core/ui/datas';
+import { problemaDoNascimento } from '../../core/ui/nascimento';
 
 /**
  * Como a pessoa quer ser chamada e quando nasceu. Aparece uma vez para quem entrou pelo
