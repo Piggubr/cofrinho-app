@@ -66,6 +66,22 @@ class PlanoFamiliaTest {
     }
 
     @Test
+    @DisplayName("o fim da assinatura de quem nao paga mais a casa nao derruba a de quem paga")
+    void fimDeOutraAssinatura() {
+        UUID bia = UUID.randomUUID();
+        UUID ana = UUID.randomUUID();
+        Household casa = new Household("Casa");
+        Instant agora = Instant.now();
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(300)), agora, agora, TipoDePlano.FAMILIA, bia);
+
+        assertThat(casa.aplicarAssinatura("WEB", null, agora.plusSeconds(1), null, TipoDePlano.INDIVIDUAL, ana)).isFalse();
+
+        assertThat(casa.isFamilia()).isTrue();
+        assertThat(casa.getSubscriberId()).isEqualTo(bia);
+        assertThat(casa.planoVigente()).isEqualTo(Plano.PREMIUM);
+    }
+
+    @Test
     @DisplayName("casal: quem assinou e o parceiro sao Premium; o membro, nao")
     void casal() {
         Household casa = new Household("Casa");

@@ -165,6 +165,11 @@ public class Household {
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
                                      TipoDePlano tipo, UUID assinante) {
+        // Fim de assinatura de quem nao paga mais esta casa (entrou depois do fim da dele) nao derruba a de quem paga.
+        boolean encerra = ate == null || !ate.isAfter(Instant.now());
+        if (encerra && subscriberId != null && !subscriberId.equals(assinante) && planoVigente() == Plano.PREMIUM) {
+            return false;
+        }
         if (!aplicarAssinatura(origem, ate, momento, inicio)) {
             return false;
         }

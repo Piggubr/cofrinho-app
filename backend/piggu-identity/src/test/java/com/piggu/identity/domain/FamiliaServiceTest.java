@@ -41,6 +41,9 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @Autowired
     private TrilhaDeAuditoria trilha;
 
+    @Autowired
+    private HouseholdRepository casas;
+
     private UserAccount titular;
     private UserAccount membro;
     private UserAccount vizinho;
@@ -288,6 +291,27 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
                         org.assertj.core.groups.Tuple.tuple(TrilhaDeAuditoria.Acao.ENTROU, null, null,
                                 "membro · MEMBRO"));
         assertThat(trilha.recentes(vizinho.getHouseholdId(), null, 10)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("quem paga o Premium da propria familia so aceita convite depois que ele termina")
+    void assinanteNaoLevaOPlano() {
+        Household daCaio = casas.findById(vizinho.getHouseholdId()).orElseThrow();
+        Instant agora = Instant.now();
+        daCaio.aplicarAssinatura("WEB", agora.plus(java.time.Duration.ofDays(30)), agora, agora,
+                com.piggu.identity.billing.TipoDePlano.INDIVIDUAL, vizinho.getId());
+        casas.save(daCaio);
+        familias.convidar(como(titular), "vizinho@outra.test");
+        java.util.UUID convite = familias.convitesParaMim(como(vizinho)).get(0).id();
+
+        assertThatThrownBy(() -> familias.aceitarConvite(como(vizinho), convite))
+                .isInstanceOf(BusinessException.class).extracting("codigo").isEqualTo("ASSINATURA_ATIVA");
+
+        daCaio = casas.findById(vizinho.getHouseholdId()).orElseThrow();
+        daCaio.aplicarAssinatura("WEB", agora.minusSeconds(1), agora.plusSeconds(1));
+        casas.save(daCaio);
+        familias.aceitarConvite(como(vizinho), convite);
+        assertThat(usuarios.findById(vizinho.getId()).orElseThrow().getHouseholdId()).isEqualTo(titular.getHouseholdId());
     }
 
     private UserAccount entrar(String email, String nome) {

@@ -241,6 +241,13 @@ public class FamiliaService {
         if (convite.getHouseholdId().equals(conta.getHouseholdId())) {
             throw new BusinessException("Voce ja faz parte dessa familia.");
         }
+        // A renovacao vai para a familia atual de quem paga: na outra casa, trocaria o plano de la.
+        Household atual = daConta(conta);
+        if (conta.getId().equals(atual.getSubscriberId()) && atual.planoVigente() == Plano.PREMIUM) {
+            throw new BusinessException("Você assina o Premium da sua família. Para entrar em outra, cancele a "
+                    + "assinatura e aceite o convite depois que o Premium terminar.", HttpStatus.CONFLICT,
+                    "ASSINATURA_ATIVA");
+        }
 
         Optional<Household> vazia = sairDeOndeEsta(conta, convite.getHouseholdId());
         conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
