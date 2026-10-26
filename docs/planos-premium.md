@@ -120,7 +120,7 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 - O plano mora no identity (`users.premium_until`, migration `V3`) e vai no token
   (claim `plano`). Os outros serviços leem dali, sem chamar o identity.
 - Pagamento no site pela `StripePagamentos` (Checkout + Portal do Cliente, API REST sem
-  SDK). Sem interface enquanto há um provedor só; um segundo traz a interface de volta (D-077).
+  SDK). Sem interface enquanto há um provedor só; um segundo traz a interface de volta (D-081).
 - O Premium só muda pelo webhook assinado (HMAC, tolerância de 5 min). Voltar da página
   de pagamento não concede nada. Aviso antigo que chega depois de um mais novo é ignorado.
 - Compra nas lojas: `POST /api/billing/stores/{loja}/purchases` responde `501` até os
