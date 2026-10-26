@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -70,9 +72,9 @@ public class ConfirmacaoDeEmail {
             }
             return;
         }
-        email.enviar(conta.getEmail(), "Piggu: confirme seu e-mail",
+        depoisDoCommit(() -> email.enviar(conta.getEmail(), "Piggu: confirme seu e-mail",
                 "Para confirmar seu e-mail no Piggu, abra o link abaixo. Ele vale por 24 horas.\n\n" + link
-                        + "\n\nSe nao foi voce quem criou a conta, ignore este e-mail.");
+                        + "\n\nSe nao foi voce quem criou a conta, ignore este e-mail."));
     }
 
     /**
@@ -101,10 +103,28 @@ public class ConfirmacaoDeEmail {
             log.info("E-mail desligado; aviso de cadastro repetido nao enviado: conta={}", conta.getId());
             return;
         }
-        email.enviar(conta.getEmail(), "Piggu: tentativa de criar conta com seu e-mail",
+        depoisDoCommit(() -> email.enviar(conta.getEmail(), "Piggu: tentativa de criar conta com seu e-mail",
                 "Alguem tentou criar uma conta no Piggu com este e-mail, que ja tem conta.\n\n"
                         + "Se foi voce, entre em " + site + "/entrar com sua senha ou pelo Google. "
-                        + "Se nao foi, ignore este e-mail: nada mudou na sua conta.");
+                        + "Se nao foi, ignore este e-mail: nada mudou na sua conta."));
+    }
+
+    /**
+     * Manda depois do commit, numa thread a parte: o link so sai se a conta foi gravada, a
+     * conexao com o banco nao espera o provedor de e-mail (ate 30 s) e o e-mail que tem conta
+     * nao demora mais para responder do que o que nao tem.
+     */
+    static void depoisDoCommit(Runnable envio) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            Thread.startVirtualThread(envio);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                Thread.startVirtualThread(envio);
+            }
+        });
     }
 
     /** Um link por minuto, no maximo: o botao nao vira disparador de e-mail. */

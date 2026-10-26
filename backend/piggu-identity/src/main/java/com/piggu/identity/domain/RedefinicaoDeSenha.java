@@ -81,11 +81,14 @@ public class RedefinicaoDeSenha {
             }
             return;
         }
-        email.enviar(conta.getEmail(), "Piggu: crie uma senha nova",
-                "Recebemos um pedido para criar uma senha nova no Piggu. Abra o link abaixo; ele vale por 1 hora.\n\n"
-                        + link
-                        + "\n\nSe nao foi voce quem pediu, ignore este e-mail: sua senha continua a mesma.");
-        log.info("Link de nova senha enviado: conta={}", conta.getId());
+        ConfirmacaoDeEmail.depoisDoCommit(() -> {
+            if (email.enviar(conta.getEmail(), "Piggu: crie uma senha nova",
+                    "Recebemos um pedido para criar uma senha nova no Piggu. Abra o link abaixo; ele vale por 1 hora.\n\n"
+                            + link
+                            + "\n\nSe nao foi voce quem pediu, ignore este e-mail: sua senha continua a mesma.")) {
+                log.info("Link de nova senha enviado: conta={}", conta.getId());
+            }
+        });
     }
 
     /** Troca a senha pelo link; todas as sessoes abertas da conta caem. */
