@@ -71,12 +71,51 @@ faltar menos de um minuto para `expiresIn` acabar, ou quando uma chamada voltar 
 repita a chamada uma vez. Se a renovação também der `401`, a sessão acabou: volte ao login.
 **Sair**: `POST /api/auth/logout` (responde `204` e apaga o cookie).
 
-**O que muda no app nativo**
+**No app nativo** (D-058, D-072) não há cookie: o refresh viaja no corpo e o app o guarda no
+Keychain (iOS) ou no Keystore (Android).
+
+1. No login (`/api/auth/entrar`, `/api/auth/google` ou `/api/auth/apple`), mande
+   `"refreshNoCorpo": true`. A resposta traz `refreshToken` no corpo e não tem `Set-Cookie`.
+2. Para renovar, mande o refresh no corpo; o novo volta no corpo e o antigo deixa de valer:
+
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "<refresh guardado>" }
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{ "accessToken": "<JWT>", "refreshToken": "<refresh novo>", "expiresIn": 300, "usuario": { "…": "…" } }
+```
+
+3. Para sair, `POST /api/auth/logout` com `{ "refreshToken": "..." }`. Ao criar ou trocar a
+   senha (`PUT /api/auth/me/senha`), mande também `refreshToken`, senão a sessão do próprio
+   aparelho cai junto com as outras.
+
+O refresh que chega pelo cookie nunca volta no corpo, mesmo que o pedido traga `refreshNoCorpo`:
+assim o site continua sem ver o refresh (D-014).
+
+**Entrar com Apple** (`POST /api/auth/apple`): o app gera um nonce aleatório, passa o SHA-256
+dele (em hexadecimal) para o `ASAuthorizationAppleIDRequest` e manda o nonce original ao servidor:
+
+```json
+{ "idToken": "<identityToken>", "nonce": "<nonce original>", "nome": "Ana Souza",
+  "versaoDosTermos": "...", "refreshNoCorpo": true }
+```
+
+A Apple só entrega o nome na primeira autorização: mande `nome` nessa vez, que vira o apelido
+da conta nova. A conta é achada pelo e-mail, como no Google; quem oculta o e-mail na Apple
+ganha uma conta separada. Enquanto o servidor não tiver o Bundle ID em `APPLE_CLIENT_IDS`, a
+rota responde `501` com o código `EM_BREVE`.
 
 | Item | Situação |
 |---|---|
-| Refresh token no corpo da resposta (guardado no Keychain / Keystore) e aceito no corpo de `/api/auth/refresh` e `/api/auth/logout` | **Planejado.** Hoje o refresh só viaja no cookie (`TokenResponse.refreshToken` tem `@JsonIgnore`). Até lá, o cliente HTTP precisa guardar o cookie `piggu_refresh` (URLSession e OkHttp guardam com um cookie store) |
-| Entrar com Apple | **Planejado.** Não existe rota ainda |
+| Refresh token no corpo da resposta e aceito no corpo de `/api/auth/refresh`, `/api/auth/logout` e `/api/auth/me/senha` | **Pronto** (26/10/2026) |
+| Entrar com Apple | **Pronto** (26/10/2026). Falta revogar o token na Apple ao apagar a conta, que a App Store exige |
 | Push no Android | **Planejado.** `POST /api/auth/me/devices` só aceita `plataforma: "IOS"` (APNs) |
 
 ## Erros

@@ -52,6 +52,41 @@ paths:
       summary: Registrar um erro que aconteceu no app
       tags:
       - Erros do app
+  /api/auth/apple:
+    post:
+      description: Responde 501 (código EM_BREVE) enquanto o servidor não tiver o
+        Bundle ID em APPLE_CLIENT_IDS.
+      operationId: authEntrarComApple
+      parameters:
+      - in: header
+        name: User-Agent
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppleLoginRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: Entrar com a Apple (identity token)
+      tags:
+      - Login e sessão
   /api/auth/cadastro:
     post:
       operationId: authCadastrar
@@ -234,6 +269,11 @@ paths:
         required: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
       responses:
         "204":
           description: No Content
@@ -478,6 +518,11 @@ paths:
         required: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
       responses:
         "200":
           content:
@@ -1287,6 +1332,32 @@ components:
         momento:
           type: string
           format: date-time
+    AppleLoginRequest:
+      type: object
+      properties:
+        idToken:
+          type: string
+          maxLength: 4096
+          minLength: 0
+        lembrar:
+          type: boolean
+        nome:
+          type: string
+          maxLength: 120
+          minLength: 0
+        nonce:
+          type: string
+          maxLength: 200
+          minLength: 0
+        refreshNoCorpo:
+          type: boolean
+        versaoDosTermos:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - idToken
+      - nonce
     Avisos:
       type: object
       properties:
@@ -1435,6 +1506,10 @@ components:
           type: string
           maxLength: 200
           minLength: 0
+        refreshToken:
+          type: string
+          maxLength: 200
+          minLength: 0
         senhaAtual:
           type: string
           maxLength: 200
@@ -1541,6 +1616,8 @@ components:
           maxLength: 4096
           minLength: 0
         lembrar:
+          type: boolean
+        refreshNoCorpo:
           type: boolean
         versaoDosTermos:
           type: string
@@ -1736,6 +1813,13 @@ components:
       required:
       - novaSenha
       - token
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          maxLength: 200
+          minLength: 0
     SenhaLoginRequest:
       type: object
       properties:
@@ -1744,6 +1828,8 @@ components:
           maxLength: 320
           minLength: 0
         lembrar:
+          type: boolean
+        refreshNoCorpo:
           type: boolean
         senha:
           type: string
@@ -1781,6 +1867,11 @@ components:
         expiresIn:
           type: integer
           format: int64
+        refreshToken:
+          type: string
+          description: "Só para o app nativo, quando pede com refreshNoCorpo ou renova\
+            \ mandando o refresh no corpo. No site fica de fora: o refresh vai no\
+            \ cookie."
         usuario:
           $ref: "#/components/schemas/UserResponse"
     TrocaRequest:
@@ -1883,7 +1974,7 @@ components:
   securitySchemes:
     bearer:
       bearerFormat: JWT
-      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
-        \ ou /api/auth/refresh)."
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google,\
+        \ /api/auth/apple ou /api/auth/refresh)."
       scheme: bearer
       type: http

@@ -35,7 +35,7 @@ public class IdentitySecurityConfig {
                         rotas.requestMatchers(HttpMethod.GET, ResourceServerSecurityConfig.ROTAS_DO_CONTRATO).permitAll();
                     }
                     rotas
-                            .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/cadastro", "/api/auth/entrar", "/api/auth/confirmar-email",
+                            .requestMatchers(HttpMethod.POST, "/api/auth/google", "/api/auth/apple", "/api/auth/cadastro", "/api/auth/entrar", "/api/auth/confirmar-email",
                                     "/api/auth/senha/esqueci", "/api/auth/senha/redefinir", "/api/auth/refresh", "/api/auth/logout",
                                     // Login com Google no app instalado: a volta do Google e a troca do codigo.
                                     "/api/auth/google/app", "/api/auth/google/app/troca").permitAll()

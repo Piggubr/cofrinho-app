@@ -27,6 +27,11 @@ describe('API da demonstracao', () => {
     expect((await get<{ nome: string }>('/api/family')).nome).toBe('Família Demo');
   });
 
+  it('entrar com a Apple tambem entra como a titular', async () => {
+    const tokens = await post<ParDeTokens>('/api/auth/apple', { idToken: 'x', nonce: 'y' });
+    expect(tokens.usuario.role).toBe('TITULAR');
+  });
+
   it('o resumo do mes fecha a conta e lancar um gasto muda o total', async () => {
     const antes = await get<ResumoDoMes>('/api/reports/month', { mes });
     expect(antes.sobra).toBeCloseTo(antes.receitas - antes.gastos, 2);

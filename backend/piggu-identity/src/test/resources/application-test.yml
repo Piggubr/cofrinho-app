@@ -1,5 +1,10 @@
 # Perfil de teste: banco vem do Testcontainers, integracoes externas desligadas.
 spring:
+  # Cada combinacao de @MockitoBean sobe um contexto com o proprio pool, todos no mesmo
+  # Postgres (max_connections 100). Com o padrao de 10 conexoes, o 11o contexto ja nao conecta.
+  datasource:
+    hikari:
+      maximum-pool-size: 4
   jpa:
     hibernate:
       ddl-auto: validate

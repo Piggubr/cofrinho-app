@@ -301,7 +301,7 @@ components:
   securitySchemes:
     bearer:
       bearerFormat: JWT
-      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
-        \ ou /api/auth/refresh)."
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google,\
+        \ /api/auth/apple ou /api/auth/refresh)."
       scheme: bearer
       type: http

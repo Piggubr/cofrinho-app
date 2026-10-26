@@ -589,7 +589,7 @@ const ID = '([^/]+)';
 
 const ROTAS: Rota[] = [
   // Sessao: sempre a Ana, titular Premium.
-  ['POST', /^\/auth\/(google|entrar|cadastro|refresh)$/, () => tokens()],
+  ['POST', /^\/auth\/(google|apple|entrar|cadastro|refresh)$/, () => tokens()],
   ['PUT', /^\/me\/pais$/, (_p, _x, c) => {
     estado.titular = { ...estado.titular, pais: (c as { pais: string }).pais, cpfInformado: true };
     return estado.titular;
