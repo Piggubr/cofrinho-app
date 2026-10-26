@@ -121,6 +121,14 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("quem perde a corrida no SERIALIZABLE recebe 409 para tentar de novo, nao 500")
+    void conflitoDeConcorrencia() throws Exception {
+        mockMvc.perform(get("/teste/concorrente"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("CONFLITO"));
+    }
+
+    @Test
     @DisplayName("validacao lista o campo invalido e resume a primeira mensagem")
     void validacaoDetalhaCampo() throws Exception {
         mockMvc.perform(post("/teste/validado")
@@ -168,6 +176,11 @@ class ApiExceptionHandlerTest {
         String duplicado() {
             throw new org.springframework.dao.DataIntegrityViolationException(
                     "Key (email)=(fulana@exemplo.test) already exists");
+        }
+
+        @GetMapping("/concorrente")
+        String concorrente() {
+            throw new org.springframework.dao.CannotAcquireLockException("could not serialize access");
         }
 
         @GetMapping("/explode")
