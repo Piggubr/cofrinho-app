@@ -77,7 +77,7 @@ repita a chamada uma vez. Se a renovação também der `401`, a sessão acabou: 
 |---|---|
 | Refresh token no corpo da resposta (guardado no Keychain / Keystore) e aceito no corpo de `/api/auth/refresh` e `/api/auth/logout` | **Planejado.** Hoje o refresh só viaja no cookie (`TokenResponse.refreshToken` tem `@JsonIgnore`). Até lá, o cliente HTTP precisa guardar o cookie `piggu_refresh` (URLSession e OkHttp guardam com um cookie store) |
 | Entrar com Apple | **Planejado.** Não existe rota ainda |
-| Push no Android | **Planejado.** `POST /api/auth/me/devices` só aceita `plataforma: "IOS"` (APNs) |
+| Push no Android | **Em parte.** `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio). O envio pelo FCM ainda não existe: por enquanto só o iPhone recebe |
 
 ## Erros
 
