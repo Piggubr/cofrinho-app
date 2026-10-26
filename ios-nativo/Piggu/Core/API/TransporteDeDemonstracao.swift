@@ -4,12 +4,21 @@ import Foundation
 /// Responde como a API, sem rede, com dados inventados. So existe em Debug: serve para
 /// o preview do SwiftUI e para ver as telas no simulador com `-PigguDemo YES`.
 /// Qualquer e-mail e senha entram; `-PigguDemoLogado YES` ja abre logado.
+///
+/// `-PigguDemoFalha rede|servidor|vazio` simula, fora do login, a falta de internet, o erro
+/// 500 e o mes sem nenhum gasto, para ver os estados das telas.
 actor TransporteDeDemonstracao: Transporte {
+    enum Falha: String {
+        case rede, servidor, vazio
+    }
+
     private var logado: Bool
     private var gastos: [[String: Any]]
+    private let falha: Falha?
 
-    init(logado: Bool = false) {
+    init(logado: Bool = false, falha: Falha? = UserDefaults.standard.string(forKey: "PigguDemoFalha").flatMap(Falha.init)) {
         self.logado = logado
+        self.falha = falha
         let hoje = Date()
         func dia(_ antes: Int) -> String {
             Formatos.dia(Calendar.current.date(byAdding: .day, value: -antes, to: hoje) ?? hoje)
@@ -70,12 +79,30 @@ actor TransporteDeDemonstracao: Transporte {
         let caminho = url.path.replacingOccurrences(of: "/api", with: "")
         let metodo = pedido.httpMethod ?? "GET"
 
+        let corpo = pedido.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+
+        if !caminho.hasPrefix("/auth") {
+            switch falha {
+            case .rede:
+                throw URLError(.notConnectedToInternet)
+            case .servidor:
+                return responder(url, 500, erro("Erro interno."))
+            case .vazio:
+                gastos = []
+            case nil:
+                break
+            }
+        }
+
         switch (metodo, caminho) {
         case ("POST", "/auth/entrar"):
             logado = true
-            return responder(url, 200, tokens())
+            return responder(url, 200, tokens(noCorpo: corpo["refreshNoCorpo"] as? Bool == true))
         case ("POST", "/auth/refresh"):
-            return logado ? responder(url, 200, tokens()) : responder(url, 401, erro("Sua sessao venceu."))
+            // Como o backend: quem renovou pelo corpo recebe o novo no corpo.
+            return logado
+                ? responder(url, 200, tokens(noCorpo: corpo["refreshToken"] is String))
+                : responder(url, 401, erro("Sua sessao venceu."))
         case ("POST", "/auth/logout"):
             logado = false
             return responder(url, 204, nil)
@@ -99,8 +126,12 @@ actor TransporteDeDemonstracao: Transporte {
         }
     }
 
-    private func tokens() -> [String: Any] {
-        ["accessToken": "demo." + UUID().uuidString, "expiresIn": 1800, "usuario": Self.usuario]
+    private func tokens(noCorpo: Bool) -> [String: Any] {
+        var tokens: [String: Any] = ["accessToken": "demo." + UUID().uuidString, "expiresIn": 1800, "usuario": Self.usuario]
+        if noCorpo {
+            tokens["refreshToken"] = "demo-refresh." + UUID().uuidString
+        }
+        return tokens
     }
 
     private func erro(_ mensagem: String) -> [String: Any] {

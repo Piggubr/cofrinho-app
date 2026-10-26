@@ -1,0 +1,250 @@
+{
+  "sourceLanguage" : "pt-BR",
+  "strings" : {
+    "%@ · Premium" : {
+
+    },
+    "%@: %@. Mês anterior: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@. Mês anterior: %3$@"
+          }
+        }
+      }
+    },
+    "0,00" : {
+
+    },
+    "A cor fica neste aparelho." : {
+
+    },
+    "Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes." : {
+
+    },
+    "Aparência" : {
+
+    },
+    "Assim que houver gastos, o relatório mostra para onde o dinheiro foi." : {
+
+    },
+    "Azul" : {
+
+    },
+    "Cancelar" : {
+
+    },
+    "Carregando…" : {
+
+    },
+    "Categoria" : {
+
+    },
+    "Chiclete" : {
+
+    },
+    "Comparado ao mês anterior" : {
+
+    },
+    "Continuar conectado" : {
+
+    },
+    "Cor do Piggu" : {
+
+    },
+    "Data" : {
+
+    },
+    "E-mail" : {
+
+    },
+    "Em breve no app. Por enquanto, entre com e-mail e senha." : {
+
+    },
+    "Entrar" : {
+
+    },
+    "Este mês" : {
+
+    },
+    "Gastos" : {
+
+    },
+    "Gastos no mês anterior" : {
+
+    },
+    "Lance o primeiro gasto do mês." : {
+
+    },
+    "Lançar gasto" : {
+
+    },
+    "Lançar um gasto" : {
+
+    },
+    "Lilás" : {
+
+    },
+    "Mais" : {
+
+    },
+    "Menta" : {
+
+    },
+    "Mês anterior" : {
+
+    },
+    "Nenhum gasto lançado neste mês" : {
+
+    },
+    "Nenhum gasto neste mês" : {
+
+    },
+    "Não deu certo (erro %lld)." : {
+
+    },
+    "Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo." : {
+
+    },
+    "Não deu para atualizar. Mostrando o que estava guardado de %@." : {
+
+    },
+    "Não deu para carregar" : {
+
+    },
+    "O Piggu não está respondendo agora (erro %lld). Tente daqui a pouco." : {
+
+    },
+    "O Piggu respondeu algo que o app não entendeu." : {
+
+    },
+    "O Piggu tropeçou" : {
+
+    },
+    "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção." : {
+
+    },
+    "O que foi? Ex.: Almoço" : {
+
+    },
+    "O valor precisa ser maior que zero." : {
+
+    },
+    "O valor é alto demais." : {
+
+    },
+    "Olá, %@" : {
+
+    },
+    "Onde? (opcional)" : {
+
+    },
+    "Painel" : {
+
+    },
+    "Piggu" : {
+
+    },
+    "Piggu %@" : {
+
+    },
+    "Plano" : {
+
+    },
+    "Por categoria" : {
+
+    },
+    "Projeção até o fim do mês" : {
+
+    },
+    "Projeção do mês" : {
+
+    },
+    "Próximo mês" : {
+
+    },
+    "R$" : {
+
+    },
+    "Receitas" : {
+
+    },
+    "Relatórios" : {
+
+    },
+    "Rosa Piggu" : {
+
+    },
+    "Sair" : {
+
+    },
+    "Sair da conta neste aparelho?" : {
+
+    },
+    "Salvar" : {
+
+    },
+    "Sem conexão com o servidor. Confira a internet e tente de novo." : {
+
+    },
+    "Senha" : {
+
+    },
+    "Seu dinheiro, organizado." : {
+
+    },
+    "Sobra do mês" : {
+
+    },
+    "Sua sessão venceu. Entre novamente." : {
+
+    },
+    "Tentar de novo" : {
+
+    },
+    "Toque no + para lançar o primeiro." : {
+
+    },
+    "Total do mês" : {
+
+    },
+    "Valor em reais" : {
+
+    },
+    "Valor inválido. Use, por exemplo, 12,50." : {
+
+    },
+    "Variação" : {
+
+    },
+    "Você está sem internet" : {
+
+    },
+    "Você está sem internet. Confira o Wi-Fi ou os dados móveis." : {
+
+    },
+    "Você está sem internet. Mostrando o que estava guardado de %@." : {
+
+    },
+    "Você está sem internet. O gasto só pode ser salvo com conexão." : {
+
+    },
+    "Você guardou %@ do que entrou" : {
+
+    },
+    "igual" : {
+
+    },
+    "ou" : {
+
+    },
+    "▲ %@ a mais" : {
+
+    },
+    "▼ %@ a menos" : {
+
+    }
+  },
+  "version" : "1.0"
+}

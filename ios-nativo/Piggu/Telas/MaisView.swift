@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MaisView: View {
     @Environment(Sessao.self) private var sessao
+    @Environment(\.paleta) private var paleta
+    @AppStorage(Tema.chave) private var tema = Tema.chiclete
     @State private var confirmandoSaida = false
 
     private var versao: String {
@@ -18,20 +20,44 @@ struct MaisView: View {
                     Section {
                         HStack(spacing: 14) {
                             Text(iniciais(usuario.nome))
-                                .font(.headline)
-                                .foregroundStyle(.white)
+                                .font(.sora(.headline, peso: .semibold))
+                                .foregroundStyle(paleta.primariaContraste)
                                 .frame(width: 48, height: 48)
-                                .background(Color.accentColor, in: Circle())
+                                .background(paleta.primaria, in: Circle())
+                                .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(usuario.nome).font(.headline)
+                                Text(usuario.nome).font(.sora(.headline, peso: .semibold))
                                 Text(usuario.email)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.sora(.subheadline))
+                                    .foregroundStyle(paleta.textoSuave)
                             }
                         }
                         .padding(.vertical, 4)
+                        .accessibilityElement(children: .combine)
                         LabeledContent("Plano", value: usuario.plano == .premium ? "Premium" : "Gratuito")
                     }
+                    .listRowBackground(paleta.superficie)
+
+                    Section {
+                        Picker("Cor do Piggu", selection: $tema) {
+                            ForEach(Tema.allCases) { opcao in
+                                Group {
+                                    if opcao.premium {
+                                        Text("\(Text(opcao.nome)) · Premium")
+                                    } else {
+                                        Text(opcao.nome)
+                                    }
+                                }
+                                .tag(opcao)
+                                    .selectionDisabled(opcao.premium && usuario.plano != .premium)
+                            }
+                        }
+                    } header: {
+                        Text("Aparência")
+                    } footer: {
+                        Text("A cor fica neste aparelho.")
+                    }
+                    .listRowBackground(paleta.superficie)
                 }
 
                 Section {
@@ -39,7 +65,10 @@ struct MaisView: View {
                 } footer: {
                     Text("Piggu \(versao)")
                 }
+                .listRowBackground(paleta.superficie)
             }
+            .scrollContentBackground(.hidden)
+            .background(paleta.fundo)
             .navigationTitle("Mais")
             .confirmationDialog("Sair da conta neste aparelho?", isPresented: $confirmandoSaida,
                                 titleVisibility: .visible) {

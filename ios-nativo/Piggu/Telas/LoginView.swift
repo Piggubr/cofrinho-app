@@ -2,6 +2,8 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(Sessao.self) private var sessao
+    @Environment(MonitorDeRede.self) private var rede
+    @Environment(\.paleta) private var paleta
 
     @State private var email = ""
     @State private var senha = ""
@@ -23,9 +25,10 @@ struct LoginView: View {
                         .frame(width: 88, height: 88)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     Text("Piggu")
-                        .font(.largeTitle.bold())
+                        .font(.sora(.largeTitle, peso: .bold))
+                        .foregroundStyle(paleta.primaria)
                     Text("Seu dinheiro, organizado.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(paleta.textoSuave)
                 }
                 .padding(.top, 48)
 
@@ -46,10 +49,17 @@ struct LoginView: View {
                         .padding(.horizontal, 4)
                 }
 
+                if !rede.conectado {
+                    Label("Você está sem internet. Confira o Wi-Fi ou os dados móveis.", systemImage: "wifi.slash")
+                        .font(.sora(.callout))
+                        .foregroundStyle(paleta.alerta)
+                        .frame(maxWidth: .infinity)
+                }
+
                 if let erro {
                     Text(erro)
-                        .font(.callout)
-                        .foregroundStyle(.red)
+                        .font(.sora(.callout))
+                        .foregroundStyle(paleta.perigo)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                 }
@@ -59,32 +69,32 @@ struct LoginView: View {
                 } label: {
                     Group {
                         if entrando {
-                            ProgressView().tint(.white)
+                            ProgressView().tint(paleta.primariaContraste)
                         } else {
                             Text("Entrar")
                         }
                     }
-                    .font(.headline)
+                    .font(.sora(.headline, peso: .semibold))
                     .frame(maxWidth: .infinity, minHeight: 28)
                 }
-                .buttonStyle(.borderedProminent)
+                .botaoPrincipal()
                 .controlSize(.large)
                 .disabled(!podeEntrar)
 
                 HStack {
-                    Rectangle().frame(height: 1).foregroundStyle(.quaternary)
-                    Text("ou").font(.footnote).foregroundStyle(.secondary)
-                    Rectangle().frame(height: 1).foregroundStyle(.quaternary)
+                    Rectangle().frame(height: 1).foregroundStyle(paleta.borda)
+                    Text("ou").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                    Rectangle().frame(height: 1).foregroundStyle(paleta.borda)
                 }
 
                 VStack(spacing: 10) {
                     // TODO: Google Sign-In (POST /auth/google com o ID token).
                     BotaoEmBreve(titulo: "Entrar com Google", icone: "g.circle.fill")
-                    // TODO: Sign in with Apple (o backend ainda nao tem a rota).
+                    // TODO: Sign in with Apple (POST /auth/apple, etapa 3).
                     BotaoEmBreve(titulo: "Entrar com Apple", icone: "apple.logo")
                     Text("Em breve no app. Por enquanto, entre com e-mail e senha.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.sora(.footnote))
+                        .foregroundStyle(paleta.textoSuave)
                 }
             }
             .padding(.horizontal, 24)
@@ -92,6 +102,7 @@ struct LoginView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
+        .background(paleta.fundo)
     }
 
     private func entrar() async {
@@ -122,16 +133,27 @@ private struct BotaoEmBreve: View {
     }
 }
 
+private struct CampoDoLogin: ViewModifier {
+    @Environment(\.paleta) private var paleta
+
+    func body(content: Content) -> some View {
+        content
+            .padding(14)
+            .background(paleta.campo, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(paleta.borda))
+    }
+}
+
 private extension View {
     func campoDoLogin() -> some View {
-        padding(14)
-            .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        modifier(CampoDoLogin())
     }
 }
 
 #if DEBUG
 #Preview {
     LoginView()
-        .environment(Sessao(cliente: ClienteDaAPI(transporte: TransporteDeDemonstracao())))
+        .environment(Sessao(cliente: ClienteDaAPI(transporte: TransporteDeDemonstracao()), cache: Cache(soNaMemoria: true)))
+        .environment(MonitorDeRede())
 }
 #endif
