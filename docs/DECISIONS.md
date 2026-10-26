@@ -95,6 +95,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-076](#d-076-o-campo-de-valor-do-site-lê-igual-ao-app-nativo) | O campo de valor do site lê igual ao app nativo | Valendo |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
+| [D-083](#d-083-termos-e-aviso-do-app-nativo-copiados-do-site-pelo-ci) | Termos e Aviso do app nativo copiados do site pelo CI | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -784,6 +785,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
 - Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
+
+## D-083: Termos e Aviso do app nativo copiados do site pelo CI
+- Data: 26/10/2026
+- Situação: Valendo
+- Contexto: etapa 3 do plano iOS. O app nativo mostra os Termos de Uso e o Aviso de Privacidade em telas próprias, com o mesmo texto do site, e o aceite grava a versão (`VERSAO_DO_AVISO`). Duas cópias escritas à mão acabariam diferentes.
+- Decisão: o texto do site (`features/legal/*.html` e a versão de `aviso.ts`) é a fonte. `ios-nativo/scripts/textos-legais.py` gera `ios-nativo/Piggu/Recursos/Termos.md` e `Privacidade.md`, e o CI do iOS falha se eles ficarem diferentes do HTML. A versão no Swift (`Conta.versaoDosTermos`) é conferida contra o texto nos testes. O ID OAuth do Google para iOS fica num `xcconfig` fora do Git; sem ele o botão do Google não aparece.
+- Alternativas: abrir o site numa web view, que não abre sem internet e fica fora do visual do app, ou guardar os textos no String Catalog, onde cada parágrafo vira uma chave solta.
+- Consequências: mudou o texto no site, roda o script e faz o commit no mesmo PR. O Android vai precisar do mesmo script.
+- Onde ver: `ios-nativo/scripts/textos-legais.py`, `ios-nativo/Piggu/Telas/Entrada/TextoLegalView.swift`, `.github/workflows/ios-nativo.yml`
 
 # Processo
 
