@@ -273,16 +273,15 @@ docker compose version              # e sobe os serviços com o perfil producao
 whoami                              # na Oracle: "ubuntu" na imagem Ubuntu, "opc" na Oracle Linux
 ```
 
-- **`git fetch` pediu usuário/senha?** O repositório é público, então o servidor busca
-  pelo HTTPS sem chave nenhuma. Deixe o `origin` assim:
+- **`git fetch` pediu usuário/senha?** O repositório é privado (D-069 em
+  `docs/DECISIONS.md`), então o servidor precisa de uma *Deploy key* só de leitura,
+  cadastrada em *Settings > Deploy keys*, com o `origin` por SSH:
   ```bash
-  git -C /opt/piggu remote set-url origin https://github.com/Piggubr/cofrinho-app.git
+  git -C /opt/piggu remote set-url origin git@github.com:Piggubr/cofrinho-app.git
   git -C /opt/piggu fetch origin main
   ```
-  (Se um dia o repositório virar privado, cadastre uma *Deploy key* só de leitura em
-  *Settings > Deploy keys* e troque o `origin` para `git@github.com:Piggubr/cofrinho-app.git`.)
 - **`/opt/piggu` não é um clone?** Faça o clone
-  (`git clone https://github.com/Piggubr/cofrinho-app.git /opt/piggu`) e copie para dentro
+  (`git clone git@github.com:Piggubr/cofrinho-app.git /opt/piggu`, com a deploy key) e copie para dentro
   dele o que fica fora do Git: `backend/.env`, `backend/keys/` e o
   `docker-compose.override.yml`, se houver.
 - **Porta 22:** o Actions entra de IPs que mudam. Na Oracle Cloud, a *Security List* (ou o
@@ -349,9 +348,8 @@ backup da noite (seção 6).
 **Pacotes no GitHub (uma vez, depois do primeiro push na `main` com o job de imagens):**
 em *github.com/orgs/Piggubr/packages*, cada imagem (`cofrinho-app/identity`, `.../web`...)
 aparece ligada ao repositório. O deploy funciona com elas privadas (usa o token do job).
-Para baixar à mão sem login, mude a visibilidade de cada uma para *Public* em *Package
-settings*; o código já é público, então a imagem não expõe nada novo (os segredos ficam no
-`.env` do servidor, nunca na imagem).
+Deixe as imagens privadas: o repositório é privado, e a imagem leva o código compilado.
+Para baixar à mão, faça `docker login ghcr.io` antes.
 
 O servidor guarda só as imagens da versão no ar e da anterior; as outras são apagadas a
 cada deploy.
