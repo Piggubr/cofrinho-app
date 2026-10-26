@@ -4,6 +4,16 @@
     "%@ · Premium" : {
 
     },
+    "%@: %@" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
     "%@: %@. Mês anterior: %@" : {
       "localizations" : {
         "pt-BR" : {
@@ -20,16 +30,64 @@
     "A cor fica neste aparelho." : {
 
     },
+    "A data não muda depois. Quem tem entre 13 e 17 anos tem os lançamentos visíveis para o titular e o parceiro da família." : {
+
+    },
+    "A senha não pode ser o seu e-mail." : {
+
+    },
+    "A senha pode ter no máximo %lld caracteres." : {
+
+    },
+    "A senha precisa ter pelo menos %lld caracteres." : {
+
+    },
+    "Abrir no site" : {
+
+    },
+    "Abrir o Piggu" : {
+
+    },
+    "Aceitar e continuar" : {
+
+    },
+    "Aceito os Termos de Uso e o Aviso de Privacidade" : {
+
+    },
+    "Agora não" : {
+
+    },
     "Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes." : {
+
+    },
+    "Antes de começar, conte como quer ser chamado." : {
 
     },
     "Aparência" : {
 
     },
+    "As duas senhas não são iguais." : {
+
+    },
     "Assim que houver gastos, o relatório mostra para onde o dinheiro foi." : {
 
     },
+    "Atualizamos os Termos de Uso e o Aviso de Privacidade. Para seguir usando o Piggu, leia e aceite a versão nova." : {
+
+    },
+    "Aviso de Privacidade" : {
+
+    },
     "Azul" : {
+
+    },
+    "CPF" : {
+
+    },
+    "CPF inválido. Confira o número." : {
+
+    },
+    "Cada pessoa tem uma conta no Piggu. O documento garante isso: ele fica preso à sua conta e não pode ser usado em outra." : {
 
     },
     "Cancelar" : {
@@ -41,37 +99,139 @@
     "Categoria" : {
 
     },
+    "Celular" : {
+
+    },
     "Chiclete" : {
+
+    },
+    "Como quer ser chamado?" : {
 
     },
     "Comparado ao mês anterior" : {
 
     },
-    "Continuar conectado" : {
+    "Confira a data de nascimento." : {
+
+    },
+    "Confira o e-mail." : {
+
+    },
+    "Confirmando seu e-mail…" : {
+
+    },
+    "Conte como podemos te chamar." : {
+
+    },
+    "Continuar" : {
+
+    },
+    "Continuar conectado neste aparelho" : {
 
     },
     "Cor do Piggu" : {
 
     },
+    "Criar conta" : {
+
+    },
+    "Criar minha conta" : {
+
+    },
+    "Código do país (DDI)" : {
+
+    },
     "Data" : {
+
+    },
+    "Data de nascimento" : {
+
+    },
+    "Desmarcado" : {
+
+    },
+    "Documento" : {
 
     },
     "E-mail" : {
 
     },
-    "Em breve no app. Por enquanto, entre com e-mail e senha." : {
+    "E-mail confirmado" : {
+
+    },
+    "EXCLUIR" : {
 
     },
     "Entrar" : {
 
     },
+    "Entrar ou criar conta" : {
+
+    },
+    "Escolha a senha que você vai usar para entrar no Piggu." : {
+
+    },
+    "Escolher" : {
+
+    },
+    "Esqueci minha senha" : {
+
+    },
+    "Este link venceu ou já foi usado. Peça outro e use em até 1 hora." : {
+
+    },
     "Este mês" : {
+
+    },
+    "Excluir" : {
+
+    },
+    "Excluir a conta é gratuito em qualquer plano e apaga tudo o que você lançou." : {
+
+    },
+    "Excluir minha conta" : {
+
+    },
+    "Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. Digite EXCLUIR para confirmar." : {
+
+    },
+    "Falta pouco para criar sua conta." : {
+
+    },
+    "Fazer login com o Google" : {
+
+    },
+    "Fechar" : {
+
+    },
+    "Fica guardado cifrado e não aparece para a sua família." : {
 
     },
     "Gastos" : {
 
     },
     "Gastos no mês anterior" : {
+
+    },
+    "Guardamos o documento cifrado e usamos só para isso. Ele não aparece para a sua família e sai inteiro apenas quando você baixa os seus dados. Detalhes no [Aviso de Privacidade](piggu://privacidade). Já tem conta com este documento ou quer corrigir? Escreva para %@." : {
+
+    },
+    "Informar agora" : {
+
+    },
+    "Informe o e-mail da sua conta e mandamos um link para criar uma senha nova." : {
+
+    },
+    "Informe o número do seu documento (CPF)." : {
+
+    },
+    "Informe seu celular." : {
+
+    },
+    "Informe seu e-mail e sua senha." : {
+
+    },
+    "Informe sua data de nascimento." : {
 
     },
     "Lance o primeiro gasto do mês." : {
@@ -83,10 +243,31 @@
     "Lançar um gasto" : {
 
     },
+    "Leia no site do Piggu." : {
+
+    },
+    "Leia os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade) completos (versão %@)." : {
+
+    },
+    "Li e aceito os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade)." : {
+
+    },
     "Lilás" : {
 
     },
+    "Link vencido" : {
+
+    },
     "Mais" : {
+
+    },
+    "Mandamos outro link. O anterior deixou de valer." : {
+
+    },
+    "Mandar o link" : {
+
+    },
+    "Marcado" : {
 
     },
     "Menta" : {
@@ -95,10 +276,19 @@
     "Mês anterior" : {
 
     },
+    "Na família, cada pessoa usa todas as telas e vê só o que lançou e os gastos divididos com ela." : {
+
+    },
     "Nenhum gasto lançado neste mês" : {
 
     },
     "Nenhum gasto neste mês" : {
+
+    },
+    "Não concordo: excluir minha conta" : {
+
+    },
+    "Não consegui abrir o login do Google. Entre com e-mail e senha." : {
 
     },
     "Não deu certo (erro %lld)." : {
@@ -107,10 +297,28 @@
     "Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo." : {
 
     },
+    "Não deu para abrir o texto" : {
+
+    },
     "Não deu para atualizar. Mostrando o que estava guardado de %@." : {
 
     },
     "Não deu para carregar" : {
+
+    },
+    "Não deu para confirmar" : {
+
+    },
+    "Não deu para excluir a conta" : {
+
+    },
+    "Não escolhida" : {
+
+    },
+    "Não foi possível entrar com a Apple. Tente de novo ou entre com e-mail e senha." : {
+
+    },
+    "Não foi possível entrar." : {
 
     },
     "O Piggu não está respondendo agora (erro %lld). Tente daqui a pouco." : {
@@ -122,10 +330,22 @@
     "O Piggu tropeçou" : {
 
     },
+    "O Piggu é para quem tem %lld anos ou mais." : {
+
+    },
     "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção." : {
 
     },
+    "O cofrinho dos fofos." : {
+
+    },
     "O que foi? Ex.: Almoço" : {
+
+    },
+    "O que mudou" : {
+
+    },
+    "O titular e o parceiro (o casal) veem tudo um do outro e o que lança quem tem de 13 a 17 anos. Por isso pedimos a data de nascimento, e é preciso ter pelo menos 13 anos para ter conta." : {
 
     },
     "O valor precisa ser maior que zero." : {
@@ -134,13 +354,31 @@
     "O valor é alto demais." : {
 
     },
+    "OK" : {
+
+    },
     "Olá, %@" : {
 
     },
     "Onde? (opcional)" : {
 
     },
+    "Os Termos mudaram" : {
+
+    },
     "Painel" : {
+
+    },
+    "Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade." : {
+
+    },
+    "País onde você mora" : {
+
+    },
+    "Pedir outro link" : {
+
+    },
+    "Pelo menos 8 caracteres, com letras e números." : {
 
     },
     "Piggu" : {
@@ -161,7 +399,22 @@
     "Projeção do mês" : {
 
     },
+    "Pronto" : {
+
+    },
+    "Pronto! Mandamos um link para %@. Confirme seu e-mail e entre com a senha que você criou." : {
+
+    },
+    "Pronto, seu e-mail está confirmado no Piggu." : {
+
+    },
+    "Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova." : {
+
+    },
     "Próximo mês" : {
+
+    },
+    "Quem sai da família, ou é removido, leva o que lançou. Quem exclui a conta tem o que lançou apagado." : {
 
     },
     "R$" : {
@@ -170,7 +423,13 @@
     "Receitas" : {
 
     },
+    "Reenviar e-mail de confirmação" : {
+
+    },
     "Relatórios" : {
+
+    },
+    "Repita a senha" : {
 
     },
     "Rosa Piggu" : {
@@ -185,16 +444,40 @@
     "Salvar" : {
 
     },
+    "Salvar a senha nova" : {
+
+    },
+    "Se %@ tem conta no Piggu, mandamos um link para criar uma senha nova. Ele vale por 1 hora. Confira também a caixa de spam." : {
+
+    },
     "Sem conexão com o servidor. Confira a internet e tente de novo." : {
 
     },
     "Senha" : {
 
     },
-    "Seu dinheiro, organizado." : {
+    "Senha nova" : {
+
+    },
+    "Senha nova salva" : {
+
+    },
+    "Seu documento" : {
+
+    },
+    "Seu e-mail ainda não foi confirmado. Abra o link que mandamos para %@; só então dá para aceitar convite de família." : {
+
+    },
+    "Seus dados" : {
 
     },
     "Sobra do mês" : {
+
+    },
+    "Sobre você" : {
+
+    },
+    "Sua conta" : {
 
     },
     "Sua sessão venceu. Entre novamente." : {
@@ -203,10 +486,19 @@
     "Tentar de novo" : {
 
     },
+    "Termos de Uso" : {
+
+    },
+    "Termos e privacidade" : {
+
+    },
     "Toque no + para lançar o primeiro." : {
 
     },
     "Total do mês" : {
+
+    },
+    "Use letras e números na senha." : {
 
     },
     "Valor em reais" : {
@@ -231,6 +523,15 @@
 
     },
     "Você guardou %@ do que entrou" : {
+
+    },
+    "Voltar" : {
+
+    },
+    "Voltar para entrar" : {
+
+    },
+    "[Termos de Uso](piggu://termos) · [Aviso de Privacidade](piggu://privacidade)" : {
 
     },
     "igual" : {

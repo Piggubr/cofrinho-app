@@ -72,7 +72,8 @@ struct PrincipalView: View {
             aba = destino
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
-        case nil:
+        case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:
+            // Os da conta abrem na RaizView.
             return
         }
         self.rota = nil
