@@ -486,7 +486,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-041: Stripe no site, RevenueCat nas lojas
 - Data: 01/10/2026 (Stripe); 09/10/2026 (RevenueCat)
-- Situação: Valendo
+- Situação: Valendo; a interface `ProvedorDePagamento` saiu (D-077)
 - Contexto: Apple e Google exigem compra dentro do app para assinatura digital vendida no app.
 - Decisão: no site, Stripe (Checkout e Portal do Cliente, API REST sem SDK) atrás da interface `ProvedorDePagamento`. Nas lojas, RevenueCat, que valida o recibo e avisa o backend por webhook. O preço do app é 15% maior por causa da taxa das lojas, e a tela web só mostra o preço do site.
 - Alternativas: trocar de provedor é escrever outra implementação de `ProvedorDePagamento`.
@@ -748,6 +748,96 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: decisões espalhadas em PRs e documentos fora do repositório.
 - Consequências: decisão antiga nunca é apagada; se mudar, vira "Substituída por".
 - Onde ver: [CLAUDE.md](../CLAUDE.md)
+
+## D-069: Gasto lançado leva um id do envio
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: com sinal fraco, o servidor gravava o gasto, a resposta se perdia (status 0) e a fila sem sinal mandava de novo: gasto em dobro.
+- Decisão: o app gera um `idDoEnvio` (UUID) por toque em "Lançar" e a fila reenvia o mesmo. O finance grava o id em `expense_submissions` na mesma transação do gasto; o mesmo id na mesma família não lança de novo e devolve os gastos da primeira vez, com o mesmo 201. Sem o campo, nada muda.
+- Alternativas: reaproveitar o `reciboId`, que já agrupa os itens de uma nota e mudaria de sentido.
+- Consequências: a tabela cresce uma linha por envio e ainda não tem retenção; limpar depois de 30 dias quando pesar.
+- Onde ver: [API_SPEC.md, "Reenvio sem duplicar"](API_SPEC.md)
+
+## D-070: Nenhuma transação do banco em volta de chamada a serviço de fora
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: o assistente, a leitura de nota e o câmbio esperavam o Gemini ou a cotação com uma das 10 conexões do banco presa; dez pessoas ao mesmo tempo travavam o finance inteiro.
+- Decisão: essas chamadas rodam fora de transação; consentimento, cota e uso são instruções únicas que confirmam sozinhas. A pergunta ao assistente é reservada na cota antes de chamar a IA, numa instrução só, e conta mesmo se a resposta falhar (as rodadas já custaram). A leitura de nota, ao contrário, devolve a reserva se falhar (como já era).
+- Alternativas: aumentar o pool de conexões, que só adia o mesmo travamento.
+- Consequências: as ferramentas do assistente leem cada uma na própria transação, sem foto única do banco; para quem só lê, sem efeito.
+- Onde ver: `AssistenteService`, `CotaDeLeituras`
+
+## D-071: Só sessão recusada encerra a sessão; só dado inválido tira gasto da fila
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: qualquer erro da chamada repetida depois de renovar deslogava a pessoa, e a fila sem sinal apagava os gastos guardados quando a sessão tinha acabado (401).
+- Decisão: no front, a sessão só acaba quando a renovação volta 401 ou 403; sem sinal, servidor fora ou 429 só repassam o erro. A fila só descarta gasto que volta 400 ou 422; qualquer outra falha para a fila e guarda o resto. Ao abrir o app com a renovação recusada, o perfil guardado e as listas do service worker saem; sem sinal, ficam.
+- Alternativas: não registradas.
+- Consequências: gastos de quem saiu continuam guardados no aparelho até essa pessoa entrar de novo.
+- Onde ver: `auth.interceptor.ts`, `fila-de-gastos.ts`
+
+## D-072: O campo de valor do site lê igual ao app nativo
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: "0.500" virava R$ 500 no site e era recusado no iPhone; o arredondamento em ponto flutuante dava "1,005" → 1,00 e "10,005" → 10,01.
+- Decisão: `lerValor` segue as regras do `Formatos.lerValor` do app nativo: grupos de milhar com três dígitos e sem "0" na frente, no máximo dois decimais, sem sinal de menos. Fora disso, o campo fica vazio.
+- Alternativas: arredondar no texto e aceitar mais casas.
+- Consequências: valor negativo não entra mais pelo campo; nenhuma tela usava.
+- Onde ver: `campo-de-valor.ts`, `ios-nativo/Piggu/Core/Formatos/Formatos.swift`
+
+## D-073: A família nova de quem sai tem id previsível
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: sair ou ser removido cria uma família nova e pede a cada serviço que mova os dados para ela. Com id aleatório, um serviço fora no meio desfazia o identity, mas não quem já tinha movido; a nova tentativa ia para outro id e os dados ficavam numa família que não existe.
+- Decisão: o id sai da conta, da família de onde ela sai e de um contador que pula ids já usados. A nova tentativa manda para o mesmo lugar.
+- Alternativas: saga com compensação em cada serviço.
+- Consequências: se o convite vencer entre uma tentativa que falhou e a seguinte, o que já foi movido fica na família que convidou.
+- Onde ver: `FamiliaService.mudarParaFamiliaPropria`
+
+## D-074: Quem paga o Premium não muda de família com ele valendo
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: o aviso da Stripe vale para a família atual de quem assinou. Quem aceitava convite levava a renovação para a família nova, trocava o plano dela e tirava do titular dela o direito ao reembolso.
+- Decisão: quem é o assinante de um Premium que ainda vale não aceita convite (409, `ASSINATURA_ATIVA`). Aviso de fim de outra assinatura não derruba o plano de quem paga agora.
+- Alternativas: deixar entrar e mover a assinatura; o identity não sabe se a assinatura foi cancelada e só vale até o fim do período.
+- Consequências: quem cancelou o anual espera o fim do período para entrar em outra família.
+- Onde ver: `FamiliaService.aceitarConvite`, `Household.aplicarAssinatura`
+
+## D-075: Cartão recusado dá 7 dias de Premium
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: em `past_due` a Stripe já moveu `current_period_end` para o fim do período que não foi pago; o anual recusado ganhava até um ano.
+- Decisão: em `past_due`, o Premium vale até `current_period_start` mais 7 dias de carência.
+- Alternativas: confiar só na régua de cobrança do painel da Stripe.
+- Consequências: se a Stripe conseguir cobrar depois dos 7 dias, o aviso de `active` devolve o Premium.
+- Onde ver: `StripePagamentos`
+
+## D-076: E-mail da conta sai depois do commit, fora da requisição
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: "esqueci a senha" chamava a API de e-mail dentro da requisição só quando a conta existia; o tempo da resposta dizia quem usa o Piggu, e o e-mail lento prendia uma conexão do banco.
+- Decisão: link de senha nova, confirmação de e-mail e aviso de cadastro repetido saem depois do commit, numa virtual thread. O aviso de fim do teste continua dentro do webhook, porque a falha dele faz a Stripe reenviar.
+- Alternativas: fila de e-mails no banco, que ainda não se paga.
+- Consequências: o contexto de log da requisição não vai junto; e-mail que falha só aparece no log.
+- Onde ver: `ConfirmacaoDeEmail.depoisDoCommit`
+
+## D-077: Stripe e RevenueCat sem interface
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: `ProvedorDePagamento` e `LojaDeApps` tinham uma implementação cada, e os testes já mockavam pelo Mockito.
+- Decisão: o código usa `StripePagamentos` e `RevenueCatLoja` direto. A interface volta quando houver um segundo provedor.
+- Alternativas: manter as interfaces "para depois" (D-041).
+- Consequências: trocar de provedor é extrair a interface antes; o resto de D-041 continua valendo.
+- Onde ver: `backend/piggu-identity/.../billing/`
+
+## D-078: Corrida perdida no banco responde 409
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: no rewards (SERIALIZABLE), quem perdia a corrida recebia 500 e contava como falha do servidor; pagar a conta fixa ou receber o "a receber" com dois toques lançava duas vezes.
+- Decisão: `ConcurrencyFailureException` responde como restrição violada: 409 `CONFLITO`, "Outra alteração chegou antes. Tente de novo." Pagar a conta fixa e receber o "a receber" passam por um UPDATE condicional, e o segundo toque recebe o 409 que já existia.
+- Alternativas: não registradas.
+- Consequências: o aviso "Restrição do banco violada" no log passa a contar também essas corridas.
+- Onde ver: `ApiExceptionHandler`, `ContasFixasService.pagar`
 
 ---
 
