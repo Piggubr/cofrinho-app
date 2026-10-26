@@ -2580,6 +2580,9 @@ components:
           type: string
           maxLength: 200
           minLength: 0
+        idDoEnvio:
+          type: string
+          format: uuid
         itens:
           type: array
           items:

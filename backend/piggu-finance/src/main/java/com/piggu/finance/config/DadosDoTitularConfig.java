@@ -34,6 +34,7 @@ public class DadosDoTitularConfig {
                 Tabela.pessoal("notes", "user_id"),
                 Tabela.pessoal("expense_shares", "member_id"),
                 Tabela.pessoal("expenses", "user_id"),
+                Tabela.pessoal("expense_submissions", "user_id"),
                 Tabela.pessoal("receivables", "user_id"),
                 Tabela.pessoal("incomes", "user_id"),
                 Tabela.pessoal("recurring_bills", "user_id"),

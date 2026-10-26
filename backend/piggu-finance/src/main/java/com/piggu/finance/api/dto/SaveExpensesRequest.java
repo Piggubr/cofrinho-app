@@ -24,6 +24,8 @@ import java.util.UUID;
  * @param recorrente cada item vira tambem uma conta fixa que se lanca sozinha no mesmo dia, todo mes
  * @param compartilhado aparece para todos da familia; nulo segue a conta ou o cartao (o do casal
  *                      compartilha) e, sem conta, fica so de quem lancou
+ * @param idDoEnvio id que o app gera por envio: o mesmo id de novo na familia nao lanca nada e
+ *                  devolve os gastos da primeira vez; nulo lanca sempre
  */
 public record SaveExpensesRequest(
         @NotNull(message = "A data do gasto e invalida.")
@@ -53,23 +55,25 @@ public record SaveExpensesRequest(
 
         Boolean recorrente,
 
-        Boolean compartilhado
+        Boolean compartilhado,
+
+        UUID idDoEnvio
 ) {
 
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens, UUID contaId, Integer parcelas, List<UUID> dividirCom,
                                Boolean recorrente) {
-        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, recorrente, null);
+        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, recorrente, null, null);
     }
 
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens, UUID contaId, Integer parcelas, List<UUID> dividirCom) {
-        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, null, null);
+        this(data, estabelecimento, reciboId, origem, itens, contaId, parcelas, dividirCom, null, null, null);
     }
 
     /** Lancamento a vista, sem conta: o caso de quase todo o codigo interno. */
     public SaveExpensesRequest(LocalDate data, String estabelecimento, UUID reciboId, String origem,
                                List<ExpenseItemRequest> itens) {
-        this(data, estabelecimento, reciboId, origem, itens, null, null, null, null, null);
+        this(data, estabelecimento, reciboId, origem, itens, null, null, null, null, null, null);
     }
 }

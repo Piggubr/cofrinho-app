@@ -189,7 +189,7 @@ public class ContasFixasService {
             // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou.
             gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
                     List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared()), autor).get(0);
+                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared(), null), autor).get(0);
         }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,

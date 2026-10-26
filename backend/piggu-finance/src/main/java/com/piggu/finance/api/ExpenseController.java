@@ -160,8 +160,9 @@ public class ExpenseController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<ExpenseResponse> salvar(@Valid @RequestBody SaveExpensesRequest pedido,
                                         @AuthUser CurrentUser usuario) {
-        return Boolean.TRUE.equals(pedido.recorrente()) ? contasFixas.lancarGastoRecorrente(pedido, usuario.id())
-                : servico.salvar(pedido, usuario.id());
+        return servico.umaVezSo(pedido.idDoEnvio(), usuario.id(), () -> Boolean.TRUE.equals(pedido.recorrente())
+                ? contasFixas.lancarGastoRecorrente(pedido, usuario.id())
+                : servico.salvar(pedido, usuario.id()));
     }
 
     @Operation(summary = "Alterar gasto")

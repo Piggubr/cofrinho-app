@@ -154,6 +154,10 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
 - **Cabeçalhos**: `Authorization: Bearer ...` em toda rota que não é de login e
   `Content-Type: application/json` em todo corpo. Opcionais: `User-Agent` (fica na sessão,
   ex.: `Piggu-iOS/1.4.0`) e `X-Request-Id` (até 64 letras, números e `-`; volta na resposta).
+- **Reenvio sem duplicar**: `POST /api/expenses` aceita `idDoEnvio` (UUID que o app gera uma
+  vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com o mesmo id: na
+  mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos da primeira
+  vez. Sem o campo, cada envio lança.
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por

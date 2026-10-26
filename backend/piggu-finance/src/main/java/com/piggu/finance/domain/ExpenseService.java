@@ -5,6 +5,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
@@ -13,6 +14,7 @@ import com.piggu.finance.api.dto.UpdateExpenseRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +26,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -50,6 +56,7 @@ public class ExpenseService {
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
     private final TrilhaDeAuditoria trilha;
+    private final JdbcTemplate jdbc;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
@@ -57,7 +64,8 @@ public class ExpenseService {
                           RegrasDeCategoria regras,
                           PaymentAccountRepository contas,
                           DivisaoDeGastos divisao,
-                          TrilhaDeAuditoria trilha) {
+                          TrilhaDeAuditoria trilha,
+                          JdbcTemplate jdbc) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
@@ -65,6 +73,7 @@ public class ExpenseService {
         this.contas = contas;
         this.divisao = divisao;
         this.trilha = trilha;
+        this.jdbc = jdbc;
     }
 
     @Transactional(readOnly = true)
@@ -126,6 +135,33 @@ public class ExpenseService {
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
+    }
+
+    /**
+     * Lancamento com o id do envio do app: o mesmo envio de novo (a resposta se perdeu no sinal
+     * fraco) nao lanca nada e devolve os gastos da primeira vez. O id entra na transacao dos
+     * gastos, entao um lancamento que falhou nao gasta o id; dois envios ao mesmo tempo esperam
+     * um pelo outro na chave.
+     */
+    @Transactional
+    public List<ExpenseResponse> umaVezSo(UUID idDoEnvio, UUID usuarioId, Supplier<List<ExpenseResponse>> lancar) {
+        if (idDoEnvio == null) {
+            return lancar.get();
+        }
+        UUID familia = FamiliaAtual.atual();
+        if (jdbc.update("INSERT INTO expense_submissions (household_id, id, user_id) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
+                familia, idDoEnvio, usuarioId) == 0) {
+            List<UUID> ids = jdbc.queryForList("SELECT unnest(expense_ids) FROM expense_submissions WHERE household_id = ? AND id = ?",
+                    UUID.class, familia, idDoEnvio);
+            Map<UUID, Expense> gravados = repositorio.findAllById(ids).stream()
+                    .collect(Collectors.toMap(Expense::getId, Function.identity()));
+            log.info("Envio repetido: id={} gastos={}", idDoEnvio, gravados.size());
+            return ids.stream().map(gravados::get).filter(Objects::nonNull).map(ExpenseResponse::de).toList();
+        }
+        List<ExpenseResponse> salvos = lancar.get();
+        jdbc.update("UPDATE expense_submissions SET expense_ids = ? WHERE household_id = ? AND id = ?",
+                salvos.stream().map(ExpenseResponse::id).toArray(UUID[]::new), familia, idDoEnvio);
+        return salvos;
     }
 
     /** Busca global: ate 20 gastos cujo item ou estabelecimento contem o termo. */
