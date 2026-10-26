@@ -16,6 +16,7 @@ import org.hibernate.annotations.TenantId;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
@@ -130,7 +131,8 @@ public class Expense {
         if (id == null) {
             id = UUID.randomUUID();
         }
-        createdAt = Instant.now();
+        // O Postgres guarda microssegundos: sem cortar, a resposta do POST difere da que o banco devolve depois.
+        createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     /** Edicao pela tela de gastos: so nome, categoria e valor mudam, como no Apps Script. */
