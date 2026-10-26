@@ -4,6 +4,8 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
 import com.piggu.finance.domain.OrcamentoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Orcamento por categoria. Criar e mudar limite e Premium; ver e apagar, nao. */
+@Tag(name = "Orçamentos", description = "Limite de gasto por categoria no mês.")
 @RestController
 @RequestMapping("/api/budgets")
 public class BudgetController {
@@ -43,17 +46,20 @@ public class BudgetController {
     }
 
     /** Cada categoria com orcamento no mes: limite, gasto, percentual e alerta (80% e 100%). */
+    @Operation(summary = "Orçamentos do mês por categoria")
     @GetMapping
     public List<OrcamentoService.Situacao> listar(@RequestParam(required = false) String mes) {
         return servico.doMes(Meses.ouAtual(mes));
     }
 
+    @Operation(summary = "Definir o orçamento de uma categoria")
     @PutMapping
     public ResponseEntity<Void> definir(@Valid @RequestBody BudgetRequest pedido, @AuthUser CurrentUser usuario) {
         servico.definir(pedido.categoria(), pedido.limite(), usuario);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Excluir orçamento")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
         servico.excluir(id);

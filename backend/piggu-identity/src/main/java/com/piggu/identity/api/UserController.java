@@ -3,6 +3,8 @@ package com.piggu.identity.api;
 import com.piggu.identity.api.dto.UpdateUserRequest;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.domain.UserAdminService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import java.util.UUID;
  * <p>O cadastro e aberto; quem entra em cada familia e assunto do titular
  * ({@link FamiliaController}). Isto aqui e operacao, so do ADMIN.</p>
  */
+@Tag(name = "Administração", description = "Contas da instalação. Só para ADMIN.")
 @RestController
 @RequestMapping("/api/users")
 @PreAuthorize("hasRole('ADMIN')")
@@ -32,11 +35,13 @@ public class UserController {
         this.servico = servico;
     }
 
+    @Operation(summary = "Listar as contas (admin)")
     @GetMapping
     public List<UserResponse> listar() {
         return servico.listar();
     }
 
+    @Operation(summary = "Ativar, desativar ou mudar uma conta (admin)")
     @PatchMapping("/{id}")
     public UserResponse alterar(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest pedido) {
         return servico.alterar(id, pedido);

@@ -5,6 +5,8 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
 import com.piggu.finance.domain.ContasECartoes;
 import com.piggu.finance.domain.PaymentAccount;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Contas e cartoes da familia, e a fatura do cartao. */
+@Tag(name = "Contas e cartões", description = "Contas, cartões e faturas.")
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
@@ -50,11 +53,13 @@ public class AccountController {
     }
 
     /** Cada conta; no cartao, a fatura aberta e a fechada que ainda vai vencer. */
+    @Operation(summary = "Listar contas e cartões")
     @GetMapping
     public List<ContasECartoes.Conta> listar() {
         return servico.listar();
     }
 
+    @Operation(summary = "Criar conta ou cartão")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ContasECartoes.Conta criar(@Valid @RequestBody AccountRequest pedido, @AuthUser CurrentUser usuario) {
@@ -63,6 +68,7 @@ public class AccountController {
     }
 
     /** Conta ou cartao do casal: so quem criou liga ou desliga. */
+    @Operation(summary = "Compartilhar ou não a conta com o casal")
     @PutMapping("/{id}/sharing")
     public ResponseEntity<Void> compartilhar(@PathVariable UUID id, @Valid @RequestBody CompartilhamentoRequest pedido,
                                              @AuthUser CurrentUser usuario) {
@@ -70,6 +76,7 @@ public class AccountController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Excluir conta ou cartão")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);
@@ -77,6 +84,7 @@ public class AccountController {
     }
 
     /** Fatura que fecha no mes informado (AAAA-MM), com os gastos. */
+    @Operation(summary = "Fatura do cartão no mês")
     @GetMapping("/{id}/statement")
     public ContasECartoes.FaturaComGastos fatura(@PathVariable UUID id, @RequestParam(required = false) String mes) {
         return servico.fatura(id, Meses.ouAtual(mes));

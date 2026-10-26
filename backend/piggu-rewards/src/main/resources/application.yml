@@ -52,3 +52,15 @@ logging:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+
+# Contrato da API (docs/api e docs/API_SPEC.md), gerado pelo springdoc. Desligado aqui, o que
+# vale para producao; o perfil dev (application-dev.yml) e os testes ligam.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+  # Mesma ordem a cada geracao: o teste de contrato compara o arquivo inteiro.
+  writer-with-order-by-keys: true
+  # A API responde JSON; sem isto o contrato diria "*/*" em toda resposta.
+  default-produces-media-type: application/json

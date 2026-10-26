@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.jwk.JWKSelector;
 import com.nimbusds.jose.jwk.JWKMatcher;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +16,10 @@ import java.util.Map;
  *
  * <p>E' por aqui que finance, rewards, lifestyle e media aprendem a validar os tokens
  * do Piggu sem nenhuma chamada extra por requisicao.</p>
+ *
+ * <p>Fora do contrato da API (docs/api). Interna: a chave publica do JWT e lida pelos servicos na rede interna; o Caddy nao repassa /.well-known.</p>
  */
+@Hidden
 @RestController
 public class JwksController {
 

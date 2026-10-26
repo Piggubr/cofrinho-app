@@ -1,6 +1,9 @@
 package com.piggu.identity.api;
 
 import io.micrometer.core.instrument.Metrics;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,7 @@ import java.util.regex.Pattern;
  * num endereco, e corta no tamanho. Nao vai id de conta: a chamada e anonima. O limite por
  * IP das rotas abertas (LimiteDeRequisicoes) segura quem tentar encher o log.</p>
  */
+@Tag(name = "Erros do app", description = "Erros que aconteceram no aparelho, para o painel de erros.")
 @RestController
 public class ErrosDoAppController {
 
@@ -50,6 +54,8 @@ public class ErrosDoAppController {
     public record ErroDoApp(String mensagem, String pilha, String tela, String versao) {
     }
 
+    @Operation(summary = "Registrar um erro que aconteceu no app")
+    @SecurityRequirements
     @PostMapping(ROTA)
     public ResponseEntity<Void> registrar(@RequestBody ErroDoApp erro) {
         log.atWarn()

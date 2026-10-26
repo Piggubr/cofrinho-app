@@ -6,6 +6,8 @@ import com.piggu.common.web.Meses;
 import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.Income;
 import com.piggu.finance.domain.IncomeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** Receitas. Como os gastos, cada um ve as suas e as que os outros compartilharam. */
+@Tag(name = "Receitas", description = "Dinheiro que entrou.")
 @RestController
 @RequestMapping("/api/incomes")
 public class IncomeController {
@@ -63,16 +66,19 @@ public class IncomeController {
         }
     }
 
+    @Operation(summary = "Listar receitas")
     @GetMapping
     public List<IncomeResponse> listar(@RequestParam(required = false) String mes) {
         return servico.doMes(Meses.ouAtual(mes)).stream().map(IncomeResponse::de).toList();
     }
 
+    @Operation(summary = "Categorias de receita")
     @GetMapping("/categories")
     public List<String> categorias() {
         return IncomeService.CATEGORIAS;
     }
 
+    @Operation(summary = "Lançar receita")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IncomeResponse criar(@Valid @RequestBody IncomeRequest pedido, @AuthUser CurrentUser usuario) {
@@ -85,6 +91,7 @@ public class IncomeController {
                 usuario.id(), compartilhado));
     }
 
+    @Operation(summary = "Alterar receita")
     @PutMapping("/{id}")
     public IncomeResponse atualizar(@PathVariable UUID id, @Valid @RequestBody IncomeRequest pedido,
                                     @AuthUser CurrentUser usuario) {
@@ -92,6 +99,7 @@ public class IncomeController {
                 pedido.valor(), pedido.compartilhado(), usuario));
     }
 
+    @Operation(summary = "Excluir receita")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);

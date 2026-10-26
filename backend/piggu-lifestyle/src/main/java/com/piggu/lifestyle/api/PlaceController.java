@@ -7,6 +7,8 @@ import com.piggu.lifestyle.api.dto.PlaceResponse;
 import com.piggu.lifestyle.api.dto.PlaceTagRequest;
 import com.piggu.lifestyle.domain.PlaceService;
 import com.piggu.lifestyle.domain.PlaceTagService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,7 @@ import java.util.UUID;
  * <p>A foto nao volta mais em base64 dentro da resposta: o front recebe o
  * identificador e busca a imagem direto no servico de media, que sabe fazer cache.</p>
  */
+@Tag(name = "Lugares", description = "Lugares para ir e marcadores.")
 @RestController
 @RequestMapping("/api/places")
 public class PlaceController {
@@ -41,17 +44,20 @@ public class PlaceController {
         this.marcadores = marcadores;
     }
 
+    @Operation(summary = "Listar lugares")
     @GetMapping
     public List<PlaceResponse> listar() {
         return servico.listar();
     }
 
+    @Operation(summary = "Criar lugar")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlaceResponse criar(@Valid @RequestBody PlaceRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.criar(pedido, usuario.id());
     }
 
+    @Operation(summary = "Alterar lugar")
     @PutMapping("/{id}")
     public PlaceResponse atualizar(@PathVariable UUID id,
                                    @Valid @RequestBody PlaceRequest pedido,
@@ -59,17 +65,20 @@ public class PlaceController {
         return servico.atualizar(id, pedido, usuario);
     }
 
+    @Operation(summary = "Excluir lugar")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Listar marcadores de lugar")
     @GetMapping("/tags")
     public List<String> listarMarcadores() {
         return marcadores.listar();
     }
 
+    @Operation(summary = "Criar marcador de lugar")
     @PostMapping("/tags")
     @ResponseStatus(HttpStatus.CREATED)
     public List<String> criarMarcador(@Valid @RequestBody PlaceTagRequest pedido,

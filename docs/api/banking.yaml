@@ -1,0 +1,290 @@
+openapi: 3.1.0
+info:
+  description: Contrato da API do Piggu. Regras de uso e de compatibilidade em docs/API_SPEC.md.
+  title: piggu-banking
+  version: "1"
+servers:
+- description: Producao
+  url: https://piggu.com.br
+- description: "Local, pelo gateway"
+  url: http://localhost:8080
+security:
+- bearer: []
+tags:
+- description: "Bancos conectados pela Pluggy: contas, saldos e débitos."
+  name: Open Finance
+paths:
+  /api/banking/accounts:
+    get:
+      operationId: bankingContas
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccountResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Contas e saldos dos bancos conectados
+      tags:
+      - Open Finance
+  /api/banking/connect-token:
+    post:
+      operationId: bankingConnectToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentimentoRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectTokenResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Token para abrir o widget da Pluggy
+      tags:
+      - Open Finance
+  /api/banking/connections/{id}:
+    delete:
+      operationId: bankingDesconectar
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccountResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Desconectar um banco
+      tags:
+      - Open Finance
+  /api/banking/items:
+    post:
+      operationId: bankingRegistrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterItemRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccountResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Registrar o banco conectado
+      tags:
+      - Open Finance
+  /api/banking/status:
+    get:
+      operationId: bankingStatus
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: boolean
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Saber se o Open Finance está ligado
+      tags:
+      - Open Finance
+  /api/banking/sync:
+    post:
+      operationId: bankingSincronizar
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankAccountResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Sincronizar com a Pluggy
+      tags:
+      - Open Finance
+  /api/banking/transactions:
+    get:
+      operationId: bankingGastos
+      parameters:
+      - in: query
+        name: desde
+        required: false
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GastoDoBanco"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Débitos dos bancos para importar como gastos
+      tags:
+      - Open Finance
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        campos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampoInvalido"
+        codigo:
+          type: string
+        erro:
+          type: string
+        momento:
+          type: string
+          format: date-time
+    BankAccountResponse:
+      type: object
+      properties:
+        atualizadoEm:
+          type: string
+          format: date-time
+        conexaoId:
+          type: string
+          format: uuid
+        id:
+          type: string
+          format: uuid
+        instituicao:
+          type: string
+        moeda:
+          type: string
+        nome:
+          type: string
+        numero:
+          type: string
+        saldo:
+          type: number
+        status:
+          type: string
+        tipo:
+          type: string
+    CampoInvalido:
+      type: object
+      properties:
+        campo:
+          type: string
+        mensagem:
+          type: string
+    ConnectTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        sandbox:
+          type: boolean
+    ConsentimentoRequest:
+      type: object
+      properties:
+        autorizo:
+          type: boolean
+        versaoDoAviso:
+          type: string
+          maxLength: 20
+          minLength: 0
+    GastoDoBanco:
+      type: object
+      properties:
+        conta:
+          type: string
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+        idExterno:
+          type: string
+        moeda:
+          type: string
+        valor:
+          type: number
+    RegisterItemRequest:
+      type: object
+      properties:
+        itemId:
+          type: string
+          minLength: 1
+          pattern: "[A-Za-z0-9-]{1,100}"
+      required:
+      - itemId
+  securitySchemes:
+    bearer:
+      bearerFormat: JWT
+      description: "Access token do login (POST /api/auth/entrar, /api/auth/google\
+        \ ou /api/auth/refresh)."
+      scheme: bearer
+      type: http

@@ -5,6 +5,8 @@ import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
 import com.piggu.finance.domain.RelatorioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Year;
 
 /** Resumos e relatorios da familia. */
+@Tag(name = "Relatórios", description = "Relatórios do mês e do ano.")
 @RestController
 @RequestMapping("/api/reports")
 public class ReportController {
@@ -25,12 +28,14 @@ public class ReportController {
     }
 
     /** Mes: receitas, gastos, sobra, poupanca, comparacao com o anterior e projecao. Gratis. */
+    @Operation(summary = "Relatório do mês")
     @GetMapping("/month")
     public RelatorioService.ResumoDoMes mes(@RequestParam(required = false) String mes) {
         return relatorios.resumo(Meses.ouAtual(mes));
     }
 
     /** Ano mes a mes e por categoria. Premium. */
+    @Operation(summary = "Relatório do ano (Premium)")
     @GetMapping("/year")
     public RelatorioService.RelatorioDoAno ano(@RequestParam(required = false) Integer ano, @AuthUser CurrentUser usuario) {
         if (ano != null && (ano < 2000 || ano > 2100)) {

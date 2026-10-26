@@ -3,6 +3,9 @@ package com.piggu.identity.api;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.google.LoginPeloNavegador;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,6 +29,7 @@ import java.nio.charset.StandardCharsets;
  * uma pagina curta que reabre o Piggu pelo link piggu://, com um botao caso o navegador nao abra
  * sozinho.</p>
  */
+@Tag(name = "Login e sessão")
 @RestController
 @RequestMapping("/api/auth/google/app")
 public class LoginNoAppController {
@@ -40,6 +44,8 @@ public class LoginNoAppController {
     }
 
     /** O Google devolve aqui (response_mode=form_post) o ID token, o state ou o erro. */
+    @Operation(summary = "Volta do Google no navegador do celular (login no app)")
+    @SecurityRequirements
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> voltarDoGoogle(@RequestParam(name = "id_token", required = false) String idToken,
                                                  @RequestParam(name = "state", required = false) String state,
@@ -65,6 +71,8 @@ public class LoginNoAppController {
     }
 
     /** O app, de volta, troca o codigo e o verificador pelo ID token que segue para /api/auth/google. */
+    @Operation(summary = "Trocar o código do login no app pelo ID token do Google")
+    @SecurityRequirements
     @PostMapping("/troca")
     public TrocaResponse trocar(@Valid @RequestBody TrocaRequest pedido) {
         return new TrocaResponse(navegador.trocar(pedido.codigo(), pedido.verificador()));

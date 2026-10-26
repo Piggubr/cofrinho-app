@@ -5,6 +5,8 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.domain.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Avisos fora do app: os canais que a pessoa quer e os aparelhos que recebem push. */
+@Tag(name = "Avisos", description = "Canais de aviso (e-mail e push) e aparelhos que recebem push.")
 @RestController
 @RequestMapping("/api/auth/me")
 public class AvisosController {
@@ -41,17 +44,20 @@ public class AvisosController {
             @NotBlank @Pattern(regexp = "IOS", message = "Plataforma nao suportada.") String plataforma) {
     }
 
+    @Operation(summary = "Escolher os canais de aviso")
     @PutMapping("/alerts")
     public UserResponse avisos(@Valid @RequestBody AvisosRequest pedido, @AuthUser CurrentUser usuario) {
         return servico.escolherAvisos(usuario.id(), pedido.email(), pedido.push());
     }
 
+    @Operation(summary = "Registrar o aparelho para receber push")
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void registrar(@Valid @RequestBody AparelhoRequest pedido, @AuthUser CurrentUser usuario) {
         aparelhos.registrar(usuario.id(), pedido.token().toLowerCase(), pedido.plataforma());
     }
 
+    @Operation(summary = "Parar de mandar push para o aparelho")
     @DeleteMapping("/devices/{token}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@PathVariable String token, @AuthUser CurrentUser usuario) {

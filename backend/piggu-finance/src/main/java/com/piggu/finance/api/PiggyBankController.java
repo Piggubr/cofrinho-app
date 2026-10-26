@@ -6,6 +6,8 @@ import com.piggu.finance.api.dto.DepositRequest;
 import com.piggu.finance.api.dto.DepositResponse;
 import com.piggu.finance.api.dto.PiggyBankResponse;
 import com.piggu.finance.domain.PiggyBankService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import java.util.UUID;
  * esta em PiggyBankService, nao aqui, para que a regra valha em qualquer caminho de
  * chamada.</p>
  */
+@Tag(name = "Cofrinho", description = "Saldo e depósitos do cofrinho.")
 @RestController
 @RequestMapping("/api/piggy-bank")
 public class PiggyBankController {
@@ -37,11 +40,13 @@ public class PiggyBankController {
         this.servico = servico;
     }
 
+    @Operation(summary = "Saldo e depósitos do cofrinho")
     @GetMapping
     public PiggyBankResponse consultar(@AuthUser CurrentUser usuario) {
         return servico.consultar(usuario);
     }
 
+    @Operation(summary = "Depositar no cofrinho")
     @PostMapping("/deposits")
     @ResponseStatus(HttpStatus.CREATED)
     public DepositResponse depositar(@Valid @RequestBody DepositRequest pedido,
@@ -49,6 +54,7 @@ public class PiggyBankController {
         return servico.depositar(pedido, usuario);
     }
 
+    @Operation(summary = "Excluir depósito")
     @DeleteMapping("/deposits/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);

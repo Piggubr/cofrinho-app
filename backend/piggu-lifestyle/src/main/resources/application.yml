@@ -77,3 +77,15 @@ resilience4j:
         slidingWindowSize: 10
         failureRateThreshold: 60
         waitDurationInOpenState: 20s
+
+# Contrato da API (docs/api e docs/API_SPEC.md), gerado pelo springdoc. Desligado aqui, o que
+# vale para producao; o perfil dev (application-dev.yml) e os testes ligam.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+  # Mesma ordem a cada geracao: o teste de contrato compara o arquivo inteiro.
+  writer-with-order-by-keys: true
+  # A API responde JSON; sem isto o contrato diria "*/*" em toda resposta.
+  default-produces-media-type: application/json

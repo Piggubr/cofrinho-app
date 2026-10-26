@@ -2,6 +2,8 @@ package com.piggu.common.auditoria;
 
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +19,7 @@ import java.util.List;
  * ({@link CurrentUser#visiveis()}).
 
  */
+@Tag(name = "Histórico", description = "O que mudou na família, de quem a pessoa pode ver.")
 @RestController
 @RequestMapping("${piggu.auditoria.rota:/api/history}")
 public class HistoricoController {
@@ -29,6 +32,7 @@ public class HistoricoController {
         this.trilha = trilha;
     }
 
+    @Operation(summary = "Histórico de mudanças da família")
     @GetMapping
     public List<TrilhaDeAuditoria.Evento> recentes(@AuthUser CurrentUser usuario,
                                                   @RequestParam(required = false) String entidade,

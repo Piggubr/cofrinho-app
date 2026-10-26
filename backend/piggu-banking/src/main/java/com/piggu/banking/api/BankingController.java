@@ -8,6 +8,8 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /** Contas bancarias conectadas por Open Finance. Cada usuario ve so os proprios bancos. */
+@Tag(name = "Open Finance", description = "Bancos conectados pela Pluggy: contas, saldos e débitos.")
 @RestController
 @RequestMapping("/api/banking")
 public class BankingController {
@@ -53,6 +56,7 @@ public class BankingController {
     }
 
     /** Open Finance e opcional: o front so mostra o card quando isto diz que esta ligado. */
+    @Operation(summary = "Saber se o Open Finance está ligado")
     @GetMapping("/status")
     public Map<String, Boolean> status() {
         return Map.of("habilitado", ligado && servico.habilitado());
@@ -62,6 +66,7 @@ public class BankingController {
      * Cada banco conectado e um compartilhamento novo: a autorizacao vem a cada vez,
      * antes de o widget da Pluggy sequer carregar.
      */
+    @Operation(summary = "Token para abrir o widget da Pluggy")
     @PostMapping("/connect-token")
     public ConnectTokenResponse connectToken(@Valid @RequestBody(required = false) ConsentimentoRequest pedido,
                                              @AuthUser CurrentUser usuario) {
@@ -73,6 +78,7 @@ public class BankingController {
         return servico.gerarConnectToken(usuario);
     }
 
+    @Operation(summary = "Registrar o banco conectado")
     @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
     public List<BankAccountResponse> registrar(@Valid @RequestBody RegisterItemRequest pedido,
@@ -82,18 +88,21 @@ public class BankingController {
         return servico.registrar(pedido.itemId(), usuario);
     }
 
+    @Operation(summary = "Contas e saldos dos bancos conectados")
     @GetMapping("/accounts")
     public List<BankAccountResponse> contas(@AuthUser CurrentUser usuario) {
         return servico.listar(usuario);
     }
 
     /** Sempre gratis, inclusive depois que o Premium vence. */
+    @Operation(summary = "Desconectar um banco")
     @DeleteMapping("/connections/{id}")
     public List<BankAccountResponse> desconectar(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         return servico.desconectar(id, usuario);
     }
 
     /** Debitos dos bancos conectados desde a data, para revisar e importar como gastos. */
+    @Operation(summary = "Débitos dos bancos para importar como gastos")
     @GetMapping("/transactions")
     public List<BankingService.GastoDoBanco> gastos(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -102,6 +111,7 @@ public class BankingController {
         return servico.gastosDesde(desde == null ? LocalDate.now().minusDays(30) : desde, usuario);
     }
 
+    @Operation(summary = "Sincronizar com a Pluggy")
     @PostMapping("/sync")
     public List<BankAccountResponse> sincronizar(@AuthUser CurrentUser usuario) {
         usuario.exigirPremium("Atualizar os saldos dos bancos");

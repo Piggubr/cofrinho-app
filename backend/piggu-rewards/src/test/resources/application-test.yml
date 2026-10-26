@@ -22,3 +22,8 @@ piggu:
     publico: 100000
     escrita: 100000
     envio: 100000
+
+# O teste de contrato (ContratoDaApiTest) le /v3/api-docs.yaml.
+springdoc:
+  api-docs:
+    enabled: true

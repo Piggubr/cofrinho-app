@@ -3,6 +3,8 @@
 Aplicação de controle financeiro doméstico, migrada de um Google Apps Script com
 planilha como banco de dados para uma plataforma em Java e Angular.
 
+Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## O que tem aqui
 
 | Pasta | O que é |
@@ -11,9 +13,11 @@ planilha como banco de dados para uma plataforma em Java e Angular.
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
 | [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
 | [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
+| [`docs/API_SPEC.md`](docs/API_SPEC.md) e [`docs/api/`](docs/api/) | Contrato da API para os apps nativos (iOS e Android): endereços, login, erros, convenções e o OpenAPI de cada serviço, gerado do código |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | [`backend/observabilidade/`](backend/observabilidade/) | Grafana, Prometheus e Loki no próprio servidor: performance, logs, erros, alertas e painel de uso ([como funciona](docs/observabilidade.md)) |
 | `assets/` | Material de marca (logos, ícones, ilustrações) do front original |
+| [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) | Modelo de dados: as tabelas dos seis bancos, como cada família fica isolada e as regras que moram nos dados |
 
 ## O que o app faz
 
@@ -57,6 +61,8 @@ planilha como banco de dados para uma plataforma em Java e Angular.
   listas vazias que dizem o que fazer e carregamento com aviso de conexão lenta. Há um modo demo, sem backend, para mostrar o app
   ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
   `android-demo`).
+
+O que está sendo feito agora, o que vem depois e o que é só ideia: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Subindo tudo
 

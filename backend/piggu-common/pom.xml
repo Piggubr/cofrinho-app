@@ -56,5 +56,11 @@
       <artifactId>spring-boot-hibernate</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- Anotacoes do contrato e o padrao comum (JWT, ApiError); cada servico traz o seu. -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>

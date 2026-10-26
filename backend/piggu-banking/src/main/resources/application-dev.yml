@@ -1,0 +1,9 @@
+# Perfil de desenvolvimento: ative com SPRING_PROFILES_ACTIVE=dev.
+
+# Contrato da API so aqui e nos testes: /v3/api-docs, /v3/api-docs.yaml e /swagger-ui.html,
+# direto na porta do servico (o gateway nao roteia essas rotas).
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

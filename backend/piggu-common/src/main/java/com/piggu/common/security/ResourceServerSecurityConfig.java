@@ -30,9 +30,19 @@ import java.util.List;
 @EnableMethodSecurity
 public class ResourceServerSecurityConfig implements WebMvcConfigurer {
 
+    /**
+     * Contrato da API e Swagger UI (springdoc). So existem com {@code springdoc.api-docs.enabled},
+     * ligado no perfil dev e nos testes; em producao ficam desligados e o gateway nao os roteia.
+     */
+    public static final String[] ROTAS_DO_CONTRATO = {
+            "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui.html", "/swagger-ui/**"};
+
     /** Recusa quem ainda nao informou o CPF; o identity desliga (e la que se informa). */
     @Value("${piggu.cpf.exigir:true}")
     private boolean exigirCpf;
+
+    @Value("${springdoc.api-docs.enabled:false}")
+    private boolean contratoLigado;
 
     @Bean
     @ConditionalOnMissingBean(SecurityFilterChain.class)
@@ -41,9 +51,13 @@ public class ResourceServerSecurityConfig implements WebMvcConfigurer {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(rotas -> rotas
-                        .requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(rotas -> {
+                    if (contratoLigado) {
+                        rotas.requestMatchers(HttpMethod.GET, ROTAS_DO_CONTRATO).permitAll();
+                    }
+                    rotas.requestMatchers(HttpMethod.GET, "/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
+                            .anyRequest().authenticated();
+                })
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(new PigguJwtAuthenticationConverter())))
                 .build();

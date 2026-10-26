@@ -66,6 +66,11 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- Contrato da API (docs/api); desligado fora do perfil dev e dos testes. -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

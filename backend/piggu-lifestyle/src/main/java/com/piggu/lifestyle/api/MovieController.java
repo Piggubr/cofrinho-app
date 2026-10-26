@@ -6,6 +6,8 @@ import com.piggu.lifestyle.api.dto.MovieRatingRequest;
 import com.piggu.lifestyle.api.dto.MovieResponse;
 import com.piggu.lifestyle.api.dto.TmdbMovie;
 import com.piggu.lifestyle.domain.MovieService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ import java.util.UUID;
  * Filmes. Substitui searchMovies, randomMovie, saveMovie, toggleMovieWatched,
  * rateMovie e deleteMovie.
  */
+@Tag(name = "Filmes", description = "Lista de filmes da família, com busca no TMDB.")
 @RestController
 @RequestMapping("/api/movies")
 public class MovieController {
@@ -38,34 +41,40 @@ public class MovieController {
         this.servico = servico;
     }
 
+    @Operation(summary = "Listar filmes")
     @GetMapping
     public List<MovieResponse> listar() {
         return servico.listar();
     }
 
     /** Busca no TMDB, sem gravar nada na lista. */
+    @Operation(summary = "Buscar filme no TMDB")
     @GetMapping("/search")
     public List<TmdbMovie> buscar(@RequestParam String busca) {
         return servico.buscarNoCatalogo(busca);
     }
 
     /** @param genero id de genero do TMDB; ausente sorteia entre todos */
+    @Operation(summary = "Sortear um filme")
     @GetMapping("/random")
     public TmdbMovie sortear(@RequestParam(required = false) String genero) {
         return servico.sortear(genero);
     }
 
+    @Operation(summary = "Adicionar filme à lista")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MovieResponse adicionar(@Valid @RequestBody TmdbMovie filme, @AuthUser CurrentUser usuario) {
         return servico.adicionar(filme, usuario.id());
     }
 
+    @Operation(summary = "Marcar ou desmarcar filme como assistido")
     @PatchMapping("/{id}/watched")
     public MovieResponse marcarAssistido(@PathVariable UUID id, @RequestParam boolean assistido) {
         return servico.marcarAssistido(id, assistido);
     }
 
+    @Operation(summary = "Avaliar filme")
     @PutMapping("/{id}/rating")
     public MovieResponse avaliar(@PathVariable UUID id,
                                  @Valid @RequestBody MovieRatingRequest pedido,
@@ -73,6 +82,7 @@ public class MovieController {
         return servico.avaliar(id, pedido.nota(), usuario.id());
     }
 
+    @Operation(summary = "Excluir filme")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);

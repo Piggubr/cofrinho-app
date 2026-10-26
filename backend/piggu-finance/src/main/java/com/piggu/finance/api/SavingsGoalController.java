@@ -3,6 +3,8 @@ package com.piggu.finance.api;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.domain.ObjetivosService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -32,6 +34,7 @@ import java.util.UUID;
  * <p>Fica fora do alcance do membro: o total de cada objetivo soma o deposito de
  * todos, e o membro so ve o que ele mesmo depositou.</p>
  */
+@Tag(name = "Objetivos do cofrinho", description = "Objetivos de poupança do cofrinho.")
 @RestController
 @RequestMapping("/api/piggy-bank/goals")
 public class SavingsGoalController {
@@ -56,11 +59,13 @@ public class SavingsGoalController {
             Boolean compartilhado) {
     }
 
+    @Operation(summary = "Listar objetivos")
     @GetMapping
     public List<ObjetivosService.Situacao> listar() {
         return servico.listar();
     }
 
+    @Operation(summary = "Criar objetivo")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ObjetivosService.Situacao criar(@Valid @RequestBody ObjetivoRequest pedido, @AuthUser CurrentUser usuario) {
@@ -68,6 +73,7 @@ public class SavingsGoalController {
                 usuario);
     }
 
+    @Operation(summary = "Alterar objetivo")
     @PutMapping("/{id}")
     public ResponseEntity<Void> alterar(@PathVariable UUID id, @Valid @RequestBody ObjetivoRequest pedido,
                                         @AuthUser CurrentUser usuario) {
@@ -75,6 +81,7 @@ public class SavingsGoalController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Excluir objetivo")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);

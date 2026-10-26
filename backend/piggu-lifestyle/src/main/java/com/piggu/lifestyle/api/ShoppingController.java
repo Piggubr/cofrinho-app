@@ -7,6 +7,8 @@ import com.piggu.lifestyle.api.dto.ShoppingItemRequest;
 import com.piggu.lifestyle.api.dto.ShoppingItemResponse;
 import com.piggu.lifestyle.domain.ShoppingService;
 import com.piggu.lifestyle.integration.CatalogClient;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,7 @@ import java.util.UUID;
  * <p>Substitui saveShoppingItem, toggleShoppingItem, deleteShoppingItem e
  * searchProducts.</p>
  */
+@Tag(name = "Compras", description = "Listas de compras e de desejos.")
 @RestController
 @RequestMapping("/api/shopping")
 public class ShoppingController {
@@ -43,11 +46,13 @@ public class ShoppingController {
     }
 
     /** @param lista filtro opcional: Compras ou Desejos */
+    @Operation(summary = "Listar itens de compras ou desejos")
     @GetMapping("/items")
     public List<ShoppingItemResponse> listar(@RequestParam(required = false) String lista) {
         return servico.listar(lista);
     }
 
+    @Operation(summary = "Adicionar item")
     @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingItemResponse criar(@Valid @RequestBody ShoppingItemRequest pedido,
@@ -55,11 +60,13 @@ public class ShoppingController {
         return servico.criar(pedido, usuario.id());
     }
 
+    @Operation(summary = "Marcar ou desmarcar como comprado")
     @PatchMapping("/items/{id}/purchased")
     public ShoppingItemResponse alternar(@PathVariable UUID id, @RequestParam boolean comprado) {
         return servico.alternarComprado(id, comprado);
     }
 
+    @Operation(summary = "Excluir item")
     @DeleteMapping("/items/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
         servico.excluir(id, usuario);
@@ -67,6 +74,7 @@ public class ShoppingController {
     }
 
     /** Busca no catalogo aberto de produtos, para preencher marca, imagem e codigo. */
+    @Operation(summary = "Buscar produto no catálogo aberto")
     @GetMapping("/catalog")
     public List<CatalogProduct> buscarNoCatalogo(@RequestParam String busca) {
         return catalogo.buscar(busca);
