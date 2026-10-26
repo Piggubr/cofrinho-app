@@ -72,8 +72,16 @@ public class ErrosDoAppController {
         if (texto == null || texto.isBlank()) {
             return "-";
         }
-        // Limpa antes de cortar: cortar primeiro deixaria meio e-mail, que o padrao nao reconhece.
-        String limpo = EMAIL.matcher(texto.length() > 50_000 ? texto.substring(0, 50_000) : texto).replaceAll("[email]");
+        // Corta antes de limpar: num texto comprido sem '@' o padrao de e-mail e quadratico (a rota
+        // e aberta). Folga de 2x e corte num espaco, para nao sobrar meio e-mail que o padrao nao pega.
+        if (texto.length() > 2 * limite) {
+            int fim = 2 * limite;
+            while (fim > limite && !Character.isWhitespace(texto.charAt(fim))) {
+                fim--;
+            }
+            texto = texto.substring(0, fim > limite ? fim : 2 * limite);
+        }
+        String limpo = EMAIL.matcher(texto).replaceAll("[email]");
         limpo = JWT.matcher(limpo).replaceAll("[token]");
         limpo = BEARER.matcher(limpo).replaceAll("Bearer [token]");
         limpo = BUSCA_NA_URL.matcher(limpo).replaceAll("?[...]");
