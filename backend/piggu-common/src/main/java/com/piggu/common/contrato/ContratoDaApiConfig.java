@@ -66,7 +66,7 @@ public class ContratoDaApiConfig {
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT")
-                        .description("Access token do login (POST /api/auth/entrar, /api/auth/google ou /api/auth/refresh).")))
+                        .description("Access token do login (POST /api/auth/entrar, /api/auth/google, /api/auth/apple ou /api/auth/refresh).")))
                 .addSecurityItem(new SecurityRequirement().addList(JWT));
     }
 

@@ -48,6 +48,10 @@ piggu:
     # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
     client-ids:
       - ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
+  apple:
+    # Entrar com Apple (app nativo do iPhone): o Bundle ID br.com.piggu.app, e o Services ID se
+    # o site ganhar o botao, separados por virgula. Vazio deixa POST /api/auth/apple em 501.
+    client-ids: ${APPLE_CLIENT_IDS:}
   jwt:
     issuer: ${JWT_ISSUER:https://piggu.app}
     # Sem valor padrao de proposito: sem JWT_PRIVATE_KEY e JWT_PUBLIC_KEY o servico

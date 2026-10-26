@@ -7,9 +7,11 @@ FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # As dependencias mudam bem menos que o codigo: copiar so os poms primeiro
-# faz o cache do Docker sobreviver a maioria das alteracoes.
+# faz o cache do Docker sobreviver a maioria das alteracoes. Todo modulo do pom raiz
+# precisa estar aqui: faltando um, o go-offline falha e cada imagem baixa tudo de novo.
 COPY pom.xml .
 COPY piggu-common/pom.xml piggu-common/
+COPY piggu-testing/pom.xml piggu-testing/
 COPY piggu-gateway/pom.xml piggu-gateway/
 COPY piggu-identity/pom.xml piggu-identity/
 COPY piggu-finance/pom.xml piggu-finance/
@@ -17,7 +19,8 @@ COPY piggu-rewards/pom.xml piggu-rewards/
 COPY piggu-lifestyle/pom.xml piggu-lifestyle/
 COPY piggu-media/pom.xml piggu-media/
 COPY piggu-banking/pom.xml piggu-banking/
-RUN mvn -B -q dependency:go-offline -DskipTests || true
+COPY piggu-cobertura/pom.xml piggu-cobertura/
+RUN mvn -B -q dependency:go-offline -DskipTests
 
 COPY . .
 ARG MODULO

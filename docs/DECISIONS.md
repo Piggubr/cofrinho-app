@@ -3,7 +3,7 @@
 Registro das decisões de arquitetura e de produto: o que foi escolhido, por quê e o que
 isso obriga. Leia antes de mudar algo que pareça estranho, porque muitas vezes há um motivo.
 
-**Como acrescentar uma decisão:** use o próximo número livre (D-072, D-073...) e nunca
+**Como acrescentar uma decisão:** use o próximo número livre (D-073, D-074...) e nunca
 apague uma decisão. Se uma decisão mudar, escreva a nova e troque a situação da antiga para
 "Substituída por D-0xx". A decisão entra no mesmo PR da mudança que ela explica.
 
@@ -84,6 +84,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-059](#d-059-a-api-só-acrescenta-campos) | A API só acrescenta campos | Valendo |
 | [D-060](#d-060-features-novas-no-site-durante-a-migração) | Features novas no site durante a migração | Em aberto |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
+| [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -645,7 +646,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o app nativo não tem o cookie HttpOnly do navegador (D-014).
 - Decisão: o access token fica só na memória e o refresh vai para o Keychain (iOS) ou o Keystore (Android). Para apps nativos, o backend devolve o refresh no corpo da resposta.
 - Alternativas: o cookie do site.
-- Consequências: na `develop` de hoje, `/api/auth/refresh` só lê o cookie; a etapa 1 do plano iOS implementa a resposta para o nativo no identity, que serve aos dois apps.
+- Consequências: na `develop` de hoje, `/api/auth/refresh` só lê o cookie; a etapa 1 do plano iOS implementa a resposta para o nativo no identity, que serve aos dois apps. Feito em 26/10/2026 (D-072).
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, plano do iOS nativo
 
 ## D-059: A API só acrescenta campos
@@ -674,6 +675,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o Rosa Piggu e o ícone Clássico continuam disponíveis e grátis.
 - Consequências: quem não escolheu cor vê o Chiclete; quem tinha escolhido Rosa continua no Rosa.
 - Onde ver: [PR #42](https://github.com/Piggubr/cofrinho-app/pull/42)
+
+## D-072: Refresh no corpo só para quem pede, e Apple pelo e-mail
+- Data: 26/10/2026
+- Situação: Valendo
+- Contexto: etapa 1 do plano iOS. O app nativo não tem o cookie do site (D-058), e o site não pode passar a ver o refresh (D-014).
+- Decisão: o login (`/api/auth/google`, `/entrar` e `/apple`) com `refreshNoCorpo: true` devolve `refreshToken` no corpo e não põe cookie. `/api/auth/refresh`, `/logout` e `/me/senha` aceitam `refreshToken` no corpo; renovar pelo corpo devolve o novo no corpo. O refresh que chegou pelo cookie nunca volta no corpo, peça o cliente o que pedir: um XSS no site consegue renovar, mas não leva o refresh. Entrar com Apple confere o identity token contra o JWKS da Apple (emissor, Bundle ID, validade, e-mail verificado e o nonce, que é o SHA-256 do valor que o app manda) e acha a conta pelo e-mail, como o Google. Sem `APPLE_CLIENT_IDS` a rota responde 501.
+- Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
+- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
+- Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
 # Processo
 
