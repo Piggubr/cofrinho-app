@@ -5,6 +5,7 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.ReceiptParseRequest;
 import com.piggu.finance.api.dto.ReceiptParseResponse;
 import com.piggu.finance.domain.Categorias;
@@ -93,7 +94,7 @@ public class LeitorDeRecibos {
         if (!leitorProprio) {
             return soPeloGemini(pedido, usuario);
         }
-        LocalDate hoje = LocalDate.now();
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         Optional<LeitorDeCupom.Leitura> propria = ocr.ler(imagem(pedido.imageBase64()))
                 .map(texto -> LeitorDeCupom.ler(texto, hoje));
 

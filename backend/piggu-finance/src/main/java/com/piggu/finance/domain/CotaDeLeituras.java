@@ -3,6 +3,7 @@ package com.piggu.finance.domain;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import com.piggu.common.web.Meses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -26,15 +26,13 @@ import java.util.UUID;
 @Component
 public class CotaDeLeituras {
 
-    private static final ZoneId BRASILIA = ZoneId.of("America/Sao_Paulo");
-
     private final JdbcTemplate jdbc;
     private final int gratisPorMes;
     private final Clock relogio;
 
     @Autowired
     public CotaDeLeituras(JdbcTemplate jdbc, @Value("${piggu.leitura-de-nota.gratis-por-mes:10}") int gratisPorMes) {
-        this(jdbc, gratisPorMes, Clock.system(BRASILIA));
+        this(jdbc, gratisPorMes, Clock.system(Meses.BRASILIA));
     }
 
     CotaDeLeituras(JdbcTemplate jdbc, int gratisPorMes, Clock relogio) {
