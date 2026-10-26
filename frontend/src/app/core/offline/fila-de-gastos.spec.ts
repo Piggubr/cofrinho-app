@@ -65,4 +65,38 @@ describe('FilaDeGastos', () => {
     expect(fila.pendentes()).toEqual([]);
     expect(JSON.parse(localStorage.getItem('piggu_fila_de_gastos')!)).toHaveLength(1);
   });
+
+  it('sessao encerrada (401) guarda o gasto; 422 tira da fila e conta como recusado', async () => {
+    const fila = TestBed.inject(FilaDeGastos);
+    fila.guardar(pedido('Pao'));
+
+    let envio = fila.enviar();
+    http.expectOne('/api/expenses').flush({}, { status: 401, statusText: 'Unauthorized' });
+    await envio;
+    expect(fila.pendentes()).toHaveLength(1);
+    expect(fila.recusados()).toBe(0);
+    expect(JSON.parse(localStorage.getItem('piggu_fila_de_gastos')!)).toHaveLength(1);
+
+    envio = fila.enviar();
+    http.expectOne('/api/expenses').flush({}, { status: 422, statusText: 'Unprocessable' });
+    await envio;
+    expect(fila.pendentes()).toEqual([]);
+    expect(fila.recusados()).toBe(1);
+  });
+
+  it('outra aba guardou um gasto: le de novo e nao grava por cima', () => {
+    const fila = TestBed.inject(FilaDeGastos);
+    fila.guardar(pedido('Pao'));
+    const daOutraAba = [
+      ...JSON.parse(localStorage.getItem('piggu_fila_de_gastos')!),
+      { usuario: usuarioDeTeste().id, pedido: pedido('Leite'), guardadoEm: '2026-10-11T10:00:00Z' },
+    ];
+    localStorage.setItem('piggu_fila_de_gastos', JSON.stringify(daOutraAba));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'piggu_fila_de_gastos' }));
+
+    fila.guardar(pedido('Cafe'));
+
+    expect(fila.pendentes().map((g) => g.pedido.itens[0].item)).toEqual(['Pao', 'Leite', 'Cafe']);
+    expect(JSON.parse(localStorage.getItem('piggu_fila_de_gastos')!)).toHaveLength(3);
+  });
 });

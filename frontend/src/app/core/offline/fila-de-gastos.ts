@@ -19,8 +19,9 @@ interface GastoNaFila {
  *
  * <p>Ficam neste aparelho e vao para o servidor, na ordem, assim que a conexao volta:
  * no evento "online" do navegador, na abertura do app e quando a tela pede. Um envio
- * que falha por falta de rede para a fila ali; um que o servidor recusa (dado invalido)
- * sai da fila e conta em {@link recusados}, para a pessoa saber.</p>
+ * que o servidor recusa por dado invalido (400 ou 422) sai da fila e conta em
+ * {@link recusados}, para a pessoa saber; qualquer outra falha (sem rede, servidor fora,
+ * sessao encerrada) para a fila ali e guarda o resto.</p>
  */
 @Injectable({ providedIn: 'root' })
 export class FilaDeGastos {
@@ -40,6 +41,12 @@ export class FilaDeGastos {
 
   constructor() {
     window.addEventListener('online', () => void this.enviar());
+    // Outra aba mexeu na fila: le de novo para nao gravar por cima do que ela guardou.
+    window.addEventListener('storage', (evento) => {
+      if (evento.key === CHAVE) {
+        this.todos.set(ler());
+      }
+    });
   }
 
   guardar(pedido: NovoLancamento): void {
@@ -67,12 +74,15 @@ export class FilaDeGastos {
           await firstValueFrom(this.finance.lancarGastos(gasto.pedido));
           enviados++;
         } catch (erro) {
-          if (erro instanceof HttpErrorResponse && (erro.status === 0 || erro.status >= 500)) {
-            break; // ainda sem rede (ou servidor fora): tenta de novo depois
+          // So 400 e 422 dizem que o gasto e invalido; sessao encerrada, limite ou sem rede: depois.
+          if (!(erro instanceof HttpErrorResponse && (erro.status === 400 || erro.status === 422))) {
+            break;
           }
           recusados++;
         }
-        this.todos.update((lista) => lista.filter((g) => g !== gasto));
+        // Pelo conteudo: a lista pode ter sido relida de outra aba durante o envio.
+        const enviado = JSON.stringify(gasto);
+        this.todos.update((lista) => lista.filter((g) => JSON.stringify(g) !== enviado));
         gravar(this.todos());
       }
     } finally {
