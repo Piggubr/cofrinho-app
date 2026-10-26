@@ -84,12 +84,6 @@ public class ContasFixasService {
                 .toList();
     }
 
-    @Transactional
-    public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
-                               UUID autor) {
-        return criar(descricao, categoria, valor, dia, automatico, autor, false);
-    }
-
     /** @param compartilhado a conta e o gasto que ela lanca aparecem para todos da familia */
     @Transactional
     public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
@@ -147,12 +141,6 @@ public class ContasFixasService {
     }
 
     /** Receita que entra todo mes no mesmo dia: lanca a deste mes e liga o automatico para os proximos. */
-    @Transactional
-    public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                          UUID autor) {
-        return lancarReceitaRecorrente(data, descricao, categoria, valor, autor, false);
-    }
-
     @Transactional
     public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
                                           UUID autor, boolean compartilhado) {

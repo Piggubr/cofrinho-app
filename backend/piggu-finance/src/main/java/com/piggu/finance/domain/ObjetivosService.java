@@ -78,11 +78,6 @@ public class ObjetivosService {
     }
 
     @Transactional
-    public Situacao criar(String nome, BigDecimal alvo, LocalDate prazo, CurrentUser usuario) {
-        return criar(nome, alvo, prazo, false, usuario);
-    }
-
-    @Transactional
     public Situacao criar(String nome, BigDecimal alvo, LocalDate prazo, boolean compartilhado, CurrentUser usuario) {
         if (!usuario.isPremium() && objetivos.countByUserId(usuario.id()) >= LIMITE_NO_GRATUITO) {
             throw new BusinessException("Mais de um cofrinho por objetivo faz parte do Piggu Premium.",

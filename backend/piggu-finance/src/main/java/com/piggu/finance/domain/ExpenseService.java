@@ -304,11 +304,6 @@ public class ExpenseService {
         return ExpenseResponse.de(salvo);
     }
 
-    @Transactional
-    public void excluir(UUID id, CurrentUser usuario) {
-        excluir(id, usuario, false);
-    }
-
     /** @param eAsProximas na parcela, apaga tambem as parcelas seguintes do mesmo item */
     @Transactional
     public void excluir(UUID id, CurrentUser usuario, boolean eAsProximas) {
