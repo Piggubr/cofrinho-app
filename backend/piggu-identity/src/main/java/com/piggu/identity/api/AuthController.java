@@ -4,10 +4,13 @@ import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.LimiteDeRequisicoes;
+import com.piggu.common.web.Texto;
+import com.piggu.identity.api.dto.AppleLoginRequest;
 import com.piggu.identity.api.dto.CadastroRequest;
 import com.piggu.identity.api.dto.DefinirSenhaRequest;
 import com.piggu.identity.api.dto.GoogleLoginRequest;
 import com.piggu.identity.api.dto.PreferencesRequest;
+import com.piggu.identity.api.dto.RefreshRequest;
 import com.piggu.identity.api.dto.SenhaLoginRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
@@ -47,6 +50,11 @@ import java.util.List;
  * 30 dias usado diretamente em toda chamada. Agora sao dois tokens com papeis distintos:
  * um curto para as requisicoes, que o front guarda so em memoria, e um longo apenas para
  * renovar, que vive num cookie HttpOnly; Secure; SameSite=Strict; Path=/api/auth.</p>
+ *
+ * <p>O app nativo nao tem esse cookie (D-058): ele pede o refresh no corpo com
+ * {@code refreshNoCorpo} no login e o devolve no corpo de renovar, sair e trocar a senha. O
+ * refresh que veio pelo cookie nunca vai para o corpo, peca o cliente o que pedir: um XSS no
+ * site conseguiria renovar, mas continua sem ver o refresh.</p>
  */
 @Tag(name = "Login e sessão", description = "Entrar, renovar e sair; perfil e preferências de quem está logado.")
 @RestController
@@ -77,7 +85,20 @@ public class AuthController {
     public ResponseEntity<TokenResponse> entrar(@Valid @RequestBody GoogleLoginRequest pedido,
                                                 @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
-        return comCookie(servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), lembrar, userAgent));
+        return responder(servico.entrarComGoogle(pedido.idToken(), pedido.versaoDosTermos(), lembrar, userAgent),
+                pedido.refreshNoCorpo());
+    }
+
+    /** Para o app nativo do iPhone; sem {@code piggu.apple.client-ids} configurado, responde 501. */
+    @Operation(summary = "Entrar com a Apple (identity token)",
+            description = "Responde 501 (código EM_BREVE) enquanto o servidor não tiver o Bundle ID em APPLE_CLIENT_IDS.")
+    @SecurityRequirements
+    @PostMapping("/apple")
+    public ResponseEntity<TokenResponse> entrarComApple(@Valid @RequestBody AppleLoginRequest pedido,
+                                                        @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
+        boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
+        return responder(servico.entrarComApple(pedido.idToken(), pedido.nonce(), pedido.nome(),
+                pedido.versaoDosTermos(), lembrar, userAgent), pedido.refreshNoCorpo());
     }
 
     /**
@@ -151,24 +172,37 @@ public class AuthController {
                                                         HttpServletRequest requisicao) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
         String origem = LimiteDeRequisicoes.ipDeOrigem(requisicao, limites);
-        return comCookie(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent, origem));
+        return responder(servico.entrarComSenha(pedido.email(), pedido.senha(), lembrar, userAgent, origem),
+                pedido.refreshNoCorpo());
     }
 
+    /**
+     * O site renova pelo cookie e recebe o refresh novo no cookie. O app nativo manda o refresh
+     * no corpo e recebe o novo no corpo, sem cookie.
+     */
     @Operation(summary = "Renovar a sessão com o refresh token")
     @SecurityRequirements
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> renovar(@CookieValue(name = COOKIE, required = false) String refresh,
+    public ResponseEntity<TokenResponse> renovar(@Valid @RequestBody(required = false) RefreshRequest corpo,
+                                                 @CookieValue(name = COOKIE, required = false) String cookie,
                                                  @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
-        if (refresh == null || refresh.isBlank()) {
+        String doCorpo = doCorpo(corpo);
+        if (doCorpo != null) {
+            return ResponseEntity.ok(servico.renovar(doCorpo, userAgent));
+        }
+        if (cookie == null || cookie.isBlank()) {
             throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
         }
-        return comCookie(servico.renovar(refresh, userAgent));
+        return comCookie(servico.renovar(cookie, userAgent));
     }
 
     @Operation(summary = "Sair e encerrar a sessão do refresh token")
     @SecurityRequirements
     @PostMapping("/logout")
-    public ResponseEntity<Void> sair(@CookieValue(name = COOKIE, required = false) String refresh) {
+    public ResponseEntity<Void> sair(@Valid @RequestBody(required = false) RefreshRequest corpo,
+                                     @CookieValue(name = COOKIE, required = false) String cookie) {
+        String doCorpo = doCorpo(corpo);
+        String refresh = doCorpo != null ? doCorpo : cookie;
         if (refresh != null && !refresh.isBlank()) {
             servico.sair(refresh);
         }
@@ -177,10 +211,19 @@ public class AuthController {
                 .build();
     }
 
+    /** Login: o app nativo que pediu recebe o refresh no corpo; o site, no cookie. */
+    private ResponseEntity<TokenResponse> responder(TokenResponse par, Boolean refreshNoCorpo) {
+        return Boolean.TRUE.equals(refreshNoCorpo) ? ResponseEntity.ok(par) : comCookie(par);
+    }
+
     private ResponseEntity<TokenResponse> comCookie(TokenResponse par) {
         // Sem "continuar conectado" o cookie e de sessao: some quando o navegador fecha.
         ResponseCookie cookie = cookie(par.refreshToken(), par.lembrar() ? validadeDaSessao : null);
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(par);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(par.semRefresh());
+    }
+
+    private static String doCorpo(RefreshRequest corpo) {
+        return corpo == null || Texto.vazio(corpo.refreshToken()) ? null : corpo.refreshToken();
     }
 
     private static ResponseCookie cookie(String valor, Duration validade) {
@@ -227,13 +270,15 @@ public class AuthController {
 
     /**
      * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
-     * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica.
+     * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica; no app
+     * nativo, o {@code refreshToken} do corpo.
      */
     @Operation(summary = "Criar ou trocar a senha")
     @PutMapping("/me/senha")
     public UserResponse definirSenha(@Valid @RequestBody DefinirSenhaRequest pedido,
                                      @AuthUser CurrentUser usuario,
-                                     @CookieValue(name = COOKIE, required = false) String refresh) {
+                                     @CookieValue(name = COOKIE, required = false) String cookie) {
+        String refresh = Texto.vazio(pedido.refreshToken()) ? cookie : pedido.refreshToken();
         return servico.definirSenha(usuario.id(), pedido.senhaAtual(), pedido.novaSenha(), refresh);
     }
 

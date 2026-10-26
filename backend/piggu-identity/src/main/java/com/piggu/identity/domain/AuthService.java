@@ -9,6 +9,8 @@ import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.PreferencesRequest;
 import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
+import com.piggu.identity.apple.AppleIdTokenVerifier;
+import com.piggu.identity.apple.AppleProfile;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import org.slf4j.Logger;
@@ -68,6 +70,7 @@ public class AuthService {
     }
 
     private final GoogleIdTokenVerifier verificador;
+    private final AppleIdTokenVerifier apple;
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
     private final RefreshSessionRepository sessoes;
@@ -79,6 +82,7 @@ public class AuthService {
     private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
+                       AppleIdTokenVerifier apple,
                        UserAccountRepository usuarios,
                        FamiliaService familias,
                        RefreshSessionRepository sessoes,
@@ -89,6 +93,7 @@ public class AuthService {
                        ConfirmacaoDeEmail confirmacao,
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
+        this.apple = apple;
         this.usuarios = usuarios;
         this.familias = familias;
         this.sessoes = sessoes;
@@ -114,8 +119,38 @@ public class AuthService {
     @Transactional
     public TokenResponse entrarComGoogle(String idToken, String versaoDosTermos, boolean lembrar, String userAgent) {
         GoogleProfile perfil = verificador.verificar(idToken);
-        UserAccount conta = usuarios.findByEmail(perfil.email())
-                .orElseGet(() -> familias.criarConta(perfil.email(), perfil.givenName(), versaoDosTermos));
+        UserAccount conta = contaDoProvedor(perfil.email(), perfil.givenName(), versaoDosTermos, "Google");
+        conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
+        return concluirLogin(conta, userAgent, lembrar);
+    }
+
+    /**
+     * Troca o identity token da Apple por um par de tokens do Piggu, como no Google: a conta e
+     * achada pelo e-mail e criada no primeiro acesso. A Apple so manda o nome na primeira
+     * autorizacao, e o app o repassa em {@code nome}; o resto do perfil vem do Piggu.
+     */
+    @Transactional
+    public TokenResponse entrarComApple(String idToken, String nonce, String nome, String versaoDosTermos,
+                                        boolean lembrar, String userAgent) {
+        AppleProfile perfil = apple.verificar(idToken, nonce);
+        String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
+        String primeiroNome = nomeLimpo.isEmpty() ? null : nomeLimpo.split(" ")[0];
+        boolean nova = usuarios.findByEmail(perfil.email()).isEmpty();
+        UserAccount conta = contaDoProvedor(perfil.email(), primeiroNome, versaoDosTermos, "Apple");
+        if (nova && !nomeLimpo.isEmpty()) {
+            conta.setNickname(nomeLimpo);
+        }
+        conta.registrarAcesso();
+        return concluirLogin(conta, userAgent, lembrar);
+    }
+
+    /**
+     * A conta do e-mail que o Google ou a Apple acabou de provar, criada se nao existe. Recusa
+     * conta desativada e confirma o e-mail de quem ainda nao tinha provado.
+     */
+    private UserAccount contaDoProvedor(String email, String primeiroNome, String versaoDosTermos, String provedor) {
+        UserAccount conta = usuarios.findByEmail(email)
+                .orElseGet(() -> familias.criarConta(email, primeiroNome, versaoDosTermos));
 
         if (!conta.isActive()) {
             log.warn("Login recusado: conta desativada id={}", conta.getId());
@@ -123,13 +158,18 @@ public class AuthService {
         }
 
         if (!conta.isEmailVerified()) {
-            // Alguem cadastrou este e-mail por senha antes, sem provar que era dele. O Google
+            // Alguem cadastrou este e-mail por senha antes, sem provar que era dele. O provedor
             // acabou de provar quem e o dono: sai o que quem cadastrou deixou (senha, sessoes,
             // aparelhos, dados presos a conta). Se foi o proprio dono, ele refaz no Perfil.
             familias.devolverAoDono(conta);
+            log.warn("Primeiro login {} em conta sem e-mail confirmado: conta devolvida ao dono, conta={}",
+                    provedor, conta.getId());
             conta.confirmarEmail();
         }
-        conta.atualizarPerfilGoogle(perfil.name(), perfil.givenName(), perfil.picture());
+        return conta;
+    }
+
+    private TokenResponse concluirLogin(UserAccount conta, String userAgent, boolean lembrar) {
         // Promove, nunca rebaixa: tirar alguem da lista nao derruba um ADMIN por engano.
         if (emailsDeAdmin.contains(conta.getEmail()) && conta.getRole() != PigguRole.ADMIN) {
             conta.setRole(PigguRole.ADMIN);

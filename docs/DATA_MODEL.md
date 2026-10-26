@@ -1,14 +1,14 @@
 # Modelo de dados do Piggu
 
-**Atualizado em 25/10/2026.** Esquema depois de todas as 72 migrações:
+**Atualizado em 26/10/2026.** Esquema depois de todas as 76 migrações:
 
 | Serviço | Banco | Até a migração |
 |---|---|---|
-| identity | `piggu_identity` | V35 (`cpf_unico`) |
-| finance | `piggu_finance` | V20 (`compartilhado`) |
-| rewards | `piggu_rewards` | V3 (`id_da_pessoa_no_lugar_do_email`) |
+| identity | `piggu_identity` | V36 (`push_no_android`) |
+| finance | `piggu_finance` | V21 (`indices_nas_chaves_estrangeiras`) |
+| rewards | `piggu_rewards` | V4 (`indices_nas_chaves_estrangeiras`) |
 | lifestyle | `piggu_lifestyle` | V5 (`cada_um_ve_o_seu`) |
-| media | `piggu_media` | V3 (`id_da_pessoa_no_lugar_do_email`) |
+| media | `piggu_media` | V4 (`indices_nas_chaves_estrangeiras`) |
 | banking | `piggu_banking` | V6 (`consentimento_retirado`) |
 
 Este documento foi escrito a partir do esquema real: um Postgres 16 descartável, as migrações
@@ -285,7 +285,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 |---|---|---|
 | `household_invites` | `email` (texto(320)), `invited_by` (uuid), `expires_at` | Convite para entrar na família. Único por família e e-mail; vale 7 dias e a retenção apaga os vencidos |
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
-| `push_devices` | `token` (chave, texto(200)), `user_id`, `platform` | Aparelho que recebe push. Hoje o `CHECK` só aceita `IOS` (APNs) |
+| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). Hoje o lembrete diário só envia para `IOS`; o envio pelo FCM ainda não existe |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
 | `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe, RevenueCat): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
@@ -811,7 +811,8 @@ Como guardar:
 
 ## Coisas que achei
 
-Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
+Encontrado ao montar este documento. Os itens 3, 7 e 8 foram corrigidos em 26/10/2026
+(identity V36, finance V21, rewards V4, media V4); o resto fica para decidir.
 
 **Colunas sem uso ou com valor fixo**
 
@@ -822,8 +823,8 @@ Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
 
 **Restrições que podem morder**
 
-3. `push_devices.platform` só aceita `IOS`. O app Android já existe; o primeiro registro de
-   aparelho Android para push vai falhar no `CHECK`.
+3. ~~`push_devices.platform` só aceita `IOS`.~~ **Corrigido** (identity V36): aceita `ANDROID`,
+   e o token cresceu para 512 caracteres para caber o do FCM. Falta o envio pelo FCM.
 4. As chaves únicas por pessoa (`product_memory`, `monthly_goals`, `category_budgets`,
    `category_rules`, `payment_accounts`) incluem `user_id`, que pode ser nulo. No Postgres, nulos
    não colidem, então registros sem dono podem se repetir (por exemplo, duas metas sem dono para o
@@ -837,12 +838,12 @@ Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
 
 **Índices**
 
-7. Faltam índices nas colunas de algumas chaves estrangeiras: `notes.expense_id`,
+7. ~~Faltam índices nas colunas de algumas chaves estrangeiras.~~ **Corrigido**: `notes.expense_id`,
    `receivables.income_id`, `recurring_bills.account_id`, `redemptions.prize_id`,
-   `redemptions.ledger_id` e `feed_photos.asset_id`. Apagar o registro apontado varre a tabela
-   (a retenção de fotos também faz `NOT EXISTS` em `feed_photos.asset_id`).
-8. `expense_shares.member_id` não tem índice, mas entra no filtro de visibilidade de **toda**
-   consulta de gastos (`member_id = ANY(...)`).
+   `redemptions.ledger_id`, `feed_photos.asset_id` e `trial_campaign_uses.code` ganharam índice.
+   O `ChavesEstrangeirasTest` de cada serviço derruba o build se entrar chave estrangeira sem índice.
+8. ~~`expense_shares.member_id` não tem índice.~~ **Corrigido** (finance V21): índice em
+   `(member_id, expense_id)`, que responde sozinho à subconsulta do filtro de visibilidade.
 9. Índices de uma coluna sem `household_id`, provavelmente sem uso porque toda consulta já
    filtra pela família e há um índice composto melhor: `idx_expenses_date`,
    `idx_expenses_category`, `idx_expenses_created`, `idx_product_memory_purchases`,

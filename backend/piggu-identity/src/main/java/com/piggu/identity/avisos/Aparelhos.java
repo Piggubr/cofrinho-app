@@ -24,8 +24,10 @@ public class Aparelhos {
                 """, token, usuario, plataforma);
     }
 
+    /** O token do iPhone foi guardado em minusculas e o do Android como veio: serve qualquer dos dois. */
     public void remover(UUID usuario, String token) {
-        jdbc.update("DELETE FROM push_devices WHERE user_id = ? AND token = ?", usuario, token);
+        jdbc.update("DELETE FROM push_devices WHERE user_id = ? AND token IN (?, ?)", usuario, token,
+                token.toLowerCase());
     }
 
     /** Token que a Apple recusou (app apagado, permissao tirada). */
@@ -37,9 +39,10 @@ public class Aparelhos {
         jdbc.update("DELETE FROM push_devices WHERE user_id = ?", usuario);
     }
 
-    public List<String> doUsuario(UUID usuario) {
-        return jdbc.queryForList("SELECT token FROM push_devices WHERE user_id = ? ORDER BY created_at", String.class,
-                usuario);
+    /** Aparelhos da pessoa numa plataforma: o APNs so entrega no iPhone (IOS). */
+    public List<String> doUsuario(UUID usuario, String plataforma) {
+        return jdbc.queryForList("SELECT token FROM push_devices WHERE user_id = ? AND platform = ? ORDER BY created_at",
+                String.class, usuario, plataforma);
     }
 
     /** Para a exportacao dos dados: plataforma, quando entrou e o fim do token (o bastante para reconhecer). */

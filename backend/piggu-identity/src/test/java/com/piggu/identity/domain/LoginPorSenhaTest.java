@@ -291,7 +291,8 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         assertThat(conta.temCpf()).isFalse();
         assertThat(conta.getPhone()).isNull();
         assertThat(conta.getNickname()).isNull();
-        assertThat(aparelhos.doUsuario(conta.getId())).isEmpty();
+        assertThat(aparelhos.doUsuario(conta.getId(), "IOS")).isEmpty();
+        assertThat(aparelhos.doUsuario(conta.getId(), "ANDROID")).isEmpty();
         assertThat(usuarios.findById(comparsa.getId()).orElseThrow().getHouseholdId())
                 .isEqualTo(intruso.usuario().familia());
     }
