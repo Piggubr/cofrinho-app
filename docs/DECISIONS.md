@@ -994,3 +994,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: manter a espera pela renovação (o Painel guardado só servia sem internet); limitar o tamanho do texto no app inteiro, que tira o Dynamic Type de quem precisa dele.
 - Consequências: quem teve a sessão revogada em outro lugar vê por um instante o que estava guardado antes de voltar ao login, como já acontecia sem internet; a trava com Face ID continua cobrindo a tela. Medido no simulador com a build otimizada e o cache cheio: 0,63 a 0,75 s do `init` do app ao Painel com dados, também com 3.000 gastos no mês; o carregamento do sistema antes do `init` no simulador não representa o aparelho e precisa ser conferido no iPhone pelo Instruments (App Launch). Os avisos de contraste em textos sob a barra de abas de vidro e nos rótulos de seção do sistema ficam como estão.
 - Onde ver: `ios-nativo/Piggu/Core/Auth/Sessao.swift`, `ios-nativo/Piggu/Core/Design/LadoALado.swift`, `ios-nativo/Piggu/Core/Sistema/Desempenho.swift`, `ios-nativo/PigguUITests/`
+
+## D-096: CI do iOS nativo no Xcode 27
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o `macos-latest` do GitHub ainda vem com o Xcode 26.6 (SDK do iOS 26.5), e o app usa APIs do iOS 27 desde a etapa 4 (arrastar os cartões do Painel). O build da CI quebrava em todos os PRs das etapas 4 a 9, embora compilasse no Mac do Dudu, que tem o Xcode 27. O archive da 2.0.0 também sai do Xcode 27.
+- Decisão: o job do iOS nativo roda no runner `xcode-27` do GitHub, com o mesmo Xcode do archive.
+- Alternativas: cercar as APIs do iOS 27 com `#if compiler(>=6.4)`, o que faz a CI testar um app diferente do enviado.
+- Consequências: o `xcode-27` ainda é uma imagem de prévia do GitHub e pode demorar mais na fila. Quando o `macos-latest` passar a ter o Xcode 27, o job volta para ele.
+- Onde ver: `.github/workflows/ios-nativo.yml`
