@@ -1218,7 +1218,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
           description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
             \ um código estável."
-      summary: Salvar apelido e data de nascimento
+      summary: "Completar o cadastro: apelido, nascimento, CPF e celular"
       tags:
       - Minha conta
   /api/me/termos:
@@ -1845,9 +1845,17 @@ components:
           type: string
           maxLength: 120
           minLength: 0
+        cpf:
+          type: string
+          maxLength: 40
+          minLength: 0
         nascimento:
           type: string
           format: date
+        telefone:
+          type: string
+          maxLength: 30
+          minLength: 0
       required:
       - apelido
     TermosRequest:
@@ -1918,6 +1926,10 @@ components:
           type: boolean
         avisos:
           $ref: "#/components/schemas/Avisos"
+        cadastroCompleto:
+          type: boolean
+        celularInformado:
+          type: boolean
         compartilhamento:
           $ref: "#/components/schemas/Compartilhamento"
         cpfInformado:

@@ -51,6 +51,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-027](#d-027-login-do-google-no-app-pelo-navegador-do-celular) | Login do Google no app pelo navegador do celular | Valendo |
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
+| [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -311,6 +312,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o titular escolher "convidar como parceiro" no convite, que precisaria de uma coluna nova em `household_invites`.
 - Consequências: ver tudo do outro continua dependendo do consentimento de cada um no perfil (D-016). No plano família e no individual, nada muda.
 - Onde ver: `FamiliaService.entraComoParceiro`, `UserAccount.informarNascimento`
+
+## D-088: Entrar pelo Google pede o mesmo cadastro do e-mail
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: o cadastro por e-mail pede apelido, nascimento, CPF e celular. Quem entrava pelo Google (ou pela Apple) só via "Sobre você" com apelido e nascimento, e nunca informava CPF nem celular. Desde 13/10 o token já não levava a claim `cpf`, então nada barrava a conta sem CPF, ao contrário do que diz D-018.
+- Decisão: `UserAccount.cadastroIncompleto()` falta apelido, nascimento, CPF (ou documento de conta antiga) ou celular. Com o cadastro incompleto, o access token leva `cadastro=false` e os serviços de dados respondem 403 `CADASTRO_PENDENTE` (o identity não barra: é nele que se completa, exporta ou apaga a conta). O perfil ganha `cadastroCompleto` e `celularInformado`, e "Sobre você" (`PUT /api/me/sobre-voce`) passa a pedir também CPF e celular quando faltam. Depois de salvar, o app renova o token. Vale para as contas que já existem: no próximo acesso, quem não tem caem na tela.
+- Alternativas: pedir os dados só para contas novas; voltar a claim `cpf`, que só cobria o CPF.
+- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo precisa pedir CPF e celular na `SobreVoceView` antes de ir para o TestFlight; até lá, a conta incompleta recebe 403 nos dados. O celular ainda não é confirmado por SMS.
+- Onde ver: `UserAccount.cadastroIncompleto`, `TokenService.gerarAccessToken`, `CpfObrigatorio`, `frontend/src/app/features/sobre-voce`
 
 ## D-017: Entrar com e-mail e senha, Google como opção
 - Data: 14/10/2026 ([PR #22](https://github.com/Piggubr/cofrinho-app/pull/22))

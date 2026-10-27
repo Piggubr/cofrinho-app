@@ -73,13 +73,10 @@ export class AuthService {
   });
 
   /**
-   * Falta como chamar ou a data de nascimento: o app pede os dois antes do resto. Perfil
-   * sem o campo (demo, resposta antiga) nao trava.
+   * Falta apelido, nascimento, CPF ou celular: o app pede antes do resto, e os outros
+   * servicos recusam ate completar (D-088). Perfil sem o campo (demo) nao trava.
    */
-  readonly sobreVocePendente = computed(() => {
-    const usuario = this.usuarioAtual();
-    return usuario?.nascimento !== undefined && (!usuario.apelido?.trim() || !usuario.nascimento);
-  });
+  readonly sobreVocePendente = computed(() => this.usuarioAtual()?.cadastroCompleto === false);
 
 
   temPerfil(...perfis: PigguRole[]): boolean {

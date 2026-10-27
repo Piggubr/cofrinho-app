@@ -54,6 +54,13 @@ export interface Usuario {
   nascimento?: string | null;
   /** O que o parceiro ve do que a pessoa lanca. Ausente (demo antiga) conta como tudo desligado. */
   compartilhamento?: Compartilhamento;
+  /** Celular informado. Ausente (demo) conta como informado. */
+  celularInformado?: boolean;
+  /**
+   * Falso: falta apelido, nascimento, CPF ou celular, e o app so abre "Sobre voce" (D-088).
+   * Ausente (demo) conta como completo.
+   */
+  cadastroCompleto?: boolean;
 }
 
 /**

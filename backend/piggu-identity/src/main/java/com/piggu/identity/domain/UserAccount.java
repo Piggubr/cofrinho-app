@@ -418,9 +418,12 @@ public class UserAccount {
         return birthDate != null && Period.between(birthDate, hoje).getYears() < MAIORIDADE;
     }
 
-    /** Falta como chamar ou a data de nascimento: o app pede antes de liberar o resto. */
-    public boolean perfilIncompleto() {
-        return nickname == null || nickname.isBlank() || birthDate == null;
+    /**
+     * Falta algo que o cadastro por senha pede: como chamar, nascimento, CPF ou celular. Quem
+     * entrou pelo Google completa antes de usar os dados (D-088).
+     */
+    public boolean cadastroIncompleto() {
+        return nickname == null || nickname.isBlank() || birthDate == null || !documentoEmDia() || phone == null;
     }
 
     public UUID getId() {
