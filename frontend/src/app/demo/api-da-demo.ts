@@ -763,7 +763,8 @@ const ROTAS: Rota[] = [
     estado.receitas.push(receita);
     if (c['recorrente']) {
       const id = novoId('fixa');
-      estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA' });
+      const segunda = c['segundoDia'] ? { segundoDia: Number(c['segundoDia']), segundoValor: Number(c['segundoValor']) } : {};
+      estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA', ...segunda });
       estado.contasPagas.add(`${id}|${receita.data.slice(0, 7)}`);
     }
     return receita;

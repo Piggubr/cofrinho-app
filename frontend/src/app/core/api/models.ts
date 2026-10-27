@@ -651,6 +651,9 @@ export interface ContaFixa {
   tipo?: 'GASTO' | 'RECEITA';
   /** Cartao ou conta que paga o gasto todo mes. */
   contaId?: string | null;
+  /** Segunda parcela da receita (o salario do dia 20 e do dia 5); nula quando entra de uma vez. */
+  segundoDia?: number | null;
+  segundoValor?: number | null;
   /** Quem criou; so essa pessoa apaga. */
   usuario?: string | null;
   compartilhado?: boolean;

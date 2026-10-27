@@ -1850,6 +1850,11 @@ components:
         id:
           type: string
           format: uuid
+        segundoDia:
+          type: integer
+          format: int32
+        segundoValor:
+          type: number
         situacao:
           type: string
           enum:
@@ -2217,6 +2222,15 @@ components:
           minLength: 0
         recorrente:
           type: boolean
+        segundoDia:
+          type: integer
+          format: int32
+          maximum: 31
+          minimum: 1
+        segundoValor:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
         valor:
           type: number
           maximum: 10000000

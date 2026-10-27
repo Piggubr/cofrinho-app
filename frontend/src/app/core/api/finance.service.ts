@@ -162,8 +162,17 @@ export class FinanceService extends ApiBase {
   }
 
   /** @param recorrente entra sozinha no mesmo dia, todo mes */
-  lancarReceita(receita: Omit<Receita, 'id' | 'usuario'>, recorrente = false): Observable<Receita> {
-    return this.http.post<Receita>(this.url('/incomes'), { ...receita, recorrente });
+  /** @param segundaParcela so na recorrente: o salario que entra em duas vezes (dia 20 e dia 5) */
+  lancarReceita(
+    receita: Omit<Receita, 'id' | 'usuario'>,
+    recorrente = false,
+    segundaParcela?: { segundoDia: number; segundoValor: number },
+  ): Observable<Receita> {
+    return this.http.post<Receita>(this.url('/incomes'), {
+      ...receita,
+      recorrente,
+      ...segundaParcela,
+    });
   }
 
   /** Receitas que entram sozinhas todo mes. */
@@ -197,7 +206,10 @@ export class FinanceService extends ApiBase {
   }
 
   criarContaFixa(
-    conta: Pick<ContaFixa, 'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico' | 'compartilhado'>,
+    conta: Pick<
+      ContaFixa,
+      'descricao' | 'categoria' | 'valor' | 'dia' | 'automatico' | 'compartilhado'
+    >,
   ): Observable<void> {
     return this.http.post<void>(this.url('/bills'), conta);
   }
@@ -311,7 +323,9 @@ export class FinanceService extends ApiBase {
 
   /** Marca a fatura do mes (AAAA-MM) como paga, com as anteriores; nao lanca gasto. */
   pagarFatura(id: string, mes: string): Observable<void> {
-    return this.http.put<void>(this.url(`/accounts/${id}/statement/paid`), null, { params: { mes } });
+    return this.http.put<void>(this.url(`/accounts/${id}/statement/paid`), null, {
+      params: { mes },
+    });
   }
 
   /** Desfaz o pagamento; as faturas seguintes voltam a ficar em aberto. */

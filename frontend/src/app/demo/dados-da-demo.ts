@@ -30,6 +30,8 @@ export interface ContaFixaDemo {
   automatico: boolean;
   tipo?: 'GASTO' | 'RECEITA';
   contaId?: string | null;
+  segundoDia?: number | null;
+  segundoValor?: number | null;
 }
 
 export interface ContaDemo {
