@@ -46,6 +46,7 @@ public class AssinaturaService {
     private final StripePagamentos pagamentos;
 
     private final RevenueCatLoja lojas;
+    private final AppStoreLoja appStore;
     private final JdbcTemplate jdbc;
     private final TestesGratis testes;
     private final CanalDeEmail email;
@@ -53,7 +54,7 @@ public class AssinaturaService {
     private final boolean openFinance;
 
     public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, StripePagamentos pagamentos,
-                             RevenueCatLoja lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+                             RevenueCatLoja lojas, AppStoreLoja appStore, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
                              @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
                              @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
         this.openFinance = openFinance;
@@ -61,6 +62,7 @@ public class AssinaturaService {
         this.familias = familias;
         this.pagamentos = pagamentos;
         this.lojas = lojas;
+        this.appStore = appStore;
         this.jdbc = jdbc;
         this.testes = testes;
         this.email = email;
@@ -247,6 +249,61 @@ public class AssinaturaService {
                         conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
             }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));
         });
+    }
+
+    /**
+     * Compra feita no iPhone: o app manda a transacao assinada pela Apple logo depois de comprar
+     * ou ao restaurar. So vale para a conta que o app marcou na compra (appAccountToken).
+     */
+    @Transactional
+    public PlanoResponse aplicarCompraDaApple(UUID usuarioId, String transacao) {
+        EventoDeAssinatura evento = appStore.lerTransacao(transacao);
+        if (!usuarioId.equals(evento.usuarioId())) {
+            throw new BusinessException("Esta assinatura da Apple é de outra conta do Piggu.", HttpStatus.CONFLICT, "OUTRA_CONTA");
+        }
+        aplicarDaApple(conta(usuarioId), evento);
+        return plano(usuarioId, null);
+    }
+
+    /**
+     * App Store Server Notification V2 (renovacao, cancelamento, expiracao, reembolso).
+     * Idempotente pelo notificationUUID, como os avisos do RevenueCat.
+     */
+    @Transactional
+    public void aplicarAvisoDaApple(String signedPayload) {
+        appStore.lerAviso(signedPayload).ifPresent(aviso -> {
+            int novo = jdbc.update("INSERT INTO billing_events (event_id, provider) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                    aviso.id(), "APP_STORE");
+            if (novo == 0) {
+                log.info("Aviso da App Store repetido ignorado");
+                return;
+            }
+            EventoDeAssinatura evento = aviso.evento();
+            if (evento.usuarioId() == null) {
+                // Compra sem appAccountToken: nao veio do app com alguem logado.
+                log.warn("Aviso da App Store sem conta Piggu id={}", aviso.id());
+                return;
+            }
+            usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> aplicarDaApple(conta, evento),
+                    () -> log.warn("Aviso da App Store de conta inexistente id={}", evento.usuarioId()));
+        });
+    }
+
+    /** Premium pago por outro caminho (o site) segue valendo: a Apple nao derruba nem encurta. */
+    private void aplicarDaApple(UserAccount conta, EventoDeAssinatura evento) {
+        if (evento.emTeste()) {
+            conta.marcarTesteGratisUsado();
+        }
+        Household familia = familias.daConta(conta);
+        if (familia.planoVigente() == Plano.PREMIUM && !"APP_STORE".equals(familia.getPlanSource())) {
+            log.warn("Compra na Apple com Premium de outra origem: conta={} familia={} origem={}",
+                    conta.getId(), familia.getId(), familia.getPlanSource());
+            return;
+        }
+        boolean aplicado = familia.aplicarAssinatura("APP_STORE", evento.premiumAte(), evento.momento(),
+                evento.inicio(), evento.tipo(), conta.getId());
+        log.info("Assinatura na Apple: conta={} familia={} plano={} aplicado={}",
+                conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
     }
 
     private UserAccount conta(UUID usuarioId) {

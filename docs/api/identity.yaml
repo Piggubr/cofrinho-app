@@ -587,6 +587,35 @@ paths:
       summary: Redefinir a senha pelo link do e-mail
       tags:
       - Login e sessão
+  /api/billing/app-store/transactions:
+    post:
+      description: 409 com o código OUTRA_CONTA quando a compra foi feita por outra
+        conta do Piggu.
+      operationId: billingCompraNaApple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompraNaAppleRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanoResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Confirmar a assinatura comprada no iPhone (transação assinada pela
+        Apple)
+      tags:
+      - Premium
   /api/billing/checkout:
     post:
       operationId: billingCheckout
@@ -719,6 +748,30 @@ paths:
             \ um código estável."
       security: []
       summary: "Aviso de compra nas lojas pelo RevenueCat (servidor para servidor,\
+        \ não é para o app)"
+      tags:
+      - Premium
+  /api/billing/webhooks/app-store:
+    post:
+      operationId: billingWebhookAppStore
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvisoDaAppleRequest"
+        required: true
+      responses:
+        "200":
+          description: Aviso recebido
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: "Aviso da App Store, Server Notifications V2 (servidor para servidor,\
         \ não é para o app)"
       tags:
       - Premium
@@ -1358,6 +1411,15 @@ components:
       required:
       - idToken
       - nonce
+    AvisoDaAppleRequest:
+      type: object
+      properties:
+        signedPayload:
+          type: string
+          maxLength: 100000
+          minLength: 0
+      required:
+      - signedPayload
     Avisos:
       type: object
       properties:
@@ -1458,6 +1520,15 @@ components:
       required:
       - compartilharPorPadrao
       - mostrarTudoAoParceiro
+    CompraNaAppleRequest:
+      type: object
+      properties:
+        transacao:
+          type: string
+          maxLength: 20000
+          minLength: 0
+      required:
+      - transacao
     ConfirmarEmailRequest:
       type: object
       properties:
