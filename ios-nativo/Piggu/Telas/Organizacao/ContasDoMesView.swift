@@ -97,11 +97,13 @@ struct ContasDoMesView: View {
             if emAberto.count > 1 {
                 let todas = emAberto.allSatisfy { marcadas.contains($0.id) }
                 let total = emAberto.filter { marcadas.contains($0.id) }.reduce(Decimal(0)) { $0 + $1.valor }
-                HStack {
-                    Caixa(marcada: todas, rotulo: String(localized: "Todas em aberto")) {
-                        marcadas = todas ? [] : Set(emAberto.map(\.id))
+                LadoALado {
+                    HStack {
+                        Caixa(marcada: todas, rotulo: String(localized: "Todas em aberto")) {
+                            marcadas = todas ? [] : Set(emAberto.map(\.id))
+                        }
+                        Text("Todas em aberto").font(.sora(.subheadline))
                     }
-                    Text("Todas em aberto").font(.sora(.subheadline))
                     Spacer()
                     Button("Pagar \(marcadas.count) · \(Formatos.moeda(total))") { Task { await pagarMarcadas(emAberto) } }
                         .buttonStyle(.borderedProminent)
@@ -126,17 +128,19 @@ struct ContasDoMesView: View {
                         if marcadas.contains(conta.id) { marcadas.remove(conta.id) } else { marcadas.insert(conta.id) }
                     }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(conta.descricao)
-                    Text([Formatos.dataCurta(conta.vencimento), conta.categoria,
-                          conta.automatico ? String(localized: "lança sozinha") : nil]
-                        .compactMap { $0 }.joined(separator: " · "))
-                        .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                LadoALado {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(conta.descricao)
+                        Text([Formatos.dataCurta(conta.vencimento), conta.categoria,
+                              conta.automatico ? String(localized: "lança sozinha") : nil]
+                            .compactMap { $0 }.joined(separator: " · "))
+                            .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                    }
+                    Spacer()
+                    Text(Formatos.moeda(conta.valor)).font(.sora(.body, peso: .semibold)).monospacedDigit()
                 }
-                Spacer()
-                Text(Formatos.moeda(conta.valor)).font(.sora(.body, peso: .semibold)).monospacedDigit()
             }
-            HStack {
+            LadoALado {
                 situacao(conta.situacao)
                 Spacer()
                 if conta.situacao != .paga {
@@ -300,7 +304,8 @@ private struct Caixa: View {
         Button(action: alternar) {
             Image(systemName: marcada ? "checkmark.square.fill" : "square")
                 .font(.title3)
-                .frame(minWidth: 32, minHeight: 32)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
         .accessibilityLabel(rotulo)

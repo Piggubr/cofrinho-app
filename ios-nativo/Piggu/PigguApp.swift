@@ -8,6 +8,7 @@ struct PigguApp: App {
     @State private var rede = MonitorDeRede()
 
     init() {
+        Desempenho.abrindo()
         Fonte.registrar()
         #if DEBUG
         // -PigguDemo YES: dados inventados, sem rede (ver TransporteDeDemonstracao).
@@ -20,7 +21,10 @@ struct PigguApp: App {
         let demo = false
         let cliente = ClienteDaAPI()
         #endif
-        let sessao = Sessao(cliente: cliente, cache: Cache(soNaMemoria: demo))
+        // -PigguDemoCache YES: a demonstracao guarda num arquivo proprio, para medir a abertura com cache.
+        let cache = demo && UserDefaults.standard.bool(forKey: "PigguDemoCache")
+            ? Cache(arquivo: "Demonstracao") : Cache(soNaMemoria: demo)
+        let sessao = Sessao(cliente: cliente, cache: cache)
         Sessao.atual = sessao
         _sessao = State(initialValue: sessao)
         Dicas.configurar(demo: demo)

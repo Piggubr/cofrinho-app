@@ -31,7 +31,7 @@ struct MaisView: View {
                 if let usuario = sessao.usuario {
                     Section {
                         NavigationLink(value: TelaDoMais.perfil) {
-                            HStack(spacing: 14) {
+                            LadoALado(espaco: 14) {
                                 FotoDaPessoa(foto: usuario.foto, nome: usuario.nome, lado: 48)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(usuario.nome).font(.sora(.headline, peso: .semibold))

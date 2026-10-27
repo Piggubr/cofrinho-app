@@ -81,7 +81,7 @@ struct FamiliaView: View {
 
         Section {
             if ehTitular {
-                HStack {
+                LadoALado {
                     TextField("Nome da família", text: $nome)
                         .onChange(of: nome) { _, novo in if novo.count > 120 { nome = String(novo.prefix(120)) } }
                     Button("Salvar nome") { Task { await renomear() } }.buttonStyle(.borderless).disabled(ocupado)
@@ -110,7 +110,7 @@ struct FamiliaView: View {
                 .padding(.vertical, 2)
             }
         } header: {
-            HStack {
+            LadoALado {
                 Text(familia.nome)
                 Spacer()
                 Etiqueta(texto: Self.plano(familia))

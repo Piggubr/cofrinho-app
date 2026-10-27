@@ -98,10 +98,14 @@ struct EscolhaDeMes: View {
     var body: some View {
         LabeledContent(titulo) {
             HStack(spacing: 4) {
-                Button { mes = DadosDoMes.somar(-1, a: mes) } label: { Image(systemName: "chevron.left") }
+                Button { mes = DadosDoMes.somar(-1, a: mes) } label: {
+                    Image(systemName: "chevron.left").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                }
                     .accessibilityLabel("Mês anterior")
                 Text(Formatos.nomeDoMes(chave: mes)).monospacedDigit().frame(minWidth: 130)
-                Button { mes = DadosDoMes.somar(1, a: mes) } label: { Image(systemName: "chevron.right") }
+                Button { mes = DadosDoMes.somar(1, a: mes) } label: {
+                    Image(systemName: "chevron.right").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                }
                     .accessibilityLabel("Próximo mês")
             }
             .buttonStyle(.borderless)

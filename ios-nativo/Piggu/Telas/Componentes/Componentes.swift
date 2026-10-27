@@ -78,7 +78,7 @@ struct LinhaDoCartao<Direita: View>: View {
     @Environment(\.paleta) private var paleta
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        LadoALado(espaco: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(titulo)
                 if let detalhe, !detalhe.isEmpty {
@@ -218,6 +218,8 @@ struct AvisoFlutuante: View {
             .pigguVidro(em: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .padding(.horizontal, 16)
             .accessibilityAddTraits(.updatesFrequently)
+            // Some sozinho em segundos: o VoiceOver le na hora, sem a pessoa ir ate ele.
+            .onChange(of: texto, initial: true) { _, novo in AccessibilityNotification.Announcement(novo).post() }
     }
 }
 

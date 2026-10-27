@@ -57,19 +57,7 @@ struct CadastroView: View {
                     .textContentType(.newPassword)
             }
             CampoDaEntrada(rotulo: "Celular", comProblema: campoComProblema == .telefone) {
-                HStack {
-                    Picker("Código do país (DDI)", selection: $paisDoDdi) {
-                        ForEach(Pais.todos) { opcao in
-                            Text(verbatim: "\(opcao.nome) +\(opcao.ddi)").tag(opcao.codigo)
-                        }
-                    }
-                    .labelsHidden()
-                    .fixedSize()
-                    Divider()
-                    TextField("Celular", text: $telefone, prompt: Text(verbatim: "(11) 99999-8888"))
-                        .textContentType(.telephoneNumber)
-                        .keyboardType(.phonePad)
-                }
+                CampoDeCelular(paisDoDdi: $paisDoDdi, telefone: $telefone)
             }
             CampoDaEntrada(rotulo: "País onde você mora") {
                 SeletorDePais(pais: $pais)
@@ -103,7 +91,7 @@ struct CadastroView: View {
                 senha: senha,
                 pais: pais,
                 documento: CPF.digitos(documento),
-                telefone: "+\(Pais.ddi(de: paisDoDdi)) \(telefone.trimmingCharacters(in: .whitespaces))",
+                telefone: CampoDeCelular.completo(paisDoDdi, telefone),
                 nascimento: nascimento.map(Formatos.dia) ?? ""))
             // O backend responde igual se o e-mail ja tem conta: a tela nao entra sozinha.
             aoCriar(enviadoPara)
@@ -160,6 +148,33 @@ struct SeletorDePais: View {
 }
 
 /// CPF com a mascara enquanto digita (000.000.000-00).
+/// DDI e numero, como no cadastro do site; o backend junta os dois em E.164.
+struct CampoDeCelular: View {
+    @Binding var paisDoDdi: String
+    @Binding var telefone: String
+
+    var body: some View {
+        HStack {
+            Picker("Código do país (DDI)", selection: $paisDoDdi) {
+                ForEach(Pais.todos) { opcao in
+                    Text(verbatim: "\(opcao.nome) +\(opcao.ddi)").tag(opcao.codigo)
+                }
+            }
+            .labelsHidden()
+            .fixedSize()
+            Divider()
+            TextField("Celular", text: $telefone, prompt: Text(verbatim: "(11) 99999-8888"))
+                .textContentType(.telephoneNumber)
+                .keyboardType(.phonePad)
+        }
+    }
+
+    /// O que vai em `telefone`: "+55 (11) 99999-8888".
+    static func completo(_ paisDoDdi: String, _ telefone: String) -> String {
+        "+\(Pais.ddi(de: paisDoDdi)) \(telefone.trimmingCharacters(in: .whitespaces))"
+    }
+}
+
 struct CampoDeCpf: View {
     @Binding var documento: String
 

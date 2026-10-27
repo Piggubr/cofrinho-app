@@ -19,7 +19,7 @@ struct PlanejarView: View {
 
     private func atalho(_ tela: TelaDoMais, descricao: LocalizedStringKey) -> some View {
         NavigationLink(value: tela) {
-            HStack(spacing: 12) {
+            LadoALado(espaco: 12) {
                 Image(systemName: tela.simbolo)
                     .frame(width: 38, height: 38)
                     .foregroundStyle(paleta.primaria)

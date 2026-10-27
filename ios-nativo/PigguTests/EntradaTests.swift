@@ -43,9 +43,10 @@ struct EntradaTests {
 
         let usuario = try #require(sessao.usuario)
         #expect(usuario.apelido == "Ana Souza")
-        // Conta nova pela Apple: falta a data de nascimento, entao a proxima tela e "Sobre voce".
+        // Conta nova pela Apple: faltam nascimento, CPF e celular, entao a proxima tela e "Sobre voce".
         #expect(usuario.sobreVocePendente)
-        try await sessao.sobreVoce(apelido: "Ana", nascimento: "1990-05-01")
+        try await sessao.sobreVoce(apelido: "Ana", nascimento: "1990-05-01", cpf: "52998224725",
+                                   telefone: "+55 11999998888")
         #expect(sessao.usuario?.sobreVocePendente == false)
     }
 
@@ -171,6 +172,47 @@ struct EntradaTests {
         let caminhos = await transporte.recebidos.map { "\($0.httpMethod ?? "") \($0.url?.path ?? "")" }
         #expect(caminhos == ["PUT /api/me/pais", "POST /api/auth/refresh"])
         #expect(corpo(await transporte.recebidos[0]) as? [String: String] == ["pais": "BR", "documento": "52998224725"])
+    }
+
+    /// D-088: quem entrou pelo Google ou pela Apple completa CPF e celular em "Sobre voce", e o
+    /// token novo diz aos outros servicos que o cadastro esta completo.
+    @Test func sobreVoceCompletaOCadastroERenovaOToken() async throws {
+        let sessao = sessao(conta: "sobre-voce", logado: true)
+        await sessao.restaurar()
+        #expect(sessao.usuario?.sobreVocePendente == true)
+
+        try await sessao.sobreVoce(apelido: "Ana", nascimento: "1990-05-01", cpf: "52998224725",
+                                   telefone: CampoDeCelular.completo("BR", "(11) 99999-8888"))
+        #expect(sessao.usuario?.sobreVocePendente == false)
+
+        let (roteirizada, transporte) = roteirizada([(200, tokensNovos.usuarioDeTokens), (200, tokensNovos)])
+        try await roteirizada.sobreVoce(apelido: "Ana", nascimento: nil, cpf: "52998224725", telefone: "+55 11999998888")
+        let caminhos = await transporte.recebidos.map { "\($0.httpMethod ?? "") \($0.url?.path ?? "")" }
+        #expect(caminhos == ["PUT /api/me/sobre-voce", "POST /api/auth/refresh"])
+        #expect(corpo(await transporte.recebidos[0]) as? [String: String]
+            == ["apelido": "Ana", "cpf": "52998224725", "telefone": "+55 11999998888"])
+    }
+
+    // MARK: - Abrir o app com o perfil guardado (D-095)
+
+    private func comPerfilGuardado(_ roteiro: [(status: Int, corpo: String)]) throws -> Sessao {
+        let cache = Cache(soNaMemoria: true)
+        let usuario = try JSONDecoder().decode(Usuario.self, from: Data(tokensNovos.usuarioDeTokens.utf8))
+        cache.guardar(usuario, em: "usuario")
+        let cliente = ClienteDaAPI(urlBase: base, transporte: TransporteRoteirizado(roteiro), cofre: nil)
+        return Sessao(cliente: cliente, cache: cache)
+    }
+
+    @Test func perfilGuardadoContinuaComOServidorFora() async throws {
+        let sessao = try comPerfilGuardado([(500, #"{"erro":"Erro interno."}"#)])
+        await sessao.restaurar()
+        #expect(sessao.usuario != nil)
+    }
+
+    @Test func perfilGuardadoComRefreshRecusadoSai() async throws {
+        let sessao = try comPerfilGuardado([(401, #"{"erro":"Sessão expirada."}"#)])
+        await sessao.restaurar()
+        #expect(sessao.estado == .deslogado)
     }
 
     @Test func excluirContaApagaNoServidorESai() async throws {

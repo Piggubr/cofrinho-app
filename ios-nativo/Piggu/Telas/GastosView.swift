@@ -161,7 +161,7 @@ struct GastosView: View {
             .listRowBackground(Color.clear)
         } else {
             Section {
-                HStack {
+                LadoALado {
                     Text(filtrando ? "Total filtrado" : "Total do mês")
                     Spacer()
                     Text(Formatos.moeda(filtrados.reduce(0) { $0 + $1.valor }))
@@ -273,7 +273,17 @@ struct GastosView: View {
     }
 
     /// Filtros em vidro, flutuando sobre a lista abaixo do seletor de mes.
+    /// Rola de lado quando o texto grande nao cabe, em vez de cortar o nome do filtro.
     private var filtros: some View {
+        ViewThatFits(in: .horizontal) {
+            filtrosLadoALado
+            ScrollView(.horizontal, showsIndicators: false) {
+                filtrosLadoALado.padding(.horizontal)
+            }
+        }
+    }
+
+    private var filtrosLadoALado: some View {
         GrupoDeVidro(espaco: 8) {
             Menu {
                 Picker("Categoria", selection: $filtroDeCategoria) {

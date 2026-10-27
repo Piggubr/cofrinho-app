@@ -5,6 +5,8 @@ import Foundation
 /// o preview do SwiftUI e para ver as telas no simulador com `-PigguDemo YES`.
 /// Qualquer e-mail e senha entram; `-PigguDemoLogado YES` ja abre logado.
 ///
+/// `-PigguDemoMuitos 3000` enche o mes de gastos para medir o desempenho; `-PigguDemoCache YES`
+/// guarda o cache num arquivo da demonstracao, para medir a abertura com cache.
 /// `-PigguDemoFalha rede|servidor|vazio` simula, fora do login, a falta de internet, o erro
 /// 500 e o mes sem nenhum gasto, para ver os estados das telas.
 ///
@@ -25,6 +27,9 @@ actor TransporteDeDemonstracao: Transporte {
     /// A conta `premium` assinou pelo site; a compra no app (o .storekit) troca para a App Store.
     private var origemDoPremium = "WEB"
     private var dados = DadosDaDemonstracao()
+    /// -PigguDemoMuitos 3000: o mes com milhares de gastos, para medir a lista e o painel. Sao
+    /// gerados no primeiro pedido, fora da thread principal, como se viessem do servidor.
+    private var muitosPorGerar = UserDefaults.standard.integer(forKey: "PigguDemoMuitos")
 
     init(
         logado: Bool = false,
@@ -39,6 +44,9 @@ actor TransporteDeDemonstracao: Transporte {
         case "sobre-voce":
             usuario["apelido"] = NSNull()
             usuario["nascimento"] = NSNull()
+            usuario["cpfInformado"] = false
+            usuario["celularInformado"] = false
+            usuario["cadastroCompleto"] = false
         case "cpf":
             usuario["cpfInformado"] = false
         case "email":
@@ -72,6 +80,18 @@ actor TransporteDeDemonstracao: Transporte {
                        parcela: (2, 6)),
             Self.gasto("Gasolina", "Transporte", 220.00, noMes(8), "Posto Shell", conta: DadosDaDemonstracao.cartao),
         ]
+    }
+
+    private func gerarMuitos() {
+        let hoje = Date()
+        let diaDoMes = Calendar.current.component(.day, from: hoje)
+        let dias = (0..<diaDoMes).map { Formatos.dia(Calendar.current.date(byAdding: .day, value: -$0, to: hoje) ?? hoje) }
+        let categorias = ["Mercado", "Transporte", "Alimentação", "Casa", "Lazer", "Saúde"]
+        gastos += (0..<muitosPorGerar).map { i in
+            Self.gasto("Gasto \(i + 1)", categorias[i % categorias.count], Double(i % 200) + 9.9,
+                       dias[i % dias.count], "Loja \(i % 50)")
+        }
+        muitosPorGerar = 0
     }
 
     private static func gasto(
@@ -114,6 +134,8 @@ actor TransporteDeDemonstracao: Transporte {
         "pais": "BR",
         "nascimento": "1990-01-01",
         "cpfInformado": true,
+        "celularInformado": true,
+        "cadastroCompleto": true,
         "termosAceitos": Conta.versaoDosTermos,
         "temSenha": true,
         "preferencias": [
@@ -126,6 +148,9 @@ actor TransporteDeDemonstracao: Transporte {
     ]
 
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        if muitosPorGerar > 0 {
+            gerarMuitos()
+        }
         try await Task.sleep(for: .milliseconds(250))
         let url = pedido.url!
         let caminho = url.path.replacingOccurrences(of: "/api", with: "")
@@ -158,9 +183,12 @@ actor TransporteDeDemonstracao: Transporte {
                     codigo: "TERMOS_NECESSARIOS"))
             }
             logado = true
-            // Conta nova: o nome da Apple vira o apelido; falta a data de nascimento.
+            // Conta nova: o nome da Apple vira o apelido; faltam nascimento, CPF e celular (D-088).
             usuario["apelido"] = corpo["nome"] as? String ?? usuario["primeiroNome"]
             usuario["nascimento"] = NSNull()
+            usuario["cpfInformado"] = false
+            usuario["celularInformado"] = false
+            usuario["cadastroCompleto"] = false
             return responder(url, 200, tokens(noCorpo: corpo["refreshNoCorpo"] as? Bool == true))
         case ("POST", "/auth/cadastro"), ("POST", "/auth/senha/esqueci"):
             return responder(url, 202, nil)
@@ -186,6 +214,10 @@ actor TransporteDeDemonstracao: Transporte {
             if let nascimento = corpo["nascimento"] {
                 usuario["nascimento"] = nascimento
             }
+            if corpo["cpf"] is String { usuario["cpfInformado"] = true }
+            if corpo["telefone"] is String { usuario["celularInformado"] = true }
+            usuario["cadastroCompleto"] = usuario["cpfInformado"] as? Bool != false
+                && usuario["celularInformado"] as? Bool != false
             return responder(url, 200, usuario)
         case ("PUT", "/me/pais"):
             usuario["pais"] = corpo["pais"]

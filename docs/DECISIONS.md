@@ -321,7 +321,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o cadastro por e-mail pede apelido, nascimento, CPF e celular. Quem entrava pelo Google (ou pela Apple) só via "Sobre você" com apelido e nascimento, e nunca informava CPF nem celular. Desde 13/10 o token já não levava a claim `cpf`, então nada barrava a conta sem CPF, ao contrário do que diz D-018.
 - Decisão: `UserAccount.cadastroIncompleto()` falta apelido, nascimento, CPF (ou documento de conta antiga) ou celular. Com o cadastro incompleto, o access token leva `cadastro=false` e os serviços de dados respondem 403 `CADASTRO_PENDENTE` (o identity não barra: é nele que se completa, exporta ou apaga a conta). O perfil ganha `cadastroCompleto` e `celularInformado`, e "Sobre você" (`PUT /api/me/sobre-voce`) passa a pedir também CPF e celular quando faltam. Depois de salvar, o app renova o token. Vale para as contas que já existem: no próximo acesso, quem não tem caem na tela.
 - Alternativas: pedir os dados só para contas novas; voltar a claim `cpf`, que só cobria o CPF.
-- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo precisa pedir CPF e celular na `SobreVoceView` antes de ir para o TestFlight; até lá, a conta incompleta recebe 403 nos dados. O celular ainda não é confirmado por SMS.
+- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo pede CPF e celular na `SobreVoceView` desde a etapa 9. O celular ainda não é confirmado por SMS.
 - Onde ver: `UserAccount.cadastroIncompleto`, `TokenService.gerarAccessToken`, `CpfObrigatorio`, `frontend/src/app/features/sobre-voce`
 
 ## D-017: Entrar com e-mail e senha, Google como opção
@@ -985,3 +985,21 @@ vier, ela entra como Contexto ou Alternativas da decisão citada (ou vira uma de
 
 As oito perguntas de 25/10/2026 foram respondidas em 26/10/2026 e estão em D-001, D-006,
 D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
+
+## D-095: Etapa 9 do iOS: abrir com o perfil guardado e empilhar no texto grande
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 9 do plano iOS (acabamento antes do TestFlight 2.0.0). Abrindo o app, a sessão esperava a renovação do token na rede antes de mostrar qualquer tela, então nem o Painel guardado aparecia antes da resposta do servidor; o plano pede menos de 1 segundo até o Painel com cache. A auditoria de acessibilidade (a mesma do Accessibility Inspector) e os prints no maior tamanho de texto mostraram valores e palavras quebrados no meio em linhas lado a lado, o calendário com os dias partidos e o anel das metas estourando.
+- Decisão: com o perfil guardado no aparelho, o app abre logado na hora, com o que cada tela guardou, e a renovação segue por trás; só o refresh recusado (401) encerra a sessão, e sem rede ou com o servidor fora a sessão continua. As chamadas feitas antes de o token chegar esperam a renovação em curso, em vez de levar um 401 cada uma. Nos tamanhos de texto de acessibilidade, as linhas lado a lado viram uma embaixo da outra (`LadoALado`), o seletor de mês encurta o nome ("Out. de 2026" ou "10/2026", lendo o nome inteiro no VoiceOver), e o calendário e o número dentro do anel param no tamanho xxLarge e xxxLarge (o VoiceOver lê cada dia e o percentual). As estrelas viram um só elemento ajustável no VoiceOver, e os avisos que somem sozinhos são lidos na hora. O alvo `PigguUITests` roda a auditoria em todas as telas (texto padrão, maior e escuro), tira os prints e mede a abertura pelo intervalo "Abrir ate o Painel" (os_signpost). A versão nativa é a 2.0.0 (D-057), build 2.
+- Alternativas: manter a espera pela renovação (o Painel guardado só servia sem internet); limitar o tamanho do texto no app inteiro, que tira o Dynamic Type de quem precisa dele.
+- Consequências: quem teve a sessão revogada em outro lugar vê por um instante o que estava guardado antes de voltar ao login, como já acontecia sem internet; a trava com Face ID continua cobrindo a tela. Medido no simulador com a build otimizada e o cache cheio: 0,63 a 0,75 s do `init` do app ao Painel com dados, também com 3.000 gastos no mês; o carregamento do sistema antes do `init` no simulador não representa o aparelho e precisa ser conferido no iPhone pelo Instruments (App Launch). Os avisos de contraste em textos sob a barra de abas de vidro e nos rótulos de seção do sistema ficam como estão.
+- Onde ver: `ios-nativo/Piggu/Core/Auth/Sessao.swift`, `ios-nativo/Piggu/Core/Design/LadoALado.swift`, `ios-nativo/Piggu/Core/Sistema/Desempenho.swift`, `ios-nativo/PigguUITests/`
+
+## D-096: CI do iOS nativo no Xcode 27
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o `macos-latest` do GitHub ainda vem com o Xcode 26.6 (SDK do iOS 26.5), e o app usa APIs do iOS 27 desde a etapa 4 (arrastar os cartões do Painel). O build da CI quebrava em todos os PRs das etapas 4 a 9, embora compilasse no Mac do Dudu, que tem o Xcode 27. O archive da 2.0.0 também sai do Xcode 27.
+- Decisão: o job do iOS nativo roda no runner `xcode-27` do GitHub, com o mesmo Xcode do archive.
+- Alternativas: cercar as APIs do iOS 27 com `#if compiler(>=6.4)`, o que faz a CI testar um app diferente do enviado.
+- Consequências: o `xcode-27` ainda é uma imagem de prévia do GitHub e pode demorar mais na fila. Quando o `macos-latest` passar a ter o Xcode 27, o job volta para ele.
+- Onde ver: `.github/workflows/ios-nativo.yml`

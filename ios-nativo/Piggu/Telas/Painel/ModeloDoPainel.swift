@@ -60,7 +60,10 @@ final class ModeloDoPainel {
                 if let valor = carga.valor { self.resumo = valor }
             }) { try await cliente.resumoDoMes(mes, visao: visao) }
         }
-        await sessao.cache.carregar("painel/\(mes)\(sufixo)", mostrar: { carga = $0 }) {
+        await sessao.cache.carregar("painel/\(mes)\(sufixo)", mostrar: { nova in
+            carga = nova
+            if nova.valor != nil { Desempenho.painelPronto() }
+        }) {
             async let cofrinho = cliente.consultarCofrinho()
             async let gastos = cliente.listarGastos(mes: mes, visao: visao)
             async let metas = cliente.listarMetas()

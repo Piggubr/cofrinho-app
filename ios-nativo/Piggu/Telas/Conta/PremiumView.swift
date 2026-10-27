@@ -37,7 +37,7 @@ struct PremiumView: View {
         }
         return switch plano.origem {
         case "WEB": String(localized: "Assinado pelo site. Para trocar o cartão, ver os recibos ou cancelar, entre no Piggu pelo navegador.")
-        case "APP_STORE": String(localized: "Assinado pelo iPhone. Troque de plano ou cancele nas assinaturas da App Store.")
+        case "APP_STORE": String(localized: "Assinado pela App Store. Troque de plano ou cancele nas assinaturas da App Store.")
         case "PLAY_STORE": String(localized: "Assinado pelo Android. Para cancelar, use as assinaturas do Google Play.")
         default: nil
         }

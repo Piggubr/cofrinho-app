@@ -13,7 +13,7 @@ struct BotoesDeFoto: View {
     private var temCamera: Bool { UIImagePickerController.isSourceTypeAvailable(.camera) }
 
     var body: some View {
-        HStack {
+        LadoALado {
             PhotosPicker(selection: $item, matching: .images, photoLibrary: .shared()) {
                 Label(tituloDaGaleria, systemImage: "photo.on.rectangle")
             }
