@@ -48,8 +48,8 @@ struct GastosView: View {
                         AvisoDeGuardado(guardadoEm: guardadoEm)
                     }
                     lista(gastos)
+                    extras
                 }
-                extras
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)

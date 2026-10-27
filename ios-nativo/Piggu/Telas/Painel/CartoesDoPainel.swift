@@ -32,7 +32,7 @@ struct CartaoDoResumo: View {
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             HStack(spacing: 10) {
-                parcela("Receitas", resumo.receitas, icone: "arrow.down.left")
+                parcela("Receitas", resumo.receitas, icone: "chart.line.uptrend.xyaxis")
                 parcela("Gastos", resumo.gastos, icone: "wallet.pass")
             }
             if resumo.receitas == 0 {
