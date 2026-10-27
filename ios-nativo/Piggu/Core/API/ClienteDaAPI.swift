@@ -204,6 +204,12 @@ actor ClienteDaAPI {
         try await enviar("PATCH", caminho, corpo: corpo, query: [:], aberta: false)
     }
 
+    /// PATCH sem corpo (marcar comprado, assistido): o que importa vai na query.
+    func patch<Resposta: Decodable & Sendable>(_ caminho: String, query: [String: String?]) async throws -> Resposta {
+        let dados = try await executar(metodo: "PATCH", caminho: caminho, query: query, corpo: nil, aberta: false)
+        return try decodificar(dados)
+    }
+
     /// PUT sem corpo (marcar a fatura como paga): o que importa vai na query.
     func put(_ caminho: String, query: [String: String?]) async throws {
         _ = try await executar(metodo: "PUT", caminho: caminho, query: query, corpo: nil, aberta: false)

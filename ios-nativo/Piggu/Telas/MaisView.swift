@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 /// Mais: as telas que nao cabem nas abas, nos grupos e na ordem do menu do site (shell.ts), com o
 /// Perfil no topo. O Premium e so do titular, como no site; as telas de estilo de vida seguem os
@@ -46,21 +47,17 @@ struct MaisView: View {
                     .listRowBackground(paleta.superficie)
                 }
 
+                TipView(Dicas.Planejar()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 grupo("Planejar", [.planejar, .metas, .orcamento, .contasDoMes])
                 grupo("Contas", [.cartoes, .calendario])
                 Section("Estilo de vida") {
-                    ForEach([("compras", "Compras", "cart", "/compras"), ("lugares", "Lugares", "mappin.and.ellipse", "/lugares"),
-                             ("filmes", "Filmes", "film", "/filmes"), ("fotos", "Fotos", "photo", "/feed")], id: \.0) { item in
-                        if ligado(item.0) {
-                            LinkDoSite(titulo: LocalizedStringKey(item.1), caminho: item.3)
-                        }
-                    }
-                    ForEach([TelaDoMais.premios, .girlsMath], id: \.self) { tela in
+                    ForEach([TelaDoMais.compras, .lugares, .filmes, .fotos, .premios, .girlsMath], id: \.self) { tela in
                         if tela.modulo.map(ligado) ?? true { link(tela) }
                     }
                 }
                 .listRowBackground(paleta.superficie)
                 Section("Conta") {
+                    TipView(Dicas.Familia())
                     link(.familia)
                     if ehTitular {
                         LinkDoSite(titulo: "Premium", caminho: "/plano")

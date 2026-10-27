@@ -492,3 +492,92 @@ private struct AlteracaoDeConta: Codable, Sendable {
     let role: PigguRole?
     let ativo: Bool?
 }
+
+/// Compras, Lugares, Filmes e Fotos (piggu-lifestyle e piggu-media).
+extension ClienteDaAPI {
+    func listarCompras() async throws -> [ItemDeCompra] {
+        try await get("/shopping/items")
+    }
+
+    func criarItemDeCompra(_ item: NovoItemDeCompra) async throws -> ItemDeCompra {
+        try await post("/shopping/items", corpo: item)
+    }
+
+    func marcarComprado(_ id: String, _ comprado: Bool) async throws {
+        let _: ItemDeCompra = try await patch("/shopping/items/\(id)/purchased", query: ["comprado": comprado ? "true" : "false"])
+    }
+
+    func excluirItemDeCompra(_ id: String) async throws {
+        try await delete("/shopping/items/\(id)")
+    }
+
+    func buscarNoCatalogo(_ busca: String) async throws -> [ProdutoDoCatalogo] {
+        try await get("/shopping/catalog", query: ["busca": busca])
+    }
+
+    func listarLugares() async throws -> [Lugar] {
+        try await get("/places")
+    }
+
+    func listarMarcadores() async throws -> [String] {
+        try await get("/places/tags")
+    }
+
+    func criarMarcador(_ nome: String) async throws -> [String] {
+        try await post("/places/tags", corpo: ["nome": nome])
+    }
+
+    func salvarLugar(_ lugar: NovoLugar, id: String?) async throws -> Lugar {
+        if let id { return try await put("/places/\(id)", corpo: lugar) }
+        return try await post("/places", corpo: lugar)
+    }
+
+    func excluirLugar(_ id: String) async throws {
+        try await delete("/places/\(id)")
+    }
+
+    func listarFilmes() async throws -> [Filme] {
+        try await get("/movies")
+    }
+
+    func buscarFilmes(_ busca: String) async throws -> [FilmeDoCatalogo] {
+        try await get("/movies/search", query: ["busca": busca])
+    }
+
+    /// - Parameter genero: id de genero do TMDB; nil sorteia entre todos.
+    func sortearFilme(genero: String?) async throws -> FilmeDoCatalogo {
+        try await get("/movies/random", query: ["genero": genero])
+    }
+
+    func adicionarFilme(_ filme: FilmeDoCatalogo) async throws -> Filme {
+        try await post("/movies", corpo: filme)
+    }
+
+    func marcarFilmeAssistido(_ id: String, _ assistido: Bool) async throws -> Filme {
+        try await patch("/movies/\(id)/watched", query: ["assistido": assistido ? "true" : "false"])
+    }
+
+    func avaliarFilme(_ id: String, nota: Int) async throws -> Filme {
+        try await put("/movies/\(id)/rating", corpo: ["nota": nota])
+    }
+
+    func excluirFilme(_ id: String) async throws {
+        try await delete("/movies/\(id)")
+    }
+
+    func listarFeed(_ mes: String) async throws -> [FotoDoFeed] {
+        try await get("/feed", query: ["mes": mes])
+    }
+
+    func publicarNoFeed(mes: String, jpeg: Data) async throws -> FotoDoFeed {
+        try await post("/feed", corpo: ["mesKey": mes, "imageBase64": jpeg.base64EncodedString(), "mimeType": "image/jpeg"])
+    }
+
+    func legendar(_ id: String, _ legenda: String) async throws -> FotoDoFeed {
+        try await patch("/feed/\(id)/caption", corpo: ["legenda": legenda])
+    }
+
+    func excluirDoFeed(_ id: String) async throws {
+        try await delete("/feed/\(id)")
+    }
+}

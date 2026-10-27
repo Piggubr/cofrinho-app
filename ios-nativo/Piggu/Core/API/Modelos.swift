@@ -697,3 +697,105 @@ struct PedidoSobreVoce: Codable, Sendable {
 struct PedidoDeTermos: Codable, Sendable {
     let versao: String
 }
+
+// MARK: - Estilo de vida (compras, lugares, filmes e fotos)
+
+struct ItemDeCompra: Codable, Identifiable, Equatable, Sendable {
+    enum Lista: String, Codable, CaseIterable, Sendable {
+        case compras = "Compras", desejos = "Desejos"
+    }
+
+    let id: String
+    let item: String
+    let quantidade: String?
+    let lista: Lista
+    var comprado: Bool
+    let marca: String?
+    /// So HTTPS: o backend descarta outro esquema.
+    let imagem: String?
+    let codigo: String?
+}
+
+struct NovoItemDeCompra: Codable, Sendable {
+    let item: String
+    let quantidade: String
+    let lista: ItemDeCompra.Lista
+    var marca: String?
+    var imagem: String?
+    var codigo: String?
+}
+
+/// Produto do catalogo aberto (Open Food Facts): marca, imagem e codigo sem digitar.
+struct ProdutoDoCatalogo: Codable, Identifiable, Equatable, Sendable {
+    let codigo: String
+    let nome: String
+    let marca: String?
+    let quantidade: String?
+    let imagem: String?
+
+    var id: String { codigo }
+}
+
+struct Lugar: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let nome: String
+    let categoria: String?
+    let localizacao: String?
+    let nota: Int
+    let comentario: String?
+    let data: String
+    let marcacoes: [String]
+    let fotoAssetId: String?
+    let temFoto: Bool?
+    let valor: Decimal
+    let usuario: String?
+}
+
+struct NovoLugar: Codable, Sendable {
+    let nome: String
+    let categoria: String?
+    let localizacao: String?
+    let nota: Int
+    let comentario: String?
+    let data: String
+    let marcacoes: [String]
+    let valor: Decimal
+    let imageBase64: String?
+    let mimeType: String?
+}
+
+/// Filme da lista do casal; cada pessoa tem a propria nota de 1 a 5.
+struct Filme: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let tmdbId: String
+    let titulo: String
+    let ano: String?
+    let poster: String?
+    let nota: Double?
+    let sinopse: String?
+    let assistido: Bool
+    /// Id da pessoa para a nota dela.
+    let avaliacoes: [String: Int]
+    let usuario: String?
+}
+
+struct FilmeDoCatalogo: Codable, Identifiable, Equatable, Sendable {
+    let tmdbId: String
+    let titulo: String
+    let ano: String?
+    let poster: String?
+    let nota: Double?
+    let sinopse: String?
+
+    var id: String { tmdbId }
+}
+
+/// Foto do feed do mes, guardada no piggu-media.
+struct FotoDoFeed: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let mesKey: String
+    let assetId: String
+    let legenda: String?
+    let usuario: String?
+    let criadoEm: String
+}

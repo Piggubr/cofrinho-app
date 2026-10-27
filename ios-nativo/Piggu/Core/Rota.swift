@@ -15,6 +15,8 @@ enum Rota: Hashable, Identifiable, Sendable {
     /// As telas do Mais (orcamento, metas, familia, perfil...).
     case tela(TelaDoMais)
     case lancarGasto(valor: Decimal?)
+    /// Um gasto do mes, achado na busca do iPhone (Spotlight).
+    case verGasto(id: String)
     /// Os links dos e-mails (https://piggu.com.br/confirmar-email?token=...), por Universal
     /// Link; abrem por cima de qualquer tela, com ou sem sessao.
     case confirmarEmail(token: String)
@@ -30,7 +32,7 @@ enum Rota: Hashable, Identifiable, Sendable {
     var abreFolha: Bool {
         switch self {
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf: true
-        case .aba, .tela, .lancarGasto: false
+        case .aba, .tela, .lancarGasto, .verGasto: false
         }
     }
 
@@ -57,6 +59,8 @@ enum Rota: Hashable, Identifiable, Sendable {
         switch caminho.first(where: { !$0.isEmpty }) ?? "painel" {
         case "gasto":
             self = .lancarGasto(valor: Self.valor(consulta["valor"]))
+        case "gastos" where !(consulta["id"] ?? "").isEmpty:
+            self = .verGasto(id: consulta["id"] ?? "")
         case "gastos" where consulta["rapido"] == "1":
             self = .lancarGasto(valor: Self.valor(consulta["valor"]))
         case "painel":
@@ -79,6 +83,14 @@ enum Rota: Hashable, Identifiable, Sendable {
             self = .tela(.planejar)
         case "metas":
             self = .tela(.metas)
+        case "compras":
+            self = .tela(.compras)
+        case "lugares":
+            self = .tela(.lugares)
+        case "filmes":
+            self = .tela(.filmes)
+        case "feed", "fotos":
+            self = .tela(.fotos)
         case "premios":
             self = .tela(.premios)
         case "girls-math":
