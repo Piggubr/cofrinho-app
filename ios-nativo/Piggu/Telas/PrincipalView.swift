@@ -1,24 +1,57 @@
 import SwiftUI
 
-/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante e a folha de
-/// lancar gasto, compartilhada pelas abas.
+/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante, a folha de
+/// lancar gasto, compartilhada pelas abas, e o aviso curto depois de lancar.
+///
+/// Os gastos guardados sem internet sobem quando a rede volta (e ao abrir o app).
 struct PrincipalView: View {
     /// Link a abrir (piggu://, atalho, widget); volta a nil depois de aberto.
     @Binding var rota: Rota?
 
+    @Environment(Sessao.self) private var sessao
+    @Environment(MonitorDeRede.self) private var rede
     @State private var aba = PrincipalView.abaInicial
     @State private var lancamento: PedidoDeLancamento? = PrincipalView.lancarAoAbrir ? .init(valor: nil) : nil
-    /// Sobe a cada gasto lancado: Painel, Gastos e Relatorios recarregam.
+    /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
     @State private var versaoDosDados = 0
+    @State private var aviso: String?
 
     var body: some View {
         abas
             .sheet(item: $lancamento) { pedido in
-                LancarGastoView(valorInicial: pedido.valor) { versaoDosDados += 1 }
+                LancarGastoView(valorInicial: pedido.valor) { mensagem in
+                    versaoDosDados += 1
+                    avisar(mensagem)
+                }
+            }
+            .overlay(alignment: .top) {
+                if let aviso {
+                    AvisoFlutuante(texto: aviso)
+                        .padding(.top, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onTapGesture { self.aviso = nil }
+                }
             }
             .onChange(of: rota, initial: true) { _, nova in
                 abrir(nova)
             }
+            .task(id: rede.conectado) {
+                guard rede.conectado else { return }
+                let enviados = await sessao.fila.enviar()
+                if enviados > 0 {
+                    versaoDosDados += 1
+                    avisar(String(localized: "Enviados \(enviados) gastos guardados sem conexão."))
+                }
+            }
+    }
+
+    /// Aviso discreto no topo, que some sozinho.
+    private func avisar(_ texto: String) {
+        withAnimation { aviso = texto }
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            if aviso == texto { withAnimation { aviso = nil } }
+        }
     }
 
     @ViewBuilder
@@ -27,6 +60,7 @@ struct PrincipalView: View {
             TabView(selection: $aba) {
                 Tab("Painel", systemImage: "chart.pie.fill", value: Aba.painel) { painel }
                 Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
+                Tab("Receitas", systemImage: "arrow.down.circle.fill", value: Aba.receitas) { receitas }
                 Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
                 Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView() }
             }
@@ -40,6 +74,9 @@ struct PrincipalView: View {
                 gastos
                     .tabItem { Label("Gastos", systemImage: "list.bullet.rectangle.fill") }
                     .tag(Aba.gastos)
+                receitas
+                    .tabItem { Label("Receitas", systemImage: "arrow.down.circle.fill") }
+                    .tag(Aba.receitas)
                 relatorios
                     .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
                     .tag(Aba.relatorios)
@@ -51,11 +88,16 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }.comBotaoDeLancar(lancar)
     }
 
     private var gastos: some View {
-        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar) { versaoDosDados += 1 }
+            .comBotaoDeLancar(lancar)
+    }
+
+    private var receitas: some View {
+        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }.comBotaoDeLancar(lancar)
     }
 
     private var relatorios: some View {
