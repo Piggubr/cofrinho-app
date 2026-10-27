@@ -188,22 +188,35 @@ public class MinhaContaService {
     }
 
     /**
-     * Como a pessoa quer ser chamada e, se ainda nao informou, quando nasceu. O nome muda
-     * quando quiser; a data entra uma vez (ver {@link UserAccount#informarNascimento}).
+     * Como a pessoa quer ser chamada e, se ainda nao informou, quando nasceu, o CPF e o
+     * celular: o mesmo que o cadastro por senha pede (D-088). O nome muda quando quiser; o
+     * resto entra uma vez (ver {@link UserAccount#informarNascimento}).
      */
     @Transactional
-    public UserResponse sobreVoce(UUID contaId, String apelido, LocalDate nascimento) {
+    public UserResponse sobreVoce(UUID contaId, String apelido, LocalDate nascimento, String cpf, String telefone) {
         UserAccount conta = conta(contaId);
         String nome = Texto.limitar(Texto.espacoUnico(apelido), 120);
         if (nome.isEmpty()) {
             throw new BusinessException("Conte como podemos te chamar.");
         }
+        if (conta.getBirthDate() == null && nascimento == null) {
+            throw new BusinessException("Informe sua data de nascimento.");
+        }
+        if (!conta.documentoEmDia() && Texto.vazio(cpf)) {
+            throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+        }
+        if (conta.getPhone() == null && Texto.vazio(telefone)) {
+            throw new BusinessException("Informe seu celular.");
+        }
         conta.setNickname(nome);
         if (conta.getBirthDate() == null) {
-            if (nascimento == null) {
-                throw new BusinessException("Informe sua data de nascimento.");
-            }
             conta.informarNascimento(conferirNascimento(nascimento));
+        }
+        if (conta.getPhone() == null) {
+            conta.setPhone(AuthService.e164(telefone, conta.getPais()));
+        }
+        if (!conta.documentoEmDia()) {
+            prenderCpf(conta, conferirCpf(cpf));
         }
         usuarios.save(conta);
         log.info("Sobre voce atualizado: conta={}", conta.getId());

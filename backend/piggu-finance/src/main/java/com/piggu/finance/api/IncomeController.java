@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
@@ -11,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -54,7 +57,11 @@ public class IncomeController {
             @DecimalMin(value = "0.01", message = "Digite um valor valido.")
             @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal valor,
             Boolean recorrente,
-            Boolean compartilhado) {
+            Boolean compartilhado,
+            @Min(value = 1, message = "O dia vai de 1 a 31.") @Max(value = 31, message = "O dia vai de 1 a 31.")
+            Integer segundoDia,
+            @DecimalMin(value = "0.01", message = "Digite um valor valido.")
+            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal segundoValor) {
     }
 
     public record IncomeResponse(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
@@ -85,7 +92,11 @@ public class IncomeController {
         boolean compartilhado = Boolean.TRUE.equals(pedido.compartilhado());
         if (Boolean.TRUE.equals(pedido.recorrente())) {
             return IncomeResponse.de(recorrentes.lancarReceitaRecorrente(pedido.data(), pedido.descricao(),
-                    pedido.categoria(), pedido.valor(), usuario.id(), compartilhado));
+                    pedido.categoria(), pedido.valor(), usuario.id(), compartilhado, pedido.segundoDia(),
+                    pedido.segundoValor()));
+        }
+        if (pedido.segundoDia() != null || pedido.segundoValor() != null) {
+            throw new BusinessException("Duas parcelas so na receita que entra todo mes.");
         }
         return IncomeResponse.de(servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
                 usuario.id(), compartilhado));

@@ -87,6 +87,41 @@ class ContasFixasTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("salario em duas parcelas: a segunda entra no dia dela, uma vez por mes, a partir da proxima vez")
+    void salarioEmDuasParcelas() throws Exception {
+        UUID familia = UUID.randomUUID();
+        RequestPostProcessor casa = TokensDeTeste.da(familia, "salario-" + familia + "@piggu.test", PigguRole.TITULAR);
+        String salario = "{\"data\":\"2026-10-20\",\"descricao\":\"Salario\",\"categoria\":\"Salário\",\"valor\":2000,"
+                + "\"recorrente\":%s,\"segundoDia\":5%s}";
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("true", ""))).andExpect(status().isUnprocessableContent());
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("false", ",\"segundoValor\":3000"))).andExpect(status().isUnprocessableContent());
+        // Adiantamento no dia 20; o resto no dia 5, que ja passou em outubro: so entra em novembro.
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("true", ",\"segundoValor\":3000"))).andExpect(status().isCreated());
+        mockMvc.perform(get("/api/bills").param("mes", "2026-10").param("tipo", "RECEITA").with(casa))
+                .andExpect(jsonPath("$[0].segundoDia").value(5))
+                .andExpect(jsonPath("$[0].segundoValor").value(3000));
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 10, 31));
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 5));
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 5));
+
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-10").with(casa))
+                .andExpect(jsonPath("$.length()").value(1));
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-11").with(casa))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].descricao").value("Salario (2ª parcela)"))
+                .andExpect(jsonPath("$[0].data").value("2026-11-05"))
+                .andExpect(jsonPath("$[0].valor").value(3000));
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 20));
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-11").with(casa))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
     @DisplayName("o historico do lancamento automatico fica com o dono da conta: o membro nao ve a do titular")
     void historicoDoAutomaticoEDoDono() throws Exception {
         UUID familia = UUID.randomUUID();

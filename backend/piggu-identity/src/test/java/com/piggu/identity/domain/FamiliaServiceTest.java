@@ -314,6 +314,28 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         assertThat(usuarios.findById(vizinho.getId()).orElseThrow().getHouseholdId()).isEqualTo(titular.getHouseholdId());
     }
 
+    @Test
+    @DisplayName("no plano casal o primeiro convidado entra como parceiro, o seguinte como membro, e menor de idade volta a membro")
+    void parceiroNoPlanoCasal() {
+        Household daAna = casas.findById(titular.getHouseholdId()).orElseThrow();
+        Instant agora = Instant.now();
+        daAna.aplicarAssinatura("WEB", agora.plus(java.time.Duration.ofDays(30)), agora, agora,
+                com.piggu.identity.billing.TipoDePlano.CASAL, titular.getId());
+        casas.save(daAna);
+
+        familias.convidar(como(titular), "marido@familia.test");
+        familias.convidar(como(titular), "filho@familia.test");
+        UserAccount marido = entrar("marido@familia.test", "Rui");
+        UserAccount filho = entrar("filho@familia.test", "Leo");
+
+        assertThat(marido.getRole()).isEqualTo(PigguRole.PARCEIRO);
+        assertThat(filho.getRole()).isEqualTo(PigguRole.MEMBRO);
+        assertThat(membro.getRole()).isEqualTo(PigguRole.MEMBRO);
+
+        marido.informarNascimento(java.time.LocalDate.now().minusYears(15));
+        assertThat(marido.getRole()).isEqualTo(PigguRole.MEMBRO);
+    }
+
     private UserAccount entrar(String email, String nome) {
         return Convidados.entrar(familias, convites, usuarios, email, nome);
     }

@@ -38,9 +38,13 @@
               </p>
             }
             @if (conta.faturaAPagar; as f) {
-              <p i18n class="linha-detalhe">
-                A pagar: {{ f.total | moeda }} até {{ f.vencimento | dataBr }}
-              </p>
+              @if (f.paga) {
+                <p i18n class="linha-detalhe">Fatura de {{ rotuloDoMes(f.mes) }} paga</p>
+              } @else {
+                <p i18n class="linha-detalhe">
+                  A pagar: {{ f.total | moeda }} até {{ f.vencimento | dataBr }}
+                </p>
+              }
             }
           } @else {
             <p i18n class="linha-detalhe">Conta</p>
@@ -60,7 +64,11 @@
         }
         @if (!conta.usuario || conta.usuario === eu()) {
           @if (pessoas.temCompanhia()) {
-            <button type="button" class="botao contorno pequeno" (click)="alternarCompartilhamento(conta)">
+            <button
+              type="button"
+              class="botao contorno pequeno"
+              (click)="alternarCompartilhamento(conta)"
+            >
               @if (conta.compartilhado) {
                 <ng-container i18n>Deixar só meu</ng-container>
               } @else {
@@ -117,6 +125,30 @@
       {{ a.fatura.fechamento | dataBr }} · vence em {{ a.fatura.vencimento | dataBr }}
     </p>
     <p class="numero">{{ a.fatura.total | moeda }}</p>
+    <div class="acoes">
+      @if (a.fatura.paga) {
+        <span i18n class="etiqueta">Paga</span>
+        <button
+          i18n
+          type="button"
+          class="botao contorno pequeno"
+          (click)="alternarPagamento(a.cartao, a.fatura)"
+          [disabled]="ocupado()"
+        >
+          Desfazer pagamento
+        </button>
+      } @else {
+        <button
+          i18n
+          type="button"
+          class="botao secundario pequeno"
+          (click)="alternarPagamento(a.cartao, a.fatura)"
+          [disabled]="ocupado()"
+        >
+          Marcar como paga
+        </button>
+      }
+    </div>
     @for (gasto of a.gastos; track gasto.id) {
       <div class="linha">
         <div>
@@ -199,7 +231,8 @@
         (change)="compartilhada.set($any($event.target).checked)"
       />
       <ng-container i18n>
-        Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão adicional)
+        Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão
+        adicional)
       </ng-container>
     </label>
   }

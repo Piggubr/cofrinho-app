@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 26/10/2026.
+Última atualização: 27/10/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -22,7 +22,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - iOS, etapa 3: entrada completa (Google, Apple, criar conta, CPF, termos, esqueci a senha).
 - Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
 - iOS, etapa 4: dia a dia (Painel, Gastos e Receitas). Depois dela já dá para abrir um grupo "Nativo" no TestFlight.
-- iOS, etapa 5: organização (contas fixas, orçamentos, calendário, relatórios, contas e cartões).
+- iOS, etapa 5: organização (contas fixas, orçamentos, calendário, relatórios, contas e cartões, com o "Marcar como paga" da fatura, D-085).
 - iOS, etapa 6: metas e conta (metas, cofrinho, Girls Math, prêmios, família, perfil).
 - iOS, etapa 7: extras e recursos da Apple (widgets, Siri, Face ID, push, leitura de nota).
 - iOS, etapa 8: Premium pelo StoreKit 2, com validação no backend e o preço no iPhone decidido.

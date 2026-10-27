@@ -136,7 +136,9 @@ para exportar ou apagar a conta. O resto passa pelo app.
 Cada pessoa tem uma conta (`users`) e pertence a exatamente uma família (`households`). O
 primeiro login cria a conta e uma família nova, com a pessoa como `TITULAR`. Quem aceita um
 convite (`household_invites`, vale 7 dias) entra como `MEMBRO`; o titular pode promovê-lo a
-`PARCEIRO`.
+`PARCEIRO`. No plano casal vigente, se a casa ainda não tem parceiro (nem convite de parceria
+esperando), quem aceita o convite e não é menor de idade já entra como `PARCEIRO`. Se depois
+informar uma data de nascimento de menor, volta a `MEMBRO` (D-086).
 
 O id da família vai no token (claim `familia`). Nos cinco serviços de domínio, toda entidade
 marca `household_id` com `@TenantId`: o Hibernate filtra **toda** consulta pela família do
@@ -151,7 +153,7 @@ de cada serviço provam que uma família nunca lê nem altera dado de outra.
 |---|---|
 | `ADMIN` | Opera a instalação (`/api/users`); dentro da própria família vale como titular. Vem de `PIGGU_ADMIN_EMAILS` |
 | `TITULAR` | Dono da família: convida, remove pessoas, assina o Premium |
-| `PARCEIRO` | Promovido pelo titular. Junto com o titular forma "o casal" (os responsáveis) |
+| `PARCEIRO` | Promovido pelo titular, ou o convidado que entra no plano casal (D-086). Junto com o titular forma "o casal" (os responsáveis) |
 | `MEMBRO` | Convidado: usa todas as telas, cada um com os próprios dados |
 
 ### Dentro da família, cada um vê o seu
@@ -376,6 +378,7 @@ Não tem `created_at`.
 | `due_day` | smallint | só no cartão | Dia do vencimento (1 a 31); nulo na conta |
 | `user_id` | uuid | não | Quem criou |
 | `shared` | boolean | sim (padrão `false`) | Conta do casal: o que for lançado nela já nasce compartilhado |
+| `last_paid_month` | texto(7) | não | Só no cartão: última fatura marcada como paga (`AAAA-MM`); as anteriores contam como pagas (D-085) |
 
 ### `recurring_bills` — conta fixa ou receita recorrente
 
@@ -389,6 +392,8 @@ Não tem `created_at`.
 | `auto_launch` | boolean | sim (padrão `false`) | O job diário lança sozinho no vencimento |
 | `active` | boolean | sim (padrão `true`) | Desligada não lança nem aparece como pendente |
 | `last_paid_month` | texto(7) | não | Último mês (`AAAA-MM`) já lançado: "marcar como paga" lança uma vez só |
+| `second_due_day`, `second_amount` | smallint, numeric(12,2) | não (os dois juntos) | Segunda parcela da receita, como o salário do dia 20 e do dia 5 (D-087). Nulos quando entra de uma vez |
+| `second_paid_month` | texto(7) | não | Último mês já lançado da segunda parcela; o job lança como "<descrição> (2ª parcela)" |
 | `account_id` | uuid | não | Conta ou cartão que paga todo mês |
 | `user_id`, `shared` | | | Como em `expenses` |
 
@@ -664,7 +669,9 @@ gastos com aquele `account_id` (`ContasECartoes`):
 - dia 31 vira o último dia nos meses curtos;
 - sem o dia do fechamento, ele fica 7 dias antes do vencimento (ou `vencimento + 24` quando o
   vencimento é até o dia 7);
-- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`).
+- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`);
+- a fatura é paga quando o mês dela não passa de `last_paid_month`. Marcar como paga só tira a
+  fatura do "a pagar" e dos avisos; não lança gasto, porque as compras já contaram (D-085).
 
 ### Gasto dividido na família
 
