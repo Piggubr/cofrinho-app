@@ -54,6 +54,7 @@ struct RelatoriosView: View {
             .background(paleta.fundo)
             .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
             .navigationTitle("Relatórios")
+            .topoDoPiggu()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ShareLink(item: CSVDosGastos(mes: chave, cliente: sessao.cliente),

@@ -27,6 +27,8 @@ struct DadosDaDemonstracao {
     ]
     /// "id/aaaa-mm" das contas do mes ja pagas.
     var contasPagas: Set<String> = []
+    var assistenteAutorizado = false
+    var perguntasAoAssistente = 0
     var orcamentos: [[String: Any]] = [
         ["id": "o-mercado", "categoria": "Mercado", "limite": 380.0],
         ["id": "o-lazer", "categoria": "Lazer", "limite": 250.0],
@@ -276,6 +278,10 @@ struct DadosDaDemonstracao {
     private var cofrinho: [String: Any] {
         let total = depositos.reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
         return ["depositos": depositos, "totalDepositos": total, "totalGastos": 420.0, "saldo": total - 420]
+    }
+
+    private func situacaoDoAssistente() -> [String: Any] {
+        ["habilitado": true, "autorizado": assistenteAutorizado, "limite": 150, "restantes": 150 - perguntasAoAssistente]
     }
 
     // swiftlint:disable:next cyclomatic_complexity function_body_length
@@ -590,8 +596,25 @@ struct DadosDaDemonstracao {
                           ["codigo": "ARS", "nome": "Peso argentino"]])
         case ("GET", "me/export"):
             return (200, Data(#"{"conta":{"nome":"Pessoa de Demonstração"},"gastos":[]}"#.utf8))
-        case ("DELETE", "receipts/consent"), ("DELETE", "assistant/consent"):
+        case ("DELETE", "receipts/consent"):
             return (204, nil)
+        case ("DELETE", "assistant/consent"):
+            assistenteAutorizado = false
+            return (204, nil)
+        case ("GET", "assistant"):
+            return (200, situacaoDoAssistente())
+        case ("POST", "assistant/consent"):
+            assistenteAutorizado = true
+            return (200, situacaoDoAssistente())
+        case ("POST", "assistant/ask"):
+            // Na demonstracao nao ha IA: uma resposta de exemplo com o gasto do mes.
+            assistenteAutorizado = true
+            perguntasAoAssistente += 1
+            let total = gastos.filter { ($0["data"] as? String)?.hasPrefix(mes) == true }
+                .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
+            let texto = "Neste mês você gastou \(Formatos.moeda(Decimal(total))). (Na demonstração as respostas são de exemplo; no app, a IA responde a sua pergunta.)"
+            return (200, ["texto": texto, "tela": "relatorios",
+                          "restantes": situacaoDoAssistente()["restantes"] ?? 0])
         case ("GET", "users"):
             return (200, [Any]())
         case ("GET", "shopping/items"):

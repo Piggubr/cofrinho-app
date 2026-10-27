@@ -10,6 +10,7 @@ struct PerfilView: View {
     @Environment(TravaDoApp.self) private var trava
     @AppStorage(Tema.chave) private var tema = Tema.chiclete
     @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
+    @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
     @State private var membros: [MembroDaFamilia] = []
     @State private var moedas: [MoedaDisponivel] = []
     @State private var apelido = ""
@@ -256,6 +257,9 @@ struct PerfilView: View {
                 ForEach(ModoDeAparencia.allCases) { Text($0.nome).tag($0) }
             }
             .pickerStyle(.segmented)
+            if #available(iOS 26, *) {
+                Toggle("Esconder a barra de abas ao rolar", isOn: $esconderAbas)
+            }
         } header: {
             Text("Aparência")
         } footer: {

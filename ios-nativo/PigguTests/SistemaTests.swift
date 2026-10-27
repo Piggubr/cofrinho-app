@@ -87,6 +87,24 @@ struct SistemaTests {
         #expect(Rota(url: URL(string: "piggu://gastos?id=abc")!) == .verGasto(id: "abc"))
         #expect(Rota(url: URL(string: "piggu://lugares")!) == .tela(.lugares))
         #expect(Rota(url: URL(string: "https://piggu.com.br/feed")!) == .tela(.fotos))
+        #expect(Rota(url: URL(string: "piggu://gastos?id=abc&mes=2026-09")!) == .verGasto(id: "abc", mes: "2026-09"))
+    }
+
+    @Test @MainActor func conversaDoAssistenteGuardaSo30DiasE200Falas() {
+        let velha = AssistenteView.Fala(pessoa: true, texto: "velha", em: hoje.addingTimeInterval(-31 * 86_400))
+        let recentes = (0..<205).map { AssistenteView.Fala(pessoa: $0 % 2 == 0, texto: "\($0)", em: hoje) }
+        let podada = AssistenteView.podar([velha] + recentes, agora: hoje)
+        #expect(podada.count == 200)
+        #expect(podada.first?.texto == "5")
+        #expect(podada.last?.texto == "204")
+    }
+
+    @Test @MainActor func assistenteSoSugereAbasETelas() {
+        #expect(AssistenteView.rota("relatorios") == .aba(.relatorios))
+        #expect(AssistenteView.rota("orcamentos") == .tela(.orcamento))
+        #expect(AssistenteView.rota("cpf") == nil)
+        #expect(AssistenteView.rota("nao-existe") == nil)
+        #expect(AssistenteView.rota(nil) == nil)
     }
 }
 

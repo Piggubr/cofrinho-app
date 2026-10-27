@@ -81,6 +81,7 @@ struct MaisView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Mais")
+            .topoDoPiggu()
             .comTelasDoMais()
             .confirmationDialog("Sair da conta neste aparelho?", isPresented: $confirmandoSaida,
                                 titleVisibility: .visible) {

@@ -31,12 +31,14 @@ struct PainelView: View {
             .background(paleta.fundo)
             .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
             .navigationTitle(saudacao)
+            .topoDoPiggu()
             .toolbar {
                 if let cotacao = modelo?.cotacao {
                     ToolbarItem(placement: .topBarTrailing) {
                         Text(Formatos.cotacao(cotacao))
                             .font(.sora(.caption, peso: .medium))
                             .monospacedDigit()
+                            .fixedSize()
                             .accessibilityHint(cotacao.desatualizada == true
                                                ? "Última cotação conhecida" : "Referência de bancos centrais")
                     }

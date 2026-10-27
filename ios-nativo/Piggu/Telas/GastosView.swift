@@ -8,7 +8,7 @@ struct GastosView: View {
     let versaoDosDados: Int
     let aoLancar: () -> Void
     /// Gasto achado no Spotlight: a tela volta ao mes atual e abre a edicao dele.
-    @Binding var abrirGasto: String?
+    @Binding var abrirGasto: GastoPedido?
     /// Editou ou apagou: as outras abas recarregam.
     let aoMudar: () -> Void
 
@@ -64,6 +64,7 @@ struct GastosView: View {
                 }
             }
             .navigationTitle("Gastos")
+            .topoDoPiggu()
             .searchable(text: $busca, prompt: Text("Buscar gastos"))
             .refreshable { await carregar() }
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
@@ -260,9 +261,7 @@ struct GastosView: View {
             }
             TextField("Quando tiver", text: $termoDaRegra)
                 .onChange(of: termoDaRegra) { _, novo in if novo.count > 100 { termoDaRegra = String(novo.prefix(100)) } }
-            Picker("Usar", selection: $categoriaDaRegra) {
-                ForEach(categorias, id: \.self) { Text($0).tag($0) }
-            }
+            CampoDeCategoria(categoria: $categoriaDaRegra, categorias: $categorias, automatica: false)
             Button("Salvar regra") { Task { await criarRegra(termoDaRegra, categoriaDaRegra) } }
         } header: {
             Text("Regras de categoria")
@@ -344,12 +343,13 @@ struct GastosView: View {
     private func nome(_ pessoa: String?) -> String { PessoasDaFamilia.nome(pessoa, em: membros) }
 
     private func mostrarGastoPedido() {
-        guard let id = abrirGasto else { return }
-        if Formatos.mes(mes) != Formatos.mes(Date()) {
-            mes = Date()
+        guard let pedido = abrirGasto else { return }
+        let mesDoGasto = pedido.mes ?? Formatos.mes(Date())
+        if Formatos.mes(mes) != mesDoGasto {
+            mes = Formatos.data(deDia: mesDoGasto + "-01") ?? Date()
             return
         }
-        if let gasto = carga.valor?.first(where: { $0.id == id }) {
+        if let gasto = carga.valor?.first(where: { $0.id == pedido.id }) {
             editando = gasto
             abrirGasto = nil
         }
@@ -429,6 +429,12 @@ struct GastosView: View {
             erro = error.localizedDescription
         }
     }
+}
+
+/// Gasto a abrir na aba Gastos; sem o mes (aaaa-mm), o do mes atual.
+struct GastoPedido: Equatable {
+    let id: String
+    let mes: String?
 }
 
 struct RegraSugerida: Equatable {
