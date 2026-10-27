@@ -66,6 +66,9 @@
         }
       }
     },
+    "%@: %lld ★" : {
+
+    },
     "%lld" : {
 
     },
@@ -114,6 +117,9 @@
     "%lldx de %@, uma em cada mês" : {
 
     },
+    "(Conta de %@; estou sem conexão agora.)" : {
+
+    },
     "+ Criar outra" : {
 
     },
@@ -142,6 +148,9 @@
 
     },
     "3. Lance o primeiro gasto ou importe o extrato" : {
+
+    },
+    "A comprar" : {
 
     },
     "A data não muda depois. Quem tem entre 13 e 17 anos tem os lançamentos visíveis para o titular e o parceiro da família." : {
@@ -183,6 +192,12 @@
     "Abre o Perfil" : {
 
     },
+    "Abre o Piggu pronto para lançar um gasto." : {
+
+    },
+    "Abrir no Mapas" : {
+
+    },
     "Abrir no site" : {
 
     },
@@ -201,6 +216,24 @@
     "Aceito os Termos de Uso e o Aviso de Privacidade" : {
 
     },
+    "Adiciona à lista" : {
+
+    },
+    "Adicionar" : {
+
+    },
+    "Adicionar foto" : {
+
+    },
+    "Adicionar fotos · Premium" : {
+
+    },
+    "Adicionar marcador" : {
+
+    },
+    "Adicionar à lista" : {
+
+    },
     "Admin" : {
 
     },
@@ -211,6 +244,9 @@
 
     },
     "Aguarde..." : {
+
+    },
+    "Ainda dá para gastar %@ do limite de %@." : {
 
     },
     "Ajustar" : {
@@ -231,7 +267,13 @@
     "Alvo" : {
 
     },
+    "Animação" : {
+
+    },
     "Ano de %@" : {
+
+    },
+    "Anote o que falta em casa e marque conforme for comprando." : {
 
     },
     "Antes de começar, conte como quer ser chamado." : {
@@ -258,6 +300,9 @@
     "Apagar esta e as %lld próximas" : {
 
     },
+    "Apagar esta foto?" : {
+
+    },
     "Apagar este depósito?" : {
 
     },
@@ -270,7 +315,13 @@
     "Aparência" : {
 
     },
+    "Aponte para a parte do cupom com o total." : {
+
+    },
     "As duas senhas não são iguais." : {
+
+    },
+    "As fotos do mês contam a história do que vocês viveram." : {
 
     },
     "As mesmas de Receitas. Nova receita fixa: em Receitas, marque \"Entra sozinha todo mês\"." : {
@@ -330,13 +381,37 @@
     "Azul" : {
 
     },
+    "Ação" : {
+
+    },
     "Baixar meus dados" : {
 
     },
     "Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são gratuitos em qualquer plano." : {
 
     },
+    "Bem-vindo ao Piggu" : {
+
+    },
+    "Busca" : {
+
+    },
+    "Buscando..." : {
+
+    },
+    "Buscar" : {
+
+    },
+    "Buscar filme" : {
+
+    },
     "Buscar gastos" : {
+
+    },
+    "Buscar no catálogo" : {
+
+    },
+    "Busque um filme e guarde para a próxima noite de sofá." : {
 
     },
     "CPF" : {
@@ -423,6 +498,9 @@
     "Combinado para %@" : {
 
     },
+    "Comentário" : {
+
+    },
     "Como foi a compra" : {
 
     },
@@ -457,6 +535,9 @@
 
     },
     "Compras de %@ a %@ · fecha em %@ · vence em %@" : {
+
+    },
+    "Comédia" : {
 
     },
     "Conectar banco" : {
@@ -525,6 +606,9 @@
     "Convidar para parceiro" : {
 
     },
+    "Convide quem mora com você. Cada um lança do seu celular e vê o que é seu; titular e parceiro veem também o um do outro e o de quem tem menos de 18 anos." : {
+
+    },
     "Convite cancelado." : {
 
     },
@@ -564,6 +648,9 @@
     "Criar conta fixa" : {
 
     },
+    "Criar marcador" : {
+
+    },
     "Criar meta" : {
 
     },
@@ -600,10 +687,16 @@
     "Data" : {
 
     },
+    "Data da visita" : {
+
+    },
     "Data de nascimento" : {
 
     },
     "De %@" : {
+
+    },
+    "Defina quanto quer gastar por categoria, cadastre as contas do mês e acompanhe seus objetivos." : {
 
     },
     "Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do Piggu Premium." : {
@@ -633,6 +726,12 @@
     "Desativar" : {
 
     },
+    "Desbloquear com %@" : {
+
+    },
+    "Desbloquear o Piggu" : {
+
+    },
     "Desconectar" : {
 
     },
@@ -643,6 +742,9 @@
 
     },
     "Desde o começo: %@" : {
+
+    },
+    "Desejos" : {
 
     },
     "Desfazer pagamento" : {
@@ -693,10 +795,16 @@
     "Digite o nome do item." : {
 
     },
+    "Digite o nome do lugar." : {
+
+    },
     "Digite o nome do produto." : {
 
     },
     "Digite o nome do prêmio." : {
+
+    },
+    "Digite o que deseja adicionar." : {
 
     },
     "Digite o termo e escolha a categoria." : {
@@ -706,6 +814,9 @@
 
     },
     "Digite o valor da 2ª parcela." : {
+
+    },
+    "Digite pelo menos duas letras." : {
 
     },
     "Digite quanto custava." : {
@@ -718,6 +829,9 @@
 
     },
     "Digite um e-mail válido." : {
+
+    },
+    "Digite um nome válido." : {
 
     },
     "Digite um preço válido." : {
@@ -747,6 +861,9 @@
     "Divisão do mês" : {
 
     },
+    "Diz quanto você gastou no mês e quanto ainda cabe no limite." : {
+
+    },
     "Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão adicional)" : {
 
     },
@@ -757,6 +874,9 @@
 
     },
     "Documento ainda não informado (opcional)." : {
+
+    },
+    "Drama" : {
 
     },
     "Débito/Pix" : {
@@ -783,10 +903,16 @@
     "Editar gasto" : {
 
     },
+    "Editar lugar" : {
+
+    },
     "Editar meta" : {
 
     },
     "Editar objetivo" : {
+
+    },
+    "Em %@ você gastou %@." : {
 
     },
     "Em aberto: %@" : {
@@ -796,6 +922,9 @@
 
     },
     "Em outros meses" : {
+
+    },
+    "Encontre qualquer gasto pela busca, neste mês e nos outros." : {
 
     },
     "Entra sozinha todo mês no dia %lld (salário, aluguel que você recebe)" : {
@@ -817,6 +946,9 @@
 
     },
     "Enviados %lld gastos guardados sem conexão." : {
+
+    },
+    "Enviando..." : {
 
     },
     "Enviar agora" : {
@@ -855,7 +987,13 @@
     "Escolher da galeria" : {
 
     },
+    "Escolher foto" : {
+
+    },
     "Esconder histórico" : {
+
+    },
+    "Escreva uma legenda" : {
 
     },
     "Escreve aqui..." : {
@@ -891,6 +1029,9 @@
     "Ex-membro" : {
 
     },
+    "Ex.: 12" : {
+
+    },
     "Ex.: Arrumou a cozinha" : {
 
     },
@@ -909,7 +1050,16 @@
     "Ex.: Nubank" : {
 
     },
+    "Ex.: Ovos" : {
+
+    },
     "Ex.: Pet" : {
+
+    },
+    "Ex.: Restaurante" : {
+
+    },
+    "Ex.: São Paulo" : {
 
     },
     "Excluir" : {
@@ -972,6 +1122,9 @@
     "Fica neste aparelho: o celular pode ter uma ordem e o computador outra." : {
 
     },
+    "Ficção científica" : {
+
+    },
     "Filmes" : {
 
     },
@@ -990,6 +1143,12 @@
     "Foto" : {
 
     },
+    "Foto do lugar" : {
+
+    },
+    "Foto do mês" : {
+
+    },
     "Foto do produto" : {
 
     },
@@ -1000,6 +1159,12 @@
 
     },
     "Fotos" : {
+
+    },
+    "Fotos do mês" : {
+
+    },
+    "Gasto de qualquer tela, sem sair de onde está. Dá para ler a nota pela câmera e o Piggu preenche para você." : {
 
     },
     "Gasto desde o início" : {
@@ -1062,6 +1227,12 @@
     "Guarde %@ por mês até %@." : {
 
     },
+    "Guarde os restaurantes e passeios que vocês querem lembrar." : {
+
+    },
+    "Gênero" : {
+
+    },
     "Histórico" : {
 
     },
@@ -1110,10 +1281,22 @@
     "Juntando para uma viagem, um sofá ou a reserva? Dê um nome, quanto e até quando, e o Piggu diz quanto guardar por mês." : {
 
     },
+    "Já assistidos" : {
+
+    },
+    "Já assistimos" : {
+
+    },
+    "Já no carrinho" : {
+
+    },
     "Lance as **receitas do mês** para ver quanto sobrou e quanto você poupou." : {
 
     },
     "Lance o primeiro gasto ou traga o extrato do banco de uma vez." : {
+
+    },
+    "Lance pelo +" : {
 
     },
     "Lança sozinho todo dia %lld, até você desligar em Contas do mês." : {
@@ -1128,6 +1311,9 @@
     "Lançar gasto" : {
 
     },
+    "Lançar gasto no ${applicationName}" : {
+
+    },
     "Lançar receita" : {
 
     },
@@ -1140,6 +1326,9 @@
     "Lançar uma receita" : {
 
     },
+    "Legenda da foto" : {
+
+    },
     "Leia no site do Piggu." : {
 
     },
@@ -1147,6 +1336,9 @@
 
     },
     "Lembretes" : {
+
+    },
+    "Ler a nota pela câmera" : {
 
     },
     "Li e aceito os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade)." : {
@@ -1176,6 +1368,15 @@
     "Link vencido" : {
 
     },
+    "Lista" : {
+
+    },
+    "Lista vazia" : {
+
+    },
+    "Localização" : {
+
+    },
     "Loja onde você viu" : {
 
     },
@@ -1200,7 +1401,13 @@
     "Mandar o link" : {
 
     },
+    "Mapa com os lugares" : {
+
+    },
     "Marcado" : {
+
+    },
+    "Marcadores" : {
 
     },
     "Marcar como paga" : {
@@ -1281,6 +1488,12 @@
     "Nenhum depósito ainda" : {
 
     },
+    "Nenhum filme assistido ainda" : {
+
+    },
+    "Nenhum filme na fila" : {
+
+    },
     "Nenhum gasto lançado neste mês" : {
 
     },
@@ -1299,6 +1512,9 @@
     "Nenhum limite definido para este mês ainda" : {
 
     },
+    "Nenhum lugar registrado ainda" : {
+
+    },
     "Nenhum prêmio cadastrado" : {
 
     },
@@ -1315,6 +1531,9 @@
 
     },
     "Nenhuma conta fixa ainda" : {
+
+    },
+    "Nenhuma foto neste mês ainda" : {
 
     },
     "Nenhuma meta criada." : {
@@ -1368,6 +1587,9 @@
     "Nome da nova categoria" : {
 
     },
+    "Nome do filme" : {
+
+    },
     "Nome do produto" : {
 
     },
@@ -1375,6 +1597,18 @@
 
     },
     "Nota" : {
+
+    },
+    "Nota %lld" : {
+
+    },
+    "Nota %lld de 5" : {
+
+    },
+    "Nota TMDB: %@" : {
+
+    },
+    "Notificação neste iPhone" : {
 
     },
     "Nova conta fixa" : {
@@ -1398,6 +1632,9 @@
     "Novo depósito (%@)" : {
 
     },
+    "Novo lugar" : {
+
+    },
     "Novo objetivo" : {
 
     },
@@ -1411,6 +1648,9 @@
 
     },
     "Não consegui ler essa imagem." : {
+
+    },
+    "Não consegui ver seus gastos agora. Abra o Piggu uma vez e pergunte de novo." : {
 
     },
     "Não deu certo (erro %lld)." : {
@@ -1441,6 +1681,9 @@
 
     },
     "Não foi possível entrar." : {
+
+    },
+    "O Piggu está travado" : {
 
     },
     "O Piggu não está respondendo agora (erro %lld). Tente daqui a pouco." : {
@@ -1488,10 +1731,16 @@
     "O que mudou" : {
 
     },
+    "O que vamos assistir?" : {
+
+    },
     "O que ver" : {
 
     },
     "O que você não comprou?" : {
+
+    },
+    "O resumo do mês: quanto entrou, quanto saiu, quanto ainda dá para gastar e as contas que vencem." : {
 
     },
     "O titular convidou você para ser parceiro" : {
@@ -1548,6 +1797,9 @@
     "Papel alterado. A mudança vale quando a pessoa entrar de novo." : {
 
     },
+    "Para assistir" : {
+
+    },
     "Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade." : {
 
     },
@@ -1578,7 +1830,13 @@
     "Parcelas" : {
 
     },
+    "Passou %@ do limite de %@." : {
+
+    },
     "País onde você mora" : {
+
+    },
+    "Pede a sua biometria ao abrir o Piggu e ao voltar para ele. Vale para este aparelho." : {
 
     },
     "Pedir outro link" : {
@@ -1588,6 +1846,9 @@
 
     },
     "Perfil" : {
+
+    },
+    "Permita as notificações do Piggu nos Ajustes do iPhone e tente de novo." : {
 
     },
     "Personalizar o Painel" : {
@@ -1686,6 +1947,9 @@
     "Pular o guia" : {
 
     },
+    "Qualquer gênero" : {
+
+    },
     "Quando a pessoa aceitar, vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você." : {
 
     },
@@ -1711,6 +1975,21 @@
 
     },
     "Quanto custava (%@)" : {
+
+    },
+    "Quanto gastamos" : {
+
+    },
+    "Quanto gastamos (%@)" : {
+
+    },
+    "Quanto gastei" : {
+
+    },
+    "Quanto gastei este mês" : {
+
+    },
+    "Quanto gastei este mês no ${applicationName}" : {
 
     },
     "Quem deve" : {
@@ -1770,6 +2049,9 @@
     "Registrar o que não comprei" : {
 
     },
+    "Registrar um lugar" : {
+
+    },
     "Registre o que você deixou de comprar." : {
 
     },
@@ -1816,6 +2098,9 @@
 
     },
     "Retirar autorização do assistente" : {
+
+    },
+    "Romance" : {
 
     },
     "Rosa Piggu" : {
@@ -1876,6 +2161,9 @@
 
     },
     "Se aceitar, você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Se recusar, continua vendo só o que você lança." : {
+
+    },
+    "Segurança" : {
 
     },
     "Sem conexão com o servidor. Confira a internet e tente de novo." : {
@@ -1953,6 +2241,12 @@
     "Sobre você" : {
 
     },
+    "Sorteando..." : {
+
+    },
+    "Sortear filme" : {
+
+    },
     "Sua sessão venceu. Entre novamente." : {
 
     },
@@ -1960,6 +2254,9 @@
 
     },
     "Suas notas" : {
+
+    },
+    "Suspense" : {
 
     },
     "Série" : {
@@ -1980,6 +2277,9 @@
     "Termos e privacidade" : {
 
     },
+    "Terror" : {
+
+    },
     "Tipo" : {
 
     },
@@ -1990,6 +2290,9 @@
 
     },
     "Tirar a foto" : {
+
+    },
+    "Tirar da lista" : {
 
     },
     "Tirar foto" : {
@@ -2019,6 +2322,9 @@
     "Total" : {
 
     },
+    "Total %@%@" : {
+
+    },
     "Total do mês" : {
 
     },
@@ -2032,6 +2338,12 @@
 
     },
     "Total: %@" : {
+
+    },
+    "Travar com %@" : {
+
+    },
+    "Travar o Piggu com a sua biometria" : {
 
     },
     "Trocar foto" : {
@@ -2050,6 +2362,9 @@
 
     },
     "Usar esta" : {
+
+    },
+    "Usar este valor" : {
 
     },
     "Usar foto do Google" : {
@@ -2089,6 +2404,9 @@
 
     },
     "Veja o ano mês a mês, receitas contra gastos e para onde foi o dinheiro. Faz parte do Piggu Premium." : {
+
+    },
+    "Veja para onde o dinheiro foi, mês a mês e por categoria." : {
 
     },
     "Vence em %@" : {
@@ -2184,6 +2502,9 @@
     "Voltar ao padrão" : {
 
     },
+    "Voltar para a fila" : {
+
+    },
     "Voltar para entrar" : {
 
     },
@@ -2266,6 +2587,12 @@
 
     },
     "mudou o papel de" : {
+
+    },
+    "o código" : {
+
+    },
+    "o código do iPhone" : {
 
     },
     "orçamento" : {
