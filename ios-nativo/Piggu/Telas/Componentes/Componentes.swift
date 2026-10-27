@@ -153,6 +153,8 @@ struct BarraDeProgresso: View {
     var estourado = false
     var concluido = false
 
+    @State private var mostrado: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     @Environment(\.paleta) private var paleta
 
     var body: some View {
@@ -163,10 +165,17 @@ struct BarraDeProgresso: View {
                 GeometryReader { espaco in
                     Capsule()
                         .fill(estourado ? paleta.perigo : concluido ? paleta.sucesso : paleta.primaria)
-                        .frame(width: espaco.size.width * min(max(percentual, 0), 100) / 100)
+                        .frame(width: espaco.size.width * min(max(mostrado, 0), 100) / 100)
                 }
             }
             .accessibilityHidden(true)
+            // A barra enche ao aparecer e acompanha a mudanca, como o .progresso do site.
+            .onAppear { animar(percentual) }
+            .onChange(of: percentual) { _, novo in animar(novo) }
+    }
+
+    private func animar(_ valor: Double) {
+        withAnimation(reduzirMovimento ? nil : .easeOut(duration: 0.7)) { mostrado = valor }
     }
 }
 

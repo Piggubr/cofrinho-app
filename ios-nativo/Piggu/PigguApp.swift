@@ -47,6 +47,7 @@ struct PigguApp: App {
 struct RaizView: View {
     @Environment(Sessao.self) private var sessao
     @AppStorage(Tema.chave) private var temaEscolhido = Tema.chiclete
+    @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
     /// Link que chegou antes do login: abre depois que a pessoa entra.
     @State private var rota: Rota?
     /// Link da conta (e-mail, termos), aberto por cima de qualquer tela.
@@ -93,6 +94,7 @@ struct RaizView: View {
             }
         }
         .environment(\.paleta, tema.paleta)
+        .preferredColorScheme(modo.esquema)
         .tint(tema.paleta.primaria)
         .font(.sora())
         .animation(.default, value: sessao.estado)
@@ -147,7 +149,7 @@ private struct FolhaDaConta: View {
             EsqueciSenhaView()
         case .cpf:
             CpfView()
-        case .aba, .organizacao, .lancarGasto:
+        case .aba, .tela, .lancarGasto:
             EmptyView()
         }
     }

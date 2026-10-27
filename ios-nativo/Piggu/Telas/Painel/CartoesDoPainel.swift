@@ -120,7 +120,7 @@ struct CartaoDeAvisos: View {
     /// Receitas abre a aba; orcamento, fatura e contas do mes abrem a tela na pilha do Painel.
     @ViewBuilder
     private func linha(icone: String, titulo: String, detalhe: String, atrasada: Bool = false,
-                       tela: TelaDeOrganizacao? = nil, aba: Aba? = nil) -> some View {
+                       tela: TelaDoMais? = nil, aba: Aba? = nil) -> some View {
         let conteudo = LinhaDeAviso(icone: icone, titulo: titulo, detalhe: detalhe, atrasada: atrasada)
         if let tela {
             NavigationLink(value: tela) { conteudo }.buttonStyle(.plain)
@@ -195,7 +195,7 @@ struct CartaoDoMes: View {
                     .foregroundStyle(paleta.textoSuave)
             }
             HStack {
-                NavigationLink("Definir limite", value: TelaDeOrganizacao.orcamento)
+                NavigationLink("Definir limite", value: TelaDoMais.orcamento)
                 Spacer()
                 Button("Ver gastos") { irPara(.gastos) }
             }
@@ -536,19 +536,9 @@ struct CartaoDasMetas: View {
     var body: some View {
         let metas = modelo.metasDoMes ?? []
         let concluidas = metas.filter(\.concluida).count
-        let percentual = metas.isEmpty ? 0 : Int((Double(concluidas) / Double(metas.count) * 100).rounded())
         Cartao(nil) {
             HStack(spacing: 18) {
-                Chart {
-                    SectorMark(angle: .value("Concluídas", percentual), innerRadius: .ratio(0.72))
-                        .foregroundStyle(paleta.primaria)
-                    SectorMark(angle: .value("Faltam", 100 - percentual), innerRadius: .ratio(0.72))
-                        .foregroundStyle(paleta.trilho)
-                }
-                .chartLegend(.hidden)
-                .frame(width: 84, height: 84)
-                .overlay { Text("\(percentual)%").font(.sora(.subheadline, peso: .bold)) }
-                .accessibilityLabel("\(percentual)% das metas concluídas")
+                AnelDasMetas(percentual: MinhasMetasView.percentualConcluido(metas), pequeno: true)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Seu ritmo").font(.sora(.caption, peso: .semibold)).textCase(.uppercase)
                         .foregroundStyle(paleta.primaria)
@@ -564,7 +554,8 @@ struct CartaoDasMetas: View {
                     }
                     .font(.sora(.footnote))
                     .foregroundStyle(paleta.textoSuave)
-                    LinkDoSite(titulo: "Ver metas", caminho: "/metas").font(.sora(.footnote, peso: .medium))
+                    NavigationLink("Ver metas", value: TelaDoMais.metas)
+                        .buttonStyle(.bordered).controlSize(.small)
                 }
             }
         }
@@ -593,7 +584,8 @@ struct CartaoDoGirlsMath: View {
                 }
                 .accessibilityElement(children: .combine)
             }
-            LinkDoSite(titulo: "Registrar o que não comprei", caminho: "/girls-math").font(.sora(.footnote, peso: .medium))
+            NavigationLink("Registrar o que não comprei", value: TelaDoMais.girlsMath)
+                .font(.sora(.footnote, peso: .medium))
         }
     }
 }
@@ -612,7 +604,7 @@ struct CartaoDasNotas: View {
     var body: some View {
         let recentes = (modelo.notas ?? []).sorted { $0.criadoEm > $1.criadoEm }.prefix(5)
         Cartao("Suas notas") {
-            NavigationLink("Ver todas", value: TelaDeOrganizacao.calendario).font(.sora(.footnote))
+            NavigationLink("Ver todas", value: TelaDoMais.calendario).font(.sora(.footnote))
         } conteudo: {
             if let erro = modelo.erros[.notas] {
                 Faixa(texto: erro, tipo: .erro)

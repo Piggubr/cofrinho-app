@@ -42,6 +42,11 @@ struct Usuario: Codable, Equatable, Sendable {
     /// Versao dos Termos aceita por ultimo; nula em conta antiga.
     var termosAceitos: String?
     var temSenha: Bool?
+    /// A foto propria (enviada pelo app) e se ha a do Google para voltar a ela.
+    var fotoPropria: Bool?
+    var temFotoDoGoogle: Bool?
+    /// Avisos do dia por e-mail e no celular.
+    var avisos: Avisos?
     /// Moeda dos valores e a cotacao do topo; ausente em conta antiga.
     var preferencias: Preferencias?
     /// O que o casal ve um do outro e se o lancamento ja nasce compartilhado.
@@ -160,6 +165,11 @@ struct Preferencias: Codable, Equatable, Sendable {
     var fuso: String?
     var idioma: String?
     var modulos: [String]?
+}
+
+struct Avisos: Codable, Equatable, Sendable {
+    let email: Bool
+    let push: Bool
 }
 
 struct Compartilhamento: Codable, Equatable, Sendable {
@@ -420,27 +430,122 @@ struct Orcamento: Codable, Identifiable, Equatable, Sendable {
     let alerta: Alerta
 }
 
-/// Minhas metas do mes (piggu-lifestyle).
+/// Minhas metas do mes (piggu-lifestyle): so de quem criou, e valem para o mes.
 struct MetaDoMes: Codable, Identifiable, Equatable, Sendable {
     let id: String
     let titulo: String
+    var alvo: Int = 1
+    var atual: Int = 0
+    var mes: String?
     let concluida: Bool
 }
 
+struct NovaMetaDoMes: Codable, Sendable {
+    let titulo: String
+    let alvo: Int
+    let atual: Int
+}
+
+/// Algo que a pessoa viu, quis e nao comprou. So ela ve.
 struct ItemDoGirlsMath: Codable, Identifiable, Equatable, Sendable {
     let id: String
+    var produto: String = ""
+    var loja: String?
     let valor: Decimal
     let data: String
+    var fotoAssetId: String?
+    var temFoto: Bool?
+}
+
+struct NovoItemDoGirlsMath: Codable, Sendable {
+    let produto: String
+    let loja: String?
+    let valor: Decimal
+    let data: String
+    let imageBase64: String?
+    let mimeType: String?
 }
 
 struct MembroDaFamilia: Codable, Identifiable, Equatable, Sendable {
     let id: String
     let nome: String
+    var email: String?
     let papel: PigguRole
+    var parceriaPendente: Bool?
+}
+
+struct ConviteDaFamilia: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let email: String
+    let venceEm: String
+    /// Nome da familia que convidou (nos convites recebidos).
+    var familia: String?
 }
 
 struct Familia: Codable, Equatable, Sendable {
+    var id: String?
+    var nome: String = ""
+    var plano: Plano?
+    var planoFamilia: Bool?
+    var planoCasal: Bool?
     let membros: [MembroDaFamilia]
+    var convites: [ConviteDaFamilia]?
+}
+
+/// Quem lancou, alterou ou apagou cada coisa (GET /history e /family/history).
+struct EventoDeAuditoria: Codable, Identifiable, Equatable, Sendable {
+    let id: Int
+    let autor: String?
+    let acao: String
+    let entidade: String
+    let antes: String?
+    let depois: String?
+    let quando: String
+}
+
+struct MovimentoDeMoedas: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let data: String
+    let valor: Int
+    let motivo: String
+}
+
+/// Fofocoins: o saldo e o que entrou e saiu.
+struct SaldoDeMoedas: Codable, Equatable, Sendable {
+    let saldo: Int
+    let historico: [MovimentoDeMoedas]
+}
+
+struct Premio: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let nome: String
+    let descricao: String?
+    let preco: Int
+    let ativo: Bool
+}
+
+struct NovoPremio: Codable, Sendable {
+    let nome: String
+    let descricao: String
+    let preco: Int
+    let ativo: Bool
+}
+
+struct Resgate: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let premio: String
+    let preco: Int
+    let usuario: String?
+    let status: String
+    let data: String
+    let saldo: Int
+}
+
+struct MoedaDisponivel: Codable, Equatable, Sendable, Identifiable {
+    let codigo: String
+    let nome: String
+
+    var id: String { codigo }
 }
 
 struct RegraDeCategoria: Codable, Identifiable, Equatable, Sendable {

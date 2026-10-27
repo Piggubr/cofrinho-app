@@ -863,6 +863,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o backend não muda e o CSP do site já permite o script e os frames da Pluggy. Bancos que fazem OAuth dentro do widget abrem a página do banco a partir do navegador do sistema; vale testar com um banco de verdade antes do TestFlight.
 - Onde ver: `frontend/src/app/features/conectar-banco/`, `frontend/src/app/core/banking/pluggy-connect.service.ts`, `ios-nativo/Piggu/Core/Bancos/OpenFinance.swift`
 
+## D-092: Etapa 6 do iOS: Mais nos grupos do site, módulos no Perfil e ícone escolhido à parte da cor
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 6 do plano iOS (metas, Girls Math, Planejar, Prêmios, Família e Perfil). O site não tem tela para ligar e desligar os módulos de estilo de vida (só a rota `PUT /auth/me/modules`), troca o ícone do app num seletor próprio, separado da cor, e Compras, Lugares, Filmes e Fotos ainda não estão em nenhuma etapa do plano.
+- Decisão: o Mais segue os grupos e a ordem do menu do site (Planejar, Contas, Estilo de vida, Conta), com o Perfil no topo e o Premium só para o titular. O Perfil ganha "Telas do menu", com os seis módulos, e o Mais esconde o que estiver desligado (ausente liga todos, como no site). O ícone do app tem o seu seletor, como no site, com os mesmos 12 ícones do app Capacitor (`AppIcon-<id>` e `setAlternateIconName`); ele não muda sozinho com a cor, porque o iOS mostra um aviso a cada troca. Compras, Lugares, Filmes e Fotos abrem no site (D-090). Quem é membro vê as mesmas abas e telas, sem o Premium, e na Família a lista com "Sair da família", como no site.
+- Alternativas: trocar o ícone junto com a cor, que mostraria o aviso do sistema a cada troca de cor e não cobre os ícones que não têm cor (Clássico, P de Piggu, Silhueta, Namorados).
+- Consequências: o site pode ganhar a mesma tela de módulos depois; o app já usa o campo `preferencias.modulos`.
+- Onde ver: `ios-nativo/Piggu/Telas/MaisView.swift`, `ios-nativo/Piggu/Telas/Conta/PerfilView.swift`, `ios-nativo/Piggu/Core/Design/IconeDoApp.swift`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção

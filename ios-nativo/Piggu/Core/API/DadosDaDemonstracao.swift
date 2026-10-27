@@ -36,6 +36,29 @@ struct DadosDaDemonstracao {
     ]
     /// "id/aaaa-mm" das faturas marcadas como pagas.
     var faturasPagas: Set<String> = []
+    var metasDoMes: [[String: Any]] = [
+        ["id": "m1", "titulo": "Cozinhar em casa", "alvo": 4, "atual": 4],
+        ["id": "m2", "titulo": "Caminhar 10 km", "alvo": 10, "atual": 6],
+        ["id": "m3", "titulo": "Ler um livro", "alvo": 1, "atual": 0],
+    ]
+    var girlsMath: [[String: Any]] = [
+        ["id": "gm1", "produto": "Bolsa de couro", "loja": "Arezzo", "valor": 389.9, "temFoto": false],
+        ["id": "gm2", "produto": "Tênis de corrida", "loja": "Centauro", "valor": 499.0, "temFoto": false],
+    ]
+    var moedas = 120
+    var movimentos: [[String: Any]] = [
+        ["id": "mv1", "valor": 50, "motivo": "Arrumou a cozinha"],
+        ["id": "mv2", "valor": 70, "motivo": "Lavou o carro"],
+    ]
+    var premios: [[String: Any]] = [
+        ["id": "p1", "nome": "Escolher o filme de sexta", "descricao": "Sem reclamação", "preco": 60, "ativo": true],
+        ["id": "p2", "nome": "Jantar fora", "descricao": "", "preco": 300, "ativo": true],
+    ]
+    var resgates: [[String: Any]] = []
+    var convites: [[String: Any]] = [
+        ["id": "cv1", "email": "joao@exemplo.com", "venceEm": "2026-11-03"],
+    ]
+    var nomeDaFamilia = "Casa da Pessoa"
     var contasBancarias: [[String: Any]] = [
         ["id": novoId(), "conexaoId": "cx1", "instituicao": "Nubank", "nome": "Conta corrente", "tipo": "BANK",
          "numero": "0001-9", "saldo": 4210.55, "moeda": "BRL", "status": "UPDATED"],
@@ -183,6 +206,35 @@ struct DadosDaDemonstracao {
             "porCategoria": porCategoria.sorted { $0.value > $1.value }
                 .map { ["categoria": $0.key, "total": ($0.value * 100).rounded() / 100] },
         ]
+    }
+
+    private func meta(of meta: [String: Any], mes: String) -> [String: Any] {
+        var linha = meta
+        linha["mes"] = mes
+        linha["concluida"] = (meta["atual"] as? Int ?? 0) >= (meta["alvo"] as? Int ?? 1)
+        return linha
+    }
+
+    private var saldo: [String: Any] {
+        ["saldo": moedas, "historico": movimentos.enumerated().map { indice, movimento in
+            var linha = movimento
+            linha["data"] = Formatos.dia(Calendar.current.date(byAdding: .day, value: -indice * 2, to: Date())!)
+            linha["usuario"] = "USUARIA"
+            return linha
+        }]
+    }
+
+    private func familia(_ eu: String) -> [String: Any] {
+        ["id": "f1", "nome": nomeDaFamilia, "plano": "GRATUITO", "planoFamilia": false, "planoCasal": false,
+         "convites": convites,
+         "membros": [
+             ["id": eu, "nome": "Pessoa de Demonstração", "email": "demo@piggu.app", "foto": NSNull(), "papel": "TITULAR",
+              "premium": false],
+             ["id": Self.parceira, "nome": "Bia", "email": "bia@piggu.app", "foto": NSNull(), "papel": "PARCEIRO",
+              "premium": false],
+             ["id": "8a5c2f0e-0000-4000-8000-000000000003", "nome": "Lucas", "email": "lucas@piggu.app", "foto": NSNull(),
+              "papel": "MEMBRO", "premium": false],
+         ]]
     }
 
     private var cofrinho: [String: Any] {
@@ -408,22 +460,104 @@ struct DadosDaDemonstracao {
         case ("GET", "expenses/splits/transfers"):
             return (200, [["de": Self.parceira, "para": eu, "valor": 62.66]])
         case ("GET", "personal-goals"):
-            return (200, [
-                ["id": "m1", "titulo": "Cozinhar em casa 4x", "alvo": 4, "atual": 4, "mes": mes, "concluida": true],
-                ["id": "m2", "titulo": "Caminhar 10 km", "alvo": 10, "atual": 6, "mes": mes, "concluida": false],
-                ["id": "m3", "titulo": "Ler um livro", "alvo": 1, "atual": 0, "mes": mes, "concluida": false],
-            ])
+            return (200, metasDoMes.map { meta(of: $0, mes: Formatos.mes(Date())) })
+        case ("POST", "personal-goals"):
+            var nova = corpo
+            nova["id"] = Self.novoId()
+            metasDoMes.append(nova)
+            return (201, meta(of: nova, mes: Formatos.mes(Date())))
+        case ("PUT", _) where partes.count == 2 && partes[0] == "personal-goals":
+            guard let indice = metasDoMes.firstIndex(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            metasDoMes[indice].merge(corpo) { $1 }
+            return (200, meta(of: metasDoMes[indice], mes: Formatos.mes(Date())))
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "personal-goals":
+            return remover(&metasDoMes)
         case ("GET", "girls-math"):
-            return (200, [["id": "gm1", "produto": "Bolsa", "loja": "Arezzo", "valor": 389.9, "data": Formatos.dia(Date()),
-                           "fotoAssetId": NSNull(), "temFoto": false]])
+            return (200, girlsMath.enumerated().map { indice, item in
+                var linha = item
+                linha["data"] = Formatos.dia(Calendar.current.date(byAdding: .day, value: -indice * 3, to: Date())!)
+                linha["fotoAssetId"] = NSNull()
+                return linha
+            })
+        case ("POST", "girls-math"):
+            let item: [String: Any] = ["id": Self.novoId(), "produto": corpo["produto"] ?? "", "loja": corpo["loja"] ?? NSNull(),
+                                       "valor": corpo["valor"] ?? 0, "temFoto": false]
+            girlsMath.insert(item, at: 0)
+            var linha = item
+            linha["data"] = Formatos.dia(Date())
+            return (201, linha)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "girls-math":
+            return remover(&girlsMath)
+        case ("GET", "coins"):
+            return (200, saldo)
+        case ("POST", "coins/adjustments"):
+            let valor = corpo["valor"] as? Int ?? 0
+            moedas += valor
+            movimentos.insert(["id": Self.novoId(), "valor": valor, "motivo": corpo["motivo"] ?? ""], at: 0)
+            return (200, saldo)
+        case ("GET", "prizes"):
+            return (200, premios.filter { consulta("todos") == "true" || $0["ativo"] as? Bool == true })
+        case ("POST", "prizes"):
+            var novo = corpo
+            novo["id"] = Self.novoId()
+            premios.append(novo)
+            return (201, novo)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "prizes":
+            if let indice = premios.firstIndex(where: { $0["id"] as? String == partes[1] }) { premios[indice]["ativo"] = false }
+            return (204, nil)
+        case ("GET", "prizes/redemptions"):
+            return (200, resgates)
+        case ("POST", _) where partes.count == 3 && partes[0] == "prizes" && partes[2] == "redemptions":
+            guard let premio = premios.first(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            let preco = premio["preco"] as? Int ?? 0
+            guard moedas >= preco else { return (422, ["erro": "Fofocoins insuficientes.", "codigo": "SALDO"]) }
+            moedas -= preco
+            movimentos.insert(["id": Self.novoId(), "valor": -preco, "motivo": "Resgate: \(premio["nome"] ?? "")"], at: 0)
+            let resgate: [String: Any] = ["id": Self.novoId(), "premio": premio["nome"] ?? "", "preco": preco, "usuario": eu,
+                                          "status": "PENDENTE", "data": Formatos.dia(Date()), "saldo": moedas]
+            resgates.insert(resgate, at: 0)
+            return (201, resgate)
         case ("GET", "family"):
-            return (200, ["id": "f1", "nome": "Casa", "plano": "GRATUITO", "planoFamilia": false, "convites": [Any](),
-                          "membros": [
-                              ["id": eu, "nome": "Pessoa", "email": "demo@piggu.app", "foto": NSNull(),
-                               "papel": "TITULAR", "premium": false],
-                              ["id": Self.parceira, "nome": "Bia", "email": "bia@piggu.app", "foto": NSNull(),
-                               "papel": "PARCEIRO", "premium": false],
-                          ]])
+            return (200, familia(eu))
+        case ("PUT", "family"):
+            nomeDaFamilia = corpo["nome"] as? String ?? nomeDaFamilia
+            return (200, familia(eu))
+        case ("POST", "family/invites"):
+            convites.append(["id": Self.novoId(), "email": corpo["email"] ?? "",
+                             "venceEm": Formatos.dia(Calendar.current.date(byAdding: .day, value: 7, to: Date())!)])
+            return (201, familia(eu))
+        case ("DELETE", _) where partes.count == 3 && partes[0] == "family" && partes[1] == "invites":
+            convites.removeAll { $0["id"] as? String == partes[2] }
+            return (200, familia(eu))
+        case ("GET", "family/invites/mine"):
+            return (200, [Any]())
+        case ("PUT", _) where partes.count == 4 && partes[1] == "members", ("DELETE", _) where partes.count == 3 && partes[1] == "members":
+            return (200, familia(eu))
+        case ("POST", "family/leave"), ("POST", "family/partnership/accept"):
+            return (204, nil)
+        case ("POST", "family/partnership/decline"):
+            return (200, familia(eu))
+        case ("GET", "history"):
+            return (200, [
+                ["id": 2, "autor": Self.parceira, "acao": "CRIOU", "entidade": "gasto", "entidadeId": NSNull(),
+                 "antes": NSNull(), "depois": "Cinema · R$ 64,00", "quando": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600))],
+                ["id": 1, "autor": eu, "acao": "EDITOU", "entidade": "orcamento", "entidadeId": NSNull(),
+                 "antes": "R$ 300,00", "depois": "R$ 380,00", "quando": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86_400))],
+            ])
+        case ("GET", "family/history"):
+            return (200, [["id": 3, "autor": eu, "acao": "CONVIDOU", "entidade": "pessoa", "entidadeId": NSNull(),
+                           "antes": NSNull(), "depois": "joao@exemplo.com",
+                           "quando": ISO8601DateFormatter().string(from: Date().addingTimeInterval(-7200))]])
+        case ("GET", "exchange-rate/currencies"):
+            return (200, [["codigo": "BRL", "nome": "Real brasileiro"], ["codigo": "EUR", "nome": "Euro"],
+                          ["codigo": "USD", "nome": "Dólar americano"], ["codigo": "GBP", "nome": "Libra esterlina"],
+                          ["codigo": "ARS", "nome": "Peso argentino"]])
+        case ("GET", "me/export"):
+            return (200, Data(#"{"conta":{"nome":"Pessoa de Demonstração"},"gastos":[]}"#.utf8))
+        case ("DELETE", "receipts/consent"), ("DELETE", "assistant/consent"):
+            return (204, nil)
+        case ("GET", "users"):
+            return (200, [Any]())
         case ("GET", "banking/status"):
             return (200, ["habilitado": true])
         case ("GET", "banking/accounts"), ("POST", "banking/sync"):
