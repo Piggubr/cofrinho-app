@@ -872,6 +872,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o site pode ganhar a mesma tela de módulos depois; o app já usa o campo `preferencias.modulos`.
 - Onde ver: `ios-nativo/Piggu/Telas/MaisView.swift`, `ios-nativo/Piggu/Telas/Conta/PerfilView.swift`, `ios-nativo/Piggu/Core/Design/IconeDoApp.swift`
 
+## D-093: Etapa 7 do iOS: widgets pelo App Group, Siri com a sessão do app e push que abre o Painel
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 7 do plano iOS (Compras, Lugares, Filmes e Fotos, widgets, Siri, Face ID, notificações, TipKit, leitura da nota e Spotlight). Os widgets rodam fora do app, sem sessão; o push do backend é o resumo do dia (fatura, orçamento, contas) e não diz a tela; o tour do site tem uma dica do assistente, que o app ainda não tem.
+- Decisão: um alvo novo, `PigguWidgetsExtension`, lê só um resumo do mês (gasto, limite, a próxima meta, a cor) que o app grava no App Group `group.br.com.piggu.app` ao abrir, ao voltar e depois de lançar, e recarrega com `WidgetCenter.reloadAllTimelines()`; nada de token, e-mail ou lista de gastos, e o resumo some ao sair da conta. O "Lançar gasto" (Siri, Atalhos e o controle da Central de Controle) é o `LancarGastoIntent` do app Capacitor, compartilhado com o widget, e abre a folha nativa. "Quanto gastei este mês" responde em voz sem abrir o app, com a sessão do próprio app (o refresh no cookie ou no Keychain) e, sem rede, com o último resumo e a hora dele. Tocar numa notificação abre o Painel ("Para ficar de olho"), ou a tela de uma chave `rota` se o backend mandar no futuro. A permissão de notificação é pedida ao ligar "Notificação neste iPhone" no Perfil, como no site. O tour vira dicas do TipKit perto do que explicam, sem a do assistente. A leitura da nota usa o `DataScannerViewController` e só preenche total e data quando acha uma linha de total; senão a pessoa digita. Os gastos do mês vão para o Spotlight e saem ao sair da conta.
+- Alternativas: o widget chamar a API com um token guardado no App Group, que deixaria uma credencial fora do Keychain e de qualquer controle de sessão; pedir a permissão de notificação ao abrir o app, que o site não faz e que a Apple desaconselha.
+- Consequências: para o TestFlight, o App Group, o alvo do widget (`br.com.piggu.app.PigguWidgets`) e o Push Notifications precisam estar no App ID; a assinatura automática do Xcode registra. O backend pode mandar `rota` no push quando quiser abrir uma tela específica.
+- Onde ver: `ios-nativo/PigguWidgets/`, `ios-nativo/Compartilhado/`, `ios-nativo/Piggu/Core/Sistema/`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
