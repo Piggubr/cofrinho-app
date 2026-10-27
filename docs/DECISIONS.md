@@ -805,6 +805,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: trocar o ID do site exige trocar também o `GOOGLE_SERVER_CLIENT_ID` do app. O ID do iOS precisa estar no mesmo projeto do Google Cloud que o do site.
 - Onde ver: `ios-nativo/Config/Piggu.xcconfig`, `ios-nativo/Piggu/Core/Auth/EntradaComGoogle.swift`, `frontend/public/.well-known/apple-app-site-association`, `deploy/Caddyfile`
 
+## D-086: Etapa 4 do iOS: o que ainda não é nativo abre no site
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 4 do plano iOS (Painel, Gastos e Receitas com paridade com o site). Os cartões do Painel e os formulários levam a telas que só chegam ao app nas etapas 5 a 7 (orçamentos, contas do mês, cartões e bancos, metas, Girls Math, calendário, Premium), e duas funções dependem de algo que o app ainda não tem: a leitura de nota por foto (etapa 7) e o widget da Pluggy para conectar banco.
+- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
+- Alternativas: esconder os atalhos até a etapa certa, que deixaria cartões sem saída; abrir o site numa web view, que pede login de novo dentro dela.
+- Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
+- Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
@@ -878,6 +887,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: decisões espalhadas em PRs e documentos fora do repositório.
 - Consequências: decisão antiga nunca é apagada; se mudar, vira "Substituída por".
 - Onde ver: [CLAUDE.md](../CLAUDE.md)
+
+## D-085: App iOS nativo junta na `feature/ios-nativo` antes da `develop`
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: as etapas do iOS nativo saem uma por PR, empilhadas umas nas outras, e o Dudu quer testar o app com tudo junto antes de levar para a `develop`.
+- Decisão: os PRs das etapas (`swift/etapa-N`) vão para a `feature/ios-nativo`, criada a partir da `develop`. Quando o conjunto estiver testado, um PR leva a `feature/ios-nativo` para a `develop`, pelo caminho normal da D-061.
+- Alternativas: cada etapa direto na `develop`, que levaria app pela metade para a branch que junta as features.
+- Consequências: a `feature/ios-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O CI do iOS (`ios-nativo.yml`) roda em PR para qualquer branch.
+- Onde ver: [ios-nativo/CLAUDE.md](../ios-nativo/CLAUDE.md), [branches.md](branches.md)
 
 ---
 
