@@ -16,7 +16,7 @@ struct PrincipalView: View {
     @State private var versaoDosDados = 0
     @State private var aviso: String?
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
-    @State private var caminhoDoMais: [TelaDeOrganizacao] = []
+    @State private var caminhoDoMais: [TelaDoMais] = []
 
     var body: some View {
         abas
@@ -36,6 +36,12 @@ struct PrincipalView: View {
             }
             .onChange(of: rota, initial: true) { _, nova in
                 abrir(nova)
+            }
+            .task(id: sessao.usuario?.plano) {
+                // O Premium acabou: o icone do Premium volta ao padrao, como a cor (Classico fica).
+                if await IconeDoApp.voltarAoPadraoSemPremium(sessao.usuario?.plano == .premium) {
+                    avisar(String(localized: "O Premium acabou, então a cor e o ícone voltaram para o padrão."))
+                }
             }
             .task(id: rede.conectado) {
                 guard rede.conectado else { return }
@@ -114,7 +120,7 @@ struct PrincipalView: View {
         switch rota {
         case let .aba(destino):
             aba = destino
-        case let .organizacao(tela):
+        case let .tela(tela):
             aba = .mais
             caminhoDoMais = [tela]
         case let .lancarGasto(valor):

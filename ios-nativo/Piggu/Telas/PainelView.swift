@@ -41,7 +41,7 @@ struct PainelView: View {
                     }
                 }
             }
-            .comTelasDeOrganizacao()
+            .comTelasDoMais()
             .sheet(isPresented: $organizando) {
                 if let painel { OrganizarPainelView(painel: painel) }
             }

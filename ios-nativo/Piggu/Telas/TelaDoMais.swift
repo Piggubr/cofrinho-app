@@ -1,44 +1,71 @@
 import SwiftUI
 
-/// As telas de organizar, na ordem do menu do site: abrem no Mais e tambem pelos atalhos do
-/// Painel e do lancamento (NavigationLink(value:) na pilha de cada aba).
-enum TelaDeOrganizacao: String, CaseIterable, Hashable {
-    case orcamento, contasDoMes, cartoes, calendario
+/// As telas do Mais, na ordem e nos grupos do menu do site (shell.ts). Abrem no Mais e tambem
+/// pelos atalhos do Painel e do lancamento (NavigationLink(value:) na pilha de cada aba).
+enum TelaDoMais: String, CaseIterable, Hashable {
+    case planejar, metas, orcamento, contasDoMes, cartoes, calendario, premios, girlsMath, familia, perfil
 
     var titulo: LocalizedStringKey {
         switch self {
+        case .planejar: "Planejar"
+        case .metas: "Minhas metas"
         case .orcamento: "Orçamento"
         case .contasDoMes: "Contas do mês"
         case .cartoes: "Cartões e bancos"
         case .calendario: "Calendário"
+        case .premios: "Prêmios"
+        case .girlsMath: "Girls Math"
+        case .familia: "Família"
+        case .perfil: "Perfil"
         }
     }
 
-    /// Os simbolos do menu do site (icone.ts): pizza, recibo, cartao, calendario.
+    /// Os simbolos do menu do site (icone.ts): alvo, bandeira, pizza, recibo, cartao...
     var simbolo: String {
         switch self {
+        case .planejar: "target"
+        case .metas: "flag"
         case .orcamento: "chart.pie"
         case .contasDoMes: "doc.text"
         case .cartoes: "creditcard"
         case .calendario: "calendar"
+        case .premios: "trophy"
+        case .girlsMath: "bag"
+        case .familia: "person.2"
+        case .perfil: "person.crop.circle"
+        }
+    }
+
+    /// Modulo de estilo de vida que liga ou desliga a tela no menu (Perfil); nil, sempre aparece.
+    var modulo: String? {
+        switch self {
+        case .premios: "premios"
+        case .girlsMath: "girls-math"
+        default: nil
         }
     }
 
     @ViewBuilder
     var tela: some View {
         switch self {
+        case .planejar: PlanejarView()
+        case .metas: MinhasMetasView()
         case .orcamento: OrcamentoView()
         case .contasDoMes: ContasDoMesView()
         case .cartoes: ContasECartoesView()
         case .calendario: CalendarioView()
+        case .premios: PremiosView()
+        case .girlsMath: GirlsMathView()
+        case .familia: FamiliaView()
+        case .perfil: PerfilView()
         }
     }
 }
 
 extension View {
-    /// A pilha da aba sabe abrir as telas de organizar.
-    func comTelasDeOrganizacao() -> some View {
-        navigationDestination(for: TelaDeOrganizacao.self) { $0.tela }
+    /// A pilha da aba sabe abrir as telas do Mais.
+    func comTelasDoMais() -> some View {
+        navigationDestination(for: TelaDoMais.self) { $0.tela }
     }
 }
 
