@@ -33,6 +33,9 @@ import java.util.UUID;
  * nao entrou nenhuma vez pelo Google.</p>
  *
  * <p>{@code apelido} ou {@code nascimento} nulos: o front pede os dois antes de liberar o app.</p>
+ *
+ * <p>{@code cadastroCompleto} falso: falta apelido, nascimento, CPF ou celular, e os outros
+ * servicos recusam com {@code CADASTRO_PENDENTE} ate completar (D-088).</p>
  */
 
 public record UserResponse(
@@ -58,7 +61,9 @@ public record UserResponse(
         boolean emailConfirmado,
         String pais,
         LocalDate nascimento,
-        Compartilhamento compartilhamento
+        Compartilhamento compartilhamento,
+        boolean celularInformado,
+        boolean cadastroCompleto
 ) {
 
     /**
@@ -111,7 +116,9 @@ public record UserResponse(
                 conta.isEmailVerified(),
                 conta.getPais(),
                 conta.getBirthDate(),
-                new Compartilhamento(conta.getShowsAllTo() != null, conta.isSharesByDefault())
+                new Compartilhamento(conta.getShowsAllTo() != null, conta.isSharesByDefault()),
+                conta.getPhone() != null,
+                !conta.cadastroIncompleto()
         );
     }
 }

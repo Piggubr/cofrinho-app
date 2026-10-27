@@ -24,7 +24,7 @@ function conta(mudancas: Partial<ContaFixa>): ContaFixa {
   };
 }
 
-function cartao(id: string, vencimento: string, total: number): ContaOuCartao {
+function cartao(id: string, vencimento: string, total: number, paga = false): ContaOuCartao {
   const fatura = {
     mes: MES,
     inicio: MES + '-01',
@@ -32,6 +32,7 @@ function cartao(id: string, vencimento: string, total: number): ContaOuCartao {
     fechamento: MES + '-26',
     vencimento,
     total,
+    paga,
   };
   return {
     id,
@@ -120,17 +121,19 @@ describe('AvisosDoMes', () => {
     expect(pagina.querySelectorAll('a.atrasada').length).toBe(1);
   });
 
-  it('avisa so a fatura fechada com valor que vence em ate 10 dias', () => {
+  it('avisa so a fatura fechada, com valor e nao paga, que vence em ate 10 dias', () => {
     const pagina = abrir({
       cartoes: [
         cartao('perto', daqui(3), 800),
         cartao('longe', daqui(30), 800),
         cartao('zerada', daqui(2), 0),
+        cartao('paga', daqui(2), 800, true),
       ],
     });
     expect(pagina.textContent).toContain('Cartão perto vence em');
     expect(pagina.textContent).not.toContain('Cartão longe');
     expect(pagina.textContent).not.toContain('Cartão zerada');
+    expect(pagina.textContent).not.toContain('Cartão paga');
   });
 
   it('avisa conta vencida e a vencer, mas nao a paga', () => {

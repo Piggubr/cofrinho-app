@@ -178,6 +178,61 @@ paths:
       summary: Fatura do cartão no mês
       tags:
       - Contas e cartões
+  /api/accounts/{id}/statement/paid:
+    delete:
+      operationId: accountDesfazerPagamento
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: mes
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Desfazer o pagamento da fatura do cartão
+      tags:
+      - Contas e cartões
+    put:
+      operationId: accountPagarFatura
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: mes
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Marcar a fatura do cartão como paga
+      tags:
+      - Contas e cartões
   /api/assistant:
     get:
       operationId: assistantSituacao
@@ -1795,6 +1850,11 @@ components:
         id:
           type: string
           format: uuid
+        segundoDia:
+          type: integer
+          format: int32
+        segundoValor:
+          type: number
         situacao:
           type: string
           enum:
@@ -2111,6 +2171,8 @@ components:
           format: date
         mes:
           type: string
+        paga:
+          type: boolean
         total:
           type: number
         ultimaCompra:
@@ -2160,6 +2222,15 @@ components:
           minLength: 0
         recorrente:
           type: boolean
+        segundoDia:
+          type: integer
+          format: int32
+          maximum: 31
+          minimum: 1
+        segundoValor:
+          type: number
+          maximum: 10000000
+          minimum: 0.01
         valor:
           type: number
           maximum: 10000000

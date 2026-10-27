@@ -44,6 +44,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static final String CLAIM_FAMILIA = "familia";
         /** Falso quando a conta ainda nao informou o CPF (ver {@link CpfObrigatorio}). */
         public static final String CLAIM_CPF = "cpf";
+        /** Falso quando falta apelido, nascimento, CPF ou celular (ver {@link CpfObrigatorio}). */
+        public static final String CLAIM_CADASTRO = "cadastro";
         /** So no token do titular e do parceiro: de quem mais da familia eles veem os dados. */
 
         public static final String CLAIM_TAMBEM_VE = "tambemVe";

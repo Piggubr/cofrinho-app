@@ -67,7 +67,43 @@ describe('SobreVoce', () => {
     await tela.whenStable();
 
     expect(auth.usuario()?.apelido).toBe('Ti');
-    expect(navegar).toHaveBeenCalledWith('/painel');
+    await vi.waitFor(() => expect(navegar).toHaveBeenCalledWith('/painel'));
+    expect(auth.renovacoes()).toBe(1);
+  });
+
+  it('quem entrou pelo Google sem CPF e celular completa o cadastro antes do painel', async () => {
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    auth.usuario.set(
+      usuarioDeTeste({ cpfInformado: false, celularInformado: false, cadastroCompleto: false }),
+    );
+    const tela = await abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('complete seu cadastro');
+    digitar(pagina, '#nascimento', '1990-05-10');
+
+    await enviar(tela);
+    expect(pagina.textContent).toContain('Informe seu CPF.');
+    digitar(pagina, '#cpf', '52998224724');
+    await enviar(tela);
+    expect(pagina.textContent).toContain('CPF inválido');
+    digitar(pagina, '#cpf', '52998224725');
+    expect(pagina.querySelector<HTMLInputElement>('#cpf')!.value).toBe('529.982.247-25');
+    await enviar(tela);
+    expect(pagina.textContent).toContain('Informe seu celular.');
+    expect(http.match(() => true)).toEqual([]);
+
+    digitar(pagina, '#telefone', '(11) 99999-8888');
+    await enviar(tela);
+    const pedido = http.expectOne('/api/me/sobre-voce');
+    expect(pedido.request.body).toEqual({
+      apelido: 'Titular',
+      nascimento: '1990-05-10',
+      cpf: '52998224725',
+      telefone: '+55 (11) 99999-8888',
+    });
+    pedido.flush(usuarioDeTeste({ cadastroCompleto: true }));
+    await vi.waitFor(() => expect(navegar).toHaveBeenCalledWith('/painel'));
+    expect(auth.renovacoes()).toBe(1);
   });
 
   it('quem ja tem nascimento so manda o apelido; erro da API aparece', async () => {

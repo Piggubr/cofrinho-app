@@ -48,11 +48,12 @@ public class TokenService {
     }
 
     /**
-     * O token de uso diario. Ja nao leva a claim {@code cpf}: o documento virou opcional
-     * (Eduardo, 2026-10-13), entao nenhum servico barra quem nao informou.
+     * O token de uso diario. Com o cadastro incompleto leva {@code cadastro=false}, e os outros
+     * servicos recusam ate completar (D-088). Os tokens internos nao levam: apagar a conta e o
+     * lembrete funcionam com o cadastro pela metade.
      */
     public String gerarAccessToken(UserAccount conta, Household familia) {
-        return gerar(conta, familia, propriedades.accessTtl(), null);
+        return gerar(conta, familia, propriedades.accessTtl(), null, null, conta.cadastroIncompleto());
     }
 
     /**
@@ -74,11 +75,16 @@ public class TokenService {
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao) {
-        return gerar(conta, familia, validade, exclusao, null);
+        return gerar(conta, familia, validade, exclusao, null, false);
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
                          UUID destino) {
+        return gerar(conta, familia, validade, exclusao, destino, false);
+    }
+
+    private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
+                         UUID destino, boolean cadastroPendente) {
         Instant agora = Instant.now();
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .issuer(propriedades.issuer())
@@ -98,6 +104,9 @@ public class TokenService {
         }
         if (destino != null) {
             claims.claim(EscopoDeExclusao.CLAIM_DESTINO, destino.toString());
+        }
+        if (cadastroPendente) {
+            claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_CADASTRO, false);
         }
         // Titular e parceiro veem tambem os dados dos menores e, se o outro escolheu mostrar,
         // tudo o que o outro lanca (DonoAtual nos servicos). Fez 18 anos, mudou de papel, de
