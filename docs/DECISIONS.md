@@ -854,6 +854,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
 - Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
 
+## D-091: Conectar banco no app nativo pela página do site, num ASWebAuthenticationSession
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 5 do plano iOS. O site conecta bancos pelo widget da Pluggy, que só existe em JavaScript e avisa o banco conectado por callback, sem redirecionar. O app nativo não pode abrir um WebView para isso (a pessoa digita a senha do banco), e a Pluggy não tem uma página hospedada que devolva o item por redirecionamento (o `oauthRedirectUri` dela só cobre a volta do OAuth do banco dentro do widget).
+- Decisão: o site ganha a página pública `/conectar-banco`. O app pede o token em `POST /api/banking/connect-token` (com a autorização, como o site), abre `https://piggu.com.br/conectar-banco#token=...` num `ASWebAuthenticationSession` efêmero e espera `piggu://banco-conectado?item=...` (ou `?fechou=1`, `?erro=...`). A página não tem sessão nem chama a API: lê o token do fragmento (que não vai ao servidor nem aos logs), tira ele do histórico, abre o widget com o mesmo `PluggyConnectService` do site e redireciona com o resultado. O app registra o item em `POST /api/banking/items`.
+- Alternativas: o SDK nativo da Pluggy, que é uma biblioteca nova (o app só usa os SDKs da Apple e o Google Sign-In, D-055) e por dentro é um WebView; um WebView próprio, proibido pelo plano.
+- Consequências: o backend não muda e o CSP do site já permite o script e os frames da Pluggy. Bancos que fazem OAuth dentro do widget abrem a página do banco a partir do navegador do sistema; vale testar com um banco de verdade antes do TestFlight.
+- Onde ver: `frontend/src/app/features/conectar-banco/`, `frontend/src/app/core/banking/pluggy-connect.service.ts`, `ios-nativo/Piggu/Core/Bancos/OpenFinance.swift`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
