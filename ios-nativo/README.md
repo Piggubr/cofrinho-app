@@ -68,31 +68,12 @@ responde como link vencido.
 
 ### Universal Links (links do e-mail)
 
-O app já tem o *Associated Domains* `applinks:piggu.com.br`. Para o link do e-mail abrir o app em
-vez do site, falta publicar no site o arquivo `https://piggu.com.br/.well-known/apple-app-site-association`
-(JSON, sem extensão, sem redirecionamento), com o Team ID da conta de desenvolvedor no lugar de
-`TEAMID`:
-
-```json
-{
-  "applinks": {
-    "details": [
-      {
-        "appIDs": ["TEAMID.br.com.piggu.app"],
-        "components": [
-          { "/": "/confirmar-email", "?": { "token": "?*" } },
-          { "/": "/redefinir-senha", "?": { "token": "?*" } }
-        ]
-      }
-    ]
-  },
-  "webcredentials": { "apps": ["TEAMID.br.com.piggu.app"] }
-}
-```
-
-No site, o arquivo vai em `frontend/public/.well-known/` e o `deploy/Caddyfile` precisa servi-lo
-com `Content-Type: application/json`. Enquanto ele não existir, o link abre o site, que tem as
-mesmas telas.
+O app tem o *Associated Domains* `applinks:piggu.com.br`, e o site publica
+`https://piggu.com.br/.well-known/apple-app-site-association` (`frontend/public/.well-known/`,
+servido como JSON pelo `deploy/Caddyfile`) com o App ID `H766LA27ZJ.br.com.piggu.app`. Os links
+de `/confirmar-email` e `/redefinir-senha` abrem o app; sem o app, abrem o site, que tem as
+mesmas telas. A Apple lê o arquivo pela CDN dela, então o app só passa a abrir os links depois
+que ele estiver no ar em produção.
 
 ## Bibliotecas
 
@@ -112,29 +93,20 @@ A fonte Sora (`Piggu/Recursos/Sora.woff2`) é o mesmo arquivo do pacote
 O alvo tem a capacidade *Sign in with Apple* (`Piggu/Piggu.entitlements`). O app manda o
 identity token, o nonce e, na primeira vez, o nome para `POST /api/auth/apple` (D-072). No
 servidor, `APPLE_CLIENT_IDS=br.com.piggu.app`; sem isso a rota responde 501 e o app mostra
-"O login com a Apple ainda não está disponível". No Xcode, ao escolher o *Team*, a assinatura
-automática registra a capacidade no App ID.
+"O login com a Apple ainda não está disponível". O projeto assina com o Team `H766LA27ZJ`; a
+assinatura automática registra a capacidade no App ID.
 
 ## Entrar com Google
 
-O botão só aparece quando o build tem o ID OAuth do iOS, que fica em
-`Config/Google.xcconfig`, fora do Git (`Config/Piggu.xcconfig` o inclui se existir). Para
-criar:
+Os IDs OAuth ficam em `Config/Piggu.xcconfig`: são públicos e vão dentro do app. O do iOS
+(tipo **iOS** no [Google Cloud Console](https://console.cloud.google.com/apis/credentials), no
+mesmo projeto do site, ID do pacote `br.com.piggu.app`) abre o login e dá o esquema de URL de
+volta (`GOOGLE_IOS_URL_SCHEME`, o mesmo ID ao contrário). Sem `GOOGLE_IOS_CLIENT_ID` o botão
+não aparece.
 
-1. No [Google Cloud Console](https://console.cloud.google.com/apis/credentials), no mesmo
-   projeto do ID do site, *Criar credenciais → ID do cliente OAuth*.
-2. Tipo de aplicativo **iOS**, nome "Piggu iOS", ID do pacote `br.com.piggu.app` (o Team ID e o
-   ID da App Store são opcionais). Criar.
-3. Copie `Config/Google.exemplo.xcconfig` para `Config/Google.xcconfig` e preencha
-   `GOOGLE_IOS_CLIENT_ID` com o *ID do cliente* e `GOOGLE_IOS_URL_SCHEME` com o *esquema de URL
-   do iOS* que a tela mostra (o mesmo ID ao contrário, `com.googleusercontent.apps....`).
-
-O servidor não muda: o app pede o token para o ID do site (`GIDServerClientID`, em
-`Config/Piggu.xcconfig`), então o `aud` é o mesmo que o backend já aceita em `GOOGLE_CLIENT_ID`.
-Não ponha dois IDs separados por vírgula nessa variável: o `application.yml` a lê como um
-item só da lista e o login do site para.
-
-No CI o arquivo não existe: o app compila e o botão fica escondido.
+O servidor não muda: o app pede o token para o ID do site (`GIDServerClientID`), então o `aud` é
+o mesmo que o backend já aceita em `GOOGLE_CLIENT_ID`. Não ponha dois IDs separados por vírgula
+nessa variável: o `application.yml` a lê como um item só da lista e o login do site para.
 
 ## Regras e CI
 
@@ -208,7 +180,6 @@ etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/);
 
 ## O que falta
 
-- **ID do Google para iOS** e **Universal Links**: os passos acima.
 - **Revogar o token da Apple ao excluir a conta**, que a App Store exige: falta no backend
   (`docs/API_SPEC.md`).
 - Trocar e criar senha no Perfil (`PUT /api/auth/me/senha`, com o `refreshToken` no corpo).

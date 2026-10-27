@@ -30,5 +30,3 @@ frontend/.angular/
 *credentials*.json
 service-account*.json
 
-# iOS nativo: o ID OAuth do Google (veja ios-nativo/Config/Google.exemplo.xcconfig)
-ios-nativo/Config/Google.xcconfig

@@ -2,7 +2,7 @@ import GoogleSignIn
 import UIKit
 
 /// Google Sign-In nativo (D-055): devolve o ID token que vai para POST /auth/google. O ID OAuth
-/// do iOS vem do `Config/Google.xcconfig`, fora do Git; sem ele o botao nao aparece.
+/// do iOS vem do `Config/Piggu.xcconfig`; sem ele o botao nao aparece.
 @MainActor
 enum EntradaComGoogle {
     /// O GIDClientID do Info.plist, preenchido pelo build setting GOOGLE_IOS_CLIENT_ID.
