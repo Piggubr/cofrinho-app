@@ -26,6 +26,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 /**
  * Contas fixas: aluguel, luz, internet. "Marcar como paga" lanca o gasto do mes, uma
@@ -42,7 +43,7 @@ public class ContasFixasService {
     }
 
     private static final Logger log = LoggerFactory.getLogger(ContasFixasService.class);
-    private static final String ORIGEM = "Conta fixa";
+    static final String ORIGEM = "Conta fixa";
 
     private final RecurringBillRepository repositorio;
     private final ExpenseService gastos;
@@ -82,12 +83,6 @@ public class ContasFixasService {
                     return new ContaDoMes(conta, vencimento, situacao);
                 })
                 .toList();
-    }
-
-    @Transactional
-    public RecurringBill criar(String descricao, String categoria, BigDecimal valor, int dia, boolean automatico,
-                               UUID autor) {
-        return criar(descricao, categoria, valor, dia, automatico, autor, false);
     }
 
     /** @param compartilhado a conta e o gasto que ela lanca aparecem para todos da familia */
@@ -146,21 +141,27 @@ public class ContasFixasService {
         return salvos;
     }
 
-    /** Receita que entra todo mes no mesmo dia: lanca a deste mes e liga o automatico para os proximos. */
+    /**
+     * Receita que entra todo mes no mesmo dia: lanca a deste mes e liga o automatico para os proximos.
+     *
+     * @param segundoDia   dia da segunda parcela (o salario do dia 20 e do dia 5); nulo quando entra de uma vez
+     * @param segundoValor valor da segunda parcela; junto com o dia
+     */
     @Transactional
     public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                          UUID autor) {
-        return lancarReceitaRecorrente(data, descricao, categoria, valor, autor, false);
-    }
-
-    @Transactional
-    public Income lancarReceitaRecorrente(LocalDate data, String descricao, String categoria, BigDecimal valor,
-                                          UUID autor, boolean compartilhado) {
+                                          UUID autor, boolean compartilhado, Integer segundoDia,
+                                          BigDecimal segundoValor) {
+        if ((segundoDia == null) != (segundoValor == null)) {
+            throw new BusinessException("Informe o dia e o valor da segunda parcela.");
+        }
         Income receita = receitas.criar(data, descricao, categoria, valor, autor, compartilhado);
         RecurringBill conta = new RecurringBill(RecurringBill.Tipo.RECEITA, receita.getDescription(),
                 receita.getCategory(), valor, data.getDayOfMonth(), true, null, autor);
         conta.compartilhar(compartilhado);
         conta.marcarPaga(YearMonth.from(data));
+        if (segundoDia != null) {
+            conta.dividir(segundoDia, segundoValor, data);
+        }
         trilha.criou("receita-recorrente", repositorio.save(conta).getId(), Resumos.contaFixa(conta));
         return receita;
     }
@@ -173,7 +174,12 @@ public class ContasFixasService {
     @Transactional
     public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
         RecurringBill conta = buscar(id);
-        if (conta.pagaEm(mes)) {
+        // Conferir e lancar separados deixava dois toques ao mesmo tempo lancarem duas vezes:
+        // o UPDATE condicional trava a linha e so um passa.
+        if (conta.pagaEm(mes) || jdbc.update("""
+                UPDATE recurring_bills SET last_paid_month = ?
+                WHERE id = ? AND household_id = ? AND (last_paid_month IS NULL OR last_paid_month < ?)
+                """, mes.toString(), id, FamiliaAtual.atual(), mes.toString()) == 0) {
             throw new BusinessException("Esta conta já foi lançada em " + mes + ".", HttpStatus.CONFLICT, "JA_PAGA");
         }
         ExpenseResponse gasto = null;
@@ -184,7 +190,7 @@ public class ContasFixasService {
             // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou.
             gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
                     List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared()), autor).get(0);
+                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared(), null), autor).get(0);
         }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,
@@ -206,23 +212,46 @@ public class ContasFixasService {
     void lancarAutomaticas(LocalDate hoje) {
         YearMonth mes = YearMonth.from(hoje);
         int ateODia = hoje.getDayOfMonth() == mes.lengthOfMonth() ? 31 : hoje.getDayOfMonth();
-        List<Map<String, Object>> devidas = jdbc.queryForList("""
+        lancarAutomaticas(jdbc.queryForList("""
                 SELECT id, household_id, user_id FROM recurring_bills
                 WHERE active AND auto_launch AND due_day <= ? AND (last_paid_month IS NULL OR last_paid_month < ?)
-                """, ateODia, mes.toString());
+                """, ateODia, mes.toString()), (id, dono) -> pagar(id, mes, dono), "Contas fixas");
+        lancarAutomaticas(jdbc.queryForList("""
+                SELECT id, household_id, user_id FROM recurring_bills
+                WHERE active AND auto_launch AND second_due_day <= ? AND (second_paid_month IS NULL OR second_paid_month < ?)
+                """, ateODia, mes.toString()), (id, dono) -> receberSegundaParcela(id, mes, dono), "Segundas parcelas");
+    }
+
+    private void lancarAutomaticas(List<Map<String, Object>> devidas, BiConsumer<UUID, UUID> lancar, String oQue) {
         int lancadas = 0;
         for (Map<String, Object> devida : devidas) {
             UUID dono = (UUID) devida.get("user_id");
             try {
                 // No historico, em nome do dono: o resto da familia nao ve a conta fixa dele.
                 FamiliaAtual.como((UUID) devida.get("household_id"), () -> TrilhaDeAuditoria.emNomeDe(dono, () ->
-                        transacao.executeWithoutResult(status -> pagar((UUID) devida.get("id"), mes, dono))));
+                        transacao.executeWithoutResult(status -> lancar.accept((UUID) devida.get("id"), dono))));
                 lancadas++;
             } catch (RuntimeException erro) {
                 log.warn("Conta fixa {} nao lancada automaticamente", devida.get("id"), erro);
             }
         }
-        log.info("Contas fixas lancadas automaticamente: {} de {}", lancadas, devidas.size());
+        log.info("{} lancadas automaticamente: {} de {}", oQue, lancadas, devidas.size());
+    }
+
+    /** Lanca a segunda parcela da receita no mes, uma vez so; o UPDATE condicional barra a corrida. */
+    void receberSegundaParcela(UUID id, YearMonth mes, UUID autor) {
+        RecurringBill conta = buscar(id);
+        if (conta.getSecondDueDay() == null || jdbc.update("""
+                UPDATE recurring_bills SET second_paid_month = ?
+                WHERE id = ? AND household_id = ? AND (second_paid_month IS NULL OR second_paid_month < ?)
+                """, mes.toString(), id, FamiliaAtual.atual(), mes.toString()) == 0) {
+            return;
+        }
+        receitas.criar(conta.segundaParcelaEm(mes), Texto.limitar(conta.getDescription() + " (2ª parcela)", 200),
+                conta.getCategory(), conta.getSecondAmount(), autor, conta.isShared());
+        trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "receita-recorrente", id, null,
+                Resumos.contaFixa(conta) + " · 2ª parcela · " + mes);
+        log.info("Segunda parcela lancada: conta={} mes={}", id, mes);
     }
 
     private String categoriaDo(RecurringBill.Tipo tipo, String categoria) {

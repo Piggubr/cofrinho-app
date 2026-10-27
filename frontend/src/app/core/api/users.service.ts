@@ -1,13 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiBase } from './api-base';
-import {
-  Compartilhamento,
-  ModuloDeEstiloDeVida,
-  PigguRole,
-  Preferencias,
-  Usuario,
-} from './models';
+import { Compartilhamento, ModuloDeEstiloDeVida, PigguRole, Preferencias, Usuario } from './models';
 
 /** Conta propria e, para o ADMIN, as contas da instalacao. */
 @Injectable({ providedIn: 'root' })
@@ -39,6 +33,11 @@ export class UsersService extends ApiBase {
     return this.http.post<void>(this.url('/auth/me/devices'), { token, plataforma: 'IOS' });
   }
 
+  /** Ao sair: este iPhone para de receber os avisos de quem saiu. */
+  removerAparelho(token: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/auth/me/devices/${token}`));
+  }
+
   /** Liga e desliga as telas de estilo de vida no menu da propria pessoa. */
   salvarModulos(modulos: ModuloDeEstiloDeVida[]): Observable<Usuario> {
     return this.http.put<Usuario>(this.url('/auth/me/modules'), { modulos });
@@ -49,9 +48,22 @@ export class UsersService extends ApiBase {
     return this.http.put<Usuario>(this.url('/me/pais'), { pais, documento });
   }
 
-  /** Como quer ser chamado e, so na primeira vez, a data de nascimento (aaaa-mm-dd). */
-  sobreVoce(apelido: string, nascimento?: string): Observable<Usuario> {
-    return this.http.put<Usuario>(this.url('/me/sobre-voce'), { apelido, nascimento });
+  /**
+   * Como quer ser chamado e, so na primeira vez, a data de nascimento (aaaa-mm-dd), o CPF e
+   * o celular: completa o cadastro de quem entrou pelo Google.
+   */
+  sobreVoce(
+    apelido: string,
+    nascimento?: string,
+    cpf?: string,
+    telefone?: string,
+  ): Observable<Usuario> {
+    return this.http.put<Usuario>(this.url('/me/sobre-voce'), {
+      apelido,
+      nascimento,
+      cpf,
+      telefone,
+    });
   }
 
   /** Aceite da versao nova dos Termos e do Aviso por quem ja tem conta. */

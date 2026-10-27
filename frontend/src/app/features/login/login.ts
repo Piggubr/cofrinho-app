@@ -19,7 +19,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { Icone } from '../../core/ui/icone';
 import { problemaDaSenha } from '../../core/auth/regras-da-senha';
 import { BRASIL, CPF, ddiDoPais, listaDePaises } from '../../core/ui/documentos';
-import { hojeIso, problemaDoNascimento } from '../../core/ui/nascimento';
+import { hojeIso } from '../../core/ui/datas';
+import { problemaDoNascimento } from '../../core/ui/nascimento';
 import { pareceEmail } from '../../core/ui/email';
 
 type Modo = 'entrar' | 'cadastro';

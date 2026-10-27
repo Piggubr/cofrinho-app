@@ -12,16 +12,20 @@ import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.FamiliaResponse;
+import com.piggu.identity.avisos.Aparelhos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,9 +33,8 @@ import java.util.UUID;
 /**
  * Familias: quem entra em qual, convites e saida.
  *
- * <p>Cadastro aberto: qualquer login Google novo cria conta e familia, com a pessoa
- * como titular. A excecao e quem foi convidado: entra como membro da familia que
- * convidou. Mudar alguem de familia derruba as sessoes dele, porque a familia vai no
+ * <p>Cadastro aberto: qualquer conta nova cria familia, com a pessoa como titular; quem
+ * foi convidado ve o convite e decide se entra. Mudar alguem de familia derruba as sessoes dele, porque a familia vai no
  * token e o token antigo continuaria apontando para a casa de antes.</p>
  */
 @Service
@@ -52,6 +55,7 @@ public class FamiliaService {
     private final CascataDeDados cascata;
     private final TokenService tokens;
     private final TrilhaDeAuditoria trilha;
+    private final Aparelhos aparelhos;
 
     public FamiliaService(HouseholdRepository familias,
                           HouseholdInviteRepository convites,
@@ -59,7 +63,8 @@ public class FamiliaService {
                           RefreshSessionRepository sessoes,
                           CascataDeDados cascata,
                           TokenService tokens,
-                          TrilhaDeAuditoria trilha) {
+                          TrilhaDeAuditoria trilha,
+                          Aparelhos aparelhos) {
         this.familias = familias;
         this.convites = convites;
         this.usuarios = usuarios;
@@ -67,6 +72,7 @@ public class FamiliaService {
         this.cascata = cascata;
         this.tokens = tokens;
         this.trilha = trilha;
+        this.aparelhos = aparelhos;
     }
 
     /**
@@ -79,9 +85,11 @@ public class FamiliaService {
     }
 
     /**
-     * @param emailConfirmado o e-mail ja foi provado (login Google). Cadastro por senha
-     *                        chega sem prova: nao usa convite pendente, porque qualquer um
-     *                        poderia cadastrar o e-mail convidado e entrar na familia alheia.
+     * Toda conta nova nasce na propria familia, mesmo convidada: o convite fica esperando em
+     * {@link #convitesParaMim} e so vale se a pessoa aceitar ({@link #aceitarConvite}). Entrar
+     * sozinha deixaria qualquer titular colocar um e-mail alheio na sua casa sem a pessoa saber.
+     *
+     * @param emailConfirmado o e-mail ja foi provado (login Google)
      */
     @Transactional
     public UserAccount criarConta(String email, String primeiroNome, String versaoDosTermos, boolean emailConfirmado) {
@@ -93,29 +101,14 @@ public class FamiliaService {
             throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
                     HttpStatus.CONFLICT, Consentimentos.CODIGO_AVISO_MUDOU);
         }
-        Optional<HouseholdInvite> convite = !emailConfirmado ? Optional.empty()
-                : convites.findByEmailOrderByCreatedAtDesc(email).stream()
-                        .filter(HouseholdInvite::valido)
-                        .findFirst();
-
-        UserAccount nova;
-        if (convite.isPresent()) {
-            nova = new UserAccount(email, PigguRole.MEMBRO, convite.get().getHouseholdId());
-            nova.aceitarTermos(versaoDosTermos);
+        Household familia = familias.save(new Household(nomePadrao(primeiroNome)));
+        UserAccount nova = new UserAccount(email, PigguRole.TITULAR, familia.getId());
+        nova.aceitarTermos(versaoDosTermos);
+        if (emailConfirmado) {
             nova.confirmarEmail();
-            nova = usuarios.save(nova);
-            convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(email));
-            log.info("Conta criada por convite id={} familia={}", nova.getId(), nova.getHouseholdId());
-        } else {
-            Household familia = familias.save(new Household(nomePadrao(primeiroNome)));
-            nova = new UserAccount(email, PigguRole.TITULAR, familia.getId());
-            nova.aceitarTermos(versaoDosTermos);
-            if (emailConfirmado) {
-                nova.confirmarEmail();
-            }
-            nova = usuarios.save(nova);
-            log.info("Conta e familia criadas id={} familia={}", nova.getId(), familia.getId());
         }
+        nova = usuarios.save(nova);
+        log.info("Conta e familia criadas id={} familia={}", nova.getId(), familia.getId());
         return nova;
     }
 
@@ -152,9 +145,28 @@ public class FamiliaService {
         return ver(usuario);
     }
 
+    /**
+     * O dono provou o e-mail (Google ou link de nova senha) de uma conta cadastrada sem prova.
+     * Quem cadastrou pode ter sido outra pessoa: sai o que ela deixou na conta
+     * ({@link UserAccount#esquecerQuemCadastrou}), os aparelhos e as sessoes dela, e, se a casa
+     * tem mais gente, a conta vai para uma familia so dela, levando o que e dela.
+     */
+    @Transactional
+    public void devolverAoDono(UserAccount conta) {
+        conta.esquecerQuemCadastrou();
+        esquecerQuemMostravaTudoPara(usuarios.findByHouseholdIdOrderByCreatedAtAsc(conta.getHouseholdId()), conta.getId());
+        if (usuarios.findByHouseholdIdOrderByCreatedAtAsc(conta.getHouseholdId()).size() > 1) {
+            mudarParaFamiliaPropria(conta);
+        }
+        aparelhos.esquecerDoUsuario(conta.getId());
+        sessoes.apagarPorUsuario(conta.getId());
+        log.warn("Conta cadastrada sem prova do e-mail devolvida ao dono: conta={}", conta.getId());
+    }
+
     @Transactional
     public FamiliaResponse convidar(CurrentUser usuario, String emailBruto) {
         exigirTitular(usuario);
+        exigirEmailConfirmado(conta(usuario));
         String email = Texto.email(emailBruto);
         if (email.isEmpty() || !email.contains("@")) {
             throw new BusinessException("Digite um e-mail valido.");
@@ -227,23 +239,40 @@ public class FamiliaService {
         HouseholdInvite convite = convites.findById(conviteId)
                 .filter(encontrado -> encontrado.getEmail().equals(conta.getEmail()) && encontrado.valido())
                 .orElseThrow(() -> new NotFoundException("Convite nao encontrado ou vencido."));
-        if (!conta.isEmailVerified()) {
-            throw new BusinessException("Para entrar numa familia, entre uma vez com o Google desse e-mail;"
-                    + " e assim que o Piggu confirma que o e-mail e seu.", HttpStatus.FORBIDDEN, "EMAIL_NAO_CONFIRMADO");
-        }
+        exigirEmailConfirmado(conta);
         if (convite.getHouseholdId().equals(conta.getHouseholdId())) {
             throw new BusinessException("Voce ja faz parte dessa familia.");
         }
+        // A renovacao vai para a familia atual de quem paga: na outra casa, trocaria o plano de la.
+        Household atual = daConta(conta);
+        if (conta.getId().equals(atual.getSubscriberId()) && atual.planoVigente() == Plano.PREMIUM) {
+            throw new BusinessException("Você assina o Premium da sua família. Para entrar em outra, cancele a "
+                    + "assinatura e aceite o convite depois que o Premium terminar.", HttpStatus.CONFLICT,
+                    "ASSINATURA_ATIVA");
+        }
 
+        PigguRole papel = entraComoParceiro(conta, convite.getHouseholdId()) ? PigguRole.PARCEIRO : PigguRole.MEMBRO;
         Optional<Household> vazia = sairDeOndeEsta(conta, convite.getHouseholdId());
-        conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
+        conta.mudarDeFamilia(convite.getHouseholdId(), papel);
         usuarios.saveAndFlush(conta);
         trilha.registrar(convite.getHouseholdId(), conta.getId(), Acao.ENTROU, PESSOA, conta.getId(), null,
                 pessoa(conta));
         vazia.ifPresent(familias::delete);
         convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(conta.getEmail()));
         sessoes.apagarPorUsuario(conta.getId());
-        log.info("Convite aceito: conta={} familia={}", conta.getId(), convite.getHouseholdId());
+        log.info("Convite aceito: conta={} familia={} papel={}", conta.getId(), convite.getHouseholdId(), papel);
+    }
+
+    /**
+     * No plano casal, quem o titular convida e o casal (D-086): entra como parceiro se a casa
+     * ainda nao tem um (nem convite de parceria esperando) e a pessoa nao e menor de idade.
+     */
+    private boolean entraComoParceiro(UserAccount conta, UUID destino) {
+        Household casa = familias.findById(destino).orElseThrow();
+        return casa.isCasal() && casa.planoVigente() == Plano.PREMIUM
+                && !conta.menorDeIdade(LocalDate.now(Meses.BRASILIA))
+                && usuarios.findByHouseholdIdOrderByCreatedAtAsc(destino).stream()
+                        .noneMatch(outro -> outro.getRole() == PigguRole.PARCEIRO || outro.convidadoParaParceria());
     }
 
     /** Exclusao da conta: os dados da pessoa saem junto (ver {@link #sairDeOndeEsta(UserAccount, UUID)}). */
@@ -339,6 +368,7 @@ public class FamiliaService {
             throw new ForbiddenException("O papel do titular nao muda por aqui.");
         }
         if (papel == PigguRole.PARCEIRO) {
+            exigirEmailConfirmado(conta(usuario));
             convidarParaParceria(usuario, membro);
         } else if (membro.convidadoParaParceria()) {
             membro.encerrarConviteDeParceria();
@@ -424,9 +454,21 @@ public class FamiliaService {
         log.info("Membro saiu da familia: conta={}", conta.getId());
     }
 
-    /** Cria a familia nova antes de sair: os dados da pessoa precisam de um lugar para ir. */
+    /**
+     * Cria a familia nova antes de sair: os dados da pessoa precisam de um lugar para ir. O id
+     * sai da conta e da familia de onde ela sai, e nao do acaso: se um servico falha no meio, o
+     * identity desfaz tudo, mas quem ja moveu os dados nao desfaz; a nova tentativa precisa
+     * mandar para o mesmo lugar. Um id ja usado por uma saida anterior que deu certo passa ao
+     * proximo da sequencia, que tambem se repete numa nova tentativa.
+     */
     private void mudarParaFamiliaPropria(UserAccount conta) {
-        Household nova = familias.save(new Household(nomePadrao(conta.primeiroNomeExibicao())));
+        UUID id;
+        int vez = 0;
+        do {
+            id = UUID.nameUUIDFromBytes(("propria:" + conta.getId() + ":" + conta.getHouseholdId() + ":" + vez++)
+                    .getBytes(StandardCharsets.UTF_8));
+        } while (familias.existsById(id));
+        Household nova = familias.save(new Household(id, nomePadrao(conta.primeiroNomeExibicao())));
         sairDeOndeEsta(conta, nova.getId());
         conta.mudarDeFamilia(nova.getId(), PigguRole.TITULAR);
 
@@ -460,6 +502,17 @@ public class FamiliaService {
     private static void exigirTitular(CurrentUser usuario) {
         if (!usuario.isTitular()) {
             throw new ForbiddenException("So o titular cuida da familia.");
+        }
+    }
+
+    /**
+     * Dar acesso a familia (convite, parceria, mostrar tudo, aparelho de push) so com o e-mail
+     * provado: senao quem cadastrou o e-mail de outra pessoa arma a conta antes de o dono chegar.
+     */
+    static void exigirEmailConfirmado(UserAccount conta) {
+        if (!conta.isEmailVerified()) {
+            throw new BusinessException("Confirme seu e-mail pelo link que enviamos (ou entre uma vez com o Google"
+                    + " desse e-mail) para fazer isso.", HttpStatus.FORBIDDEN, "EMAIL_NAO_CONFIRMADO");
         }
     }
 

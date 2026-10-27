@@ -9,7 +9,7 @@ import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
-import com.piggu.identity.billing.ProvedorDePagamento;
+import com.piggu.identity.billing.StripePagamentos;
 import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class MinhaContaService {
     private final HouseholdRepository familias;
     private final FamiliaService familia;
     private final CascataDeDados cascata;
-    private final ProvedorDePagamento pagamentos;
+    private final StripePagamentos pagamentos;
     private final TrilhaDeAuditoria trilha;
     private final CofreDeCpf cofre;
     private final Aparelhos aparelhos;
@@ -57,7 +56,7 @@ public class MinhaContaService {
                              HouseholdRepository familias,
                              FamiliaService familia,
                              CascataDeDados cascata,
-                             ProvedorDePagamento pagamentos,
+                             StripePagamentos pagamentos,
                              TrilhaDeAuditoria trilha,
                              CofreDeCpf cofre,
                              Aparelhos aparelhos,
@@ -189,22 +188,35 @@ public class MinhaContaService {
     }
 
     /**
-     * Como a pessoa quer ser chamada e, se ainda nao informou, quando nasceu. O nome muda
-     * quando quiser; a data entra uma vez (ver {@link UserAccount#informarNascimento}).
+     * Como a pessoa quer ser chamada e, se ainda nao informou, quando nasceu, o CPF e o
+     * celular: o mesmo que o cadastro por senha pede (D-088). O nome muda quando quiser; o
+     * resto entra uma vez (ver {@link UserAccount#informarNascimento}).
      */
     @Transactional
-    public UserResponse sobreVoce(UUID contaId, String apelido, LocalDate nascimento) {
+    public UserResponse sobreVoce(UUID contaId, String apelido, LocalDate nascimento, String cpf, String telefone) {
         UserAccount conta = conta(contaId);
         String nome = Texto.limitar(Texto.espacoUnico(apelido), 120);
         if (nome.isEmpty()) {
             throw new BusinessException("Conte como podemos te chamar.");
         }
+        if (conta.getBirthDate() == null && nascimento == null) {
+            throw new BusinessException("Informe sua data de nascimento.");
+        }
+        if (!conta.documentoEmDia() && Texto.vazio(cpf)) {
+            throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
+        }
+        if (conta.getPhone() == null && Texto.vazio(telefone)) {
+            throw new BusinessException("Informe seu celular.");
+        }
         conta.setNickname(nome);
         if (conta.getBirthDate() == null) {
-            if (nascimento == null) {
-                throw new BusinessException("Informe sua data de nascimento.");
-            }
             conta.informarNascimento(conferirNascimento(nascimento));
+        }
+        if (conta.getPhone() == null) {
+            conta.setPhone(AuthService.e164(telefone, conta.getPais()));
+        }
+        if (!conta.documentoEmDia()) {
+            prenderCpf(conta, conferirCpf(cpf));
         }
         usuarios.save(conta);
         log.info("Sobre voce atualizado: conta={}", conta.getId());
@@ -222,14 +234,6 @@ public class MinhaContaService {
                     HttpStatus.UNPROCESSABLE_CONTENT, "IDADE_MINIMA");
         }
         return data;
-    }
-
-    /** So ids no log: o numero nunca sai do cofre. */
-    private static void avisarRepetido(String documento, UserAccount conta, List<UserAccount> outras) {
-        List<UUID> ids = outras.stream().map(UserAccount::getId).filter(id -> !id.equals(conta.getId())).toList();
-        if (!ids.isEmpty()) {
-            log.warn("{} repetido: conta={} ja usado por {}", documento, conta.getId(), ids);
-        }
     }
 
     /**

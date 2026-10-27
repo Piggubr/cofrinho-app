@@ -25,10 +25,17 @@
       <div class="linha">
         <div>
           <p class="linha-titulo">{{ fixa.descricao }}</p>
-          <p i18n class="linha-detalhe">Todo dia {{ fixa.dia }} · {{ fixa.categoria }}</p>
+          @if (fixa.segundoDia && fixa.segundoValor) {
+            <p i18n class="linha-detalhe">
+              Dia {{ fixa.dia }}: {{ fixa.valor | moeda }} · dia {{ fixa.segundoDia }}:
+              {{ fixa.segundoValor | moeda }} · {{ fixa.categoria }}
+            </p>
+          } @else {
+            <p i18n class="linha-detalhe">Todo dia {{ fixa.dia }} · {{ fixa.categoria }}</p>
+          }
         </div>
         <div class="linha-acoes">
-          <strong>{{ fixa.valor | moeda }}</strong>
+          <strong>{{ fixa.valor + (fixa.segundoValor ?? 0) | moeda }}</strong>
           <button
             type="button"
             class="botao icone-so perigo"
@@ -51,8 +58,8 @@
     <h2 i18n id="titulo-a-receber">A receber</h2>
   </div>
   <p i18n class="linha-detalhe">
-    Dinheiro que alguém te deve. Só conta como receita quando você toca em Recebi; passou da
-    data combinada, o Piggu te avisa.
+    Dinheiro que alguém te deve. Só conta como receita quando você toca em Recebi; passou da data
+    combinada, o Piggu te avisa.
   </p>
   @for (conta of aReceber(); track conta.id) {
     <div class="linha" [class.atrasada]="conta.data < hoje">
@@ -135,7 +142,13 @@
     </div>
   </div>
   <div class="acoes">
-    <button i18n type="button" class="botao contorno" (click)="criarAReceber()" [disabled]="salvando()">
+    <button
+      i18n
+      type="button"
+      class="botao contorno"
+      (click)="criarAReceber()"
+      [disabled]="salvando()"
+    >
       Guardar a receber
     </button>
   </div>

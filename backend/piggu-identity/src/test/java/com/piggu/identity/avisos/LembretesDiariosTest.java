@@ -33,6 +33,9 @@ import static org.mockito.Mockito.when;
 /** Lembrete diario: quem recebe, por onde, e que o mesmo aviso nao chega duas vezes. */
 class LembretesDiariosTest extends PostgresIntegrationTest {
 
+    /** Formato do token do Firebase: instancia, ':' e o registro, com maiusculas, '-' e '_'. */
+    static final String TOKEN_DO_ANDROID = "dQw4w9WgXcQ:APA91bH" + "x-Y_z".repeat(28);
+
     @MockitoBean
     private AvisosDoFinanceiro financeiro;
 
@@ -116,19 +119,23 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("push vai para cada aparelho; o que a Apple recusa e esquecido; quem nao ligou nada nem e consultado")
+    @DisplayName("push vai para cada iPhone; o que a Apple recusa e esquecido; o Android fica fora do APNs;"
+            + " quem nao ligou nada nem e consultado")
     void push() {
         UserAccount caio = familias.criarConta("caio@outra.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         auth.escolherAvisos(ana.getId(), false, true);
         aparelhos.registrar(ana.getId(), "aa".repeat(32), "IOS");
         aparelhos.registrar(ana.getId(), "bb".repeat(32), "IOS");
+        aparelhos.registrar(ana.getId(), TOKEN_DO_ANDROID, "ANDROID");
         when(financeiro.deHoje(anyString())).thenReturn(List.of(fatura("f1")));
         when(push.enviar(eq("aa".repeat(32)), any())).thenReturn(CanalDePush.Resultado.ENVIADO);
         when(push.enviar(eq("bb".repeat(32)), any())).thenReturn(CanalDePush.Resultado.TOKEN_INVALIDO);
 
         assertThat(lembretes.enviarDeHoje()).isEqualTo(1);
 
-        assertThat(aparelhos.doUsuario(ana.getId())).containsExactly("aa".repeat(32));
+        assertThat(aparelhos.doUsuario(ana.getId(), "IOS")).containsExactly("aa".repeat(32));
+        assertThat(aparelhos.doUsuario(ana.getId(), "ANDROID")).containsExactly(TOKEN_DO_ANDROID);
+        verify(push, never()).enviar(eq(TOKEN_DO_ANDROID), any());
         verify(email, never()).enviar(anyString(), any());
         verify(financeiro, times(1)).deHoje(anyString());
         assertThat(caio.isAlertsByEmail()).isFalse();
@@ -139,7 +146,7 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     void membroFora() {
         familias.convidar(new CurrentUser(ana.getId(), ana.getEmail(), ana.getRole(), null, ana.getHouseholdId()),
                 "bia@familia.test");
-        UserAccount bia = familias.criarConta("bia@familia.test", "Bia", Consentimentos.VERSAO_DO_AVISO);
+        UserAccount bia = com.piggu.identity.domain.Convidados.entrar(familias, convites, usuarios, "bia@familia.test", "Bia");
         auth.escolherAvisos(bia.getId(), true, true);
 
         assertThat(usuarios.comAvisosLigados()).isEmpty();

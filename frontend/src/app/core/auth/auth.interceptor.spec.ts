@@ -163,4 +163,37 @@ describe('authInterceptor', () => {
     expect(falhou).toBe(true);
     expect(storage.accessToken).toBeNull();
   });
+
+  it('renovou, mas a chamada repetida falhou: o erro chega a quem chamou e a sessao fica', () => {
+    storage.guardar(par('1'));
+    const auth = TestBed.inject(AuthService);
+    const encerrar = vi.spyOn(auth, 'encerrarLocalmente');
+    let status = 0;
+
+    http.post('/api/expenses', {}).subscribe({ error: (falha) => (status = falha.status) });
+
+    servidor.expectOne('/api/expenses').flush(null, { status: 401, statusText: 'Unauthorized' });
+    servidor.expectOne('/api/auth/refresh').flush(par('2'));
+    servidor
+      .expectOne('/api/expenses')
+      .flush(null, { status: 422, statusText: 'Unprocessable Entity' });
+
+    expect(status).toBe(422);
+    expect(encerrar).not.toHaveBeenCalled();
+    expect(storage.accessToken).toBe('access-2');
+  });
+
+  it('renovacao sem sinal nao encerra a sessao', () => {
+    storage.guardar(par('1'));
+    const encerrar = vi.spyOn(TestBed.inject(AuthService), 'encerrarLocalmente');
+    let status = -1;
+
+    http.get('/api/expenses').subscribe({ error: (falha) => (status = falha.status) });
+
+    servidor.expectOne('/api/expenses').flush(null, { status: 401, statusText: 'Unauthorized' });
+    servidor.expectOne('/api/auth/refresh').error(new ProgressEvent('error'), { status: 0 });
+
+    expect(status).toBe(0);
+    expect(encerrar).not.toHaveBeenCalled();
+  });
 });

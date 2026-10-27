@@ -35,11 +35,12 @@ public class RedefinicaoDeSenha {
     private final TokenService tokens;
     private final Senhas senhas;
     private final CanalDeEmail email;
+    private final FamiliaService familias;
     private final String site;
     private final boolean producao;
 
     public RedefinicaoDeSenha(UserAccountRepository usuarios, RefreshSessionRepository sessoes,
-                              TokenService tokens, Senhas senhas, CanalDeEmail email,
+                              TokenService tokens, Senhas senhas, CanalDeEmail email, FamiliaService familias,
                               @Value("${SITE_URL:http://localhost:4200}") String site,
                               @Value("${piggu.ambiente:dev}") String ambiente) {
         this.usuarios = usuarios;
@@ -47,6 +48,7 @@ public class RedefinicaoDeSenha {
         this.tokens = tokens;
         this.senhas = senhas;
         this.email = email;
+        this.familias = familias;
         this.site = site.endsWith("/") ? site.substring(0, site.length() - 1) : site;
         this.producao = "producao".equals(ambiente);
     }
@@ -79,11 +81,14 @@ public class RedefinicaoDeSenha {
             }
             return;
         }
-        email.enviar(conta.getEmail(), "Piggu: crie uma senha nova",
-                "Recebemos um pedido para criar uma senha nova no Piggu. Abra o link abaixo; ele vale por 1 hora.\n\n"
-                        + link
-                        + "\n\nSe nao foi voce quem pediu, ignore este e-mail: sua senha continua a mesma.");
-        log.info("Link de nova senha enviado: conta={}", conta.getId());
+        ConfirmacaoDeEmail.depoisDoCommit(() -> {
+            if (email.enviar(conta.getEmail(), "Piggu: crie uma senha nova",
+                    "Recebemos um pedido para criar uma senha nova no Piggu. Abra o link abaixo; ele vale por 1 hora.\n\n"
+                            + link
+                            + "\n\nSe nao foi voce quem pediu, ignore este e-mail: sua senha continua a mesma.")) {
+                log.info("Link de nova senha enviado: conta={}", conta.getId());
+            }
+        });
     }
 
     /** Troca a senha pelo link; todas as sessoes abertas da conta caem. */
@@ -100,6 +105,10 @@ public class RedefinicaoDeSenha {
         }
         senhas.validar(novaSenha, conta.getEmail());
 
+        if (!conta.isEmailVerified()) {
+            // O link prova o e-mail de uma conta cadastrada sem prova: como no primeiro login Google.
+            familias.devolverAoDono(conta);
+        }
         conta.redefinirSenha(senhas.hash(novaSenha));
         usuarios.save(conta);
         sessoes.apagarPorUsuario(conta.getId());

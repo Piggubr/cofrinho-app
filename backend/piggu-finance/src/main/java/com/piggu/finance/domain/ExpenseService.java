@@ -5,6 +5,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
@@ -13,6 +14,7 @@ import com.piggu.finance.api.dto.UpdateExpenseRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +26,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -50,6 +56,7 @@ public class ExpenseService {
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
     private final TrilhaDeAuditoria trilha;
+    private final JdbcTemplate jdbc;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
@@ -57,7 +64,8 @@ public class ExpenseService {
                           RegrasDeCategoria regras,
                           PaymentAccountRepository contas,
                           DivisaoDeGastos divisao,
-                          TrilhaDeAuditoria trilha) {
+                          TrilhaDeAuditoria trilha,
+                          JdbcTemplate jdbc) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
@@ -65,6 +73,7 @@ public class ExpenseService {
         this.contas = contas;
         this.divisao = divisao;
         this.trilha = trilha;
+        this.jdbc = jdbc;
     }
 
     @Transactional(readOnly = true)
@@ -106,7 +115,7 @@ public class ExpenseService {
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         List<Expense> gastos = pedido.itens().stream()
                 .flatMap(item -> montar(item, pedido.data(), reciboId, estabelecimento, origem, usuarioId,
-                        regrasDaFamilia, parcelas).stream())
+                        regrasDaFamilia, parcelas, conta).stream())
                 .toList();
         gastos.forEach(gasto -> {
             gasto.pagarCom(pedido.contaId());
@@ -126,6 +135,33 @@ public class ExpenseService {
         log.info("Gastos lancados: itens={} recibo={} origem={}", salvos.size(), reciboId, origem);
 
         return salvos.stream().map(ExpenseResponse::de).toList();
+    }
+
+    /**
+     * Lancamento com o id do envio do app: o mesmo envio de novo (a resposta se perdeu no sinal
+     * fraco) nao lanca nada e devolve os gastos da primeira vez. O id entra na transacao dos
+     * gastos, entao um lancamento que falhou nao gasta o id; dois envios ao mesmo tempo esperam
+     * um pelo outro na chave.
+     */
+    @Transactional
+    public List<ExpenseResponse> umaVezSo(UUID idDoEnvio, UUID usuarioId, Supplier<List<ExpenseResponse>> lancar) {
+        if (idDoEnvio == null) {
+            return lancar.get();
+        }
+        UUID familia = FamiliaAtual.atual();
+        if (jdbc.update("INSERT INTO expense_submissions (household_id, id, user_id) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
+                familia, idDoEnvio, usuarioId) == 0) {
+            List<UUID> ids = jdbc.queryForList("SELECT unnest(expense_ids) FROM expense_submissions WHERE household_id = ? AND id = ?",
+                    UUID.class, familia, idDoEnvio);
+            Map<UUID, Expense> gravados = repositorio.findAllById(ids).stream()
+                    .collect(Collectors.toMap(Expense::getId, Function.identity()));
+            log.info("Envio repetido: id={} gastos={}", idDoEnvio, gravados.size());
+            return ids.stream().map(gravados::get).filter(Objects::nonNull).map(ExpenseResponse::de).toList();
+        }
+        List<ExpenseResponse> salvos = lancar.get();
+        jdbc.update("UPDATE expense_submissions SET expense_ids = ? WHERE household_id = ? AND id = ?",
+                salvos.stream().map(ExpenseResponse::id).toArray(UUID[]::new), familia, idDoEnvio);
+        return salvos;
     }
 
     /** Busca global: ate 20 gastos cujo item ou estabelecimento contem o termo. */
@@ -253,20 +289,19 @@ public class ExpenseService {
             gasto.compartilhar(pedido.compartilhado());
         }
         String antes = Resumos.gasto(gasto);
+        boolean valorMudou = gasto.getAmount().compareTo(pedido.valor()) != 0;
         gasto.editar(
                 Texto.limitar(pedido.item(), 200),
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
+        if (valorMudou) {
+            divisao.redividir(gasto);
+        }
         log.info("Gasto editado: id={}", id);
         Expense salvo = repositorio.save(gasto);
         trilha.editou("gasto", id, antes, Resumos.gasto(salvo));
         return ExpenseResponse.de(salvo);
-    }
-
-    @Transactional
-    public void excluir(UUID id, CurrentUser usuario) {
-        excluir(id, usuario, false);
     }
 
     /** @param eAsProximas na parcela, apaga tambem as parcelas seguintes do mesmo item */
@@ -277,6 +312,9 @@ public class ExpenseService {
                 : repositorio.findByReceiptIdAndItemAndInstallmentCount(gasto.getReceiptId(), gasto.getItem(),
                                 gasto.getInstallmentCount()).stream()
                         .filter(p -> p.getInstallmentNumber() >= gasto.getInstallmentNumber())
+                        // O recibo vem do app: so as parcelas de quem lancou esta, nunca as de outro
+                        // com o mesmo recibo que o filtro da familia tambem mostra.
+                        .filter(p -> p.getUserId().equals(gasto.getUserId()))
                         .toList();
         repositorio.deleteAll(apagar);
         apagar.forEach(p -> trilha.apagou("gasto", p.getId(), Resumos.gasto(p)));
@@ -316,7 +354,10 @@ public class ExpenseService {
      */
     private String categoriaDe(ExpenseItemRequest item, String estabelecimento, String origem,
                                List<CategoryRule> regrasDaFamilia) {
-        boolean escolhidaAMao = ORIGEM_PADRAO.equals(origem) && !Texto.vazio(item.categoria());
+        // A conta fixa lanca com a categoria que o dono escolheu; no job, sem token, as regras
+        // carregadas seriam as de toda a familia.
+        boolean escolhidaAMao = (ORIGEM_PADRAO.equals(origem) || ContasFixasService.ORIGEM.equals(origem))
+                && !Texto.vazio(item.categoria());
         if (escolhidaAMao) {
             return categorias.normalizar(item.categoria());
         }
@@ -330,7 +371,7 @@ public class ExpenseService {
     /** Um item vira uma linha; parcelado, uma linha por mes com o valor dividido (o centavo que sobra vai na ultima). */
     private List<Expense> montar(ExpenseItemRequest item, LocalDate data, UUID reciboId,
                                  String estabelecimento, String origem, UUID usuarioId,
-                                 List<CategoryRule> regrasDaFamilia, int parcelas) {
+                                 List<CategoryRule> regrasDaFamilia, int parcelas, PaymentAccount conta) {
         if ((item.moedaOriginal() == null) != (item.valorOriginal() == null)) {
             throw new BusinessException("Informe a moeda e o valor original juntos.");
         }
@@ -339,7 +380,7 @@ public class ExpenseService {
         BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
         return IntStream.range(0, parcelas).mapToObj(i -> {
             Expense gasto = new Expense(
-                    data.plusMonths(i),
+                    dataDaParcela(data, i, conta),
                     reciboId,
                     estabelecimento,
                     Texto.limitar(item.item(), 200),
@@ -361,5 +402,21 @@ public class ExpenseService {
             }
             return gasto;
         }).toList();
+    }
+
+    /**
+     * Um mes depois da anterior; no cartao, dentro da fatura seguinte. Com fechamento no dia 29,
+     * 28/01 mais um mes cai no fechamento de fevereiro e pularia para a fatura de marco.
+     */
+    private static LocalDate dataDaParcela(LocalDate data, int i, PaymentAccount conta) {
+        LocalDate dia = data.plusMonths(i);
+        if (conta == null || conta.getKind() != PaymentAccount.Tipo.CARTAO || conta.getClosingDay() == null
+                || conta.getDueDay() == null) {
+            return dia;
+        }
+        // So passa do fim da fatura, nunca fica antes do inicio.
+        LocalDate ultimaCompra = ContasECartoes.periodo(conta.getClosingDay(), conta.getDueDay(),
+                ContasECartoes.mesDaFaturaAberta(conta.getClosingDay(), data).plusMonths(i)).ultimaCompra();
+        return dia.isAfter(ultimaCompra) ? ultimaCompra : dia;
     }
 }

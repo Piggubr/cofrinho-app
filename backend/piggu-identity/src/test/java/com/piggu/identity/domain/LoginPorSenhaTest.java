@@ -58,6 +58,9 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Autowired
     private TokenService tokens;
 
+    @Autowired
+    private com.piggu.identity.avisos.Aparelhos aparelhos;
+
     @BeforeEach
     void limpar() {
         sessoes.deleteAll();
@@ -152,6 +155,32 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("rajada de senhas erradas ao mesmo tempo nao desfaz a trava do IP")
+    void rajadaNaoDesfazATrava() throws Exception {
+        cadastrar(EMAIL);
+        int tentativas = AuthService.TENTATIVAS_DE_SENHA + 2;
+        java.util.concurrent.CountDownLatch largada = new java.util.concurrent.CountDownLatch(1);
+        try (var threads = java.util.concurrent.Executors.newFixedThreadPool(tentativas)) {
+            java.util.List<java.util.concurrent.Future<?>> rajada = new java.util.ArrayList<>();
+            for (int i = 0; i < tentativas; i++) {
+                rajada.add(threads.submit(() -> {
+                    largada.await();
+                    return assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null, "203.0.113.9"))
+                            .isInstanceOf(UnauthorizedException.class);
+                }));
+            }
+            largada.countDown();
+            for (var tentativa : rajada) {
+                tentativa.get();
+            }
+        }
+
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null, "203.0.113.9"))
+                .as("o IP continua travado")
+                .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
     @DisplayName("cinquenta senhas erradas, de IPs diferentes, travam a senha da conta para todos")
     void travaDaContaComMuitosIps() {
         cadastrar(EMAIL);
@@ -218,6 +247,54 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null))
                 .as("conta so do Google responde como senha errada")
                 .isInstanceOf(UnauthorizedException.class).hasMessageStartingWith("E-mail ou senha incorretos.");
+    }
+
+    @Test
+    @DisplayName("sem e-mail confirmado nao da acesso a ninguem: convite, parceria, mostrar tudo e push")
+    void semEmailConfirmadoNaoArmaAConta() {
+        TokenResponse intruso = cadastrar(EMAIL);
+        CurrentUser eu = comoUsuario(intruso);
+        UserAccount membro = usuarios.save(new UserAccount("membro@exemplo.test", PigguRole.MEMBRO,
+                intruso.usuario().familia()));
+
+        for (org.assertj.core.api.ThrowableAssert.ThrowingCallable acao : java.util.List.<org.assertj.core.api.ThrowableAssert.ThrowingCallable>of(
+                () -> familias.convidar(eu, "comparsa@exemplo.test"),
+                () -> familias.mudarPapel(eu, membro.getId(), PigguRole.PARCEIRO),
+                () -> auth.escolherCompartilhamento(intruso.usuario().id(), true, false),
+                () -> auth.exigirEmailConfirmado(intruso.usuario().id()))) {
+            assertThatThrownBy(acao).isInstanceOfSatisfying(BusinessException.class,
+                    erro -> assertThat(erro.getCodigo()).isEqualTo("EMAIL_NAO_CONFIRMADO"));
+        }
+    }
+
+    @Test
+    @DisplayName("o dono que entra pelo Google tira o que o intruso deixou: dados presos, aparelhos e a casa dele")
+    void donoDoEmailLimpaOQueOIntrusoDeixou() {
+        TokenResponse intruso = cadastrar(EMAIL);
+        UserAccount armada = usuarios.findByEmail(EMAIL).orElseThrow();
+        // Como uma conta armada antes desta correcao: comparsa na casa, vendo tudo, e um aparelho.
+        UserAccount comparsa = new UserAccount("comparsa@exemplo.test", PigguRole.PARCEIRO, armada.getHouseholdId());
+        comparsa.confirmarEmail();
+        comparsa = usuarios.save(comparsa);
+        armada.mostrarTudoPara(comparsa.getId());
+        usuarios.save(armada);
+        aparelhos.registrar(armada.getId(), "ab".repeat(32), "IOS");
+
+        responderGoogleCom(EMAIL);
+        TokenResponse dono = auth.entrarComGoogle("token", null, null);
+
+        UserAccount conta = usuarios.findById(intruso.usuario().id()).orElseThrow();
+        assertThat(dono.usuario().familia()).isNotEqualTo(intruso.usuario().familia());
+        assertThat(conta.getRole()).isEqualTo(PigguRole.TITULAR);
+        assertThat(conta.getShowsAllTo()).isNull();
+        assertThat(conta.getBirthDate()).isNull();
+        assertThat(conta.temCpf()).isFalse();
+        assertThat(conta.getPhone()).isNull();
+        assertThat(conta.getNickname()).isNull();
+        assertThat(aparelhos.doUsuario(conta.getId(), "IOS")).isEmpty();
+        assertThat(aparelhos.doUsuario(conta.getId(), "ANDROID")).isEmpty();
+        assertThat(usuarios.findById(comparsa.getId()).orElseThrow().getHouseholdId())
+                .isEqualTo(intruso.usuario().familia());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.piggu.finance.assistente;
 
 import com.piggu.common.dados.Consentimentos;
+import com.piggu.common.error.UpstreamException;
 import com.piggu.common.security.PigguRole;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -16,15 +17,20 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.YearMonth;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -165,6 +171,20 @@ class AssistenteTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("a IA e chamada sem transacao aberta: a espera nao prende uma conexao do banco")
+    void semTransacaoNaIa() throws Exception {
+        AtomicBoolean emTransacao = new AtomicBoolean(true);
+        doAnswer(chamada -> {
+            emTransacao.set(TransactionSynchronizationManager.isActualTransactionActive());
+            return "Tudo certo.";
+        }).when(gemini).responder(anyString(), anyList(), anyString(), anyList(), any());
+
+        perguntar(casas.casaA, true).andExpect(status().isOk());
+
+        org.assertj.core.api.Assertions.assertThat(emTransacao).isFalse();
+    }
+
+    @Test
     @DisplayName("acabou o limite do mes: recusa sem chamar a IA")
     void limiteDoMes() throws Exception {
         UUID familia = UUID.randomUUID();
@@ -174,6 +194,23 @@ class AssistenteTest extends PostgresIntegrationTest {
 
         perguntar(TokensDeTeste.da(familia, email, PigguRole.TITULAR), true)
                 .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    @DisplayName("pergunta que falhou na IA conta: depois da ultima do mes, a seguinte e recusada sem chamar a IA")
+    void falhaConta() throws Exception {
+        UUID familia = UUID.randomUUID();
+        String email = "falha-" + familia + "@piggu.test";
+        jdbc.update("INSERT INTO assistant_usage (household_id, user_id, reference_month, questions) VALUES (?, ?, ?, 149)",
+                familia, TokensDeTeste.idDe(email), YearMonth.now(java.time.ZoneId.of("America/Sao_Paulo")).toString());
+        doThrow(new UpstreamException("A IA nao respondeu agora. Tente de novo."))
+                .when(gemini).responder(anyString(), anyList(), anyString(), anyList(), any());
+        RequestPostProcessor quem = TokensDeTeste.da(familia, email, PigguRole.TITULAR);
+
+        perguntar(quem, true).andExpect(status().isBadGateway());
+        perguntar(quem, true).andExpect(status().isTooManyRequests());
+
+        verify(gemini, times(1)).responder(anyString(), anyList(), anyString(), anyList(), any());
     }
 
     private ResultActions perguntar(RequestPostProcessor quem, boolean autorizo) throws Exception {

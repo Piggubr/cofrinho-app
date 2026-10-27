@@ -117,17 +117,25 @@ class AuthServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("quem foi convidado entra como membro da familia que convidou, e o convite e usado")
+    @DisplayName("quem foi convidado entra com familia propria e ve o convite; so vira membro se aceitar")
     void convidadoEntraComoMembro() {
         responderGoogleCom(AUTORIZADA);
         TokenResponse titular = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
         familias.convidar(comoUsuario(titular), "Convidada@Exemplo.test");
 
         responderGoogleCom(CONVIDADA);
-        TokenResponse membro = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
+        TokenResponse convidada = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
 
-        assertThat(membro.usuario().familia()).isEqualTo(titular.usuario().familia());
-        assertThat(membro.usuario().role()).isEqualTo(PigguRole.MEMBRO);
+        assertThat(convidada.usuario().familia()).isNotEqualTo(titular.usuario().familia());
+        assertThat(convidada.usuario().role()).isEqualTo(PigguRole.TITULAR);
+        var convite = familias.convitesParaMim(comoUsuario(convidada));
+        assertThat(convite).hasSize(1);
+
+        familias.aceitarConvite(comoUsuario(convidada), convite.getFirst().id());
+
+        UserAccount membro = usuarios.findById(convidada.usuario().id()).orElseThrow();
+        assertThat(membro.getHouseholdId()).isEqualTo(titular.usuario().familia());
+        assertThat(membro.getRole()).isEqualTo(PigguRole.MEMBRO);
         assertThat(convites.count()).isZero();
     }
 

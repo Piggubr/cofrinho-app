@@ -14,6 +14,7 @@ const FATURA = {
   fechamento: '2026-10-05',
   vencimento: '2026-10-12',
   total: 80,
+  paga: false,
 };
 
 function conta(mudancas: Partial<ContaOuCartao>): ContaOuCartao {
@@ -232,6 +233,40 @@ describe('Accounts: acoes', () => {
       .expectOne((r) => r.params.get('mes') === '2026-12')
       .flush({ erro: 'Sem fatura.' }, { status: 404, statusText: 'x' });
     expect(alerta(tela)).toBe('Sem fatura.');
+  });
+
+  it('marca a fatura como paga e desfaz; a lista troca o "a pagar" por "paga"', () => {
+    const tela = abrir([conta({})]);
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('A pagar');
+
+    clicar(pagina, 'Ver fatura');
+    http
+      .expectOne((r) => r.url === '/api/accounts/c1/statement')
+      .flush({ fatura: FATURA, gastos: [] });
+    tela.detectChanges();
+
+    clicar(pagina, 'Marcar como paga');
+    const pagar = http.expectOne(
+      (r) => r.method === 'PUT' && r.url === '/api/accounts/c1/statement/paid',
+    );
+    expect(pagar.request.params.get('mes')).toBe('2026-10');
+    pagar.flush(null);
+    http
+      .expectOne((r) => r.url === '/api/accounts/c1/statement')
+      .flush({ fatura: { ...FATURA, paga: true }, gastos: [] });
+    http
+      .expectOne('/api/accounts')
+      .flush([conta({ faturaAPagar: { ...FATURA, mes: '2026-09', paga: true } })]);
+    tela.detectChanges();
+    expect(pagina.textContent).not.toContain('A pagar');
+    expect(pagina.textContent).toContain('paga');
+
+    clicar(pagina, 'Desfazer pagamento');
+    http
+      .expectOne((r) => r.method === 'DELETE' && r.url === '/api/accounts/c1/statement/paid')
+      .flush({ erro: 'Não deu.' }, { status: 500, statusText: 'x' });
+    expect(alerta(tela)).toBe('Não deu.');
   });
 
   it('erro ao carregar as contas aparece', () => {

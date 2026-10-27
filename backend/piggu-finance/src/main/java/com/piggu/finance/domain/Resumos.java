@@ -21,6 +21,8 @@ final class Resumos {
 
     static String contaFixa(RecurringBill conta) {
         return juntar(conta.getDescription(), conta.getCategory(), valor(conta.getAmount()), "dia " + conta.getDueDay(),
+                conta.getSecondDueDay() == null ? null
+                        : "2ª parcela " + valor(conta.getSecondAmount()) + " dia " + conta.getSecondDueDay(),
                 conta.isAutoLaunch() ? "automatica" : null);
     }
 

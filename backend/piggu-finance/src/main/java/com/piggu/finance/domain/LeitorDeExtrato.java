@@ -28,6 +28,11 @@ import java.util.regex.Pattern;
 public final class LeitorDeExtrato {
 
     public static final int MAXIMO_DE_LINHAS = 2000;
+    /** Linha de extrato de verdade tem poucas centenas de caracteres. */
+    static final int MAXIMO_POR_LINHA = 4096;
+
+    /** Valor do OFX sem expoente: "1E+999999999" passava e o id gerado pedia um texto desse tamanho. */
+    private static final Pattern VALOR_OFX = Pattern.compile("[+-]?\\d{1,13}(?:[.,]\\d{1,6})?");
 
     private static final Pattern TRANSACAO_OFX = Pattern.compile("<STMTTRN>(.*?)(</STMTTRN>|(?=<STMTTRN>)|$)",
             Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -56,7 +61,11 @@ public final class LeitorDeExtrato {
         Matcher transacao = TRANSACAO_OFX.matcher(conteudo);
         while (transacao.find()) {
             String bloco = transacao.group(1);
-            BigDecimal valor = new BigDecimal(campo(bloco, "TRNAMT").replace(',', '.'));
+            String trnamt = campo(bloco, "TRNAMT");
+            if (!VALOR_OFX.matcher(trnamt).matches()) {
+                throw new BusinessException("Valor que nao da para ler no OFX: " + Texto.limitar(trnamt, 30));
+            }
+            BigDecimal valor = new BigDecimal(trnamt.replace(',', '.'));
             if (valor.signum() >= 0) {
                 continue; // credito: nao e gasto
             }
@@ -76,8 +85,8 @@ public final class LeitorDeExtrato {
     static List<Linha> csv(String conteudo) {
         String[] linhasDoArquivo = conteudo.replace("﻿", "").split("\\r?\\n");
         String cabecalho = linhasDoArquivo[0];
-        String separador = cabecalho.contains(";") ? ";" : ",";
-        List<String> colunas = List.of(Texto.semAcento(cabecalho.toLowerCase()).split(separador)).stream()
+        char separador = cabecalho.contains(";") ? ';' : ',';
+        List<String> colunas = List.of(Texto.semAcento(cabecalho.toLowerCase()).split(String.valueOf(separador))).stream()
                 .map(String::trim).map(c -> c.replace("\"", "")).toList();
         int data = indice(colunas, "data", "date");
         int descricao = indice(colunas, "descricao", "historico", "description", "item", "lancamento");
@@ -91,7 +100,10 @@ public final class LeitorDeExtrato {
             if (linhasDoArquivo[i].isBlank()) {
                 continue;
             }
-            String[] celulas = linhasDoArquivo[i].split(separador + "(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+            if (linhasDoArquivo[i].length() > MAXIMO_POR_LINHA) {
+                throw new BusinessException("Linha " + (i + 1) + " do CSV e comprida demais.");
+            }
+            String[] celulas = celulas(linhasDoArquivo[i], separador);
             try {
                 lidas.add(new Linha(dataDe(celula(celulas, data)), limpar(celula(celulas, descricao)),
                         valorDe(celula(celulas, valor)), id >= 0 && !celula(celulas, id).isEmpty()
@@ -134,6 +146,27 @@ public final class LeitorDeExtrato {
             }
         }
         return -1;
+    }
+
+    /**
+     * Corta a linha no separador, menos dentro de aspas, numa passada so: a regex com lookahead
+     * de antes relia a linha inteira a cada separador (quadratica numa linha comprida).
+     */
+    private static String[] celulas(String linha, char separador) {
+        List<String> celulas = new ArrayList<>();
+        boolean entreAspas = false;
+        int inicio = 0;
+        for (int i = 0; i < linha.length(); i++) {
+            char c = linha.charAt(i);
+            if (c == '"') {
+                entreAspas = !entreAspas;
+            } else if (c == separador && !entreAspas) {
+                celulas.add(linha.substring(inicio, i));
+                inicio = i + 1;
+            }
+        }
+        celulas.add(linha.substring(inicio));
+        return celulas.toArray(String[]::new);
     }
 
     private static String celula(String[] celulas, int i) {

@@ -71,13 +71,52 @@ faltar menos de um minuto para `expiresIn` acabar, ou quando uma chamada voltar 
 repita a chamada uma vez. Se a renovação também der `401`, a sessão acabou: volte ao login.
 **Sair**: `POST /api/auth/logout` (responde `204` e apaga o cookie).
 
-**O que muda no app nativo**
+**No app nativo** (D-058, D-072) não há cookie: o refresh viaja no corpo e o app o guarda no
+Keychain (iOS) ou no Keystore (Android).
+
+1. No login (`/api/auth/entrar`, `/api/auth/google` ou `/api/auth/apple`), mande
+   `"refreshNoCorpo": true`. A resposta traz `refreshToken` no corpo e não tem `Set-Cookie`.
+2. Para renovar, mande o refresh no corpo; o novo volta no corpo e o antigo deixa de valer:
+
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "<refresh guardado>" }
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{ "accessToken": "<JWT>", "refreshToken": "<refresh novo>", "expiresIn": 300, "usuario": { "…": "…" } }
+```
+
+3. Para sair, `POST /api/auth/logout` com `{ "refreshToken": "..." }`. Ao criar ou trocar a
+   senha (`PUT /api/auth/me/senha`), mande também `refreshToken`, senão a sessão do próprio
+   aparelho cai junto com as outras.
+
+O refresh que chega pelo cookie nunca volta no corpo, mesmo que o pedido traga `refreshNoCorpo`:
+assim o site continua sem ver o refresh (D-014).
+
+**Entrar com Apple** (`POST /api/auth/apple`): o app gera um nonce aleatório, passa o SHA-256
+dele (em hexadecimal) para o `ASAuthorizationAppleIDRequest` e manda o nonce original ao servidor:
+
+```json
+{ "idToken": "<identityToken>", "nonce": "<nonce original>", "nome": "Ana Souza",
+  "versaoDosTermos": "...", "refreshNoCorpo": true }
+```
+
+A Apple só entrega o nome na primeira autorização: mande `nome` nessa vez, que vira o apelido
+da conta nova. A conta é achada pelo e-mail, como no Google; quem oculta o e-mail na Apple
+ganha uma conta separada. Enquanto o servidor não tiver o Bundle ID em `APPLE_CLIENT_IDS`, a
+rota responde `501` com o código `EM_BREVE`.
 
 | Item | Situação |
 |---|---|
-| Refresh token no corpo da resposta (guardado no Keychain / Keystore) e aceito no corpo de `/api/auth/refresh` e `/api/auth/logout` | **Planejado.** Hoje o refresh só viaja no cookie (`TokenResponse.refreshToken` tem `@JsonIgnore`). Até lá, o cliente HTTP precisa guardar o cookie `piggu_refresh` (URLSession e OkHttp guardam com um cookie store) |
-| Entrar com Apple | **Planejado.** Não existe rota ainda |
-| Push no Android | **Planejado.** `POST /api/auth/me/devices` só aceita `plataforma: "IOS"` (APNs) |
+| Refresh token no corpo da resposta e aceito no corpo de `/api/auth/refresh`, `/api/auth/logout` e `/api/auth/me/senha` | **Pronto** (26/10/2026) |
+| Entrar com Apple | **Pronto** (26/10/2026). Falta revogar o token na Apple ao apagar a conta, que a App Store exige |
+| Push no Android | **Em parte.** `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio). O envio pelo FCM ainda não existe: por enquanto só o iPhone recebe |
 
 ## Erros
 
@@ -120,6 +159,7 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `PEDIDO_INVALIDO` | 400, 404, 405, 415 | Erro do cliente: corrigir a chamada |
 | `SEM_PERMISSAO` | 403 | Esconder a ação para esse papel |
 | `CPF_PENDENTE` | 403 | Levar para a tela de CPF (`PUT /api/me/cpf` ou `/api/me/pais`) |
+| `CADASTRO_PENDENTE` | 403 | Falta apelido, nascimento, CPF ou celular (`usuario.cadastroCompleto` falso): levar para "Sobre você" (`PUT /api/me/sobre-voce`) e renovar o token depois (D-088) |
 | `EMAIL_NAO_CONFIRMADO` | 403 | Pedir para confirmar o e-mail |
 | `PLANO_PREMIUM` | 422 | Mostrar a oferta do Premium |
 | `TERMOS_NECESSARIOS`, `AVISO_DESATUALIZADO` | 422, 409 | Mostrar os termos novos e aceitar (`PUT /api/me/termos`) |
@@ -127,7 +167,7 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `CPF_NECESSARIO`, `CPF_EM_USO`, `PAIS_INVALIDO`, `TELEFONE_INVALIDO`, `IDADE_MINIMA` | 422, 409 | Cadastro e dados da conta |
 | `SENHA_FRACA`, `SENHA_ATUAL_ERRADA`, `SENHA_TRAVADA` | 422, 429 | Senha |
 | `LINK_INVALIDO`, `LINK_RECENTE` | 422, 429 | Links por e-mail (confirmar e-mail, redefinir senha) |
-| `JA_E_DA_FAMILIA`, `JA_TEM_PARCEIRO`, `SEM_PARCEIRO`, `LIMITE_DE_CONVITES`, `LIMITE_DO_FAMILIA` | 409, 422 | Família e convites |
+| `JA_E_DA_FAMILIA`, `JA_TEM_PARCEIRO`, `SEM_PARCEIRO`, `LIMITE_DE_CONVITES`, `LIMITE_DO_FAMILIA`, `ASSINATURA_ATIVA` | 409, 422 | Família e convites |
 | `PRAZO_DE_REEMBOLSO`, `EM_BREVE` | 409, 501 | Premium |
 | `JA_PAGA`, `JA_RECEBIDO` | 409 | Conta fixa e valor a receber já lançados |
 | `CONFLITO` | 409 | Recarregar e tentar de novo |
@@ -154,6 +194,10 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
 - **Cabeçalhos**: `Authorization: Bearer ...` em toda rota que não é de login e
   `Content-Type: application/json` em todo corpo. Opcionais: `User-Agent` (fica na sessão,
   ex.: `Piggu-iOS/1.4.0`) e `X-Request-Id` (até 64 letras, números e `-`; volta na resposta).
+- **Reenvio sem duplicar**: `POST /api/expenses` aceita `idDoEnvio` (UUID que o app gera uma
+  vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com o mesmo id: na
+  mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos da primeira
+  vez. Sem o campo, cada envio lança.
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por

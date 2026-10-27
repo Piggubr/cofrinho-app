@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.ObjectMapper;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,6 +66,18 @@ class MeusDadosTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/meus-dados").with(membro))
                 .andExpect(jsonPath("$.expenses.length()").value(0))
                 .andExpect(jsonPath("$.piggy_deposits.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("o que no app e so da pessoa (meta do mes) fica fora da exportacao do responsavel")
+    void soDaPessoaNaoSaiParaOResponsavel() throws Exception {
+        mockMvc.perform(put("/api/monthly-goals").with(membro).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"mes\":\"2026-09\",\"limite\":500}")).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/meus-dados").with(TokensDeTeste.responsavelVendo(familia, emailMembro)))
+                .andExpect(jsonPath("$.monthly_goals.length()").value(0));
+        mockMvc.perform(get("/api/meus-dados").with(membro))
+                .andExpect(jsonPath("$.monthly_goals.length()").value(1));
     }
 
     @Test

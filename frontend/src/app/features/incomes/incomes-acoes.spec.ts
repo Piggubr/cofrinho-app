@@ -130,6 +130,50 @@ describe('Incomes: acoes', () => {
     expect(pagina.querySelector('[role=alert]')?.textContent).toContain('Receita de outra pessoa.');
   });
 
+  it('salario em duas parcelas: confere o dia e o valor da 2ª e mostra as duas na lista', () => {
+    const tela = abrir(
+      [],
+      [{ ...salarioFixo, dia: 20, valor: 2000, segundoDia: 5, segundoValor: 3000 }],
+    );
+    const pagina: HTMLElement = tela.nativeElement;
+    expect(pagina.textContent).toContain('Dia 20:');
+    expect(pagina.textContent).toContain('dia 5:');
+    expect(pagina.textContent).toContain('5.000,00');
+
+    digitar(pagina, '#valor-receita', '2000');
+    digitar(pagina, '#descricao-receita', 'Salário');
+    pagina.querySelector<HTMLInputElement>('label.repetir input[type=checkbox]')!.click();
+    tela.detectChanges();
+    [...pagina.querySelectorAll<HTMLLabelElement>('label.repetir')]
+      .find((l) => l.textContent?.includes('Em duas parcelas'))!
+      .querySelector('input')!
+      .click();
+    tela.detectChanges();
+
+    clicar(pagina, 'Lançar receita');
+    tela.detectChanges();
+    expect(pagina.querySelector('[role=alert]')?.textContent).toContain(
+      'Informe o dia da 2ª parcela',
+    );
+
+    digitar(pagina, '#segundo-dia', '5');
+    clicar(pagina, 'Lançar receita');
+    tela.detectChanges();
+    expect(pagina.querySelector('[role=alert]')?.textContent).toContain(
+      'Digite o valor da 2ª parcela',
+    );
+
+    digitar(pagina, '#segundo-valor', '3000');
+    clicar(pagina, 'Lançar receita');
+    const pedido = http.expectOne((r) => r.method === 'POST' && r.url === '/api/incomes');
+    expect(pedido.request.body).toMatchObject({
+      valor: 2000,
+      recorrente: true,
+      segundoDia: 5,
+      segundoValor: 3000,
+    });
+  });
+
   it('para de repetir a receita fixa, e o erro aparece', () => {
     const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
     const tela = abrir([], [salarioFixo]);

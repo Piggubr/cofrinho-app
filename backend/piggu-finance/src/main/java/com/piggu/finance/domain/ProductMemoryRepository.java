@@ -10,5 +10,8 @@ public interface ProductMemoryRepository extends JpaRepository<ProductMemory, UU
 
     Optional<ProductMemory> findByProductKey(String productKey);
 
+    /** A linha de quem comprou: no job, sem token, o filtro da pessoa deixa passar a de todos. */
+    Optional<ProductMemory> findByProductKeyAndUserId(String productKey, UUID userId);
+
     List<ProductMemory> findAllByOrderByPurchasesDesc();
 }

@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UrlPathHelper;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -88,7 +89,9 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest pedido, HttpServletResponse resposta, FilterChain cadeia)
             throws ServletException, IOException {
-        String caminho = pedido.getRequestURI();
+        // Caminho ja decodificado, o mesmo que o Spring usa para rotear: com o cru,
+        // /api/auth/%65ntrar chegava ao login sem passar pelo limite.
+        String caminho = UrlPathHelper.defaultInstance.getPathWithinApplication(pedido);
         boolean escrita = !HttpMethod.GET.matches(pedido.getMethod()) && !HttpMethod.HEAD.matches(pedido.getMethod())
                 && !HttpMethod.OPTIONS.matches(pedido.getMethod());
         boolean envio = escrita && ehEnvioDeArquivo(caminho);
@@ -152,6 +155,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
 
     private static boolean ehRotaAberta(String caminho) {
         return caminho.equals("/api/auth/google") || caminho.startsWith("/api/auth/google/app")
+                || caminho.equals("/api/auth/apple")
                 || caminho.equals("/api/auth/entrar")
                 || caminho.equals("/api/auth/cadastro") || caminho.equals("/api/auth/refresh")
                 || caminho.equals("/api/auth/confirmar-email") || caminho.equals("/api/auth/senha/esqueci")

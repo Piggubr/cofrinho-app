@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 
@@ -55,8 +54,8 @@ public class ExchangeRateService {
         this.configuracoes = configuracoes;
     }
 
+    // Sem transacao: a fonte de cambio e chamada pela rede e prenderia uma conexao do banco.
     @Cacheable(value = "cotacao", key = "#de + '-' + #para", unless = "#result.desatualizada()")
-    @Transactional
     public ExchangeRateResponse consultar(String de, String para) {
         String origem = Moedas.validar(de);
         String destino = Moedas.validar(para);

@@ -87,8 +87,8 @@ public class AssistenteService {
     /**
      * @param moeda codigo da moeda em que a pessoa ve os valores no app
      */
-    // O consentimento gravado fica mesmo que a pergunta falhe depois: a pessoa autorizou.
-    @Transactional(noRollbackFor = BusinessException.class)
+    // Sem transacao: a IA leva ate minutos e prenderia uma conexao do banco. O consentimento
+    // e a contagem gravam na hora; as ferramentas leem cada uma na sua.
     public Resposta perguntar(String pergunta, List<ConversaComGemini.Fala> historico, String moeda,
                               Boolean autorizo, String versaoDoAviso, CurrentUser usuario) {
         usuario.exigirPremium("O assistente de IA");
@@ -100,10 +100,7 @@ public class AssistenteService {
                 "Para responder, o assistente envia ao Google (Gemini) os totais e gastos que a pergunta pede. "
                         + "Autorize para continuar.",
                 autorizo, versaoDoAviso);
-        if (usadas(usuario) >= perguntasPorMes) {
-            throw new BusinessException("Você já fez as " + perguntasPorMes + " perguntas deste mês. "
-                    + "O limite volta no dia 1º.", HttpStatus.TOO_MANY_REQUESTS);
-        }
+        int usadas = reservar(usuario);
 
         AtomicReference<String> tela = new AtomicReference<>();
         List<ConversaComGemini.Fala> recentes = historico.subList(Math.max(0, historico.size() - FALAS_NO_CONTEXTO),
@@ -116,7 +113,6 @@ public class AssistenteService {
                     }
                     return resultado.dados();
                 });
-        int usadas = registrar(usuario);
         return new Resposta(texto, tela.get(), Math.max(0, perguntasPorMes - usadas));
     }
 
@@ -144,13 +140,26 @@ public class AssistenteService {
         return usadas == null ? 0 : usadas;
     }
 
-    private int registrar(CurrentUser usuario) {
-        Integer usadas = jdbc.queryForObject("""
+    /**
+     * Conta a pergunta antes de chamar a IA, numa instrucao so que so soma abaixo do limite:
+     * conferir antes e contar depois deixava perguntas ao mesmo tempo passarem do limite, e a
+     * que falhava saia de graca. A que falha na IA conta: as rodadas ja custaram.
+     *
+     * @return quantas a pessoa ja fez no mes, contando esta
+     */
+    private int reservar(CurrentUser usuario) {
+        Integer usadas = perguntasPorMes <= 0 ? null : jdbc.query("""
                 INSERT INTO assistant_usage (household_id, user_id, reference_month, questions) VALUES (?, ?, ?, 1)
                 ON CONFLICT (user_id, reference_month) DO UPDATE SET questions = assistant_usage.questions + 1
+                    WHERE assistant_usage.questions < ?
                 RETURNING questions
-                """, Integer.class, usuario.familia(), usuario.id(), mes());
-        return usadas == null ? 0 : usadas;
+                """, linha -> linha.next() ? linha.getInt(1) : null, usuario.familia(), usuario.id(), mes(),
+                perguntasPorMes);
+        if (usadas == null) {
+            throw new BusinessException("Você já fez as " + perguntasPorMes + " perguntas deste mês. "
+                    + "O limite volta no dia 1º.", HttpStatus.TOO_MANY_REQUESTS);
+        }
+        return usadas;
     }
 
     private String mes() {

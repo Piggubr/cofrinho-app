@@ -223,6 +223,20 @@ const CASOS: Caso[] = [
     '/accounts/c1/statement',
     { mes: '2026-10' },
   ],
+  [
+    'pagar fatura',
+    (s) => s.finance.pagarFatura('c1', '2026-10'),
+    'PUT',
+    '/accounts/c1/statement/paid',
+    { mes: '2026-10' },
+  ],
+  [
+    'desfazer pagamento da fatura',
+    (s) => s.finance.desfazerPagamentoDaFatura('c1', '2026-10'),
+    'DELETE',
+    '/accounts/c1/statement/paid',
+    { mes: '2026-10' },
+  ],
   ['regras de categoria', (s) => s.finance.regrasDeCategoria(), 'GET', '/categories/rules'],
   [
     'definir regra',
@@ -477,14 +491,6 @@ const CASOS: Caso[] = [
     { legenda: 'Praia' },
   ],
   ['apagar foto', (s) => s.media.excluirDoFeed('p1'), 'DELETE', '/feed/p1'],
-  [
-    'enviar arquivo',
-    (s) => s.media.enviarArquivo('b64', 'image/png', 'premio'),
-    'POST',
-    '/assets',
-    {},
-    { imageBase64: 'b64', mimeType: 'image/png', contexto: 'premio' },
-  ],
   ['apagar arquivo', (s) => s.media.excluirArquivo('a1'), 'DELETE', '/assets/a1'],
   ['saldo de moedas', (s) => s.rewards.consultarSaldo(), 'GET', '/coins'],
   [

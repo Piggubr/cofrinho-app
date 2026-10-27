@@ -17,7 +17,7 @@ describe('lerValor', () => {
     expect(lerValor('1,234.56')).toBe(1234.56);
     expect(lerValor('1.500')).toBe(1500);
     expect(lerValor('1.234.567')).toBe(1234567);
-    expect(lerValor('1,234,567')).toBe(1234567);
+    expect(lerValor('1.234.567,89')).toBe(1234567.89);
   });
 
   it('ignora simbolo e espacos, e o separador ainda sem digito depois', () => {
@@ -26,8 +26,18 @@ describe('lerValor', () => {
     expect(lerValor('1.5')).toBe(1.5);
   });
 
-  it('arredonda nos centavos', () => {
-    expect(lerValor('10,005')).toBe(10.01);
+  it('le igual ao app nativo: 0.500 nao e milhar, agrupamento torto e tres casas sao nulos', () => {
+    expect(lerValor('0.500')).toBeNull();
+    expect(lerValor('0.50')).toBe(0.5);
+    expect(lerValor('1.2.3')).toBeNull();
+    expect(lerValor('1,234,567')).toBeNull();
+    expect(lerValor('1,005')).toBeNull();
+    expect(lerValor('10,005')).toBeNull();
+    expect(lerValor('12,345')).toBeNull();
+    expect(lerValor('-5')).toBeNull();
+    expect(lerValor('12,5a')).toBeNull();
+    expect(lerValor(',')).toBeNull();
+    expect(lerValor('R$')).toBeNull();
   });
 
   it('sem numero, devolve nulo', () => {

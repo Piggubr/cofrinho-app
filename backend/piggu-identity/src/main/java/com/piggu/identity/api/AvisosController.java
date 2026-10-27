@@ -38,10 +38,19 @@ public class AvisosController {
     public record AvisosRequest(@NotNull Boolean email, @NotNull Boolean push) {
     }
 
-    /** Token do APNs: 64 caracteres hexadecimais hoje, com folga para a Apple mudar. */
+    /**
+     * Token do aparelho. IOS: o do APNs, 64 caracteres hexadecimais hoje. ANDROID: o do Firebase
+     * (FCM), com letras, numeros, ':', '-' e '_', na casa dos 160 caracteres. O limite tem folga para
+     * os dois mudarem, e nenhum caractere aceito precisa de escape no endereco do envio.
+     */
     public record AparelhoRequest(
-            @NotBlank @Pattern(regexp = "[0-9a-fA-F]{32,200}", message = "Token de aparelho invalido.") String token,
-            @NotBlank @Pattern(regexp = "IOS", message = "Plataforma nao suportada.") String plataforma) {
+            @NotBlank @Pattern(regexp = "[0-9A-Za-z:_-]{32,512}", message = "Token de aparelho invalido.") String token,
+            @NotBlank @Pattern(regexp = "IOS|ANDROID", message = "Plataforma nao suportada.") String plataforma) {
+
+        /** O token do APNs nao diferencia maiuscula; o do FCM diferencia e vai como veio. */
+        String tokenGuardado() {
+            return "IOS".equals(plataforma) ? token.toLowerCase() : token;
+        }
     }
 
     @Operation(summary = "Escolher os canais de aviso")
@@ -54,13 +63,14 @@ public class AvisosController {
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void registrar(@Valid @RequestBody AparelhoRequest pedido, @AuthUser CurrentUser usuario) {
-        aparelhos.registrar(usuario.id(), pedido.token().toLowerCase(), pedido.plataforma());
+        servico.exigirEmailConfirmado(usuario.id());
+        aparelhos.registrar(usuario.id(), pedido.tokenGuardado(), pedido.plataforma());
     }
 
     @Operation(summary = "Parar de mandar push para o aparelho")
     @DeleteMapping("/devices/{token}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@PathVariable String token, @AuthUser CurrentUser usuario) {
-        aparelhos.remover(usuario.id(), token.toLowerCase());
+        aparelhos.remover(usuario.id(), token);
     }
 }

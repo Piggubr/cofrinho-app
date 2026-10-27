@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 25/10/2026.
+Última atualização: 27/10/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -13,7 +13,6 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 ## Agora
 
 - iOS nativo, etapa 0: levar a branch `swift/inicio` do Mac para o GitHub, com o CI do app nativo ([plano iOS](https://claude.ai/artifact/EsG2Vns9DSeAbHqWJTDD3Y)).
-- iOS nativo, etapa 1: login para apps nativos no backend (refresh no corpo da resposta, Entrar com Apple), que serve aos dois apps ([plano iOS](https://claude.ai/artifact/EsG2Vns9DSeAbHqWJTDD3Y)).
 - Android nativo, etapa A0: criar `android-nativo/` com módulos, tema, CI e `CLAUDE.md` ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 - Google Play: abrir a conta e começar o teste fechado com 12 pessoas por 14 dias, que conta pessoal nova precisa antes de publicar ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 - Documentos do repositório: `docs/API_SPEC.md`, `docs/DATA_MODEL.md` e `docs/DECISIONS.md`, nas branches `docs/contrato-da-api`, `docs/modelo-de-dados` e `docs/decisoes`.
@@ -22,8 +21,9 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 - iOS, etapa 2: fundação e visual (cores, Sora, componentes de vidro, abas, telas de vazio, erro e sem internet).
 - iOS, etapa 3: entrada completa (Google, Apple, criar conta, CPF, termos, esqueci a senha).
+- Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
 - iOS, etapa 4: dia a dia (Painel, Gastos e Receitas). Depois dela já dá para abrir um grupo "Nativo" no TestFlight.
-- iOS, etapa 5: organização (contas fixas, orçamentos, calendário, relatórios, contas e cartões).
+- iOS, etapa 5: organização (contas fixas, orçamentos, calendário, relatórios, contas e cartões, com o "Marcar como paga" da fatura, D-085).
 - iOS, etapa 6: metas e conta (metas, cofrinho, Girls Math, prêmios, família, perfil).
 - iOS, etapa 7: extras e recursos da Apple (widgets, Siri, Face ID, push, leitura de nota).
 - iOS, etapa 8: Premium pelo StoreKit 2, com validação no backend e o preço no iPhone decidido.
@@ -49,6 +49,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 26/10/2026: iOS nativo, etapa 1: login para apps nativos no backend, com o refresh no corpo da resposta e Entrar com Apple (D-072).
 - 24/10/2026: login com Google no app iOS e Android pelo navegador do celular ([#79](https://github.com/Piggubr/cofrinho-app/pull/79)).
 - 24/10/2026: dependências do `npm audit` atualizadas: undici, fast-uri e vitest ([#78](https://github.com/Piggubr/cofrinho-app/pull/78)).
 - 24/10/2026: Sonar sem regex que volta atrás, topo do celular com cotação e tela Premium com o plano atual ([#68](https://github.com/Piggubr/cofrinho-app/pull/68)).

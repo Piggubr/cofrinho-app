@@ -3,15 +3,17 @@ package com.piggu.finance.domain;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
+import com.piggu.common.web.Meses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -24,15 +26,13 @@ import java.util.UUID;
 @Component
 public class CotaDeLeituras {
 
-    private static final ZoneId BRASILIA = ZoneId.of("America/Sao_Paulo");
-
     private final JdbcTemplate jdbc;
     private final int gratisPorMes;
     private final Clock relogio;
 
     @Autowired
     public CotaDeLeituras(JdbcTemplate jdbc, @Value("${piggu.leitura-de-nota.gratis-por-mes:10}") int gratisPorMes) {
-        this(jdbc, gratisPorMes, Clock.system(BRASILIA));
+        this(jdbc, gratisPorMes, Clock.system(Meses.BRASILIA));
     }
 
     CotaDeLeituras(JdbcTemplate jdbc, int gratisPorMes, Clock relogio) {
@@ -52,23 +52,36 @@ public class CotaDeLeituras {
                 : new Uso(usadas, gratisPorMes, Math.max(0, gratisPorMes - usadas));
     }
 
-    /** Barra a leitura no gratuito quando o mes ja chegou ao limite. */
-    public void exigirDisponivel(CurrentUser usuario) {
-        if (!usuario.isPremium() && usadasNoMes(usuario.familia()) >= gratisPorMes) {
+    /**
+     * Conta a leitura antes de ler, numa instrucao so que no gratuito so soma abaixo do limite:
+     * conferir e somar separados deixava leituras ao mesmo tempo passarem todas do limite. Em
+     * transacao propria, para a reserva valer na hora e nao prender a linha durante a leitura.
+     * Se a leitura falhar, {@link #devolver}.
+     *
+     * @return quantas sobram no mes (nulo no Premium)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Integer reservar(CurrentUser usuario) {
+        int limite = usuario.isPremium() ? Integer.MAX_VALUE : gratisPorMes;
+        Integer usadas = limite <= 0 ? null : jdbc.query("""
+                INSERT INTO receipt_usage (household_id, reference_month, reads) VALUES (?, ?, 1)
+                ON CONFLICT (household_id, reference_month) DO UPDATE SET reads = receipt_usage.reads + 1
+                    WHERE receipt_usage.reads < ?
+                RETURNING reads
+                """, linha -> linha.next() ? linha.getInt(1) : null, usuario.familia(), mes(), limite);
+        if (usadas == null) {
             throw new BusinessException("Sua família já leu as " + gratisPorMes + " notas grátis deste mês. "
                     + "Com o Premium a leitura pela foto não tem limite; ou lance os itens à mão.",
                     HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
         }
+        return usuario.isPremium() ? null : Math.max(0, gratisPorMes - usadas);
     }
 
-    /** Conta uma leitura e devolve quantas sobram no mes (nulo no Premium). */
-    public Integer registrar(CurrentUser usuario) {
-        Integer usadas = jdbc.queryForObject("""
-                INSERT INTO receipt_usage (household_id, reference_month, reads) VALUES (?, ?, 1)
-                ON CONFLICT (household_id, reference_month) DO UPDATE SET reads = receipt_usage.reads + 1
-                RETURNING reads
-                """, Integer.class, usuario.familia(), mes());
-        return usuario.isPremium() ? null : Math.max(0, gratisPorMes - (usadas == null ? 0 : usadas));
+    /** A leitura reservada falhou: volta para a cota. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void devolver(CurrentUser usuario) {
+        jdbc.update("UPDATE receipt_usage SET reads = reads - 1 WHERE household_id = ? AND reference_month = ? AND reads > 0",
+                usuario.familia(), mes());
     }
 
     private int usadasNoMes(UUID familia) {

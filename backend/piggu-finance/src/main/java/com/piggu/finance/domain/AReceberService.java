@@ -3,9 +3,11 @@ package com.piggu.finance.domain;
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +26,14 @@ public class AReceberService {
     private final ReceivableRepository repositorio;
     private final IncomeService receitas;
     private final TrilhaDeAuditoria trilha;
+    private final JdbcTemplate jdbc;
 
-    public AReceberService(ReceivableRepository repositorio, IncomeService receitas, TrilhaDeAuditoria trilha) {
+    public AReceberService(ReceivableRepository repositorio, IncomeService receitas, TrilhaDeAuditoria trilha,
+                           JdbcTemplate jdbc) {
         this.repositorio = repositorio;
         this.receitas = receitas;
         this.trilha = trilha;
+        this.jdbc = jdbc;
     }
 
     /** O que ainda nao foi recebido, do mais antigo para o mais novo. */
@@ -53,10 +58,13 @@ public class AReceberService {
     @Transactional
     public Income receber(UUID id, UUID autor) {
         Receivable conta = buscar(id);
-        if (conta.isRecebida()) {
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
+        // Como em ContasFixasService.pagar: o UPDATE condicional deixa so um toque passar.
+        if (conta.isRecebida() || jdbc.update(
+                "UPDATE receivables SET received_at = ? WHERE id = ? AND household_id = ? AND received_at IS NULL",
+                hoje, id, FamiliaAtual.atual()) == 0) {
             throw new BusinessException("Esse valor já foi recebido.", HttpStatus.CONFLICT, "JA_RECEBIDO");
         }
-        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
         String descricao = conta.getDescription().isBlank() ? conta.getDebtor()
                 : conta.getDebtor() + " · " + conta.getDescription();
         Income receita = receitas.criar(hoje, descricao, "Reembolso", conta.getAmount(), autor);

@@ -5,10 +5,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveXForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +43,25 @@ class RotasDoGatewayTest {
 
         assertThat(ids).containsExactlyInAnyOrder(
                 "identity", "finance", "rewards", "lifestyle", "media", "banking");
+    }
+
+    @Autowired
+    private List<HttpHeadersFilter> filtrosDeCabecalho;
+
+    @Test
+    @DisplayName("o IP do cliente chega aos servicos no X-Forwarded-For, com o do proxy a direita")
+    void repassaOIpDoCliente() {
+        assertThat(filtrosDeCabecalho).noneMatch(RemoveXForwardedHeadersFilter.class::isInstance);
+        HttpHeadersFilter xff = filtrosDeCabecalho.stream()
+                .filter(XForwardedHeadersFilter.class::isInstance).findFirst().orElseThrow();
+        // O Caddy (172.18.0.5) chama com o IP real que ele escreveu.
+        MockServerWebExchange troca = MockServerWebExchange.from(MockServerHttpRequest.get("/api/auth/entrar")
+                .remoteAddress(new InetSocketAddress("172.18.0.5", 40000))
+                .header("X-Forwarded-For", "203.0.113.7"));
+
+        HttpHeaders repassados = xff.filter(troca.getRequest().getHeaders(), troca);
+
+        assertThat(repassados.getFirst("X-Forwarded-For")).isEqualTo("203.0.113.7,172.18.0.5");
     }
 
     @Test

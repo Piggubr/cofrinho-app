@@ -120,6 +120,8 @@ export class Expenses {
       if (enviados > 0) {
         this.aviso.set($localize`Enviados ${enviados} gastos guardados sem conexão.`);
         this.carregarGastos();
+        // Lido: zera para nao avisar de novo na proxima visita e para o proximo envio mudar o sinal.
+        this.fila.enviados.set(0);
       }
     });
     // Atalho "Lançar gasto" (icone, Siri, link piggu://): cursor no valor, ja preenchido se veio.

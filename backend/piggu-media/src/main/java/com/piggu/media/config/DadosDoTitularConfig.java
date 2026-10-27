@@ -33,7 +33,9 @@ public class DadosDoTitularConfig {
     DadosDaFamilia dadosDaFamilia(JdbcTemplate jdbc, ObjectMapper json, ObjectProvider<DadosDaFamilia.AoApagar> extras) {
         return new DadosDaFamilia(jdbc, json, List.of(
                 Tabela.pessoal("feed_photos", "user_id"),
-                Tabela.pessoal("assets", "owner_id")
+                // Privada: as fotos do Girls Math nem o titular ve (Asset.escondidaDe); a exportacao
+                // de cada um leva so os arquivos que enviou.
+                Tabela.privada("assets", "owner_id")
         ), extras.orderedStream().toList());
     }
 

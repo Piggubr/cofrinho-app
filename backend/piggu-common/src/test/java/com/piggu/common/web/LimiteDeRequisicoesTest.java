@@ -58,6 +58,15 @@ class LimiteDeRequisicoesTest {
     }
 
     @Test
+    @DisplayName("rota com letra codificada (%65ntrar) conta no mesmo limite do login")
+    void rotaCodificadaTemLimite() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            assertThat(login("203.0.113.9", "/api/auth/%65ntrar").getStatus()).isEqualTo(200);
+        }
+        assertThat(login("203.0.113.9", "/api/auth/entrar").getStatus()).isEqualTo(429);
+    }
+
+    @Test
     @DisplayName("esqueci a senha, o link de nova senha e o de confirmar e-mail contam no limite do login")
     void linksDoEmailTemLimite() throws Exception {
         assertThat(login("203.0.113.9", "/api/auth/senha/esqueci").getStatus()).isEqualTo(200);

@@ -1,14 +1,14 @@
 # Modelo de dados do Piggu
 
-**Atualizado em 25/10/2026.** Esquema depois de todas as 72 migrações:
+**Atualizado em 26/10/2026.** Esquema depois de todas as 76 migrações:
 
 | Serviço | Banco | Até a migração |
 |---|---|---|
-| identity | `piggu_identity` | V35 (`cpf_unico`) |
-| finance | `piggu_finance` | V20 (`compartilhado`) |
-| rewards | `piggu_rewards` | V3 (`id_da_pessoa_no_lugar_do_email`) |
+| identity | `piggu_identity` | V36 (`push_no_android`) |
+| finance | `piggu_finance` | V21 (`indices_nas_chaves_estrangeiras`) |
+| rewards | `piggu_rewards` | V4 (`indices_nas_chaves_estrangeiras`) |
 | lifestyle | `piggu_lifestyle` | V5 (`cada_um_ve_o_seu`) |
-| media | `piggu_media` | V3 (`id_da_pessoa_no_lugar_do_email`) |
+| media | `piggu_media` | V4 (`indices_nas_chaves_estrangeiras`) |
 | banking | `piggu_banking` | V6 (`consentimento_retirado`) |
 
 Este documento foi escrito a partir do esquema real: um Postgres 16 descartável, as migrações
@@ -136,7 +136,9 @@ para exportar ou apagar a conta. O resto passa pelo app.
 Cada pessoa tem uma conta (`users`) e pertence a exatamente uma família (`households`). O
 primeiro login cria a conta e uma família nova, com a pessoa como `TITULAR`. Quem aceita um
 convite (`household_invites`, vale 7 dias) entra como `MEMBRO`; o titular pode promovê-lo a
-`PARCEIRO`.
+`PARCEIRO`. No plano casal vigente, se a casa ainda não tem parceiro (nem convite de parceria
+esperando), quem aceita o convite e não é menor de idade já entra como `PARCEIRO`. Se depois
+informar uma data de nascimento de menor, volta a `MEMBRO` (D-086).
 
 O id da família vai no token (claim `familia`). Nos cinco serviços de domínio, toda entidade
 marca `household_id` com `@TenantId`: o Hibernate filtra **toda** consulta pela família do
@@ -151,7 +153,7 @@ de cada serviço provam que uma família nunca lê nem altera dado de outra.
 |---|---|
 | `ADMIN` | Opera a instalação (`/api/users`); dentro da própria família vale como titular. Vem de `PIGGU_ADMIN_EMAILS` |
 | `TITULAR` | Dono da família: convida, remove pessoas, assina o Premium |
-| `PARCEIRO` | Promovido pelo titular. Junto com o titular forma "o casal" (os responsáveis) |
+| `PARCEIRO` | Promovido pelo titular, ou o convidado que entra no plano casal (D-086). Junto com o titular forma "o casal" (os responsáveis) |
 | `MEMBRO` | Convidado: usa todas as telas, cada um com os próprios dados |
 
 ### Dentro da família, cada um vê o seu
@@ -285,7 +287,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 |---|---|---|
 | `household_invites` | `email` (texto(320)), `invited_by` (uuid), `expires_at` | Convite para entrar na família. Único por família e e-mail; vale 7 dias e a retenção apaga os vencidos |
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
-| `push_devices` | `token` (chave, texto(200)), `user_id`, `platform` | Aparelho que recebe push. Hoje o `CHECK` só aceita `IOS` (APNs) |
+| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). Hoje o lembrete diário só envia para `IOS`; o envio pelo FCM ainda não existe |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
 | `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe, RevenueCat): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
@@ -319,6 +321,7 @@ erDiagram
     consents
     assistant_usage
     receipt_usage
+    expense_submissions
     app_settings
     eventos_de_auditoria
 ```
@@ -375,6 +378,7 @@ Não tem `created_at`.
 | `due_day` | smallint | só no cartão | Dia do vencimento (1 a 31); nulo na conta |
 | `user_id` | uuid | não | Quem criou |
 | `shared` | boolean | sim (padrão `false`) | Conta do casal: o que for lançado nela já nasce compartilhado |
+| `last_paid_month` | texto(7) | não | Só no cartão: última fatura marcada como paga (`AAAA-MM`); as anteriores contam como pagas (D-085) |
 
 ### `recurring_bills` — conta fixa ou receita recorrente
 
@@ -388,6 +392,8 @@ Não tem `created_at`.
 | `auto_launch` | boolean | sim (padrão `false`) | O job diário lança sozinho no vencimento |
 | `active` | boolean | sim (padrão `true`) | Desligada não lança nem aparece como pendente |
 | `last_paid_month` | texto(7) | não | Último mês (`AAAA-MM`) já lançado: "marcar como paga" lança uma vez só |
+| `second_due_day`, `second_amount` | smallint, numeric(12,2) | não (os dois juntos) | Segunda parcela da receita, como o salário do dia 20 e do dia 5 (D-087). Nulos quando entra de uma vez |
+| `second_paid_month` | texto(7) | não | Último mês já lançado da segunda parcela; o job lança como "<descrição> (2ª parcela)" |
 | `account_id` | uuid | não | Conta ou cartão que paga todo mês |
 | `user_id`, `shared` | | | Como em `expenses` |
 
@@ -463,6 +469,7 @@ Uma linha por produto e pessoa (único por família, pessoa e `product_key`).
 | `consents` | `purpose` (`GEMINI` ou `ASSISTENTE`), `notice_version`, `accepted_at`, `revoked_at`, `user_id` | Prova do consentimento (LGPD art. 8): versão do aviso e quando. Retirar grava `revoked_at` e a linha fica |
 | `assistant_usage` | `user_id` + `reference_month` (chave), `questions` | Perguntas ao assistente de IA no mês, para o limite do Premium. A conversa não é guardada |
 | `receipt_usage` | `household_id` + `reference_month` (chave), `reads` | Notas lidas pela foto no mês, para a cota do gratuito |
+| `expense_submissions` | `household_id` + `id` (chave), `user_id`, `expense_ids` (uuid[]), `created_at` | Envios de gasto do app com `idDoEnvio`: o mesmo id de novo na família não lança e devolve os gastos de `expense_ids`. Gravado na transação dos gastos |
 | `app_settings` | `setting_key` (chave), `setting_value` | Valores pequenos do serviço; hoje a última cotação de cada par (`ultima_cotacao_eur_brl`). Não é por família |
 | `eventos_de_auditoria` | igual à do identity | Quem criou, mudou ou apagou o quê (gasto, depósito, conta fixa...). Sai depois de 400 dias |
 
@@ -639,7 +646,9 @@ erDiagram
 
 Um gasto parcelado em N vezes (2 a 48) vira N linhas em `expenses`, uma por mês:
 
-- `expense_date` avança um mês por parcela (a primeira é a data da compra);
+- `expense_date` avança um mês por parcela (a primeira é a data da compra); no cartão, a
+  parcela que passaria do fim da fatura seguinte fica no último dia de compra dela (fechamento
+  no dia 29: a de 28/01 vai para 27/02, não para a fatura de março);
 - todas têm o mesmo `receipt_id` e o mesmo `item`, `installment_count = N` e
   `installment_number` de 1 a N;
 - o valor é dividido para baixo e o centavo que sobra vai na **última** parcela (o valor
@@ -660,7 +669,9 @@ gastos com aquele `account_id` (`ContasECartoes`):
 - dia 31 vira o último dia nos meses curtos;
 - sem o dia do fechamento, ele fica 7 dias antes do vencimento (ou `vencimento + 24` quando o
   vencimento é até o dia 7);
-- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`).
+- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`);
+- a fatura é paga quando o mês dela não passa de `last_paid_month`. Marcar como paga só tira a
+  fatura do "a pagar" e dos avisos; não lança gasto, porque as compras já contaram (D-085).
 
 ### Gasto dividido na família
 
@@ -807,7 +818,8 @@ Como guardar:
 
 ## Coisas que achei
 
-Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
+Encontrado ao montar este documento. Os itens 3, 7 e 8 foram corrigidos em 26/10/2026
+(identity V36, finance V21, rewards V4, media V4); o resto fica para decidir.
 
 **Colunas sem uso ou com valor fixo**
 
@@ -818,8 +830,8 @@ Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
 
 **Restrições que podem morder**
 
-3. `push_devices.platform` só aceita `IOS`. O app Android já existe; o primeiro registro de
-   aparelho Android para push vai falhar no `CHECK`.
+3. ~~`push_devices.platform` só aceita `IOS`.~~ **Corrigido** (identity V36): aceita `ANDROID`,
+   e o token cresceu para 512 caracteres para caber o do FCM. Falta o envio pelo FCM.
 4. As chaves únicas por pessoa (`product_memory`, `monthly_goals`, `category_budgets`,
    `category_rules`, `payment_accounts`) incluem `user_id`, que pode ser nulo. No Postgres, nulos
    não colidem, então registros sem dono podem se repetir (por exemplo, duas metas sem dono para o
@@ -833,12 +845,12 @@ Encontrado ao montar este documento. Nada foi corrigido; fica para decidir.
 
 **Índices**
 
-7. Faltam índices nas colunas de algumas chaves estrangeiras: `notes.expense_id`,
+7. ~~Faltam índices nas colunas de algumas chaves estrangeiras.~~ **Corrigido**: `notes.expense_id`,
    `receivables.income_id`, `recurring_bills.account_id`, `redemptions.prize_id`,
-   `redemptions.ledger_id` e `feed_photos.asset_id`. Apagar o registro apontado varre a tabela
-   (a retenção de fotos também faz `NOT EXISTS` em `feed_photos.asset_id`).
-8. `expense_shares.member_id` não tem índice, mas entra no filtro de visibilidade de **toda**
-   consulta de gastos (`member_id = ANY(...)`).
+   `redemptions.ledger_id`, `feed_photos.asset_id` e `trial_campaign_uses.code` ganharam índice.
+   O `ChavesEstrangeirasTest` de cada serviço derruba o build se entrar chave estrangeira sem índice.
+8. ~~`expense_shares.member_id` não tem índice.~~ **Corrigido** (finance V21): índice em
+   `(member_id, expense_id)`, que responde sozinho à subconsulta do filtro de visibilidade.
 9. Índices de uma coluna sem `household_id`, provavelmente sem uso porque toda consulta já
    filtra pela família e há um índice composto melhor: `idx_expenses_date`,
    `idx_expenses_category`, `idx_expenses_created`, `idx_product_memory_purchases`,

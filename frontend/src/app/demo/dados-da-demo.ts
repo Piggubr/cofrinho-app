@@ -30,6 +30,8 @@ export interface ContaFixaDemo {
   automatico: boolean;
   tipo?: 'GASTO' | 'RECEITA';
   contaId?: string | null;
+  segundoDia?: number | null;
+  segundoValor?: number | null;
 }
 
 export interface ContaDemo {
@@ -39,6 +41,8 @@ export interface ContaDemo {
   fechamento: number | null;
   vencimento: number | null;
   compartilhado?: boolean;
+  /** Ultima fatura paga (AAAA-MM); as anteriores contam como pagas. */
+  ultimaFaturaPaga?: string;
 }
 
 export interface ObjetivoDemo {

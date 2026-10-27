@@ -3,7 +3,7 @@
 Registro das decisões de arquitetura e de produto: o que foi escolhido, por quê e o que
 isso obriga. Leia antes de mudar algo que pareça estranho, porque muitas vezes há um motivo.
 
-**Como acrescentar uma decisão:** use o próximo número livre (D-072, D-073...) e nunca
+**Como acrescentar uma decisão:** use o próximo número livre (D-083, D-084...) e nunca
 apague uma decisão. Se uma decisão mudar, escreva a nova e troque a situação da antiga para
 "Substituída por D-0xx". A decisão entra no mesmo PR da mudança que ela explica.
 
@@ -27,6 +27,11 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-009](#d-009-recibo-lido-pela-ia-só-vira-gasto-depois-de-conferido) | Recibo lido pela IA só vira gasto depois de conferido | Valendo |
 | [D-010](#d-010-datas-como-dia-sem-fuso) | Datas como dia, sem fuso | Valendo |
 | [D-011](#d-011-nomes-em-português-do-backend-ao-front) | Nomes em português do backend ao front | Valendo |
+| [D-073](#d-073-gasto-lançado-leva-um-id-do-envio) | Gasto lançado leva um id do envio | Valendo |
+| [D-074](#d-074-nenhuma-transação-do-banco-em-volta-de-chamada-a-serviço-de-fora) | Nenhuma transação do banco em volta de chamada a serviço de fora | Valendo |
+| [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
+| [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
+| [D-087](#d-087-salário-em-duas-parcelas-numa-receita-só) | Salário em duas parcelas numa receita só | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -44,12 +49,16 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-025](#d-025-limite-de-chamadas-em-três-camadas) | Limite de chamadas em três camadas | Valendo |
 | [D-026](#d-026-caddy-como-única-porta-pública) | Caddy como única porta pública | Valendo |
 | [D-027](#d-027-login-do-google-no-app-pelo-navegador-do-celular) | Login do Google no app pelo navegador do celular | Valendo |
+| [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
+| [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
+| [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
 | [D-030](#d-030-apagar-ou-renomear-coluna-em-dois-deploys) | Apagar ou renomear coluna em dois deploys | Valendo |
 | [D-031](#d-031-painel-analítico-só-lê-contagens) | Painel analítico só lê contagens | Valendo |
 | [D-032](#d-032-backup-diário-cifrado-fora-do-servidor-e-testado) | Backup diário cifrado, fora do servidor e testado | Valendo |
+| [D-077](#d-077-a-família-nova-de-quem-sai-tem-id-previsível) | A família nova de quem sai tem id previsível | Valendo |
 | **Infraestrutura e deploy** | | |
 | [D-033](#d-033-um-servidor-oracle-cloud-always-free-com-docker-compose) | Um servidor Oracle Cloud Always Free, com Docker Compose | Valendo |
 | [D-034](#d-034-só-a-main-publica-com-chave-ssh-presa-ao-script) | Só a `main` publica, com chave SSH presa ao script | Valendo |
@@ -70,6 +79,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
 | [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Valendo |
 | [D-048](#d-048-preço-do-premium-no-iphone) | Preço do Premium no iPhone | Em aberto |
+| [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
+| [D-079](#d-079-cartão-recusado-dá-7-dias-de-premium) | Cartão recusado dá 7 dias de Premium | Valendo |
+| [D-081](#d-081-stripe-e-revenuecat-sem-interface) | Stripe e RevenueCat sem interface | Valendo |
 | **Apps (site, iOS e Android)** | | |
 | [D-049](#d-049-site-em-angular-com-telas-sob-demanda) | Site em Angular, com telas sob demanda | Valendo |
 | [D-050](#d-050-só-o-login-conhece-os-tokens-uma-renovação-por-vez) | Só o login conhece os tokens; uma renovação por vez | Valendo |
@@ -83,7 +95,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-058](#d-058-tokens-no-app-nativo) | Tokens no app nativo | Valendo |
 | [D-059](#d-059-a-api-só-acrescenta-campos) | A API só acrescenta campos | Valendo |
 | [D-060](#d-060-features-novas-no-site-durante-a-migração) | Features novas no site durante a migração | Em aberto |
+| [D-075](#d-075-só-sessão-recusada-encerra-a-sessão-só-dado-inválido-tira-gasto-da-fila) | Só sessão recusada encerra a sessão; só dado inválido tira gasto da fila | Valendo |
+| [D-076](#d-076-o-campo-de-valor-do-site-lê-igual-ao-app-nativo) | O campo de valor do site lê igual ao app nativo | Valendo |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
+| [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -197,6 +212,51 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: campo novo na API entra com o mesmo nome no front.
 - Onde ver: [Estrutura (frontend)](../frontend/README.md#estrutura)
 
+## D-073: Gasto lançado leva um id do envio
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: com sinal fraco, o servidor gravava o gasto, a resposta se perdia (status 0) e a fila sem sinal mandava de novo: gasto em dobro.
+- Decisão: o app gera um `idDoEnvio` (UUID) por toque em "Lançar" e a fila reenvia o mesmo. O finance grava o id em `expense_submissions` na mesma transação do gasto; o mesmo id na mesma família não lança de novo e devolve os gastos da primeira vez, com o mesmo 201. Sem o campo, nada muda.
+- Alternativas: reaproveitar o `reciboId`, que já agrupa os itens de uma nota e mudaria de sentido.
+- Consequências: a tabela cresce uma linha por envio e ainda não tem retenção; limpar depois de 30 dias quando pesar.
+- Onde ver: [API_SPEC.md, "Reenvio sem duplicar"](API_SPEC.md)
+
+## D-074: Nenhuma transação do banco em volta de chamada a serviço de fora
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: o assistente, a leitura de nota e o câmbio esperavam o Gemini ou a cotação com uma das 10 conexões do banco presa; dez pessoas ao mesmo tempo travavam o finance inteiro.
+- Decisão: essas chamadas rodam fora de transação; consentimento, cota e uso são instruções únicas que confirmam sozinhas. A pergunta ao assistente é reservada na cota antes de chamar a IA, numa instrução só, e conta mesmo se a resposta falhar (as rodadas já custaram). A leitura de nota, ao contrário, devolve a reserva se falhar (como já era).
+- Alternativas: aumentar o pool de conexões, que só adia o mesmo travamento.
+- Consequências: as ferramentas do assistente leem cada uma na própria transação, sem foto única do banco; para quem só lê, sem efeito.
+- Onde ver: `AssistenteService`, `CotaDeLeituras`
+
+## D-082: Corrida perdida no banco responde 409
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: no rewards (SERIALIZABLE), quem perdia a corrida recebia 500 e contava como falha do servidor; pagar a conta fixa ou receber o "a receber" com dois toques lançava duas vezes.
+- Decisão: `ConcurrencyFailureException` responde como restrição violada: 409 `CONFLITO`, "Outra alteração chegou antes. Tente de novo." Pagar a conta fixa e receber o "a receber" passam por um UPDATE condicional, e o segundo toque recebe o 409 que já existia.
+- Alternativas: não registradas.
+- Consequências: o aviso "Restrição do banco violada" no log passa a contar também essas corridas.
+- Onde ver: `ApiExceptionHandler`, `ContasFixasService.pagar`
+
+## D-085: Fatura paga só sai do "a pagar"
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: a tela de cartões mostrava o "a pagar" e o painel avisava a fatura vencendo mesmo depois de paga. Cada compra no cartão já conta nos Gastos e na Sobra no dia em que foi feita.
+- Decisão: "Marcar como paga" (`PUT /api/accounts/{id}/statement/paid?mes=AAAA-MM`) grava em `payment_accounts.last_paid_month` a última fatura paga, e as anteriores contam como pagas também, como em `recurring_bills`. Não lança gasto. A fatura ganha `paga`, e a paga sai do aviso do painel e do lembrete por e-mail e push. Desfazer (`DELETE`, mesma rota) volta a marca para o mês anterior, então as faturas seguintes também voltam a ficar em aberto. Marcar de novo dá 204, e uma fatura que ainda não começou dá 422.
+- Alternativas: lançar o pagamento como gasto, que conta as compras duas vezes; uma tabela com cada mês pago, que precisaria entrar na exportação, na exclusão e na mudança de família (LGPD), para um caso raro (pagar março sem ter pago fevereiro).
+- Consequências: não registra pagamento parcial nem a conta de onde saiu o dinheiro. O iOS e o Android nativos mostram o mesmo botão na tela de cartões (etapa 5 e A5).
+- Onde ver: `ContasECartoes.pagarFatura`, [DATA_MODEL.md, "Fatura de cartão"](DATA_MODEL.md#fatura-de-cartão)
+
+## D-087: Salário em duas parcelas numa receita só
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: no Brasil, muita gente recebe o salário em duas vezes (adiantamento no dia 20 e o resto no dia 5), com valores diferentes.
+- Decisão: a receita recorrente pode ter uma segunda parcela com dia e valor próprios (`recurring_bills.second_due_day`, `second_amount`), digitados pela pessoa. O valor e o dia de sempre são a 1ª parcela. A segunda tem o próprio `second_paid_month`, e o job diário lança cada parcela no dia dela, uma vez por mês, a segunda como "<descrição> (2ª parcela)". Ela começa na próxima vez que o dia dela chegar: se já passou no mês do cadastro, só no mês seguinte.
+- Alternativas: duas receitas recorrentes separadas, que funcionam hoje sem mudar o backend, mas aparecem como dois salários na lista.
+- Consequências: só a receita lançada pelo formulário de receita tem segunda parcela; a conta fixa de gasto não usa. Editar a receita recorrente ainda não muda a segunda parcela: para trocar, pare de repetir e lance de novo.
+- Onde ver: `ContasFixasService.receberSegundaParcela`, [DATA_MODEL.md, `recurring_bills`](DATA_MODEL.md)
+
 # Segurança e privacidade
 
 ## D-012: Dois tokens: access curto e refresh longo
@@ -243,6 +303,24 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: não registradas.
 - Consequências: compartilhar é grátis em qualquer plano. Num item compartilhado, todos editam, mas só quem criou apaga.
 - Onde ver: [planos Premium, "Compartilhamento"](planos-premium.md#compartilhamento-entre-o-casal-e-a-família)
+
+## D-086: No plano casal, o convidado entra como parceiro
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: quem assina o plano casal convida o marido ou a esposa. A pessoa entrava como membro, e o titular ainda precisava convidar de novo para a parceria.
+- Decisão: com o plano casal vigente, quem aceita o convite da família entra direto como parceiro, se a casa ainda não tem um (nem convite de parceria esperando) e a pessoa não é menor de idade. Aceitar o convite vale como o aceite da parceria. Quem entra depois entra como membro. A conta nova ainda não tem data de nascimento; se depois ela informar uma de menor, volta a membro.
+- Alternativas: o titular escolher "convidar como parceiro" no convite, que precisaria de uma coluna nova em `household_invites`.
+- Consequências: ver tudo do outro continua dependendo do consentimento de cada um no perfil (D-016). No plano família e no individual, nada muda.
+- Onde ver: `FamiliaService.entraComoParceiro`, `UserAccount.informarNascimento`
+
+## D-088: Entrar pelo Google pede o mesmo cadastro do e-mail
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: o cadastro por e-mail pede apelido, nascimento, CPF e celular. Quem entrava pelo Google (ou pela Apple) só via "Sobre você" com apelido e nascimento, e nunca informava CPF nem celular. Desde 13/10 o token já não levava a claim `cpf`, então nada barrava a conta sem CPF, ao contrário do que diz D-018.
+- Decisão: `UserAccount.cadastroIncompleto()` falta apelido, nascimento, CPF (ou documento de conta antiga) ou celular. Com o cadastro incompleto, o access token leva `cadastro=false` e os serviços de dados respondem 403 `CADASTRO_PENDENTE` (o identity não barra: é nele que se completa, exporta ou apaga a conta). O perfil ganha `cadastroCompleto` e `celularInformado`, e "Sobre você" (`PUT /api/me/sobre-voce`) passa a pedir também CPF e celular quando faltam. Depois de salvar, o app renova o token. Vale para as contas que já existem: no próximo acesso, quem não tem caem na tela.
+- Alternativas: pedir os dados só para contas novas; voltar a claim `cpf`, que só cobria o CPF.
+- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo precisa pedir CPF e celular na `SobreVoceView` antes de ir para o TestFlight; até lá, a conta incompleta recebe 403 nos dados. O celular ainda não é confirmado por SMS.
+- Onde ver: `UserAccount.cadastroIncompleto`, `TokenService.gerarAccessToken`, `CpfObrigatorio`, `frontend/src/app/features/sobre-voce`
 
 ## D-017: Entrar com e-mail e senha, Google como opção
 - Data: 14/10/2026 ([PR #22](https://github.com/Piggubr/cofrinho-app/pull/22))
@@ -343,6 +421,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: a URI `https://piggu.com.br/api/auth/google/app` precisa estar no cliente OAuth do Google Cloud. A rota tem uma entrada de CORS própria no gateway.
 - Onde ver: [PR #79](https://github.com/Piggubr/cofrinho-app/pull/79)
 
+## D-080: E-mail da conta sai depois do commit, fora da requisição
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: "esqueci a senha" chamava a API de e-mail dentro da requisição só quando a conta existia; o tempo da resposta dizia quem usa o Piggu, e o e-mail lento prendia uma conexão do banco.
+- Decisão: link de senha nova, confirmação de e-mail e aviso de cadastro repetido saem depois do commit, numa virtual thread. O aviso de fim do teste continua dentro do webhook, porque a falha dele faz a Stripe reenviar.
+- Alternativas: fila de e-mails no banco, que ainda não se paga.
+- Consequências: o contexto de log da requisição não vai junto; e-mail que falha só aparece no log.
+- Onde ver: `ConfirmacaoDeEmail.depoisDoCommit`
+
 # Dados
 
 ## D-028: Fora do identity, só o id da conta
@@ -389,6 +476,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: Cloudflare R2 ou S3 servem do mesmo jeito. `rclone sync` fica proibido, para um disco vazio não apagar a cópia de fora.
 - Consequências: a senha do backup e a `PIGGU_CPF_CHAVE` ficam guardadas fora do servidor.
 - Onde ver: [implantação, seção 6](implantacao-producao.md#6-backup-diário-testado)
+
+## D-077: A família nova de quem sai tem id previsível
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: sair ou ser removido cria uma família nova e pede a cada serviço que mova os dados para ela. Com id aleatório, um serviço fora no meio desfazia o identity, mas não quem já tinha movido; a nova tentativa ia para outro id e os dados ficavam numa família que não existe.
+- Decisão: o id sai da conta, da família de onde ela sai e de um contador que pula ids já usados. A nova tentativa manda para o mesmo lugar.
+- Alternativas: saga com compensação em cada serviço.
+- Consequências: se o convite vencer entre uma tentativa que falhou e a seguinte, o que já foi movido fica na família que convidou.
+- Onde ver: `FamiliaService.mudarParaFamiliaPropria`
 
 # Infraestrutura e deploy
 
@@ -486,7 +582,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-041: Stripe no site, RevenueCat nas lojas
 - Data: 01/10/2026 (Stripe); 09/10/2026 (RevenueCat)
-- Situação: Valendo
+- Situação: Valendo; a interface `ProvedorDePagamento` saiu (D-081)
 - Contexto: Apple e Google exigem compra dentro do app para assinatura digital vendida no app.
 - Decisão: no site, Stripe (Checkout e Portal do Cliente, API REST sem SDK) atrás da interface `ProvedorDePagamento`. Nas lojas, RevenueCat, que valida o recibo e avisa o backend por webhook. O preço do app é 15% maior por causa da taxa das lojas, e a tela web só mostra o preço do site.
 - Alternativas: trocar de provedor é escrever outra implementação de `ProvedorDePagamento`.
@@ -555,6 +651,33 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: manter os +15%, subir mais, ou outro modelo.
 - Consequências: precisa estar decidido antes de publicar o app nativo com StoreKit.
 - Onde ver: [planos Premium, "Preços"](planos-premium.md#preços)
+
+## D-078: Quem paga o Premium não muda de família com ele valendo
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: o aviso da Stripe vale para a família atual de quem assinou. Quem aceitava convite levava a renovação para a família nova, trocava o plano dela e tirava do titular dela o direito ao reembolso.
+- Decisão: quem é o assinante de um Premium que ainda vale não aceita convite (409, `ASSINATURA_ATIVA`). Aviso de fim de outra assinatura não derruba o plano de quem paga agora.
+- Alternativas: deixar entrar e mover a assinatura; o identity não sabe se a assinatura foi cancelada e só vale até o fim do período.
+- Consequências: quem cancelou o anual espera o fim do período para entrar em outra família.
+- Onde ver: `FamiliaService.aceitarConvite`, `Household.aplicarAssinatura`
+
+## D-079: Cartão recusado dá 7 dias de Premium
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: em `past_due` a Stripe já moveu `current_period_end` para o fim do período que não foi pago; o anual recusado ganhava até um ano.
+- Decisão: em `past_due`, o Premium vale até `current_period_start` mais 7 dias de carência.
+- Alternativas: confiar só na régua de cobrança do painel da Stripe.
+- Consequências: se a Stripe conseguir cobrar depois dos 7 dias, o aviso de `active` devolve o Premium.
+- Onde ver: `StripePagamentos`
+
+## D-081: Stripe e RevenueCat sem interface
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: `ProvedorDePagamento` e `LojaDeApps` tinham uma implementação cada, e os testes já mockavam pelo Mockito.
+- Decisão: o código usa `StripePagamentos` e `RevenueCatLoja` direto. A interface volta quando houver um segundo provedor.
+- Alternativas: manter as interfaces "para depois" (D-041).
+- Consequências: trocar de provedor é extrair a interface antes; o resto de D-041 continua valendo.
+- Onde ver: `backend/piggu-identity/.../billing/`
 
 # Apps (site, iOS e Android)
 
@@ -645,7 +768,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o app nativo não tem o cookie HttpOnly do navegador (D-014).
 - Decisão: o access token fica só na memória e o refresh vai para o Keychain (iOS) ou o Keystore (Android). Para apps nativos, o backend devolve o refresh no corpo da resposta.
 - Alternativas: o cookie do site.
-- Consequências: na `develop` de hoje, `/api/auth/refresh` só lê o cookie; a etapa 1 do plano iOS implementa a resposta para o nativo no identity, que serve aos dois apps.
+- Consequências: na `develop` de hoje, `/api/auth/refresh` só lê o cookie; a etapa 1 do plano iOS implementa a resposta para o nativo no identity, que serve aos dois apps. Feito em 26/10/2026 (D-072).
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, plano do iOS nativo
 
 ## D-059: A API só acrescenta campos
@@ -666,6 +789,24 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: até decidir, toda feature nova no site deve ser anotada para o nativo.
 - Onde ver: este registro
 
+## D-075: Só sessão recusada encerra a sessão; só dado inválido tira gasto da fila
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: qualquer erro da chamada repetida depois de renovar deslogava a pessoa, e a fila sem sinal apagava os gastos guardados quando a sessão tinha acabado (401).
+- Decisão: no front, a sessão só acaba quando a renovação volta 401 ou 403; sem sinal, servidor fora ou 429 só repassam o erro. A fila só descarta gasto que volta 400 ou 422; qualquer outra falha para a fila e guarda o resto. Ao abrir o app com a renovação recusada, o perfil guardado e as listas do service worker saem; sem sinal, ficam.
+- Alternativas: não registradas.
+- Consequências: gastos de quem saiu continuam guardados no aparelho até essa pessoa entrar de novo.
+- Onde ver: `auth.interceptor.ts`, `fila-de-gastos.ts`
+
+## D-076: O campo de valor do site lê igual ao app nativo
+- Data: 26/10/2026 ([PR #89](https://github.com/Piggubr/cofrinho-app/pull/89))
+- Situação: Valendo
+- Contexto: "0.500" virava R$ 500 no site e era recusado no iPhone; o arredondamento em ponto flutuante dava "1,005" → 1,00 e "10,005" → 10,01.
+- Decisão: `lerValor` segue as regras do `Formatos.lerValor` do app nativo: grupos de milhar com três dígitos e sem "0" na frente, no máximo dois decimais, sem sinal de menos. Fora disso, o campo fica vazio.
+- Alternativas: arredondar no texto e aceitar mais casas.
+- Consequências: valor negativo não entra mais pelo campo; nenhuma tela usava.
+- Onde ver: `campo-de-valor.ts`, `ios-nativo/Piggu/Core/Formatos/Formatos.swift`
+
 ## D-071: Chiclete como cor padrão e Porquinho Neon como ícone
 - Data: 20/10/2026 ([PR #42](https://github.com/Piggubr/cofrinho-app/pull/42))
 - Situação: Valendo
@@ -674,6 +815,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o Rosa Piggu e o ícone Clássico continuam disponíveis e grátis.
 - Consequências: quem não escolheu cor vê o Chiclete; quem tinha escolhido Rosa continua no Rosa.
 - Onde ver: [PR #42](https://github.com/Piggubr/cofrinho-app/pull/42)
+
+## D-072: Refresh no corpo só para quem pede, e Apple pelo e-mail
+- Data: 26/10/2026
+- Situação: Valendo
+- Contexto: etapa 1 do plano iOS. O app nativo não tem o cookie do site (D-058), e o site não pode passar a ver o refresh (D-014).
+- Decisão: o login (`/api/auth/google`, `/entrar` e `/apple`) com `refreshNoCorpo: true` devolve `refreshToken` no corpo e não põe cookie. `/api/auth/refresh`, `/logout` e `/me/senha` aceitam `refreshToken` no corpo; renovar pelo corpo devolve o novo no corpo. O refresh que chegou pelo cookie nunca volta no corpo, peça o cliente o que pedir: um XSS no site consegue renovar, mas não leva o refresh. Entrar com Apple confere o identity token contra o JWKS da Apple (emissor, Bundle ID, validade, e-mail verificado e o nonce, que é o SHA-256 do valor que o app manda) e acha a conta pelo e-mail, como o Google. Sem `APPLE_CLIENT_IDS` a rota responde 501.
+- Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
+- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
+- Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
 # Processo
 

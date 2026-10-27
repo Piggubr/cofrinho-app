@@ -37,7 +37,7 @@ class CheckoutTest {
                 .andExpect(content().string(containsString("subscription_data%5Btrial_period_days%5D=7")))
                 .andRespond(withSuccess("{\"url\":\"https://checkout.stripe.test/s\"}", MediaType.APPLICATION_JSON));
 
-        assertThat(pagamentos.abrirCheckout(conta, Periodo.MENSAL, 7)).isEqualTo("https://checkout.stripe.test/s");
+        assertThat(pagamentos.abrirCheckout(conta, Periodo.MENSAL, 7, null)).isEqualTo("https://checkout.stripe.test/s");
         stripe.verify();
     }
 
@@ -59,7 +59,7 @@ class CheckoutTest {
                 .andExpect(content().string(not(containsString("trial_period_days"))))
                 .andRespond(withSuccess("{\"url\":\"https://checkout.stripe.test/s\"}", MediaType.APPLICATION_JSON));
 
-        pagamentos.abrirCheckout(conta, Periodo.ANUAL, 0);
+        pagamentos.abrirCheckout(conta, Periodo.ANUAL, 0, null);
         stripe.verify();
     }
 }

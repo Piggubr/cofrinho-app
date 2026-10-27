@@ -8,6 +8,7 @@ import { VERSAO_DO_AVISO } from '../privacidade/aviso';
 import { usuarioDeTeste } from '../../testing/auth-falso';
 import { AuthService } from './auth.service';
 import { GoogleIdentityService } from './google-identity.service';
+import { AvisosNoCelular, PUSH_NATIVO } from '../nativo/avisos-no-celular';
 import { TokenStorage } from './token-storage';
 
 function tokens(usuario: Usuario = usuarioDeTeste()): ParDeTokens {
@@ -32,6 +33,19 @@ describe('AuthService', () => {
         {
           provide: GoogleIdentityService,
           useValue: { esquecerConta: async () => void contasEsquecidas++ },
+        },
+        // iPhone de mentira: o sistema da o token abc123 quando o app registra.
+        {
+          provide: PUSH_NATIVO,
+          useValue: {
+            disponivel: true,
+            plugin: {
+              checkPermissions: async () => ({ receive: 'granted' }),
+              register: async () => undefined,
+              addListener: async (_evento: string, ouvir: (token: { value: string }) => void) =>
+                ouvir({ value: 'abc123' }),
+            },
+          },
         },
       ],
     });
@@ -58,6 +72,16 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBe('acesso');
     expect(auth.ehTitular()).toBe(true);
     expect(auth.cuidaDosPremios()).toBe(true);
+  });
+
+  it('conta nova do Google com cadastro incompleto fica pendente; o demo, sem o campo, nao', async () => {
+    const entrada = auth.entrarComGoogle('id-token', true, VERSAO_DO_AVISO);
+    http.expectOne('/api/auth/google').flush(tokens(usuarioDeTeste({ cadastroCompleto: false })));
+    await entrada;
+    expect(auth.sobreVocePendente()).toBe(true);
+
+    auth.atualizarUsuario(usuarioDeTeste());
+    expect(auth.sobreVocePendente()).toBe(false);
   });
 
   it('entrar com e-mail e senha usa a mesma sessao do Google', async () => {
@@ -169,6 +193,19 @@ describe('AuthService', () => {
     expect(storage.accessToken).toBeNull();
   });
 
+  it('sessao vencida esquece o perfil guardado; sem sinal ele fica', async () => {
+    localStorage.setItem('piggu_perfil_offline', JSON.stringify(tokens().usuario));
+    let restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').error(new ProgressEvent('error'), { status: 0 });
+    expect(await restaurada).toBe(true);
+    expect(localStorage.getItem('piggu_perfil_offline')).not.toBeNull();
+
+    restaurada = auth.restaurarSessao();
+    http.expectOne('/api/auth/refresh').flush(null, { status: 401, statusText: 'Unauthorized' });
+    expect(await restaurada).toBe(false);
+    expect(localStorage.getItem('piggu_perfil_offline')).toBeNull();
+  });
+
   it('sem sinal e com "manter conectado": abre com o perfil guardado', async () => {
     localStorage.setItem('piggu_perfil_offline', JSON.stringify(tokens().usuario));
     const restaurada = auth.restaurarSessao();
@@ -210,6 +247,7 @@ describe('AuthService', () => {
     localStorage.setItem('piggu_conversa_do_assistente', '{"usuario":"x","falas":[]}');
 
     const saida = auth.sair();
+    await new Promise((pronto) => setTimeout(pronto));
     http.expectOne('/api/auth/logout').flush({});
     await saida;
 
@@ -226,7 +264,25 @@ describe('AuthService', () => {
     auth.atualizarUsuario(usuarioDeTeste());
 
     const saida = auth.sair();
+    await new Promise((pronto) => setTimeout(pronto));
     http.expectOne('/api/auth/logout').flush(null, { status: 503, statusText: 'Indisponivel' });
+    await saida;
+
+    expect(auth.autenticado()).toBe(false);
+  });
+
+  it('sair descadastra o celular dos avisos, e sai mesmo se isso falhar', async () => {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    await TestBed.inject(AvisosNoCelular).renovar();
+    http.expectOne('/api/auth/me/devices').flush(null);
+    auth.atualizarUsuario(usuarioDeTeste());
+
+    const saida = auth.sair();
+    const remocao = http.expectOne('/api/auth/me/devices/abc123');
+    expect(remocao.request.method).toBe('DELETE');
+    remocao.flush(null, { status: 500, statusText: 'Erro' });
+    await new Promise((pronto) => setTimeout(pronto));
+    http.expectOne('/api/auth/logout').flush({});
     await saida;
 
     expect(auth.autenticado()).toBe(false);

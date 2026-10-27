@@ -1,4 +1,5 @@
-import { dataIso, problemaDoNascimento } from './nascimento';
+import { dataIso } from './datas';
+import { problemaDoNascimento } from './nascimento';
 
 describe('problemaDoNascimento', () => {
   const anosAtras = (anos: number) => {

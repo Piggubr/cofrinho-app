@@ -63,7 +63,7 @@ class CompraNaLojaTest extends PostgresIntegrationTest {
         avisar("app-store", aviso("evt-2", "INITIAL_PURCHASE", "APP_STORE", Instant.now()), "Bearer segredo-rc")
                 .andExpect(status().isOk());
         assertThat(plano()).isEqualTo(Plano.PREMIUM);
-        assertThat(assinaturas.plano(conta.getId()).origem()).isEqualTo("APP_STORE");
+        assertThat(assinaturas.plano(conta.getId(), null).origem()).isEqualTo("APP_STORE");
 
         // Reenvio do mesmo id com outro conteudo: ignorado.
         avisar("app-store", aviso("evt-2", "EXPIRATION", "APP_STORE", Instant.now().plusSeconds(60)), "segredo-rc")
@@ -95,7 +95,7 @@ class CompraNaLojaTest extends PostgresIntegrationTest {
     }
 
     private Plano plano() {
-        return assinaturas.plano(conta.getId()).plano();
+        return assinaturas.plano(conta.getId(), null).plano();
     }
 
     private org.springframework.test.web.servlet.ResultActions avisar(String loja, String corpo, String autorizacao)

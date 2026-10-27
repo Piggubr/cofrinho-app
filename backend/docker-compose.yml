@@ -80,6 +80,8 @@ services:
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
+      # Entrar com Apple no app nativo: Bundle ID (br.com.piggu.app). Vazio deixa a rota em 501.
+      APPLE_CLIENT_IDS: ${APPLE_CLIENT_IDS:-}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
       PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
       # Cifra do CPF (32 bytes base64). Vazia so em desenvolvimento; em producao o identity recusa subir.

@@ -87,7 +87,8 @@ public class LembretesDiarios {
             entregue = email.enviar(conta.getEmail(), mensagem);
         }
         if (conta.isAlertsByPush() && push.ligado()) {
-            for (String aparelho : aparelhos.doUsuario(conta.getId())) {
+            // So o iPhone por enquanto: o Android ja registra o aparelho, mas o envio pelo FCM ainda nao existe.
+            for (String aparelho : aparelhos.doUsuario(conta.getId(), "IOS")) {
                 CanalDePush.Resultado resultado = push.enviar(aparelho, mensagem);
                 if (resultado == CanalDePush.Resultado.ENVIADO) {
                     entregue = true;

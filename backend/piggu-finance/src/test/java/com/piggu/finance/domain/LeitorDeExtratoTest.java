@@ -4,11 +4,13 @@ import com.piggu.common.error.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 /** Extrato: so debitos viram gasto; cada linha tem um id estavel para nao importar duas vezes. */
 class LeitorDeExtratoTest {
@@ -53,6 +55,26 @@ class LeitorDeExtratoTest {
         assertThat(linhas.get(0).descricao()).isEqualTo("Livro, usado");
         assertThat(linhas.get(0).idExterno()).isEqualTo("csv:x9");
         assertThatThrownBy(() -> LeitorDeExtrato.ler("a;b\n1;2\n")).isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("linha enorme cheia de separadores e recusada na hora, sem prender a CPU")
+    void linhaEnorme() {
+        String csv = "data;descricao;valor\n" + ";".repeat(1_000_000) + "\n";
+        assertTimeoutPreemptively(Duration.ofSeconds(1), () -> assertThatThrownBy(() -> LeitorDeExtrato.ler(csv))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("comprida demais"));
+        // O corte novo continua respeitando o separador entre aspas.
+        assertThat(LeitorDeExtrato.ler("data;descricao;valor\n10/09/2026;\"Pao; leite\";-3,00\n").get(0).descricao())
+                .isEqualTo("Pao; leite");
+    }
+
+    @Test
+    @DisplayName("OFX: valor com expoente e recusado, sem montar um texto do tamanho do expoente")
+    void ofxComExpoente() {
+        String ofx = OFX.replace("<TRNAMT>-45.90<FITID>A1", "<TRNAMT>-1E+999999999");
+        assertTimeoutPreemptively(Duration.ofSeconds(1), () -> assertThatThrownBy(() -> LeitorDeExtrato.ler(ofx))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("Valor"));
+        assertThat(LeitorDeExtrato.ler(OFX.replace("-45.90", "+45.90"))).hasSize(1);
     }
 
     @Test

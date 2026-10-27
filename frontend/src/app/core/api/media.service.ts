@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { imagemDaDemo } from '../../demo/modo-demo';
 import { APP_CONFIG } from '../config/app-config';
 import { ApiBase } from './api-base';
-import { Arquivo, FotoDoFeed } from './models';
+import { FotoDoFeed } from './models';
 
 /** Feed de fotos e arquivos de imagem. */
 @Injectable({ providedIn: 'root' })
@@ -25,10 +25,6 @@ export class MediaService extends ApiBase {
 
   excluirDoFeed(id: string): Observable<void> {
     return this.http.delete<void>(this.url(`/feed/${id}`));
-  }
-
-  enviarArquivo(imageBase64: string, mimeType: string, contexto: string): Observable<Arquivo> {
-    return this.http.post<Arquivo>(this.url('/assets'), { imageBase64, mimeType, contexto });
   }
 
   /**

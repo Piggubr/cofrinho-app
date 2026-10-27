@@ -58,6 +58,23 @@ class OrcamentoTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("995 de 1000 e atencao, nao estourou; 795 e ok; 1000 estourou (o percentual arredondado e so para mostrar)")
+    void semArredondarOAlerta() throws Exception {
+        orcamento(casas.casaA, "Alimentação", 1000).andExpect(status().isNoContent());
+        orcamento(casas.casaA, "Transporte", 1000).andExpect(status().isNoContent());
+        orcamento(casas.casaA, "Lazer", 1000).andExpect(status().isNoContent());
+        gasto("Alimentação", 995);
+        gasto("Transporte", 1000);
+        gasto("Lazer", 795);
+
+        mockMvc.perform(get("/api/budgets").param("mes", "2026-09").with(casas.casaA))
+                .andExpect(jsonPath("$[?(@.categoria=='Alimentação')].alerta").value("ATENCAO"))
+                .andExpect(jsonPath("$[?(@.categoria=='Alimentação')].percentual").value(100))
+                .andExpect(jsonPath("$[?(@.categoria=='Transporte')].alerta").value("ESTOUROU"))
+                .andExpect(jsonPath("$[?(@.categoria=='Lazer')].alerta").value("OK"));
+    }
+
+    @Test
     @DisplayName("criar orcamento e Premium; ver e apagar o que ja existe, nao")
     void premium() throws Exception {
         UUID familia = UUID.randomUUID();

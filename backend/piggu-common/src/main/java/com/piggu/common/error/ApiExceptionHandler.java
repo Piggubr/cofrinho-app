@@ -113,10 +113,14 @@ public class ApiExceptionHandler {
                 .body(ApiError.de("Ocorreu um erro. Tente novamente.", "ERRO_INTERNO"));
     }
 
-    /** Pelo nome: o spring-tx e opcional aqui e nem todo servico tem banco. */
+    /**
+     * Pelo nome: o spring-tx e opcional aqui e nem todo servico tem banco. Conflito de
+     * concorrencia (quem perde a corrida no SERIALIZABLE do rewards) e o mesmo caso.
+     */
     private static boolean violouRestricao(Throwable erro) {
         for (Class<?> tipo = erro.getClass(); tipo != null; tipo = tipo.getSuperclass()) {
-            if (tipo.getName().equals("org.springframework.dao.DataIntegrityViolationException")) { // NOSONAR
+            if (tipo.getName().equals("org.springframework.dao.DataIntegrityViolationException") // NOSONAR
+                    || tipo.getName().equals("org.springframework.dao.ConcurrencyFailureException")) { // NOSONAR
                 return true;
             }
         }

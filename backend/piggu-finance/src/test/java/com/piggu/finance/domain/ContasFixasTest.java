@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -86,6 +87,41 @@ class ContasFixasTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("salario em duas parcelas: a segunda entra no dia dela, uma vez por mes, a partir da proxima vez")
+    void salarioEmDuasParcelas() throws Exception {
+        UUID familia = UUID.randomUUID();
+        RequestPostProcessor casa = TokensDeTeste.da(familia, "salario-" + familia + "@piggu.test", PigguRole.TITULAR);
+        String salario = "{\"data\":\"2026-10-20\",\"descricao\":\"Salario\",\"categoria\":\"Salário\",\"valor\":2000,"
+                + "\"recorrente\":%s,\"segundoDia\":5%s}";
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("true", ""))).andExpect(status().isUnprocessableContent());
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("false", ",\"segundoValor\":3000"))).andExpect(status().isUnprocessableContent());
+        // Adiantamento no dia 20; o resto no dia 5, que ja passou em outubro: so entra em novembro.
+        mockMvc.perform(post("/api/incomes").with(casa).contentType(MediaType.APPLICATION_JSON)
+                .content(salario.formatted("true", ",\"segundoValor\":3000"))).andExpect(status().isCreated());
+        mockMvc.perform(get("/api/bills").param("mes", "2026-10").param("tipo", "RECEITA").with(casa))
+                .andExpect(jsonPath("$[0].segundoDia").value(5))
+                .andExpect(jsonPath("$[0].segundoValor").value(3000));
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 10, 31));
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 5));
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 5));
+
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-10").with(casa))
+                .andExpect(jsonPath("$.length()").value(1));
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-11").with(casa))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].descricao").value("Salario (2ª parcela)"))
+                .andExpect(jsonPath("$[0].data").value("2026-11-05"))
+                .andExpect(jsonPath("$[0].valor").value(3000));
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 20));
+        mockMvc.perform(get("/api/incomes").param("mes", "2026-11").with(casa))
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
     @DisplayName("o historico do lancamento automatico fica com o dono da conta: o membro nao ve a do titular")
     void historicoDoAutomaticoEDoDono() throws Exception {
         UUID familia = UUID.randomUUID();
@@ -102,6 +138,36 @@ class ContasFixasTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/history").param("entidade", "gasto").with(doTitular))
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].autor").value(TokensDeTeste.idDe(titular).toString()));
+    }
+
+    @Test
+    @DisplayName("no casal com o mesmo produto na memoria, o job lanca a conta com a categoria dela")
+    void automaticoNoCasal() throws Exception {
+        UUID familia = UUID.randomUUID();
+        String titular = "casal-titular-" + familia + "@piggu.test";
+        RequestPostProcessor ela = TokensDeTeste.da(familia, titular, PigguRole.TITULAR);
+        RequestPostProcessor ele = TokensDeTeste.da(familia, "casal-parceiro-" + familia + "@piggu.test",
+                PigguRole.PARCEIRO);
+        for (RequestPostProcessor quem : new RequestPostProcessor[] {ela, ele}) {
+            mockMvc.perform(post("/api/expenses").with(quem).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Celular\",\"valor\":50}]}"))
+                    .andExpect(status().isCreated());
+        }
+        // A regra dele nao vale para a conta dela.
+        mockMvc.perform(put("/api/categories/rules").with(ele).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"termo\":\"celular\",\"categoria\":\"Lazer\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/bills").with(ela).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"descricao\":\"Celular\",\"categoria\":\"Assinaturas\",\"valor\":60,\"dia\":5,\"automatico\":true}"))
+                .andExpect(status().isCreated());
+
+        contas.lancarAutomaticas(LocalDate.of(2026, 10, 9));
+
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-10").with(ela))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].categoria").value("Assinaturas"));
+        mockMvc.perform(get("/api/products").with(ela))
+                .andExpect(jsonPath("$[0].compras").value(2));
     }
 
     private void criarConta(RequestPostProcessor quem, String descricao, int dia, boolean automatico) throws Exception {
