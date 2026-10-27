@@ -9,3 +9,7 @@ paths = [
     '''backend/piggu-identity/src/test/resources/keys/.*\.pem''',
     '''backend/piggu-identity/src/main/resources/keys/piggu-dev-private\.pem''',
 ]
+# JWT de mentira dos testes do iOS nativo (ios-nativo/PigguTests/ModelosTests.swift).
+regexes = [
+    '''eyJhbGciOiJSUzI1NiJ9\.abc\.def''',
+]
