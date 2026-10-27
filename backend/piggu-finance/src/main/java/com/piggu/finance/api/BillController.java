@@ -59,16 +59,21 @@ public class BillController {
             Boolean compartilhado) {
     }
 
-    /** @param contaId cartao ou conta que paga o gasto; nulo quando nao foi informado */
+    /**
+     * @param contaId    cartao ou conta que paga o gasto; nulo quando nao foi informado
+     * @param segundoDia segunda parcela da receita (o salario do dia 20 e do dia 5); nulo quando entra de uma vez
+     */
     public record BillResponse(UUID id, String descricao, String categoria, BigDecimal valor, int dia,
                                boolean automatico, LocalDate vencimento, ContasFixasService.Situacao situacao,
-                               RecurringBill.Tipo tipo, UUID contaId, UUID usuario, boolean compartilhado) {
+                               RecurringBill.Tipo tipo, UUID contaId, UUID usuario, boolean compartilhado,
+                               Short segundoDia, BigDecimal segundoValor) {
 
         static BillResponse de(ContasFixasService.ContaDoMes item) {
             RecurringBill conta = item.conta();
             return new BillResponse(conta.getId(), conta.getDescription(), conta.getCategory(), conta.getAmount(),
                     conta.getDueDay(), conta.isAutoLaunch(), item.vencimento(), item.situacao(), conta.getKind(),
-                    conta.getAccountId(), conta.getUserId(), conta.isShared());
+                    conta.getAccountId(), conta.getUserId(), conta.isShared(), conta.getSecondDueDay(),
+                    conta.getSecondAmount());
         }
     }
 

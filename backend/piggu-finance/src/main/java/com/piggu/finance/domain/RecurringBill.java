@@ -54,6 +54,16 @@ public class RecurringBill {
     @Column(name = "last_paid_month", length = 7)
     private String lastPaidMonth;
 
+    /** Segunda parcela da receita (o salario do dia 20 e do dia 5); nulos quando entra de uma vez. */
+    @Column(name = "second_due_day")
+    private Short secondDueDay;
+
+    @Column(name = "second_amount", precision = 12, scale = 2)
+    private BigDecimal secondAmount;
+
+    @Column(name = "second_paid_month", length = 7)
+    private String secondPaidMonth;
+
     /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */
     @Column(nullable = false)
     private boolean shared;
@@ -115,6 +125,30 @@ public class RecurringBill {
         if (!pagaEm(mes)) {
             this.lastPaidMonth = mes.toString();
         }
+    }
+
+    /**
+     * Divide em duas parcelas. A segunda comeca na proxima vez que o dia dela chegar: se ja
+     * passou no mes de {@code desde}, so no mes seguinte.
+     */
+    public void dividir(int dia, BigDecimal valor, LocalDate desde) {
+        this.secondDueDay = (short) dia;
+        this.secondAmount = valor;
+        if (dia <= desde.getDayOfMonth()) {
+            this.secondPaidMonth = YearMonth.from(desde).toString();
+        }
+    }
+
+    public LocalDate segundaParcelaEm(YearMonth mes) {
+        return mes.atDay(Math.min(secondDueDay, mes.lengthOfMonth()));
+    }
+
+    public Short getSecondDueDay() {
+        return secondDueDay;
+    }
+
+    public BigDecimal getSecondAmount() {
+        return secondAmount;
     }
 
     public UUID getId() {

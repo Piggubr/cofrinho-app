@@ -45,9 +45,49 @@
   </div>
 </div>
 <label class="repetir">
-  <input type="checkbox" [checked]="repetir()" (change)="repetir.set($any($event.target).checked)" />
-  <span i18n>Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span>
+  <input
+    type="checkbox"
+    [checked]="repetir()"
+    (change)="repetir.set($any($event.target).checked)"
+  />
+  <span i18n
+    >Entra sozinha todo mês no dia {{ diaDaReceita() }} (salário, aluguel que você recebe)</span
+  >
 </label>
+@if (repetir()) {
+  <label class="repetir">
+    <input
+      type="checkbox"
+      [checked]="emDuasParcelas()"
+      (change)="emDuasParcelas.set($any($event.target).checked)"
+    />
+    <span i18n>Em duas parcelas (salário com adiantamento): o valor acima é a 1ª</span>
+  </label>
+  @if (emDuasParcelas()) {
+    <div class="linha-de-campos repetir">
+      <div class="campo">
+        <label i18n [for]="prefixo() + 'segundo-dia'">Dia da 2ª parcela</label>
+        <input
+          [id]="prefixo() + 'segundo-dia'"
+          type="number"
+          min="1"
+          max="31"
+          [ngModel]="segundoDia()"
+          (ngModelChange)="segundoDia.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label i18n [for]="prefixo() + 'segundo-valor'">Valor da 2ª parcela</label>
+        <input
+          appValor
+          [id]="prefixo() + 'segundo-valor'"
+          [ngModel]="segundoValor()"
+          (ngModelChange)="segundoValor.set($event)"
+        />
+      </div>
+    </div>
+  }
+}
 @if (pessoas.temCompanhia()) {
   <label class="repetir">
     <input

@@ -149,11 +149,15 @@ export class AvisosDoMes {
   private readonly contas = signal<ContaFixa[]>([]);
   private readonly orcamentos = signal<Orcamento[]>([]);
   private readonly cartoes = signal<ContaOuCartao[]>([]);
-  /** Fatura fechada, com valor, que vence nos proximos 10 dias. */
+  /** Fatura fechada, com valor e ainda nao paga, que vence nos proximos 10 dias. */
   protected readonly faturasAVencer = computed(() => {
     const limite = dataIso(new Date(Date.now() + 10 * 86_400_000));
     return this.cartoes().filter(
-      (c) => c.faturaAPagar && c.faturaAPagar.total > 0 && c.faturaAPagar.vencimento <= limite,
+      (c) =>
+        c.faturaAPagar &&
+        !c.faturaAPagar.paga &&
+        c.faturaAPagar.total > 0 &&
+        c.faturaAPagar.vencimento <= limite,
     );
   });
   protected readonly orcamentosEmAlerta = computed(() =>

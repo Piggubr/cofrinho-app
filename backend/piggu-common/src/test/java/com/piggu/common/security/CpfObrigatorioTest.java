@@ -48,6 +48,16 @@ class CpfObrigatorioTest {
     }
 
     @Test
+    @DisplayName("recusa com CADASTRO_PENDENTE o token que diz cadastro=false")
+    void recusaCadastroIncompleto() {
+        autentica(Jwt.withTokenValue("t").header("alg", "none").subject("1")
+                .claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_CADASTRO, false).build());
+        assertThatThrownBy(this::passa)
+                .isInstanceOf(BusinessException.class)
+                .extracting("codigo").isEqualTo(CpfObrigatorio.CODIGO_CADASTRO_PENDENTE);
+    }
+
+    @Test
     @DisplayName("deixa passar cpf=true, token sem a claim, outro principal e pedido sem login")
     void deixaPassar() {
         autentica(token(true));

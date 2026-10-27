@@ -50,7 +50,9 @@
           ? 'Gratuito'
           : casa.planoFamilia
             ? 'Premium família'
-            : 'Premium individual'
+            : casa.planoCasal
+              ? 'Premium casal'
+              : 'Premium individual'
       }}</span>
     </div>
 
@@ -158,10 +160,10 @@
         <h2 i18n id="titulo-convite">Convidar alguém</h2>
       </div>
       <p i18n class="linha-detalhe">
-        A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro. O
-        convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa
-        verem o que um e o outro lançam, use "Convidar para parceiro" na lista acima; vale quando a
-        pessoa aceitar.
+        A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano
+        casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias.
+        Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro
+        lançam, use "Convidar para parceiro" na lista acima; vale quando a pessoa aceitar.
       </p>
       <div class="linha-de-campos">
         <div class="campo">

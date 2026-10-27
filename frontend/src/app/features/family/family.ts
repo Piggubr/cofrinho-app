@@ -36,6 +36,7 @@ const ENTIDADES: Record<string, string> = {
   meta: $localize`meta do mês`,
   orcamento: $localize`orçamento`,
   'conta-fixa': $localize`conta fixa`,
+  fatura: $localize`fatura do cartão`,
   deposito: $localize`depósito no cofrinho`,
   pessoa: '',
 };
