@@ -74,6 +74,16 @@ describe('AuthService', () => {
     expect(auth.cuidaDosPremios()).toBe(true);
   });
 
+  it('conta nova do Google com cadastro incompleto fica pendente; o demo, sem o campo, nao', async () => {
+    const entrada = auth.entrarComGoogle('id-token', true, VERSAO_DO_AVISO);
+    http.expectOne('/api/auth/google').flush(tokens(usuarioDeTeste({ cadastroCompleto: false })));
+    await entrada;
+    expect(auth.sobreVocePendente()).toBe(true);
+
+    auth.atualizarUsuario(usuarioDeTeste());
+    expect(auth.sobreVocePendente()).toBe(false);
+  });
+
   it('entrar com e-mail e senha usa a mesma sessao do Google', async () => {
     const entrada = auth.entrarComSenha('ana@piggu.test', 'cofrinho123', false);
     const pedido = http.expectOne('/api/auth/entrar');

@@ -89,4 +89,19 @@ public class AccountController {
     public ContasECartoes.FaturaComGastos fatura(@PathVariable UUID id, @RequestParam(required = false) String mes) {
         return servico.fatura(id, Meses.ouAtual(mes));
     }
+
+    /** So tira a fatura do "a pagar", com as anteriores; nao lanca gasto. Marcar de novo e 204 tambem. */
+    @Operation(summary = "Marcar a fatura do cartão como paga")
+    @PutMapping("/{id}/statement/paid")
+    public ResponseEntity<Void> pagarFatura(@PathVariable UUID id, @RequestParam String mes) {
+        servico.pagarFatura(id, Meses.ouAtual(mes));
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Desfazer o pagamento da fatura do cartão")
+    @DeleteMapping("/{id}/statement/paid")
+    public ResponseEntity<Void> desfazerPagamento(@PathVariable UUID id, @RequestParam String mes) {
+        servico.desfazerPagamento(id, Meses.ouAtual(mes));
+        return ResponseEntity.noContent().build();
+    }
 }

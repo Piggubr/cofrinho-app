@@ -159,6 +159,7 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `PEDIDO_INVALIDO` | 400, 404, 405, 415 | Erro do cliente: corrigir a chamada |
 | `SEM_PERMISSAO` | 403 | Esconder a ação para esse papel |
 | `CPF_PENDENTE` | 403 | Levar para a tela de CPF (`PUT /api/me/cpf` ou `/api/me/pais`) |
+| `CADASTRO_PENDENTE` | 403 | Falta apelido, nascimento, CPF ou celular (`usuario.cadastroCompleto` falso): levar para "Sobre você" (`PUT /api/me/sobre-voce`) e renovar o token depois (D-088) |
 | `EMAIL_NAO_CONFIRMADO` | 403 | Pedir para confirmar o e-mail |
 | `PLANO_PREMIUM` | 422 | Mostrar a oferta do Premium |
 | `TERMOS_NECESSARIOS`, `AVISO_DESATUALIZADO` | 422, 409 | Mostrar os termos novos e aceitar (`PUT /api/me/termos`) |

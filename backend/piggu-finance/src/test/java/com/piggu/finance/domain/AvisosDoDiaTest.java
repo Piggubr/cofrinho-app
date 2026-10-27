@@ -46,13 +46,14 @@ class AvisosDoDiaTest {
     }
 
     @Test
-    @DisplayName("fatura avisa a ate 3 dias do vencimento e so com valor; conta fixa a ate 2 dias, e de novo vencida")
+    @DisplayName("fatura avisa a ate 3 dias do vencimento, so com valor e nao paga; conta fixa a ate 2 dias, e de novo vencida")
     void faturasEContas() {
         UUID nubank = UUID.randomUUID();
         when(cartoes.listar()).thenReturn(List.of(
                 cartao(nubank, "Nubank", HOJE.plusDays(3), "1200"),
                 cartao(UUID.randomUUID(), "Longe", HOJE.plusDays(4), "50"),
                 cartao(UUID.randomUUID(), "Zerada", HOJE.plusDays(1), "0"),
+                cartao(UUID.randomUUID(), "Paga", HOJE.plusDays(1), "300", true),
                 new ContasECartoes.Conta(UUID.randomUUID(), "Conta", PaymentAccount.Tipo.CONTA, null, null, null, null,
                         null, false)));
         RecurringBill luz = new RecurringBill("Luz", "Casa", new BigDecimal("180"), 22, false, null);
@@ -87,8 +88,12 @@ class AvisosDoDiaTest {
     }
 
     private static ContasECartoes.Conta cartao(UUID id, String nome, LocalDate vencimento, String total) {
+        return cartao(id, nome, vencimento, total, false);
+    }
+
+    private static ContasECartoes.Conta cartao(UUID id, String nome, LocalDate vencimento, String total, boolean paga) {
         ContasECartoes.Fatura fatura = new ContasECartoes.Fatura("2026-09", vencimento.minusDays(40),
-                vencimento.minusDays(11), vencimento.minusDays(10), vencimento, new BigDecimal(total));
+                vencimento.minusDays(11), vencimento.minusDays(10), vencimento, new BigDecimal(total), paga);
         return new ContasECartoes.Conta(id, nome, PaymentAccount.Tipo.CARTAO, (short) 13, (short) 23, null, fatura,
                 null, false);
     }
