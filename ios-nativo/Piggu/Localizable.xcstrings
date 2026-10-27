@@ -34,6 +34,12 @@
     "%@ vence em %@: %@" : {
 
     },
+    "%@ vê tudo o que eu lanço" : {
+
+    },
+    "%@ · %@" : {
+
+    },
     "%@ · Premium" : {
 
     },
@@ -60,10 +66,19 @@
         }
       }
     },
+    "%lld" : {
+
+    },
+    "%lld Fofocoins" : {
+
+    },
     "%lld a %lld" : {
 
     },
     "%lld contas lançadas nos gastos." : {
+
+    },
+    "%lld de %lld" : {
 
     },
     "%lld de %lld concluídas" : {
@@ -108,6 +123,12 @@
     "+%@" : {
 
     },
+    "+%lld" : {
+
+    },
+    "+1" : {
+
+    },
     "0,00" : {
 
     },
@@ -123,9 +144,6 @@
     "3. Lance o primeiro gasto ou importe o extrato" : {
 
     },
-    "A cor fica neste aparelho." : {
-
-    },
     "A data não muda depois. Quem tem entre 13 e 17 anos tem os lançamentos visíveis para o titular e o parceiro da família." : {
 
     },
@@ -133,6 +151,15 @@
 
     },
     "A pagar: %@ até %@" : {
+
+    },
+    "A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro lançam, use \"Convidar para parceiro\" na lista acima; vale quando a pessoa aceitar." : {
+
+    },
+    "A pessoa leva o que lançou e a família deixa de ver." : {
+
+    },
+    "A quantidade desejada precisa ser um número inteiro a partir de 1." : {
 
     },
     "A receber" : {
@@ -153,16 +180,28 @@
     "Abre no site do Piggu" : {
 
     },
+    "Abre o Perfil" : {
+
+    },
     "Abrir no site" : {
 
     },
     "Abrir o Piggu" : {
 
     },
+    "Aceitar" : {
+
+    },
     "Aceitar e continuar" : {
 
     },
+    "Aceitar ser parceiro?" : {
+
+    },
     "Aceito os Termos de Uso e o Aviso de Privacidade" : {
+
+    },
+    "Admin" : {
 
     },
     "Agora não" : {
@@ -174,6 +213,9 @@
     "Aguarde..." : {
 
     },
+    "Ajustar" : {
+
+    },
     "Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes." : {
 
     },
@@ -181,6 +223,12 @@
 
     },
     "Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês." : {
+
+    },
+    "Aluguel, luz, internet: o que vence todo mês, lançado no dia." : {
+
+    },
+    "Alvo" : {
 
     },
     "Ano de %@" : {
@@ -196,6 +244,9 @@
 
     },
     "Apagar a conta fixa \"%@\"?" : {
+
+    },
+    "Apagar a meta \"%@\"?" : {
 
     },
     "Apagar a nota \"%@\"?" : {
@@ -225,10 +276,19 @@
     "As mesmas de Receitas. Nova receita fixa: em Receitas, marque \"Entra sozinha todo mês\"." : {
 
     },
+    "As metas expiram automaticamente quando o mês muda." : {
+
+    },
     "As receitas já lançadas continuam." : {
 
     },
     "Assim que houver gastos, o relatório mostra para onde o dinheiro foi." : {
+
+    },
+    "Ativar" : {
+
+    },
+    "Atual" : {
 
     },
     "Atualizamos os Termos de Uso e o Aviso de Privacidade. Para seguir usando o Piggu, leia e aceite a versão nova." : {
@@ -246,7 +306,13 @@
     "Automática" : {
 
     },
+    "Automático" : {
+
+    },
     "Autorizar conexão com o banco" : {
+
+    },
+    "Autorizações da IA" : {
 
     },
     "Autorizo, continuar" : {
@@ -255,7 +321,19 @@
     "Aviso de Privacidade" : {
 
     },
+    "Avisos" : {
+
+    },
+    "Avisos salvos." : {
+
+    },
     "Azul" : {
+
+    },
+    "Baixar meus dados" : {
+
+    },
+    "Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são gratuitos em qualquer plano." : {
 
     },
     "Buscar gastos" : {
@@ -268,6 +346,9 @@
 
     },
     "Cada pessoa tem uma conta no Piggu. O documento garante isso: ele fica preso à sua conta e não pode ser usado em outra." : {
+
+    },
+    "Cada um vê o que é seu e o que foi marcado como compartilhado. O que é só seu continua só seu, a não ser que você libere acima." : {
 
     },
     "Cadastrar a primeira conta" : {
@@ -283,6 +364,9 @@
 
     },
     "Cancelar" : {
+
+    },
+    "Cancelar convite de parceiro" : {
 
     },
     "Carregando…" : {
@@ -306,10 +390,19 @@
     "Chiclete" : {
 
     },
+    "Claro" : {
+
+    },
+    "Clássico" : {
+
+    },
     "Cofrinho" : {
 
     },
     "Cofrinhos por objetivo" : {
+
+    },
+    "Colocar foto" : {
 
     },
     "Com a categoria em \"Automática\", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto." : {
@@ -348,16 +441,22 @@
     "Compartilhado: aparece para quem mora com você" : {
 
     },
+    "Compartilhamento" : {
+
+    },
+    "Compartilhamento salvo." : {
+
+    },
     "Compartilhar" : {
+
+    },
+    "Compras" : {
 
     },
     "Compras até %@ entram nesta fatura. A partir de %@, dia do fechamento, vão para a próxima." : {
 
     },
     "Compras de %@ a %@ · fecha em %@ · vence em %@" : {
-
-    },
-    "Concluídas" : {
 
     },
     "Conectar banco" : {
@@ -390,7 +489,13 @@
     "Conta lançada nos gastos." : {
 
     },
+    "Contas" : {
+
+    },
     "Contas bancárias" : {
+
+    },
+    "Contas da instalação" : {
 
     },
     "Contas do mês" : {
@@ -405,7 +510,46 @@
     "Continuar conectado neste aparelho" : {
 
     },
+    "Continue no seu ritmo." : {
+
+    },
+    "Convidar" : {
+
+    },
+    "Convidar %@ para ser parceiro?" : {
+
+    },
+    "Convidar alguém" : {
+
+    },
+    "Convidar para parceiro" : {
+
+    },
+    "Convite cancelado." : {
+
+    },
+    "Convite criado. Avise a pessoa para entrar com esse e-mail." : {
+
+    },
+    "Convite de parceria cancelado." : {
+
+    },
+    "Convite enviado. %@ vê o convite na tela Família e decide se aceita." : {
+
+    },
+    "Convite para entrar na %@" : {
+
+    },
+    "Convite recusado. Você continua vendo só o que lança." : {
+
+    },
     "Cor do Piggu" : {
+
+    },
+    "Coral" : {
+
+    },
+    "Cotação entre" : {
 
     },
     "Criado por %@" : {
@@ -420,6 +564,9 @@
     "Criar conta fixa" : {
 
     },
+    "Criar meta" : {
+
+    },
     "Criar minha conta" : {
 
     },
@@ -432,7 +579,19 @@
     "Criar regra" : {
 
     },
+    "Criar senha" : {
+
+    },
+    "Crie prêmios para a família trocar pelas Fofocoins." : {
+
+    },
+    "Crie sua jornada de metas." : {
+
+    },
     "Crie sua primeira meta para começar a jornada." : {
+
+    },
+    "Crie uma meta pequena para começar." : {
 
     },
     "Código do país (DDI)" : {
@@ -468,6 +627,12 @@
     "Depositar" : {
 
     },
+    "Desativado" : {
+
+    },
+    "Desativar" : {
+
+    },
     "Desconectar" : {
 
     },
@@ -477,7 +642,13 @@
     "Descrição" : {
 
     },
+    "Desde o começo: %@" : {
+
+    },
     "Desfazer pagamento" : {
+
+    },
+    "Desligue as telas de estilo de vida que você não usa; elas saem do Mais." : {
 
     },
     "Desmarcado" : {
@@ -516,7 +687,16 @@
     "Digite o nome da conta ou do cartão." : {
 
     },
+    "Digite o nome da família." : {
+
+    },
     "Digite o nome do item." : {
+
+    },
+    "Digite o nome do produto." : {
+
+    },
+    "Digite o nome do prêmio." : {
 
     },
     "Digite o termo e escolha a categoria." : {
@@ -528,10 +708,19 @@
     "Digite o valor da 2ª parcela." : {
 
     },
+    "Digite quanto custava." : {
+
+    },
     "Digite quanto quer juntar." : {
 
     },
     "Digite quanto vão te pagar." : {
+
+    },
+    "Digite um e-mail válido." : {
+
+    },
+    "Digite um preço válido." : {
 
     },
     "Digite um valor de depósito válido." : {
@@ -543,7 +732,13 @@
     "Digite um valor válido." : {
 
     },
+    "Digite uma quantidade válida de Fofocoins." : {
+
+    },
     "Dinheiro que alguém te deve. Só conta como receita quando você toca em Recebi; passou da data combinada, o Piggu te avisa." : {
+
+    },
+    "Disponíveis" : {
 
     },
     "Dividir com %@" : {
@@ -561,10 +756,16 @@
     "Documento" : {
 
     },
+    "Documento ainda não informado (opcional)." : {
+
+    },
     "Débito/Pix" : {
 
     },
     "Dê um nome ao objetivo." : {
+
+    },
+    "Dê um nome para a meta." : {
 
     },
     "E-mail" : {
@@ -580,6 +781,9 @@
 
     },
     "Editar gasto" : {
+
+    },
+    "Editar meta" : {
 
     },
     "Editar objetivo" : {
@@ -601,6 +805,12 @@
 
     },
     "Entrar" : {
+
+    },
+    "Entrar na %@?" : {
+
+    },
+    "Entrar nessa família" : {
 
     },
     "Entrar ou criar conta" : {
@@ -642,10 +852,25 @@
     "Escolher" : {
 
     },
+    "Escolher da galeria" : {
+
+    },
+    "Esconder histórico" : {
+
+    },
     "Escreve aqui..." : {
 
     },
+    "Escuro" : {
+
+    },
     "Esqueci minha senha" : {
+
+    },
+    "Essa personalização é do Piggu Premium. Quem cuida da assinatura é o titular da família." : {
+
+    },
+    "Essa pessoa passa a ver só o que ela lança, e você deixa de ver o dela." : {
 
     },
     "Esta é a parcela %lld de %lld." : {
@@ -657,16 +882,25 @@
     "Este mês" : {
 
     },
+    "Estilo de vida" : {
+
+    },
     "Está te devendo desde %@" : {
 
     },
     "Ex-membro" : {
 
     },
+    "Ex.: Arrumou a cozinha" : {
+
+    },
     "Ex.: João" : {
 
     },
     "Ex.: Leite" : {
+
+    },
+    "Ex.: Ler 2 livros" : {
 
     },
     "Ex.: Metade da pizza" : {
@@ -681,13 +915,13 @@
     "Excluir" : {
 
     },
-    "Excluir a conta é gratuito em qualquer plano e apaga tudo o que você lançou." : {
-
-    },
     "Excluir minha conta" : {
 
     },
     "Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. Digite EXCLUIR para confirmar." : {
+
+    },
+    "Explique o motivo do ajuste." : {
 
     },
     "Exportar gastos do mês (CSV)" : {
@@ -702,6 +936,9 @@
     "Faltam %@, sem prazo." : {
 
     },
+    "Família" : {
+
+    },
     "Fatura aberta (%@): %@" : {
 
     },
@@ -712,6 +949,9 @@
 
     },
     "Fatura do cartão" : {
+
+    },
+    "Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app fechado. No máximo uma vez por dia, e só quando há novidade." : {
 
     },
     "Fazer login com o Google" : {
@@ -732,13 +972,34 @@
     "Fica neste aparelho: o celular pode ter uma ordem e o computador outra." : {
 
     },
+    "Filmes" : {
+
+    },
     "Filtrar por categoria" : {
 
     },
     "Filtrar por forma de pagamento" : {
 
     },
+    "Fofocoins" : {
+
+    },
     "Forma de pagamento" : {
+
+    },
+    "Foto" : {
+
+    },
+    "Foto do produto" : {
+
+    },
+    "Foto removida." : {
+
+    },
+    "Foto trocada." : {
+
+    },
+    "Fotos" : {
 
     },
     "Gasto desde o início" : {
@@ -771,6 +1032,12 @@
     "Girls Math" : {
 
     },
+    "Grafite" : {
+
+    },
+    "Gratuito" : {
+
+    },
     "Guardado. Quando receber, toque em Recebi." : {
 
     },
@@ -789,16 +1056,28 @@
     "Guardar em %@" : {
 
     },
+    "Guardar no Girls Math" : {
+
+    },
     "Guarde %@ por mês até %@." : {
 
     },
+    "Histórico" : {
+
+    },
     "Hoje" : {
+
+    },
+    "Hoje você entra pelo Google. Crie uma senha para entrar também com %@. Pelo menos 8 caracteres, com letras e números." : {
 
     },
     "Importar extrato" : {
 
     },
     "Informar agora" : {
+
+    },
+    "Informe a senha atual." : {
 
     },
     "Informe o dia da 2ª parcela (1 a 31)." : {
@@ -840,6 +1119,9 @@
     "Lança sozinho todo dia %lld, até você desligar em Contas do mês." : {
 
     },
+    "Lançamentos novos já nascem compartilhados" : {
+
+    },
     "Lançar" : {
 
     },
@@ -870,6 +1152,9 @@
     "Li e aceito os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade)." : {
 
     },
+    "Ligue os blocos que quer ver na tela inicial e arraste para mudar a ordem. Vale para este aparelho." : {
+
+    },
     "Lilás" : {
 
     },
@@ -891,13 +1176,25 @@
     "Link vencido" : {
 
     },
+    "Loja onde você viu" : {
+
+    },
+    "Lugares" : {
+
+    },
     "Mais" : {
+
+    },
+    "Mais cores no Premium" : {
 
     },
     "Mais opções" : {
 
     },
-    "Mandamos outro link. O anterior deixou de valer." : {
+    "Mais um em %@" : {
+
+    },
+    "Mandamos um link novo. Ele vale por 24 horas." : {
 
     },
     "Mandar o link" : {
@@ -909,22 +1206,46 @@
     "Marcar como paga" : {
 
     },
+    "Mel" : {
+
+    },
+    "Membro" : {
+
+    },
     "Menta" : {
 
     },
     "Metas do mês" : {
 
     },
+    "Metas para alcançar este mês" : {
+
+    },
     "Meu" : {
 
     },
+    "Meus dados do Piggu" : {
+
+    },
     "Minhas metas" : {
+
+    },
+    "Minhas metas de %@:" : {
 
     },
     "Moeda" : {
 
     },
     "Moeda da compra" : {
+
+    },
+    "Moeda do app" : {
+
+    },
+    "Mostrar a cotação no topo do app" : {
+
+    },
+    "Motivo" : {
 
     },
     "Mudar" : {
@@ -945,10 +1266,16 @@
     "Nada registrado neste dia." : {
 
     },
+    "Namorados" : {
+
+    },
     "Nenhum banco conectado." : {
 
     },
     "Nenhum cartão cadastrado ainda." : {
+
+    },
+    "Nenhum convite pendente." : {
 
     },
     "Nenhum depósito ainda" : {
@@ -963,10 +1290,19 @@
     "Nenhum gasto neste mês" : {
 
     },
+    "Nenhum item guardado ainda" : {
+
+    },
     "Nenhum limite cadastrado" : {
 
     },
     "Nenhum limite definido para este mês ainda" : {
+
+    },
+    "Nenhum prêmio cadastrado" : {
+
+    },
+    "Nenhum resgate ainda." : {
 
     },
     "Nenhuma categoria com limite ainda" : {
@@ -975,7 +1311,19 @@
     "Nenhuma conta ainda. Cadastre para escolher no lançamento e ver a fatura do cartão." : {
 
     },
+    "Nenhuma conta criada ainda." : {
+
+    },
     "Nenhuma conta fixa ainda" : {
+
+    },
+    "Nenhuma meta criada." : {
+
+    },
+    "Nenhuma movimentação ainda." : {
+
+    },
+    "Nenhuma mudança registrada ainda." : {
 
     },
     "Nenhuma nota ainda." : {
@@ -993,16 +1341,37 @@
     "Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma." : {
 
     },
+    "Neon" : {
+
+    },
     "Ninguém te deve nada agora." : {
+
+    },
+    "No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho." : {
 
     },
     "No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser." : {
 
     },
+    "No modo escuro o iPhone usa a versão escura de cada ícone. O sistema avisa a cada troca." : {
+
+    },
     "Nome" : {
 
     },
+    "Nome da família" : {
+
+    },
+    "Nome da meta" : {
+
+    },
     "Nome da nova categoria" : {
+
+    },
+    "Nome do produto" : {
+
+    },
+    "Nome salvo." : {
 
     },
     "Nota" : {
@@ -1020,6 +1389,9 @@
     "Nova receita" : {
 
     },
+    "Nova senha" : {
+
+    },
     "Novo depósito" : {
 
     },
@@ -1029,10 +1401,16 @@
     "Novo objetivo" : {
 
     },
+    "Novo prêmio" : {
+
+    },
     "Não concordo: excluir minha conta" : {
 
     },
     "Não consegui abrir o login do Google. Entre com e-mail e senha." : {
+
+    },
+    "Não consegui ler essa imagem." : {
 
     },
     "Não deu certo (erro %lld)." : {
@@ -1080,6 +1458,9 @@
     "O Piggu é para quem tem %lld anos ou mais." : {
 
     },
+    "O Premium acabou, então a cor e o ícone voltaram para o padrão." : {
+
+    },
     "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção." : {
 
     },
@@ -1092,7 +1473,13 @@
     "O gasto lançado junto também será apagado." : {
 
     },
+    "O limite do mês e, por categoria, com aviso em 80% e 100%." : {
+
+    },
     "O prazo passou e faltam %@." : {
+
+    },
+    "O progresso precisa ser um número inteiro, zero ou mais." : {
 
     },
     "O que foi guardado nele volta para o cofrinho geral." : {
@@ -1102,6 +1489,12 @@
 
     },
     "O que ver" : {
+
+    },
+    "O que você não comprou?" : {
+
+    },
+    "O titular convidou você para ser parceiro" : {
 
     },
     "O titular e o parceiro (o casal) veem tudo um do outro e o que lança quem tem de 13 a 17 anos. Por isso pedimos a data de nascimento, e é preciso ter pelo menos 13 anos para ter conta." : {
@@ -1119,6 +1512,9 @@
     "Organizar" : {
 
     },
+    "Organizar o Painel" : {
+
+    },
     "Orçamento" : {
 
     },
@@ -1129,6 +1525,9 @@
 
     },
     "Os gastos já lançados continuam." : {
+
+    },
+    "P de Piggu" : {
 
     },
     "Paga" : {
@@ -1144,6 +1543,9 @@
 
     },
     "Painel" : {
+
+    },
+    "Papel alterado. A mudança vale quando a pessoa entrar de novo." : {
 
     },
     "Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade." : {
@@ -1164,6 +1566,9 @@
     "Parar de repetir" : {
 
     },
+    "Parceiro" : {
+
+    },
     "Parcelado" : {
 
     },
@@ -1182,7 +1587,13 @@
     "Pelo menos 8 caracteres, com letras e números." : {
 
     },
+    "Perfil" : {
+
+    },
     "Personalizar o Painel" : {
+
+    },
+    "Pessoa removida da família." : {
 
     },
     "Piggu" : {
@@ -1194,6 +1605,9 @@
     "Piggu Premium" : {
 
     },
+    "Planejar" : {
+
+    },
     "Plano" : {
 
     },
@@ -1201,6 +1615,9 @@
 
     },
     "Por categoria · %@" : {
+
+    },
+    "Por e-mail, para %@" : {
 
     },
     "Prazo" : {
@@ -1212,7 +1629,28 @@
     "Premium" : {
 
     },
+    "Premium casal" : {
+
+    },
+    "Premium família" : {
+
+    },
+    "Premium individual" : {
+
+    },
+    "Preço" : {
+
+    },
+    "Preço em Fofocoins" : {
+
+    },
     "Primeiros passos" : {
+
+    },
+    "Progresso atual" : {
+
+    },
+    "Progresso das metas do mês" : {
 
     },
     "Projeção do mês" : {
@@ -1227,7 +1665,16 @@
     "Pronto, seu e-mail está confirmado no Piggu." : {
 
     },
+    "Pronto. A foto da nota só vai ao Google se você autorizar de novo." : {
+
+    },
+    "Pronto. O assistente só envia dados ao Google se você autorizar de novo." : {
+
+    },
     "Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova." : {
+
+    },
+    "Prêmios" : {
 
     },
     "Próxima fatura" : {
@@ -1239,10 +1686,19 @@
     "Pular o guia" : {
 
     },
+    "Quando a pessoa aceitar, vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você." : {
+
+    },
     "Quando tiver" : {
 
     },
     "Quantas parcelas" : {
+
+    },
+    "Quantidade" : {
+
+    },
+    "Quantidade desejada" : {
 
     },
     "Quanto" : {
@@ -1251,7 +1707,16 @@
     "Quanto (%@)" : {
 
     },
+    "Quanto custava" : {
+
+    },
+    "Quanto custava (%@)" : {
+
+    },
     "Quem deve" : {
+
+    },
+    "Quem lançou, alterou ou apagou cada coisa, e quando." : {
 
     },
     "Quem sai da família, ou é removido, leva o que lançou. Quem exclui a conta tem o que lançou apagado." : {
@@ -1293,6 +1758,9 @@
     "Recorrente" : {
 
     },
+    "Recusar" : {
+
+    },
     "Reenviar e-mail de confirmação" : {
 
     },
@@ -1300,6 +1768,12 @@
 
     },
     "Registrar o que não comprei" : {
+
+    },
+    "Registre o que você deixou de comprar." : {
+
+    },
+    "Registre o que você viu, quis e não comprou, e veja quanto ficou no bolso." : {
 
     },
     "Regra salva: \"%@\" vai para %@." : {
@@ -1311,10 +1785,37 @@
     "Relatórios" : {
 
     },
+    "Remover" : {
+
+    },
+    "Remover foto" : {
+
+    },
+    "Repita a nova senha" : {
+
+    },
     "Repita a senha" : {
 
     },
+    "Resgatado. Saldo agora: %lld Fofocoins." : {
+
+    },
+    "Resgatar" : {
+
+    },
+    "Resgatar \"%@\" por %lld Fofocoins?" : {
+
+    },
+    "Resgates" : {
+
+    },
     "Resumo do mês" : {
+
+    },
+    "Retirar autorização da foto da nota" : {
+
+    },
+    "Retirar autorização do assistente" : {
 
     },
     "Rosa Piggu" : {
@@ -1326,7 +1827,16 @@
     "Sair da conta neste aparelho?" : {
 
     },
+    "Sair da família" : {
+
+    },
+    "Sair da família?" : {
+
+    },
     "Saiu de qual conta" : {
+
+    },
+    "Saldo atualizado." : {
 
     },
     "Salvar" : {
@@ -1339,6 +1849,12 @@
 
     },
     "Salvar limite" : {
+
+    },
+    "Salvar meta" : {
+
+    },
+    "Salvar nome" : {
 
     },
     "Salvar nota" : {
@@ -1359,6 +1875,9 @@
     "Se %@ tem conta no Piggu, mandamos um link para criar uma senha nova. Ele vale por 1 hora. Confira também a caixa de spam." : {
 
     },
+    "Se aceitar, você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Se recusar, continua vendo só o que você lança." : {
+
+    },
     "Sem conexão com o servidor. Confira a internet e tente de novo." : {
 
     },
@@ -1366,6 +1885,9 @@
 
     },
     "Sem data" : {
+
+    },
+    "Sem foto" : {
 
     },
     "Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar." : {
@@ -1380,22 +1902,43 @@
     "Senha" : {
 
     },
+    "Senha atual" : {
+
+    },
+    "Senha criada. Agora você também entra com e-mail e senha." : {
+
+    },
+    "Senha de acesso" : {
+
+    },
     "Senha nova" : {
 
     },
     "Senha nova salva" : {
 
     },
+    "Senha trocada. Os outros aparelhos vão pedir para entrar de novo." : {
+
+    },
     "Seu documento" : {
 
     },
+    "Seu e-mail ainda não foi confirmado. Abra o link que mandamos para %@ (ou entre uma vez pelo Google com ele); só então dá para aceitar convite de família." : {
+
+    },
     "Seu e-mail ainda não foi confirmado. Abra o link que mandamos para %@; só então dá para aceitar convite de família." : {
+
+    },
+    "Seu plano do mês" : {
 
     },
     "Seu ritmo" : {
 
     },
     "Seus dados" : {
+
+    },
+    "Silhueta" : {
 
     },
     "Sobra" : {
@@ -1410,9 +1953,6 @@
     "Sobre você" : {
 
     },
-    "Sua conta" : {
-
-    },
     "Sua sessão venceu. Entre novamente." : {
 
     },
@@ -1425,6 +1965,12 @@
     "Série" : {
 
     },
+    "Só o titular convida e remove pessoas e cuida do plano." : {
+
+    },
+    "Telas do menu" : {
+
+    },
     "Tentar de novo" : {
 
     },
@@ -1435,6 +1981,21 @@
 
     },
     "Tipo" : {
+
+    },
+    "Tirar \"%@\" da lista?" : {
+
+    },
+    "Tirar %@ da família?" : {
+
+    },
+    "Tirar a foto" : {
+
+    },
+    "Tirar foto" : {
+
+    },
+    "Titular" : {
 
     },
     "Todas as categorias" : {
@@ -1473,6 +2034,12 @@
     "Total: %@" : {
 
     },
+    "Trocar foto" : {
+
+    },
+    "Trocar senha" : {
+
+    },
     "Tudo" : {
 
     },
@@ -1485,10 +2052,22 @@
     "Usar esta" : {
 
     },
+    "Usar foto do Google" : {
+
+    },
     "Use letras e números na senha." : {
 
     },
+    "Use negativo para debitar" : {
+
+    },
     "Vai para a fatura de %@, que vence em %@." : {
+
+    },
+    "Vale até %@" : {
+
+    },
+    "Vale para este aparelho e acompanha o modo claro ou escuro." : {
 
     },
     "Valor" : {
@@ -1530,7 +2109,13 @@
     "Ver gastos" : {
 
     },
+    "Ver histórico" : {
+
+    },
     "Ver metas" : {
+
+    },
+    "Ver minha família" : {
 
     },
     "Ver por semana" : {
@@ -1542,7 +2127,22 @@
     "Viagem de férias" : {
 
     },
+    "Vinho" : {
+
+    },
+    "Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar." : {
+
+    },
+    "Você concluiu todas as metas do mês." : {
+
+    },
     "Você deixou de gastar este mês" : {
+
+    },
+    "Você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Depois disso é preciso entrar de novo." : {
+
+    },
+    "Você entra com %@ e sua senha, ou pelo Google. Trocar a senha encerra as sessões nos outros aparelhos. Pelo menos 8 caracteres, com letras e números." : {
 
     },
     "Você está sem internet" : {
@@ -1560,10 +2160,25 @@
     "Você está sem internet. O gasto só pode ser salvo com conexão." : {
 
     },
+    "Você leva o que lançou para uma família só sua e precisa entrar de novo." : {
+
+    },
     "Você recebe um aviso quando a categoria chega a 80% e a 100% do limite no mês." : {
 
     },
+    "Você sai da família atual: se for a última pessoa dela, tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. Depois disso é preciso entrar de novo." : {
+
+    },
+    "Voltamos para a foto do Google." : {
+
+    },
     "Voltar" : {
+
+    },
+    "Voltar %@ a membro?" : {
+
+    },
+    "Voltar a membro" : {
 
     },
     "Voltar ao padrão" : {
@@ -1578,13 +2193,34 @@
     "a dois" : {
 
     },
+    "alterou" : {
+
+    },
+    "apagou" : {
+
+    },
     "compartilhada" : {
 
     },
     "compartilhado" : {
 
     },
+    "concluído" : {
+
+    },
+    "conta fixa" : {
+
+    },
+    "convidado para parceiro" : {
+
+    },
+    "convidou" : {
+
+    },
     "de %@" : {
+
+    },
+    "depósito no cofrinho" : {
 
     },
     "deve %@" : {
@@ -1596,7 +2232,19 @@
     "do casal" : {
 
     },
+    "e" : {
+
+    },
+    "entrou na família" : {
+
+    },
+    "fatura do cartão" : {
+
+    },
     "feito" : {
+
+    },
+    "gasto" : {
 
     },
     "gasto de %@" : {
@@ -1605,13 +2253,34 @@
     "igual" : {
 
     },
+    "importou" : {
+
+    },
     "lança sozinha" : {
+
+    },
+    "lançou" : {
+
+    },
+    "meta do mês" : {
+
+    },
+    "mudou o papel de" : {
+
+    },
+    "orçamento" : {
 
     },
     "ou" : {
 
     },
+    "pagou" : {
+
+    },
     "parcela %lld/%lld" : {
+
+    },
+    "pessoa@email.com" : {
 
     },
     "quite" : {
@@ -1620,10 +2289,25 @@
     "recebe %@" : {
 
     },
+    "receita" : {
+
+    },
+    "saiu da família" : {
+
+    },
     "tem lembrete" : {
 
     },
+    "tirou da família" : {
+
+    },
     "À vista" : {
+
+    },
+    "É a moeda em que os valores aparecem; os valores já lançados não são convertidos. A cotação mostra quanto vale 1 da primeira moeda na segunda, como 1 USD = R$ 5,00. Ela não muda com a moeda do app." : {
+
+    },
+    "Ícone do app" : {
 
     },
     "Última cotação conhecida" : {
