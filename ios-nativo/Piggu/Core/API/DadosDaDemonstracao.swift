@@ -1,5 +1,6 @@
 #if DEBUG
 import Foundation
+import UIKit
 
 /// O resto da API de demonstracao (receitas, cofrinho, contas, familia...), separado do
 /// TransporteDeDemonstracao para ele continuar so com a entrada e os gastos. Responde com
@@ -59,6 +60,29 @@ struct DadosDaDemonstracao {
         ["id": "cv1", "email": "joao@exemplo.com", "venceEm": "2026-11-03"],
     ]
     var nomeDaFamilia = "Casa da Pessoa"
+    var compras: [[String: Any]] = [
+        ["id": "c1", "item": "Ovos", "quantidade": "12", "lista": "Compras", "comprado": false, "marca": "", "imagem": "", "codigo": ""],
+        ["id": "c2", "item": "Leite integral", "quantidade": "2 L", "lista": "Compras", "comprado": false, "marca": "Piracanjuba", "imagem": "", "codigo": "789"],
+        ["id": "c3", "item": "Café", "quantidade": "500 g", "lista": "Compras", "comprado": true, "marca": "", "imagem": "", "codigo": ""],
+        ["id": "c4", "item": "Air fryer", "quantidade": "", "lista": "Desejos", "comprado": false, "marca": "Mondial", "imagem": "", "codigo": ""],
+    ]
+    var lugares: [[String: Any]] = [
+        ["id": "l1", "nome": "Coco Bambu", "categoria": "Restaurante", "localizacao": "Florianópolis, SC", "nota": 5,
+         "comentario": "O camarão vale cada centavo.", "marcacoes": ["Aniversário"], "temFoto": false, "valor": 280.0],
+        ["id": "l2", "nome": "Parque Ibirapuera", "categoria": "Passeio", "localizacao": "São Paulo, SP", "nota": 4,
+         "comentario": "", "marcacoes": ["Domingo"], "temFoto": false, "valor": 0.0],
+    ]
+    var marcadores = ["Aniversário", "Domingo", "Viagem"]
+    var filmes: [[String: Any]] = [
+        ["id": "f1", "tmdbId": "550", "titulo": "Clube da Luta", "ano": "1999", "poster": "", "nota": 8.4,
+         "sinopse": "", "assistido": false, "avaliacoes": [String: Int]()],
+        ["id": "f2", "tmdbId": "13", "titulo": "Forrest Gump", "ano": "1994", "poster": "", "nota": 8.5,
+         "sinopse": "", "assistido": true, "avaliacoes": [parceira: 5]],
+    ]
+    var feed: [[String: Any]] = [
+        ["id": "ft1", "assetId": "demo-foto-1", "legenda": "Pôr do sol na praia"],
+        ["id": "ft2", "assetId": "demo-foto-2", "legenda": ""],
+    ]
     var contasBancarias: [[String: Any]] = [
         ["id": novoId(), "conexaoId": "cx1", "instituicao": "Nubank", "nome": "Conta corrente", "tipo": "BANK",
          "numero": "0001-9", "saldo": 4210.55, "moeda": "BRL", "status": "UPDATED"],
@@ -106,6 +130,18 @@ struct DadosDaDemonstracao {
     }
 
     static func novoId() -> String { UUID().uuidString.lowercased() }
+
+    /// Uma "foto" em degrade para o feed e as miniaturas da demonstracao.
+    static func imagemInventada(_ semente: String) -> Data {
+        let tons: [(UIColor, UIColor)] = [(.systemPink, .systemOrange), (.systemTeal, .systemIndigo), (.systemPurple, .systemPink)]
+        let (de, ate) = tons[abs(semente.hashValue) % tons.count]
+        let formato = UIGraphicsImageRendererFormat()
+        formato.scale = 1
+        return UIGraphicsImageRenderer(size: CGSize(width: 600, height: 600), format: formato).jpegData(withCompressionQuality: 0.8) { contexto in
+            let degrade = CGGradient(colorsSpace: nil, colors: [de.cgColor, ate.cgColor] as CFArray, locations: [0, 1])!
+            contexto.cgContext.drawLinearGradient(degrade, start: .zero, end: CGPoint(x: 600, y: 600), options: [])
+        }
+    }
 
     mutating func esvaziar() {
         receitas = []
@@ -558,6 +594,107 @@ struct DadosDaDemonstracao {
             return (204, nil)
         case ("GET", "users"):
             return (200, [Any]())
+        case ("GET", "shopping/items"):
+            return (200, compras)
+        case ("POST", "shopping/items"):
+            var novo = corpo
+            novo["id"] = Self.novoId()
+            novo["comprado"] = false
+            for chave in ["marca", "imagem", "codigo"] where novo[chave] == nil { novo[chave] = "" }
+            compras.insert(novo, at: 0)
+            return (201, novo)
+        case ("PATCH", _) where partes.count == 4 && partes[1] == "items" && partes[3] == "purchased":
+            guard let indice = compras.firstIndex(where: { $0["id"] as? String == partes[2] }) else { return (404, nil) }
+            compras[indice]["comprado"] = consulta("comprado") == "true"
+            return (200, compras[indice])
+        case ("DELETE", _) where partes.count == 3 && partes[1] == "items":
+            return remover(&compras)
+        case ("GET", "shopping/catalog"):
+            let termo = consulta("busca") ?? ""
+            return (200, [["codigo": "7891000100103", "nome": termo.capitalized + " integral", "marca": "Nestlé",
+                           "quantidade": "1 L", "imagem": ""],
+                          ["codigo": "7891000053508", "nome": termo.capitalized + " em pó", "marca": "Ninho",
+                           "quantidade": "400 g", "imagem": ""]])
+        case ("GET", "places"):
+            return (200, lugares.enumerated().map { indice, lugar in
+                var linha = lugar
+                linha["data"] = Formatos.dia(Calendar.current.date(byAdding: .day, value: -indice * 9, to: Date())!)
+                linha["fotoAssetId"] = NSNull()
+                linha["usuario"] = eu
+                return linha
+            })
+        case ("GET", "places/tags"):
+            return (200, marcadores)
+        case ("POST", "places/tags"):
+            if let nome = corpo["nome"] as? String { marcadores.append(nome) }
+            return (201, marcadores)
+        case ("POST", "places"), ("PUT", _) where partes.count == 2 && partes[0] == "places":
+            var lugar = corpo
+            lugar["id"] = partes.count == 2 ? partes[1] : Self.novoId()
+            lugar["temFoto"] = false
+            lugar["fotoAssetId"] = NSNull()
+            lugar["usuario"] = eu
+            lugar.removeValue(forKey: "imageBase64")
+            lugar.removeValue(forKey: "mimeType")
+            lugares.removeAll { $0["id"] as? String == lugar["id"] as? String }
+            lugares.insert(lugar, at: 0)
+            return (metodo == "POST" ? 201 : 200, lugar)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "places":
+            return remover(&lugares)
+        case ("GET", "movies"):
+            return (200, filmes.map { var linha = $0; linha["usuario"] = eu; return linha })
+        case ("GET", "movies/search"), ("GET", "movies/random"):
+            let catalogo: [[String: Any]] = [
+                ["tmdbId": "680", "titulo": "Pulp Fiction", "ano": "1994", "poster": "", "nota": 8.5,
+                 "sinopse": "Histórias de crime em Los Angeles que se cruzam de um jeito inesperado."],
+                ["tmdbId": "238", "titulo": "O Poderoso Chefão", "ano": "1972", "poster": "", "nota": 8.7,
+                 "sinopse": "A saga da família Corleone."],
+            ]
+            return (200, partes.last == "random" ? catalogo[0] : catalogo)
+        case ("POST", "movies"):
+            var filme = corpo
+            filme["id"] = Self.novoId()
+            filme["assistido"] = false
+            filme["avaliacoes"] = [String: Int]()
+            filmes.insert(filme, at: 0)
+            return (201, filme)
+        case ("PATCH", _) where partes.count == 3 && partes[2] == "watched":
+            guard let indice = filmes.firstIndex(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            filmes[indice]["assistido"] = consulta("assistido") == "true"
+            return (200, filmes[indice])
+        case ("PUT", _) where partes.count == 3 && partes[2] == "rating":
+            guard let indice = filmes.firstIndex(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            var notas = filmes[indice]["avaliacoes"] as? [String: Int] ?? [:]
+            notas[eu] = corpo["nota"] as? Int
+            filmes[indice]["avaliacoes"] = notas
+            return (200, filmes[indice])
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "movies":
+            return remover(&filmes)
+        case ("GET", "feed"):
+            return (200, feed.map { foto in
+                var linha = foto
+                linha["mesKey"] = mes
+                linha["usuario"] = eu
+                linha["criadoEm"] = ISO8601DateFormatter().string(from: Date())
+                return linha
+            })
+        case ("POST", "feed"):
+            let foto: [String: Any] = ["id": Self.novoId(), "assetId": "demo-foto-\(feed.count + 1)", "legenda": "",
+                                       "mesKey": corpo["mesKey"] ?? mes, "usuario": eu,
+                                       "criadoEm": ISO8601DateFormatter().string(from: Date())]
+            feed.insert(foto, at: 0)
+            return (201, foto)
+        case ("PATCH", _) where partes.count == 3 && partes[0] == "feed":
+            guard let indice = feed.firstIndex(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            feed[indice]["legenda"] = corpo["legenda"]
+            var linha = feed[indice]
+            linha["mesKey"] = mes
+            linha["criadoEm"] = ISO8601DateFormatter().string(from: Date())
+            return (200, linha)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "feed":
+            return remover(&feed)
+        case ("GET", _) where partes.count == 3 && partes[0] == "assets":
+            return (200, Self.imagemInventada(partes[1]))
         case ("GET", "banking/status"):
             return (200, ["habilitado": true])
         case ("GET", "banking/accounts"), ("POST", "banking/sync"):

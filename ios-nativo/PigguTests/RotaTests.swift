@@ -50,7 +50,7 @@ struct RotaTests {
     @Test(arguments: [
         "https://outro.site/gastos",
         "http://piggu.com.br/gastos",
-        "piggu://compras",
+        "piggu://assistente",
         "piggu://entrar?google=codigo",
         "mailto:ana@example.com",
     ])

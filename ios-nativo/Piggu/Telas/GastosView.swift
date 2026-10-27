@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 /// Gastos do mes (features/expenses): lista por dia, busca, filtros por categoria e forma de
 /// pagamento, editar, apagar (com as parcelas seguintes), divisao do mes e regras de categoria.
@@ -6,6 +7,8 @@ import SwiftUI
 struct GastosView: View {
     let versaoDosDados: Int
     let aoLancar: () -> Void
+    /// Gasto achado no Spotlight: a tela volta ao mes atual e abre a edicao dele.
+    @Binding var abrirGasto: String?
     /// Editou ou apagou: as outras abas recarregam.
     let aoMudar: () -> Void
 
@@ -35,6 +38,7 @@ struct GastosView: View {
     var body: some View {
         NavigationStack {
             List {
+                TipView(Dicas.Busca()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 avisos
                 switch carga {
                 case .carregando:
@@ -64,6 +68,8 @@ struct GastosView: View {
             .refreshable { await carregar() }
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
             .task(id: busca) { await buscarEmOutrosMeses() }
+            .onChange(of: abrirGasto, initial: true) { _, _ in mostrarGastoPedido() }
+            .onChange(of: carga.valor) { _, _ in mostrarGastoPedido() }
             .sheet(item: $editando) { gasto in
                 EditarGastoView(gasto: gasto, categorias: $categorias,
                                 podeCompartilhar: ehMeu(gasto) && membros.count > 1) { salvo in
@@ -326,6 +332,18 @@ struct GastosView: View {
     /// Do compartilhado, so quem lancou apaga ou volta para "so meu".
     private func ehMeu(_ gasto: Gasto) -> Bool { gasto.usuario == sessao.usuario?.id }
     private func nome(_ pessoa: String?) -> String { PessoasDaFamilia.nome(pessoa, em: membros) }
+
+    private func mostrarGastoPedido() {
+        guard let id = abrirGasto else { return }
+        if Formatos.mes(mes) != Formatos.mes(Date()) {
+            mes = Date()
+            return
+        }
+        if let gasto = carga.valor?.first(where: { $0.id == id }) {
+            editando = gasto
+            abrirGasto = nil
+        }
+    }
 
     // MARK: - API
 

@@ -33,6 +33,9 @@ final class Sessao {
         return nil
     }
 
+    /// A sessao do app, para o que o sistema roda sem a tela (Siri, notificacoes).
+    static weak var atual: Sessao?
+
     init(cliente: ClienteDaAPI, cache: Cache, fila: FilaDeGastos? = nil) {
         self.cliente = cliente
         self.cache = cache
@@ -171,6 +174,7 @@ final class Sessao {
     }
 
     func sair() async {
+        await Notificacoes.esquecerAparelho(cliente)
         await cliente.sair()
         await encerrarLocalmente()
     }
@@ -204,6 +208,7 @@ final class Sessao {
     /// Os dados guardados sao da conta: saem com ela.
     private func saiu() {
         cache.apagarTudo()
+        AtualizadorDoSistema.apagar()
         fila.usuario = nil
         estado = .deslogado
     }

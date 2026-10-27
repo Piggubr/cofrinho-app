@@ -3,7 +3,8 @@ import SwiftUI
 /// As telas do Mais, na ordem e nos grupos do menu do site (shell.ts). Abrem no Mais e tambem
 /// pelos atalhos do Painel e do lancamento (NavigationLink(value:) na pilha de cada aba).
 enum TelaDoMais: String, CaseIterable, Hashable {
-    case planejar, metas, orcamento, contasDoMes, cartoes, calendario, premios, girlsMath, familia, perfil
+    case planejar, metas, orcamento, contasDoMes, cartoes, calendario, compras, lugares, filmes, fotos, premios, girlsMath,
+         familia, perfil
 
     var titulo: LocalizedStringKey {
         switch self {
@@ -13,6 +14,10 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .contasDoMes: "Contas do mês"
         case .cartoes: "Cartões e bancos"
         case .calendario: "Calendário"
+        case .compras: "Compras"
+        case .lugares: "Lugares"
+        case .filmes: "Filmes"
+        case .fotos: "Fotos"
         case .premios: "Prêmios"
         case .girlsMath: "Girls Math"
         case .familia: "Família"
@@ -29,6 +34,10 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .contasDoMes: "doc.text"
         case .cartoes: "creditcard"
         case .calendario: "calendar"
+        case .compras: "cart"
+        case .lugares: "mappin.and.ellipse"
+        case .filmes: "film"
+        case .fotos: "photo"
         case .premios: "trophy"
         case .girlsMath: "bag"
         case .familia: "person.2"
@@ -39,6 +48,10 @@ enum TelaDoMais: String, CaseIterable, Hashable {
     /// Modulo de estilo de vida que liga ou desliga a tela no menu (Perfil); nil, sempre aparece.
     var modulo: String? {
         switch self {
+        case .compras: "compras"
+        case .lugares: "lugares"
+        case .filmes: "filmes"
+        case .fotos: "fotos"
         case .premios: "premios"
         case .girlsMath: "girls-math"
         default: nil
@@ -54,6 +67,10 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .contasDoMes: ContasDoMesView()
         case .cartoes: ContasECartoesView()
         case .calendario: CalendarioView()
+        case .compras: ComprasView()
+        case .lugares: LugaresView()
+        case .filmes: FilmesView()
+        case .fotos: FotosView()
         case .premios: PremiosView()
         case .girlsMath: GirlsMathView()
         case .familia: FamiliaView()

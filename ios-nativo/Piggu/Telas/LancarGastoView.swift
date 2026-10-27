@@ -40,6 +40,7 @@ struct LancarGastoView: View {
     @State private var compartilhado: Bool?
     @State private var precoAcima: ConferenciaDePreco?
     @State private var maisOpcoes = false
+    @State private var lendoNota = false
     @State private var salvando = false
     @State private var erro: String?
     @State private var faltou: String?
@@ -114,6 +115,13 @@ struct LancarGastoView: View {
                 }
             }
             .comTelasDoMais()
+            .fullScreenCover(isPresented: $lendoNota) {
+                LeitorDeNota { leitura in
+                    if let total = leitura.total { valorDigitado = Formatos.valorParaDigitar(total) }
+                    if let dia = leitura.data.flatMap(Formatos.data(deDia:)) { data = dia }
+                    if leitura.data != nil { maisOpcoes = true }
+                }
+            }
             .task { await carregar() }
             .onAppear {
                 if let valorInicial, valorDigitado.isEmpty {
@@ -142,6 +150,9 @@ struct LancarGastoView: View {
                     .font(.sora(.title3, peso: .semibold).monospacedDigit())
                     .focused($focado, equals: .valor)
                     .accessibilityLabel("Valor")
+            }
+            if LeitorDeNota.disponivel {
+                Button { lendoNota = true } label: { Label("Ler a nota pela câmera", systemImage: "doc.viewfinder") }
             }
             CampoDeCategoria(categoria: $categoria, categorias: $categorias)
             LabeledContent("Descrição") {

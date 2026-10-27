@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 /// Painel inicial (features/dashboard): os cartoes na ordem e com a visibilidade escolhidas
 /// em "Personalizar o Painel", o guia de primeiros passos e a cotacao da moeda.
@@ -74,6 +75,7 @@ struct PainelView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(paleta.alertaSuave, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    TipView(Dicas.BoasVindas())
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
                                     temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar)
                     if modelo.temCompanhia {

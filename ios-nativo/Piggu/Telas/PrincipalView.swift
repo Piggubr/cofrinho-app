@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 /// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante, a folha de
 /// lancar gasto, compartilhada pelas abas, e o aviso curto depois de lancar.
@@ -15,6 +16,9 @@ struct PrincipalView: View {
     /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
     @State private var versaoDosDados = 0
     @State private var aviso: String?
+    /// Gasto achado no Spotlight, para a aba Gastos abrir.
+    @State private var gastoParaAbrir: String?
+    @Environment(\.scenePhase) private var fase
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @State private var caminhoDoMais: [TelaDoMais] = []
 
@@ -24,6 +28,7 @@ struct PrincipalView: View {
                 LancarGastoView(valorInicial: pedido.valor) { mensagem in
                     versaoDosDados += 1
                     avisar(mensagem)
+                    Task { await AtualizadorDoSistema.atualizar(sessao) }
                 }
             }
             .overlay(alignment: .top) {
@@ -36,6 +41,12 @@ struct PrincipalView: View {
             }
             .onChange(of: rota, initial: true) { _, nova in
                 abrir(nova)
+            }
+            // Widgets, Siri e Spotlight ao abrir e ao voltar ao app; o aparelho para os avisos.
+            .task(id: fase) {
+                guard fase == .active else { return }
+                await AtualizadorDoSistema.atualizar(sessao)
+                if sessao.usuario?.avisos?.push == true { await Notificacoes.renovar() }
             }
             .task(id: sessao.usuario?.plano) {
                 // O Premium acabou: o icone do Premium volta ao padrao, como a cor (Classico fica).
@@ -100,7 +111,7 @@ struct PrincipalView: View {
     }
 
     private var gastos: some View {
-        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar) { versaoDosDados += 1 }
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir) { versaoDosDados += 1 }
             .comBotaoDeLancar(lancar)
     }
 
@@ -125,6 +136,9 @@ struct PrincipalView: View {
             caminhoDoMais = [tela]
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
+        case let .verGasto(id):
+            aba = .gastos
+            gastoParaAbrir = id
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:
             // Os da conta abrem na RaizView.
             return
@@ -157,6 +171,7 @@ private extension View {
         contentMargins(.bottom, 88, for: .scrollContent)
             .overlay(alignment: .bottomTrailing) {
                 BotaoDeLancar(acao: acao)
+                    .popoverTip(Dicas.Lancar(), arrowEdge: .bottom)
             }
     }
 

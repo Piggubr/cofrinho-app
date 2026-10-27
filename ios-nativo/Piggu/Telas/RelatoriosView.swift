@@ -1,5 +1,6 @@
 import Charts
 import SwiftUI
+import TipKit
 import UniformTypeIdentifiers
 
 /// Relatorios (features/reports): o mes por categoria contra o anterior, com projecao (gratis), o
@@ -36,6 +37,7 @@ struct RelatoriosView: View {
                     if let guardadoEm {
                         AvisoDeGuardado(guardadoEm: guardadoEm)
                     }
+                    TipView(Dicas.Relatorios()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                     numeros(resumo)
                     if resumo.porCategoria.isEmpty {
                         EstadoVazio(icone: "chart.bar", titulo: "Nenhum gasto neste mês",

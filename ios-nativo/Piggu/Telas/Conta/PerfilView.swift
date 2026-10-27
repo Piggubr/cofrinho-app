@@ -7,6 +7,7 @@ import UIKit
 struct PerfilView: View {
     @Environment(Sessao.self) private var sessao
     @Environment(\.paleta) private var paleta
+    @Environment(TravaDoApp.self) private var trava
     @AppStorage(Tema.chave) private var tema = Tema.chiclete
     @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
     @State private var membros: [MembroDaFamilia] = []
@@ -14,6 +15,7 @@ struct PerfilView: View {
     @State private var apelido = ""
     @State private var preferencias = Preferencias()
     @State private var avisoPorEmail = false
+    @State private var avisoNoCelular = false
     @State private var mostrarTudoAoParceiro = false
     @State private var compartilharPorPadrao = false
     @State private var modulos: Set<String> = []
@@ -55,6 +57,7 @@ struct PerfilView: View {
                 moeda
                 avisos(usuario)
                 if membros.count > 1 { compartilhamento }
+                seguranca
                 organizar
                 telasDoMenu
                 aparencia
@@ -156,18 +159,48 @@ struct PerfilView: View {
     private func avisos(_ usuario: Usuario) -> some View {
         Section {
             Toggle("Por e-mail, para \(usuario.email)", isOn: Binding(
-                get: { avisoPorEmail },
-                set: { novo in
-                    avisoPorEmail = novo
-                    Task { await atualizar(String(localized: "Avisos salvos.")) {
-                        try await $0.salvarAvisos(email: novo, push: usuario.avisos?.push ?? false) } }
-                }))
+                get: { avisoPorEmail }, set: { avisoPorEmail = $0; Task { await salvarAvisos() } }))
+            Toggle("Notificação neste iPhone", isOn: Binding(
+                get: { avisoNoCelular }, set: { avisoNoCelular = $0; Task { await salvarAvisos() } }))
         } header: {
             Text("Avisos")
         } footer: {
             Text("Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app fechado. No máximo uma vez por dia, e só quando há novidade.")
         }
         .listRowBackground(paleta.superficie)
+    }
+
+    /// Travar com Face ID (ou Touch ID, ou o codigo) ao abrir e ao voltar do fundo.
+    private var seguranca: some View {
+        Section {
+            Toggle("Travar com \(trava.nomeDaBiometria ?? String(localized: "o código do iPhone"))", isOn: Binding(
+                get: { trava.ligada }, set: { novo in Task { await trava.ligar(novo) } }))
+        } header: {
+            Text("Segurança")
+        } footer: {
+            Text("Pede a sua biometria ao abrir o Piggu e ao voltar para ele. Vale para este aparelho.")
+        }
+        .listRowBackground(paleta.superficie)
+    }
+
+    /// No iPhone a permissao do sistema vem antes de gravar: sem ela o aviso no celular fica desligado.
+    private func salvarAvisos() async {
+        var push = avisoNoCelular
+        var recusou = false
+        if push, await !Notificacoes.ativar() {
+            push = false
+            recusou = true
+            avisoNoCelular = false
+        }
+        let email = avisoPorEmail
+        await atualizar(recusou ? nil : String(localized: "Avisos salvos.")) { try await $0.salvarAvisos(email: email, push: push) }
+        if recusou {
+            erro = String(localized: "Permita as notificações do Piggu nos Ajustes do iPhone e tente de novo.")
+        } else if erro != nil {
+            // A chave volta para o que esta gravado: nao pode ficar ligada sem ter salvo.
+            avisoPorEmail = sessao.usuario?.avisos?.email ?? false
+            avisoNoCelular = sessao.usuario?.avisos?.push ?? false
+        }
     }
 
     private var compartilhamento: some View {
@@ -364,6 +397,7 @@ struct PerfilView: View {
         apelido = usuario.apelido ?? ""
         preferencias = usuario.preferencias ?? Preferencias()
         avisoPorEmail = usuario.avisos?.email ?? false
+        avisoNoCelular = usuario.avisos?.push ?? false
         mostrarTudoAoParceiro = usuario.compartilhamento?.mostraTudoAoParceiro ?? false
         compartilharPorPadrao = usuario.compartilhamento?.compartilharPorPadrao ?? false
         // Ausente (conta antiga, demo) liga todas, como no site.
