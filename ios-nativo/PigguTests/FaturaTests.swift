@@ -18,4 +18,9 @@ struct FaturaTests {
         #expect(fatura?.mes == mes)
         #expect(fatura?.vencimento == venceEm)
     }
+
+    @Test func fechamentoPadraoSeteDiasAntes() {
+        #expect(FaturaDoCartao.fechamentoPadrao(15) == 8)
+        #expect(FaturaDoCartao.fechamentoPadrao(5) == 29)
+    }
 }
