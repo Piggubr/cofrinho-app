@@ -52,14 +52,8 @@ struct PremiumView: View {
                 resumo
             }
         }
-        .navigationTitle("Piggu Premium")
+        .navigationTitle("Premium")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if titular {
-                Button("Restaurar compras") { Task { await restaurar() } }
-                    .disabled(restaurando || !rede.conectado)
-            }
-        }
         .manageSubscriptionsSheet(isPresented: $gerenciando)
         .task(id: rede.conectado) { await carregar() }
     }
@@ -118,8 +112,15 @@ struct PremiumView: View {
             } else if guardado || !rede.conectado {
                 Text("Sem internet. Para assinar, conecte-se.")
             }
+            if titular { botaoDeRestaurar }
         }
         .listRowBackground(paleta.superficie)
+    }
+
+    /// Fora da barra: no iPad a barra de abas fica no topo e cobriria o botao.
+    private var botaoDeRestaurar: some View {
+        Button("Restaurar compras") { Task { await restaurar() } }
+            .disabled(restaurando || !rede.conectado)
     }
 
     private func itens(_ titulo: LocalizedStringKey, _ itens: [String]) -> some View {
@@ -148,12 +149,14 @@ struct PremiumView: View {
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
+                botaoDeRestaurar.font(.sora(.subheadline, peso: .medium))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
         .subscriptionStoreButtonLabel(.multiline)
-        .storeButton(.hidden, for: .restorePurchases)
+        // Restaurar fica no cabecalho (manda ao backend); fechar nao cabe numa tela empurrada.
+        .storeButton(.hidden, for: .restorePurchases, .cancellation)
         .subscriptionStorePolicyDestination(for: .termsOfService) { TextoLegalView(documento: .termos) }
         .subscriptionStorePolicyDestination(for: .privacyPolicy) { TextoLegalView(documento: .privacidade) }
         .inAppPurchaseOptions { _ in

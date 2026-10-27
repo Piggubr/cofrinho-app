@@ -20,7 +20,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 - Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
-- iOS, etapa 8: Premium pelo StoreKit 2, com validação no backend e o preço no iPhone decidido.
+- App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
 - iOS, etapa 9: acabamento e versão 2.0.0 no TestFlight. Pelo plano, de 4 a 5 semanas com uma sessão por dia.
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
@@ -43,6 +43,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 27/10/2026: iOS nativo, etapa 8: Premium pela compra da Apple (StoreKit 2) com a transação e as notificações V2 conferidas no backend pela biblioteca da Apple, no mesmo plano da Stripe; quem é Premium pelo site não vê a loja (D-094).
 - 27/10/2026: iOS nativo, etapa 7: Compras, Lugares (com mapa), Filmes e Fotos; widgets de gasto do mês e de meta (tela inicial e de bloqueio) e o controle "Lançar gasto"; Siri ("Lançar gasto" e "Quanto gastei este mês"); Face ID; notificações; dicas com TipKit; leitura da nota pela câmera; gastos no Spotlight (D-093).
 - 27/10/2026: iOS nativo, etapa 6: Minhas metas com o anel animado, Girls Math com foto, Planejar, Prêmios, Família (convites, parceria, histórico e a visão de membro) e Perfil (foto pela galeria e câmera, moeda, avisos, compartilhamento, telas do menu, aparência, cor e ícone do app, senha, meus dados), D-092.
 - 27/10/2026: iOS nativo, etapa 5: Contas do mês, Orçamento, Calendário (lado a lado no iPad), Relatórios com o ano e o CSV, Cartões e bancos com a fatura paga (D-085) e conectar banco pelo navegador do sistema (D-091); salário em duas parcelas nas Receitas (D-087).

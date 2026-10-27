@@ -123,8 +123,12 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
   SDK). Sem interface enquanto há um provedor só; um segundo traz a interface de volta (D-081).
 - O Premium só muda pelo webhook assinado (HMAC, tolerância de 5 min). Voltar da página
   de pagamento não concede nada. Aviso antigo que chega depois de um mais novo é ignorado.
-- Compra nas lojas: `POST /api/billing/stores/{loja}/purchases` responde `501` até os
-  apps existirem.
+- Compra no iPhone (D-094): StoreKit 2 no app; a transação assinada vai a
+  `POST /api/billing/app-store/transactions` e as App Store Server Notifications V2 a
+  `POST /api/billing/webhooks/app-store`, conferidas com a biblioteca oficial da Apple. Mesmo
+  plano da Stripe, origem `APP_STORE`. Premium vigente pelo site não é trocado pela Apple.
+- Compra no Android: `POST /api/billing/stores/{loja}/purchases` (RevenueCat) responde `501`
+  até o app existir.
 - Cancelar é tão fácil quanto assinar: botão "Gerenciar assinatura" abre o portal da Stripe.
 
 ## Falta antes de cobrar de verdade
@@ -142,9 +146,13 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 5. ~~Aviso de privacidade~~: feito, a Stripe está na lista de operadores em `/privacidade`.
 6. ~~Teste grátis~~: 7 dias (`PIGGU_DIAS_DE_TESTE`) por `trial_period_days` no Checkout,
    uma vez por conta (marcado quando a Stripe avisa que o teste começou).
-7. ~~Apps~~: webhook do RevenueCat em `POST /api/billing/stores/{app-store|play-store}/purchases`
+7. **App Store**: criar no App Store Connect o grupo "Piggu Premium" e os produtos
+   `br.com.piggu.premium.mensal` e `br.com.piggu.premium.anual` (preço da tabela acima ou o
+   ponto de preço mais próximo), apontar as notificações V2 para
+   `/api/billing/webhooks/app-store` e preencher `APP_STORE_APP_APPLE_ID` (D-094).
+8. ~~Apps~~ (agora só o Android, D-094): webhook do RevenueCat em `POST /api/billing/stores/{app-store|play-store}/purchases`
    (o RevenueCat valida o recibo com as lojas), autenticado pelo segredo
    `REVENUECAT_WEBHOOK_SECRET`, idempotente pelo id do aviso. Falta criar a conta no
    RevenueCat e publicar os apps com o id da conta Piggu como `app_user_id`.
-8. ~~Premium magro~~: entraram o orçamento por categoria com alerta e o relatório do ano
+9. ~~Premium magro~~: entraram o orçamento por categoria com alerta e o relatório do ano
    com gráficos (C5). Exportar os dados e o relatório do mês seguem grátis.
