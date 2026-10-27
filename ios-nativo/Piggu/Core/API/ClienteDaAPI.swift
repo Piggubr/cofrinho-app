@@ -190,8 +190,14 @@ actor ClienteDaAPI {
         try await enviar("PUT", caminho, corpo: corpo, aberta: false)
     }
 
-    func delete(_ caminho: String) async throws {
-        _ = try await executar(metodo: "DELETE", caminho: caminho, query: [:], corpo: nil, aberta: false)
+    func delete(_ caminho: String, query: [String: String?] = [:]) async throws {
+        _ = try await executar(metodo: "DELETE", caminho: caminho, query: query, corpo: nil, aberta: false)
+    }
+
+    /// DELETE que devolve o recurso atualizado (desconectar banco devolve as contas que sobram).
+    func delete<Resposta: Decodable & Sendable>(_ caminho: String) async throws -> Resposta {
+        let dados = try await executar(metodo: "DELETE", caminho: caminho, query: [:], corpo: nil, aberta: false)
+        return try decodificar(dados)
     }
 
     private func enviar<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(

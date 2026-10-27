@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 // Tipos espelhando os DTOs do backend (frontend/src/app/core/api/models.ts).
 //
@@ -41,6 +42,13 @@ struct Usuario: Codable, Equatable, Sendable {
     /// Versao dos Termos aceita por ultimo; nula em conta antiga.
     var termosAceitos: String?
     var temSenha: Bool?
+    /// Moeda dos valores e a cotacao do topo; ausente em conta antiga.
+    var preferencias: Preferencias?
+    /// O que o casal ve um do outro e se o lancamento ja nasce compartilhado.
+    var compartilhamento: Compartilhamento?
+
+    /// Moeda em que os valores aparecem (ISO 4217).
+    var moeda: String { preferencias?.moeda ?? "BRL" }
 
     /// Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo.
     var termosPendentes: Bool { termosAceitos != Conta.versaoDosTermos }
@@ -107,16 +115,296 @@ struct Gasto: Codable, Identifiable, Equatable, Sendable {
 
 struct ItemDeGasto: Codable, Equatable, Sendable {
     let item: String
+    /// Nula: "Automática", o backend escolhe pelas regras.
     let categoria: String?
     let valor: Decimal
+    /// "Fixo" (recorrente) ou "Variavel".
+    var tipo: String?
+    /// Compra em outra moeda: o `valor` ja vai convertido.
+    var moedaOriginal: String?
+    var valorOriginal: Decimal?
 }
 
 /// Corpo de POST /expenses. Campos nulos nao sao enviados: o backend aplica o padrao.
 struct NovoLancamento: Codable, Equatable, Sendable {
     /// aaaa-mm-dd
     let data: String
-    let estabelecimento: String?
+    var estabelecimento: String?
+    var origem: String?
     let itens: [ItemDeGasto]
+    var contaId: String?
+    var parcelas: Int?
+    var dividirCom: [String]?
+    var recorrente: Bool?
+    var compartilhado: Bool?
+    /// Sem resposta o servidor pode ter gravado: a fila reenvia com o mesmo id e ele nao duplica.
+    var idDoEnvio: String?
+}
+
+/// Corpo de PUT /expenses/{id}. `compartilhado` ausente fica como esta (so quem lancou muda).
+struct EdicaoDeGasto: Codable, Sendable {
+    let item: String
+    let categoria: String
+    let valor: Decimal
+    var compartilhado: Bool?
+}
+
+/// Na resposta todos os campos sao opcionais (docs/api/identity.yaml); no PUT vao moeda,
+/// moedaConversao e mostrarCotacao.
+struct Preferencias: Codable, Equatable, Sendable {
+    var moeda: String?
+    /// Ponta "de" da cotacao do topo; conta antiga nao traz e vale a `moeda`.
+    var moedaCotacao: String?
+    var moedaConversao: String?
+    var mostrarCotacao: Bool?
+    var fuso: String?
+    var idioma: String?
+    var modulos: [String]?
+}
+
+struct Compartilhamento: Codable, Equatable, Sendable {
+    let mostraTudoAoParceiro: Bool
+    let compartilharPorPadrao: Bool
+}
+
+/// Recorte do painel para quem mora com alguem.
+enum Visao: String, CaseIterable, Sendable {
+    case tudo, meu, casal
+
+    var nome: LocalizedStringResource {
+        switch self {
+        case .tudo: "Tudo"
+        case .meu: "Meu"
+        case .casal: "Compartilhado"
+        }
+    }
+
+    /// O backend so recebe o recorte quando nao e tudo.
+    var parametro: String? { self == .tudo ? nil : rawValue }
+}
+
+struct Cotacao: Codable, Equatable, Sendable {
+    let de: String
+    let para: String
+    let taxa: Decimal
+    let data: String
+    let fonte: String?
+    let estimativa: Bool?
+    let desatualizada: Bool?
+}
+
+struct Receita: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let data: String
+    let descricao: String
+    let categoria: String
+    let valor: Decimal
+    let usuario: String?
+    let compartilhado: Bool?
+}
+
+/// Corpo de POST /incomes.
+struct NovaReceita: Codable, Sendable {
+    let data: String
+    let descricao: String
+    let categoria: String
+    let valor: Decimal
+    let compartilhado: Bool
+    let recorrente: Bool
+}
+
+/// Dinheiro que alguem deve a pessoa; so vira receita no "Recebi".
+struct AReceber: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let quem: String
+    let descricao: String?
+    let valor: Decimal
+    /// Data combinada, aaaa-mm-dd.
+    let data: String
+}
+
+struct NovoAReceber: Codable, Sendable {
+    let quem: String
+    let descricao: String
+    let valor: Decimal
+    let data: String
+}
+
+/// Conta do mes (gasto) ou receita que entra todo mes, com a situacao no mes pedido.
+struct ContaFixa: Codable, Identifiable, Equatable, Sendable {
+    enum Situacao: String, Codable, Sendable {
+        case paga = "PAGA", pendente = "PENDENTE", vencida = "VENCIDA"
+    }
+
+    let id: String
+    let descricao: String
+    let categoria: String
+    let valor: Decimal
+    let dia: Int
+    let automatico: Bool
+    let vencimento: String
+    let situacao: Situacao
+    let tipo: String?
+    let contaId: String?
+    let usuario: String?
+    let compartilhado: Bool?
+}
+
+struct Fatura: Codable, Equatable, Sendable {
+    let mes: String
+    let vencimento: String
+    let total: Decimal
+}
+
+struct ContaOuCartao: Codable, Identifiable, Equatable, Sendable {
+    enum Tipo: String, Codable, Sendable {
+        case conta = "CONTA", cartao = "CARTAO"
+    }
+
+    let id: String
+    let nome: String
+    let tipo: Tipo
+    let fechamento: Int?
+    let vencimento: Int?
+    let faturaAPagar: Fatura?
+    let usuario: String?
+    let compartilhado: Bool?
+}
+
+struct Deposito: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let data: String
+    let valor: Decimal
+    let usuario: String?
+    let objetivo: String?
+}
+
+struct Cofrinho: Codable, Equatable, Sendable {
+    let depositos: [Deposito]
+    let totalDepositos: Decimal
+    let totalGastos: Decimal
+    let saldo: Decimal
+}
+
+/// POST /piggy-bank/deposits; sem `objetivo` vai para o cofrinho geral.
+struct NovoDeposito: Codable, Sendable {
+    let valor: Decimal
+    let data: String
+    var objetivo: String?
+}
+
+struct ObjetivoDoCofrinho: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let nome: String
+    let alvo: Decimal
+    let prazo: String?
+    let guardado: Decimal
+    let falta: Decimal
+    /// 0 a 100.
+    let percentual: Double
+    let porMes: Decimal?
+    let concluido: Bool
+    let atrasado: Bool
+    let usuario: String?
+    let compartilhado: Bool?
+}
+
+/// `compartilhado` ausente o backend deixa como esta.
+struct PedidoDeObjetivo: Codable, Sendable {
+    let nome: String
+    let alvo: Decimal
+    let prazo: String?
+    var compartilhado: Bool?
+}
+
+struct Nota: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let titulo: String
+    let texto: String?
+    let data: String?
+    let criadoEm: String
+}
+
+struct NovaNota: Codable, Sendable {
+    let titulo: String
+    let texto: String?
+}
+
+struct Orcamento: Codable, Identifiable, Equatable, Sendable {
+    enum Alerta: String, Codable, Sendable {
+        case ok = "OK", atencao = "ATENCAO", estourou = "ESTOUROU"
+    }
+
+    let id: String
+    let categoria: String
+    let limite: Decimal
+    let gasto: Decimal
+    /// Ja em porcentagem.
+    let percentual: Decimal
+    let alerta: Alerta
+}
+
+/// Minhas metas do mes (piggu-lifestyle).
+struct MetaDoMes: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let titulo: String
+    let concluida: Bool
+}
+
+struct ItemDoGirlsMath: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let valor: Decimal
+    let data: String
+}
+
+struct MembroDaFamilia: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let nome: String
+    let papel: PigguRole
+}
+
+struct Familia: Codable, Equatable, Sendable {
+    let membros: [MembroDaFamilia]
+}
+
+struct RegraDeCategoria: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let termo: String
+    let categoria: String
+}
+
+struct AcertoDeDivisao: Codable, Equatable, Sendable {
+    let pessoa: String?
+    let pagou: Decimal
+    let parte: Decimal
+    let saldo: Decimal
+}
+
+struct TransferenciaDoAcerto: Codable, Equatable, Sendable {
+    let de: String?
+    let para: String?
+    let valor: Decimal
+}
+
+struct ConferenciaDePreco: Codable, Equatable, Sendable {
+    let media: Decimal
+    let percentual: Decimal
+    let acima: Bool
+}
+
+/// Conta lida pelo Open Finance (piggu-banking).
+struct ContaBancaria: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let conexaoId: String
+    let instituicao: String
+    let nome: String
+    let numero: String?
+    let saldo: Decimal
+    let moeda: String
+}
+
+struct SituacaoDoOpenFinance: Codable, Sendable {
+    let habilitado: Bool
 }
 
 /// Card do mes: receitas - gastos = sobra; sobra / receitas = taxa de poupanca.

@@ -21,9 +21,11 @@ final class RespostaGuardada {
 @MainActor
 final class Cache {
     private let contexto: ModelContext
+    let soNaMemoria: Bool
 
     /// - Parameter soNaMemoria: demonstracao e testes, que nao podem misturar dados com os de verdade.
     init(soNaMemoria: Bool = false) {
+        self.soNaMemoria = soNaMemoria
         let disco = ModelConfiguration(isStoredInMemoryOnly: soNaMemoria)
         let container = (try? ModelContainer(for: RespostaGuardada.self, configurations: disco))
             // Banco corrompido ou migracao que falhou: segue sem cache em vez de nao abrir.

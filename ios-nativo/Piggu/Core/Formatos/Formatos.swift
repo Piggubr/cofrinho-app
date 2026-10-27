@@ -11,8 +11,31 @@ enum Formatos {
         return calendario
     }
 
-    static func moeda(_ valor: Decimal) -> String {
-        valor.formatted(.currency(code: "BRL").locale(localidade))
+    /// Moeda da pessoa logada (preferencias.moeda); a Sessao troca ao entrar.
+    // shortcut: global mutavel lido fora do MainActor, escrito so no login; vira Environment se as telas trocarem de moeda ao vivo.
+    nonisolated(unsafe) static var codigoDaMoeda = "BRL"
+
+    /// - Parameter codigo: moeda fixa do valor (saldo de banco, compra em outra moeda); sem ela, a da pessoa.
+    static func moeda(_ valor: Decimal, codigo: String? = nil) -> String {
+        valor.formatted(.currency(code: codigo ?? codigoDaMoeda).locale(localidade))
+    }
+
+    /// Simbolo curto da moeda da pessoa (R$, €, US$), para o rotulo do campo de valor.
+    static var simboloDaMoeda: String {
+        Locale(identifier: "pt_BR@currency=\(codigoDaMoeda)").currencySymbol ?? codigoDaMoeda
+    }
+
+    /// "Euro (EUR)"
+    static func nomeDaMoeda(_ codigo: String) -> String {
+        localidade.localizedString(forCurrencyCode: codigo).map { "\($0) (\(codigo))" } ?? codigo
+    }
+
+    /// Cotacao do topo: "1 EUR = R$ 6,12"; taxa menor que 1 ganha ate quatro casas.
+    static func cotacao(_ cotacao: Cotacao) -> String {
+        let casas = cotacao.taxa < 1 ? 2...4 : 2...2
+        let valor = cotacao.taxa.formatted(
+            .currency(code: cotacao.para).precision(.fractionLength(casas)).locale(localidade))
+        return "1 \(cotacao.de) = \(valor)"
     }
 
     /// - Parameter valor: ja em porcentagem (12,5 e 12,5%), como manda o backend.
@@ -110,6 +133,17 @@ enum Formatos {
     /// "outubro de 2026" vira "Outubro de 2026": so a primeira letra, como se escreve em portugues.
     static func inicialMaiuscula(_ texto: String) -> String {
         texto.prefix(1).uppercased(with: localidade) + texto.dropFirst()
+    }
+
+    /// "26/10/2026", o dataBr do site.
+    static func dataCurta(_ texto: String) -> String {
+        guard let data = data(deDia: texto) else { return texto }
+        return data.formatted(.dateTime.day(.twoDigits).month(.twoDigits).year().locale(localidade))
+    }
+
+    /// "outubro de 2026" a partir de "2026-10".
+    static func nomeDoMes(chave: String) -> String {
+        data(deDia: chave + "-01").map { inicialMaiuscula(nomeDoMes($0)) } ?? chave
     }
 
     static func somarMeses(_ meses: Int, a data: Date) -> Date {

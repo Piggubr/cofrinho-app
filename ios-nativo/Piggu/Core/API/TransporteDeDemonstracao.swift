@@ -21,6 +21,7 @@ actor TransporteDeDemonstracao: Transporte {
     private var gastos: [[String: Any]]
     private let falha: Falha?
     private var usuario = TransporteDeDemonstracao.usuarioPadrao
+    private var dados = DadosDaDemonstracao()
 
     init(
         logado: Bool = false,
@@ -51,20 +52,28 @@ actor TransporteDeDemonstracao: Transporte {
         func noMes(_ antes: Int) -> String { dia(min(antes, diaDoMes - 1)) }
 
         gastos = [
-            Self.gasto("Mercado da semana", "Mercado", 312.47, noMes(0), "Pão de Açúcar"),
-            Self.gasto("Uber para o trabalho", "Transporte", 23.90, noMes(1), "Uber"),
-            Self.gasto("Almoço", "Alimentação", 42.00, noMes(1), "Restaurante da esquina"),
-            Self.gasto("Conta de luz", "Casa", 189.32, noMes(3), "Enel"),
-            Self.gasto("Cinema", "Lazer", 64.00, noMes(5), "Cinemark"),
+            Self.gasto("Mercado da semana", "Mercado", 312.47, noMes(0), "Pão de Açúcar", conta: DadosDaDemonstracao.cartao),
+            Self.gasto("Uber para o trabalho", "Transporte", 23.90, noMes(1), "Uber", conta: DadosDaDemonstracao.banco),
+            Self.gasto("Almoço", "Alimentação", 42.00, noMes(1), "Restaurante da esquina", conta: DadosDaDemonstracao.banco),
+            Self.gasto("Conta de luz", "Casa", 189.32, noMes(3), "Enel", conta: DadosDaDemonstracao.banco,
+                       compartilhado: true),
+            Self.gasto("Cinema", "Lazer", 64.00, noMes(5), "Cinemark", conta: DadosDaDemonstracao.cartao,
+                       usuario: DadosDaDemonstracao.parceira, compartilhado: true),
             Self.gasto("Farmácia", "Saúde", 37.80, noMes(6), "Drogasil"),
-            Self.gasto("Gasolina", "Transporte", 220.00, noMes(8), "Posto Shell"),
+            Self.gasto("Fone de ouvido", "Lazer", 149.90, noMes(7), "Fnac", conta: DadosDaDemonstracao.cartao,
+                       parcela: (2, 6)),
+            Self.gasto("Gasolina", "Transporte", 220.00, noMes(8), "Posto Shell", conta: DadosDaDemonstracao.cartao),
         ]
     }
 
     private static func gasto(
-        _ item: String, _ categoria: String, _ valor: Double, _ data: String, _ estabelecimento: String
+        _ item: String, _ categoria: String, _ valor: Double, _ data: String, _ estabelecimento: String,
+        conta: String? = nil, usuario: String? = nil, compartilhado: Bool = false, parcela: (Int, Int)? = nil
     ) -> [String: Any] {
         [
+            "contaId": conta as Any? ?? NSNull(),
+            "parcela": parcela?.0 as Any? ?? NSNull(),
+            "parcelas": parcela?.1 as Any? ?? NSNull(),
             "id": UUID().uuidString.lowercased(),
             "data": data,
             "estabelecimento": estabelecimento,
@@ -72,12 +81,14 @@ actor TransporteDeDemonstracao: Transporte {
             "categoria": categoria,
             "valor": valor,
             "tipo": "Variavel",
-            "origem": "manual",
-            "usuario": Self.usuarioPadrao["id"] as Any,
+            "origem": "Manual",
+            "usuario": usuario ?? Self.usuarioPadrao["id"] as Any,
             "registradoEm": ISO8601DateFormatter().string(from: Date()),
-            "compartilhado": false,
+            "compartilhado": compartilhado,
         ]
     }
+
+    static let idDaPessoa = "8a5c2f0e-0000-4000-8000-000000000001"
 
     nonisolated(unsafe) private static let usuarioPadrao: [String: Any] = [
         "id": "8a5c2f0e-0000-4000-8000-000000000001",
@@ -97,6 +108,10 @@ actor TransporteDeDemonstracao: Transporte {
         "cpfInformado": true,
         "termosAceitos": Conta.versaoDosTermos,
         "temSenha": true,
+        "preferencias": [
+            "moeda": "BRL", "moedaCotacao": "USD", "moedaConversao": "BRL", "mostrarCotacao": true,
+        ],
+        "compartilhamento": ["mostraTudoAoParceiro": true, "compartilharPorPadrao": false],
     ]
 
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
@@ -115,6 +130,7 @@ actor TransporteDeDemonstracao: Transporte {
                 return responder(url, 500, erro("Erro interno."))
             case .vazio:
                 gastos = []
+                dados.esvaziar()
             case nil:
                 break
             }
@@ -178,21 +194,57 @@ actor TransporteDeDemonstracao: Transporte {
         case ("GET", "/auth/me"):
             return responder(url, 200, usuario)
         case ("GET", "/categories"):
-            return responder(url, 200, ["categorias": [
-                "Alimentação", "Casa", "Educação", "Lazer", "Mercado", "Outros", "Saúde", "Transporte",
-            ]])
+            return responder(url, 200, ["categorias": dados.categorias.sorted()])
+        case ("POST", "/categories"):
+            dados.categorias.append(corpo["nome"] as? String ?? "")
+            return responder(url, 201, ["categorias": dados.categorias.sorted()])
         case ("GET", "/expenses"):
-            let mes = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                .queryItems?.first { $0.name == "mes" }?.value
-            let doMes = gastos.filter { mes == nil || ($0["data"] as? String)?.hasPrefix(mes!) == true }
+            let mes = consulta(url, "mes")
+            let visao = consulta(url, "visao")
+            let eu = usuario["id"] as? String
+            let doMes = gastos.filter { gasto in
+                (mes == nil || (gasto["data"] as? String)?.hasPrefix(mes!) == true)
+                    && (visao != "meu" || gasto["usuario"] as? String == eu)
+                    && (visao != "casal" || gasto["compartilhado"] as? Bool == true)
+            }
             return responder(url, 200, doMes.sorted { ($0["data"] as! String) > ($1["data"] as! String) })
+        case ("GET", "/expenses/search"):
+            let termo = (consulta(url, "q") ?? "").lowercased()
+            let achados = gastos.filter {
+                "\($0["item"] ?? "") \($0["estabelecimento"] ?? "")".lowercased().contains(termo)
+            }
+            return responder(url, 200, Array(achados.prefix(20)))
         case ("POST", "/expenses"):
             return responder(url, 201, lancar(pedido.httpBody))
         case ("GET", "/reports/month"):
             return responder(url, 200, resumo(url))
         default:
+            let partes = caminho.split(separator: "/").map(String.init)
+            if metodo == "PUT", partes.count == 2, partes[0] == "expenses",
+               let indice = gastos.firstIndex(where: { $0["id"] as? String == partes[1] }) {
+                for chave in ["item", "categoria", "valor", "compartilhado"] where corpo[chave] != nil {
+                    gastos[indice][chave] = corpo[chave]
+                }
+                return responder(url, 200, gastos[indice])
+            }
+            if metodo == "DELETE", partes.count == 2, partes[0] == "expenses" {
+                gastos.removeAll { $0["id"] as? String == partes[1] }
+                return responder(url, 204, nil)
+            }
+            if let (status, resposta) = dados.responder(metodo, partes, consulta: { self.consulta(url, $0) }, corpo: corpo,
+                                                        gastos: gastos, eu: usuario["id"] as? String ?? "") {
+                if let novo = resposta as? [String: Any], caminho == "/auth/me/preferences" {
+                    usuario["preferencias"] = novo
+                    return responder(url, status, usuario)
+                }
+                return responder(url, status, resposta)
+            }
             return responder(url, 404, erro("Nao existe na demonstracao."))
         }
+    }
+
+    private func consulta(_ url: URL, _ nome: String) -> String? {
+        URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == nome }?.value
     }
 
     private func tokens(noCorpo: Bool) -> [String: Any] {
@@ -220,7 +272,10 @@ actor TransporteDeDemonstracao: Transporte {
                 item["categoria"] as? String ?? "Outros",
                 (item["valor"] as? NSNumber)?.doubleValue ?? 0,
                 data,
-                json["estabelecimento"] as? String ?? "")
+                json["estabelecimento"] as? String ?? "",
+                conta: json["contaId"] as? String,
+                compartilhado: json["compartilhado"] as? Bool ?? false,
+                parcela: (json["parcelas"] as? Int).map { (1, $0) })
         }
         gastos.append(contentsOf: novos)
         return novos
@@ -235,7 +290,8 @@ actor TransporteDeDemonstracao: Transporte {
             porCategoria[gasto["categoria"] as! String, default: 0] += gasto["valor"] as! Double
         }
         let total = porCategoria.values.reduce(0, +)
-        let receitas = total > 0 ? 5200.0 : 0
+        let receitas = dados.receitas.filter { ($0["data"] as? String)?.hasPrefix(mes) == true }
+            .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
         let anterior = total > 0 ? 1480.0 : 0
         return [
             "mes": mes,
