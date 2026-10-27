@@ -306,3 +306,189 @@ extension ClienteDaAPI {
         try await put("/auth/me/preferences", corpo: preferencias)
     }
 }
+
+/// Metas, Girls Math, Premios, Familia e Perfil (lifestyle, rewards, identity, media).
+extension ClienteDaAPI {
+    // MARK: - Minhas metas
+
+    func criarMetaDoMes(_ meta: NovaMetaDoMes) async throws -> MetaDoMes {
+        try await post("/personal-goals", corpo: meta)
+    }
+
+    func atualizarMetaDoMes(_ id: String, _ meta: NovaMetaDoMes) async throws -> MetaDoMes {
+        try await put("/personal-goals/\(id)", corpo: meta)
+    }
+
+    func excluirMetaDoMes(_ id: String) async throws {
+        try await delete("/personal-goals/\(id)")
+    }
+
+    // MARK: - Girls Math
+
+    func criarNoGirlsMath(_ item: NovoItemDoGirlsMath) async throws -> ItemDoGirlsMath {
+        try await post("/girls-math", corpo: item)
+    }
+
+    func excluirDoGirlsMath(_ id: String) async throws {
+        try await delete("/girls-math/\(id)")
+    }
+
+    /// Foto guardada no piggu-media; pede o token, por isso nao vai direto num AsyncImage.
+    func imagem(_ assetId: String) async throws -> Data {
+        try await dados("/assets/\(assetId)/content")
+    }
+
+    // MARK: - Premios (Fofocoins)
+
+    func consultarSaldoDeMoedas() async throws -> SaldoDeMoedas {
+        try await get("/coins")
+    }
+
+    /// Credito ou debito (negativo) com o motivo; so quem cuida dos premios.
+    func ajustarMoedas(_ valor: Int, motivo: String) async throws -> SaldoDeMoedas {
+        try await post("/coins/adjustments", corpo: AjusteDeMoedas(valor: valor, motivo: motivo))
+    }
+
+    /// - Parameter todos: inclui os desativados (quem cuida dos premios).
+    func listarPremios(todos: Bool) async throws -> [Premio] {
+        try await get("/prizes", query: ["todos": todos ? "true" : nil])
+    }
+
+    func criarPremio(_ premio: NovoPremio) async throws {
+        let _: Premio = try await post("/prizes", corpo: premio)
+    }
+
+    func excluirPremio(_ id: String) async throws {
+        try await delete("/prizes/\(id)")
+    }
+
+    func resgatar(_ premioId: String) async throws -> Resgate {
+        try await post("/prizes/\(premioId)/redemptions", corpo: [String: String]())
+    }
+
+    func listarResgates() async throws -> [Resgate] {
+        try await get("/prizes/redemptions")
+    }
+
+    // MARK: - Familia
+
+    func renomearFamilia(_ nome: String) async throws -> Familia {
+        try await put("/family", corpo: ["nome": nome])
+    }
+
+    func convidar(_ email: String) async throws -> Familia {
+        try await post("/family/invites", corpo: ["email": email])
+    }
+
+    func cancelarConvite(_ id: String) async throws -> Familia {
+        try await delete("/family/invites/\(id)")
+    }
+
+    func removerMembro(_ id: String) async throws -> Familia {
+        try await delete("/family/members/\(id)")
+    }
+
+    /// O titular convida para parceiro (vale quando a pessoa aceita) ou volta a membro.
+    func mudarPapel(_ id: String, para papel: PigguRole) async throws -> Familia {
+        try await put("/family/members/\(id)/role", corpo: ["papel": papel.rawValue])
+    }
+
+    func aceitarParceria() async throws {
+        let _: SemCorpo = try await post("/family/partnership/accept", corpo: [String: String]())
+    }
+
+    func recusarParceria() async throws -> Familia {
+        try await post("/family/partnership/decline", corpo: [String: String]())
+    }
+
+    /// Convites de outras familias para o meu e-mail.
+    func convitesParaMim() async throws -> [ConviteDaFamilia] {
+        try await get("/family/invites/mine")
+    }
+
+    func aceitarConvite(_ id: String) async throws {
+        let _: SemCorpo = try await post("/family/invites/\(id)/accept", corpo: [String: String]())
+    }
+
+    func sairDaFamilia() async throws {
+        let _: SemCorpo = try await post("/family/leave", corpo: [String: String]())
+    }
+
+    /// O dinheiro (/history) e as pessoas (/family/history) juntos, do mais novo para o mais velho.
+    func historicoDaFamilia(limite: Int = 50) async -> [EventoDeAuditoria] {
+        async let dinheiro: [EventoDeAuditoria]? = try? get("/history", query: ["limite": String(limite)])
+        async let pessoas: [EventoDeAuditoria]? = try? get("/family/history", query: ["limite": String(limite)])
+        let todos = (await dinheiro ?? []) + (await pessoas ?? [])
+        return Array(todos.sorted { $0.quando > $1.quando }.prefix(limite))
+    }
+
+    // MARK: - Perfil
+
+    func listarMoedas() async throws -> [MoedaDisponivel] {
+        try await get("/exchange-rate/currencies")
+    }
+
+    func salvarAvisos(email: Bool, push: Bool) async throws -> Usuario {
+        try await put("/auth/me/alerts", corpo: ["email": email, "push": push])
+    }
+
+    func salvarCompartilhamento(mostrarTudoAoParceiro: Bool, compartilharPorPadrao: Bool) async throws -> Usuario {
+        try await put("/auth/me/sharing", corpo: ["mostrarTudoAoParceiro": mostrarTudoAoParceiro,
+                                                  "compartilharPorPadrao": compartilharPorPadrao])
+    }
+
+    /// Telas de estilo de vida ligadas no menu da pessoa.
+    func salvarModulos(_ modulos: [String]) async throws -> Usuario {
+        try await put("/auth/me/modules", corpo: ["modulos": modulos])
+    }
+
+    func salvarApelido(_ apelido: String) async throws -> Usuario {
+        try await put("/me/sobre-voce", corpo: PedidoSobreVoce(apelido: apelido, nascimento: nil))
+    }
+
+    /// Foto ja recortada e reduzida no aparelho, em JPEG.
+    func trocarFoto(jpeg: Data) async throws -> Usuario {
+        try await put("/me/foto", corpo: ["imagemBase64": jpeg.base64EncodedString(), "mimeType": "image/jpeg"])
+    }
+
+    func removerFoto() async throws -> Usuario {
+        try await delete("/me/foto")
+    }
+
+    func usarFotoDoGoogle() async throws -> Usuario {
+        try await put("/me/foto/google", corpo: [String: String]())
+    }
+
+    /// Copia de tudo o que o Piggu guarda sobre a pessoa (LGPD), em JSON.
+    func exportarMeusDados() async throws -> Data {
+        try await dados("/me/export")
+    }
+
+    func retirarAutorizacaoDaLeituraDeNota() async throws {
+        try await delete("/receipts/consent")
+    }
+
+    func retirarAutorizacaoDoAssistente() async throws {
+        try await delete("/assistant/consent")
+    }
+
+    // MARK: - Admin
+
+    func listarContas() async throws -> [Usuario] {
+        try await get("/users")
+    }
+
+    func alterarConta(_ id: String, papel: PigguRole? = nil, ativo: Bool? = nil) async throws {
+        let _: Usuario = try await patch("/users/\(id)", corpo: AlteracaoDeConta(role: papel, ativo: ativo))
+    }
+}
+
+private struct AjusteDeMoedas: Codable, Sendable {
+    let valor: Int
+    let motivo: String
+}
+
+private struct AlteracaoDeConta: Codable, Sendable {
+    let role: PigguRole?
+    let ativo: Bool?
+}

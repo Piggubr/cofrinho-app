@@ -10,7 +10,7 @@ import Foundation
 ///
 /// `-PigguDemoConta termos|sobre-voce|cpf|email` abre a conta com o que falta nela: os Termos
 /// mudaram, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar; `premium` abre no
-/// Premium (relatorio do ano, limite por categoria, conectar banco). Na demonstracao,
+/// Premium (relatorio do ano, limite por categoria, conectar banco); `membro`, como membro da familia. Na demonstracao,
 /// a Apple e o Google sempre criam conta nova (pedem o aceite), e o token "vencido" nos links
 /// do e-mail responde LINK_INVALIDO.
 actor TransporteDeDemonstracao: Transporte {
@@ -43,6 +43,8 @@ actor TransporteDeDemonstracao: Transporte {
             usuario["emailConfirmado"] = false
         case "premium":
             usuario["plano"] = "PREMIUM"
+        case "membro":
+            usuario["role"] = "MEMBRO"
         default:
             break
         }
@@ -115,6 +117,9 @@ actor TransporteDeDemonstracao: Transporte {
             "moeda": "BRL", "moedaCotacao": "USD", "moedaConversao": "BRL", "mostrarCotacao": true,
         ],
         "compartilhamento": ["mostraTudoAoParceiro": true, "compartilharPorPadrao": false],
+        "avisos": ["email": true, "push": false],
+        "fotoPropria": false,
+        "temFotoDoGoogle": false,
     ]
 
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
@@ -182,6 +187,31 @@ actor TransporteDeDemonstracao: Transporte {
         case ("PUT", "/me/pais"):
             usuario["pais"] = corpo["pais"]
             usuario["cpfInformado"] = corpo["documento"] is String
+            return responder(url, 200, usuario)
+        case ("PUT", "/auth/me/alerts"):
+            usuario["avisos"] = ["email": corpo["email"] ?? false, "push": corpo["push"] ?? false]
+            return responder(url, 200, usuario)
+        case ("PUT", "/auth/me/sharing"):
+            usuario["compartilhamento"] = ["mostraTudoAoParceiro": corpo["mostrarTudoAoParceiro"] ?? false,
+                                           "compartilharPorPadrao": corpo["compartilharPorPadrao"] ?? false]
+            return responder(url, 200, usuario)
+        case ("PUT", "/auth/me/modules"):
+            var preferencias = usuario["preferencias"] as? [String: Any] ?? [:]
+            preferencias["modulos"] = corpo["modulos"]
+            usuario["preferencias"] = preferencias
+            return responder(url, 200, usuario)
+        case ("PUT", "/auth/me/senha"):
+            usuario["temSenha"] = true
+            return corpo["senhaAtual"] as? String == "errada"
+                ? responder(url, 422, erro("A senha atual não confere.", codigo: "SENHA_ATUAL"))
+                : responder(url, 200, usuario)
+        case ("PUT", "/me/foto"):
+            usuario["foto"] = "data:image/jpeg;base64," + (corpo["imagemBase64"] as? String ?? "")
+            usuario["fotoPropria"] = true
+            return responder(url, 200, usuario)
+        case ("DELETE", "/me/foto"):
+            usuario["foto"] = NSNull()
+            usuario["fotoPropria"] = false
             return responder(url, 200, usuario)
         case ("DELETE", "/me"):
             logado = false

@@ -84,6 +84,12 @@ struct TransporteURLSession: Transporte {
     }
 }
 
+private struct PedidoDeSenha: Codable, Sendable {
+    let senhaAtual: String?
+    let novaSenha: String
+    let refreshToken: String?
+}
+
 /// Resposta sem corpo (204, logout).
 struct SemCorpo: Codable, Sendable {}
 
@@ -163,6 +169,13 @@ actor ClienteDaAPI {
 
     var temToken: Bool { accessToken != nil }
 
+    /// Cria a senha (conta so do Google) ou troca a atual. A sessao deste aparelho continua: o
+    /// refresh vai junto (no corpo, com o Keychain; senao no cookie) e o backend so derruba as outras.
+    func definirSenha(_ novaSenha: String, senhaAtual: String?) async throws -> Usuario {
+        try await put("/auth/me/senha", corpo: PedidoDeSenha(senhaAtual: senhaAtual, novaSenha: novaSenha,
+                                                              refreshToken: refresh))
+    }
+
     // MARK: - Verbos
 
     /// - Parameter aberta: rotas que servem para obter um token nao levam o header.
@@ -182,6 +195,13 @@ actor ClienteDaAPI {
         aberta: Bool = false
     ) async throws -> Resposta {
         try await enviar("POST", caminho, corpo: corpo, query: query, aberta: aberta)
+    }
+
+    func patch<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(
+        _ caminho: String,
+        corpo: Corpo
+    ) async throws -> Resposta {
+        try await enviar("PATCH", caminho, corpo: corpo, query: [:], aberta: false)
     }
 
     /// PUT sem corpo (marcar a fatura como paga): o que importa vai na query.

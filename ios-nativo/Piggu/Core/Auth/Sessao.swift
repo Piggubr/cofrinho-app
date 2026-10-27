@@ -175,6 +175,12 @@ final class Sessao {
         await encerrarLocalmente()
     }
 
+    /// Mudou a familia ou o papel (aceitou convite ou parceria): o token tem o papel antigo, entao
+    /// a pessoa entra de novo, como no site.
+    func entrarDeNovo() async {
+        await encerrarLocalmente()
+    }
+
     /// Descarta a sessao local sem falar com o servidor.
     private func encerrarLocalmente() async {
         await cliente.esquecerTokens()

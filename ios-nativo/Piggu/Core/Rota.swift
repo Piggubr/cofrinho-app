@@ -12,8 +12,8 @@ enum Aba: String, CaseIterable, Sendable {
 /// `piggu://gasto?valor=12.50`. As rotas do site que ainda nao existem no app sao ignoradas.
 enum Rota: Hashable, Identifiable, Sendable {
     case aba(Aba)
-    /// Orcamento, contas do mes, cartoes e bancos e calendario: abrem no Mais.
-    case organizacao(TelaDeOrganizacao)
+    /// As telas do Mais (orcamento, metas, familia, perfil...).
+    case tela(TelaDoMais)
     case lancarGasto(valor: Decimal?)
     /// Os links dos e-mails (https://piggu.com.br/confirmar-email?token=...), por Universal
     /// Link; abrem por cima de qualquer tela, com ou sem sessao.
@@ -30,7 +30,7 @@ enum Rota: Hashable, Identifiable, Sendable {
     var abreFolha: Bool {
         switch self {
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf: true
-        case .aba, .organizacao, .lancarGasto: false
+        case .aba, .tela, .lancarGasto: false
         }
     }
 
@@ -68,14 +68,26 @@ enum Rota: Hashable, Identifiable, Sendable {
         case "relatorios":
             self = .aba(.relatorios)
         case "orcamentos":
-            self = .organizacao(.orcamento)
+            self = .tela(.orcamento)
         case "contas-fixas":
-            self = .organizacao(.contasDoMes)
+            self = .tela(.contasDoMes)
         case "contas-e-cartoes":
-            self = .organizacao(.cartoes)
+            self = .tela(.cartoes)
         case "calendario":
-            self = .organizacao(.calendario)
-        case "mais", "perfil", "plano":
+            self = .tela(.calendario)
+        case "planejar":
+            self = .tela(.planejar)
+        case "metas":
+            self = .tela(.metas)
+        case "premios":
+            self = .tela(.premios)
+        case "girls-math":
+            self = .tela(.girlsMath)
+        case "familia":
+            self = .tela(.familia)
+        case "perfil":
+            self = .tela(.perfil)
+        case "mais", "plano":
             self = .aba(.mais)
         case "confirmar-email":
             self = .confirmarEmail(token: consulta["token"] ?? "")
