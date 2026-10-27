@@ -30,6 +30,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-073](#d-073-gasto-lançado-leva-um-id-do-envio) | Gasto lançado leva um id do envio | Valendo |
 | [D-074](#d-074-nenhuma-transação-do-banco-em-volta-de-chamada-a-serviço-de-fora) | Nenhuma transação do banco em volta de chamada a serviço de fora | Valendo |
 | [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
+| [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -234,6 +235,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: não registradas.
 - Consequências: o aviso "Restrição do banco violada" no log passa a contar também essas corridas.
 - Onde ver: `ApiExceptionHandler`, `ContasFixasService.pagar`
+
+## D-085: Fatura paga só sai do "a pagar"
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: a tela de cartões mostrava o "a pagar" e o painel avisava a fatura vencendo mesmo depois de paga. Cada compra no cartão já conta nos Gastos e na Sobra no dia em que foi feita.
+- Decisão: "Marcar como paga" (`PUT /api/accounts/{id}/statement/paid?mes=AAAA-MM`) grava em `payment_accounts.last_paid_month` a última fatura paga, e as anteriores contam como pagas também, como em `recurring_bills`. Não lança gasto. A fatura ganha `paga`, e a paga sai do aviso do painel e do lembrete por e-mail e push. Desfazer (`DELETE`, mesma rota) volta a marca para o mês anterior, então as faturas seguintes também voltam a ficar em aberto. Marcar de novo dá 204, e uma fatura que ainda não começou dá 422.
+- Alternativas: lançar o pagamento como gasto, que conta as compras duas vezes; uma tabela com cada mês pago, que precisaria entrar na exportação, na exclusão e na mudança de família (LGPD), para um caso raro (pagar março sem ter pago fevereiro).
+- Consequências: não registra pagamento parcial nem a conta de onde saiu o dinheiro. O iOS e o Android nativos mostram o mesmo botão na tela de cartões (etapa 5 e A5).
+- Onde ver: `ContasECartoes.pagarFatura`, [DATA_MODEL.md, "Fatura de cartão"](DATA_MODEL.md#fatura-de-cartão)
 
 # Segurança e privacidade
 

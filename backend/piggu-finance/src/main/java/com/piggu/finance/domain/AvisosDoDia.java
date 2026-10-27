@@ -83,7 +83,7 @@ public class AvisosDoDia {
 
         for (ContasECartoes.Conta cartao : cartoes.listar()) {
             ContasECartoes.Fatura fatura = cartao.faturaAPagar();
-            if (fatura != null && fatura.total().signum() > 0
+            if (fatura != null && !fatura.paga() && fatura.total().signum() > 0
                     && !fatura.vencimento().isAfter(hoje.plusDays(DIAS_ANTES_DA_FATURA))) {
                 avisos.add(new Aviso("fatura:" + cartao.id() + ":" + fatura.vencimento(), Tipo.FATURA_VENCENDO,
                         cartao.nome(), fatura.total(), null, null, fatura.vencimento()));

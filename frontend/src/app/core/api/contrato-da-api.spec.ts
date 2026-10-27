@@ -223,6 +223,20 @@ const CASOS: Caso[] = [
     '/accounts/c1/statement',
     { mes: '2026-10' },
   ],
+  [
+    'pagar fatura',
+    (s) => s.finance.pagarFatura('c1', '2026-10'),
+    'PUT',
+    '/accounts/c1/statement/paid',
+    { mes: '2026-10' },
+  ],
+  [
+    'desfazer pagamento da fatura',
+    (s) => s.finance.desfazerPagamentoDaFatura('c1', '2026-10'),
+    'DELETE',
+    '/accounts/c1/statement/paid',
+    { mes: '2026-10' },
+  ],
   ['regras de categoria', (s) => s.finance.regrasDeCategoria(), 'GET', '/categories/rules'],
   [
     'definir regra',

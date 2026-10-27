@@ -39,6 +39,8 @@ export interface ContaDemo {
   fechamento: number | null;
   vencimento: number | null;
   compartilhado?: boolean;
+  /** Ultima fatura paga (AAAA-MM); as anteriores contam como pagas. */
+  ultimaFaturaPaga?: string;
 }
 
 export interface ObjetivoDemo {

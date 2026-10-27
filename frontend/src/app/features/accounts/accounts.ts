@@ -35,7 +35,11 @@ export class Accounts {
   protected readonly eu = computed(() => this.auth.usuario()?.id ?? null);
 
   /** Fatura aberta na tela: um cartao por vez. */
-  protected readonly aberta = signal<{ cartao: ContaOuCartao; fatura: Fatura; gastos: Gasto[] } | null>(null);
+  protected readonly aberta = signal<{
+    cartao: ContaOuCartao;
+    fatura: Fatura;
+    gastos: Gasto[];
+  } | null>(null);
 
   constructor() {
     this.carregar();
@@ -45,7 +49,8 @@ export class Accounts {
   protected trocarVencimento(dia: number | null): void {
     const anterior = this.vencimento();
     const acompanhava =
-      this.fechamento() === null || (anterior !== null && this.fechamento() === fechamentoPadrao(anterior));
+      this.fechamento() === null ||
+      (anterior !== null && this.fechamento() === fechamentoPadrao(anterior));
     this.vencimento.set(dia);
     if (acompanhava && this.diaValido(dia)) {
       this.fechamento.set(fechamentoPadrao(dia!));
@@ -125,6 +130,26 @@ export class Accounts {
     this.finance.fatura(cartao.id, chave).subscribe({
       next: ({ fatura, gastos }) => this.aberta.set({ cartao, fatura, gastos }),
       error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
+  /** So tira a fatura do "a pagar" (com as anteriores); os gastos ja contaram nas compras. */
+  protected alternarPagamento(cartao: ContaOuCartao, fatura: Fatura): void {
+    const pedido = fatura.paga
+      ? this.finance.desfazerPagamentoDaFatura(cartao.id, fatura.mes)
+      : this.finance.pagarFatura(cartao.id, fatura.mes);
+    this.ocupado.set(true);
+    this.erro.set('');
+    pedido.subscribe({
+      next: () => {
+        this.ocupado.set(false);
+        this.verFatura(cartao, fatura.mes);
+        this.carregar();
+      },
+      error: (falha) => {
+        this.erro.set(mensagemDeErro(falha));
+        this.ocupado.set(false);
+      },
     });
   }
 

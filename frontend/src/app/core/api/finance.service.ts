@@ -309,6 +309,16 @@ export class FinanceService extends ApiBase {
     );
   }
 
+  /** Marca a fatura do mes (AAAA-MM) como paga, com as anteriores; nao lanca gasto. */
+  pagarFatura(id: string, mes: string): Observable<void> {
+    return this.http.put<void>(this.url(`/accounts/${id}/statement/paid`), null, { params: { mes } });
+  }
+
+  /** Desfaz o pagamento; as faturas seguintes voltam a ficar em aberto. */
+  desfazerPagamentoDaFatura(id: string, mes: string): Observable<void> {
+    return this.http.delete<void>(this.url(`/accounts/${id}/statement/paid`), { params: { mes } });
+  }
+
   regrasDeCategoria(): Observable<RegraDeCategoria[]> {
     return this.http.get<RegraDeCategoria[]>(this.url('/categories/rules'));
   }

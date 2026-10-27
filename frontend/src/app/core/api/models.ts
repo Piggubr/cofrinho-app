@@ -692,6 +692,8 @@ export interface Fatura {
   fechamento: string;
   vencimento: string;
   total: number;
+  /** Marcada como paga (ela ou uma seguinte): sai do "a pagar"; os gastos nao mudam. */
+  paga: boolean;
 }
 
 /** Conta ou cartao; no cartao, a fatura aberta e a fechada que ainda vai vencer. */

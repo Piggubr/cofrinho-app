@@ -376,6 +376,7 @@ Não tem `created_at`.
 | `due_day` | smallint | só no cartão | Dia do vencimento (1 a 31); nulo na conta |
 | `user_id` | uuid | não | Quem criou |
 | `shared` | boolean | sim (padrão `false`) | Conta do casal: o que for lançado nela já nasce compartilhado |
+| `last_paid_month` | texto(7) | não | Só no cartão: última fatura marcada como paga (`AAAA-MM`); as anteriores contam como pagas (D-085) |
 
 ### `recurring_bills` — conta fixa ou receita recorrente
 
@@ -664,7 +665,9 @@ gastos com aquele `account_id` (`ContasECartoes`):
 - dia 31 vira o último dia nos meses curtos;
 - sem o dia do fechamento, ele fica 7 dias antes do vencimento (ou `vencimento + 24` quando o
   vencimento é até o dia 7);
-- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`).
+- apagar a conta ou o cartão não apaga os gastos: eles só perdem a conta (`ON DELETE SET NULL`);
+- a fatura é paga quando o mês dela não passa de `last_paid_month`. Marcar como paga só tira a
+  fatura do "a pagar" e dos avisos; não lança gasto, porque as compras já contaram (D-085).
 
 ### Gasto dividido na família
 
