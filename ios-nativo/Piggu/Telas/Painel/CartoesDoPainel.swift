@@ -268,7 +268,7 @@ struct CartaoDosBancos: View {
                             .disabled(openFinance.ocupado)
                     }
                 } else {
-                    LinkDoSite(titulo: "Conectar banco com o Premium", caminho: "/plano")
+                    LinkDoPremium(titulo: "Conectar banco com o Premium")
                 }
             }
             .font(.sora(.subheadline, peso: .medium))
@@ -436,7 +436,7 @@ struct CartaoDosObjetivos: View {
                     Text("No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser.")
                         .font(.sora(.footnote))
                         .foregroundStyle(paleta.textoSuave)
-                    LinkDoSite(titulo: "Piggu Premium", caminho: "/plano").font(.sora(.footnote))
+                    LinkDoPremium(titulo: "Piggu Premium").font(.sora(.footnote))
                 }
             } else {
                 ProgressView().frame(maxWidth: .infinity)

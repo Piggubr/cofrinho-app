@@ -193,6 +193,17 @@ struct LinkDoSite: View {
     }
 }
 
+/// Convite ao Premium: abre a tela de planos com a compra da Apple, nunca o site (D-094).
+struct LinkDoPremium: View {
+    let titulo: LocalizedStringKey
+
+    var body: some View {
+        NavigationLink { PremiumView() } label: {
+            Label(titulo, systemImage: "star")
+        }
+    }
+}
+
 /// Aviso curto depois de uma acao ("Gasto lançado."), flutuando no topo: vidro, porque fica
 /// por cima do conteudo.
 struct AvisoFlutuante: View {

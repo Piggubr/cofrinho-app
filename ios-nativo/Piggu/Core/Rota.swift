@@ -99,7 +99,9 @@ enum Rota: Hashable, Identifiable, Sendable {
             self = .tela(.familia)
         case "perfil":
             self = .tela(.perfil)
-        case "mais", "plano":
+        case "plano":
+            self = .tela(.premium)
+        case "mais":
             self = .aba(.mais)
         case "confirmar-email":
             self = .confirmarEmail(token: consulta["token"] ?? "")

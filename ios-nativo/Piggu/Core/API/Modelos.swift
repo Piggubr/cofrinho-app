@@ -482,6 +482,28 @@ struct ConviteDaFamilia: Codable, Identifiable, Equatable, Sendable {
     var familia: String?
 }
 
+/// GET /billing/plan (PlanoResponse): o que vale agora para esta conta e o que cada plano inclui.
+struct PlanoDaConta: Codable, Equatable, Sendable {
+    struct Precos: Codable, Equatable, Sendable {
+        let mensal: String
+        let anual: String
+    }
+
+    let plano: Plano
+    let premiumAte: String?
+    /// WEB, APP_STORE ou PLAY_STORE.
+    let origem: String?
+    let diasDeTeste: Int
+    let app: Precos?
+    let gratuito: [String]
+    let premium: [String]
+    let planoFamilia: Bool
+    let planoCasal: Bool
+    let voceAssinou: Bool
+    /// Ha assinatura vigente na casa, talvez de outra pessoa (no individual so ela e Premium).
+    let casaTemAssinatura: Bool
+}
+
 struct Familia: Codable, Equatable, Sendable {
     var id: String?
     var nome: String = ""

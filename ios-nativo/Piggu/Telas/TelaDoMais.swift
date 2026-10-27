@@ -4,7 +4,7 @@ import SwiftUI
 /// pelos atalhos do Painel e do lancamento (NavigationLink(value:) na pilha de cada aba).
 enum TelaDoMais: String, CaseIterable, Hashable {
     case planejar, metas, orcamento, contasDoMes, cartoes, calendario, compras, lugares, filmes, fotos, premios, girlsMath,
-         familia, perfil
+         familia, perfil, premium
 
     var titulo: LocalizedStringKey {
         switch self {
@@ -22,6 +22,7 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .girlsMath: "Girls Math"
         case .familia: "Família"
         case .perfil: "Perfil"
+        case .premium: "Premium"
         }
     }
 
@@ -42,6 +43,7 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .girlsMath: "bag"
         case .familia: "person.2"
         case .perfil: "person.crop.circle"
+        case .premium: "star"
         }
     }
 
@@ -75,6 +77,7 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .girlsMath: GirlsMathView()
         case .familia: FamiliaView()
         case .perfil: PerfilView()
+        case .premium: PremiumView()
         }
     }
 }

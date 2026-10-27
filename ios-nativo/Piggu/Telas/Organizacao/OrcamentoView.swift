@@ -165,7 +165,7 @@ struct OrcamentoView: View {
             } else {
                 Text("Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do Piggu Premium.")
                     .font(.sora(.footnote))
-                LinkDoSite(titulo: "Piggu Premium", caminho: "/plano")
+                LinkDoPremium(titulo: "Piggu Premium")
             }
         } header: {
             HStack {
