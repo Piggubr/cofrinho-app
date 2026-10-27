@@ -19,7 +19,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 ## Depois (próximos 1 a 2 meses)
 
 - Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
-- iOS, etapa 4: dia a dia (Painel, Gastos e Receitas). Depois dela já dá para abrir um grupo "Nativo" no TestFlight.
+- Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - iOS, etapa 5: organização (contas fixas, orçamentos, calendário, relatórios, contas e cartões, com o "Marcar como paga" da fatura, D-085).
 - iOS, etapa 6: metas e conta (metas, cofrinho, Girls Math, prêmios, família, perfil).
 - iOS, etapa 7: extras e recursos da Apple (widgets, Siri, Face ID, push, leitura de nota).
@@ -46,6 +46,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 27/10/2026: iOS nativo, etapa 4: Painel com todos os cartões do site, Gastos (busca, filtros, editar, apagar, parcelas, divisão e regras), lançamento rápido igual ao do site, Receitas e a receber, e fila de gastos sem internet (D-090). As etapas agora juntam na `feature/ios-nativo` (D-089).
 - 26/10/2026: iOS nativo, etapa 3: entrada completa (Apple, Google, criar conta, confirmar e-mail, CPF, termos, Sobre você, esqueci e redefinir a senha), Termos e Aviso nativos e excluir conta (D-083).
 - 26/10/2026: iOS nativo, etapa 2: cores e temas do site, Sora, vidro, abas, estados das telas, cache sem internet e sessão no Keychain atrás de uma flag ([#92](https://github.com/Piggubr/cofrinho-app/pull/92)).
 - 26/10/2026: iOS nativo, etapa 0: `swift/inicio` no GitHub, `ios-nativo/CLAUDE.md` e o CI do app nativo ([#90](https://github.com/Piggubr/cofrinho-app/pull/90)).

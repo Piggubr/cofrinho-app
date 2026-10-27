@@ -2,7 +2,7 @@ import Foundation
 
 /// Aba do app logado. O valor e o caminho da rota do site.
 enum Aba: String, CaseIterable, Sendable {
-    case painel, gastos, relatorios, mais
+    case painel, gastos, receitas, relatorios, mais
 }
 
 /// Para onde um link leva: `piggu://...` (atalhos, Siri, widgets) ou um endereco do site.
@@ -61,6 +61,8 @@ enum Rota: Hashable, Identifiable, Sendable {
             self = .aba(.painel)
         case "gastos":
             self = .aba(.gastos)
+        case "receitas":
+            self = .aba(.receitas)
         case "relatorios":
             self = .aba(.relatorios)
         case "mais", "perfil", "plano":

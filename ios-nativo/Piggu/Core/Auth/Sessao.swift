@@ -22,6 +22,7 @@ final class Sessao {
     private(set) var estado: Estado = .verificando
     let cliente: ClienteDaAPI
     let cache: Cache
+    let fila: FilaDeGastos
 
     private static let chaveDoUsuario = "usuario"
 
@@ -32,9 +33,10 @@ final class Sessao {
         return nil
     }
 
-    init(cliente: ClienteDaAPI, cache: Cache) {
+    init(cliente: ClienteDaAPI, cache: Cache, fila: FilaDeGastos? = nil) {
         self.cliente = cliente
         self.cache = cache
+        self.fila = fila ?? FilaDeGastos(cliente: cliente, soNaMemoria: cache.soNaMemoria)
         Task { [weak self] in
             await cliente.configurar(
                 aoRenovar: { usuario in
@@ -183,12 +185,20 @@ final class Sessao {
 
     private func entrou(_ usuario: Usuario) {
         cache.guardar(usuario, em: Self.chaveDoUsuario)
+        Formatos.codigoDaMoeda = usuario.moeda
+        fila.usuario = usuario.id
         estado = .logado(usuario)
+    }
+
+    /// Perfil novo devolvido por uma tela (preferencias salvas no guia do Painel).
+    func atualizar(_ usuario: Usuario) {
+        entrou(usuario)
     }
 
     /// Os dados guardados sao da conta: saem com ela.
     private func saiu() {
         cache.apagarTudo()
+        fila.usuario = nil
         estado = .deslogado
     }
 

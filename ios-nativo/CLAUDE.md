@@ -5,9 +5,10 @@ Regras que valem para todas as etapas do plano do iOS nativo (D-055). As regras 
 
 ## Branches e PRs
 
-- Uma branch por etapa: `swift/etapa-N`, criada a partir da `develop` atualizada, com PR para a
-  `develop`. Se o PR da etapa anterior ainda não tiver sido mergeado, crie a partir da branch dela
-  e diga isso no PR.
+- Uma branch por etapa: `swift/etapa-N`, criada a partir da `feature/ios-nativo` atualizada, com
+  PR para a `feature/ios-nativo` (D-089). Se o PR da etapa anterior ainda não tiver sido mergeado,
+  crie a partir da branch dela e diga isso no PR. A `feature/ios-nativo` vai para a `develop` quando
+  o conjunto estiver testado.
 - Não mexer em `frontend/ios` nem no backend, a não ser que a etapa peça.
 - Nunca enviar nada para a App Store ou o TestFlight sem o Dudu pedir na conversa.
 
@@ -37,4 +38,4 @@ Regras que valem para todas as etapas do plano do iOS nativo (D-055). As regras 
 - `xcodebuild build` e `test` passando num simulador de iPhone e num de iPad.
 - Prints das telas novas em claro e escuro em `ios-nativo/docs/prints/etapa-N/`.
 - README atualizado.
-- Commits pequenos e um PR para a `develop` com o que mudou e os prints.
+- Commits pequenos e um PR para a `feature/ios-nativo` com o que mudou e os prints.
