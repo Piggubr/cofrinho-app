@@ -28,7 +28,7 @@ struct FotosView: View {
                             BotoesDeFoto(tituloDaGaleria: "Adicionar foto") { imagem in Task { await enviar(imagem) } }
                         }
                     } else {
-                        LinkDoSite(titulo: "Adicionar fotos · Premium", caminho: "/plano")
+                        LinkDoPremium(titulo: "Adicionar fotos · Premium")
                     }
                 }
                 switch carga {

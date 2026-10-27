@@ -1,0 +1,112 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "pt_BR",
+        "policyText" : "",
+        "policyURL" : "https://piggu.com.br/privacidade"
+      }
+    ]
+  },
+  "identifier" : "5F1C2A9E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "pt_BR",
+    "_storefront" : "BRA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Piggu Premium",
+          "locale" : "pt_BR"
+        }
+      ],
+      "name" : "Piggu Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "22.89",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000101",
+          "introductoryOffer" : {
+            "internalID" : "6740000111",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Orçamento, relatório do ano, fotos e mais.",
+              "displayName" : "Premium mensal",
+              "locale" : "pt_BR"
+            }
+          ],
+          "productID" : "br.com.piggu.premium.mensal",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium mensal",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "228.85",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000102",
+          "introductoryOffer" : {
+            "internalID" : "6740000112",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Um ano de Premium com dois meses grátis.",
+              "displayName" : "Premium anual",
+              "locale" : "pt_BR"
+            }
+          ],
+          "productID" : "br.com.piggu.premium.anual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium anual",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

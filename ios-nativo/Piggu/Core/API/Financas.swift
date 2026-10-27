@@ -472,6 +472,17 @@ extension ClienteDaAPI {
         try await delete("/assistant/consent")
     }
 
+    // MARK: - Premium
+
+    func verPlano() async throws -> PlanoDaConta {
+        try await get("/billing/plan")
+    }
+
+    /// Depois da compra (ou ao restaurar): o backend confere a transacao com a Apple e devolve o plano.
+    func confirmarCompraDaApple(_ transacaoAssinada: String) async throws -> PlanoDaConta {
+        try await post("/billing/app-store/transactions", corpo: ["transacao": transacaoAssinada])
+    }
+
     // MARK: - Admin
 
     func listarContas() async throws -> [Usuario] {

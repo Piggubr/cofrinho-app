@@ -22,6 +22,8 @@ actor TransporteDeDemonstracao: Transporte {
     private var gastos: [[String: Any]]
     private let falha: Falha?
     private var usuario = TransporteDeDemonstracao.usuarioPadrao
+    /// A conta `premium` assinou pelo site; a compra no app (o .storekit) troca para a App Store.
+    private var origemDoPremium = "WEB"
     private var dados = DadosDaDemonstracao()
 
     init(
@@ -43,6 +45,7 @@ actor TransporteDeDemonstracao: Transporte {
             usuario["emailConfirmado"] = false
         case "premium":
             usuario["plano"] = "PREMIUM"
+            usuario["premiumAte"] = "2027-10-27T03:00:00Z"
         case "membro":
             usuario["role"] = "MEMBRO"
         default:
@@ -226,6 +229,14 @@ actor TransporteDeDemonstracao: Transporte {
             return responder(url, 204, nil)
         case ("GET", "/auth/me"):
             return responder(url, 200, usuario)
+        case ("GET", "/billing/plan"):
+            return responder(url, 200, plano())
+        case ("POST", "/billing/app-store/transactions"):
+            // Sem a Apple de verdade: a compra no simulador (o .storekit) vale como assinatura.
+            usuario["plano"] = "PREMIUM"
+            usuario["premiumAte"] = Formatos.dia(Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date())
+            origemDoPremium = "APP_STORE"
+            return responder(url, 200, plano())
         case ("GET", "/categories"):
             return responder(url, 200, ["categorias": dados.categorias.sorted()])
         case ("POST", "/categories"):
@@ -286,6 +297,32 @@ actor TransporteDeDemonstracao: Transporte {
             tokens["refreshToken"] = "demo-refresh." + UUID().uuidString
         }
         return tokens
+    }
+
+    /// O PlanoResponse do identity para a conta da demonstracao.
+    private func plano() -> [String: Any] {
+        let premium = usuario["plano"] as? String == "PREMIUM"
+        let titular = ["TITULAR", "ADMIN"].contains(usuario["role"] as? String)
+        return [
+            "plano": premium ? "PREMIUM" : "GRATUITO",
+            "premiumAte": premium ? usuario["premiumAte"] ?? NSNull() : NSNull(),
+            "origem": premium ? origemDoPremium : NSNull(),
+            "diasDeTeste": 7,
+            "app": ["mensal": "22,89", "anual": "228,85"],
+            "gratuito": ["Gastos, receitas, categorias, meta do mês e calendário",
+                         "Leitura de nota fiscal pela foto: 10 por mês por família",
+                         "Relatório do mês, comparação com o mês anterior e projeção do fim do mês",
+                         "Cofrinho com depósitos da família e um cofrinho por objetivo",
+                         "Lista de compras, lugares e filmes", "Prêmios e Fofocoins"],
+            "premium": ["Tudo do gratuito", "Orçamento por categoria, com alerta em 80% e 100%",
+                        "Relatório do ano com gráficos", "Leitura de nota fiscal pela foto sem limite",
+                        "Mural de fotos", "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês",
+                        "Assistente de IA que responde sobre os seus gastos"],
+            "planoFamilia": false,
+            "planoCasal": false,
+            "voceAssinou": premium && titular,
+            "casaTemAssinatura": premium,
+        ]
     }
 
     private func erro(_ mensagem: String, codigo: String = "DEMO") -> [String: Any] {

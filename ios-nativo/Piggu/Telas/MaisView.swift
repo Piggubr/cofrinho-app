@@ -60,7 +60,7 @@ struct MaisView: View {
                     TipView(Dicas.Familia())
                     link(.familia)
                     if ehTitular {
-                        LinkDoSite(titulo: "Premium", caminho: "/plano")
+                        link(.premium)
                     }
                 }
                 .listRowBackground(paleta.superficie)

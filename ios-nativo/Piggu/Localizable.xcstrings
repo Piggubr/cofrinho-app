@@ -150,6 +150,12 @@
     "3. Lance o primeiro gasto ou importe o extrato" : {
 
     },
+    "A Apple não confirmou esta compra." : {
+
+    },
+    "A compra está esperando aprovação. O Premium chega assim que ela for aprovada." : {
+
+    },
     "A comprar" : {
 
     },
@@ -255,6 +261,9 @@
     "Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes." : {
 
     },
+    "Alguém da sua família assinou o Premium individual, que vale só para essa pessoa. Ela pode trocar para o plano família." : {
+
+    },
     "Aluguel" : {
 
     },
@@ -336,6 +345,15 @@
     "Assim que houver gastos, o relatório mostra para onde o dinheiro foi." : {
 
     },
+    "Assinado pelo Android. Para cancelar, use as assinaturas do Google Play." : {
+
+    },
+    "Assinado pelo iPhone. Troque de plano ou cancele nas assinaturas da App Store." : {
+
+    },
+    "Assinado pelo site. Para trocar o cartão, ver os recibos ou cancelar, entre no Piggu pelo navegador." : {
+
+    },
     "Ativar" : {
 
     },
@@ -346,6 +364,9 @@
 
     },
     "Atualizar saldos" : {
+
+    },
+    "Até" : {
 
     },
     "Até o dia %lld" : {
@@ -501,6 +522,9 @@
     "Comentário" : {
 
     },
+    "Como administrador, você já usa tudo do Premium." : {
+
+    },
     "Como foi a compra" : {
 
     },
@@ -535,6 +559,9 @@
 
     },
     "Compras de %@ a %@ · fecha em %@ · vence em %@" : {
+
+    },
+    "Compras restauradas." : {
 
     },
     "Comédia" : {
@@ -1011,6 +1038,9 @@
     "Essa pessoa passa a ver só o que ela lança, e você deixa de ver o dela." : {
 
     },
+    "Esta conta da Apple não tem assinatura do Piggu." : {
+
+    },
     "Esta é a parcela %lld de %lld." : {
 
     },
@@ -1192,6 +1222,9 @@
 
     },
     "Gastos de %@" : {
+
+    },
+    "Gerenciar assinatura" : {
 
     },
     "Girls Math" : {
@@ -1731,6 +1764,9 @@
     "O que mudou" : {
 
     },
+    "O que o Premium tem" : {
+
+    },
     "O que vamos assistir?" : {
 
     },
@@ -1923,6 +1959,9 @@
     "Pronto! Mandamos um link para %@. Confirme seu e-mail e entre com a senha que você criou." : {
 
     },
+    "Pronto! Você agora é Premium." : {
+
+    },
     "Pronto, seu e-mail está confirmado no Piggu." : {
 
     },
@@ -1990,6 +2029,12 @@
 
     },
     "Quanto gastei este mês no ${applicationName}" : {
+
+    },
+    "Quem assinou o plano da sua casa cuida da assinatura." : {
+
+    },
+    "Quem cuida da assinatura é o titular da família." : {
 
     },
     "Quem deve" : {
@@ -2091,6 +2136,9 @@
     "Resgates" : {
 
     },
+    "Restaurar compras" : {
+
+    },
     "Resumo do mês" : {
 
     },
@@ -2178,6 +2226,9 @@
     "Sem foto" : {
 
     },
+    "Sem internet. Para assinar, conecte-se." : {
+
+    },
     "Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar." : {
 
     },
@@ -2245,6 +2296,9 @@
 
     },
     "Sortear filme" : {
+
+    },
+    "Sua casa tem o Premium casal, que vale para o titular e o parceiro. Quem assinou pode trocar para o plano família." : {
 
     },
     "Sua sessão venceu. Entre novamente." : {
@@ -2485,6 +2539,9 @@
 
     },
     "Você sai da família atual: se for a última pessoa dela, tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. Depois disso é preciso entrar de novo." : {
+
+    },
+    "Você tem o %@" : {
 
     },
     "Voltamos para a foto do Google." : {

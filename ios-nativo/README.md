@@ -242,8 +242,14 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   servidor recusar (400/422) sai da fila com aviso. A fila é de quem lançou e não some ao sair.
 - **Mais**: nome, e-mail, plano, e-mail sem confirmar (com reenviar), CPF não informado, Cor do
   Piggu, Termos, Aviso de Privacidade, Excluir minha conta e Sair.
+- **Premium**: o plano de `/api/billing/plan`; para o titular sem assinatura na casa, a loja da
+  Apple (`SubscriptionStoreView`, mensal e anual) com restaurar compras. A compra leva o id da
+  conta (`appAccountToken`) e a transação vai ao backend antes de ser finalizada; renovações e
+  compras feitas fora da tela chegam por `Transaction.updates`. Quem é Premium pelo site vê o
+  plano ativo e não vê a loja (D-094).
 - Textos em pt-BR no String Catalog (`Piggu/Localizable.xcstrings`), valores em R$.
-- Testes (Swift Testing): o leitor do cupom, o resumo dos widgets (sem token), a fala da Siri, o
+- Testes (Swift Testing): os produtos do `Piggu.storekit` contra os do app (pelo `SKTestSession`),
+  quem vê a loja do Premium, o leitor do cupom, o resumo dos widgets (sem token), a fala da Siri, o
   destino das notificações e os links novos, as metas (percentual e texto de compartilhar), o recorte da foto de
   perfil, o histórico e o plano da família, os ícones do app (cada um no catálogo), o Open Finance (a página com o token no fragmento, a volta e o fluxo
   inteiro), as contas do calendário (os casos do `grafico-do-mes.spec.ts`), a fila sem internet, a ordem do Painel (com o JSON salvo pelo site), a
@@ -259,7 +265,16 @@ etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/);
 Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (organização), em
 [`docs/prints/etapa-5/`](docs/prints/etapa-5/); os da etapa 6 (metas e conta), em
 [`docs/prints/etapa-6/`](docs/prints/etapa-6/); os da etapa 7, em
-[`docs/prints/etapa-7/`](docs/prints/etapa-7/).
+[`docs/prints/etapa-7/`](docs/prints/etapa-7/); os da etapa 8 (Premium), em
+[`docs/prints/etapa-8/`](docs/prints/etapa-8/).
+
+### Assinatura no simulador
+
+O esquema **Piggu** usa o `PigguTests/Piggu.storekit` ao rodar pelo Xcode (⌘R): os dois planos
+com 7 dias grátis, sem cobrança e sem conta da Apple. Em *Debug → StoreKit → Manage
+Transactions* dá para renovar, cancelar e reembolsar. Aberto fora do Xcode (`simctl launch`) o
+simulador não carrega o arquivo e a loja aparece "indisponível", por isso os prints mostram só o
+plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa.
 
 ## O que falta
 
@@ -267,7 +282,7 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
   (`docs/API_SPEC.md`).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
-- **Demais telas** do app web: o assistente e o Premium (etapa 8) abrem no site. Até chegarem, os atalhos do Painel e
+- **Demais telas** do app web: o assistente abre no site. Até chegarem, os atalhos do Painel e
   dos formulários abrem a página no site (`LinkDoSite`, D-090).
 - **Leitura da nota pela IA** (a foto inteira com os itens, no site) e **importar extrato**: por
   enquanto só no site; o app lê o total e a data do cupom pela câmera.

@@ -139,7 +139,7 @@ struct RelatoriosView: View {
             if !ehPremium {
                 Text("Veja o ano mês a mês, receitas contra gastos e para onde foi o dinheiro. Faz parte do Piggu Premium.")
                     .font(.sora(.footnote))
-                LinkDoSite(titulo: "Piggu Premium", caminho: "/plano")
+                LinkDoPremium(titulo: "Piggu Premium")
             } else if let erroDoAno {
                 Faixa(texto: erroDoAno, tipo: .erro)
             } else if let doAno {

@@ -24,6 +24,7 @@ struct PerfilView: View {
     @State private var painel: PainelOrganizado?
     @State private var salvando = false
     @State private var aviso: String?
+    @State private var abrindoPremium = false
     @State private var erro: String?
     @State private var excluindo = false
     @State private var contas: [Usuario] = []
@@ -71,6 +72,7 @@ struct PerfilView: View {
         .scrollContentBackground(.hidden)
         .background(paleta.fundo)
         .navigationTitle("Perfil")
+        .navigationDestination(isPresented: $abrindoPremium) { PremiumView() }
         .disabled(salvando)
         .task { await carregar() }
         .sheet(isPresented: $organizando) {
@@ -472,10 +474,10 @@ struct PerfilView: View {
         }
     }
 
-    /// Quem nao assina pela familia recebe o recado; o titular vai para os planos (no site ate a etapa 8).
+    /// Quem nao assina pela familia recebe o recado; o titular vai para os planos.
     private func convidarParaOPremium() {
-        if ehTitular, let url = URL(string: "https://piggu.com.br/plano") {
-            UIApplication.shared.open(url)
+        if ehTitular {
+            abrindoPremium = true
         } else {
             aviso = String(localized: "Essa personalização é do Piggu Premium. Quem cuida da assinatura é o titular da família.")
         }

@@ -21,7 +21,7 @@ struct RotaTests {
         ("piggu://perfil", .tela(.perfil)),
         ("piggu://familia", .tela(.familia)),
         ("https://piggu.com.br/metas", .tela(.metas)),
-        ("piggu://plano", .aba(.mais)),
+        ("piggu://plano", .tela(.premium)),
         ("https://piggu.com.br/relatorios", .aba(.relatorios)),
         ("https://www.piggu.com.br/", .aba(.painel)),
         // Os links dos e-mails do backend (ConfirmacaoDeEmail, RedefinicaoDeSenha).

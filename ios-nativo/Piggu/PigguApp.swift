@@ -126,6 +126,8 @@ struct RaizView: View {
         .tint(tema.paleta.primaria)
         .font(.sora())
         .animation(.default, value: sessao.estado)
+        // Renovacao e compra feitas fora desta tela chegam ao backend enquanto o app esta aberto.
+        .task { await LojaDaApple.acompanhar(sessao) }
         .task {
             await sessao.restaurar()
             #if DEBUG
