@@ -45,6 +45,7 @@ struct LancarGastoView: View {
     @State private var erro: String?
     @State private var faltou: String?
     @FocusState private var focado: Campo?
+    @Environment(TravaDoApp.self) private var trava
 
     private var valor: Decimal? { Formatos.lerValor(valorDigitado) }
     private var cartoes: [ContaOuCartao] { contas.filter { $0.tipo == .cartao } }
@@ -127,7 +128,11 @@ struct LancarGastoView: View {
                 if let valorInicial, valorDigitado.isEmpty {
                     valorDigitado = Formatos.valorParaDigitar(valorInicial)
                 }
-                focado = .valor
+                // Travado (aberto pelo widget ou pela Siri), o teclado subiria por cima da trava.
+                if !trava.travado { focado = .valor }
+            }
+            .onChange(of: trava.travado) { _, travado in
+                if !travado, valorDigitado.isEmpty { focado = .valor }
             }
             .onChange(of: focado) { anterior, _ in
                 if anterior == .valor {

@@ -44,6 +44,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 27/10/2026: iOS nativo, ajustes do primeiro teste no iPhone: logo, busca global e assistente de IA no topo das abas, teclado que fecha ao tocar fora, trava do Face ID acima das folhas, nova categoria nas regras e a barra de abas fixa por padrão (D-097).
 - 27/10/2026: iOS nativo, etapa 9: paridade com todas as rotas do site, "Sobre você" pedindo CPF e celular (D-088), acessibilidade revista pela auditoria em todas as telas (texto grande, VoiceOver, Reduzir Movimento, escuro), iPad do mini ao Pro 13, abrir com o perfil guardado e a versão 2.0.0 (D-095).
 - 27/10/2026: iOS nativo, etapa 8: Premium pela compra da Apple (StoreKit 2) com a transação e as notificações V2 conferidas no backend pela biblioteca da Apple, no mesmo plano da Stripe; quem é Premium pelo site não vê a loja (D-094).
 - 27/10/2026: iOS nativo, etapa 7: Compras, Lugares (com mapa), Filmes e Fotos; widgets de gasto do mês e de meta (tela inicial e de bloqueio) e o controle "Lançar gasto"; Siri ("Lançar gasto" e "Quanto gastei este mês"); Face ID; notificações; dicas com TipKit; leitura da nota pela câmera; gastos no Spotlight (D-093).

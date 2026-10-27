@@ -65,6 +65,7 @@ struct ReceitasView: View {
             .background(paleta.fundo)
             .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
             .navigationTitle("Receitas")
+            .topoDoPiggu()
             .refreshable { await carregar() }
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
             .sheet(isPresented: $lancando) {

@@ -15,8 +15,9 @@ enum Rota: Hashable, Identifiable, Sendable {
     /// As telas do Mais (orcamento, metas, familia, perfil...).
     case tela(TelaDoMais)
     case lancarGasto(valor: Decimal?)
-    /// Um gasto do mes, achado na busca do iPhone (Spotlight).
-    case verGasto(id: String)
+    /// Um gasto achado na busca do iPhone (Spotlight, sempre do mes) ou na busca do app, de
+    /// qualquer mes (aaaa-mm).
+    case verGasto(id: String, mes: String? = nil)
     /// Os links dos e-mails (https://piggu.com.br/confirmar-email?token=...), por Universal
     /// Link; abrem por cima de qualquer tela, com ou sem sessao.
     case confirmarEmail(token: String)
@@ -60,7 +61,7 @@ enum Rota: Hashable, Identifiable, Sendable {
         case "gasto":
             self = .lancarGasto(valor: Self.valor(consulta["valor"]))
         case "gastos" where !(consulta["id"] ?? "").isEmpty:
-            self = .verGasto(id: consulta["id"] ?? "")
+            self = .verGasto(id: consulta["id"] ?? "", mes: consulta["mes"])
         case "gastos" where consulta["rapido"] == "1":
             self = .lancarGasto(valor: Self.valor(consulta["valor"]))
         case "painel":

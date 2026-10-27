@@ -29,7 +29,7 @@ xcodebuild -project Piggu.xcodeproj -scheme Piggu -destination 'platform=iOS Sim
 xcodebuild -project Piggu.xcodeproj -scheme PigguUITests -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-O esquema **PigguUITests** tem três testes:
+O esquema **PigguUITests** tem quatro testes:
 
 - `AcessibilidadeUITests`: abre cada tela logada pela demonstração e roda a auditoria do
   sistema (a mesma do Accessibility Inspector: contraste, Dynamic Type, texto cortado, área de
@@ -42,6 +42,9 @@ O esquema **PigguUITests** tem três testes:
   TEST_RUNNER_PIGGU_ESCURO=1 TEST_RUNNER_PIGGU_PAISAGEM=1 TEST_RUNNER_PIGGU_TELAS="painel gastos"
   xcodebuild ... -only-testing:PigguUITests/PrintsUITests test` (todos opcionais, menos a pasta).
   Em lotes de até 5 telas: o teste longo demais é encerrado pelo simulador.
+- `TopoETecladoUITests`: tocar fora fecha o teclado do lançar gasto, a busca do topo abre um
+  gasto e o assistente (na demonstração, com resposta de exemplo) pede a autorização, responde e
+  abre a tela sugerida.
 - `DesempenhoUITests`: mede "Abrir ate o Painel" (do `init` do app ao Painel com dados, um
   `os_signpost` nos Points of Interest) com o cache cheio, com e sem 3.000 gastos, e a rolagem
   dos Gastos e do Painel. A meta é menos de 1 s; no Instruments, o intervalo aparece na trilha
@@ -241,7 +244,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   chamam a API nem guardam token.
 - **Siri e Atalhos**: "Lançar gasto no Piggu" (o intent do app Capacitor, agora abrindo a folha
   nativa) e "Quanto gastei este mês no Piggu", que responde em voz sem abrir o app.
-- **Face ID**: no Perfil, travar o app ao abrir e ao voltar do fundo, com o vidro por cima.
+- **Face ID**: no Perfil, travar o app ao abrir e ao voltar do fundo, com o vidro por cima. A
+  trava abre numa janela própria, acima de qualquer folha aberta, e fecha o teclado (D-097).
 - **Notificações**: a permissão é pedida ao ligar "Notificação neste iPhone" no Perfil; o token vai
   para `POST /api/auth/me/devices` (plataforma IOS) a cada abertura e sai ao deslogar; tocar no
   aviso abre o Painel.
@@ -249,6 +253,13 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Ler a nota**: no lançar gasto, a câmera (VisionKit) lê o total e a data do cupom e preenche para
   a pessoa conferir; o botão só aparece onde o aparelho lê texto.
 - **Busca do iPhone**: os gastos do mês entram no Spotlight; tocar abre o gasto na aba Gastos.
+- **Topo das abas** (o cabeçalho do site, D-097): o ícone do app que a pessoa escolheu no Perfil, à
+  esquerda, ocupando a bolha de vidro, que volta ao Painel, e à direita a **busca** (telas, gastos de todos os meses, lugares, filmes e compras; tocar abre
+  a tela ou o gasto no mês dele) e o **assistente** de IA (Premium: autorização do envio ao
+  Gemini, sugestões, atalho para a tela da resposta; a conversa fica só no aparelho por 30 dias e
+  sai ao sair da conta).
+- **Teclado**: tocar fora de um campo ou arrastar a lista fecha o teclado, em qualquer tela.
+- **Barra de abas**: fica sempre inteira; "Esconder a barra de abas ao rolar" no Perfil (iOS 26+).
 - **Conectar banco** (D-091): o app pede o token da Pluggy com a autorização da pessoa e abre a
   página `/conectar-banco` do site num `ASWebAuthenticationSession` efêmero, nunca num WebView; o
   banco conectado volta em `piggu://banco-conectado?item=...`.
@@ -341,8 +352,8 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
   (`docs/API_SPEC.md`).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
-- **Demais telas** do app web: o assistente abre no site. Até chegarem, os atalhos do Painel e
-  dos formulários abrem a página no site (`LinkDoSite`, D-090).
+- **Demais telas** do app web: até chegarem, os atalhos do Painel e dos formulários abrem a
+  página no site (`LinkDoSite`, D-090).
 - **Leitura da nota pela IA** (a foto inteira com os itens, no site) e **importar extrato**: por
   enquanto só no site; o app lê o total e a data do cupom pela câmera.
 - Prints para a App Store.

@@ -472,6 +472,21 @@ extension ClienteDaAPI {
         try await delete("/assistant/consent")
     }
 
+    // MARK: - Assistente
+
+    func situacaoDoAssistente() async throws -> SituacaoDoAssistente {
+        try await get("/assistant")
+    }
+
+    /// Grava a autorizacao de enviar perguntas e totais ao Gemini, no toque em "Autorizo".
+    func autorizarAssistente() async throws -> SituacaoDoAssistente {
+        try await post("/assistant/consent", corpo: ["versaoDoAviso": Conta.versaoDosTermos])
+    }
+
+    func perguntarAoAssistente(_ pedido: PedidoAoAssistente) async throws -> RespostaDoAssistente {
+        try await post("/assistant/ask", corpo: pedido)
+    }
+
     // MARK: - Premium
 
     func verPlano() async throws -> PlanoDaConta {

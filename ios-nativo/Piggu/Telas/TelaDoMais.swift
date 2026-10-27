@@ -6,23 +6,24 @@ enum TelaDoMais: String, CaseIterable, Hashable {
     case planejar, metas, orcamento, contasDoMes, cartoes, calendario, compras, lugares, filmes, fotos, premios, girlsMath,
          familia, perfil, premium
 
-    var titulo: LocalizedStringKey {
+    /// Texto, e nao chave, para a busca global filtrar pelo nome.
+    var titulo: String {
         switch self {
-        case .planejar: "Planejar"
-        case .metas: "Minhas metas"
-        case .orcamento: "Orçamento"
-        case .contasDoMes: "Contas do mês"
-        case .cartoes: "Cartões e bancos"
-        case .calendario: "Calendário"
-        case .compras: "Compras"
-        case .lugares: "Lugares"
-        case .filmes: "Filmes"
-        case .fotos: "Fotos"
-        case .premios: "Prêmios"
-        case .girlsMath: "Girls Math"
-        case .familia: "Família"
-        case .perfil: "Perfil"
-        case .premium: "Premium"
+        case .planejar: String(localized: "Planejar")
+        case .metas: String(localized: "Minhas metas")
+        case .orcamento: String(localized: "Orçamento")
+        case .contasDoMes: String(localized: "Contas do mês")
+        case .cartoes: String(localized: "Cartões e bancos")
+        case .calendario: String(localized: "Calendário")
+        case .compras: String(localized: "Compras")
+        case .lugares: String(localized: "Lugares")
+        case .filmes: String(localized: "Filmes")
+        case .fotos: String(localized: "Fotos")
+        case .premios: String(localized: "Prêmios")
+        case .girlsMath: String(localized: "Girls Math")
+        case .familia: String(localized: "Família")
+        case .perfil: String(localized: "Perfil")
+        case .premium: String(localized: "Premium")
         }
     }
 

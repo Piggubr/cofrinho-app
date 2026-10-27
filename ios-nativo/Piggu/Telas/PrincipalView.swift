@@ -17,14 +17,20 @@ struct PrincipalView: View {
     @State private var versaoDosDados = 0
     @State private var aviso: String?
     /// Gasto achado no Spotlight, para a aba Gastos abrir.
-    @State private var gastoParaAbrir: String?
+    @State private var gastoParaAbrir: GastoPedido?
     @Environment(\.scenePhase) private var fase
     @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @State private var caminhoDoMais: [TelaDoMais] = []
+    @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
+
+    /// Ajuste do Perfil: a barra de abas encolhe ao rolar a lista. Desligado, ela fica sempre inteira.
+    static let chaveEsconderAbas = "piggu_esconder_abas"
 
     var body: some View {
         abas
+            // A busca e o assistente do topo abrem telas por aqui.
+            .environment(\.abrirRota, AbrirRota { abrir($0) })
             .sheet(item: $lancamento) { pedido in
                 LancarGastoView(valorInicial: pedido.valor) { mensagem in
                     versaoDosDados += 1
@@ -85,7 +91,7 @@ struct PrincipalView: View {
                 Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: $caminhoDoMais) }
             }
             .tabViewStyle(.sidebarAdaptable)
-            .minimizarAbasAoRolar()
+            .minimizarAbasAoRolar(esconderAbas)
         } else {
             TabView(selection: $aba) {
                 painel
@@ -137,9 +143,9 @@ struct PrincipalView: View {
             caminhoDoMais = [tela]
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
-        case let .verGasto(id):
+        case let .verGasto(id, mes):
             aba = .gastos
-            gastoParaAbrir = id
+            gastoParaAbrir = GastoPedido(id: id, mes: mes)
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:
             // Os da conta abrem na RaizView.
             return
@@ -177,8 +183,8 @@ private extension View {
     }
 
     @ViewBuilder
-    func minimizarAbasAoRolar() -> some View {
-        if #available(iOS 26, *) {
+    func minimizarAbasAoRolar(_ ligado: Bool) -> some View {
+        if #available(iOS 26, *), ligado {
             tabBarMinimizeBehavior(.onScrollDown)
         } else {
             self

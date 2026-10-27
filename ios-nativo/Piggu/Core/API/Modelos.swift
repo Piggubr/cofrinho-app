@@ -829,3 +829,33 @@ struct FotoDoFeed: Codable, Identifiable, Equatable, Sendable {
     let usuario: String?
     let criadoEm: String
 }
+
+/// Assistente de IA (Premium): se esta ligado nesta instalacao, se a pessoa autorizou o envio ao
+/// Gemini e quantas perguntas restam no mes.
+struct SituacaoDoAssistente: Codable, Equatable, Sendable {
+    let habilitado: Bool
+    var autorizado: Bool
+    let limite: Int
+    var restantes: Int
+}
+
+struct PedidoAoAssistente: Encodable, Sendable {
+    /// Uma fala da conversa, que so o aparelho guarda; `pessoa` falso e a resposta.
+    struct Fala: Encodable, Sendable {
+        let pessoa: Bool
+        let texto: String
+    }
+
+    let pergunta: String
+    let historico: [Fala]
+    let moeda: String
+    var autorizoIa: Bool?
+    var versaoDoAviso: String?
+}
+
+struct RespostaDoAssistente: Codable, Equatable, Sendable {
+    let texto: String
+    /// Rota que o assistente sugere abrir (gastos, orcamentos...); nula quando nenhuma.
+    let tela: String?
+    let restantes: Int
+}

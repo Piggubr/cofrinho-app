@@ -72,9 +72,6 @@
     "%lld" : {
 
     },
-    "%lld de 5" : {
-
-    },
     "%lld Fofocoins" : {
 
     },
@@ -90,7 +87,13 @@
     "%lld de %lld concluídas" : {
 
     },
+    "%lld de %lld perguntas neste mês · a IA pode errar" : {
+
+    },
     "%lld de 3" : {
+
+    },
+    "%lld de 5" : {
 
     },
     "%lld gasto(s) guardado(s) sem conexão foram recusados pelo servidor; lance de novo." : {
@@ -156,6 +159,9 @@
     "A Apple não confirmou esta compra." : {
 
     },
+    "A IA pode errar e não faz recomendação de investimento." : {
+
+    },
     "A compra está esperando aprovação. O Premium chega assim que ela for aprovada." : {
 
     },
@@ -198,10 +204,16 @@
     "Abre no site do Piggu" : {
 
     },
+    "Abre o Painel" : {
+
+    },
     "Abre o Perfil" : {
 
     },
     "Abre o Piggu pronto para lançar um gasto." : {
+
+    },
+    "Abrir %@" : {
 
     },
     "Abrir no Mapas" : {
@@ -294,6 +306,9 @@
     "Antes de começar, conte como quer ser chamado." : {
 
     },
+    "Apaga a conversa deste aparelho" : {
+
+    },
     "Apagar" : {
 
     },
@@ -360,6 +375,15 @@
     "Assinado pelo site. Para trocar o cartão, ver os recibos ou cancelar, entre no Piggu pelo navegador." : {
 
     },
+    "Assistente" : {
+
+    },
+    "Assistente desligado" : {
+
+    },
+    "Assistente: %@" : {
+
+    },
     "Ativar" : {
 
     },
@@ -391,6 +415,9 @@
 
     },
     "Autorizações da IA" : {
+
+    },
+    "Autorizo e quero perguntar" : {
 
     },
     "Autorizo, continuar" : {
@@ -589,6 +616,9 @@
 
     },
     "Confirmando seu e-mail…" : {
+
+    },
+    "Conhecer o Piggu Premium" : {
 
     },
     "Conta" : {
@@ -984,6 +1014,9 @@
     "Enviando..." : {
 
     },
+    "Enviar" : {
+
+    },
     "Enviar agora" : {
 
     },
@@ -1021,6 +1054,9 @@
 
     },
     "Escolher foto" : {
+
+    },
+    "Esconder a barra de abas ao rolar" : {
 
     },
     "Esconder histórico" : {
@@ -1096,6 +1132,9 @@
 
     },
     "Ex.: São Paulo" : {
+
+    },
+    "Ex.: quanto gastei com mercado?" : {
 
     },
     "Excluir" : {
@@ -1233,6 +1272,9 @@
     "Gastos de %@" : {
 
     },
+    "Gastos, lugares, filmes, compras e telas" : {
+
+    },
     "Gerenciar assinatura" : {
 
     },
@@ -1308,10 +1350,10 @@
     "Informe o número do seu documento (CPF)." : {
 
     },
-    "Informe seu celular." : {
+    "Informe seu CPF." : {
 
     },
-    "Informe seu CPF." : {
+    "Informe seu celular." : {
 
     },
     "Informe seu e-mail e sua senha." : {
@@ -1659,6 +1701,9 @@
     "Nova conta ou cartão" : {
 
     },
+    "Nova conversa" : {
+
+    },
     "Nova nota" : {
 
     },
@@ -1725,9 +1770,6 @@
     "Não foi possível entrar." : {
 
     },
-    "o código do aparelho" : {
-
-    },
     "O Piggu está travado" : {
 
     },
@@ -1750,6 +1792,9 @@
 
     },
     "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção." : {
+
+    },
+    "O assistente ainda não está ligado nesta instalação." : {
 
     },
     "O cofrinho dos fofos." : {
@@ -1806,6 +1851,9 @@
     "Olá, %@" : {
 
     },
+    "Onde dá para cortar gastos?" : {
+
+    },
     "Organizar" : {
 
     },
@@ -1860,6 +1908,9 @@
     "Para onde foi o dinheiro" : {
 
     },
+    "Para responder, o assistente envia ao Google (Gemini) só o que a pergunta pede: totais e gastos do período, sem nome nem e-mail. A conversa não fica guardada no Piggu: fica só neste aparelho por %lld dias e sai quando você sai da conta." : {
+
+    },
     "Parar de lançar \"%@\" todo mês?" : {
 
     },
@@ -1893,7 +1944,19 @@
     "Pelo menos 8 caracteres, com letras e números." : {
 
     },
+    "Pensando..." : {
+
+    },
     "Perfil" : {
+
+    },
+    "Perguntar ao assistente" : {
+
+    },
+    "Pergunte do seu jeito, como \"quanto gastei com mercado em setembro?\" ou \"vou estourar algum orçamento?\", e o Piggu responde com os seus números." : {
+
+    },
+    "Pergunte sobre gastos, orçamento, contas e cofrinho." : {
 
     },
     "Permita as notificações do Piggu nos Ajustes do aparelho e tente de novo." : {
@@ -2028,6 +2091,9 @@
     "Quanto custava (%@)" : {
 
     },
+    "Quanto falta para meus objetivos?" : {
+
+    },
     "Quanto gastamos" : {
 
     },
@@ -2041,6 +2107,9 @@
 
     },
     "Quanto gastei este mês no ${applicationName}" : {
+
+    },
+    "Quanto gastei este mês?" : {
 
     },
     "Quem assinou o plano da sua casa cuida da assinatura." : {
@@ -2247,9 +2316,6 @@
     "Sem limite definido para este mês." : {
 
     },
-    "sem nota" : {
-
-    },
     "Sempre usar %@ para \"%@\"?" : {
 
     },
@@ -2316,6 +2382,9 @@
     "Sua casa tem o Premium casal, que vale para o titular e o parceiro. Quem assinou pode trocar para o plano família." : {
 
     },
+    "Sua pergunta" : {
+
+    },
     "Sua sessão venceu. Entre novamente." : {
 
     },
@@ -2332,6 +2401,9 @@
 
     },
     "Só o titular convida e remove pessoas e cuida do plano." : {
+
+    },
+    "Telas" : {
 
     },
     "Telas do menu" : {
@@ -2425,9 +2497,6 @@
 
     },
     "Título" : {
-
-    },
-    "Usar" : {
 
     },
     "Usar esta" : {
@@ -2559,6 +2628,9 @@
     "Você tem o %@" : {
 
     },
+    "Você: %@" : {
+
+    },
     "Voltamos para a foto do Google." : {
 
     },
@@ -2578,6 +2650,9 @@
 
     },
     "Voltar para entrar" : {
+
+    },
+    "Vou estourar algum orçamento?" : {
 
     },
     "[Termos de Uso](piggu://termos) · [Aviso de Privacidade](piggu://privacidade)" : {
@@ -2664,6 +2739,9 @@
     "o código" : {
 
     },
+    "o código do aparelho" : {
+
+    },
     "orçamento" : {
 
     },
@@ -2689,6 +2767,9 @@
 
     },
     "saiu da família" : {
+
+    },
+    "sem nota" : {
 
     },
     "tem lembrete" : {

@@ -95,11 +95,12 @@ struct RaizView: View {
                 PrincipalView(rota: $rota)
             }
         }
-        .overlay {
-            if trava.travado, sessao.usuario != nil {
-                TelaDeTrava(trava: trava).transition(.opacity)
-            }
+        .background {
+            JanelaDaTrava(trava: trava, ativa: trava.travado && sessao.usuario != nil,
+                          paleta: tema.paleta, esquema: modo.esquema)
         }
+        .background(FecharTecladoAoTocarFora())
+        .scrollDismissesKeyboard(.interactively)
         .environment(trava)
         .onChange(of: fase) { _, nova in
             if nova == .background { trava.travarSeLigada() }
