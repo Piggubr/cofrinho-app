@@ -3,6 +3,7 @@ package com.piggu.finance.domain;
 import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Meses;
 import com.piggu.finance.api.dto.DepositRequest;
 import com.piggu.finance.api.dto.DepositResponse;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
@@ -104,7 +105,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
         DepositResponse deposito =
                 cofrinho.depositar(new DepositRequest(null, new BigDecimal("10")), TITULAR);
 
-        assertThat(deposito.data()).isEqualTo(LocalDate.now());
+        assertThat(deposito.data()).isEqualTo(LocalDate.now(Meses.BRASILIA));
     }
 
     @Test
