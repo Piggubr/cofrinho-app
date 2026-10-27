@@ -41,6 +41,7 @@ struct PainelView: View {
                     }
                 }
             }
+            .comTelasDeOrganizacao()
             .sheet(isPresented: $organizando) {
                 if let painel { OrganizarPainelView(painel: painel) }
             }
@@ -104,8 +105,8 @@ struct PainelView: View {
         let cartoes = ForEach(visiveis) { bloco in
             VStack(spacing: 14) {
                 cartao(bloco.id, modelo, nucleo)
-                if modelo.openFinance && bloco.id == bancosJuntoDe {
-                    CartaoDosBancos(modelo: modelo)
+                if modelo.openFinance.habilitado && bloco.id == bancosJuntoDe {
+                    CartaoDosBancos(openFinance: modelo.openFinance, ehPremium: modelo.ehPremium)
                 }
             }
         }

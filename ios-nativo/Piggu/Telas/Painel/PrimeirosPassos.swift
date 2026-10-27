@@ -58,7 +58,7 @@ struct PrimeirosPassos: View {
                         }
                     }
                     passo("2. Quanto quer gastar por mês?", feito: temLimite) {
-                        if !temLimite { LinkDoSite(titulo: "Definir o limite", caminho: "/orcamentos") }
+                        if !temLimite { NavigationLink("Definir o limite", value: TelaDeOrganizacao.orcamento) }
                     }
                     passo("3. Lance o primeiro gasto ou importe o extrato", feito: temGasto) {
                         if !temGasto {

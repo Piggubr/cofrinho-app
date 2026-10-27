@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MaisView: View {
+    @Binding var caminho: [TelaDeOrganizacao]
+
     @Environment(Sessao.self) private var sessao
     @Environment(\.paleta) private var paleta
     @AppStorage(Tema.chave) private var tema = Tema.chiclete
@@ -17,8 +19,16 @@ struct MaisView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $caminho) {
             List {
+                // Na ordem do menu do site (shell.ts): Orcamento, Contas do mes, Cartoes e bancos, Calendario.
+                Section("Organizar") {
+                    ForEach(TelaDeOrganizacao.allCases, id: \.self) { tela in
+                        NavigationLink(value: tela) { Label(tela.titulo, systemImage: tela.simbolo) }
+                    }
+                }
+                .listRowBackground(paleta.superficie)
+
                 if let usuario = sessao.usuario {
                     Section {
                         HStack(spacing: 14) {
@@ -92,6 +102,7 @@ struct MaisView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Mais")
+            .comTelasDeOrganizacao()
             .confirmationDialog("Sair da conta neste aparelho?", isPresented: $confirmandoSaida,
                                 titleVisibility: .visible) {
                 Button("Sair", role: .destructive) { Task { await sessao.sair() } }

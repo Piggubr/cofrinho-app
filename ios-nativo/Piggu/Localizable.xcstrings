@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "pt-BR",
   "strings" : {
+    "%@ %@" : {
+
+    },
     "%@ acima da média deste item (%@)" : {
 
     },
@@ -8,6 +11,9 @@
 
     },
     "%@ de %@" : {
+
+    },
+    "%@ de %@ · %@" : {
 
     },
     "%@ já usou %@ do limite" : {
@@ -54,6 +60,12 @@
         }
       }
     },
+    "%lld a %lld" : {
+
+    },
+    "%lld contas lançadas nos gastos." : {
+
+    },
     "%lld de %lld concluídas" : {
 
     },
@@ -78,6 +90,12 @@
     "%lld%% do limite · **limite ultrapassado**" : {
 
     },
+    "%lld%% usado" : {
+
+    },
+    "%lld%% usado · **limite ultrapassado**" : {
+
+    },
     "%lldx de %@, uma em cada mês" : {
 
     },
@@ -85,6 +103,9 @@
 
     },
     "+ Nova categoria…" : {
+
+    },
+    "+%@" : {
 
     },
     "0,00" : {
@@ -111,6 +132,9 @@
     "A dois: quem mora com você vê e deposita junto" : {
 
     },
+    "A pagar: %@ até %@" : {
+
+    },
     "A receber" : {
 
     },
@@ -121,6 +145,9 @@
 
     },
     "A senha precisa ter pelo menos %lld caracteres." : {
+
+    },
+    "A vencer" : {
 
     },
     "Abre no site do Piggu" : {
@@ -144,7 +171,19 @@
     "Aguarde a cotação da moeda da compra." : {
 
     },
+    "Aguarde..." : {
+
+    },
     "Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes." : {
+
+    },
+    "Aluguel" : {
+
+    },
+    "Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês." : {
+
+    },
+    "Ano de %@" : {
 
     },
     "Antes de começar, conte como quer ser chamado." : {
@@ -154,6 +193,9 @@
 
     },
     "Apagar \"%@\"?" : {
+
+    },
+    "Apagar a conta fixa \"%@\"?" : {
 
     },
     "Apagar a nota \"%@\"?" : {
@@ -180,6 +222,9 @@
     "As duas senhas não são iguais." : {
 
     },
+    "As mesmas de Receitas. Nova receita fixa: em Receitas, marque \"Entra sozinha todo mês\"." : {
+
+    },
     "As receitas já lançadas continuam." : {
 
     },
@@ -192,10 +237,19 @@
     "Atualizar saldos" : {
 
     },
+    "Até o dia %lld" : {
+
+    },
     "Até quando (opcional)" : {
 
     },
     "Automática" : {
+
+    },
+    "Autorizar conexão com o banco" : {
+
+    },
+    "Autorizo, continuar" : {
 
     },
     "Aviso de Privacidade" : {
@@ -216,10 +270,16 @@
     "Cada pessoa tem uma conta no Piggu. O documento garante isso: ele fica preso à sua conta e não pode ser usado em outra." : {
 
     },
+    "Cadastrar a primeira conta" : {
+
+    },
     "Cadastrar cartão" : {
 
     },
     "Cadastre o cartão em Cartões e bancos, ou escolha Débito/Pix." : {
+
+    },
+    "Calendário" : {
 
     },
     "Cancelar" : {
@@ -232,6 +292,9 @@
 
     },
     "Cartão de crédito" : {
+
+    },
+    "Cartões e bancos" : {
 
     },
     "Categoria" : {
@@ -250,6 +313,15 @@
 
     },
     "Com a categoria em \"Automática\", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto." : {
+
+    },
+    "Com data" : {
+
+    },
+    "Com um limite, o Piggu avisa quando o mês estiver chegando perto." : {
+
+    },
+    "Com valor preenchido, esta nota também lança um gasto. Apagar a nota apaga o gasto junto." : {
 
     },
     "Combinado para" : {
@@ -276,6 +348,15 @@
     "Compartilhado: aparece para quem mora com você" : {
 
     },
+    "Compartilhar" : {
+
+    },
+    "Compras até %@ entram nesta fatura. A partir de %@, dia do fechamento, vão para a próxima." : {
+
+    },
+    "Compras de %@ a %@ · fecha em %@ · vence em %@" : {
+
+    },
     "Concluídas" : {
 
     },
@@ -297,7 +378,22 @@
     "Confirmando seu e-mail…" : {
 
     },
+    "Conta" : {
+
+    },
+    "Conta fixa apagada." : {
+
+    },
+    "Conta fixa criada." : {
+
+    },
+    "Conta lançada nos gastos." : {
+
+    },
     "Contas bancárias" : {
+
+    },
+    "Contas do mês" : {
 
     },
     "Conte como podemos te chamar." : {
@@ -321,7 +417,13 @@
     "Criar conta" : {
 
     },
+    "Criar conta fixa" : {
+
+    },
     "Criar minha conta" : {
+
+    },
+    "Criar nota" : {
 
     },
     "Criar o primeiro objetivo" : {
@@ -342,10 +444,22 @@
     "Data de nascimento" : {
 
     },
+    "De %@" : {
+
+    },
+    "Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do Piggu Premium." : {
+
+    },
     "Definir limite" : {
 
     },
     "Definir o limite" : {
+
+    },
+    "Deixar só meu" : {
+
+    },
+    "Deixe vazio se não for pago" : {
 
     },
     "Depositado" : {
@@ -363,7 +477,31 @@
     "Descrição" : {
 
     },
+    "Desfazer pagamento" : {
+
+    },
     "Desmarcado" : {
+
+    },
+    "Detalhes" : {
+
+    },
+    "Dia" : {
+
+    },
+    "Dia %lld: %@ · dia %lld: %@ · %@" : {
+
+    },
+    "Dia da 2ª parcela" : {
+
+    },
+    "Dia do fechamento" : {
+
+    },
+    "Dia do vencimento" : {
+
+    },
+    "Dia do vencimento da fatura" : {
 
     },
     "Diga quem está te devendo." : {
@@ -375,6 +513,9 @@
     "Digite o nome da categoria." : {
 
     },
+    "Digite o nome da conta ou do cartão." : {
+
+    },
     "Digite o nome do item." : {
 
     },
@@ -384,6 +525,9 @@
     "Digite o título da nota." : {
 
     },
+    "Digite o valor da 2ª parcela." : {
+
+    },
     "Digite quanto quer juntar." : {
 
     },
@@ -391,6 +535,9 @@
 
     },
     "Digite um valor de depósito válido." : {
+
+    },
+    "Digite um valor válido para o limite." : {
 
     },
     "Digite um valor válido." : {
@@ -403,6 +550,9 @@
 
     },
     "Divisão do mês" : {
+
+    },
+    "Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão adicional)" : {
 
     },
     "Do quê (opcional)" : {
@@ -435,6 +585,12 @@
     "Editar objetivo" : {
 
     },
+    "Em aberto: %@" : {
+
+    },
+    "Em duas parcelas (salário com adiantamento): o valor acima é a 1ª" : {
+
+    },
     "Em outros meses" : {
 
     },
@@ -456,7 +612,16 @@
     "Enviar agora" : {
 
     },
+    "Escolha" : {
+
+    },
+    "Escolha a categoria e um limite maior que zero." : {
+
+    },
     "Escolha a conta" : {
+
+    },
+    "Escolha a data do evento pago." : {
 
     },
     "Escolha a senha que você vai usar para entrar no Piggu." : {
@@ -469,6 +634,9 @@
 
     },
     "Escolha o cartão" : {
+
+    },
+    "Escolha uma categoria, como mercado ou lazer, e quanto quer gastar nela." : {
 
     },
     "Escolher" : {
@@ -504,6 +672,9 @@
     "Ex.: Metade da pizza" : {
 
     },
+    "Ex.: Nubank" : {
+
+    },
     "Ex.: Pet" : {
 
     },
@@ -519,6 +690,9 @@
     "Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. Digite EXCLUIR para confirmar." : {
 
     },
+    "Exportar gastos do mês (CSV)" : {
+
+    },
     "Falta pouco para criar sua conta." : {
 
     },
@@ -528,6 +702,15 @@
     "Faltam %@, sem prazo." : {
 
     },
+    "Fatura aberta (%@): %@" : {
+
+    },
+    "Fatura anterior" : {
+
+    },
+    "Fatura de %@ paga" : {
+
+    },
     "Fatura do cartão" : {
 
     },
@@ -535,6 +718,9 @@
 
     },
     "Fazer o primeiro depósito" : {
+
+    },
+    "Fecha dia %lld · vence dia %lld" : {
 
     },
     "Fechar" : {
@@ -576,6 +762,12 @@
     "Gastos" : {
 
     },
+    "Gastos %@" : {
+
+    },
+    "Gastos de %@" : {
+
+    },
     "Girls Math" : {
 
     },
@@ -607,6 +799,15 @@
 
     },
     "Informar agora" : {
+
+    },
+    "Informe o dia da 2ª parcela (1 a 31)." : {
+
+    },
+    "Informe o dia do fechamento (1 a 31)." : {
+
+    },
+    "Informe o dia do vencimento da fatura (1 a 31)." : {
 
     },
     "Informe o e-mail da sua conta e mandamos um link para criar uma senha nova." : {
@@ -648,6 +849,9 @@
     "Lançar receita" : {
 
     },
+    "Lançar sozinha no dia do vencimento" : {
+
+    },
     "Lançar um gasto" : {
 
     },
@@ -660,6 +864,9 @@
     "Leia os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade) completos (versão %@)." : {
 
     },
+    "Lembretes" : {
+
+    },
     "Li e aceito os [Termos de Uso](piggu://termos) e o [Aviso de Privacidade](piggu://privacidade)." : {
 
     },
@@ -667,6 +874,15 @@
 
     },
     "Limite do mês" : {
+
+    },
+    "Limite no mês" : {
+
+    },
+    "Limite por categoria" : {
+
+    },
+    "Limites dos outros meses" : {
 
     },
     "Limpar filtros" : {
@@ -690,6 +906,9 @@
     "Marcado" : {
 
     },
+    "Marcar como paga" : {
+
+    },
     "Menta" : {
 
     },
@@ -708,6 +927,12 @@
     "Moeda da compra" : {
 
     },
+    "Mudar" : {
+
+    },
+    "Mês" : {
+
+    },
     "Mês anterior" : {
 
     },
@@ -715,6 +940,9 @@
 
     },
     "Nada entra como receita." : {
+
+    },
+    "Nada registrado neste dia." : {
 
     },
     "Nenhum banco conectado." : {
@@ -729,13 +957,37 @@
     "Nenhum gasto lançado neste mês" : {
 
     },
+    "Nenhum gasto nesta fatura." : {
+
+    },
     "Nenhum gasto neste mês" : {
+
+    },
+    "Nenhum limite cadastrado" : {
+
+    },
+    "Nenhum limite definido para este mês ainda" : {
+
+    },
+    "Nenhuma categoria com limite ainda" : {
+
+    },
+    "Nenhuma conta ainda. Cadastre para escolher no lançamento e ver a fatura do cartão." : {
+
+    },
+    "Nenhuma conta fixa ainda" : {
 
     },
     "Nenhuma nota ainda." : {
 
     },
+    "Nenhuma nota solta." : {
+
+    },
     "Nenhuma receita neste mês" : {
+
+    },
+    "Nenhuma receita ou gasto neste mês até agora." : {
 
     },
     "Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma." : {
@@ -754,6 +1006,15 @@
 
     },
     "Nota" : {
+
+    },
+    "Nova conta fixa" : {
+
+    },
+    "Nova conta ou cartão" : {
+
+    },
+    "Nova nota" : {
 
     },
     "Nova receita" : {
@@ -825,6 +1086,12 @@
     "O cofrinho dos fofos." : {
 
     },
+    "O fechamento fica 7 dias antes do vencimento; mude se o seu banco usar outro dia. Compras feitas do dia do fechamento em diante vão para a fatura seguinte." : {
+
+    },
+    "O gasto lançado junto também será apagado." : {
+
+    },
     "O prazo passou e faltam %@." : {
 
     },
@@ -849,13 +1116,28 @@
     "Olá, %@" : {
 
     },
+    "Organizar" : {
+
+    },
     "Orçamento" : {
 
     },
     "Os Termos mudaram" : {
 
     },
+    "Os gastos continuam, só sem a conta." : {
+
+    },
+    "Os gastos já lançados continuam." : {
+
+    },
+    "Paga" : {
+
+    },
     "Pagamento" : {
+
+    },
+    "Pagar %lld · %@" : {
 
     },
     "Pagou %@ · parte %@" : {
@@ -868,6 +1150,12 @@
 
     },
     "Para ficar de olho" : {
+
+    },
+    "Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance. Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e autoriza o compartilhamento das contas e saldos. Você pode desconectar quando quiser, de graça. Detalhes no [Aviso de Privacidade](piggu://privacidade)." : {
+
+    },
+    "Para onde foi o dinheiro" : {
 
     },
     "Parar de lançar \"%@\" todo mês?" : {
@@ -912,7 +1200,16 @@
     "Por categoria" : {
 
     },
+    "Por categoria · %@" : {
+
+    },
     "Prazo" : {
+
+    },
+    "Preencha descrição, valor e um dia de vencimento entre 1 e 31." : {
+
+    },
+    "Premium" : {
 
     },
     "Primeiros passos" : {
@@ -931,6 +1228,9 @@
 
     },
     "Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova." : {
+
+    },
+    "Próxima fatura" : {
 
     },
     "Próximo mês" : {
@@ -966,10 +1266,28 @@
     "Receita lançada." : {
 
     },
+    "Receita lançada. Ela entra sozinha todo dia %lld e a 2ª parcela todo dia %lld." : {
+
+    },
     "Receita lançada. Ela entra sozinha todo dia %lld." : {
 
     },
     "Receitas" : {
+
+    },
+    "Receitas %@" : {
+
+    },
+    "Receitas e gastos acumulados no mês" : {
+
+    },
+    "Receitas e gastos de cada mês de %@" : {
+
+    },
+    "Receitas e gastos do mês" : {
+
+    },
+    "Receitas que entram todo mês" : {
 
     },
     "Recorrente" : {
@@ -1017,6 +1335,12 @@
     "Salvar a senha nova" : {
 
     },
+    "Salvar categoria" : {
+
+    },
+    "Salvar limite" : {
+
+    },
     "Salvar nota" : {
 
     },
@@ -1039,6 +1363,9 @@
 
     },
     "Sem conta informada" : {
+
+    },
+    "Sem data" : {
 
     },
     "Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar." : {
@@ -1071,6 +1398,12 @@
     "Seus dados" : {
 
     },
+    "Sobra" : {
+
+    },
+    "Sobra %@" : {
+
+    },
     "Sobra do mês" : {
 
     },
@@ -1083,7 +1416,13 @@
     "Sua sessão venceu. Entre novamente." : {
 
     },
+    "Suas contas" : {
+
+    },
     "Suas notas" : {
+
+    },
+    "Série" : {
 
     },
     "Tentar de novo" : {
@@ -1095,13 +1434,22 @@
     "Termos e privacidade" : {
 
     },
+    "Tipo" : {
+
+    },
     "Todas as categorias" : {
 
     },
     "Todas as formas" : {
 
     },
+    "Todas em aberto" : {
+
+    },
     "Todo dia %lld · %@" : {
+
+    },
+    "Toque num dia para ver o que aconteceu nele." : {
 
     },
     "Toque para editar" : {
@@ -1114,6 +1462,12 @@
 
     },
     "Total filtrado" : {
+
+    },
+    "Total no mês" : {
+
+    },
+    "Total no mês (%@)" : {
 
     },
     "Total: %@" : {
@@ -1143,7 +1497,19 @@
     "Valor (%@)" : {
 
     },
+    "Valor da 2ª parcela" : {
+
+    },
+    "Valor do evento" : {
+
+    },
+    "Valor do evento (%@)" : {
+
+    },
     "Valor inválido. Use, por exemplo, 12,50." : {
+
+    },
+    "Veja o ano mês a mês, receitas contra gastos e para onde foi o dinheiro. Faz parte do Piggu Premium." : {
 
     },
     "Vence em %@" : {
@@ -1152,10 +1518,22 @@
     "Venceu em %@" : {
 
     },
+    "Vencida" : {
+
+    },
+    "Ver em tabela" : {
+
+    },
+    "Ver fatura" : {
+
+    },
     "Ver gastos" : {
 
     },
     "Ver metas" : {
+
+    },
+    "Ver por semana" : {
 
     },
     "Ver todas" : {
@@ -1180,6 +1558,9 @@
 
     },
     "Você está sem internet. O gasto só pode ser salvo com conexão." : {
+
+    },
+    "Você recebe um aviso quando a categoria chega a 80% e a 100% do limite no mês." : {
 
     },
     "Voltar" : {
@@ -1212,10 +1593,19 @@
     "dividido" : {
 
     },
+    "do casal" : {
+
+    },
     "feito" : {
 
     },
+    "gasto de %@" : {
+
+    },
     "igual" : {
+
+    },
+    "lança sozinha" : {
 
     },
     "ou" : {
@@ -1230,10 +1620,16 @@
     "recebe %@" : {
 
     },
+    "tem lembrete" : {
+
+    },
     "À vista" : {
 
     },
     "Última cotação conhecida" : {
+
+    },
+    "−%@" : {
 
     },
     "≈ %@ (cotação de hoje)" : {

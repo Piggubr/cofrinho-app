@@ -14,6 +14,10 @@ struct RotaTests {
         ("piggu://painel", .aba(.painel)),
         ("piggu://relatorios", .aba(.relatorios)),
         ("piggu://receitas", .aba(.receitas)),
+        ("piggu://orcamentos", .organizacao(.orcamento)),
+        ("piggu://contas-fixas", .organizacao(.contasDoMes)),
+        ("https://piggu.com.br/contas-e-cartoes", .organizacao(.cartoes)),
+        ("piggu://calendario", .organizacao(.calendario)),
         ("piggu://perfil", .aba(.mais)),
         ("https://piggu.com.br/relatorios", .aba(.relatorios)),
         ("https://www.piggu.com.br/", .aba(.painel)),
@@ -43,7 +47,7 @@ struct RotaTests {
     @Test(arguments: [
         "https://outro.site/gastos",
         "http://piggu.com.br/gastos",
-        "piggu://calendario",
+        "piggu://compras",
         "piggu://entrar?google=codigo",
         "mailto:ana@example.com",
     ])

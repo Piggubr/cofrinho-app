@@ -41,7 +41,7 @@ No Xcode, em *Product → Scheme → Edit Scheme → Run → Arguments* (já cad
 | `-PigguLancar YES` | Abre direto o lançamento de gasto. |
 | `-piggu_tema azul` | Abre com outra cor do Piggu (`chiclete`, `rosa`, `menta`, `azul`, `lilas`). |
 | `-PigguRefreshNoCorpo YES` | Refresh no corpo e no Keychain em vez do cookie (veja *Sessão*). |
-| `-PigguDemoConta termos` / `sobre-voce` / `cpf` / `email` | Com a demonstração: a conta abre com os Termos mudados, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar. |
+| `-PigguDemoConta termos` / `sobre-voce` / `cpf` / `email` / `premium` | Com a demonstração: a conta abre com os Termos mudados, sem apelido e nascimento, sem CPF, com o e-mail sem confirmar ou no Premium. |
 | `-PigguEntrada cadastro` / `conta-nova` | Abre a entrada na aba Criar conta ou no aceite de conta nova pela Apple ou pelo Google. |
 | `-PigguLink piggu://termos` | Abre um link depois de restaurar a sessão (`termos`, `privacidade`, `esqueci-senha`, `cpf`, `confirmar-email?token=...`, `redefinir-senha?token=...`). |
 
@@ -52,8 +52,9 @@ A demonstração e esses atalhos só existem em Debug; não vão para o build de
 
 `piggu://gasto?valor=12.50` abre o lançamento com o valor preenchido. Os links do app Capacitor
 continuam valendo (`piggu://gastos?rapido=1&valor=12.50`, do atalho do ícone e da Siri), e as
-rotas do site abrem a aba certa: `piggu://painel`, `piggu://gastos`, `piggu://receitas`,
-`piggu://relatorios`, `piggu://perfil`. Para testar no simulador:
+rotas do site abrem a tela certa: `piggu://painel`, `piggu://gastos`, `piggu://receitas`,
+`piggu://relatorios`, `piggu://perfil`, e no Mais `piggu://orcamentos`, `piggu://contas-fixas`,
+`piggu://contas-e-cartoes` e `piggu://calendario`. Para testar no simulador:
 
 ```bash
 xcrun simctl openurl booted 'piggu://gasto?valor=12.50'
@@ -121,7 +122,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Liquid Glass** só no que flutua: o `+` de lançar, o seletor de mês, os filtros de Gastos e o
   aviso depois de lançar (`pigguVidro()`, `GrupoDeVidro`, `botaoPrincipal()`). No iOS 17 e 18 vira o material translúcido do sistema;
   com Reduzir Transparência, fundo sólido.
-- **Navegação**: abas Painel, Gastos, Receitas, Relatórios e Mais (`Tab` e `.sidebarAdaptable` no iOS
+- **Navegação**: abas Painel, Gastos, Receitas, Relatórios e Mais (com Orçamento, Contas do mês,
+  Cartões e bancos e Calendário, na ordem do menu do site) (`Tab` e `.sidebarAdaptable` no iOS
   18+, barra que encolhe ao rolar no 26), um `NavigationStack` por aba, o `+` flutuante e os
   links `piggu://`.
 - **Estados** de toda tela: carregando (esqueleto), vazio, erro, erro do servidor e sem
@@ -173,8 +175,24 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   regras de categoria, e a divisão do mês.
 - **Receitas** (`features/incomes`): resumo do mês, nova receita (recorrente e compartilhada),
   as que entram todo mês (parar de repetir), a receber (Recebi, apagar) e as receitas do mês.
-- **Relatórios**: o mês do relatório do site (gastos, mês anterior, projeção e cada categoria
-  contra o mês anterior).
+- **Relatórios** (`features/reports`): o mês (gastos, mês anterior, projeção e cada categoria
+  contra o mês anterior em Swift Charts), o ano mês a mês com receitas contra gastos, tabela e
+  para onde foi o dinheiro (Premium), e "Exportar gastos do mês (CSV)" pelo `ShareLink`, com o
+  mesmo arquivo do site (`/expenses/export`).
+- **Contas do mês** (`features/bills`): as contas fixas do mês com a situação, marcar como paga
+  (uma ou várias), apagar, criar (com "lançar sozinha") e as receitas que entram todo mês.
+- **Orçamento** (`features/budgets`): o limite total do mês e o dos outros meses, e o limite por
+  categoria com barra e alerta (Premium para criar e mudar).
+- **Calendário** (`features/calendar`): a grade do mês com o gasto e os lembretes de cada dia, o
+  dia escolhido, o gráfico de receitas e gastos acumulados (passando o dedo) com a tabela por
+  semana, notas com e sem data (com valor, a nota lança um gasto). No iPad e em janela larga,
+  grade e dia lado a lado.
+- **Cartões e bancos** (`features/accounts`): contas e cartões (criar, compartilhar com o casal,
+  apagar), a fatura de cada mês com os gastos e "Marcar como paga" / "Desfazer pagamento", e os
+  bancos do Open Finance (também no Painel).
+- **Conectar banco** (D-091): o app pede o token da Pluggy com a autorização da pessoa e abre a
+  página `/conectar-banco` do site num `ASWebAuthenticationSession` efêmero, nunca num WebView; o
+  banco conectado volta em `piggu://banco-conectado?item=...`.
 - **Lançar gasto** (botão +): o lançamento rápido do site: valor com vírgula (`12,50`,
   `1.234,56`) e aviso de preço acima da média, categoria (Automática ou nova), descrição, cartão
   ou débito/Pix com a conta (a última fica de padrão), a fatura em que a compra cai, à vista,
@@ -188,7 +206,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Mais**: nome, e-mail, plano, e-mail sem confirmar (com reenviar), CPF não informado, Cor do
   Piggu, Termos, Aviso de Privacidade, Excluir minha conta e Sair.
 - Textos em pt-BR no String Catalog (`Piggu/Localizable.xcstrings`), valores em R$.
-- Testes (Swift Testing): a fila sem internet, a ordem do Painel (com o JSON salvo pelo site), a
+- Testes (Swift Testing): o Open Finance (a página com o token no fragmento, a volta e o fluxo
+  inteiro), as contas do calendário (os casos do `grafico-do-mes.spec.ts`), a fila sem internet, a ordem do Painel (com o JSON salvo pelo site), a
   fatura em que cai a compra (os casos do `fatura.spec.ts`), decodificação dos modelos com JSON no formato do backend, parse de
   valor com vírgula, formatos pt_BR, o fluxo 401 → refresh → repetição, o refresh no corpo e
   no Keychain, o cache, os links e o fluxo de entrada inteiro contra a API falsa (Apple e Google
@@ -198,7 +217,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 Prints em [`docs/prints/`](docs/prints/) (tirados com `-PigguDemo`, sem dados reais); os da
 etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/); os da etapa 3
 (entrada), em [`docs/prints/etapa-3/`](docs/prints/etapa-3/); os da etapa 4 (Painel, Gastos e
-Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/).
+Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (organização), em
+[`docs/prints/etapa-5/`](docs/prints/etapa-5/).
 
 ## O que falta
 
@@ -207,10 +227,8 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/).
 - Trocar e criar senha no Perfil (`PUT /api/auth/me/senha`, com o `refreshToken` no corpo).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
-- **Relatório do ano** (Premium) e os demais relatórios: etapa 5.
-- **Demais telas** do app web: contas fixas, orçamentos, cartões e bancos, calendário, metas,
-  Girls Math, família, assistente, o resto do perfil etc. Até chegarem, os atalhos do Painel e
+- **Demais telas** do app web: metas, Girls Math, família, assistente, Premium, o resto do
+  perfil etc. Até chegarem, os atalhos do Painel e
   dos formulários abrem a página no site (`LinkDoSite`, D-090).
-- **Leitura de nota por foto** (etapa 7), **importar extrato** e **conectar banco** (widget da
-  Pluggy): por enquanto só no site.
+- **Leitura de nota por foto** (etapa 7) e **importar extrato**: por enquanto só no site.
 - Notificações, ícone e prints para a App Store.

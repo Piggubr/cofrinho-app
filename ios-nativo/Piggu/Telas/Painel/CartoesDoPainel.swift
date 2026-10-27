@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Charts
 import SwiftUI
 
@@ -78,7 +79,6 @@ struct CartaoDeAvisos: View {
     let modelo: ModeloDoPainel
     let irPara: (Aba) -> Void
 
-    @Environment(\.openURL) private var abrirURL
 
     var body: some View {
         let orcamentos = modelo.orcamentosEmAlerta
@@ -92,13 +92,13 @@ struct CartaoDeAvisos: View {
                           detalhe: orcamento.alerta == .estourou
                               ? String(localized: "\(orcamento.categoria) passou do limite: \(Formatos.moeda(orcamento.gasto)) de \(Formatos.moeda(orcamento.limite))")
                               : String(localized: "\(orcamento.categoria) já usou \(Formatos.porcentagem(orcamento.percentual)) do limite"),
-                          atrasada: orcamento.alerta == .estourou, site: "/orcamentos")
+                          atrasada: orcamento.alerta == .estourou, tela: .orcamento)
                 }
                 ForEach(faturas) { cartao in
                     if let fatura = cartao.faturaAPagar {
                         linha(icone: "creditcard", titulo: String(localized: "Fatura do cartão"),
                               detalhe: String(localized: "\(cartao.nome) vence em \(Formatos.dataCurta(fatura.vencimento)): \(Formatos.moeda(fatura.total))"),
-                              site: "/contas-e-cartoes")
+                              tela: .cartoes)
                     }
                 }
                 ForEach(contas) { conta in
@@ -106,7 +106,7 @@ struct CartaoDeAvisos: View {
                           detalhe: conta.situacao == .vencida
                               ? String(localized: "Venceu em \(Formatos.dataCurta(conta.vencimento))")
                               : String(localized: "Vence em \(Formatos.dataCurta(conta.vencimento))"),
-                          atrasada: conta.situacao == .vencida, site: "/contas-fixas")
+                          atrasada: conta.situacao == .vencida, tela: .contasDoMes)
                 }
                 ForEach(devendo) { conta in
                     linha(icone: "arrow.down.left", titulo: "\(conta.quem) · \(Formatos.moeda(conta.valor))",
@@ -117,15 +117,15 @@ struct CartaoDeAvisos: View {
         }
     }
 
-    /// As telas que o app ja tem abrem na aba; as outras, no site.
+    /// Receitas abre a aba; orcamento, fatura e contas do mes abrem a tela na pilha do Painel.
+    @ViewBuilder
     private func linha(icone: String, titulo: String, detalhe: String, atrasada: Bool = false,
-                       site: String? = nil, aba: Aba? = nil) -> some View {
-        LinhaDeAviso(icone: icone, titulo: titulo, detalhe: detalhe, atrasada: atrasada) {
-            if let aba {
-                irPara(aba)
-            } else if let site, let url = URL(string: "https://piggu.com.br" + site) {
-                abrirURL(url)
-            }
+                       tela: TelaDeOrganizacao? = nil, aba: Aba? = nil) -> some View {
+        let conteudo = LinhaDeAviso(icone: icone, titulo: titulo, detalhe: detalhe, atrasada: atrasada)
+        if let tela {
+            NavigationLink(value: tela) { conteudo }.buttonStyle(.plain)
+        } else {
+            Button { if let aba { irPara(aba) } } label: { conteudo }.buttonStyle(.plain)
         }
     }
 }
@@ -135,29 +135,25 @@ private struct LinhaDeAviso: View {
     let titulo: String
     let detalhe: String
     let atrasada: Bool
-    let acao: () -> Void
 
     @Environment(\.paleta) private var paleta
 
     var body: some View {
-        Button(action: acao) {
-            HStack(spacing: 12) {
-                Image(systemName: icone)
-                    .frame(width: 38, height: 38)
-                    .foregroundStyle(atrasada ? paleta.perigo : paleta.primaria)
-                    .background(atrasada ? paleta.perigoSuave : paleta.suave,
-                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(titulo).font(.sora(.subheadline, peso: .medium)).foregroundStyle(paleta.texto)
-                    Text(detalhe).font(.sora(.footnote))
-                        .foregroundStyle(atrasada ? paleta.perigo : paleta.textoSuave)
-                }
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.footnote).foregroundStyle(paleta.textoSuave)
+        HStack(spacing: 12) {
+            Image(systemName: icone)
+                .frame(width: 38, height: 38)
+                .foregroundStyle(atrasada ? paleta.perigo : paleta.primaria)
+                .background(atrasada ? paleta.perigoSuave : paleta.suave,
+                            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(titulo).font(.sora(.subheadline, peso: .medium)).foregroundStyle(paleta.texto)
+                Text(detalhe).font(.sora(.footnote))
+                    .foregroundStyle(atrasada ? paleta.perigo : paleta.textoSuave)
             }
-            .contentShape(Rectangle())
+            Spacer(minLength: 4)
+            Image(systemName: "chevron.right").font(.footnote).foregroundStyle(paleta.textoSuave)
         }
-        .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }
@@ -199,7 +195,7 @@ struct CartaoDoMes: View {
                     .foregroundStyle(paleta.textoSuave)
             }
             HStack {
-                LinkDoSite(titulo: "Definir limite", caminho: "/orcamentos")
+                NavigationLink("Definir limite", value: TelaDeOrganizacao.orcamento)
                 Spacer()
                 Button("Ver gastos") { irPara(.gastos) }
             }
@@ -217,51 +213,59 @@ struct CartaoDoMes: View {
     }
 }
 
-/// Contas bancarias do Open Finance: saldos, atualizar e desconectar. Conectar abre o site,
-/// que tem o widget da Pluggy.
+/// Contas bancarias do Open Finance: saldos, atualizar, desconectar e conectar um banco
+/// (no navegador do sistema, D-091). No Painel e em Cartoes e bancos.
 struct CartaoDosBancos: View {
-    let modelo: ModeloDoPainel
+    let openFinance: OpenFinance
+    let ehPremium: Bool
 
     @State private var desconectando: (conexaoId: String, instituicao: String)?
+    @State private var pedindoAutorizacao = false
+    @Environment(\.webAuthenticationSession) private var sessaoWeb
     @Environment(\.paleta) private var paleta
 
     var body: some View {
         Cartao("Contas bancárias") {
             HStack(spacing: 6) {
-                ForEach(modelo.saldoPorMoeda, id: \.moeda) { total in
+                ForEach(openFinance.saldoPorMoeda, id: \.moeda) { total in
                     Etiqueta(texto: Formatos.moeda(total.total, codigo: total.moeda))
                 }
             }
         } conteudo: {
-            if let erro = modelo.erroDosBancos {
+            if let erro = openFinance.erro {
                 Faixa(texto: erro, tipo: .erro)
             }
-            if modelo.contasBancarias.isEmpty {
+            if openFinance.contas.isEmpty {
                 Text("Nenhum banco conectado.").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
             }
-            ForEach(modelo.contasBancarias) { conta in
+            ForEach(openFinance.contas) { conta in
                 LinhaDoCartao(titulo: conta.nome,
                               detalhe: [conta.instituicao, conta.numero ?? ""].filter { !$0.isEmpty }.joined(separator: " · ")) {
                     Text(Formatos.moeda(conta.saldo, codigo: conta.moeda)).monospacedDigit()
                 }
             }
-            ForEach(modelo.bancos, id: \.conexaoId) { banco in
+            ForEach(openFinance.bancos, id: \.conexaoId) { banco in
                 HStack {
                     Text("\(banco.instituicao) conectado").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
                     Spacer()
                     Button("Desconectar") { desconectando = banco }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .disabled(modelo.ocupadoComBancos)
+                        .disabled(openFinance.ocupado)
                 }
             }
+            if pedindoAutorizacao {
+                autorizacao
+            }
             HStack {
-                if modelo.ehPremium {
-                    LinkDoSite(titulo: "Conectar banco", caminho: "/painel")
-                    if !modelo.contasBancarias.isEmpty {
+                if ehPremium {
+                    Button(openFinance.ocupado ? "Aguarde..." : "Conectar banco") { pedindoAutorizacao = true }
+                        .buttonStyle(.bordered)
+                        .disabled(openFinance.ocupado)
+                    if !openFinance.contas.isEmpty {
                         Spacer()
-                        Button("Atualizar saldos") { Task { await modelo.sincronizarBancos() } }
-                            .disabled(modelo.ocupadoComBancos)
+                        Button("Atualizar saldos") { Task { await openFinance.sincronizar() } }
+                            .disabled(openFinance.ocupado)
                     }
                 } else {
                     LinkDoSite(titulo: "Conectar banco com o Premium", caminho: "/plano")
@@ -275,11 +279,37 @@ struct CartaoDosBancos: View {
             titleVisibility: .visible
         ) {
             Button("Desconectar", role: .destructive) {
-                if let banco = desconectando { Task { await modelo.desconectarBanco(banco.conexaoId) } }
+                if let banco = desconectando { Task { await openFinance.desconectar(banco.conexaoId) } }
             }
         } message: {
             Text("O Piggu para de ler este banco e apaga os saldos guardados.")
         }
+    }
+
+    /// Cada banco e um compartilhamento novo: a autorizacao e pedida toda vez, com o texto do site.
+    private var autorizacao: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance. Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e autoriza o compartilhamento das contas e saldos. Você pode desconectar quando quiser, de graça. Detalhes no [Aviso de Privacidade](piggu://privacidade).")
+                .font(.sora(.footnote))
+            HStack {
+                Button("Autorizo, continuar") {
+                    pedindoAutorizacao = false
+                    Task {
+                        await openFinance.conectar { pagina in
+                            try await sessaoWeb.authenticate(using: pagina, callbackURLScheme: "piggu",
+                                                             preferredBrowserSession: .ephemeral)
+                        }
+                    }
+                }
+                .botaoPrincipal()
+                Button("Cancelar") { pedindoAutorizacao = false }
+                    .buttonStyle(.bordered)
+            }
+        }
+        .padding(12)
+        .background(paleta.alertaSuave, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Autorizar conexão com o banco")
     }
 }
 
@@ -582,7 +612,7 @@ struct CartaoDasNotas: View {
     var body: some View {
         let recentes = (modelo.notas ?? []).sorted { $0.criadoEm > $1.criadoEm }.prefix(5)
         Cartao("Suas notas") {
-            LinkDoSite(titulo: "Ver todas", caminho: "/calendario").font(.sora(.footnote)).labelStyle(.titleOnly)
+            NavigationLink("Ver todas", value: TelaDeOrganizacao.calendario).font(.sora(.footnote))
         } conteudo: {
             if let erro = modelo.erros[.notas] {
                 Faixa(texto: erro, tipo: .erro)

@@ -18,6 +18,24 @@ struct DadosDaDemonstracao {
     var notas: [[String: Any]]
     var regras: [[String: Any]] = [["id": novoId(), "termo": "Uber", "categoria": "Transporte"]]
     var limites: [String: Double]
+    var contasDoMes: [[String: Any]] = [
+        ["id": "cf-aluguel", "descricao": "Aluguel", "categoria": "Casa", "valor": 1800.0, "dia": 5, "automatico": true],
+        ["id": "cf-luz", "descricao": "Conta de luz", "categoria": "Casa", "valor": 189.32, "dia": 12, "automatico": false],
+        ["id": "cf-internet", "descricao": "Internet", "categoria": "Casa", "valor": 119.9, "dia": 28, "automatico": false],
+        ["id": "cf-academia", "descricao": "Academia", "categoria": "Saúde", "valor": 99.0, "dia": 30, "automatico": true],
+    ]
+    /// "id/aaaa-mm" das contas do mes ja pagas.
+    var contasPagas: Set<String> = []
+    var orcamentos: [[String: Any]] = [
+        ["id": "o-mercado", "categoria": "Mercado", "limite": 380.0],
+        ["id": "o-lazer", "categoria": "Lazer", "limite": 250.0],
+    ]
+    var contas: [[String: Any]] = [
+        ["id": cartao, "nome": "Nubank roxinho", "tipo": "CARTAO", "fechamento": 3, "vencimento": 10, "compartilhado": false],
+        ["id": banco, "nome": "Conta do Itaú", "tipo": "CONTA", "compartilhado": true],
+    ]
+    /// "id/aaaa-mm" das faturas marcadas como pagas.
+    var faturasPagas: Set<String> = []
     var contasBancarias: [[String: Any]] = [
         ["id": novoId(), "conexaoId": "cx1", "instituicao": "Nubank", "nome": "Conta corrente", "tipo": "BANK",
          "numero": "0001-9", "saldo": 4210.55, "moeda": "BRL", "status": "UPDATED"],
@@ -75,6 +93,8 @@ struct DadosDaDemonstracao {
         notas = []
         regras = []
         limites = [:]
+        contasDoMes = []
+        orcamentos = []
     }
 
     private static func objetivo(nome: String, alvo: Double, guardado: Double, prazo: String?,
@@ -89,6 +109,79 @@ struct DadosDaDemonstracao {
             "porMes": meses.map { (falta / Double($0) * 100).rounded() / 100 } as Any? ?? NSNull(),
             "concluido": falta == 0, "atrasado": false, "usuario": TransporteDeDemonstracao.idDaPessoa,
             "compartilhado": false,
+        ]
+    }
+
+    static func somar(_ meses: Int, a mes: String) -> String {
+        let partes = mes.split(separator: "-").compactMap { Int($0) }
+        let total = partes[0] * 12 + partes[1] - 1 + meses
+        return String(format: "%04d-%02d", total / 12, total % 12 + 1)
+    }
+
+    private func contaDoMes(_ conta: [String: Any], mes: String) -> [String: Any] {
+        let dia = min(conta["dia"] as? Int ?? 1, 28)
+        let vencimento = String(format: "%@-%02d", mes, dia)
+        let paga = contasPagas.contains("\(conta["id"] ?? "")/\(mes)")
+        var linha = conta
+        linha["vencimento"] = vencimento
+        linha["situacao"] = paga ? "PAGA" : vencimento < Formatos.dia(Date()) ? "VENCIDA" : "PENDENTE"
+        linha["tipo"] = "GASTO"
+        return linha
+    }
+
+    private func mesDaFatura(_ conta: [String: Any], compra: String) -> String? {
+        guard let fechamento = conta["fechamento"] as? Int, let vencimento = conta["vencimento"] as? Int else { return nil }
+        return FaturaDoCartao.daCompra(fechamento: fechamento, vencimento: vencimento, compra: compra)?.mes
+    }
+
+    private func fatura(_ conta: [String: Any], mes: String, gastos: [[String: Any]]) -> [String: Any] {
+        let fechamento = conta["fechamento"] as? Int ?? 1
+        let vencimento = conta["vencimento"] as? Int ?? 10
+        let total = gastos.filter { $0["contaId"] as? String == conta["id"] as? String
+            && ($0["data"] as? String).flatMap { mesDaFatura(conta, compra: $0) } == mes }
+            .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
+        let id = conta["id"] as? String ?? ""
+        let paga = faturasPagas.contains { $0.hasPrefix(id + "/") && String($0.dropFirst(id.count + 1)) >= mes }
+        return [
+            "mes": mes,
+            "inicio": String(format: "%@-%02d", Self.somar(-1, a: mes), fechamento),
+            "ultimaCompra": String(format: "%@-%02d", mes, max(fechamento - 1, 1)),
+            "fechamento": String(format: "%@-%02d", mes, fechamento),
+            "vencimento": String(format: "%@-%02d", vencimento > fechamento ? mes : Self.somar(1, a: mes), vencimento),
+            "total": total, "paga": paga,
+        ]
+    }
+
+    private func relatorioDoAno(_ ano: Int, gastos: [[String: Any]]) -> [String: Any] {
+        let hoje = Formatos.mes(Date())
+        var porCategoria: [String: Double] = [:]
+        let meses: [[String: Any]] = (1...12).map { numero in
+            let mes = String(format: "%04d-%02d", ano, numero)
+            var receitasDoMes = 0.0
+            var gastosDoMes = 0.0
+            if mes == hoje {
+                receitasDoMes = receitas.filter { ($0["data"] as? String)?.hasPrefix(mes) == true }
+                    .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
+                for gasto in gastos where (gasto["data"] as? String)?.hasPrefix(mes) == true {
+                    gastosDoMes += gasto["valor"] as? Double ?? 0
+                    porCategoria[gasto["categoria"] as? String ?? "Outros", default: 0] += gasto["valor"] as? Double ?? 0
+                }
+            } else if mes < hoje {
+                // Meses passados inventados, para o grafico do ano ter forma.
+                receitasDoMes = 5200
+                gastosDoMes = 3100 + Double((numero * 389) % 1300)
+                for (categoria, parte) in [("Casa", 0.4), ("Mercado", 0.25), ("Transporte", 0.15), ("Lazer", 0.12), ("Saúde", 0.08)] {
+                    porCategoria[categoria, default: 0] += gastosDoMes * parte
+                }
+            }
+            return ["mes": mes, "receitas": receitasDoMes, "gastos": gastosDoMes, "sobra": receitasDoMes - gastosDoMes]
+        }
+        let receitas = meses.reduce(0.0) { $0 + ($1["receitas"] as? Double ?? 0) }
+        let gastosDoAno = meses.reduce(0.0) { $0 + ($1["gastos"] as? Double ?? 0) }
+        return [
+            "ano": ano, "receitas": receitas, "gastos": gastosDoAno, "sobra": receitas - gastosDoAno, "meses": meses,
+            "porCategoria": porCategoria.sorted { $0.value > $1.value }
+                .map { ["categoria": $0.key, "total": ($0.value * 100).rounded() / 100] },
         ]
     }
 
@@ -127,11 +220,20 @@ struct DadosDaDemonstracao {
         case ("GET", "bills") where consulta("tipo") == "RECEITA":
             return (200, recorrentes)
         case ("GET", "bills"):
-            let conta: [String: Any] = [
-                "id": Self.novoId(), "descricao": "Internet", "categoria": "Casa", "valor": 119.9, "dia": 28,
-                "automatico": false, "vencimento": "\(mes)-28", "situacao": "PENDENTE", "tipo": "GASTO",
-            ]
-            return (200, receitas.isEmpty ? [] : [conta])
+            return (200, contasDoMes.map { contaDoMes($0, mes: mes) })
+        case ("POST", "bills"):
+            var nova = corpo
+            nova["id"] = Self.novoId()
+            contasDoMes.append(nova)
+            return (201, nil)
+        case ("POST", _) where partes.count == 3 && partes[0] == "bills" && partes[2] == "pay":
+            let chave = "\(partes[1])/\(mes)"
+            guard !contasPagas.contains(chave) else {
+                return (422, ["erro": "Esta conta já foi lançada neste mês.", "codigo": "JA_PAGA"])
+            }
+            contasPagas.insert(chave)
+            return (201, ["id": Self.novoId(), "data": Formatos.dia(Date()), "item": "Conta", "categoria": "Casa",
+                          "valor": 0, "usuario": eu])
         case ("GET", "incomes/receivables"):
             return (200, aReceber)
         case ("POST", "incomes/receivables"):
@@ -154,6 +256,7 @@ struct DadosDaDemonstracao {
         case ("DELETE", _) where partes.count == 2 && partes[0] == "incomes":
             return remover(&receitas)
         case ("DELETE", _) where partes.count == 2 && partes[0] == "bills":
+            contasDoMes.removeAll { $0["id"] as? String == partes[1] }
             return remover(&recorrentes)
         case ("GET", "monthly-goals"):
             return (200, limites)
@@ -199,28 +302,88 @@ struct DadosDaDemonstracao {
         case ("GET", "notes"):
             return (200, notas)
         case ("POST", "notes"):
+            let valor = (corpo["valor"] as? NSNumber)?.doubleValue ?? 0
             let nota: [String: Any] = [
                 "id": Self.novoId(), "titulo": corpo["titulo"] ?? "", "texto": corpo["texto"] ?? NSNull(),
-                "data": NSNull(), "criadoEm": ISO8601DateFormatter().string(from: Date()),
+                "data": corpo["data"] ?? NSNull(), "valor": valor, "categoria": corpo["categoria"] ?? NSNull(),
+                "gastoId": valor > 0 ? Self.novoId() : NSNull(),
+                "criadoEm": ISO8601DateFormatter().string(from: Date()),
             ]
             notas.append(nota)
             return (201, nota)
         case ("DELETE", _) where partes.count == 2 && partes[0] == "notes":
             return remover(&notas)
         case ("GET", "budgets"):
-            let mercado = gastos.filter { $0["categoria"] as? String == "Mercado" && ($0["data"] as? String)?.hasPrefix(mes) == true }
-                .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
-            guard mercado > 0 else { return (200, [Any]()) }
-            return (200, [["id": "o1", "categoria": "Mercado", "limite": 380.0, "gasto": mercado,
-                           "percentual": (mercado / 380 * 100).rounded(), "alerta": mercado > 380 ? "ESTOUROU" : mercado > 304 ? "ATENCAO" : "OK"]])
+            return (200, orcamentos.map { orcamento in
+                let categoria = orcamento["categoria"] as? String
+                let gasto = gastos.filter { $0["categoria"] as? String == categoria && ($0["data"] as? String)?.hasPrefix(mes) == true }
+                    .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
+                let limite = orcamento["limite"] as? Double ?? 1
+                let percentual = (gasto / limite * 1000).rounded() / 10
+                var linha = orcamento
+                linha["gasto"] = gasto
+                linha["percentual"] = percentual
+                linha["alerta"] = percentual >= 100 ? "ESTOUROU" : percentual >= 80 ? "ATENCAO" : "OK"
+                return linha
+            })
+        case ("PUT", "budgets"):
+            orcamentos.removeAll { $0["categoria"] as? String == corpo["categoria"] as? String }
+            orcamentos.append(["id": Self.novoId(), "categoria": corpo["categoria"] ?? "",
+                               "limite": (corpo["limite"] as? NSNumber)?.doubleValue ?? 0])
+            return (204, nil)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "budgets":
+            return remover(&orcamentos)
+        case ("PUT", "monthly-goals"):
+            if let mes = corpo["mes"] as? String { limites[mes] = (corpo["limite"] as? NSNumber)?.doubleValue }
+            return (200, limites)
+        case ("GET", "reports/year"):
+            return (200, relatorioDoAno(Int(consulta("ano") ?? "") ?? 2026, gastos: gastos))
+        case ("GET", "expenses/export"):
+            let linhas = gastos.filter { ($0["data"] as? String)?.hasPrefix(mes) == true }.map { gasto in
+                ["data", "item", "categoria", "estabelecimento"].map { "\(gasto[$0] ?? "")" }.joined(separator: ";")
+                    + ";" + String(format: "%.2f", gasto["valor"] as? Double ?? 0).replacingOccurrences(of: ".", with: ",")
+            }
+            return (200, Data((["data;item;categoria;estabelecimento;valor"] + linhas).joined(separator: "\n").utf8))
         case ("GET", "accounts"):
-            let vencimento = Formatos.dia(Calendar.current.date(byAdding: .day, value: 5, to: Date())!)
-            return (200, [
-                ["id": Self.cartao, "nome": "Nubank roxinho", "tipo": "CARTAO", "fechamento": 3, "vencimento": 10,
-                 "faturaAPagar": ["mes": mes, "vencimento": vencimento, "total": 1234.56], "usuario": eu],
-                ["id": Self.banco, "nome": "Conta do Itaú", "tipo": "CONTA", "fechamento": NSNull(),
-                 "vencimento": NSNull(), "faturaAPagar": NSNull(), "usuario": eu],
-            ])
+            return (200, contas.map { conta in
+                var linha = conta
+                linha["usuario"] = eu
+                if let aberta = mesDaFatura(conta, compra: Formatos.dia(Date())) {
+                    linha["faturaAberta"] = fatura(conta, mes: aberta, gastos: gastos)
+                    linha["faturaAPagar"] = fatura(conta, mes: Self.somar(-1, a: aberta), gastos: gastos)
+                }
+                return linha
+            })
+        case ("POST", "accounts"):
+            var nova = corpo
+            nova["id"] = Self.novoId()
+            contas.append(nova)
+            return (201, nova)
+        case ("PUT", _) where partes.count == 3 && partes[0] == "accounts" && partes[2] == "sharing":
+            if let indice = contas.firstIndex(where: { $0["id"] as? String == partes[1] }) {
+                contas[indice]["compartilhado"] = corpo["compartilhado"]
+            }
+            return (204, nil)
+        case ("DELETE", _) where partes.count == 2 && partes[0] == "accounts":
+            return remover(&contas)
+        case ("GET", _) where partes.count == 3 && partes[0] == "accounts" && partes[2] == "statement":
+            guard let conta = contas.first(where: { $0["id"] as? String == partes[1] }) else { return (404, nil) }
+            let doMes = gastos.filter { $0["contaId"] as? String == partes[1]
+                && ($0["data"] as? String).flatMap { mesDaFatura(conta, compra: $0) } == mes }
+            return (200, ["fatura": fatura(conta, mes: mes, gastos: gastos), "gastos": doMes])
+        case ("PUT", _) where partes.count == 4 && partes[2] == "statement":
+            faturasPagas.insert("\(partes[1])/\(mes)")
+            return (204, nil)
+        case ("DELETE", _) where partes.count == 4 && partes[2] == "statement":
+            faturasPagas = faturasPagas.filter { !$0.hasPrefix(partes[1]) || $0 < "\(partes[1])/\(mes)" }
+            return (204, nil)
+        case ("POST", "banking/connect-token"):
+            return (201, ["accessToken": "demo-connect", "sandbox": true])
+        case ("POST", "banking/items"):
+            contasBancarias.append(["id": Self.novoId(), "conexaoId": "cx2", "instituicao": "Banco do Brasil",
+                                    "nome": "Conta corrente", "tipo": "BANK", "numero": "1234-5", "saldo": 880.0,
+                                    "moeda": "BRL", "status": "UPDATED"])
+            return (201, contasBancarias)
         case ("GET", "exchange-rate"):
             let de = consulta("de") ?? "USD"
             let taxas = ["USD": 5.42, "EUR": 6.12, "GBP": 7.05, "ARS": 0.0054, "BRL": 1.0]

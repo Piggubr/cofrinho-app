@@ -15,6 +15,8 @@ struct PrincipalView: View {
     /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
     @State private var versaoDosDados = 0
     @State private var aviso: String?
+    /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
+    @State private var caminhoDoMais: [TelaDeOrganizacao] = []
 
     var body: some View {
         abas
@@ -62,7 +64,7 @@ struct PrincipalView: View {
                 Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
                 Tab("Receitas", systemImage: "arrow.down.circle.fill", value: Aba.receitas) { receitas }
                 Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
-                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView() }
+                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: $caminhoDoMais) }
             }
             .tabViewStyle(.sidebarAdaptable)
             .minimizarAbasAoRolar()
@@ -80,7 +82,7 @@ struct PrincipalView: View {
                 relatorios
                     .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
                     .tag(Aba.relatorios)
-                MaisView()
+                MaisView(caminho: $caminhoDoMais)
                     .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
                     .tag(Aba.mais)
             }
@@ -112,6 +114,9 @@ struct PrincipalView: View {
         switch rota {
         case let .aba(destino):
             aba = destino
+        case let .organizacao(tela):
+            aba = .mais
+            caminhoDoMais = [tela]
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:

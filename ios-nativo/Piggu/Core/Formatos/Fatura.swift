@@ -3,6 +3,11 @@ import Foundation
 /// Em que fatura cai uma compra, com as mesmas regras do servidor e do site (core/ui/fatura.ts):
 /// antes do dia do fechamento, na fatura do mes; do fechamento em diante, na do mes seguinte.
 enum FaturaDoCartao {
+    /// Fechamento padrao: 7 dias antes do vencimento, voltando ao mes anterior quando preciso.
+    static func fechamentoPadrao(_ vencimento: Int) -> Int {
+        vencimento > 7 ? vencimento - 7 : vencimento + 24
+    }
+
     /// - Parameter compra: aaaa-mm-dd
     /// - Returns: o mes da fatura (aaaa-mm) e o vencimento dela (aaaa-mm-dd).
     static func daCompra(fechamento: Int, vencimento: Int, compra: String) -> (mes: String, vencimento: String)? {

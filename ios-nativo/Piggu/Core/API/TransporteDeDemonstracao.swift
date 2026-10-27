@@ -9,7 +9,8 @@ import Foundation
 /// 500 e o mes sem nenhum gasto, para ver os estados das telas.
 ///
 /// `-PigguDemoConta termos|sobre-voce|cpf|email` abre a conta com o que falta nela: os Termos
-/// mudaram, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar. Na demonstracao,
+/// mudaram, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar; `premium` abre no
+/// Premium (relatorio do ano, limite por categoria, conectar banco). Na demonstracao,
 /// a Apple e o Google sempre criam conta nova (pedem o aceite), e o token "vencido" nos links
 /// do e-mail responde LINK_INVALIDO.
 actor TransporteDeDemonstracao: Transporte {
@@ -40,6 +41,8 @@ actor TransporteDeDemonstracao: Transporte {
             usuario["cpfInformado"] = false
         case "email":
             usuario["emailConfirmado"] = false
+        case "premium":
+            usuario["plano"] = "PREMIUM"
         default:
             break
         }
@@ -309,10 +312,12 @@ actor TransporteDeDemonstracao: Transporte {
     }
 
     private func responder(_ url: URL, _ status: Int, _ corpo: Any?) -> (Data, HTTPURLResponse) {
-        let dados = corpo.flatMap { try? JSONSerialization.data(withJSONObject: $0) } ?? Data()
+        // Data ja pronta e texto (o CSV da exportacao); o resto vira JSON.
+        let texto = corpo as? Data
+        let dados = texto ?? corpo.flatMap { try? JSONSerialization.data(withJSONObject: $0) } ?? Data()
         let resposta = HTTPURLResponse(
             url: url, statusCode: status, httpVersion: "HTTP/1.1",
-            headerFields: ["Content-Type": "application/json"])!
+            headerFields: ["Content-Type": texto == nil ? "application/json" : "text/csv"])!
         return (dados, resposta)
     }
 }

@@ -178,16 +178,27 @@ actor ClienteDaAPI {
     func post<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(
         _ caminho: String,
         corpo: Corpo,
+        query: [String: String?] = [:],
         aberta: Bool = false
     ) async throws -> Resposta {
-        try await enviar("POST", caminho, corpo: corpo, aberta: aberta)
+        try await enviar("POST", caminho, corpo: corpo, query: query, aberta: aberta)
+    }
+
+    /// PUT sem corpo (marcar a fatura como paga): o que importa vai na query.
+    func put(_ caminho: String, query: [String: String?]) async throws {
+        _ = try await executar(metodo: "PUT", caminho: caminho, query: query, corpo: nil, aberta: false)
+    }
+
+    /// A resposta como veio (o CSV dos gastos), sem decodificar.
+    func dados(_ caminho: String, query: [String: String?] = [:]) async throws -> Data {
+        try await executar(metodo: "GET", caminho: caminho, query: query, corpo: nil, aberta: false)
     }
 
     func put<Corpo: Encodable & Sendable, Resposta: Decodable & Sendable>(
         _ caminho: String,
         corpo: Corpo
     ) async throws -> Resposta {
-        try await enviar("PUT", caminho, corpo: corpo, aberta: false)
+        try await enviar("PUT", caminho, corpo: corpo, query: [:], aberta: false)
     }
 
     func delete(_ caminho: String, query: [String: String?] = [:]) async throws {
@@ -204,10 +215,11 @@ actor ClienteDaAPI {
         _ metodo: String,
         _ caminho: String,
         corpo: Corpo,
+        query: [String: String?],
         aberta: Bool
     ) async throws -> Resposta {
         let json = try codificador.encode(corpo)
-        let dados = try await executar(metodo: metodo, caminho: caminho, query: [:], corpo: json, aberta: aberta)
+        let dados = try await executar(metodo: metodo, caminho: caminho, query: query, corpo: json, aberta: aberta)
         return try decodificar(dados)
     }
 

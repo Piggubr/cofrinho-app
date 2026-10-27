@@ -211,6 +211,59 @@ struct NovaReceita: Codable, Sendable {
     let valor: Decimal
     let compartilhado: Bool
     let recorrente: Bool
+    /// So na recorrente em duas parcelas (D-087).
+    var segundoDia: Int?
+    var segundoValor: Decimal?
+}
+
+/// POST /bills.
+struct NovaContaFixa: Codable, Sendable {
+    let descricao: String
+    let categoria: String
+    let valor: Decimal
+    let dia: Int
+    let automatico: Bool
+}
+
+/// POST /accounts.
+struct NovaConta: Codable, Sendable {
+    let nome: String
+    let tipo: ContaOuCartao.Tipo
+    let fechamento: Int?
+    let vencimento: Int?
+    let compartilhado: Bool
+}
+
+/// O ano mes a mes e por categoria (Premium).
+struct RelatorioDoAno: Codable, Equatable, Sendable {
+    struct Mes: Codable, Equatable, Sendable, Identifiable {
+        let mes: String
+        let receitas: Decimal
+        let gastos: Decimal
+        let sobra: Decimal
+
+        var id: String { mes }
+    }
+
+    struct Categoria: Codable, Equatable, Sendable, Identifiable {
+        let categoria: String
+        let total: Decimal
+
+        var id: String { categoria }
+    }
+
+    let ano: Int
+    let receitas: Decimal
+    let gastos: Decimal
+    let sobra: Decimal
+    let meses: [Mes]
+    let porCategoria: [Categoria]
+}
+
+/// Token de 30 minutos que abre o widget da Pluggy.
+struct ConnectToken: Codable, Sendable {
+    let accessToken: String
+    let sandbox: Bool
 }
 
 /// Dinheiro que alguem deve a pessoa; so vira receita no "Recebi".
@@ -245,6 +298,9 @@ struct ContaFixa: Codable, Identifiable, Equatable, Sendable {
     let vencimento: String
     let situacao: Situacao
     let tipo: String?
+    /// Segunda parcela da receita (o salario do dia 20 e do dia 5), D-087.
+    let segundoDia: Int?
+    let segundoValor: Decimal?
     let contaId: String?
     let usuario: String?
     let compartilhado: Bool?
@@ -252,8 +308,20 @@ struct ContaFixa: Codable, Identifiable, Equatable, Sendable {
 
 struct Fatura: Codable, Equatable, Sendable {
     let mes: String
+    /// Primeiro dia de compra desta fatura e a vespera do fechamento (a ultima que entra nela).
+    let inicio: String?
+    let ultimaCompra: String?
+    let fechamento: String?
     let vencimento: String
     let total: Decimal
+    /// Marcada como paga (ela ou uma seguinte): sai do "a pagar"; os gastos nao mudam (D-085).
+    let paga: Bool?
+}
+
+/// GET /accounts/{id}/statement: a fatura do mes e os gastos dela.
+struct FaturaComGastos: Codable, Sendable {
+    let fatura: Fatura
+    let gastos: [Gasto]
 }
 
 struct ContaOuCartao: Codable, Identifiable, Equatable, Sendable {
@@ -266,6 +334,7 @@ struct ContaOuCartao: Codable, Identifiable, Equatable, Sendable {
     let tipo: Tipo
     let fechamento: Int?
     let vencimento: Int?
+    let faturaAberta: Fatura?
     let faturaAPagar: Fatura?
     let usuario: String?
     let compartilhado: Bool?
@@ -322,12 +391,19 @@ struct Nota: Codable, Identifiable, Equatable, Sendable {
     let titulo: String
     let texto: String?
     let data: String?
+    /// Com valor, a nota lancou um gasto junto (`gastoId`); apagar a nota apaga o gasto.
+    var valor: Decimal?
+    var categoria: String?
+    var gastoId: String?
     let criadoEm: String
 }
 
 struct NovaNota: Codable, Sendable {
     let titulo: String
     let texto: String?
+    var data: String?
+    var valor: Decimal?
+    var categoria: String?
 }
 
 struct Orcamento: Codable, Identifiable, Equatable, Sendable {
