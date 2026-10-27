@@ -19,7 +19,8 @@ concurrency:
 jobs:
   testes:
     name: Build e testes no simulador de iPhone
-    runs-on: macos-latest
+    # O app usa APIs do iOS 27 (reordenar o Painel) e o archive sai do Xcode 27; o macos-latest ainda tem o 26 (D-096).
+    runs-on: xcode-27
     defaults:
       run:
         working-directory: ios-nativo
