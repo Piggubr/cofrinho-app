@@ -37,7 +37,7 @@ struct FilmesView: View {
                 if let sorteado {
                     cartaoDoCatalogo(sorteado, destaque: true)
                 }
-                HStack {
+                LadoALado {
                     TextField("Buscar filme", text: $busca, prompt: Text("Nome do filme"))
                         .submitLabel(.search)
                         .onSubmit { Task { await buscar() } }
@@ -216,7 +216,7 @@ private struct LinhaDoFilme<Acoes: View>: View {
     @Environment(\.paleta) private var paleta
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        LadoALado(alinhamento: .top, espaco: 12) {
             Miniatura(url: filme.poster, simbolo: "film", lado: 52)
             VStack(alignment: .leading, spacing: 2) {
                 Text(filme.titulo).font(.sora(.subheadline, peso: .semibold))
@@ -237,15 +237,26 @@ struct Estrelas: View {
     @Environment(\.paleta) private var paleta
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 0) {
             ForEach(1...5, id: \.self) { valor in
                 Button { aoEscolher(valor) } label: {
                     Image(systemName: nota >= valor ? "star.fill" : "star")
                         .foregroundStyle(nota >= valor ? paleta.alerta : paleta.textoSuave)
+                        .frame(minWidth: 34, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel("Nota \(valor)")
-                .accessibilityAddTraits(nota == valor ? .isSelected : [])
+            }
+        }
+        // Um elemento so para o VoiceOver: desliza para cima ou para baixo para mudar a nota.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Nota")
+        .accessibilityValue(nota == 0 ? String(localized: "sem nota") : String(localized: "\(nota) de 5"))
+        .accessibilityAdjustableAction { direcao in
+            switch direcao {
+            case .increment: if nota < 5 { aoEscolher(nota + 1) }
+            case .decrement: if nota > 1 { aoEscolher(nota - 1) }
+            @unknown default: break
             }
         }
     }

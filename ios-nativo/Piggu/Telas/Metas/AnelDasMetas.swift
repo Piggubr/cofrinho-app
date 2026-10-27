@@ -25,6 +25,8 @@ struct AnelDasMetas: View {
                 Text("\(percentual)%").font(.sora(pequeno ? .title3 : .title, peso: .bold)).monospacedDigit()
                 Text("concluído").font(.sora(.caption)).foregroundStyle(paleta.textoSuave)
             }
+            // O anel tem tamanho fixo; o VoiceOver le o numero pelo rotulo do anel.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             Image("PigguLove")
                 .resizable()
                 .scaledToFit()

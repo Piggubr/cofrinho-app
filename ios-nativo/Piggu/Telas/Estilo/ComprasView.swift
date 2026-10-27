@@ -27,7 +27,7 @@ struct ComprasView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                HStack {
+                LadoALado {
                     TextField("Item", text: $item, prompt: Text("Ex.: Ovos"))
                         .onChange(of: item) { _, novo in if novo.count > 150 { item = String(novo.prefix(150)) } }
                     TextField("Quantidade", text: $quantidade, prompt: Text("Ex.: 12"))
@@ -35,7 +35,7 @@ struct ComprasView: View {
                         .onChange(of: quantidade) { _, novo in if novo.count > 50 { quantidade = String(novo.prefix(50)) } }
                 }
                 Button("Adicionar") { Task { await adicionar() } }
-                HStack {
+                LadoALado {
                     TextField("Buscar no catálogo", text: $busca, prompt: Text("Nome do produto"))
                         .submitLabel(.search)
                         .onSubmit { Task { await buscar() } }

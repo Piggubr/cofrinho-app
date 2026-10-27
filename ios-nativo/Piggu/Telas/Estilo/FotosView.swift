@@ -7,6 +7,7 @@ struct FotosView: View {
     @Environment(Sessao.self) private var sessao
     @Environment(MonitorDeRede.self) private var rede
     @Environment(\.paleta) private var paleta
+    @Environment(\.dynamicTypeSize) private var tamanhoDoTexto
     @State private var mes = Date()
     @State private var carga: Carga<[FotoDoFeed]> = .carregando
     @State private var legendas: [String: String] = [:]
@@ -41,7 +42,7 @@ struct FotosView: View {
                         EstadoVazio(icone: "photo", titulo: "Nenhuma foto neste mês ainda",
                                     texto: "As fotos do mês contam a história do que vocês viveram.")
                     } else {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: tamanhoDoTexto.isAccessibilitySize ? 280 : 160), spacing: 12)], spacing: 12) {
                             ForEach(fotos) { cartao($0) }
                         }
                     }
@@ -75,7 +76,9 @@ struct FotosView: View {
                     .submitLabel(.done)
                     .onSubmit { Task { await legendar(foto) } }
                     .accessibilityLabel("Legenda da foto")
-                Button(role: .destructive) { apagando = foto } label: { Image(systemName: "trash") }
+                Button(role: .destructive) { apagando = foto } label: {
+                    Image(systemName: "trash").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                }
                     .buttonStyle(.borderless).accessibilityLabel("Apagar")
             }
         }

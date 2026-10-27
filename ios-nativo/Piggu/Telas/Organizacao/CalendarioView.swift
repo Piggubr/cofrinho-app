@@ -216,6 +216,8 @@ private struct GradeDoMes: View {
             }
         }
         .padding(.vertical, 4)
+        // Sete colunas no iPhone: acima disso o dia de dois digitos quebra. O VoiceOver le cada dia.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 
     private func celula(_ dia: String, hoje: String) -> some View {

@@ -85,7 +85,7 @@ struct PerfilView: View {
 
     private func identidade(_ usuario: Usuario) -> some View {
         Section {
-            HStack(spacing: 16) {
+            LadoALado(espaco: 16) {
                 FotoDaPessoa(foto: usuario.foto, nome: usuario.nome, lado: 76)
                     .overlay(alignment: .bottomTrailing) {
                         Image(systemName: "camera.fill").font(.caption).padding(6)
@@ -111,7 +111,7 @@ struct PerfilView: View {
                     Task { await atualizar(String(localized: "Foto removida.")) { try await $0.removerFoto() } }
                 }
             }
-            HStack {
+            LadoALado {
                 TextField("Como quer ser chamado?", text: $apelido)
                     .textContentType(.nickname)
                     .onChange(of: apelido) { _, novo in if novo.count > 120 { apelido = String(novo.prefix(120)) } }
@@ -162,7 +162,7 @@ struct PerfilView: View {
         Section {
             Toggle("Por e-mail, para \(usuario.email)", isOn: Binding(
                 get: { avisoPorEmail }, set: { avisoPorEmail = $0; Task { await salvarAvisos() } }))
-            Toggle("Notificação neste iPhone", isOn: Binding(
+            Toggle("Notificação neste aparelho", isOn: Binding(
                 get: { avisoNoCelular }, set: { avisoNoCelular = $0; Task { await salvarAvisos() } }))
         } header: {
             Text("Avisos")
@@ -175,7 +175,7 @@ struct PerfilView: View {
     /// Travar com Face ID (ou Touch ID, ou o codigo) ao abrir e ao voltar do fundo.
     private var seguranca: some View {
         Section {
-            Toggle("Travar com \(trava.nomeDaBiometria ?? String(localized: "o código do iPhone"))", isOn: Binding(
+            Toggle("Travar com \(trava.nomeDaBiometria ?? String(localized: "o código do aparelho"))", isOn: Binding(
                 get: { trava.ligada }, set: { novo in Task { await trava.ligar(novo) } }))
         } header: {
             Text("Segurança")
@@ -197,7 +197,7 @@ struct PerfilView: View {
         let email = avisoPorEmail
         await atualizar(recusou ? nil : String(localized: "Avisos salvos.")) { try await $0.salvarAvisos(email: email, push: push) }
         if recusou {
-            erro = String(localized: "Permita as notificações do Piggu nos Ajustes do iPhone e tente de novo.")
+            erro = String(localized: "Permita as notificações do Piggu nos Ajustes do aparelho e tente de novo.")
         } else if erro != nil {
             // A chave volta para o que esta gravado: nao pode ficar ligada sem ter salvo.
             avisoPorEmail = sessao.usuario?.avisos?.email ?? false
@@ -283,7 +283,7 @@ struct PerfilView: View {
             if UIApplication.shared.supportsAlternateIcons {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Ícone do app").font(.sora(.subheadline, peso: .semibold))
-                    Text("No modo escuro o iPhone usa a versão escura de cada ícone. O sistema avisa a cada troca.")
+                    Text("No modo escuro o aparelho usa a versão escura de cada ícone. O sistema avisa a cada troca.")
                         .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 12)], spacing: 12) {
                         ForEach(IconeDoApp.allCases) { icone in

@@ -72,6 +72,9 @@
     "%lld" : {
 
     },
+    "%lld de 5" : {
+
+    },
     "%lld Fofocoins" : {
 
     },
@@ -285,6 +288,9 @@
     "Anote o que falta em casa e marque conforme for comprando." : {
 
     },
+    "Antes de começar, complete seu cadastro." : {
+
+    },
     "Antes de começar, conte como quer ser chamado." : {
 
     },
@@ -345,10 +351,10 @@
     "Assim que houver gastos, o relatório mostra para onde o dinheiro foi." : {
 
     },
-    "Assinado pelo Android. Para cancelar, use as assinaturas do Google Play." : {
+    "Assinado pela App Store. Troque de plano ou cancele nas assinaturas da App Store." : {
 
     },
-    "Assinado pelo iPhone. Troque de plano ou cancele nas assinaturas da App Store." : {
+    "Assinado pelo Android. Para cancelar, use as assinaturas do Google Play." : {
 
     },
     "Assinado pelo site. Para trocar o cartão, ver os recibos ou cancelar, entre no Piggu pelo navegador." : {
@@ -1149,6 +1155,9 @@
     "Fica guardado cifrado e não aparece para a sua família." : {
 
     },
+    "Fica guardado cifrado e não aparece para a sua família. Não muda depois." : {
+
+    },
     "Fica neste aparelho: o celular pode ter uma ordem e o computador outra." : {
 
     },
@@ -1300,6 +1309,9 @@
 
     },
     "Informe seu celular." : {
+
+    },
+    "Informe seu CPF." : {
 
     },
     "Informe seu e-mail e sua senha." : {
@@ -1605,7 +1617,7 @@
     "No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser." : {
 
     },
-    "No modo escuro o iPhone usa a versão escura de cada ícone. O sistema avisa a cada troca." : {
+    "No modo escuro o aparelho usa a versão escura de cada ícone. O sistema avisa a cada troca." : {
 
     },
     "Nome" : {
@@ -1632,16 +1644,13 @@
     "Nota" : {
 
     },
-    "Nota %lld" : {
-
-    },
     "Nota %lld de 5" : {
 
     },
     "Nota TMDB: %@" : {
 
     },
-    "Notificação neste iPhone" : {
+    "Notificação neste aparelho" : {
 
     },
     "Nova conta fixa" : {
@@ -1714,6 +1723,9 @@
 
     },
     "Não foi possível entrar." : {
+
+    },
+    "o código do aparelho" : {
 
     },
     "O Piggu está travado" : {
@@ -1884,7 +1896,7 @@
     "Perfil" : {
 
     },
-    "Permita as notificações do Piggu nos Ajustes do iPhone e tente de novo." : {
+    "Permita as notificações do Piggu nos Ajustes do aparelho e tente de novo." : {
 
     },
     "Personalizar o Painel" : {
@@ -2233,6 +2245,9 @@
 
     },
     "Sem limite definido para este mês." : {
+
+    },
+    "sem nota" : {
 
     },
     "Sempre usar %@ para \"%@\"?" : {
@@ -2647,9 +2662,6 @@
 
     },
     "o código" : {
-
-    },
-    "o código do iPhone" : {
 
     },
     "orçamento" : {

@@ -19,6 +19,7 @@ struct PrincipalView: View {
     /// Gasto achado no Spotlight, para a aba Gastos abrir.
     @State private var gastoParaAbrir: String?
     @Environment(\.scenePhase) private var fase
+    @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @State private var caminhoDoMais: [TelaDoMais] = []
 
@@ -35,7 +36,7 @@ struct PrincipalView: View {
                 if let aviso {
                     AvisoFlutuante(texto: aviso)
                         .padding(.top, 8)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(reduzirMovimento ? .opacity : .move(edge: .top).combined(with: .opacity))
                         .onTapGesture { self.aviso = nil }
                 }
             }

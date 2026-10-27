@@ -14,7 +14,7 @@ struct CartaoDoResumo: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            LadoALado {
                 Text("Sobra do mês")
                     .font(.sora(.subheadline, peso: .medium))
                     .opacity(0.85)
@@ -32,7 +32,7 @@ struct CartaoDoResumo: View {
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-            HStack(spacing: 10) {
+            LadoALado(espaco: 10) {
                 parcela("Receitas", resumo.receitas, icone: "chart.line.uptrend.xyaxis")
                 parcela("Gastos", resumo.gastos, icone: "wallet.pass")
             }
@@ -57,7 +57,7 @@ struct CartaoDoResumo: View {
     }
 
     private func parcela(_ rotulo: LocalizedStringKey, _ valor: Decimal, icone: String) -> some View {
-        HStack(spacing: 8) {
+        LadoALado(espaco: 8) {
             Image(systemName: icone)
                 .font(.footnote.weight(.semibold))
                 .frame(width: 30, height: 30)

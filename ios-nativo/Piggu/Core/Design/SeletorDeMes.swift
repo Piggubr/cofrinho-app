@@ -7,6 +7,7 @@ struct SeletorDeMes: View {
 
     @Namespace private var vidro
     @Environment(\.paleta) private var paleta
+    @Environment(\.dynamicTypeSize) private var tamanhoDoTexto
 
     private var ehMesAtual: Bool { Formatos.mes(mes) == Formatos.mes(Date()) }
 
@@ -14,11 +15,11 @@ struct SeletorDeMes: View {
         GrupoDeVidro(espaco: 6) {
             seta("chevron.left", rotulo: "Mês anterior", passo: -1)
                 .pigguVidro(em: Circle(), id: "anterior", namespace: vidro)
-            Text(Formatos.inicialMaiuscula(Formatos.nomeDoMes(mes)))
+            nomeDoMes
                 .font(.sora(.headline, peso: .semibold))
                 .contentTransition(.numericText())
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(tamanhoDoTexto.isAccessibilitySize ? 1 : 0.8)
                 .padding(.horizontal, 18)
                 .frame(minHeight: 44)
                 .pigguVidro(id: "mes", namespace: vidro)
@@ -34,6 +35,22 @@ struct SeletorDeMes: View {
         .animation(.smooth, value: mes)
         .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
+    }
+
+    /// "Outubro de 2026"; com o texto de acessibilidade, "Out. de 2026" ou "10/2026" para nao cortar.
+    @ViewBuilder
+    private var nomeDoMes: some View {
+        let completo = Formatos.inicialMaiuscula(Formatos.nomeDoMes(mes))
+        if tamanhoDoTexto.isAccessibilitySize {
+            ViewThatFits(in: .horizontal) {
+                Text(completo)
+                Text(Formatos.inicialMaiuscula(mes.formatted(.dateTime.month(.abbreviated).year().locale(Formatos.localidade))))
+                Text(mes.formatted(.dateTime.month(.twoDigits).year().locale(Formatos.localidade)))
+            }
+            .accessibilityLabel(completo)
+        } else {
+            Text(completo)
+        }
     }
 
     private func seta(_ simbolo: String, rotulo: LocalizedStringKey, passo: Int) -> some View {
