@@ -237,7 +237,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Onde ver: `ApiExceptionHandler`, `ContasFixasService.pagar`
 
 ## D-085: Fatura paga só sai do "a pagar"
-- Data: 27/10/2026
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
 - Situação: Valendo
 - Contexto: a tela de cartões mostrava o "a pagar" e o painel avisava a fatura vencendo mesmo depois de paga. Cada compra no cartão já conta nos Gastos e na Sobra no dia em que foi feita.
 - Decisão: "Marcar como paga" (`PUT /api/accounts/{id}/statement/paid?mes=AAAA-MM`) grava em `payment_accounts.last_paid_month` a última fatura paga, e as anteriores contam como pagas também, como em `recurring_bills`. Não lança gasto. A fatura ganha `paga`, e a paga sai do aviso do painel e do lembrete por e-mail e push. Desfazer (`DELETE`, mesma rota) volta a marca para o mês anterior, então as faturas seguintes também voltam a ficar em aberto. Marcar de novo dá 204, e uma fatura que ainda não começou dá 422.
