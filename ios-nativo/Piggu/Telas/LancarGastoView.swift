@@ -113,6 +113,7 @@ struct LancarGastoView: View {
                     }
                 }
             }
+            .comTelasDeOrganizacao()
             .task { await carregar() }
             .onAppear {
                 if let valorInicial, valorDigitado.isEmpty {
@@ -173,7 +174,7 @@ struct LancarGastoView: View {
             if forma == .cartao {
                 if cartoes.isEmpty {
                     Text("Nenhum cartão cadastrado ainda.").foregroundStyle(paleta.textoSuave)
-                    LinkDoSite(titulo: "Cadastrar cartão", caminho: "/contas-e-cartoes")
+                    NavigationLink("Cadastrar cartão", value: TelaDeOrganizacao.cartoes)
                 } else {
                     Picker("Cartão", selection: $contaId) {
                         Text("Escolha o cartão").tag("")

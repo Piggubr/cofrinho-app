@@ -28,19 +28,17 @@ final class ModeloDoPainel {
     var metasDoMes: [MetaDoMes]?
     var girlsMath: [ItemDoGirlsMath]?
     var membros: [MembroDaFamilia] = []
-    var openFinance = false
-    var contasBancarias: [ContaBancaria] = []
+    let openFinance: OpenFinance
     var cotacao: Cotacao?
     /// Erro de uma acao (depositar, apagar...), por cartao.
     var erros: [IdDoBloco: String] = [:]
-    var erroDosBancos: String?
-    var ocupadoComBancos = false
 
     @ObservationIgnored let sessao: Sessao
     private var cliente: ClienteDaAPI { sessao.cliente }
 
     init(sessao: Sessao) {
         self.sessao = sessao
+        openFinance = OpenFinance(cliente: sessao.cliente)
     }
 
     var eu: String? { sessao.usuario?.id }
@@ -79,18 +77,16 @@ final class ModeloDoPainel {
         async let cartoes = try? cliente.contas()
         async let aReceber = try? cliente.aReceber()
         async let membros = try? cliente.verFamilia().membros
-        async let openFinance = cliente.openFinanceHabilitado()
         self.contasFixas = await contasFixas ?? []
         self.orcamentos = await orcamentos ?? []
         self.cartoes = await cartoes ?? []
         self.aReceber = await aReceber ?? []
         self.membros = await membros ?? []
-        self.openFinance = await openFinance
         async let objetivos: Void = recarregarObjetivos()
         async let notas: Void = carregarNotas()
         async let metas: Void = carregarMetasDoMes()
         async let girls: Void = carregarGirlsMath()
-        async let bancos: Void = carregarBancos()
+        async let bancos: Void = openFinance.carregar()
         async let cotacao: Void = carregarCotacao()
         _ = await (objetivos, notas, metas, girls, bancos, cotacao)
     }
@@ -121,16 +117,6 @@ final class ModeloDoPainel {
         } catch {
             girlsMath = []
             erros[.girlsMath] = error.localizedDescription
-        }
-    }
-
-    // Fora do nucleo de proposito: Open Finance e opcional, e fora do ar nao derruba o Painel.
-    private func carregarBancos() async {
-        guard openFinance else { return }
-        do {
-            contasBancarias = try await cliente.contasBancarias()
-        } catch {
-            erroDosBancos = error.localizedDescription
         }
     }
 
@@ -167,10 +153,13 @@ final class ModeloDoPainel {
 
     var orcamentosEmAlerta: [Orcamento] { orcamentos.filter { $0.alerta != .ok } }
     var contasEmAberto: [ContaFixa] { contasFixas.filter { $0.situacao != .paga } }
-    /// Fatura fechada, com valor, que vence nos proximos 10 dias.
+    /// Fatura fechada, com valor e ainda nao paga (D-085), que vence nos proximos 10 dias.
     var faturasAVencer: [ContaOuCartao] {
         let limite = Formatos.dia(Date().addingTimeInterval(10 * 86_400))
-        return cartoes.filter { ($0.faturaAPagar?.total ?? 0) > 0 && ($0.faturaAPagar?.vencimento ?? "") <= limite }
+        return cartoes.filter {
+            $0.faturaAPagar?.paga != true && ($0.faturaAPagar?.total ?? 0) > 0
+                && ($0.faturaAPagar?.vencimento ?? "") <= limite
+        }
     }
     /// Quem passou da data combinada e ainda nao pagou.
     var devendo: [AReceber] {
@@ -272,42 +261,6 @@ final class ModeloDoPainel {
             notas?.removeAll { $0.id == nota.id }
         } catch {
             erros[.notas] = error.localizedDescription
-        }
-    }
-
-    // MARK: - Bancos
-
-    /// Um banco por conexao, para o desconectar nao repetir por conta.
-    var bancos: [(conexaoId: String, instituicao: String)] {
-        var vistos = Set<String>()
-        return contasBancarias.compactMap { conta in
-            vistos.insert(conta.conexaoId).inserted ? (conta.conexaoId, conta.instituicao) : nil
-        }
-    }
-
-    /// Soma por moeda: somar real com euro daria um numero sem sentido.
-    var saldoPorMoeda: [(moeda: String, total: Decimal)] {
-        Dictionary(grouping: contasBancarias, by: \.moeda)
-            .map { ($0.key, $0.value.reduce(0) { $0 + $1.saldo }) }
-            .sorted { $0.0 < $1.0 }
-    }
-
-    func sincronizarBancos() async {
-        await usarBancos { try await $0.sincronizarBancos() }
-    }
-
-    func desconectarBanco(_ conexaoId: String) async {
-        await usarBancos { try await $0.desconectarBanco(conexaoId) }
-    }
-
-    private func usarBancos(_ acao: (ClienteDaAPI) async throws -> [ContaBancaria]) async {
-        ocupadoComBancos = true
-        erroDosBancos = nil
-        defer { ocupadoComBancos = false }
-        do {
-            contasBancarias = try await acao(cliente)
-        } catch {
-            erroDosBancos = error.localizedDescription
         }
     }
 

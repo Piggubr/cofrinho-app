@@ -117,9 +117,9 @@ struct ReceitasView: View {
     private var entramTodoMes: some View {
         Section("Entram todo mês") {
             ForEach(recorrentes) { fixa in
-                LinhaDoCartao(titulo: fixa.descricao,
-                              detalhe: String(localized: "Todo dia \(fixa.dia) · \(fixa.categoria)")) {
-                    Text(Formatos.moeda(fixa.valor)).font(.sora(.body, peso: .semibold)).monospacedDigit()
+                LinhaDoCartao(titulo: fixa.descricao, detalhe: detalhe(fixa)) {
+                    Text(Formatos.moeda(fixa.valor + (fixa.segundoValor ?? 0)))
+                        .font(.sora(.body, peso: .semibold)).monospacedDigit()
                 }
                 .swipeActions {
                     Button(role: .destructive) { parando = fixa } label: {
@@ -200,6 +200,14 @@ struct ReceitasView: View {
             }
         }
         .listRowBackground(receitas.isEmpty ? Color.clear : paleta.superficie)
+    }
+
+    /// Em duas parcelas (D-087), os dois dias com o valor de cada um.
+    private func detalhe(_ fixa: ContaFixa) -> String {
+        if let segundoDia = fixa.segundoDia, let segundoValor = fixa.segundoValor {
+            return String(localized: "Dia \(fixa.dia): \(Formatos.moeda(fixa.valor)) · dia \(segundoDia): \(Formatos.moeda(segundoValor)) · \(fixa.categoria)")
+        }
+        return String(localized: "Todo dia \(fixa.dia) · \(fixa.categoria)")
     }
 
     private func detalhe(_ receita: Receita) -> String {

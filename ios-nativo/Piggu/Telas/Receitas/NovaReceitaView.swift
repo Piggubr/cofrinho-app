@@ -16,6 +16,10 @@ struct NovaReceitaView: View {
     @State private var categorias: [String] = []
     @State private var data = Date()
     @State private var repetir = false
+    /// So na recorrente: o salario que entra em duas vezes; o valor acima e a 1a parcela (D-087).
+    @State private var emDuasParcelas = false
+    @State private var segundoDia = ""
+    @State private var segundoValor = ""
     /// nil segue o padrao do perfil.
     @State private var compartilhada: Bool?
     @State private var salvando = false
@@ -45,6 +49,21 @@ struct NovaReceitaView: View {
                 .listRowBackground(paleta.superficie)
                 Section {
                     Toggle("Entra sozinha todo mês no dia \(dia) (salário, aluguel que você recebe)", isOn: $repetir)
+                    if repetir {
+                        Toggle("Em duas parcelas (salário com adiantamento): o valor acima é a 1ª", isOn: $emDuasParcelas)
+                        if emDuasParcelas {
+                            LabeledContent("Dia da 2ª parcela") {
+                                TextField("Dia", text: $segundoDia)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .accessibilityLabel("Dia da 2ª parcela")
+                            }
+                            LabeledContent("Valor da 2ª parcela") {
+                                CampoDeValor(rotulo: "Valor da 2ª parcela", texto: $segundoValor)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                        }
+                    }
                     if temCompanhia {
                         Toggle("Compartilhada: aparece para quem mora com você",
                                isOn: Binding(get: { compartilhadaEfetiva }, set: { compartilhada = $0 }))
@@ -80,14 +99,28 @@ struct NovaReceitaView: View {
             erro = String(localized: "Digite um valor válido.")
             return
         }
+        let dividir = repetir && emDuasParcelas
+        let diaDaSegunda = Int(segundoDia)
+        let valorDaSegunda = Formatos.lerValor(segundoValor)
+        if dividir, !(1...31).contains(diaDaSegunda ?? 0) {
+            erro = String(localized: "Informe o dia da 2ª parcela (1 a 31).")
+            return
+        }
+        if dividir, (valorDaSegunda ?? 0) <= 0 {
+            erro = String(localized: "Digite o valor da 2ª parcela.")
+            return
+        }
         salvando = true
         defer { salvando = false }
         do {
             try await sessao.cliente.lancarReceita(NovaReceita(
                 data: Formatos.dia(data), descricao: descricao, categoria: categoria, valor: valor,
-                compartilhado: temCompanhia && compartilhadaEfetiva, recorrente: repetir))
-            aoLancar(repetir ? String(localized: "Receita lançada. Ela entra sozinha todo dia \(dia).")
-                             : String(localized: "Receita lançada."), data)
+                compartilhado: temCompanhia && compartilhadaEfetiva, recorrente: repetir,
+                segundoDia: dividir ? diaDaSegunda : nil, segundoValor: dividir ? valorDaSegunda : nil))
+            let mensagem = !repetir ? String(localized: "Receita lançada.")
+                : dividir ? String(localized: "Receita lançada. Ela entra sozinha todo dia \(dia) e a 2ª parcela todo dia \(diaDaSegunda ?? 0).")
+                : String(localized: "Receita lançada. Ela entra sozinha todo dia \(dia).")
+            aoLancar(mensagem, data)
             fechar()
         } catch {
             self.erro = error.localizedDescription
