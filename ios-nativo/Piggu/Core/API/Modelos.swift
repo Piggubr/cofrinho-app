@@ -46,11 +46,13 @@ struct Usuario: Codable, Equatable, Sendable {
     }
 }
 
-/// O refresh nao vem no corpo: fica num cookie HttpOnly que so viaja para /api/auth.
+/// O refresh vem num cookie HttpOnly que so viaja para /api/auth, ou no corpo quando o login
+/// pediu `refreshNoCorpo` (D-072).
 struct ParDeTokens: Codable, Sendable {
     let accessToken: String
     let expiresIn: Int
     let usuario: Usuario
+    var refreshToken: String?
 }
 
 /// Corpo unico de erro devolvido por todos os servicos.
@@ -138,4 +140,11 @@ struct PedidoDeLogin: Codable, Sendable {
     let email: String
     let senha: String
     let lembrar: Bool
+    /// So o app com o Keychain ligado pede; ausente, o refresh vem no cookie.
+    var refreshNoCorpo: Bool?
+}
+
+/// Corpo de /auth/refresh e /auth/logout (RefreshRequest). Sem refresh, vai `{}` e vale o cookie.
+struct PedidoDeRefresh: Codable, Sendable {
+    let refreshToken: String?
 }

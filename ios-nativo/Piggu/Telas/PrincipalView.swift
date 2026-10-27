@@ -1,31 +1,81 @@
 import SwiftUI
 
-/// Abas do app logado e a folha de lancar gasto, compartilhada pelas abas.
+/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante e a folha de
+/// lancar gasto, compartilhada pelas abas.
 struct PrincipalView: View {
-    enum Aba: String {
-        case painel, gastos, mais
-    }
+    /// Link a abrir (piggu://, atalho, widget); volta a nil depois de aberto.
+    @Binding var rota: Rota?
 
     @State private var aba = PrincipalView.abaInicial
-    @State private var lancando = PrincipalView.lancarAoAbrir
-    /// Sobe a cada gasto lancado: Painel e Gastos recarregam.
+    @State private var lancamento: PedidoDeLancamento? = PrincipalView.lancarAoAbrir ? .init(valor: nil) : nil
+    /// Sobe a cada gasto lancado: Painel, Gastos e Relatorios recarregam.
     @State private var versaoDosDados = 0
 
     var body: some View {
-        TabView(selection: $aba) {
-            PainelView(versaoDosDados: versaoDosDados, aoLancar: { lancando = true })
-                .tabItem { Label("Painel", systemImage: "chart.pie.fill") }
-                .tag(Aba.painel)
-            GastosView(versaoDosDados: versaoDosDados, aoLancar: { lancando = true })
-                .tabItem { Label("Gastos", systemImage: "list.bullet.rectangle.fill") }
-                .tag(Aba.gastos)
-            MaisView()
-                .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
-                .tag(Aba.mais)
+        abas
+            .sheet(item: $lancamento) { pedido in
+                LancarGastoView(valorInicial: pedido.valor) { versaoDosDados += 1 }
+            }
+            .onChange(of: rota, initial: true) { _, nova in
+                abrir(nova)
+            }
+    }
+
+    @ViewBuilder
+    private var abas: some View {
+        if #available(iOS 18, *) {
+            TabView(selection: $aba) {
+                Tab("Painel", systemImage: "chart.pie.fill", value: Aba.painel) { painel }
+                Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
+                Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
+                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView() }
+            }
+            .tabViewStyle(.sidebarAdaptable)
+            .minimizarAbasAoRolar()
+        } else {
+            TabView(selection: $aba) {
+                painel
+                    .tabItem { Label("Painel", systemImage: "chart.pie.fill") }
+                    .tag(Aba.painel)
+                gastos
+                    .tabItem { Label("Gastos", systemImage: "list.bullet.rectangle.fill") }
+                    .tag(Aba.gastos)
+                relatorios
+                    .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
+                    .tag(Aba.relatorios)
+                MaisView()
+                    .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
+                    .tag(Aba.mais)
+            }
         }
-        .sheet(isPresented: $lancando) {
-            LancarGastoView { versaoDosDados += 1 }
+    }
+
+    private var painel: some View {
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+    }
+
+    private var gastos: some View {
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+    }
+
+    private var relatorios: some View {
+        RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+    }
+
+    private func lancar() {
+        lancamento = PedidoDeLancamento(valor: nil)
+    }
+
+    private func abrir(_ rota: Rota?) {
+        switch rota {
+        case let .aba(destino):
+            aba = destino
+        case let .lancarGasto(valor):
+            lancamento = PedidoDeLancamento(valor: valor)
+        case nil:
+            return
         }
+        self.rota = nil
     }
 
     // Em Debug, `-PigguAba gastos` e `-PigguLancar YES` abrem direto numa tela (prints).
@@ -40,49 +90,28 @@ struct PrincipalView: View {
     #endif
 }
 
-/// O "+" da barra de navegacao.
-struct BotaoDeLancar: ToolbarContent {
-    let acao: () -> Void
-
-    var body: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Button(action: acao) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(Color.accentColor)
-            }
-            .accessibilityLabel("Lançar gasto")
-        }
-    }
+/// Cada vez que a folha de lancar abre; o valor vem do link ou do atalho.
+struct PedidoDeLancamento: Identifiable {
+    let id = UUID()
+    let valor: Decimal?
 }
 
-/// Setas para trocar de mes, com o nome do mes no meio.
-struct SeletorDeMes: View {
-    @Binding var mes: Date
-
-    private var ehMesAtual: Bool { Formatos.mes(mes) == Formatos.mes(Date()) }
-
-    var body: some View {
-        HStack {
-            Button {
-                mes = Formatos.somarMeses(-1, a: mes)
-            } label: {
-                Image(systemName: "chevron.left")
+private extension View {
+    /// O + flutua sobre a lista, acima da barra de abas; a lista ganha folga embaixo para o
+    /// ultimo item nao ficar escondido atras dele.
+    func comBotaoDeLancar(_ acao: @escaping () -> Void) -> some View {
+        contentMargins(.bottom, 88, for: .scrollContent)
+            .overlay(alignment: .bottomTrailing) {
+                BotaoDeLancar(acao: acao)
             }
-            .accessibilityLabel("Mês anterior")
-            Spacer()
-            Text(Formatos.inicialMaiuscula(Formatos.nomeDoMes(mes)))
-                .font(.headline)
-            Spacer()
-            Button {
-                mes = Formatos.somarMeses(1, a: mes)
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .disabled(ehMesAtual)
-            .accessibilityLabel("Próximo mês")
+    }
+
+    @ViewBuilder
+    func minimizarAbasAoRolar() -> some View {
+        if #available(iOS 26, *) {
+            tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            self
         }
-        .buttonStyle(.borderless)
-        .padding(.vertical, 4)
     }
 }

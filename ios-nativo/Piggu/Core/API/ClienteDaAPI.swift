@@ -15,6 +15,16 @@ enum ConfiguracaoDaAPI {
         }
         return padrao
     }
+
+    /// Refresh no corpo e no Keychain em vez do cookie (D-072). Desligado ate a etapa 1 do
+    /// backend chegar a producao: argumento `-PigguRefreshNoCorpo YES` ou o build setting
+    /// `PIGGU_REFRESH_NO_CORPO`.
+    static var refreshNoCorpo: Bool {
+        if UserDefaults.standard.object(forKey: "PigguRefreshNoCorpo") != nil {
+            return UserDefaults.standard.bool(forKey: "PigguRefreshNoCorpo")
+        }
+        return (Bundle.main.object(forInfoDictionaryKey: "PigguRefreshNoCorpo") as? String) == "YES"
+    }
 }
 
 enum ErroDaAPI: LocalizedError, Equatable {
@@ -30,20 +40,20 @@ enum ErroDaAPI: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .semConexao:
-            return "Sem conexão com o Piggu. Confira a internet e tente de novo."
+            return String(localized: "Sem conexão com o servidor. Confira a internet e tente de novo.")
         case .bloqueadoPeloAccess:
-            return "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção."
+            return String(localized: "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção.")
         case .sessaoEncerrada:
-            return "Sua sessão venceu. Entre novamente."
+            return String(localized: "Sua sessão venceu. Entre novamente.")
         case let .servidor(status, mensagem):
             if let mensagem, !mensagem.isEmpty {
                 return mensagem
             }
             return status >= 500
-                ? "O Piggu não está respondendo agora (erro \(status)). Tente daqui a pouco."
-                : "Não deu certo (erro \(status))."
+                ? String(localized: "O Piggu não está respondendo agora (erro \(status)). Tente daqui a pouco.")
+                : String(localized: "Não deu certo (erro \(status)).")
         case .respostaInvalida:
-            return "O Piggu respondeu algo que o app não entendeu."
+            return String(localized: "O Piggu respondeu algo que o app não entendeu.")
         }
     }
 }
@@ -74,13 +84,17 @@ struct SemCorpo: Codable, Sendable {}
 /// Cliente unico da API do Piggu.
 ///
 /// O backend trabalha com dois tokens: o access, curto, que vai no header de cada
-/// chamada e fica so em memoria; e o refresh, longo, num cookie HttpOnly com
-/// Path=/api/auth. Um 401 dispara uma unica renovacao e a chamada e repetida uma vez,
-/// como o interceptor do app web.
+/// chamada e fica so em memoria; e o refresh, longo. O refresh vem num cookie HttpOnly com
+/// Path=/api/auth ou, com o `cofre`, no corpo, e fica no Keychain (D-072). Um 401 dispara
+/// uma unica renovacao e a chamada e repetida uma vez, como o interceptor do app web.
 actor ClienteDaAPI {
     nonisolated let urlBase: URL
     private let transporte: Transporte
     private var accessToken: String?
+    /// Com o cofre, o refresh fica aqui e no Keychain (so com "continuar conectado").
+    private let cofre: CofreDoRefresh?
+    private var refresh: String?
+    private var lembrarRefresh = false
     private var renovacaoEmCurso: Task<ParDeTokens, Error>?
     private var aoRenovar: (@Sendable (Usuario) async -> Void)?
     private var aoPerderSessao: (@Sendable () async -> Void)?
@@ -88,10 +102,20 @@ actor ClienteDaAPI {
     private let decodificador = JSONDecoder()
     private let codificador = JSONEncoder()
 
-    init(urlBase: URL = ConfiguracaoDaAPI.urlBase, transporte: Transporte = TransporteURLSession()) {
+    init(
+        urlBase: URL = ConfiguracaoDaAPI.urlBase,
+        transporte: Transporte = TransporteURLSession(),
+        cofre: CofreDoRefresh? = ConfiguracaoDaAPI.refreshNoCorpo ? Keychain() : nil
+    ) {
         self.urlBase = urlBase
         self.transporte = transporte
+        self.cofre = cofre
+        refresh = cofre?.ler()
+        lembrarRefresh = refresh != nil
     }
+
+    /// O login pede o refresh no corpo (`refreshNoCorpo`) so quando ha onde guarda-lo.
+    nonisolated var pedeRefreshNoCorpo: Bool { cofre != nil }
 
     func configurar(
         aoRenovar: @escaping @Sendable (Usuario) async -> Void,
@@ -101,12 +125,34 @@ actor ClienteDaAPI {
         self.aoPerderSessao = aoPerderSessao
     }
 
-    func guardar(_ tokens: ParDeTokens) {
+    func guardar(_ tokens: ParDeTokens, lembrar: Bool = true) {
         accessToken = tokens.accessToken
+        lembrarRefresh = lembrar
+        guardarRefresh(tokens.refreshToken)
     }
 
-    func esquecerToken() {
+    /// Avisa o servidor (que encerra a sessao e apaga o cookie) e esquece os tokens. Falhar
+    /// aqui nao pode impedir a pessoa de sair deste aparelho.
+    func sair() async {
+        let corpo = (try? codificador.encode(PedidoDeRefresh(refreshToken: refresh))) ?? Data("{}".utf8)
+        _ = try? await executar(metodo: "POST", caminho: "/auth/logout", query: [:], corpo: corpo, aberta: true)
+        esquecerTokens()
+    }
+
+    func esquecerTokens() {
         accessToken = nil
+        refresh = nil
+        cofre?.apagar()
+    }
+
+    private func guardarRefresh(_ novo: String?) {
+        guard let cofre, let novo else { return }
+        refresh = novo
+        if lembrarRefresh {
+            cofre.guardar(novo)
+        } else {
+            cofre.apagar()
+        }
     }
 
     var temToken: Bool { accessToken != nil }
@@ -135,7 +181,7 @@ actor ClienteDaAPI {
 
     // MARK: - Renovacao
 
-    /// Renova o access pelo cookie. Chamadas simultaneas esperam a mesma renovacao:
+    /// Renova o access pelo refresh (cookie ou corpo). Chamadas simultaneas esperam a mesma renovacao:
     /// o backend rotaciona o refresh a cada uso, e duas renovacoes paralelas
     /// invalidariam uma a outra.
     @discardableResult
@@ -147,15 +193,23 @@ actor ClienteDaAPI {
         renovacaoEmCurso = tarefa
         defer { renovacaoEmCurso = nil }
 
-        let tokens = try await tarefa.value
+        let tokens: ParDeTokens
+        do {
+            tokens = try await tarefa.value
+        } catch ErroDaAPI.servidor(status: 401, _) {
+            // Refresh recusado (vencido ou revogado): nao serve mais.
+            esquecerTokens()
+            throw ErroDaAPI.servidor(status: 401, mensagem: nil)
+        }
         accessToken = tokens.accessToken
+        guardarRefresh(tokens.refreshToken)
         await aoRenovar?(tokens.usuario)
         return tokens
     }
 
     private func pedirRenovacao() async throws -> ParDeTokens {
-        let dados = try await executar(
-            metodo: "POST", caminho: "/auth/refresh", query: [:], corpo: Data("{}".utf8), aberta: true)
+        let corpo = try refresh.map { try codificador.encode(PedidoDeRefresh(refreshToken: $0)) } ?? Data("{}".utf8)
+        let dados = try await executar(metodo: "POST", caminho: "/auth/refresh", query: [:], corpo: corpo, aberta: true)
         return try decodificar(dados)
     }
 
@@ -179,6 +233,9 @@ actor ClienteDaAPI {
         let tokens: ParDeTokens
         do {
             tokens = try await renovar()
+        } catch ErroDaAPI.semConexao {
+            // Sem rede a sessao continua: o refresh ainda vale para quando ela voltar.
+            throw ErroDaAPI.semConexao
         } catch {
             accessToken = nil
             await aoPerderSessao?()

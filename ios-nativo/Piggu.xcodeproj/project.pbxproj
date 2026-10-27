@@ -298,6 +298,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PIGGU_API_URL = "https://piggu.com.br/api";
+				PIGGU_REFRESH_NO_CORPO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = br.com.piggu.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -330,6 +331,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PIGGU_API_URL = "https://piggu.com.br/api";
+				PIGGU_REFRESH_NO_CORPO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = br.com.piggu.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

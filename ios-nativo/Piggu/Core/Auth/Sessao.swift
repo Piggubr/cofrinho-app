@@ -6,7 +6,10 @@ import Observation
 /// O access token fica so em memoria, dentro do ClienteDaAPI. O refresh vive no
 /// cookie HttpOnly que o identity entrega; o HTTPCookieStorage do URLSession o guarda
 /// e o manda sozinho para /api/auth/refresh. Com "continuar conectado" o cookie tem
-/// validade e sobrevive ao fechar o app; sem, e de sessao e some com o processo.
+/// validade e sobrevive ao fechar o app; sem, e de sessao e some com o processo. Com
+/// `ConfiguracaoDaAPI.refreshNoCorpo`, o refresh vem no corpo e fica no Keychain.
+///
+/// O perfil fica no cache: sem internet ao abrir, o app entra com ele e mostra o guardado.
 @MainActor
 @Observable
 final class Sessao {
@@ -18,6 +21,9 @@ final class Sessao {
 
     private(set) var estado: Estado = .verificando
     let cliente: ClienteDaAPI
+    let cache: Cache
+
+    private static let chaveDoUsuario = "usuario"
 
     var usuario: Usuario? {
         if case let .logado(usuario) = estado {
@@ -26,15 +32,16 @@ final class Sessao {
         return nil
     }
 
-    init(cliente: ClienteDaAPI) {
+    init(cliente: ClienteDaAPI, cache: Cache) {
         self.cliente = cliente
+        self.cache = cache
         Task { [weak self] in
             await cliente.configurar(
                 aoRenovar: { usuario in
-                    await MainActor.run { self?.estado = .logado(usuario) }
+                    await MainActor.run { self?.entrou(usuario) }
                 },
                 aoPerderSessao: {
-                    await MainActor.run { self?.estado = .deslogado }
+                    await MainActor.run { self?.saiu() }
                 })
         }
     }
@@ -43,36 +50,52 @@ final class Sessao {
     func restaurar() async {
         do {
             let tokens = try await cliente.renovar()
-            estado = .logado(tokens.usuario)
+            entrou(tokens.usuario)
+        } catch ErroDaAPI.semConexao {
+            // A primeira chamada com rede renova sozinha (401, refresh, repete).
+            if let usuario = cache.ler(Self.chaveDoUsuario, como: Usuario.self)?.valor {
+                estado = .logado(usuario)
+            } else {
+                estado = .deslogado
+            }
         } catch {
-            estado = .deslogado
+            saiu()
         }
     }
 
     func entrarComSenha(email: String, senha: String, lembrar: Bool) async throws {
         let pedido = PedidoDeLogin(
-            email: email.trimmingCharacters(in: .whitespacesAndNewlines), senha: senha, lembrar: lembrar)
+            email: email.trimmingCharacters(in: .whitespacesAndNewlines), senha: senha, lembrar: lembrar,
+            refreshNoCorpo: cliente.pedeRefreshNoCorpo ? true : nil)
         let tokens: ParDeTokens = try await cliente.post("/auth/entrar", corpo: pedido, aberta: true)
-        await cliente.guardar(tokens)
-        estado = .logado(tokens.usuario)
+        await cliente.guardar(tokens, lembrar: lembrar)
+        entrou(tokens.usuario)
     }
 
     // TODO: entrarComGoogle (POST /auth/google com o ID token do Google Sign-In).
-    // TODO: entrarComApple (o backend ainda nao tem a rota).
+    // TODO: entrarComApple (POST /auth/apple, com nonce; D-072).
 
     /// Busca o perfil atualizado (GET /auth/me).
     func atualizarPerfil() async {
         if let usuario: Usuario = try? await cliente.get("/auth/me") {
-            estado = .logado(usuario)
+            entrou(usuario)
         }
     }
 
     func sair() async {
-        // Avisar o servidor e o que encerra a sessao e apaga o cookie; falhar aqui nao
-        // pode impedir a pessoa de sair deste aparelho.
-        let _: SemCorpo? = try? await cliente.post("/auth/logout", corpo: SemCorpo(), aberta: true)
-        await cliente.esquecerToken()
+        await cliente.sair()
         apagarCookies()
+        saiu()
+    }
+
+    private func entrou(_ usuario: Usuario) {
+        cache.guardar(usuario, em: Self.chaveDoUsuario)
+        estado = .logado(usuario)
+    }
+
+    /// Os dados guardados sao da conta: saem com ela.
+    private func saiu() {
+        cache.apagarTudo()
         estado = .deslogado
     }
 

@@ -73,6 +73,11 @@ enum Formatos {
         return Decimal(string: normalizado, locale: Locale(identifier: "en_US_POSIX"))
     }
 
+    /// 12.5 vira "12,50", para pre-preencher o campo de valor.
+    static func valorParaDigitar(_ valor: Decimal) -> String {
+        valor.formatted(.number.grouping(.never).precision(.fractionLength(2)).locale(localidade))
+    }
+
     /// aaaa-mm, o formato do parametro `mes` da API.
     static func mes(_ data: Date) -> String {
         let partes = calendario.dateComponents([.year, .month], from: data)

@@ -18,7 +18,6 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Depois (próximos 1 a 2 meses)
 
-- iOS, etapa 2: fundação e visual (cores, Sora, componentes de vidro, abas, telas de vazio, erro e sem internet).
 - iOS, etapa 3: entrada completa (Google, Apple, criar conta, CPF, termos, esqueci a senha).
 - Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
 - iOS, etapa 4: dia a dia (Painel, Gastos e Receitas). Depois dela já dá para abrir um grupo "Nativo" no TestFlight.
@@ -48,6 +47,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 26/10/2026: iOS nativo, etapa 2: cores e temas do site, Sora, vidro, abas, estados das telas, cache sem internet e sessão no Keychain atrás de uma flag ([#92](https://github.com/Piggubr/cofrinho-app/pull/92)).
 - 26/10/2026: iOS nativo, etapa 0: `swift/inicio` no GitHub, `ios-nativo/CLAUDE.md` e o CI do app nativo ([#90](https://github.com/Piggubr/cofrinho-app/pull/90)).
 - 26/10/2026: iOS nativo, etapa 1: login para apps nativos no backend, com o refresh no corpo da resposta e Entrar com Apple (D-072).
 - 24/10/2026: login com Google no app iOS e Android pelo navegador do celular ([#79](https://github.com/Piggubr/cofrinho-app/pull/79)).
