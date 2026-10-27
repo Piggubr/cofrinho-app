@@ -91,6 +91,18 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("cadastro pela metade (entrou pelo Google e nao completou) nao alcanca os dados (403 CADASTRO_PENDENTE)")
+    void cadastroIncompletoNaoAlcanca() throws Exception {
+        mockMvc.perform(get("/api/expenses").with(org.springframework.security.test.web.servlet.request
+                        .SecurityMockMvcRequestPostProcessors.jwt().jwt(token -> token
+                                .subject(TokensDeTeste.idDe(TokensDeTeste.EMAIL_TITULAR).toString())
+                                .claim("role", "TITULAR").claim("familia", TokensDeTeste.FAMILIA.toString())
+                                .claim("cadastro", false))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("CADASTRO_PENDENTE"));
+    }
+
+    @Test
     @DisplayName("parceiro lanca e consulta gastos, receitas, orcamentos e contas como o titular")
     void parceiroLanca() throws Exception {
         mockMvc.perform(post("/api/expenses")

@@ -210,7 +210,7 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/).
 - **Relatório do ano** (Premium) e os demais relatórios: etapa 5.
 - **Demais telas** do app web: contas fixas, orçamentos, cartões e bancos, calendário, metas,
   Girls Math, família, assistente, o resto do perfil etc. Até chegarem, os atalhos do Painel e
-  dos formulários abrem a página no site (`LinkDoSite`, D-086).
+  dos formulários abrem a página no site (`LinkDoSite`, D-090).
 - **Leitura de nota por foto** (etapa 7), **importar extrato** e **conectar banco** (widget da
   Pluggy): por enquanto só no site.
 - Notificações, ícone e prints para a App Store.

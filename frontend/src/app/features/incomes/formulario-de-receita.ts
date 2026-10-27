@@ -47,15 +47,22 @@ export class FormularioDeReceita {
   protected readonly valor = signal<number | null>(null);
   /** Receita que entra sozinha todo mes no mesmo dia. */
   protected readonly repetir = signal(false);
+  /** So na recorrente: o salario que entra em duas vezes; o valor acima e a primeira parcela. */
+  protected readonly emDuasParcelas = signal(false);
+  protected readonly segundoDia = signal<number | null>(null);
+  protected readonly segundoValor = signal<number | null>(null);
   /** Nula segue o padrao do perfil. */
   protected readonly compartilhada = signal<boolean | null>(null);
   protected readonly compartilhadaEfetiva = computed(
-    () => this.compartilhada() ?? this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ?? false,
+    () =>
+      this.compartilhada() ?? this.auth.usuario()?.compartilhamento?.compartilharPorPadrao ?? false,
   );
   protected readonly diaDaReceita = computed(() => Number(this.data().slice(8, 10)));
 
   constructor() {
-    this.finance.categoriasDeReceita().subscribe({ next: (lista) => this.categorias.set(lista ?? []) });
+    this.finance
+      .categoriasDeReceita()
+      .subscribe({ next: (lista) => this.categorias.set(lista ?? []) });
   }
 
   focarValor(): void {
@@ -75,6 +82,20 @@ export class FormularioDeReceita {
       this.erro.set($localize`Digite um valor válido.`);
       return;
     }
+    const dividir = this.repetir() && this.emDuasParcelas();
+    const segundoDia = this.segundoDia();
+    const segundoValor = this.segundoValor();
+    if (
+      dividir &&
+      (segundoDia === null || !Number.isInteger(segundoDia) || segundoDia < 1 || segundoDia > 31)
+    ) {
+      this.erro.set($localize`Informe o dia da 2ª parcela (1 a 31).`);
+      return;
+    }
+    if (dividir && (segundoValor === null || segundoValor <= 0)) {
+      this.erro.set($localize`Digite o valor da 2ª parcela.`);
+      return;
+    }
     this.salvando.set(true);
     this.erro.set('');
     this.finance
@@ -87,15 +108,21 @@ export class FormularioDeReceita {
           compartilhado: this.pessoas.temCompanhia() && this.compartilhadaEfetiva(),
         },
         this.repetir(),
+        dividir ? { segundoDia: segundoDia!, segundoValor: segundoValor! } : undefined,
       )
       .subscribe({
         next: () => {
           const mensagem = this.repetir()
-            ? $localize`Receita lançada. Ela entra sozinha todo dia ${this.diaDaReceita()}:dia:.`
+            ? dividir
+              ? $localize`Receita lançada. Ela entra sozinha todo dia ${this.diaDaReceita()}:dia: e a 2ª parcela todo dia ${segundoDia}:segundoDia:.`
+              : $localize`Receita lançada. Ela entra sozinha todo dia ${this.diaDaReceita()}:dia:.`
             : $localize`Receita lançada.`;
           this.descricao.set('');
           this.valor.set(null);
           this.repetir.set(false);
+          this.emDuasParcelas.set(false);
+          this.segundoDia.set(null);
+          this.segundoValor.set(null);
           this.compartilhada.set(null);
           this.salvando.set(false);
           this.lancado.emit({ mensagem, mes: this.data().slice(0, 7) });

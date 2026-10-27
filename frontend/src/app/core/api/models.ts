@@ -54,6 +54,13 @@ export interface Usuario {
   nascimento?: string | null;
   /** O que o parceiro ve do que a pessoa lanca. Ausente (demo antiga) conta como tudo desligado. */
   compartilhamento?: Compartilhamento;
+  /** Celular informado. Ausente (demo) conta como informado. */
+  celularInformado?: boolean;
+  /**
+   * Falso: falta apelido, nascimento, CPF ou celular, e o app so abre "Sobre voce" (D-088).
+   * Ausente (demo) conta como completo.
+   */
+  cadastroCompleto?: boolean;
 }
 
 /**
@@ -651,6 +658,9 @@ export interface ContaFixa {
   tipo?: 'GASTO' | 'RECEITA';
   /** Cartao ou conta que paga o gasto todo mes. */
   contaId?: string | null;
+  /** Segunda parcela da receita (o salario do dia 20 e do dia 5); nula quando entra de uma vez. */
+  segundoDia?: number | null;
+  segundoValor?: number | null;
   /** Quem criou; so essa pessoa apaga. */
   usuario?: string | null;
   compartilhado?: boolean;
@@ -692,6 +702,8 @@ export interface Fatura {
   fechamento: string;
   vencimento: string;
   total: number;
+  /** Marcada como paga (ela ou uma seguinte): sai do "a pagar"; os gastos nao mudam. */
+  paga: boolean;
 }
 
 /** Conta ou cartao; no cartao, a fatura aberta e a fechada que ainda vai vencer. */

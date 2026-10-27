@@ -1,6 +1,7 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Meses;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -405,6 +406,11 @@ public class UserAccount {
             throw new IllegalStateException("A conta ja tem data de nascimento");
         }
         this.birthDate = data;
+        // Entrou como parceiro pelo convite do plano casal antes de dizer a idade (D-086).
+        if (role == PigguRole.PARCEIRO && menorDeIdade(LocalDate.now(Meses.BRASILIA))) {
+            this.role = PigguRole.MEMBRO;
+            this.showsAllTo = null;
+        }
     }
 
     /** Menor de 18 com data informada; sem data, ninguem trata a pessoa como menor. */
@@ -412,9 +418,12 @@ public class UserAccount {
         return birthDate != null && Period.between(birthDate, hoje).getYears() < MAIORIDADE;
     }
 
-    /** Falta como chamar ou a data de nascimento: o app pede antes de liberar o resto. */
-    public boolean perfilIncompleto() {
-        return nickname == null || nickname.isBlank() || birthDate == null;
+    /**
+     * Falta algo que o cadastro por senha pede: como chamar, nascimento, CPF ou celular. Quem
+     * entrou pelo Google completa antes de usar os dados (D-088).
+     */
+    public boolean cadastroIncompleto() {
+        return nickname == null || nickname.isBlank() || birthDate == null || !documentoEmDia() || phone == null;
     }
 
     public UUID getId() {

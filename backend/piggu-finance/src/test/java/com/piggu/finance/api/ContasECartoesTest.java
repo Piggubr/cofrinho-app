@@ -14,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -75,6 +76,45 @@ class ContasECartoesTest extends PostgresIntegrationTest {
             mockMvc.perform(get("/api/accounts/" + cartao + "/statement").param("mes", mes).with(casas.casaA))
                     .andExpect(jsonPath("$.fatura.total").value(100.0));
         }
+    }
+
+    @Test
+    @DisplayName("fatura paga leva as anteriores junto, nao muda o total, e desfazer reabre as seguintes")
+    void faturaPaga() throws Exception {
+        String cartao = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Nubank\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-08-10\",\"contaId\":\"" + cartao
+                + "\",\"itens\":[{\"item\":\"Fone\",\"categoria\":\"Lazer\",\"valor\":100}]}");
+        String fatura = "/api/accounts/" + cartao + "/statement";
+
+        mockMvc.perform(get(fatura).param("mes", "2026-09").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(false));
+        for (int vez = 0; vez < 2; vez++) {
+            mockMvc.perform(put(fatura + "/paid").param("mes", "2026-09").with(casas.casaA))
+                    .andExpect(status().isNoContent());
+        }
+        mockMvc.perform(get(fatura).param("mes", "2026-09").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(true))
+                .andExpect(jsonPath("$.fatura.total").value(100.0));
+        mockMvc.perform(get(fatura).param("mes", "2026-08").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(true));
+        mockMvc.perform(get(fatura).param("mes", "2026-10").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(false));
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-08").with(casas.casaA))
+                .andExpect(jsonPath("$.length()").value(1));
+
+        mockMvc.perform(delete(fatura + "/paid").param("mes", "2026-08").with(casas.casaA))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get(fatura).param("mes", "2026-08").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(false));
+        mockMvc.perform(get(fatura).param("mes", "2026-07").with(casas.casaA))
+                .andExpect(jsonPath("$.fatura.paga").value(true));
+
+        mockMvc.perform(put(fatura + "/paid").param("mes", "2099-01").with(casas.casaA))
+                .andExpect(status().isUnprocessableContent());
+        mockMvc.perform(put(fatura + "/paid").param("mes", "2026-09").with(casas.casaB))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(put(fatura + "/paid").with(casas.casaA)).andExpect(status().isBadRequest());
     }
 
     @Test

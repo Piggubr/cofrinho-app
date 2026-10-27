@@ -12,6 +12,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.TenantId;
 
 import java.time.Instant;
+import java.time.YearMonth;
 import java.util.UUID;
 
 /** Conta ou cartao de credito da familia. */
@@ -49,6 +50,10 @@ public class PaymentAccount {
 
     @Column(name = "user_id")
     private UUID userId;
+
+    /** Ultima fatura paga (AAAA-MM); gravada so pelo SQL de ContasECartoes. */
+    @Column(name = "last_paid_month", length = 7, insertable = false, updatable = false)
+    private String lastPaidMonth;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -101,5 +106,10 @@ public class PaymentAccount {
 
     public boolean isShared() {
         return shared;
+    }
+
+    /** No cartao, a fatura do mes ou uma posterior ja foi marcada como paga. */
+    public boolean faturaPagaEm(YearMonth mes) {
+        return lastPaidMonth != null && lastPaidMonth.compareTo(mes.toString()) >= 0;
     }
 }

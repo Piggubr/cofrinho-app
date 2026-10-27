@@ -12,6 +12,7 @@ import com.piggu.common.error.NotFoundException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.FamiliaResponse;
 import com.piggu.identity.avisos.Aparelhos;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -249,15 +251,28 @@ public class FamiliaService {
                     "ASSINATURA_ATIVA");
         }
 
+        PigguRole papel = entraComoParceiro(conta, convite.getHouseholdId()) ? PigguRole.PARCEIRO : PigguRole.MEMBRO;
         Optional<Household> vazia = sairDeOndeEsta(conta, convite.getHouseholdId());
-        conta.mudarDeFamilia(convite.getHouseholdId(), PigguRole.MEMBRO);
+        conta.mudarDeFamilia(convite.getHouseholdId(), papel);
         usuarios.saveAndFlush(conta);
         trilha.registrar(convite.getHouseholdId(), conta.getId(), Acao.ENTROU, PESSOA, conta.getId(), null,
                 pessoa(conta));
         vazia.ifPresent(familias::delete);
         convites.deleteAll(convites.findByEmailOrderByCreatedAtDesc(conta.getEmail()));
         sessoes.apagarPorUsuario(conta.getId());
-        log.info("Convite aceito: conta={} familia={}", conta.getId(), convite.getHouseholdId());
+        log.info("Convite aceito: conta={} familia={} papel={}", conta.getId(), convite.getHouseholdId(), papel);
+    }
+
+    /**
+     * No plano casal, quem o titular convida e o casal (D-086): entra como parceiro se a casa
+     * ainda nao tem um (nem convite de parceria esperando) e a pessoa nao e menor de idade.
+     */
+    private boolean entraComoParceiro(UserAccount conta, UUID destino) {
+        Household casa = familias.findById(destino).orElseThrow();
+        return casa.isCasal() && casa.planoVigente() == Plano.PREMIUM
+                && !conta.menorDeIdade(LocalDate.now(Meses.BRASILIA))
+                && usuarios.findByHouseholdIdOrderByCreatedAtAsc(destino).stream()
+                        .noneMatch(outro -> outro.getRole() == PigguRole.PARCEIRO || outro.convidadoParaParceria());
     }
 
     /** Exclusao da conta: os dados da pessoa saem junto (ver {@link #sairDeOndeEsta(UserAccount, UUID)}). */

@@ -260,7 +260,7 @@ function contasFixas(mes: string, tipo = 'GASTO'): ContaFixa[] {
     .sort((a, b) => a.dia - b.dia);
 }
 
-function periodo(conta: ContaDemo, mes: string): Omit<Fatura, 'total'> {
+function periodo(conta: ContaDemo, mes: string): Omit<Fatura, 'total' | 'paga'> {
   const fechamento = diaNoMes(mes, conta.fechamento!);
   const vespera = new Date(`${fechamento}T12:00:00`);
   vespera.setDate(vespera.getDate() - 1);
@@ -274,7 +274,8 @@ function gastosDaFatura(conta: ContaDemo, mes: string): { fatura: Fatura; gastos
   const gastos = estado.gastos
     .filter((g) => g.contaId === conta.id && g.data >= p.inicio && g.data <= p.ultimaCompra)
     .sort((a, b) => a.data.localeCompare(b.data));
-  return { fatura: { ...p, total: somar(gastos.map((g) => g.valor)) }, gastos };
+  const paga = !!conta.ultimaFaturaPaga && conta.ultimaFaturaPaga >= mes;
+  return { fatura: { ...p, total: somar(gastos.map((g) => g.valor)), paga }, gastos };
 }
 
 function contaComFaturas(conta: ContaDemo): ContaOuCartao {
@@ -762,7 +763,8 @@ const ROTAS: Rota[] = [
     estado.receitas.push(receita);
     if (c['recorrente']) {
       const id = novoId('fixa');
-      estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA' });
+      const segunda = c['segundoDia'] ? { segundoDia: Number(c['segundoDia']), segundoValor: Number(c['segundoValor']) } : {};
+      estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA', ...segunda });
       estado.contasPagas.add(`${id}|${receita.data.slice(0, 7)}`);
     }
     return receita;
@@ -846,6 +848,20 @@ const ROTAS: Rota[] = [
       throw new ErroDaDemo(422, 'Fatura só existe para cartão.');
     }
     return gastosDaFatura(conta, mesDe(p));
+  }],
+  ['PUT', new RegExp(`^/accounts/${ID}/statement/paid$`), (p, [id]) => {
+    const conta = exigir(estado.contas.find((c) => c.id === id), 'Conta ou cartão não encontrado.');
+    const mes = mesDe(p);
+    if (!conta.ultimaFaturaPaga || conta.ultimaFaturaPaga < mes) {
+      conta.ultimaFaturaPaga = mes;
+    }
+  }],
+  ['DELETE', new RegExp(`^/accounts/${ID}/statement/paid$`), (p, [id]) => {
+    const conta = exigir(estado.contas.find((c) => c.id === id), 'Conta ou cartão não encontrado.');
+    const mes = mesDe(p);
+    if (conta.ultimaFaturaPaga && conta.ultimaFaturaPaga >= mes) {
+      conta.ultimaFaturaPaga = somarMes(mes, -1);
+    }
   }],
 
   // Metas, cofrinho, notas, produtos

@@ -6,7 +6,7 @@ Regras que valem para todas as etapas do plano do iOS nativo (D-055). As regras 
 ## Branches e PRs
 
 - Uma branch por etapa: `swift/etapa-N`, criada a partir da `feature/ios-nativo` atualizada, com
-  PR para a `feature/ios-nativo` (D-085). Se o PR da etapa anterior ainda não tiver sido mergeado,
+  PR para a `feature/ios-nativo` (D-089). Se o PR da etapa anterior ainda não tiver sido mergeado,
   crie a partir da branch dela e diga isso no PR. A `feature/ios-nativo` vai para a `develop` quando
   o conjunto estiver testado.
 - Não mexer em `frontend/ios` nem no backend, a não ser que a etapa peça.

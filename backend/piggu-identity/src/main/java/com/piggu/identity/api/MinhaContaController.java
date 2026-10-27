@@ -68,15 +68,18 @@ public class MinhaContaController {
         return servico.informarPais(usuario.id(), pedido.pais(), pedido.documento());
     }
 
+    /** @param cpf e telefone so quando a conta ainda nao tem (quem entrou pelo Google, D-088) */
     public record SobreVoceRequest(@NotBlank(message = "Conte como podemos te chamar.") @Size(max = 120) String apelido,
-                                   LocalDate nascimento) {
+                                   LocalDate nascimento,
+                                   @Size(max = 40) String cpf,
+                                   @Size(max = 30) String telefone) {
     }
 
-    /** Como quer ser chamado e a data de nascimento (esta so na primeira vez). */
-    @Operation(summary = "Salvar apelido e data de nascimento")
+    /** Como quer ser chamado e, so na primeira vez, nascimento, CPF e celular: completa o cadastro. */
+    @Operation(summary = "Completar o cadastro: apelido, nascimento, CPF e celular")
     @PutMapping("/sobre-voce")
     public UserResponse sobreVoce(@Valid @RequestBody SobreVoceRequest pedido, @AuthUser CurrentUser usuario) {
-        return servico.sobreVoce(usuario.id(), pedido.apelido(), pedido.nascimento());
+        return servico.sobreVoce(usuario.id(), pedido.apelido(), pedido.nascimento(), pedido.cpf(), pedido.telefone());
     }
 
     public record FotoRequest(

@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { Accounts } from './accounts';
 
-const FATURA = { mes: '2026-10', inicio: '2026-09-05', ultimaCompra: '2026-10-04', fechamento: '2026-10-05', vencimento: '2026-10-12', total: 33.33 };
+const FATURA = { mes: '2026-10', inicio: '2026-09-05', ultimaCompra: '2026-10-04', fechamento: '2026-10-05', vencimento: '2026-10-12', total: 33.33, paga: false };
 
 /** O cartao mostra a fatura aberta e abre os gastos dela, com a parcela. */
 describe('Accounts', () => {
