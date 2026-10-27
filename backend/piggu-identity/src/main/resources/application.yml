@@ -96,6 +96,14 @@ piggu:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.
     dias-de-teste: ${PIGGU_DIAS_DE_TESTE:14}
 
+  app-store:
+    # Compra dentro do app iOS, conferida com a biblioteca da Apple (D-094).
+    bundle-id: ${APP_STORE_BUNDLE_ID:br.com.piggu.app}
+    # Apple ID do app (App Store Connect > App Information). Vazio aceita so o sandbox.
+    app-apple-id: ${APP_STORE_APP_APPLE_ID:}
+    # Revogacao dos certificados (OCSP) na hora de conferir. So os testes desligam.
+    checar-online: ${APP_STORE_CHECAR_ONLINE:true}
+
   revenuecat:
     # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
     # Vazio deixa a compra pelos apps em 501.

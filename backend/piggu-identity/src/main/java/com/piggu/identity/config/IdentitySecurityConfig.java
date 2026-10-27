@@ -41,6 +41,8 @@ public class IdentitySecurityConfig {
                                     "/api/auth/google/app", "/api/auth/google/app/troca").permitAll()
                             // A Stripe nao manda token: o aviso e conferido pela assinatura HMAC.
                             .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
+                            // A App Store tambem nao: o corpo e um JWS assinado pela Apple.
+                            .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/app-store").permitAll()
                             // Idem para o RevenueCat: a prova e o segredo no Authorization.
                             .requestMatchers(HttpMethod.POST, "/api/billing/stores/*/purchases").permitAll()
                             .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
