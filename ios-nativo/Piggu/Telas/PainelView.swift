@@ -31,18 +31,14 @@ struct PainelView: View {
             .background(paleta.fundo)
             .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
             .navigationTitle(saudacao)
-            .topoDoPiggu()
-            .toolbar {
+            .topoDoPiggu {
                 if let cotacao = modelo?.cotacao {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Text(Formatos.cotacao(cotacao))
-                            .font(.sora(.caption, peso: .medium))
-                            .monospacedDigit()
-                            .fixedSize()
-                            .padding(.leading, 8)
-                            .accessibilityHint(cotacao.desatualizada == true
-                                               ? "Última cotação conhecida" : "Referência de bancos centrais")
-                    }
+                    Text(Formatos.cotacao(cotacao))
+                        .font(.sora(.caption, peso: .medium))
+                        .monospacedDigit()
+                        .fixedSize()
+                        .accessibilityHint(cotacao.desatualizada == true
+                                           ? "Última cotação conhecida" : "Referência de bancos centrais")
                 }
             }
             .comTelasDoMais()

@@ -13,13 +13,16 @@ extension EnvironmentValues {
 
 extension View {
     /// O cabecalho do site (shell.html) no topo de cada aba: a marca a esquerda, que volta ao
-    /// Painel, e a busca e o assistente a direita.
-    func topoDoPiggu() -> some View {
-        modifier(TopoDoPiggu())
+    /// Painel, e a busca e o assistente a direita. `antes` entra na mesma bolha, a esquerda da
+    /// lupa (a cotacao no Painel).
+    func topoDoPiggu(@ViewBuilder antes: () -> some View = { EmptyView() }) -> some View {
+        modifier(TopoDoPiggu(antes: antes()))
     }
 }
 
-private struct TopoDoPiggu: ViewModifier {
+private struct TopoDoPiggu<Antes: View>: ViewModifier {
+    let antes: Antes
+
     @Environment(\.abrirRota) private var abrirRota
     @State private var buscando = false
     @State private var perguntando = false
@@ -37,13 +40,18 @@ private struct TopoDoPiggu: ViewModifier {
                 } else {
                     ToolbarItem(placement: .topBarLeading) { marca }
                 }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { buscando = true } label: {
-                        Label("Buscar", systemImage: "magnifyingglass")
+                // Um item so, e nao um grupo: o grupo poe a folga dele entre cada botao.
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 0) {
+                        antes.padding(.horizontal, 8)
+                        Button { buscando = true } label: {
+                            Label("Buscar", systemImage: "magnifyingglass").icone()
+                        }
+                        Button { perguntando = true } label: {
+                            Label("Perguntar ao assistente", systemImage: "sparkles").icone()
+                        }
                     }
-                    Button { perguntando = true } label: {
-                        Label("Perguntar ao assistente", systemImage: "sparkles")
-                    }
+                    .buttonStyle(.plain)
                 }
             }
             .sheet(isPresented: $buscando) { BuscaView() }
@@ -67,6 +75,17 @@ private struct TopoDoPiggu: ViewModifier {
             .accessibilityHint("Abre o Painel")
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { abrirRota(.aba(.painel)) }
+    }
+}
+
+private extension Label where Title == Text, Icon == Image {
+    /// So o simbolo, na cor do Piggu, com a area de toque de 44 pt: o mesmo passo entre os dois.
+    func icone() -> some View {
+        labelStyle(.iconOnly)
+            .font(.system(size: 19, weight: .medium))
+            .foregroundStyle(.tint)
+            .frame(width: 40, height: 44)
+            .contentShape(Rectangle())
     }
 }
 
