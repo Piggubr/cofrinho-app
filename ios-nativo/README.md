@@ -41,6 +41,9 @@ No Xcode, em *Product → Scheme → Edit Scheme → Run → Arguments* (já cad
 | `-PigguLancar YES` | Abre direto o lançamento de gasto. |
 | `-piggu_tema azul` | Abre com outra cor do Piggu (`chiclete`, `rosa`, `menta`, `azul`, `lilas`). |
 | `-PigguRefreshNoCorpo YES` | Refresh no corpo e no Keychain em vez do cookie (veja *Sessão*). |
+| `-PigguDemoConta termos` / `sobre-voce` / `cpf` / `email` | Com a demonstração: a conta abre com os Termos mudados, sem apelido e nascimento, sem CPF ou com o e-mail sem confirmar. |
+| `-PigguEntrada cadastro` / `conta-nova` | Abre a entrada na aba Criar conta ou no aceite de conta nova pela Apple ou pelo Google. |
+| `-PigguLink piggu://termos` | Abre um link depois de restaurar a sessão (`termos`, `privacidade`, `esqueci-senha`, `cpf`, `confirmar-email?token=...`, `redefinir-senha?token=...`). |
 
 A demonstração e esses atalhos só existem em Debug; não vão para o build de Release (o
 `-PigguRefreshNoCorpo` vale nos dois).
@@ -56,15 +59,54 @@ rotas do site abrem a aba certa: `piggu://painel`, `piggu://gastos`, `piggu://re
 xcrun simctl openurl booted 'piggu://gasto?valor=12.50'
 ```
 
+Os links dos e-mails do backend também abrem no app, por cima de qualquer tela e com ou sem
+sessão: `https://piggu.com.br/confirmar-email?token=...` e
+`https://piggu.com.br/redefinir-senha?token=...` (e os mesmos com `piggu://`).
+`piggu://termos`, `piggu://privacidade`, `piggu://esqueci-senha` e (com sessão) `piggu://cpf`
+abrem as telas do mesmo nome do site. Na demonstração, o token `vencido`
+responde como link vencido.
+
+### Universal Links (links do e-mail)
+
+O app tem o *Associated Domains* `applinks:piggu.com.br`, e o site publica
+`https://piggu.com.br/.well-known/apple-app-site-association` (`frontend/public/.well-known/`,
+servido como JSON pelo `deploy/Caddyfile`) com o App ID `H766LA27ZJ.br.com.piggu.app`. Os links
+de `/confirmar-email` e `/redefinir-senha` abrem o app; sem o app, abrem o site, que tem as
+mesmas telas. A Apple lê o arquivo pela CDN dela, então o app só passa a abrir os links depois
+que ele estiver no ar em produção.
+
 ## Bibliotecas
 
-Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Network, Security, Swift
-Testing) e, quando chegar o login do Google, o Google Sign-In (D-055). Nada além disso sem uma
-decisão nova.
+Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Network, Security,
+AuthenticationServices, CryptoKit, Swift Testing) e o Google Sign-In (D-055), pelo Swift Package
+Manager: `GoogleSignIn-iOS` 10 (`https://github.com/google/GoogleSignIn-iOS`), que traz AppAuth,
+GTMAppAuth, GTMSessionFetcher, AppCheckCore e GoogleUtilities. As versões ficam presas em
+`Piggu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. Nada além disso sem
+uma decisão nova.
 
 A fonte Sora (`Piggu/Recursos/Sora.woff2`) é o mesmo arquivo do pacote
 `@fontsource-variable/sora` do site, sob a licença SIL Open Font License 1.1
 (`Piggu/Recursos/Sora-OFL.txt`).
+
+## Entrar com Apple
+
+O alvo tem a capacidade *Sign in with Apple* (`Piggu/Piggu.entitlements`). O app manda o
+identity token, o nonce e, na primeira vez, o nome para `POST /api/auth/apple` (D-072). No
+servidor, `APPLE_CLIENT_IDS=br.com.piggu.app`; sem isso a rota responde 501 e o app mostra
+"O login com a Apple ainda não está disponível". O projeto assina com o Team `H766LA27ZJ`; a
+assinatura automática registra a capacidade no App ID.
+
+## Entrar com Google
+
+Os IDs OAuth ficam em `Config/Piggu.xcconfig`: são públicos e vão dentro do app. O do iOS
+(tipo **iOS** no [Google Cloud Console](https://console.cloud.google.com/apis/credentials), no
+mesmo projeto do site, ID do pacote `br.com.piggu.app`) abre o login e dá o esquema de URL de
+volta (`GOOGLE_IOS_URL_SCHEME`, o mesmo ID ao contrário). Sem `GOOGLE_IOS_CLIENT_ID` o botão
+não aparece.
+
+O servidor não muda: o app pede o token para o ID do site (`GIDServerClientID`), então o `aud` é
+o mesmo que o backend já aceita em `GOOGLE_CLIENT_ID`. Não ponha dois IDs separados por vírgula
+nessa variável: o `application.yml` a lê como um item só da lista e o login do site para.
 
 ## Regras e CI
 
@@ -87,7 +129,24 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Sem internet**: o resumo e os gastos de cada mês aberto ficam no SwiftData. A tela mostra
   o guardado na hora e atualiza em seguida; sem rede, avisa de quando é o que está na tela. O
   `NWPathMonitor` recarrega quando a rede volta. O cache é apagado ao sair da conta.
-- **Login por e-mail e senha** (`POST /api/auth/entrar`) com "Continuar conectado".
+- **Entrada** (`Telas/Entrada`, espelho de `features/login`, `cpf`, `aceite`, `sobre-voce`,
+  `redefinir-senha`, `confirmar-email` e `legal`):
+  - Entrar com e-mail e senha, com a Apple (`SignInWithAppleButton`, `POST /api/auth/apple`
+    com nonce e o nome da primeira vez) ou com o Google (`POST /api/auth/google` com o ID
+    token), e "Continuar conectado neste aparelho". Conta nova pela Apple ou pelo Google pede o
+    aceite dos termos (`TERMOS_NECESSARIOS`) e reaproveita o token.
+  - Criar conta (`POST /api/auth/cadastro`) com nome, nascimento (13 anos ou mais), e-mail,
+    senha com as regras de `regras-da-senha.ts`, celular com DDI, país, CPF com máscara e
+    dígitos conferidos, e o aceite da versão atual dos termos.
+  - Esqueci a senha, senha nova pelo link (`LINK_INVALIDO` oferece pedir outro) e confirmar
+    e-mail pelo link, abertos por cima de qualquer tela.
+  - Termos mudados (`PUT /api/me/termos`) e "Sobre você" (`PUT /api/me/sobre-voce`) antes das
+    abas, como os guards do site; CPF opcional pelo Mais (`PUT /api/me/pais`, depois renova o
+    token).
+  - Termos de Uso e Aviso de Privacidade nativos, com o texto do site
+    (`Piggu/Recursos/Termos.md` e `Privacidade.md`, gerados por `scripts/textos-legais.py`; o CI
+    falha se ficarem diferentes do HTML do site).
+  - Excluir minha conta no Mais e na tela dos termos (`DELETE /api/me`, digitando EXCLUIR).
 - **Sessão como no app web**: o access token fica só em memória; o refresh vem no cookie
   HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema.
   Em 401 o app faz uma única renovação (`POST /api/auth/refresh`) e repete o pedido; chamadas
@@ -106,25 +165,28 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   contra o mês anterior).
 - **Lançar gasto** (botão +): `POST /api/expenses`, valor aceitando vírgula (`12,50`,
   `1.234,56`), categoria vinda de `GET /api/categories`, data e estabelecimento.
-- **Mais**: nome, e-mail, plano, Cor do Piggu e Sair.
+- **Mais**: nome, e-mail, plano, e-mail sem confirmar (com reenviar), CPF não informado, Cor do
+  Piggu, Termos, Aviso de Privacidade, Excluir minha conta e Sair.
 - Textos em pt-BR no String Catalog (`Piggu/Localizable.xcstrings`), valores em R$.
 - Testes (Swift Testing): decodificação dos modelos com JSON no formato do backend, parse de
   valor com vírgula, formatos pt_BR, o fluxo 401 → refresh → repetição, o refresh no corpo e
-  no Keychain, o cache e os links.
+  no Keychain, o cache, os links e o fluxo de entrada inteiro contra a API falsa (Apple e Google
+  com conta nova, cadastro, links vencidos, termos, CPF, excluir conta), além das regras de
+  senha, e-mail, CPF e nascimento com os mesmos casos do site.
 
 Prints em [`docs/prints/`](docs/prints/) (tirados com `-PigguDemo`, sem dados reais); os da
-etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/).
+etapa 2, no iPhone e no iPad, em [`docs/prints/etapa-2/`](docs/prints/etapa-2/); os da etapa 3
+(entrada), em [`docs/prints/etapa-3/`](docs/prints/etapa-3/).
 
 ## O que falta
 
-- **Entrar com Google**: os botões estão na tela, desabilitados. Falta o Google Sign-In e o
-  `POST /api/auth/google` com o ID token.
-- **Entrar com Apple**: botão desabilitado. O backend já tem `POST /api/auth/apple` na
-  `develop` (D-072).
+- **Revogar o token da Apple ao excluir a conta**, que a App Store exige: falta no backend
+  (`docs/API_SPEC.md`).
+- Trocar e criar senha no Perfil (`PUT /api/auth/me/senha`, com o `refreshToken` no corpo).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
 - **Relatório do ano** (Premium) e os demais relatórios: etapa 5.
 - **Demais telas** do app web: receitas, contas fixas, orçamentos, cofrinho, metas, família,
-  assistente, recibos, importação de extrato, perfil, cadastro, esqueci a senha, termos etc.
+  assistente, recibos, importação de extrato, o resto do perfil etc.
 - Editar e excluir gasto, parcelas, divisão e compartilhamento no lançamento.
 - Modo sem rede, notificações, ícone e prints para a App Store.

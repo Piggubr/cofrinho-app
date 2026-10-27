@@ -10,9 +10,27 @@ enum Aba: String, CaseIterable, Sendable {
 /// Aceita os mesmos links do app Capacitor (frontend/ios/App/App/AtalhosPlugin.swift), que
 /// ja estao em atalhos salvos: `piggu://gastos?rapido=1&valor=12.50`. E o curto
 /// `piggu://gasto?valor=12.50`. As rotas do site que ainda nao existem no app sao ignoradas.
-enum Rota: Equatable, Sendable {
+enum Rota: Hashable, Identifiable, Sendable {
     case aba(Aba)
     case lancarGasto(valor: Decimal?)
+    /// Os links dos e-mails (https://piggu.com.br/confirmar-email?token=...), por Universal
+    /// Link; abrem por cima de qualquer tela, com ou sem sessao.
+    case confirmarEmail(token: String)
+    case redefinirSenha(token: String)
+    case textoLegal(TextoLegalView.Documento)
+    case esqueciSenha
+    /// Informar o CPF; so com sessao.
+    case cpf
+
+    var id: Self { self }
+
+    /// Abre numa folha por cima do app, logado ou nao.
+    var abreFolha: Bool {
+        switch self {
+        case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf: true
+        case .aba, .lancarGasto: false
+        }
+    }
 
     /// O mesmo teto do backend (ExpenseItemRequest).
     static let valorMaximo: Decimal = 1_000_000
@@ -47,6 +65,18 @@ enum Rota: Equatable, Sendable {
             self = .aba(.relatorios)
         case "mais", "perfil", "plano":
             self = .aba(.mais)
+        case "confirmar-email":
+            self = .confirmarEmail(token: consulta["token"] ?? "")
+        case "redefinir-senha":
+            self = .redefinirSenha(token: consulta["token"] ?? "")
+        case "esqueci-senha":
+            self = .esqueciSenha
+        case "cpf":
+            self = .cpf
+        case "termos":
+            self = .textoLegal(.termos)
+        case "privacidade":
+            self = .textoLegal(.privacidade)
         default:
             return nil
         }

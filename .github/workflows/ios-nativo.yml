@@ -7,6 +7,9 @@ on:
     paths:
       - 'ios-nativo/**'
       - '.github/workflows/ios-nativo.yml'
+      # Os Termos e o Aviso de Privacidade do app sao copias destes.
+      - 'frontend/src/app/features/legal/**'
+      - 'frontend/src/app/core/privacidade/aviso.ts'
 
 permissions:
   contents: read
@@ -28,6 +31,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Os nomes dos simuladores mudam a cada imagem do macos-latest: usa o primeiro iPhone instalado.
+      - name: Termos e Aviso de Privacidade iguais aos do site
+        run: |
+          python3 -I scripts/textos-legais.py
+          git diff --exit-code -- Piggu/Recursos || {
+            echo "::error::O texto legal do site mudou. Rode python3 ios-nativo/scripts/textos-legais.py e faca o commit."
+            exit 1
+          }
+
       - name: Escolher o simulador
         run: |
           xcodebuild -version
