@@ -182,6 +182,94 @@ extension ClienteDaAPI {
     }
 }
 
+/// Organizacao: contas do mes, orcamentos, calendario, relatorios, contas e cartoes.
+extension ClienteDaAPI {
+    func criarContaFixa(_ conta: NovaContaFixa) async throws {
+        let _: SemCorpo = try await post("/bills", corpo: conta)
+    }
+
+    /// Lanca o gasto do mes; o mesmo mes duas vezes e recusado.
+    func pagarContaFixa(_ id: String, mes: String) async throws {
+        let _: Gasto = try await post("/bills/\(id)/pay", corpo: [String: String](), query: ["mes": mes])
+    }
+
+    /// Cria ou muda o limite da categoria (Premium).
+    func definirOrcamento(categoria: String, limite: Decimal) async throws {
+        let _: SemCorpo = try await put("/budgets", corpo: PedidoDeOrcamento(categoria: categoria, limite: limite))
+    }
+
+    func excluirOrcamento(_ id: String) async throws {
+        try await delete("/budgets/\(id)")
+    }
+
+    /// Limite total do mes; devolve o mapa atualizado.
+    func definirMeta(mes: String, limite: Decimal) async throws -> [String: Decimal] {
+        try await put("/monthly-goals", corpo: PedidoDeMeta(mes: mes, limite: limite))
+    }
+
+    /// Ano mes a mes e por categoria (Premium).
+    func relatorioDoAno(_ ano: Int) async throws -> RelatorioDoAno {
+        try await get("/reports/year", query: ["ano": String(ano)])
+    }
+
+    /// CSV dos gastos do mes, como o "Exportar" do site.
+    func exportarGastos(_ mes: String) async throws -> Data {
+        try await dados("/expenses/export", query: ["mes": mes])
+    }
+
+    func criarConta(_ conta: NovaConta) async throws {
+        let _: ContaOuCartao = try await post("/accounts", corpo: conta)
+    }
+
+    /// Conta ou cartao do casal: so quem criou liga ou desliga.
+    func compartilharConta(_ id: String, _ compartilhado: Bool) async throws {
+        let _: SemCorpo = try await put("/accounts/\(id)/sharing", corpo: ["compartilhado": compartilhado])
+    }
+
+    func excluirConta(_ id: String) async throws {
+        try await delete("/accounts/\(id)")
+    }
+
+    /// Fatura do cartao que fecha no mes (aaaa-mm), com os gastos.
+    func fatura(_ id: String, mes: String) async throws -> FaturaComGastos {
+        try await get("/accounts/\(id)/statement", query: ["mes": mes])
+    }
+
+    /// So tira a fatura (e as anteriores) do "a pagar"; nao lanca gasto (D-085).
+    func pagarFatura(_ id: String, mes: String) async throws {
+        try await put("/accounts/\(id)/statement/paid", query: ["mes": mes])
+    }
+
+    func desfazerPagamentoDaFatura(_ id: String, mes: String) async throws {
+        try await delete("/accounts/\(id)/statement/paid", query: ["mes": mes])
+    }
+
+    /// Token que abre o widget da Pluggy; leva a autorizacao, que o backend grava junto.
+    func gerarConnectToken(versaoDoAviso: String) async throws -> ConnectToken {
+        try await post("/banking/connect-token", corpo: PedidoDeConexao(autorizo: true, versaoDoAviso: versaoDoAviso))
+    }
+
+    /// Registra o banco que o widget conectou e devolve as contas.
+    func registrarItem(_ itemId: String) async throws -> [ContaBancaria] {
+        try await post("/banking/items", corpo: ["itemId": itemId])
+    }
+}
+
+private struct PedidoDeOrcamento: Codable, Sendable {
+    let categoria: String
+    let limite: Decimal
+}
+
+private struct PedidoDeMeta: Codable, Sendable {
+    let mes: String
+    let limite: Decimal
+}
+
+private struct PedidoDeConexao: Codable, Sendable {
+    let autorizo: Bool
+    let versaoDoAviso: String
+}
+
 /// piggu-lifestyle, piggu-banking e identity: so o que o Painel mostra.
 extension ClienteDaAPI {
     func listarMetasDoMes() async throws -> [MetaDoMes] {

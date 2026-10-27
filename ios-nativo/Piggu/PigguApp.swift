@@ -147,7 +147,7 @@ private struct FolhaDaConta: View {
             EsqueciSenhaView()
         case .cpf:
             CpfView()
-        case .aba, .lancarGasto:
+        case .aba, .organizacao, .lancarGasto:
             EmptyView()
         }
     }

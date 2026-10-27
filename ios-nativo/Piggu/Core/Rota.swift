@@ -12,6 +12,8 @@ enum Aba: String, CaseIterable, Sendable {
 /// `piggu://gasto?valor=12.50`. As rotas do site que ainda nao existem no app sao ignoradas.
 enum Rota: Hashable, Identifiable, Sendable {
     case aba(Aba)
+    /// Orcamento, contas do mes, cartoes e bancos e calendario: abrem no Mais.
+    case organizacao(TelaDeOrganizacao)
     case lancarGasto(valor: Decimal?)
     /// Os links dos e-mails (https://piggu.com.br/confirmar-email?token=...), por Universal
     /// Link; abrem por cima de qualquer tela, com ou sem sessao.
@@ -28,7 +30,7 @@ enum Rota: Hashable, Identifiable, Sendable {
     var abreFolha: Bool {
         switch self {
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf: true
-        case .aba, .lancarGasto: false
+        case .aba, .organizacao, .lancarGasto: false
         }
     }
 
@@ -65,6 +67,14 @@ enum Rota: Hashable, Identifiable, Sendable {
             self = .aba(.receitas)
         case "relatorios":
             self = .aba(.relatorios)
+        case "orcamentos":
+            self = .organizacao(.orcamento)
+        case "contas-fixas":
+            self = .organizacao(.contasDoMes)
+        case "contas-e-cartoes":
+            self = .organizacao(.cartoes)
+        case "calendario":
+            self = .organizacao(.calendario)
         case "mais", "perfil", "plano":
             self = .aba(.mais)
         case "confirmar-email":
