@@ -1,7 +1,9 @@
+import CoreSpotlight
 import SwiftUI
 
 @main
 struct PigguApp: App {
+    @UIApplicationDelegateAdaptor(DelegadoDoApp.self) private var delegado
     @State private var sessao: Sessao
     @State private var rede = MonitorDeRede()
 
@@ -18,7 +20,10 @@ struct PigguApp: App {
         let demo = false
         let cliente = ClienteDaAPI()
         #endif
-        _sessao = State(initialValue: Sessao(cliente: cliente, cache: Cache(soNaMemoria: demo)))
+        let sessao = Sessao(cliente: cliente, cache: Cache(soNaMemoria: demo))
+        Sessao.atual = sessao
+        _sessao = State(initialValue: sessao)
+        Dicas.configurar(demo: demo)
     }
 
     /// Hospedeiro dos testes: sem a interface, que restauraria a sessao na API de verdade a
@@ -48,6 +53,9 @@ struct RaizView: View {
     @Environment(Sessao.self) private var sessao
     @AppStorage(Tema.chave) private var temaEscolhido = Tema.chiclete
     @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
+    @Environment(\.scenePhase) private var fase
+    @State private var trava = TravaDoApp()
+    private let central = CentralDeRotas.compartilhada
     /// Link que chegou antes do login: abre depois que a pessoa entra.
     @State private var rota: Rota?
     /// Link da conta (e-mail, termos), aberto por cima de qualquer tela.
@@ -81,6 +89,26 @@ struct RaizView: View {
                 SobreVoceView()
             case .logado:
                 PrincipalView(rota: $rota)
+            }
+        }
+        .overlay {
+            if trava.travado, sessao.usuario != nil {
+                TelaDeTrava(trava: trava).transition(.opacity)
+            }
+        }
+        .environment(trava)
+        .onChange(of: fase) { _, nova in
+            if nova == .background { trava.travarSeLigada() }
+        }
+        // Siri, Atalhos, controle da Central de Controle e notificacoes pedem um link.
+        .onChange(of: central.pendente, initial: true) { _, _ in
+            if let link = central.consumir() { abrir(link) }
+        }
+        // Um gasto achado na busca do iPhone abre na aba Gastos.
+        .onContinueUserActivity(CSSearchableItemActionType) { atividade in
+            if let id = atividade.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+               let link = URL(string: "piggu://gastos?id=\(id)") {
+                abrir(link)
             }
         }
         .sheet(item: $folha) { rota in
@@ -149,7 +177,7 @@ private struct FolhaDaConta: View {
             EsqueciSenhaView()
         case .cpf:
             CpfView()
-        case .aba, .tela, .lancarGasto:
+        case .aba, .tela, .lancarGasto, .verGasto:
             EmptyView()
         }
     }
