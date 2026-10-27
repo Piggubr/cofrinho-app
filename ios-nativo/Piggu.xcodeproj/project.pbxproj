@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000092 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000091 /* GoogleSignIn */; };
+		A100000000000000000000B8 /* PigguWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B0 /* PigguWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -18,12 +19,34 @@
 			remoteGlobalIDString = A10000000000000000000020;
 			remoteInfo = Piggu;
 		};
+		A100000000000000000000BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A100000000000000000000B3;
+			remoteInfo = PigguWidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A100000000000000000000BE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A100000000000000000000B8 /* PigguWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000030 /* Piggu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Piggu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000080 /* Piggu.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Piggu.xcconfig; sourceTree = "<group>"; };
 		A10000000000000000000031 /* PigguTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PigguTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A100000000000000000000B0 /* PigguWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PigguWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -34,6 +57,14 @@
 				Piggu.entitlements,
 			);
 			target = A10000000000000000000020 /* Piggu */;
+		};
+		A100000000000000000000B6 /* Exceptions for "PigguWidgets" folder in "PigguWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				PigguWidgets.entitlements,
+			);
+			target = A100000000000000000000B3 /* PigguWidgetsExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -49,6 +80,19 @@
 		A10000000000000000000041 /* PigguTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PigguTests;
+			sourceTree = "<group>";
+		};
+		A100000000000000000000B1 /* PigguWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A100000000000000000000B6 /* Exceptions for "PigguWidgets" folder in "PigguWidgetsExtension" target */,
+			);
+			path = PigguWidgets;
+			sourceTree = "<group>";
+		};
+		A100000000000000000000B2 /* Compartilhado */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Compartilhado;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +113,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A100000000000000000000B5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -76,6 +127,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000040 /* Piggu */,
+				A100000000000000000000B2 /* Compartilhado */,
+				A100000000000000000000B1 /* PigguWidgets */,
 				A10000000000000000000041 /* PigguTests */,
 				A10000000000000000000081 /* Config */,
 				A10000000000000000000003 /* Products */,
@@ -95,6 +148,7 @@
 			children = (
 				A10000000000000000000030 /* Piggu.app */,
 				A10000000000000000000031 /* PigguTests.xctest */,
+				A100000000000000000000B0 /* PigguWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -109,13 +163,16 @@
 				A10000000000000000000050 /* Sources */,
 				A10000000000000000000051 /* Frameworks */,
 				A10000000000000000000052 /* Resources */,
+				A100000000000000000000BE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A100000000000000000000B9 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000040 /* Piggu */,
+				A100000000000000000000B2 /* Compartilhado */,
 			);
 			name = Piggu;
 			packageProductDependencies = (
@@ -148,6 +205,29 @@
 			productReference = A10000000000000000000031 /* PigguTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A100000000000000000000B3 /* PigguWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A100000000000000000000BD /* Build configuration list for PBXNativeTarget "PigguWidgetsExtension" */;
+			buildPhases = (
+				A100000000000000000000B4 /* Sources */,
+				A100000000000000000000B5 /* Frameworks */,
+				A100000000000000000000B7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A100000000000000000000B1 /* PigguWidgets */,
+				A100000000000000000000B2 /* Compartilhado */,
+			);
+			name = PigguWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = PigguWidgetsExtension;
+			productReference = A100000000000000000000B0 /* PigguWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -164,6 +244,9 @@
 					A10000000000000000000021 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = A10000000000000000000020;
+					};
+					A100000000000000000000B3 = {
+						CreatedOnToolsVersion = 27.1;
 					};
 				};
 			};
@@ -186,6 +269,7 @@
 			targets = (
 				A10000000000000000000020 /* Piggu */,
 				A10000000000000000000021 /* PigguTests */,
+				A100000000000000000000B3 /* PigguWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -199,6 +283,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A10000000000000000000055 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A100000000000000000000B7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -222,6 +313,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A100000000000000000000B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -229,6 +327,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000020 /* Piggu */;
 			targetProxy = A10000000000000000000010 /* PBXContainerItemProxy */;
+		};
+		A100000000000000000000B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A100000000000000000000B3 /* PigguWidgetsExtension */;
+			targetProxy = A100000000000000000000BA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -311,6 +414,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Piggu;
 				INFOPLIST_KEY_NSCameraUsageDescription = "O Piggu usa a câmera para a sua foto de perfil e a foto do que você não comprou no Girls Math.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "O Piggu usa o Face ID para travar o app, se você ligar isso no Perfil.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -348,6 +452,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Piggu;
 				INFOPLIST_KEY_NSCameraUsageDescription = "O Piggu usa a câmera para a sua foto de perfil e a foto do que você não comprou no Girls Math.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "O Piggu usa o Face ID para travar o app, se você ligar isso no Perfil.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -404,6 +509,58 @@
 			};
 			name = Release;
 		};
+		A100000000000000000000BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PigguWidgets/PigguWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H766LA27ZJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PigguWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Piggu;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.piggu.app.PigguWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A100000000000000000000BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PigguWidgets/PigguWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H766LA27ZJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PigguWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Piggu;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.piggu.app.PigguWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -430,6 +587,15 @@
 			buildConfigurations = (
 				A10000000000000000000060 /* Debug */,
 				A10000000000000000000061 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A100000000000000000000BD /* Build configuration list for PBXNativeTarget "PigguWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A100000000000000000000BB /* Debug */,
+				A100000000000000000000BC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
