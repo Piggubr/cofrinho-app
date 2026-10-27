@@ -23,6 +23,9 @@ private struct TopoDoPiggu: ViewModifier {
     @Environment(\.abrirRota) private var abrirRota
     @State private var buscando = false
     @State private var perguntando = false
+    /// O icone que a pessoa escolheu no Perfil. O sistema nao avisa a troca: relido a cada vez
+    /// que a aba aparece (voltar do Perfil, trocar de aba).
+    @State private var icone = IconeDoApp.atual
 
     func body(content: Content) -> some View {
         content
@@ -45,12 +48,13 @@ private struct TopoDoPiggu: ViewModifier {
             }
             .sheet(isPresented: $buscando) { BuscaView() }
             .sheet(isPresented: $perguntando) { AssistenteView() }
+            .onAppear { icone = IconeDoApp.atual }
     }
 
-    /// O logo ocupa a bolha de vidro inteira (por isso uma view com toque, e nao um Button, que a
+    /// O icone do app ocupa a bolha de vidro inteira (por isso uma view com toque, e nao um Button, que a
     /// barra desenharia como icone dentro da bolha dela).
     private var marca: some View {
-        Image("Logo")
+        icone.previa
             .resizable()
             .scaledToFill()
             .frame(width: 44, height: 44)

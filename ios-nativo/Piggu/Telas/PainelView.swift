@@ -39,6 +39,7 @@ struct PainelView: View {
                             .font(.sora(.caption, peso: .medium))
                             .monospacedDigit()
                             .fixedSize()
+                            .padding(.leading, 8)
                             .accessibilityHint(cotacao.desatualizada == true
                                                ? "Última cotação conhecida" : "Referência de bancos centrais")
                     }

@@ -253,8 +253,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Ler a nota**: no lançar gasto, a câmera (VisionKit) lê o total e a data do cupom e preenche para
   a pessoa conferir; o botão só aparece onde o aparelho lê texto.
 - **Busca do iPhone**: os gastos do mês entram no Spotlight; tocar abre o gasto na aba Gastos.
-- **Topo das abas** (o cabeçalho do site, D-097): o logo do Piggu à esquerda, ocupando a bolha de
-  vidro, que volta ao Painel, e à direita a **busca** (telas, gastos de todos os meses, lugares, filmes e compras; tocar abre
+- **Topo das abas** (o cabeçalho do site, D-097): o ícone do app que a pessoa escolheu no Perfil, à
+  esquerda, ocupando a bolha de vidro, que volta ao Painel, e à direita a **busca** (telas, gastos de todos os meses, lugares, filmes e compras; tocar abre
   a tela ou o gasto no mês dele) e o **assistente** de IA (Premium: autorização do envio ao
   Gemini, sugestões, atalho para a tela da resposta; a conversa fica só no aparelho por 30 dias e
   sai ao sair da conta).
