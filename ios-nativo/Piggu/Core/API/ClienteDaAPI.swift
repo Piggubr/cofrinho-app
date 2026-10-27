@@ -292,8 +292,14 @@ actor ClienteDaAPI {
         corpo: Data?,
         aberta: Bool
     ) async throws -> Data {
+        // Abrindo o app, as telas pedem antes de o token chegar: esperam a renovacao em curso
+        // em vez de levar um 401 cada uma.
+        var token = accessToken
+        if !aberta, token == nil, let renovacaoEmCurso {
+            token = try? await renovacaoEmCurso.value.accessToken
+        }
         let pedido = try montar(metodo: metodo, caminho: caminho, query: query, corpo: corpo,
-                                token: aberta ? nil : accessToken)
+                                token: aberta ? nil : token)
         let (dados, resposta) = try await chamar(pedido)
 
         guard resposta.statusCode == 401, !aberta else {

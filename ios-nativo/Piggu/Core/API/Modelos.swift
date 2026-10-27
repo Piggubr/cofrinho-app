@@ -39,6 +39,10 @@ struct Usuario: Codable, Equatable, Sendable {
     let nascimento: String?
     /// Falso: o Perfil oferece informar o CPF. Ausente conta como informado.
     var cpfInformado: Bool?
+    /// Falso: "Sobre voce" pede o celular. Ausente conta como informado.
+    var celularInformado: Bool?
+    /// Falso: falta apelido, nascimento, CPF ou celular, e os outros servicos recusam (D-088).
+    var cadastroCompleto: Bool?
     /// Versao dos Termos aceita por ultimo; nula em conta antiga.
     var termosAceitos: String?
     var temSenha: Bool?
@@ -58,9 +62,11 @@ struct Usuario: Codable, Equatable, Sendable {
     /// Os Termos mudaram desde o ultimo aceite: o app so abre a tela de aceitar de novo.
     var termosPendentes: Bool { termosAceitos != Conta.versaoDosTermos }
 
-    /// Falta como chamar ou a data de nascimento: o app pede os dois antes do resto.
+    /// Falta apelido, nascimento, CPF ou celular: o app so abre "Sobre voce" (D-088). Perfil
+    /// sem `cadastroCompleto` (servidor de antes) olha so o apelido e o nascimento.
     var sobreVocePendente: Bool {
-        (apelido ?? "").trimmingCharacters(in: .whitespaces).isEmpty || (nascimento ?? "").isEmpty
+        if let cadastroCompleto { return !cadastroCompleto }
+        return (apelido ?? "").trimmingCharacters(in: .whitespaces).isEmpty || (nascimento ?? "").isEmpty
     }
 
     /// Como o app chama a pessoa: o apelido, senao o primeiro nome.
@@ -709,10 +715,12 @@ struct PedidoDePais: Codable, Sendable {
     let documento: String?
 }
 
-/// PUT /me/sobre-voce: a data so na primeira vez.
+/// PUT /me/sobre-voce: data, CPF e celular so na primeira vez, quando faltam.
 struct PedidoSobreVoce: Codable, Sendable {
     let apelido: String
     let nascimento: String?
+    var cpf: String?
+    var telefone: String?
 }
 
 /// PUT /me/termos

@@ -53,19 +53,23 @@ final class Sessao {
 
     /// Ao abrir o app: sem como ler o cookie (HttpOnly), pergunta ao identity.
     func restaurar() async {
+        // Com o perfil guardado, o app abre na hora com o que cada tela guardou e a renovacao
+        // segue por tras (D-095). So o refresh recusado encerra a sessao; sem rede ou com o
+        // servidor fora, a primeira chamada que der certo renova sozinha (401, refresh, repete).
+        let guardado = cache.ler(Self.chaveDoUsuario, como: Usuario.self)?.valor
+        if let guardado {
+            entrou(guardado)
+        }
         do {
             let tokens = try await cliente.renovar()
             entrou(tokens.usuario)
-        } catch ErroDaAPI.semConexao {
-            // A primeira chamada com rede renova sozinha (401, refresh, repete).
-            if let usuario = cache.ler(Self.chaveDoUsuario, como: Usuario.self)?.valor {
-                estado = .logado(usuario)
-            } else {
-                estado = .deslogado
-            }
-        } catch {
+        } catch ErroDaAPI.servidor(status: 401, _, _) {
             saiu()
-        }
+        } catch ErroDaAPI.semConexao where guardado == nil {
+            estado = .deslogado
+        } catch where guardado == nil {
+            saiu()
+        } catch {}
     }
 
     // MARK: - Entrar
@@ -155,9 +159,15 @@ final class Sessao {
         entrou(try await cliente.put("/me/termos", corpo: PedidoDeTermos(versao: Conta.versaoDosTermos)))
     }
 
-    /// Como quer ser chamado e, so na primeira vez, a data de nascimento (aaaa-mm-dd).
-    func sobreVoce(apelido: String, nascimento: String?) async throws {
-        entrou(try await cliente.put("/me/sobre-voce", corpo: PedidoSobreVoce(apelido: apelido, nascimento: nascimento)))
+    /// Como quer ser chamado e, so na primeira vez, a data de nascimento (aaaa-mm-dd), o CPF e
+    /// o celular. Renova o token: o de antes diz "cadastro incompleto" aos outros servicos.
+    func sobreVoce(apelido: String, nascimento: String?, cpf: String? = nil, telefone: String? = nil) async throws {
+        let usuario: Usuario = try await cliente.put("/me/sobre-voce", corpo: PedidoSobreVoce(
+            apelido: apelido, nascimento: nascimento, cpf: cpf, telefone: telefone))
+        if cpf != nil || telefone != nil {
+            _ = try? await cliente.renovar()
+        }
+        entrou(usuario)
     }
 
     /// Pais onde mora e o CPF. Depois renova o token: sem isso os outros servicos ainda veem

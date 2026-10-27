@@ -24,9 +24,10 @@ final class Cache {
     let soNaMemoria: Bool
 
     /// - Parameter soNaMemoria: demonstracao e testes, que nao podem misturar dados com os de verdade.
-    init(soNaMemoria: Bool = false) {
+    /// - Parameter arquivo: um banco separado do de verdade (a demonstracao medindo a abertura).
+    init(soNaMemoria: Bool = false, arquivo: String? = nil) {
         self.soNaMemoria = soNaMemoria
-        let disco = ModelConfiguration(isStoredInMemoryOnly: soNaMemoria)
+        let disco = arquivo.map { ModelConfiguration($0) } ?? ModelConfiguration(isStoredInMemoryOnly: soNaMemoria)
         let container = (try? ModelContainer(for: RespostaGuardada.self, configurations: disco))
             // Banco corrompido ou migracao que falhou: segue sem cache em vez de nao abrir.
             ?? (try! ModelContainer(for: RespostaGuardada.self,
