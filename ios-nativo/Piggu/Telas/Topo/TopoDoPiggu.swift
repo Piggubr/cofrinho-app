@@ -21,7 +21,6 @@ extension View {
 
 private struct TopoDoPiggu: ViewModifier {
     @Environment(\.abrirRota) private var abrirRota
-    @Environment(\.paleta) private var paleta
     @State private var buscando = false
     @State private var perguntando = false
 
@@ -29,7 +28,7 @@ private struct TopoDoPiggu: ViewModifier {
         content
             .toolbar {
                 if #available(iOS 26, *) {
-                    // Sem a bolha de vidro: a marca e o titulo da barra, nao um botao.
+                    // A bolha da barra fica de fora: o logo traz a dele, do tamanho do logo.
                     ToolbarItem(placement: .topBarLeading) { marca }
                         .sharedBackgroundVisibility(.hidden)
                 } else {
@@ -48,25 +47,32 @@ private struct TopoDoPiggu: ViewModifier {
             .sheet(isPresented: $perguntando) { AssistenteView() }
     }
 
-    /// Uma view com toque, e nao um Button: na barra do iOS 26 o botao mostraria so o icone.
+    /// O logo ocupa a bolha de vidro inteira (por isso uma view com toque, e nao um Button, que a
+    /// barra desenharia como icone dentro da bolha dela).
     private var marca: some View {
-        HStack(spacing: 8) {
-            Image("Logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 28, height: 28)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            Text(verbatim: "Piggu")
-                .font(.sora(.headline, peso: .bold))
-                .foregroundStyle(paleta.primaria)
-                .fixedSize()
+        Image("Logo")
+            .resizable()
+            .scaledToFill()
+            .frame(width: 44, height: 44)
+            .clipShape(Circle())
+            .bolhaDeVidro()
+            .contentShape(Circle())
+            .onTapGesture { abrirRota(.aba(.painel)) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Piggu")
+            .accessibilityHint("Abre o Painel")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { abrirRota(.aba(.painel)) }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func bolhaDeVidro() -> some View {
+        if #available(iOS 26, *) {
+            glassEffect(.regular.interactive(), in: Circle())
+        } else {
+            self
         }
-        .contentShape(Rectangle())
-        .onTapGesture { abrirRota(.aba(.painel)) }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Piggu")
-        .accessibilityHint("Abre o Painel")
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction { abrirRota(.aba(.painel)) }
     }
 }
