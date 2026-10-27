@@ -54,14 +54,25 @@ describe('Family', () => {
 
   afterEach(() => http.verify());
 
-  function abrir(recebidos: Familia['convites'] = []): HTMLElement {
+  function abrir(recebidos: Familia['convites'] = [], familia: Familia = FAMILIA): HTMLElement {
     const tela = TestBed.createComponent(Family);
     tela.detectChanges();
-    http.expectOne('/api/family').flush(FAMILIA);
+    http.expectOne('/api/family').flush(familia);
     http.expectOne('/api/family/invites/mine').flush(recebidos);
     tela.detectChanges();
     return tela.nativeElement;
   }
+
+  it('mostra o plano da casa: gratuito, individual, casal e familia', () => {
+    const etiqueta = (familia: Partial<Familia>) => {
+      const pagina = abrir([], { ...FAMILIA, ...familia });
+      return pagina.querySelector('#titulo-familia + .etiqueta')?.textContent?.trim();
+    };
+    expect(etiqueta({})).toBe('Gratuito');
+    expect(etiqueta({ plano: 'PREMIUM' })).toBe('Premium individual');
+    expect(etiqueta({ plano: 'PREMIUM', planoCasal: true })).toBe('Premium casal');
+    expect(etiqueta({ plano: 'PREMIUM', planoFamilia: true })).toBe('Premium família');
+  });
 
   it('titular ve membros e convites e convida pelo e-mail', () => {
     const pagina = abrir();
@@ -136,7 +147,9 @@ describe('Family', () => {
     const pagina: HTMLElement = tela.nativeElement;
     expect(pagina.textContent).toContain('O titular convidou você para ser parceiro');
 
-    [...pagina.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Recusar')!.click();
+    [...pagina.querySelectorAll('button')]
+      .find((b) => b.textContent?.trim() === 'Recusar')!
+      .click();
     const recusa = http.expectOne('/api/family/partnership/decline');
     expect(recusa.request.method).toBe('POST');
     recusa.flush(FAMILIA);

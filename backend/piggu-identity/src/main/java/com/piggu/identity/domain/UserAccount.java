@@ -1,6 +1,7 @@
 package com.piggu.identity.domain;
 
 import com.piggu.common.security.PigguRole;
+import com.piggu.common.web.Meses;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -405,6 +406,11 @@ public class UserAccount {
             throw new IllegalStateException("A conta ja tem data de nascimento");
         }
         this.birthDate = data;
+        // Entrou como parceiro pelo convite do plano casal antes de dizer a idade (D-086).
+        if (role == PigguRole.PARCEIRO && menorDeIdade(LocalDate.now(Meses.BRASILIA))) {
+            this.role = PigguRole.MEMBRO;
+            this.showsAllTo = null;
+        }
     }
 
     /** Menor de 18 com data informada; sem data, ninguem trata a pessoa como menor. */

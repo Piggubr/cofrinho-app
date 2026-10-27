@@ -31,6 +31,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-074](#d-074-nenhuma-transação-do-banco-em-volta-de-chamada-a-serviço-de-fora) | Nenhuma transação do banco em volta de chamada a serviço de fora | Valendo |
 | [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
 | [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
+| [D-087](#d-087-salário-em-duas-parcelas-numa-receita-só) | Salário em duas parcelas numa receita só | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -49,6 +50,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-026](#d-026-caddy-como-única-porta-pública) | Caddy como única porta pública | Valendo |
 | [D-027](#d-027-login-do-google-no-app-pelo-navegador-do-celular) | Login do Google no app pelo navegador do celular | Valendo |
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
+| [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -245,6 +247,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: não registra pagamento parcial nem a conta de onde saiu o dinheiro. O iOS e o Android nativos mostram o mesmo botão na tela de cartões (etapa 5 e A5).
 - Onde ver: `ContasECartoes.pagarFatura`, [DATA_MODEL.md, "Fatura de cartão"](DATA_MODEL.md#fatura-de-cartão)
 
+## D-087: Salário em duas parcelas numa receita só
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: no Brasil, muita gente recebe o salário em duas vezes (adiantamento no dia 20 e o resto no dia 5), com valores diferentes.
+- Decisão: a receita recorrente pode ter uma segunda parcela com dia e valor próprios (`recurring_bills.second_due_day`, `second_amount`), digitados pela pessoa. O valor e o dia de sempre são a 1ª parcela. A segunda tem o próprio `second_paid_month`, e o job diário lança cada parcela no dia dela, uma vez por mês, a segunda como "<descrição> (2ª parcela)". Ela começa na próxima vez que o dia dela chegar: se já passou no mês do cadastro, só no mês seguinte.
+- Alternativas: duas receitas recorrentes separadas, que funcionam hoje sem mudar o backend, mas aparecem como dois salários na lista.
+- Consequências: só a receita lançada pelo formulário de receita tem segunda parcela; a conta fixa de gasto não usa. Editar a receita recorrente ainda não muda a segunda parcela: para trocar, pare de repetir e lance de novo.
+- Onde ver: `ContasFixasService.receberSegundaParcela`, [DATA_MODEL.md, `recurring_bills`](DATA_MODEL.md)
+
 # Segurança e privacidade
 
 ## D-012: Dois tokens: access curto e refresh longo
@@ -291,6 +302,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: não registradas.
 - Consequências: compartilhar é grátis em qualquer plano. Num item compartilhado, todos editam, mas só quem criou apaga.
 - Onde ver: [planos Premium, "Compartilhamento"](planos-premium.md#compartilhamento-entre-o-casal-e-a-família)
+
+## D-086: No plano casal, o convidado entra como parceiro
+- Data: 27/10/2026 ([PR #95](https://github.com/Piggubr/cofrinho-app/pull/95))
+- Situação: Valendo
+- Contexto: quem assina o plano casal convida o marido ou a esposa. A pessoa entrava como membro, e o titular ainda precisava convidar de novo para a parceria.
+- Decisão: com o plano casal vigente, quem aceita o convite da família entra direto como parceiro, se a casa ainda não tem um (nem convite de parceria esperando) e a pessoa não é menor de idade. Aceitar o convite vale como o aceite da parceria. Quem entra depois entra como membro. A conta nova ainda não tem data de nascimento; se depois ela informar uma de menor, volta a membro.
+- Alternativas: o titular escolher "convidar como parceiro" no convite, que precisaria de uma coluna nova em `household_invites`.
+- Consequências: ver tudo do outro continua dependendo do consentimento de cada um no perfil (D-016). No plano família e no individual, nada muda.
+- Onde ver: `FamiliaService.entraComoParceiro`, `UserAccount.informarNascimento`
 
 ## D-017: Entrar com e-mail e senha, Google como opção
 - Data: 14/10/2026 ([PR #22](https://github.com/Piggubr/cofrinho-app/pull/22))
