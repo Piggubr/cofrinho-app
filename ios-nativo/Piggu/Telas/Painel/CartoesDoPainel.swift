@@ -15,9 +15,9 @@ struct CartaoDoResumo: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             LadoALado {
+                // Sem transparencia: no escuro o texto e escuro sobre o rosa e perderia o contraste.
                 Text("Sobra do mês")
                     .font(.sora(.subheadline, peso: .medium))
-                    .opacity(0.85)
                 Spacer()
                 if let taxa = resumo.taxaDePoupanca {
                     Text("\(Formatos.porcentagem(taxa)) poupado")
@@ -63,7 +63,7 @@ struct CartaoDoResumo: View {
                 .frame(width: 30, height: 30)
                 .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             VStack(alignment: .leading, spacing: 0) {
-                Text(rotulo).font(.sora(.caption)).opacity(0.8)
+                Text(rotulo).font(.sora(.caption))
                 Text(Formatos.moeda(valor)).font(.sora(.subheadline, peso: .semibold)).monospacedDigit()
                     .minimumScaleFactor(0.7).lineLimit(1)
             }

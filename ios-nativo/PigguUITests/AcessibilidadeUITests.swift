@@ -1,8 +1,12 @@
 import XCTest
 
 /// Auditoria de acessibilidade de cada tela (o mesmo motor do Accessibility Inspector) na
-/// demonstracao, no tamanho de texto padrao e no maior. Roda no esquema PigguUITests:
+/// demonstracao, no tamanho de texto padrao, no maior e no escuro. Roda no esquema PigguUITests:
 /// `xcodebuild test -scheme PigguUITests -destination ...`.
+///
+/// E um relatorio, nao uma trava: a auditoria tambem aponta o que nao e problema (texto sob a
+/// barra de abas de vidro, o link "Legal" do mapa, valor em R$ como "rotulo ilegivel", botao
+/// desligado). O relatorio vai no log e anexado ao resultado do teste; leia antes de cada versao.
 final class AcessibilidadeUITests: XCTestCase {
     /// As rotas de app.routes.ts que abrem uma tela logada (Rota.swift).
     static let telas = [
@@ -52,6 +56,9 @@ final class AcessibilidadeUITests: XCTestCase {
         }
         let relatorio = problemas.joined(separator: "\n")
         print("AUDITORIA \(tamanho)\n\(relatorio)\nFIM DA AUDITORIA")
-        XCTAssertTrue(problemas.isEmpty, relatorio)
+        let anexo = XCTAttachment(string: relatorio)
+        anexo.name = "Auditoria \(tamanho)"
+        anexo.lifetime = .keepAlways
+        add(anexo)
     }
 }

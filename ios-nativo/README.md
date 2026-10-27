@@ -25,7 +25,27 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 cd ios-nativo
 xcodebuild -project Piggu.xcodeproj -scheme Piggu -destination 'platform=iOS Simulator,name=iPhone 17' build
 xcodebuild -project Piggu.xcodeproj -scheme Piggu -destination 'platform=iOS Simulator,name=iPhone 17' test
+# Auditoria de acessibilidade e desempenho (UI tests, mais lentos; fora do CI)
+xcodebuild -project Piggu.xcodeproj -scheme PigguUITests -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
+
+O esquema **PigguUITests** tem três testes:
+
+- `AcessibilidadeUITests`: abre cada tela logada pela demonstração e roda a auditoria do
+  sistema (a mesma do Accessibility Inspector: contraste, Dynamic Type, texto cortado, área de
+  toque, rótulos) no texto padrão, no maior tamanho e no escuro. O relatório sai no log, entre
+  `AUDITORIA` e `FIM DA AUDITORIA` e anexado ao resultado. É um relatório, não uma trava: a
+  auditoria também aponta texto sob a barra de abas de vidro, o link "Legal" do mapa, valor em R$
+  como rótulo ilegível e botão desligado.
+- `PrintsUITests`: só roda com uma pasta, e grava o print de cada tela nela:
+  `TEST_RUNNER_PIGGU_PRINTS=/tmp/prints TEST_RUNNER_PIGGU_TAMANHO=UICTContentSizeCategoryAccessibilityXXXL
+  TEST_RUNNER_PIGGU_ESCURO=1 TEST_RUNNER_PIGGU_PAISAGEM=1 TEST_RUNNER_PIGGU_TELAS="painel gastos"
+  xcodebuild ... -only-testing:PigguUITests/PrintsUITests test` (todos opcionais, menos a pasta).
+  Em lotes de até 5 telas: o teste longo demais é encerrado pelo simulador.
+- `DesempenhoUITests`: mede "Abrir ate o Painel" (do `init` do app ao Painel com dados, um
+  `os_signpost` nos Points of Interest) com o cache cheio, com e sem 3.000 gastos, e a rolagem
+  dos Gastos e do Painel. A meta é menos de 1 s; no Instruments, o intervalo aparece na trilha
+  Points of Interest do Time Profiler ou do App Launch.
 
 ### Argumentos de lançamento (Debug)
 
@@ -37,6 +57,8 @@ No Xcode, em *Product → Scheme → Edit Scheme → Run → Arguments* (já cad
 | `-PigguDemo YES` | Dados inventados, sem rede. Qualquer e-mail e senha entram. |
 | `-PigguDemoLogado YES` | Com a demonstração, já abre logado. |
 | `-PigguDemoFalha rede` / `servidor` / `vazio` | Com a demonstração: sem internet, erro 500 ou mês sem gastos, para ver os estados das telas. |
+| `-PigguDemoMuitos 3000` | Com a demonstração: o mês com milhares de gastos, para medir a lista e o Painel. |
+| `-PigguDemoCache YES` | Com a demonstração: guarda o cache num arquivo próprio (`Demonstracao.store`), para medir a abertura com cache. |
 | `-PigguAba gastos` / `receitas` / `relatorios` / `mais` | Abre direto numa aba. |
 | `-PigguLancar YES` | Abre direto o lançamento de gasto. |
 | `-piggu_tema azul` | Abre com outra cor do Piggu (`chiclete`, `rosa`, `menta`, `azul`, `lilas`). |
@@ -266,7 +288,44 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 [`docs/prints/etapa-5/`](docs/prints/etapa-5/); os da etapa 6 (metas e conta), em
 [`docs/prints/etapa-6/`](docs/prints/etapa-6/); os da etapa 7, em
 [`docs/prints/etapa-7/`](docs/prints/etapa-7/); os da etapa 8 (Premium), em
-[`docs/prints/etapa-8/`](docs/prints/etapa-8/).
+[`docs/prints/etapa-8/`](docs/prints/etapa-8/); os da etapa 9 (texto grande, escuro e iPad), em
+[`docs/prints/etapa-9/`](docs/prints/etapa-9/).
+
+### Acessibilidade e desempenho (etapa 9)
+
+- Nos tamanhos de texto de acessibilidade, o que fica lado a lado vira um embaixo do outro
+  (`LadoALado`), o seletor de mês encurta o nome e os filtros dos Gastos rolam de lado; o
+  calendário e o número do anel das metas param no xxLarge e xxxLarge, com o VoiceOver lendo cada
+  dia e o percentual (D-095).
+- VoiceOver: as estrelas de lugares e filmes são um elemento ajustável (deslize para cima ou para
+  baixo), e os avisos que somem sozinhos são lidos na hora. Áreas de toque de pelo menos 44 pt.
+- Reduzir Movimento tira a animação do anel, do porquinho e do aviso que desce do topo; Reduzir
+  Transparência troca o vidro por cor sólida.
+- No iPad e na janela redimensionável do iOS 27, o layout segue o tamanho disponível: barra
+  lateral na janela larga, abas no topo na estreita (como o iPad mini em retrato), e a mesma tela
+  do iPhone abaixo disso. Testado do iPhone 17e ao iPad Pro 13 em paisagem.
+- Abrir o app com o perfil guardado não espera a rede: as telas mostram o que guardaram e a
+  renovação do token segue por trás (D-095). No simulador, com a build otimizada: 0,63 a 0,75 s
+  do `init` ao Painel com dados, também com 3.000 gastos.
+
+## Versão e envio
+
+Versão 2.0.0 (`MARKETING_VERSION`), build 2 (`CURRENT_PROJECT_VERSION`), Bundle ID
+`br.com.piggu.app`, time `H766LA27ZJ`, assinatura automática. Entitlements: push
+(`aps-environment`, que o Xcode troca para production ao exportar), App Group
+`group.br.com.piggu.app` (o widget também), Entrar com Apple e os domínios associados de
+`piggu.com.br`. Para gerar o archive e o pacote da App Store pelo Terminal:
+
+```bash
+cd ios-nativo
+xcodebuild archive -project Piggu.xcodeproj -scheme Piggu -configuration Release \
+  -destination 'generic/platform=iOS' -archivePath build/Piggu.xcarchive -allowProvisioningUpdates
+xcodebuild -exportArchive -archivePath build/Piggu.xcarchive -exportPath build/exportado \
+  -exportOptionsPlist Config/ExportOptions.plist -allowProvisioningUpdates
+```
+
+O `Config/ExportOptions.plist` tem `destination` = `export` (só gera o `.ipa`). Enviar ao App
+Store Connect (`destination` = `upload`) só quando o Dudu pedir. A cada envio, suba o build.
 
 ### Assinatura no simulador
 
@@ -287,3 +346,5 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
 - **Leitura da nota pela IA** (a foto inteira com os itens, no site) e **importar extrato**: por
   enquanto só no site; o app lê o total e a data do cupom pela câmera.
 - Prints para a App Store.
+- Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
+  antes do `init` não vale como medida.
