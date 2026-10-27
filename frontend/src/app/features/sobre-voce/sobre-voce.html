@@ -2,7 +2,11 @@
   <section class="cartao caixa">
     <span class="simbolo"><app-icone nome="cofrinho" [tamanho]="34" [traco]="1.8" /></span>
     <h1 i18n>Sobre você</h1>
-    <p i18n class="subtitulo">Antes de começar, conte como quer ser chamado.</p>
+    @if (pedeCpf || pedeCelular) {
+      <p i18n class="subtitulo">Antes de começar, complete seu cadastro.</p>
+    } @else {
+      <p i18n class="subtitulo">Antes de começar, conte como quer ser chamado.</p>
+    }
 
     @if (erro()) {
       <p class="aviso erro" role="alert">{{ erro() }}</p>
@@ -38,9 +42,65 @@
           titular e o parceiro da família.
         </p>
       }
+      @if (pedeCelular) {
+        <div class="campo">
+          <label i18n for="telefone">Celular</label>
+          <div class="telefone">
+            <select
+              id="ddi"
+              name="ddi"
+              i18n-aria-label
+              aria-label="Código do país (DDI)"
+              autocomplete="tel-country-code"
+              [ngModel]="paisDoDdi()"
+              (ngModelChange)="paisDoDdi.set($event)"
+            >
+              @for (opcao of paises; track opcao.codigo) {
+                <option [value]="opcao.codigo">{{ opcao.nome }} +{{ ddi(opcao.codigo) }}</option>
+              }
+            </select>
+            <input
+              id="telefone"
+              name="telefone"
+              type="tel"
+              autocomplete="tel-national"
+              inputmode="tel"
+              placeholder="(11) 99999-8888"
+              [ngModel]="telefone()"
+              (ngModelChange)="telefone.set($event)"
+            />
+          </div>
+        </div>
+      }
+      @if (pedeCpf) {
+        <div class="campo">
+          <label for="cpf">{{ doc.nome }}</label>
+          <input
+            #campoCpf
+            id="cpf"
+            name="cpf"
+            inputmode="numeric"
+            autocomplete="off"
+            [placeholder]="doc.exemplo"
+            [attr.maxlength]="doc.tamanhoMaximo"
+            aria-describedby="dica-do-cpf"
+            [value]="cpf()"
+            (input)="digitarCpf(campoCpf.value, campoCpf)"
+          />
+          <p i18n id="dica-do-cpf" class="nota">
+            Fica guardado cifrado e não aparece para a sua família. Não muda depois.
+          </p>
+        </div>
+      }
       <button i18n type="submit" class="botao" [disabled]="salvando()">Continuar</button>
     </form>
-    <button i18n type="button" class="botao contorno pequeno sair" [disabled]="salvando()" (click)="sair()">
+    <button
+      i18n
+      type="button"
+      class="botao contorno pequeno sair"
+      [disabled]="salvando()"
+      (click)="sair()"
+    >
       Sair
     </button>
   </section>
