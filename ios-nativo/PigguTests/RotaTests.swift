@@ -13,6 +13,7 @@ struct RotaTests {
         ("piggu://gastos", .aba(.gastos)),
         ("piggu://painel", .aba(.painel)),
         ("piggu://relatorios", .aba(.relatorios)),
+        ("piggu://receitas", .aba(.receitas)),
         ("piggu://perfil", .aba(.mais)),
         ("https://piggu.com.br/relatorios", .aba(.relatorios)),
         ("https://www.piggu.com.br/", .aba(.painel)),
@@ -42,7 +43,7 @@ struct RotaTests {
     @Test(arguments: [
         "https://outro.site/gastos",
         "http://piggu.com.br/gastos",
-        "piggu://receitas",
+        "piggu://calendario",
         "piggu://entrar?google=codigo",
         "mailto:ana@example.com",
     ])

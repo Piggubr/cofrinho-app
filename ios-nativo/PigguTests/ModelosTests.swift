@@ -144,4 +144,58 @@ struct ModelosTests {
         #expect(itens.first?["categoria"] as? String == "Alimentação")
         #expect((itens.first?["valor"] as? NSNumber)?.decimalValue == Decimal(string: "42.5"))
     }
+
+    @Test func lancamentoSoLevaOQueFoiPreenchido() throws {
+        let pedido = NovoLancamento(
+            data: "2026-10-27", origem: "Manual",
+            itens: [ItemDeGasto(item: "Fone", categoria: nil, valor: Decimal(string: "299.9")!, tipo: "Variavel")],
+            contaId: "c1", parcelas: 3, compartilhado: false, idDoEnvio: "e1")
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(pedido)) as? [String: Any]
+        #expect(Set(json?.keys.map { $0 } ?? []) == ["data", "origem", "itens", "contaId", "parcelas", "compartilhado", "idDoEnvio"])
+        let item = (json?["itens"] as? [[String: Any]])?.first
+        #expect(Set(item?.keys.map { $0 } ?? []) == ["item", "valor", "tipo"])
+    }
+
+    @Test func decodificaOQueOPainelMostra() throws {
+        let objetivo = try decodificador.decode(ObjetivoDoCofrinho.self, from: Data("""
+        {"id":"o1","nome":"Viagem","alvo":3000,"prazo":"2027-04-30","guardado":1150.5,"falta":1849.5,
+         "percentual":38,"mesesRestantes":6,"porMes":308.25,"concluido":false,"atrasado":false,
+         "usuario":"u1","compartilhado":true}
+        """.utf8))
+        #expect(objetivo.porMes == Decimal(string: "308.25"))
+        #expect(objetivo.percentual == 38)
+
+        let cartao = try decodificador.decode(ContaOuCartao.self, from: Data("""
+        {"id":"c1","nome":"Nubank","tipo":"CARTAO","fechamento":3,"vencimento":10,"faturaAberta":null,
+         "faturaAPagar":{"mes":"2026-10","inicio":"2026-09-03","ultimaCompra":"2026-10-02",
+         "fechamento":"2026-10-03","vencimento":"2026-10-10","total":1234.56},"compartilhado":false}
+        """.utf8))
+        #expect(cartao.tipo == .cartao)
+        #expect(cartao.faturaAPagar?.total == Decimal(string: "1234.56"))
+
+        let orcamento = try decodificador.decode(Orcamento.self, from: Data("""
+        {"id":"b1","categoria":"Mercado","limite":380,"gasto":312.47,"percentual":82.2,"alerta":"ATENCAO"}
+        """.utf8))
+        #expect(orcamento.alerta == .atencao)
+
+        let metas = try decodificador.decode([String: Decimal].self, from: Data(#"{"2026-10":2500.5}"#.utf8))
+        #expect(metas["2026-10"] == Decimal(string: "2500.5"))
+    }
+
+    @Test func decodificaReceitasEAReceber() throws {
+        let receita = try decodificador.decode(Receita.self, from: Data("""
+        {"id":"r1","data":"2026-10-01","descricao":"Salário","categoria":"Salário","valor":5200,
+         "usuario":"u1","compartilhado":false}
+        """.utf8))
+        #expect(receita.valor == 5200)
+        let conta = try decodificador.decode(AReceber.self, from: Data("""
+        {"id":"a1","quem":"João","descricao":"","valor":45,"data":"2026-10-24"}
+        """.utf8))
+        #expect(conta.quem == "João")
+        let fixa = try decodificador.decode(ContaFixa.self, from: Data("""
+        {"id":"f1","descricao":"Salário","categoria":"Salário","valor":5200,"dia":1,"automatico":true,
+         "vencimento":"2026-10-01","situacao":"PAGA","tipo":"RECEITA","contaId":null,"usuario":"u1"}
+        """.utf8))
+        #expect(fixa.situacao == .paga)
+    }
 }
