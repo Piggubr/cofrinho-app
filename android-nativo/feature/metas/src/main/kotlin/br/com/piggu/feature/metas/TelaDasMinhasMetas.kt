@@ -109,7 +109,7 @@ data class EventosDasMinhasMetas(
 fun TelaDasMinhasMetas(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel: MinhasMetasViewModel = hiltViewModel()) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
-    val tituloDoMenu = stringResource(R.string.metas_titulo)
+    val tituloDoMenu = stringResource(R.string.minhasmetas_titulo)
     TelaDasMinhasMetas(
         estado,
         EventosDasMinhasMetas(
@@ -145,7 +145,7 @@ fun TelaDasMinhasMetas(estado: EstadoDasMetas, eventos: EventosDasMinhasMetas, m
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.metas_titulo)) },
+                title = { Text(stringResource(R.string.minhasmetas_titulo)) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

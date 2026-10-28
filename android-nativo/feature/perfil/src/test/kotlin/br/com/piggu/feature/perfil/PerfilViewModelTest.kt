@@ -122,7 +122,7 @@ class PerfilViewModelTest {
             loja,
             viewModelFactory {
                 initializer {
-                    PerfilViewModel(sessao, servico, financas, ListasParaLancar(cache, financas, servico), preferencias, icones, cofre, FilaNaMemoria(), conectado)
+                    PerfilViewModel(sessao, servico, financas, ListasParaLancar(cache, financas, servico), preferencias, icones, FilaNaMemoria(), conectado)
                 }
             },
         )["vm${criados++}", PerfilViewModel::class]
@@ -350,7 +350,7 @@ class PerfilViewModelTest {
     }
 
     @Test
-    fun `sem continuar conectado, trocar a senha entra de novo com a senha nova`() = runTest {
+    fun `sem continuar conectado, trocar a senha manda o refresh da memoria e nao entra de novo`() = runTest {
         entrar(lembrar = false)
         val perfil = perfil()
         perfil.pronto()
@@ -359,8 +359,12 @@ class PerfilViewModelTest {
         perfil.mudarSenhaRepetida("novasenha1")
         perfil.salvarSenha()
         perfil.estado.esperar { it.senha.aviso == R.string.perfil_senha_trocada }
-        assertEquals(listOf("""PUT /api/auth/me/senha {"senhaAtual":"senha123","novaSenha":"novasenha1"}"""), pedidos("PUT /api/auth/me/senha"))
-        assertTrue(pedidos("POST /api/auth/entrar").last().contains(""""senha":"novasenha1""""))
+        // O refresh só na memória vai junto do mesmo jeito: a sessão deste aparelho continua.
+        assertEquals(
+            listOf("""PUT /api/auth/me/senha {"senhaAtual":"senha123","novaSenha":"novasenha1","refreshToken":"refresh-da-demonstracao"}"""),
+            pedidos("PUT /api/auth/me/senha"),
+        )
+        assertEquals(1, pedidos("POST /api/auth/entrar").size)
     }
 
     @Test

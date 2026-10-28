@@ -41,7 +41,7 @@ sealed interface Tela : NavKey {
     @Serializable data object Mais : Tela { override val caminho = "/mais"; override val nativa = true }
 
     // Telas do menu (shell.ts): as da A5 já nativas, as outras no site por enquanto.
-    @Serializable data object Perfil : Tela { override val caminho = "/perfil" }
+    @Serializable data object Perfil : Tela { override val caminho = "/perfil"; override val nativa = true }
     @Serializable data object Familia : Tela { override val caminho = "/familia"; override val nativa = true }
     @Serializable data object Plano : Tela { override val caminho = "/plano"; override val nativa = true }
     @Serializable data object ContasECartoes : Tela { override val caminho = "/contas-e-cartoes"; override val nativa = true }

@@ -13,7 +13,11 @@ import br.com.piggu.core.data.Pendencia
 import br.com.piggu.core.ui.CasoDeErro
 import br.com.piggu.core.ui.TelaDeErro
 import br.com.piggu.core.ui.lembrarAbrirNoSite
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.com.piggu.feature.calendario.TelaDoCalendario
+import br.com.piggu.feature.login.DialogoDeExclusao
+import br.com.piggu.feature.login.ExclusaoViewModel
+import br.com.piggu.feature.perfil.TelaDoPerfil
 import br.com.piggu.feature.familia.TelaDaFamilia
 import br.com.piggu.feature.girlsmath.TelaDoGirlsMath
 import br.com.piggu.feature.metas.TelaDasMinhasMetas
@@ -53,7 +57,15 @@ private fun MutableList<NavKey>.voltar(base: Tela) {
  * @param base a tela de baixo da pilha, para onde "voltar" e "entrar" levam.
  */
 @Composable
-fun TelaCheia(tela: Tela, pilha: MutableList<NavKey>, base: Tela, sair: () -> Unit) {
+fun TelaCheia(
+    tela: Tela,
+    pilha: MutableList<NavKey>,
+    base: Tela,
+    sair: () -> Unit,
+    organizarPainel: () -> Unit = {},
+    abrirTour: () -> Unit = {},
+    avisoDoEmail: @Composable () -> Unit = {},
+) {
     fun abrir(destino: Tela) { pilha.add(destino) }
     val abrirNoSite = lembrarAbrirNoSite()
     val voltar = { pilha.voltar(base) }
@@ -97,6 +109,18 @@ fun TelaCheia(tela: Tela, pilha: MutableList<NavKey>, base: Tela, sair: () -> Un
         Tela.Premios -> TelaDosPremios(voltar = voltar)
         Tela.Familia -> TelaDaFamilia(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         Tela.Plano -> TelaDoPlano(voltar = voltar)
+        Tela.Perfil -> {
+            val exclusao: ExclusaoViewModel = hiltViewModel()
+            TelaDoPerfil(
+                voltar = voltar,
+                organizarPainel = organizarPainel,
+                excluirConta = exclusao::abrir,
+                avisoDoEmail = avisoDoEmail,
+                abrirPremium = { abrir(Tela.Plano) },
+                abrirTour = abrirTour,
+            )
+            DialogoDeExclusao(exclusao)
+        }
         Tela.Erro -> TelaDeErro(CasoDeErro.Servidor, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
         else -> TelaDeErro(CasoDeErro.NaoEncontrada, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
     }

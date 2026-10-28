@@ -106,11 +106,12 @@ fun TelaDoGirlsMath(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel
     val galeria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         uri?.let { viewModel.escolherFoto { contexto.contentResolver.openInputStream(it) } }
     }
-    // A câmera grava sempre no mesmo arquivo da pasta de cache, entregue pelo FileProvider do módulo.
-    val destino = remember(contexto) {
+    // A câmera grava sempre no mesmo arquivo da pasta de cache, entregue pelo FileProvider do módulo;
+    // criado só ao tirar a foto.
+    val destino by remember(contexto) { lazy {
         val arquivo = File(contexto.cacheDir, "girlsmath").apply { mkdirs() }.resolve("foto.jpg")
         FileProvider.getUriForFile(contexto, "${contexto.packageName}.girlsmath.fotos", arquivo)
-    }
+    } }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { tirou ->
         if (tirou) viewModel.escolherFoto { contexto.contentResolver.openInputStream(destino) }
     }

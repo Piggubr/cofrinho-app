@@ -12,7 +12,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -104,6 +106,12 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     private fun abrirDoMais(rotulo: String) {
         esperarCarregar()
         if (aparelho == "celular") tocar("Mais")
+        // A lista do Mais (ou a gaveta) só compõe o que aparece: rola até o item, se preciso.
+        val listas = compose.onAllNodes(hasScrollToNodeAction())
+        for (i in listas.fetchSemanticsNodes().indices) {
+            if (compose.onAllNodes(hasText(rotulo) and hasClickAction()).fetchSemanticsNodes().isNotEmpty()) break
+            runCatching { listas[i].performScrollToNode(hasText(rotulo) and hasClickAction()) }
+        }
         tocar(rotulo)
         esperarCarregar()
     }
@@ -201,5 +209,49 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     fun cartoesEBancos() {
         abrirDoMais("Cartões e bancos")
         capturar("cartoes-e-bancos", 5)
+    }
+
+    // Etapa A6: metas e conta.
+
+    @Test
+    fun metas() {
+        abrirDoMais("Minhas metas")
+        capturar("metas", 6)
+    }
+
+    @Test
+    fun girlsMath() {
+        abrirDoMais("Girls Math")
+        capturar("girls-math", 6)
+    }
+
+    @Test
+    fun planejar() {
+        abrirDoMais("Planejar")
+        capturar("planejar", 6)
+    }
+
+    @Test
+    fun premios() {
+        abrirDoMais("Prêmios")
+        capturar("premios", 6)
+    }
+
+    @Test
+    fun familia() {
+        abrirDoMais("Família")
+        capturar("familia", 6)
+    }
+
+    @Test
+    fun plano() {
+        abrirDoMais("Premium")
+        capturar("plano", 6)
+    }
+
+    @Test
+    fun perfil() {
+        abrirDoMais("Ana Souza")
+        capturar("perfil", 6)
     }
 }

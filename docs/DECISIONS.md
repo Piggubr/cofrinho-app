@@ -1026,6 +1026,51 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: quando `/conectar-banco` chegar à `develop`, o Android faz como o iOS: `POST /api/banking/connect-token`, a página num Custom Tab e a volta por `piggu://banco-conectado`.
 - Onde ver: `android-nativo/feature/contas/`, `android-nativo/core/ui/.../formatos/Fatura.kt`, `TextosDosModulosTest.kt`
 
+## D-118: Tour do Android em diálogos, no primeiro acesso e pelo Perfil
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O tour do site (`tutorial.ts`) destaca cada parte da tela; no Compose, apontar para a aba, o + e a busca em cada tamanho de tela seria muito código para um passo a passo de oito cartões.
+- Decisão: os oito passos, com os textos do site, aparecem em diálogos em sequência, com Próximo (Concluir no último) e Pular. Abre sozinho no primeiro acesso de cada pessoa no aparelho (a chave `piggu_tutorial_<id>` do site, no DataStore) e pelo "Tour do Piggu" do Perfil.
+- Alternativas: destacar os alvos na tela como o site; só abrir pelo Perfil.
+- Consequências: o tour não aponta onde está cada coisa; o texto de cada passo diz.
+- Onde ver: `android-nativo/app/.../moldura/Tour.kt`, `AppViewModel.tourNovo`
+
+## D-119: O ícone do app troca quando a pessoa sai do app
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O seletor de ícone liga um dos 12 activity-alias do Capacitor e desliga os outros. Desligar o alias que abriu a tarefa faz o Android fechar o app na hora, como acontecia no Capacitor.
+- Decisão: a escolha fica guardada e a tela já mostra o ícone marcado. A troca no lançador só acontece quando o app sai da frente (`ProcessLifecycleOwner`, `onStop`), e o texto do Perfil avisa. Os ícones do Premium voltam ao Neon quando o Premium acaba, como a cor (D-101).
+- Alternativas: trocar na hora e deixar o app fechar; reabrir o app pelo link `piggu://perfil` (a tarefa nova também morria).
+- Consequências: alguns lançadores levam uns segundos para mostrar o ícone novo.
+- Onde ver: `android-nativo/feature/perfil/.../IconesDoApp.kt`, `PigguApplication.kt`
+
+## D-120: Metas, Prêmios e Girls Math do Android: criar e editar numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. No site, o formulário é um cartão acima da lista; no celular ele empurra a lista para baixo.
+- Decisão: criar e editar abrem numa folha, como no iOS. A foto do Girls Math é posta em pé pelo EXIF, reduzida a 1600 px no lado maior e regravada em JPEG (some a localização) antes de ir para a API. Todo papel usa o Girls Math, o membro também, com foto, como no site e no backend. O Planejar só tem atalhos, como no site, e por isso não tem estados de carregando nem de erro.
+- Alternativas: o cartão do site; mandar a foto original.
+- Consequências: a foto que sai do aparelho é menor que a original.
+- Onde ver: `android-nativo/feature/metas/`, `feature/premios/`, `feature/girlsmath/`, `feature/planejar/`
+
+## D-121: Premium do Android sem a Stripe: "Em breve" até a A8
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. A regra de pagamentos do Google Play não deixa o app abrir outro meio de pagamento para um produto digital. A compra pelo Google Play Billing fica para a A8.
+- Decisão: a tela do Premium (`features/plan`) é só do titular, como o `perfilGuard` do site. Ela mostra o plano e os preços, e onde o site tem "Assinar" mostra "Em breve". O checkout e o Portal do Cliente da Stripe nunca abrem no app: quem assinou pelo site lê que deve trocar o cartão ou cancelar pelo navegador. O cancelamento com reembolso nos 7 dias (CDC art. 49) continua no app, como no site.
+- Alternativas: abrir o checkout num Custom Tab (contra a regra do Google Play); esconder a tela até a A8.
+- Consequências: até a A8, ninguém assina pelo app Android.
+- Onde ver: `android-nativo/feature/plano/`
+
+## D-122: Perfil do Android com o que estava no Mais
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. Até a A5, o Mais tinha o aviso de confirmar o e-mail, o CPF e o "Excluir minha conta", porque o Perfil abria no site.
+- Decisão: com o Perfil nativo, esses três voltam para o Perfil, como no site e no iOS. "Organizar o Painel" abre o Painel com a folha de organizar. Definir ou trocar a senha passa pela sessão (`Sessao.definirSenha`), que manda o refresh token e guarda a sessão nova. A família do Perfil busca o histórico só quando a pessoa pede.
+- Alternativas: deixar os três também no Mais.
+- Consequências: o Mais fica só com o menu, os textos legais, o Sair e a versão.
+- Onde ver: `android-nativo/feature/perfil/`, `android-nativo/app/.../moldura/Mais.kt`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção

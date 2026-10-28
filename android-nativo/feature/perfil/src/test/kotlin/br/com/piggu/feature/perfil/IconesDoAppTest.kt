@@ -34,7 +34,11 @@ class IconesDoAppTest {
         assertEquals(IconeDoApp.Padrao, icones.atual())
         assertEquals("br.com.piggu.app.IconeNamorados", IconeDoApp.Namorados.classe)
 
+        // A escolha espera o app sair da frente; a tela já mostra o escolhido.
         icones.escolher(IconeDoApp.Azul)
+        assertEquals(IconeDoApp.Azul, icones.atual())
+        assertFalse(IconeDoApp.Azul in ligados())
+        icones.aplicarPendente()
         assertEquals(listOf(IconeDoApp.Azul), ligados())
         assertEquals(IconeDoApp.Azul, icones.atual())
 
@@ -43,6 +47,7 @@ class IconesDoAppTest {
         assertFalse(icones.voltarAoPadraoSemPremium(premium = true))
         assertEquals(IconeDoApp.Azul, icones.atual())
         assertTrue(icones.voltarAoPadraoSemPremium(premium = false))
+        icones.aplicarPendente()
         assertEquals(listOf(IconeDoApp.Padrao), ligados())
         assertEquals(IconeDoApp.Padrao, icones.atual())
         assertEquals("menta", preferencias.cor.first())
@@ -52,6 +57,7 @@ class IconesDoAppTest {
         preferencias.esquecerQueVoltouAoPadrao()
         icones.escolher(IconeDoApp.Classico)
         assertFalse(icones.voltarAoPadraoSemPremium(premium = false))
+        icones.aplicarPendente()
         assertEquals(listOf(IconeDoApp.Classico), ligados())
         assertFalse(preferencias.voltouAoPadrao.first())
     }

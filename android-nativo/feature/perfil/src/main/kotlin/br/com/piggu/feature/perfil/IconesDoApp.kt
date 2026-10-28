@@ -40,8 +40,9 @@ enum class IconeDoApp(val id: String, @StringRes val nome: Int, @DrawableRes val
 
 /**
  * Troca o ícone na tela inicial (IconeDoAppPlugin.java): liga o activity-alias escolhido e
- * desliga os outros, sem fechar o app. O Android não tem a versão escura do ícone, e alguns
- * launchers levam alguns segundos para mostrar o novo.
+ * desliga os outros. Desligar o atalho que abriu a tarefa faz o Android fechar o app na hora
+ * (o Capacitor fechava), então a escolha fica guardada e só vale quando o app sai da frente
+ * ([aplicarPendente], chamado pelo app); a tela já mostra o escolhido (D-119).
  */
 @Singleton
 class IconesDoApp @Inject constructor(
@@ -49,14 +50,29 @@ class IconesDoApp @Inject constructor(
     private val preferencias: PreferenciasDoAparelho,
 ) {
     private val pacotes get() = contexto.packageManager
+    private val guardado get() = contexto.getSharedPreferences("piggu_icone_do_app", Context.MODE_PRIVATE)
 
-    /** O padrão vem ligado no manifesto e os outros desligados: o escolhido é o outro que estiver ligado. */
-    fun atual(): IconeDoApp = IconeDoApp.entries.firstOrNull {
+    /** O escolhido: o que espera o app sair da frente ou, sem nada esperando, o que está ligado. */
+    fun atual(): IconeDoApp = pendente() ?: ligado()
+
+    /** O padrão vem ligado no manifesto e os outros desligados: o ligado é o outro que estiver ligado. */
+    private fun ligado(): IconeDoApp = IconeDoApp.entries.firstOrNull {
         it != IconeDoApp.Padrao && pacotes.getComponentEnabledSetting(componente(it)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
     } ?: IconeDoApp.Padrao
 
-    /** Quem chama confere o Premium. */
+    private fun pendente(): IconeDoApp? =
+        guardado.getString(CHAVE, null)?.let { id -> IconeDoApp.entries.firstOrNull { it.id == id } }
+
+    /** Quem chama confere o Premium. Vale quando o app sai da frente. */
     fun escolher(icone: IconeDoApp) {
+        if (icone == ligado()) guardado.edit().remove(CHAVE).apply()
+        else guardado.edit().putString(CHAVE, icone.id).apply()
+    }
+
+    /** O app chama ao sair da frente (ProcessLifecycleOwner): troca o atalho do lançador. */
+    fun aplicarPendente() {
+        val icone = pendente() ?: return
+        guardado.edit().remove(CHAVE).apply()
         // Liga o novo antes de desligar os outros: nunca fica um instante sem ícone.
         pacotes.setComponentEnabledSetting(componente(icone), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
         IconeDoApp.entries.filter { it != icone }.forEach {
@@ -77,4 +93,8 @@ class IconesDoApp @Inject constructor(
     }
 
     private fun componente(icone: IconeDoApp) = ComponentName(contexto, icone.classe)
+
+    private companion object {
+        const val CHAVE = "pendente"
+    }
 }

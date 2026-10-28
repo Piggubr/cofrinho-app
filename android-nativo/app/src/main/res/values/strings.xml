@@ -57,12 +57,30 @@
     <!-- Avisos da sessão -->
     <string name="cor_voltou_ao_padrao">O Premium acabou, então a cor voltou para o padrão.</string>
 
-    <string name="excluir_minha_conta">Excluir minha conta</string>
-    <string name="cpf_nao_informado">Documento ainda não informado (opcional).</string>
-    <string name="cpf_informar_agora">Informar agora</string>
 
     <!-- Atualize o app (426 ATUALIZE_O_APP) -->
     <string name="atualize_titulo">Atualize o Piggu</string>
     <string name="atualize_texto">Esta versão do app não funciona mais. Instale a versão nova na Play Store para continuar.</string>
     <string name="atualize_botao">Abrir a Play Store</string>
+
+    <!-- Tour do Piggu (core/ui/tutorial.ts) -->
+    <string name="tour_inicio_titulo">Bem-vindo ao Piggu</string>
+    <string name="tour_inicio_texto">Um tour rápido pelas funções principais. Leva menos de um minuto.</string>
+    <string name="tour_lancar_titulo">Lance pelo +</string>
+    <string name="tour_lancar_texto">Gasto ou receita, de qualquer tela, sem sair de onde está. Dá para tirar foto da nota e o Piggu preenche para você.</string>
+    <string name="tour_painel_titulo">Painel</string>
+    <string name="tour_painel_texto">O resumo do mês: quanto entrou, quanto saiu, quanto ainda dá para gastar e as contas que vencem.</string>
+    <string name="tour_planejar_titulo">Planejar</string>
+    <string name="tour_planejar_texto">Defina quanto quer gastar por categoria, cadastre as contas do mês e acompanhe seus objetivos.</string>
+    <string name="tour_relatorios_titulo">Relatórios</string>
+    <string name="tour_relatorios_texto">Veja para onde o dinheiro foi, mês a mês e por categoria.</string>
+    <string name="tour_familia_titulo">Família</string>
+    <string name="tour_familia_texto">Convide quem mora com você. Cada um lança do seu celular e vê o que é seu; titular e parceiro veem também o um do outro e o de quem tem menos de 18 anos.</string>
+    <string name="tour_busca_titulo">Busca</string>
+    <string name="tour_busca_texto">Encontre qualquer tela ou lançamento pela lupa.</string>
+    <string name="tour_assistente_titulo">Assistente</string>
+    <string name="tour_assistente_texto">Pergunte sobre o seu dinheiro, como "quanto gastei este mês?", e ele responde.</string>
+    <string name="tour_proximo">Próximo</string>
+    <string name="tour_pular">Pular</string>
+    <string name="tour_concluir">Concluir</string>
 </resources>

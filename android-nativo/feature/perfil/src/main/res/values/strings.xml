@@ -78,7 +78,7 @@
     <string name="perfil_entendi">Entendi</string>
     <string name="perfil_premium_do_titular">Essa personalização é do Piggu Premium. Quem cuida da assinatura é o titular da família.</string>
     <string name="perfil_icone_titulo">Ícone do app</string>
-    <string name="perfil_icone_explicacao">O ícone do Piggu na tela inicial. Alguns aparelhos levam alguns segundos para mostrar o novo.</string>
+    <string name="perfil_icone_explicacao">O ícone do Piggu na tela inicial. O novo aparece quando você sair do app; alguns aparelhos levam alguns segundos para mostrar.</string>
     <string name="perfil_icone_padrao">Neon</string>
     <string name="perfil_icone_classico">Clássico</string>
     <string name="perfil_icone_monograma">P de Piggu</string>

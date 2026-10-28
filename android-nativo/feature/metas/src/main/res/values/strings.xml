@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Os textos de features/minhas-metas do site. -->
 <resources>
-    <string name="metas_titulo">Minhas metas</string>
+    <string name="minhasmetas_titulo">Minhas metas</string>
     <string name="metas_sobretitulo">Seu plano do mês</string>
     <string name="metas_para_alcancar">Metas para alcançar este mês</string>
     <!-- A concordância é com o total: "1 de 1 concluída", "1 de 3 concluídas". -->

@@ -29,7 +29,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - iOS, etapa 9: acabamento e versão 2.0.0 no TestFlight. Pelo plano, de 4 a 5 semanas com uma sessão por dia.
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
-- Android, etapas A6 e A7: as telas, na mesma ordem do iOS.
+- Android, etapa A7: Compras, Lugares, Filmes e Fotos, e os recursos do Android, na mesma ordem do iOS.
 - Android: conectar banco como o iOS quando a página `/conectar-banco` chegar à `develop` (D-117).
 - Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
 - Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
@@ -50,6 +50,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: Android nativo, etapa A6: Minhas metas, Girls Math, Planejar, Prêmios, Família, Premium (sem compra até a A8) e Perfil, com o ícone do app e o tour, na branch `feature/android-nativo` (D-118 a D-122).
 - 28/10/2026: Android nativo, etapa A5: Contas do mês, Orçamento, Calendário, Relatórios e Cartões e bancos, na branch `feature/android-nativo` (D-113 a D-117).
 - 28/10/2026: Android nativo, etapa A4: Painel, Gastos, Receitas, o + com os formulários, a fila sem internet, importar e exportar, a busca e o assistente, na branch `feature/android-nativo` (D-108 a D-112).
 - 28/10/2026: Android nativo, etapa A3: a entrada inteira (login, Google, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta), na branch `feature/android-nativo` (D-104 a D-107).

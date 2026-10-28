@@ -9,11 +9,9 @@ import br.com.piggu.core.data.FilaDeGastos
 import br.com.piggu.core.data.ListasParaLancar
 import br.com.piggu.core.data.MonitorDeRede
 import br.com.piggu.core.data.Sessao
-import br.com.piggu.core.data.definirSenha
 import br.com.piggu.core.data.ehAdmin
 import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.data.ehTitular
-import br.com.piggu.core.datastore.CofreDaSessao
 import br.com.piggu.core.datastore.PreferenciasDoAparelho
 import br.com.piggu.core.designsystem.ModoDeCor
 import br.com.piggu.core.designsystem.VarianteDeCor
@@ -112,7 +110,6 @@ class PerfilViewModel internal constructor(
     listas: ListasParaLancar,
     private val preferenciasDoAparelho: PreferenciasDoAparelho,
     private val icones: IconesDoApp,
-    private val cofre: CofreDaSessao,
     private val fila: FilaDeGastos,
     conectado: StateFlow<Boolean>,
 ) : ViewModel() {
@@ -123,10 +120,9 @@ class PerfilViewModel internal constructor(
         listas: ListasParaLancar,
         preferenciasDoAparelho: PreferenciasDoAparelho,
         icones: IconesDoApp,
-        cofre: CofreDaSessao,
         fila: FilaDeGastos,
         rede: MonitorDeRede,
-    ) : this(sessao, identidade, financas, listas, preferenciasDoAparelho, icones, cofre, fila, rede.conectado)
+    ) : this(sessao, identidade, financas, listas, preferenciasDoAparelho, icones, fila, rede.conectado)
 
     private val estadoAtual = MutableStateFlow(formulariosDe(EstadoDoPerfil(icone = icones.atual()), sessao.usuario))
     val estado: StateFlow<EstadoDoPerfil> = estadoAtual.asStateFlow()
@@ -326,6 +322,7 @@ class PerfilViewModel internal constructor(
 
     fun escolherIcone(icone: IconeDoApp) {
         if (icone.premium && !estadoAtual.value.premium) return convidarParaOPremium()
+        if (icone == icones.atual()) return
         icones.escolher(icone)
         estadoAtual.update { it.copy(icone = icones.atual()) }
     }
@@ -368,7 +365,7 @@ class PerfilViewModel internal constructor(
         estadoAtual.update { it.copy(senha = f.copy(salvando = true, erro = null, aviso = null)) }
         viewModelScope.launch {
             try {
-                sessao.definirSenha(identidade, cofre, f.nova, if (trocando) f.atual else null)
+                sessao.definirSenha(f.nova, if (trocando) f.atual else null)
                 estadoAtual.update {
                     it.copy(senha = FormularioDeSenha(aviso = if (trocando) R.string.perfil_senha_trocada else R.string.perfil_senha_criada))
                 }
