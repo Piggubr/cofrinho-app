@@ -14,4 +14,55 @@
     <string name="login_criar_conta">Criar conta</string>
     <string name="login_falta_email_e_senha">Informe seu e-mail e sua senha.</string>
     <string name="login_nao_entrou">Não foi possível entrar.</string>
+
+    <!-- Criar conta (o modo "cadastro" de features/login) -->
+    <string name="cadastro_nome">Como quer ser chamado?</string>
+    <string name="cadastro_nascimento">Data de nascimento</string>
+    <string name="cadastro_escolher_data">Escolher a data de nascimento</string>
+    <string name="cadastro_ok">OK</string>
+    <string name="cadastro_email">E-mail</string>
+    <string name="cadastro_senha">Senha</string>
+    <string name="cadastro_dica_da_senha">Pelo menos 8 caracteres, com letras e números.</string>
+    <string name="cadastro_confirmacao">Repita a senha</string>
+    <string name="cadastro_celular">Celular</string>
+    <string name="cadastro_ddi">Código do país (DDI)</string>
+    <string name="cadastro_ddi_do_pais">%1$s +%2$s</string>
+    <string name="cadastro_pais">País onde você mora</string>
+    <string name="cadastro_cpf">CPF</string>
+    <string name="cadastro_dica_do_documento">Fica guardado cifrado e não aparece para a sua família.</string>
+    <string name="cadastro_aceite">Li e aceito os %1$s e o %2$s.</string>
+    <string name="cadastro_termos">Termos de Uso</string>
+    <string name="cadastro_privacidade">Aviso de Privacidade</string>
+    <string name="cadastro_criar">Criar minha conta</string>
+    <string name="cadastro_falta_nome">Conte como podemos te chamar.</string>
+    <string name="cadastro_confira_email">Confira o e-mail.</string>
+    <string name="cadastro_senha_curta">A senha precisa ter pelo menos 8 caracteres.</string>
+    <string name="cadastro_senha_longa">A senha pode ter no máximo 72 caracteres.</string>
+    <string name="cadastro_senha_letras_e_numeros">Use letras e números na senha.</string>
+    <string name="cadastro_senha_igual_ao_email">A senha não pode ser o seu e-mail.</string>
+    <string name="cadastro_senhas_diferentes">As duas senhas não são iguais.</string>
+    <string name="cadastro_falta_celular">Informe seu celular.</string>
+    <string name="cadastro_falta_documento">Informe o número do seu documento (CPF).</string>
+    <string name="cadastro_cpf_invalido">CPF inválido. Confira o número.</string>
+    <string name="cadastro_falta_aceite">Para criar a conta, aceite os Termos de Uso e o Aviso de Privacidade.</string>
+    <string name="cadastro_nao_criou">Não foi possível criar sua conta.</string>
+    <!-- Para a tela de login mostrar em "Entrar" depois de aoCriar(email). -->
+    <string name="cadastro_confira_seu_email">Pronto! Mandamos um link para %1$s. Confirme seu e-mail e entre com a senha que você criou.</string>
+
+    <!-- features/sobre-voce -->
+    <string name="sobre_voce_titulo">Sobre você</string>
+    <string name="sobre_voce_complete">Antes de começar, complete seu cadastro.</string>
+    <string name="sobre_voce_como_chamar">Antes de começar, conte como quer ser chamado.</string>
+    <string name="sobre_voce_nota_do_nascimento">A data não muda depois. Quem tem entre 13 e 17 anos tem os lançamentos visíveis para o titular e o parceiro da família.</string>
+    <string name="sobre_voce_dica_do_cpf">Fica guardado cifrado e não aparece para a sua família. Não muda depois.</string>
+    <string name="sobre_voce_falta_cpf">Informe seu CPF.</string>
+    <string name="sobre_voce_continuar">Continuar</string>
+    <string name="sobre_voce_sair">Sair</string>
+
+    <!-- features/cpf -->
+    <string name="cpf_titulo">Seu documento</string>
+    <string name="cpf_subtitulo">Cada pessoa tem uma conta no Piggu. O documento garante isso: ele fica preso à sua conta e não pode ser usado em outra.</string>
+    <string name="cpf_nota">Guardamos o documento cifrado e usamos só para isso. Ele não aparece para a sua família e sai inteiro apenas quando você baixa os seus dados. Detalhes no Aviso de Privacidade. Já tem conta com este documento ou quer corrigir? Escreva para privacidade@piggu.com.br.</string>
+    <string name="cpf_continuar">Continuar</string>
+    <string name="cpf_agora_nao">Agora não</string>
 </resources>
