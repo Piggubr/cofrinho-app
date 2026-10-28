@@ -1,3 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Prêmios (frontend/src/app/features/rewards). "Fofocoins" não muda no singular, como no site. -->
+    <string name="premios_titulo">Prêmios</string>
+    <string name="premios_fofocoins">Fofocoins</string>
+    <string name="premios_quantidade">Quantidade</string>
+    <string name="premios_quantidade_exemplo">Use negativo para debitar</string>
+    <string name="premios_motivo">Motivo</string>
+    <string name="premios_motivo_exemplo">Ex.: Arrumou a cozinha</string>
+    <string name="premios_ajustar">Ajustar</string>
+    <string name="premios_ver_historico">Ver histórico</string>
+    <string name="premios_esconder_historico">Esconder histórico</string>
+    <string name="premios_sem_movimentacao">Nenhuma movimentação ainda.</string>
+    <string name="premios_disponiveis">Disponíveis</string>
+    <string name="premios_preco" tools:ignore="PluralsCandidate">%1$d Fofocoins</string>
+    <string name="premios_resgatar">Resgatar</string>
+    <string name="premios_resgatar_de">Resgatar %1$s</string>
+    <string name="premios_desativado">Desativado</string>
+    <string name="premios_editar_de">Editar %1$s</string>
+    <string name="premios_remover">Remover</string>
+    <string name="premios_remover_de">Remover %1$s</string>
+    <string name="premios_vazio_titulo">Nenhum prêmio cadastrado</string>
+    <string name="premios_vazio_texto">Crie prêmios para a família trocar pelas Fofocoins.</string>
+    <string name="premios_vazio_acao">Cadastrar um prêmio</string>
+    <string name="premios_resgates">Resgates</string>
+    <string name="premios_sem_resgates">Nenhum resgate ainda.</string>
+    <string name="premios_ex_membro">Ex-membro</string>
+    <string name="premios_piggu">Piggu</string>
+    <string name="premios_pessoa">%1$s</string>
+    <string name="premios_quem_e_status">%1$s · %2$s</string>
+    <string name="premios_novo">Novo prêmio</string>
+    <string name="premios_editar">Editar prêmio</string>
+    <string name="premios_nome">Nome</string>
+    <string name="premios_descricao">Descrição</string>
+    <string name="premios_preco_rotulo">Preço em Fofocoins</string>
+    <string name="premios_criar">Criar</string>
+    <string name="premios_salvar">Salvar</string>
+    <string name="premios_resgatar_pergunta" tools:ignore="PluralsCandidate">Resgatar \"%1$s\" por %2$d Fofocoins?</string>
+    <string name="premios_remover_pergunta">Tirar \"%1$s\" da lista?</string>
+    <string name="premios_resgatado" tools:ignore="PluralsCandidate">Resgatado. Saldo agora: %1$d Fofocoins.</string>
+    <string name="premios_saldo_atualizado">Saldo atualizado.</string>
+    <string name="premios_quantidade_invalida">Digite uma quantidade válida de Fofocoins.</string>
+    <string name="premios_motivo_vazio">Explique o motivo do ajuste.</string>
+    <string name="premios_nome_vazio">Digite o nome do prêmio.</string>
+    <string name="premios_preco_invalido">Digite um preço válido.</string>
 </resources>
