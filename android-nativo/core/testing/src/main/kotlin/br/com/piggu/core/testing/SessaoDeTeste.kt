@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -66,8 +67,19 @@ val DIA_DAS_CAPTURAS: java.time.Clock = java.time.ZoneId.of("America/Sao_Paulo")
 }
 
 /**
- * A API falsa responde noutra thread (OkHttp): espera fora do relógio virtual do teste. 30 s
- * porque o CI do GitHub é bem mais lento que o Mac; só espera tudo isso quando algo trava.
+ * Espera a condição valer, fora do relógio virtual do teste (a API falsa responde noutra thread,
+ * no OkHttp). Confere o valor a cada 20 ms em vez de só quando o estado muda: a condição pode
+ * depender de algo fora do estado (os pedidos feitos), e uma recarga que traz os mesmos dados não
+ * emite nada. 30 s porque o CI do GitHub é bem mais lento que o Mac.
  */
 suspend fun <T> StateFlow<T>.esperar(condicao: (T) -> Boolean): T =
-    withContext(Dispatchers.Default) { withTimeout(30_000) { first(condicao) } }
+    withContext(Dispatchers.Default) {
+        withTimeout(30_000) {
+            while (true) {
+                val atual = value
+                if (condicao(atual)) return@withTimeout atual
+                delay(20)
+            }
+            @Suppress("UNREACHABLE_CODE") value
+        }
+    }
