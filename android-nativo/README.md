@@ -21,11 +21,11 @@ plataforma que faltar.
 
 | Módulo | O que tem |
 |---|---|
-| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra, trilho e gaveta, o Mais e o + (`moldura/`) |
+| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra, trilho e gaveta, o Mais, o + e o tour em balões (`moldura/`), a trava do app (`Trava.kt`) |
 | `core:model` | Os tipos do contrato da API (`models.ts` e `docs/api/*.yaml`), sem Android: dinheiro em `BigDecimal`, enum com `DESCONHECIDO` (D-101) |
 | `core:network` | Um serviço Retrofit por microserviço, `ErroDaApi` e as mensagens de erro, `User-Agent` e o aviso de atualizar (426) |
 | `core:database` | Room: as respostas da API guardadas em JSON por chave (D-103) |
-| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, tour visto) |
+| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, tour visto, trava e esconder nos recentes) |
 | `core:data` | `Sessao` (login, renovação, sair), as regras da conta (`auth.guard.ts`), o cache offline-first, o monitor de rede |
 | `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
 | `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
@@ -47,7 +47,7 @@ plataforma que faltar.
 | `feature:premios` | Prêmios: as Fofocoins, os prêmios e os resgates |
 | `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
 | `feature:plano` | Premium: o plano, os preços e o cancelamento; "Em breve" no lugar de assinar até a A8 (D-121) |
-| `feature:perfil` | Perfil: foto e nome, moeda, avisos, aparência, ícone do app (D-119), módulos, senha, privacidade e excluir a conta |
+| `feature:perfil` | Perfil: foto e nome, moeda, avisos, aparência, ícone do app (D-119), módulos, segurança (travar com a biometria, esconder nos recentes), senha, privacidade e excluir a conta |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
 ## Sessão e rede

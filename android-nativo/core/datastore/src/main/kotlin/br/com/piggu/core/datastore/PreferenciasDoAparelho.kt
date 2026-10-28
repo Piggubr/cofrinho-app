@@ -57,12 +57,29 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         dados.edit { it.remove(VOLTOU) }
     }
 
+    /** Travar o app com a biometria ou o bloqueio de tela, ao abrir e ao voltar (TravaDoApp do iOS). */
+    val travar: Flow<Boolean> = dados.data.map { it[TRAVAR] ?: false }
+
+    /** FLAG_SECURE na janela: os valores somem dos apps recentes (e o print fica bloqueado). Só no Android. */
+    val esconderNosRecentes: Flow<Boolean> = dados.data.map { it[ESCONDER_NOS_RECENTES] ?: false }
+
+    suspend fun mudarTravar(ligada: Boolean) {
+        dados.edit { it[TRAVAR] = ligada }
+    }
+
+    suspend fun mudarEsconderNosRecentes(ligado: Boolean) {
+        dados.edit { it[ESCONDER_NOS_RECENTES] = ligado }
+    }
+
     private companion object {
         // Os mesmos nomes do localStorage do site.
         val COR = stringPreferencesKey("piggu_tema")
         val MODO = stringPreferencesKey("piggu_modo")
         val VOLTOU = booleanPreferencesKey("piggu_personalizacao_voltou")
         val CORES_DO_CELULAR = booleanPreferencesKey("cores_do_celular")
+        // A mesma chave do UserDefaults do iOS.
+        val TRAVAR = booleanPreferencesKey("piggu_trava_biometrica")
+        val ESCONDER_NOS_RECENTES = booleanPreferencesKey("esconder_nos_recentes")
         fun tour(pessoa: String) = booleanPreferencesKey("piggu_tutorial_$pessoa")
     }
 }

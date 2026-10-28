@@ -2,7 +2,7 @@ package br.com.piggu.app
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import br.com.piggu.app.navegacao.Destino
@@ -12,8 +12,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 
+// FragmentActivity: o BiometricPrompt da trava do app precisa dela.
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     /** Os links (piggu://, App Links do piggu.com.br, atalhos) que o app ainda vai abrir. */
     private val links = Channel<Destino>(Channel.BUFFERED)
 

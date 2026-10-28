@@ -318,6 +318,21 @@ class PerfilViewModelTest {
     }
 
     @Test
+    fun `trava e esconder nos recentes ficam no aparelho e voltam na tela`() = runTest {
+        entrar()
+        val perfil = perfil()
+        perfil.pronto()
+        perfil.mudarTravar(true)
+        perfil.mudarEsconderNosRecentes(true)
+        perfil.estado.esperar { it.travar && it.esconderNosRecentes }
+        assertTrue(preferencias.travar.first())
+        assertTrue(preferencias.esconderNosRecentes.first())
+        perfil.mudarTravar(false)
+        perfil.estado.esperar { !it.travar }
+        assertFalse(preferencias.travar.first())
+    }
+
+    @Test
     fun `trocar a senha manda o refresh deste aparelho para continuar conectado`() = runTest {
         entrar(lembrar = true)
         val refresh = cofre.refresh()
