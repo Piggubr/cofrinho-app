@@ -11,13 +11,17 @@ import br.com.piggu.core.data.Lancamentos
 import br.com.piggu.core.data.ListasParaLancar
 import br.com.piggu.core.data.MonitorDeRede
 import br.com.piggu.core.data.Sessao
+import br.com.piggu.core.data.VERSAO_DOS_TERMOS
+import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.model.AlertaDoOrcamento
 import br.com.piggu.core.model.ConferenciaDePreco
 import br.com.piggu.core.model.ContaOuCartao
 import br.com.piggu.core.model.ItemDeGasto
 import br.com.piggu.core.model.MembroDaFamilia
 import br.com.piggu.core.model.NovoLancamento
+import br.com.piggu.core.model.PedidoDeLeitura
 import br.com.piggu.core.model.PedidoDeNome
+import br.com.piggu.core.model.ReciboLido
 import br.com.piggu.core.model.TipoDeConta
 import br.com.piggu.core.network.ErroDaApi
 import br.com.piggu.core.network.MensagemDeErro
@@ -28,16 +32,21 @@ import br.com.piggu.feature.gastos.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
 import java.time.LocalDate
+import java.util.Base64
 import java.util.UUID
 import javax.inject.Inject
 
@@ -97,6 +106,19 @@ data class EstadoDoFormulario(
     val itemComErro: Int? = null,
     /** Lançou (ou guardou sem internet): a tela entrega a mensagem e chama [FormularioDeGastoViewModel.avisoEntregue]. */
     val lancado: AvisoDoLancamento? = null,
+    /** Reduzindo a foto do recibo ou esperando o servidor ler. */
+    val lendoRecibo: Boolean = false,
+    /** Leituras grátis que sobram no mês; nula no Premium ou antes de saber. */
+    val leiturasRestantes: Int? = null,
+    /** A foto do recibo em JPEG: a prévia na conferência e o reenvio depois de autorizar a IA. */
+    val fotoDoRecibo: ByteArray? = null,
+    /** O servidor só lê pela IA com autorização: a mensagem dele, e a foto espera em [fotoDoRecibo]. */
+    val pedidoDeIa: MensagemDeErro? = null,
+    /** Recibo lido, em conferência até a pessoa confirmar ("Conferir recibo"). */
+    val recibo: ReciboLido? = null,
+    val itensDoRecibo: List<ItemDoFormulario> = emptyList(),
+    /** O recibo confirmado que preencheu o formulário: vai no Lançar, com a origem "Foto". */
+    val reciboId: String? = null,
 ) {
     val cartoes: List<ContaOuCartao> get() = contas.filter { it.tipo == TipoDeConta.CARTAO }
     val bancos: List<ContaOuCartao> get() = contas.filter { it.tipo == TipoDeConta.CONTA }
@@ -112,6 +134,7 @@ data class EstadoDoFormulario(
     /** A soma dos itens, na moeda da compra. */
     val total: BigDecimal get() = itens.mapNotNull { it.valor }.fold(BigDecimal.ZERO, BigDecimal::add)
     val totalConvertido: BigDecimal? get() = if (outraMoeda) convertido(total) else null
+    val totalDoRecibo: BigDecimal get() = itensDoRecibo.mapNotNull { it.valor }.fold(BigDecimal.ZERO, BigDecimal::add)
 
     val valorDaParcela: BigDecimal?
         get() {
@@ -186,6 +209,16 @@ class FormularioDeGastoViewModel @Inject constructor(
                 if (carga is Carga.Pronto) estadoAtual.update { it.copy(membros = carga.valor.membros) }
             }
         }
+        if (usuario?.ehPremium != true) {
+            viewModelScope.launch {
+                // O contador só informa: sem ele o botão continua funcionando.
+                try {
+                    val uso = financas.usoDeLeituras()
+                    estadoAtual.update { it.copy(leiturasRestantes = uso.restantes) }
+                } catch (_: ErroDaApi) {
+                }
+            }
+        }
     }
 
     /** Atalho e link (piggu://gasto?valor=12.50): o valor já dito. */
@@ -205,8 +238,13 @@ class FormularioDeGastoViewModel @Inject constructor(
         if (it.itens.size >= MAXIMO_DE_ITENS) it else it.copy(itens = it.itens + ItemDoFormulario(proximaChave++))
     }
 
+    /** Tira a linha do formulário (fica pelo menos uma) ou da conferência do recibo (pode tirar todas). */
     fun removerItem(chave: Int) = estadoAtual.update { atual ->
-        if (atual.itens.size <= 1) atual else atual.copy(itens = atual.itens.filterNot { it.chave == chave }, itemComErro = null)
+        when {
+            atual.itensDoRecibo.any { it.chave == chave } -> atual.copy(itensDoRecibo = atual.itensDoRecibo.filterNot { it.chave == chave })
+            atual.itens.size <= 1 -> atual
+            else -> atual.copy(itens = atual.itens.filterNot { it.chave == chave }, itemComErro = null)
+        }
     }
 
     /** Recebe as categorias depois de criar uma (o CampoDeCategoria já escolhe a nova). */
@@ -300,7 +338,8 @@ class FormularioDeGastoViewModel @Inject constructor(
         val pedido = NovoLancamento(
             data = atual.data.toString(),
             estabelecimento = atual.estabelecimento.trim().ifEmpty { null },
-            origem = "Manual",
+            reciboId = atual.reciboId,
+            origem = if (atual.reciboId != null) "Foto" else "Manual",
             itens = atual.itens.map { linha ->
                 ItemDeGasto(
                     item = linha.item.trim(),
@@ -371,17 +410,110 @@ class FormularioDeGastoViewModel @Inject constructor(
                 parcelas = "1",
                 dividirCom = emptyList(),
                 compartilhado = null,
+                reciboId = null,
                 salvando = false,
                 lancado = aviso,
             )
         }
     }
 
+    /**
+     * A foto do recibo, do recorte, da câmera ou da galeria ([abrir] dá um fluxo novo dela a cada
+     * chamada). Vai reduzida ao servidor, que lê e devolve os itens; nada é gravado ainda.
+     */
+    fun lerFotoDoRecibo(abrir: () -> InputStream?) {
+        if (estadoAtual.value.lendoRecibo) return
+        estadoAtual.update { it.copy(lendoRecibo = true, erro = null) }
+        viewModelScope.launch {
+            val jpeg = withContext(Dispatchers.IO) {
+                try {
+                    reduzirFotoDoRecibo(abrir)
+                } catch (_: IOException) {
+                    null
+                } catch (_: SecurityException) {
+                    null
+                }
+            }
+            if (jpeg == null) {
+                estadoAtual.update { it.copy(lendoRecibo = false, erro = MensagemDeErro.DoApp(R.string.recibo_foto_ilegivel)) }
+                return@launch
+            }
+            estadoAtual.update { it.copy(fotoDoRecibo = jpeg) }
+            lerRecibo(jpeg, autorizo = false)
+        }
+    }
+
+    /** A pessoa leu o aviso e autorizou: a mesma foto vai de novo, agora podendo ir à IA. */
+    fun autorizarIa() {
+        val atual = estadoAtual.value
+        val foto = atual.fotoDoRecibo ?: return
+        if (atual.pedidoDeIa == null) return
+        estadoAtual.update { it.copy(pedidoDeIa = null, lendoRecibo = true) }
+        viewModelScope.launch { lerRecibo(foto, autorizo = true) }
+    }
+
+    /** "Agora não": a foto não vai à IA e sai do aparelho. */
+    fun recusarIa() = estadoAtual.update { it.copy(pedidoDeIa = null, fotoDoRecibo = null) }
+
+    private suspend fun lerRecibo(jpeg: ByteArray, autorizo: Boolean) {
+        try {
+            val lido = financas.lerRecibo(
+                PedidoDeLeitura(
+                    imageBase64 = Base64.getEncoder().encodeToString(jpeg),
+                    mimeType = "image/jpeg",
+                    autorizoIa = true.takeIf { autorizo },
+                    // Gravada pelo servidor junto com a leitura, como no site (VERSAO_DO_AVISO).
+                    versaoDoAviso = VERSAO_DOS_TERMOS.takeIf { autorizo },
+                ),
+            )
+            val itens = lido.itens.take(MAXIMO_DE_ITENS).map { ItemDoFormulario(proximaChave++, it.item.take(200), it.categoria, it.valor) }
+            estadoAtual.update {
+                it.copy(lendoRecibo = false, leiturasRestantes = lido.leiturasRestantes, recibo = lido, itensDoRecibo = itens)
+            }
+        } catch (falha: ErroDaApi) {
+            val pedeConsentimento = falha is ErroDaApi.DoServidor && falha.codigo == "CONSENTIMENTO_NECESSARIO"
+            estadoAtual.update {
+                if (pedeConsentimento) {
+                    it.copy(lendoRecibo = false, pedidoDeIa = mensagemDeErro(falha))
+                } else {
+                    it.copy(lendoRecibo = false, erro = mensagemDeErro(falha), fotoDoRecibo = null)
+                }
+            }
+        }
+    }
+
+    /** Os itens conferidos preenchem o formulário (com o lugar e a data do cupom); só o Lançar grava. */
+    fun confirmarRecibo() {
+        val atual = estadoAtual.value
+        val lido = atual.recibo ?: return
+        val itens = atual.itensDoRecibo.filter { it.item.isNotBlank() && it.valor != null && it.valor.signum() >= 0 && it.valor <= VALOR_MAXIMO }
+        if (itens.isEmpty()) return falhar(R.string.recibo_nenhum_item_valido)
+        estadoAtual.update {
+            it.copy(
+                itens = itens,
+                estabelecimento = lido.estabelecimento.take(200),
+                data = runCatching { LocalDate.parse(lido.data.take(10)) }.getOrDefault(it.data),
+                reciboId = lido.reciboId,
+                recibo = null,
+                itensDoRecibo = emptyList(),
+                fotoDoRecibo = null,
+                erro = null,
+            )
+        }
+    }
+
+    fun descartarRecibo() = estadoAtual.update { it.copy(recibo = null, itensDoRecibo = emptyList(), fotoDoRecibo = null, erro = null) }
+
     private fun falhar(@StringRes texto: Int, faltou: CampoQueFaltou? = null, item: Int? = null) =
         estadoAtual.update { it.copy(erro = MensagemDeErro.DoApp(texto), faltou = faltou, itemComErro = item) }
 
+    // As chaves são únicas entre o formulário e a conferência do recibo: a mesma edição serve às duas listas.
     private fun mudarItem(chave: Int, mudar: (ItemDoFormulario) -> ItemDoFormulario) = estadoAtual.update { atual ->
-        atual.copy(itens = atual.itens.map { if (it.chave == chave) mudar(it) else it }, itemComErro = null)
+        atual.copy(
+            itens = atual.itens.map { if (it.chave == chave) mudar(it) else it },
+            itensDoRecibo = atual.itensDoRecibo.map { if (it.chave == chave) mudar(it) else it },
+            itemComErro = null,
+        )
     }
 
     private fun parcelasDo(modo: ModoDaCompra, atual: EstadoDoFormulario) =

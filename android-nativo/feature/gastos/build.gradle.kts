@@ -14,7 +14,11 @@ dependencies {
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(libs.androidx.core.ktx)
+    // Photo Picker e câmera (rememberLauncherForActivityResult).
     implementation(libs.androidx.activity.compose)
+    // A foto do recibo: em pé pelo EXIF e o recorte do documento (sem pedir permissão de câmera).
+    implementation(libs.androidx.exifinterface)
+    implementation(libs.play.services.document.scanner)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
