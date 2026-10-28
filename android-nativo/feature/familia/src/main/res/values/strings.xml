@@ -1,3 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="familia_titulo">Família</string>
+
+    <!-- Plano da casa -->
+    <string name="familia_plano_gratuito">Gratuito</string>
+    <string name="familia_plano_individual">Premium individual</string>
+    <string name="familia_plano_casal">Premium casal</string>
+    <string name="familia_plano_familia">Premium família</string>
+    <string name="familia_plano_abrir">%1$s. Abrir o Premium</string>
+
+    <!-- Papéis -->
+    <string name="familia_papel_admin">Admin</string>
+    <string name="familia_papel_titular">Titular</string>
+    <string name="familia_papel_parceiro">Parceiro</string>
+    <string name="familia_papel_membro">Membro</string>
+    <string name="familia_convidado_para_parceiro">convidado para parceiro</string>
+
+    <!-- Nome e pessoas -->
+    <string name="familia_nome">Nome da família</string>
+    <string name="familia_salvar_nome">Salvar nome</string>
+    <string name="familia_convidar_parceiro">Convidar para parceiro</string>
+    <string name="familia_voltar_a_membro">Voltar a membro</string>
+    <string name="familia_cancelar_parceria">Cancelar convite de parceiro</string>
+    <string name="familia_remover">Remover</string>
+    <string name="familia_acao_de">%1$s: %2$s</string>
+
+    <!-- Convites para mim e parceria -->
+    <string name="familia_convite_recebido">Convite para entrar na %1$s</string>
+    <string name="familia_vale_ate">Vale até %1$s</string>
+    <string name="familia_entrar_nessa">Entrar nessa família</string>
+    <string name="familia_parceria_titulo">O titular convidou você para ser parceiro</string>
+    <string name="familia_parceria_texto">Se aceitar, você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Se recusar, continua vendo só o que você lança.</string>
+    <string name="familia_aceitar">Aceitar</string>
+    <string name="familia_recusar">Recusar</string>
+
+    <!-- Histórico -->
+    <string name="familia_historico">Histórico</string>
+    <string name="familia_historico_explica">Quem lançou, alterou ou apagou cada coisa, e quando.</string>
+    <string name="familia_ver_historico">Ver histórico</string>
+    <string name="familia_historico_vazio">Nenhuma mudança registrada ainda.</string>
+    <string name="familia_ex_membro">Ex-membro</string>
+    <string name="familia_piggu">Piggu</string>
+    <string name="familia_acao_criou">lançou</string>
+    <string name="familia_acao_editou">alterou</string>
+    <string name="familia_acao_apagou">apagou</string>
+    <string name="familia_acao_importou">importou</string>
+    <string name="familia_acao_pagou">pagou</string>
+    <string name="familia_acao_mudou_papel">mudou o papel de</string>
+    <string name="familia_acao_removeu">tirou da família</string>
+    <string name="familia_acao_entrou">entrou na família</string>
+    <string name="familia_acao_saiu">saiu da família</string>
+    <string name="familia_acao_convidou">convidou</string>
+    <string name="familia_entidade_gasto">gasto</string>
+    <string name="familia_entidade_receita">receita</string>
+    <string name="familia_entidade_meta">meta do mês</string>
+    <string name="familia_entidade_orcamento">orçamento</string>
+    <string name="familia_entidade_conta_fixa">conta fixa</string>
+    <string name="familia_entidade_fatura">fatura do cartão</string>
+    <string name="familia_entidade_deposito">depósito no cofrinho</string>
+
+    <!-- Convidar -->
+    <string name="familia_convidar_titulo">Convidar alguém</string>
+    <string name="familia_convidar_explica">A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro lançam, use “Convidar para parceiro” na lista acima; vale quando a pessoa aceitar.</string>
+    <string name="familia_email">E-mail</string>
+    <string name="familia_email_exemplo">pessoa@email.com</string>
+    <string name="familia_convidar">Convidar</string>
+    <string name="familia_cancelar">Cancelar</string>
+    <string name="familia_cancelar_convite_de">Cancelar o convite de %1$s</string>
+    <string name="familia_sem_convites">Nenhum convite pendente.</string>
+
+    <!-- Quem não é titular -->
+    <string name="familia_so_titular">Só o titular convida e remove pessoas e cuida do plano.</string>
+    <string name="familia_sair">Sair da família</string>
+
+    <!-- Confirmações (os confirm do site) -->
+    <string name="familia_confirma_convite_titulo">Entrar na %1$s?</string>
+    <string name="familia_confirma_convite">Você sai da família atual: se for a última pessoa dela, tudo o que está lá é apagado; se outras pessoas ficarem, o que você lançou fica com elas. Depois disso é preciso entrar de novo.</string>
+    <string name="familia_confirma_parceria_titulo">Aceitar ser parceiro?</string>
+    <string name="familia_confirma_parceria">Você e o titular passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Depois disso é preciso entrar de novo.</string>
+    <string name="familia_confirma_convidar_titulo">Convidar %1$s para ser parceiro?</string>
+    <string name="familia_confirma_convidar">Quando a pessoa aceitar, vocês dois passam a ver e editar o que um e o outro lançam, e o que lançam os menores de 18 anos. Plano, convites e pessoas continuam só com você.</string>
+    <string name="familia_confirma_voltar_titulo">Voltar %1$s a membro?</string>
+    <string name="familia_confirma_voltar">Essa pessoa passa a ver só o que ela lança, e você deixa de ver o dela.</string>
+    <string name="familia_confirma_remover_titulo">Tirar %1$s da família?</string>
+    <string name="familia_confirma_remover">A pessoa leva o que lançou e a família deixa de ver.</string>
+    <string name="familia_confirma_sair_titulo">Sair da família?</string>
+    <string name="familia_confirma_sair">Você leva o que lançou para uma família só sua e precisa entrar de novo.</string>
+
+    <!-- Avisos e erros -->
+    <string name="familia_nome_vazio">Digite o nome da família.</string>
+    <string name="familia_email_invalido">Digite um e-mail válido.</string>
+    <string name="familia_nome_salvo">Nome salvo.</string>
+    <string name="familia_convite_criado">Convite criado. Avise a pessoa para entrar com esse e-mail.</string>
+    <string name="familia_convite_cancelado">Convite cancelado.</string>
+    <string name="familia_parceria_cancelada">Convite de parceria cancelado.</string>
+    <string name="familia_parceria_enviada">Convite enviado. %1$s vê o convite na tela Família e decide se aceita.</string>
+    <string name="familia_papel_alterado">Papel alterado. A mudança vale quando a pessoa entrar de novo.</string>
+    <string name="familia_parceria_recusada">Convite recusado. Você continua vendo só o que lança.</string>
+    <string name="familia_pessoa_removida">Pessoa removida da família.</string>
 </resources>
