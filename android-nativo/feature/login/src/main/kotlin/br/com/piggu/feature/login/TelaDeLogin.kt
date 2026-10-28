@@ -34,7 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.com.piggu.core.network.MensagemDeErro
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -52,14 +56,29 @@ import br.com.piggu.core.designsystem.R as Icones
 import br.com.piggu.core.ui.HumorDoPorquinho
 import br.com.piggu.core.ui.Porquinho
 
-/** O que a tela de login mostra. [erro] já vem pronto para ler (texto do servidor ou um dos nossos). */
+/** O que a tela de login mostra. "Continuar conectado" começa ligado, como no site. */
 data class EstadoDoLogin(
     val email: String = "",
     val senha: String = "",
     val lembrar: Boolean = true,
     val entrando: Boolean = false,
-    val erro: String? = null,
+    val erro: MensagemDeErro? = null,
 )
+
+/** A tela ligada ao [LoginViewModel]. */
+@Composable
+fun TelaDeLogin(esqueciASenha: () -> Unit, criarConta: () -> Unit, viewModel: LoginViewModel = hiltViewModel()) {
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+    TelaDeLogin(
+        estado,
+        viewModel::mudarEmail,
+        viewModel::mudarSenha,
+        viewModel::mudarLembrar,
+        viewModel::entrar,
+        esqueciASenha,
+        criarConta,
+    )
+}
 
 /**
  * Entrar por e-mail e senha (features/login do site). Criar conta e esqueci a senha abrem no
@@ -100,7 +119,7 @@ fun TelaDeLogin(
             Column(Modifier.widthIn(max = 420.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 estado.erro?.let {
                     Text(
-                        it,
+                        it.texto(LocalContext.current),
                         Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
                         color = MaterialTheme.colorScheme.error,
                     )

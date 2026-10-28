@@ -1,6 +1,8 @@
 package br.com.piggu.core.model
 
 import java.math.BigDecimal
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -26,6 +28,9 @@ val JsonDoPiggu: Json = Json {
     coerceInputValues = true
     explicitNulls = false
     encodeDefaults = true
+    // Resposta que é só um mapa ou lista de números (Map<String, Decimal>): o Retrofit pede o
+    // serializador pelo tipo Java, onde a anotação do typealias já se perdeu.
+    serializersModule = SerializersModule { contextual(BigDecimal::class, SerializadorDeDecimal) }
 }
 
 /** Número decimal da API (dinheiro, porcentagem, câmbio): BigDecimal, para não perder centavo. */

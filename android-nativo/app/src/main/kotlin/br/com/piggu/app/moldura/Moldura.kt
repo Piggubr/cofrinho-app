@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -46,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -176,6 +178,9 @@ private fun OpcaoDoLancar(rotulo: Int, icone: Int, aoTocar: () -> Unit) {
     ListItem(
         headlineContent = { Text(stringResource(rotulo)) },
         leadingContent = { Icon(painterResource(icone), null) },
+        // Os formulários chegam nativos na A4; até lá, abrem no site.
+        trailingContent = { IconeAbreFora() },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickableComPapel(Role.Button, aoTocar),
     )
 }
@@ -304,3 +309,6 @@ private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela)
         }
     }
 }
+
+/** O + flutuante fica por cima da lista; o fim dela ganha esta folga para nada ficar escondido. */
+val FOLGA_DO_LANCAR = 88.dp

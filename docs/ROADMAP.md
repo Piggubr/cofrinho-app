@@ -29,7 +29,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - iOS, etapa 9: acabamento e versão 2.0.0 no TestFlight. Pelo plano, de 4 a 5 semanas com uma sessão por dia.
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
-- Android, etapas A2 a A7: as telas, na mesma ordem do iOS.
+- Android, etapas A3 a A7: as telas, na mesma ordem do iOS (A3 é a entrada inteira, com o Google).
 - Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
 - Android, etapa A9: acabamento, versão 2.0.0 e teste interno no Play.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
@@ -48,6 +48,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: Android nativo, etapa A2: modelos e rede, sessão, 13 cores, componentes, moldura com abas, Mais e gaveta, cache offline, login por e-mail e o modo demonstração, na branch `feature/android-nativo` (D-099 a D-103).
 - 27/10/2026: Android nativo, etapa A0: `android-nativo/` com módulos, tema do Piggu, abas e CI, na branch `feature/android-nativo` ([#106](https://github.com/Piggubr/cofrinho-app/pull/106)).
 - 26/10/2026: iOS nativo, etapa 1: login para apps nativos no backend, com o refresh no corpo da resposta e Entrar com Apple (D-072).
 - 24/10/2026: login com Google no app iOS e Android pelo navegador do celular ([#79](https://github.com/Piggubr/cofrinho-app/pull/79)).

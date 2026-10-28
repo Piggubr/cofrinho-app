@@ -27,7 +27,6 @@
     <string name="tela_girls_math">Girls Math</string>
     <string name="tela_familia">Família</string>
     <string name="tela_premium">Premium</string>
-    <string name="tela_perfil">Perfil</string>
 
     <!-- Moldura -->
     <string name="voltar_ao_painel">Piggu, voltar ao Painel</string>
@@ -42,7 +41,6 @@
     <string name="lancar_gasto">Lançar gasto</string>
     <string name="lancar_receita">Lançar receita</string>
     <string name="faixa_demo">Demonstração · dados de exemplo, nada é salvo</string>
-    <string name="aba_em_breve">Esta tela chega nas próximas versões do app. Enquanto isso, ela abre no site.</string>
     <string name="abrir_no_site">Abrir no site</string>
 
     <!-- Mais -->
@@ -60,7 +58,6 @@
 
     <!-- Avisos da sessão -->
     <string name="cor_voltou_ao_padrao">O Premium acabou, então a cor voltou para o padrão.</string>
-    <string name="enviados_sem_conexao">Enviados %1$d gastos guardados sem conexão.</string>
 
     <!-- Pendências da conta (aceite e cadastro chegam nativos na A3) -->
     <string name="pendente_termos_titulo">Os Termos mudaram</string>

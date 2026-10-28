@@ -13,7 +13,7 @@ dependencies {
     api(projects.core.model)
     api(projects.core.network)
     api(projects.core.datastore)
-    implementation(projects.core.database)
+    api(projects.core.database)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -40,3 +40,11 @@ class MoedaTest {
         assertEquals("XYZ", simboloDaMoeda("XYZ"))
     }
 }
+
+class CotacaoTest {
+    @org.junit.Test
+    fun `abaixo de 1 mostra ate quatro casas e acima, duas`() {
+        org.junit.Assert.assertEquals("1 BRL = US$ 0,1786", formatarCotacao("BRL", "USD", java.math.BigDecimal("0.17861")))
+        org.junit.Assert.assertEquals("1 USD = R$ 5,60", formatarCotacao("USD", "BRL", java.math.BigDecimal("5.6")))
+    }
+}

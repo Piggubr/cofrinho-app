@@ -7,6 +7,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Qualifier
+import dagger.multibindings.Multibinds
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +58,20 @@ internal class InterceptadorDeVersao(
     }
 }
 
+/** O interceptador da API falsa, só na variante demo (o app põe com `@IntoSet`). */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RespostasDaDemo
+
+/** Sem a demo, o conjunto fica vazio. */
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class ModuloDaDemo {
+    @Multibinds
+    @RespostasDaDemo
+    abstract fun respostasDaDemo(): Set<Interceptor>
+}
+
 /**
  * A rede para o Hilt. O app fornece `@Named("versaoDoApp")` (o versionName),
  * `@Named("urlDaApi")` ([URL_DA_API] em produção) e a sessão faz o `@Binds` de [AutenticacaoDaRede].
@@ -73,9 +89,12 @@ object ModuloDaRede {
         @Named("versaoDoApp") versaoDoApp: String,
         aviso: AvisoDeVersao,
         autenticacao: AutenticacaoDaRede,
+        @RespostasDaDemo demo: Set<@JvmSuppressWildcards Interceptor> = emptySet(),
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(InterceptadorDeVersao(versaoDoApp, aviso))
         .addInterceptor(autenticacao.interceptador)
+        // A API falsa da variante demo responde sem ir à rede: vem por último.
+        .apply { demo.forEach { addInterceptor(it) } }
         .authenticator(autenticacao.autenticador)
         .build()
 

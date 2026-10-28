@@ -29,3 +29,20 @@ fun formatarMoeda(valor: BigDecimal?, codigo: String?): String {
 fun simboloDaMoeda(codigo: String): String = moedaDe(codigo)?.getSymbol(PtBr) ?: codigo
 
 private fun moedaDe(codigo: String): Currency? = runCatching { Currency.getInstance(codigo) }.getOrNull()
+
+/**
+ * "1 BRL = US$ 0,1786": uma unidade da primeira moeda, escrita na segunda (taxaFormatada de
+ * shell.ts). Abaixo de 1 mostra até 4 casas, para não virar US$ 0,18.
+ */
+fun formatarCotacao(de: String, para: String, taxa: BigDecimal): String {
+    val moeda = moedaDe(para)
+    val formato = if (moeda == null) {
+        NumberFormat.getNumberInstance(PtBr)
+    } else {
+        NumberFormat.getCurrencyInstance(PtBr).apply { currency = moeda }
+    }
+    formato.minimumFractionDigits = 2
+    formato.maximumFractionDigits = if (taxa < BigDecimal.ONE) 4 else 2
+    val valor = formato.format(taxa)
+    return "1 $de = " + if (moeda == null) "$para $valor" else valor
+}

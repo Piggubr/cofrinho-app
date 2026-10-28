@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Custom Tabs: as telas que ainda abrem no site precisam achar um navegador (Android 11+). -->
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".PigguApplication"
         android:allowBackup="false"
@@ -14,10 +24,37 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- piggu://gasto?valor=12.50, piggu://gastos?id=...&mes=aaaa-mm e piggu://<rota do site>. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="piggu" />
+            </intent-filter>
+
+            <!--
+                App Links do site (assetlinks.json em https://piggu.com.br/.well-known/). Só as telas
+                que já são nativas: uma que abre no site num Custom Tab voltaria para o app. Cada
+                etapa acrescenta as suas.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="piggu.com.br" />
+                <data android:host="www.piggu.com.br" />
+                <data android:path="/painel" />
+                <data android:path="/gastos" />
+                <data android:path="/receitas" />
+                <data android:path="/relatorios" />
             </intent-filter>
         </activity>
     </application>

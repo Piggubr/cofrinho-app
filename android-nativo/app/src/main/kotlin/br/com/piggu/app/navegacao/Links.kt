@@ -68,4 +68,4 @@ private fun consultaDe(bruta: String?): Map<String, String> =
         decodificar(nome) to decodificar(valor)
     }
 
-private fun decodificar(texto: String) = runCatching { URLDecoder.decode(texto, Charsets.UTF_8) }.getOrDefault(texto)
+private fun decodificar(texto: String) = runCatching { URLDecoder.decode(texto, "UTF-8") }.getOrDefault(texto)

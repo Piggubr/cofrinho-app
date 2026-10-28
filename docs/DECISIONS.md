@@ -100,6 +100,11 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
 | [D-089](#d-089-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
+| [D-099](#d-099-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
+| [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
+| [D-101](#d-101-contrato-da-api-no-android-datas-em-texto-números-em-bigdecimal-e-enum-desconhecido) | Contrato da API no Android: datas em texto, números em BigDecimal e enum desconhecido | Valendo |
+| [D-102](#d-102-visual-do-android-13-cores-cor-no-aparelho-e-material-symbols) | Visual do Android: 13 cores, cor no aparelho e Material Symbols | Valendo |
+| [D-103](#d-103-cache-do-android-respostas-da-api-em-json-no-room) | Cache do Android: respostas da API em JSON no Room | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -835,6 +840,51 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: voltar para bibliotecas mais velhas que ainda compilam com o 36, ficando sem o Material 3 1.4 e o Navigation 3 estável mais novo.
 - Consequências: o build precisa da plataforma `android-37.0` do SDK, que o Gradle baixa sozinho. Subir o targetSdk para 37 é uma decisão à parte, com teste das mudanças de comportamento.
 - Onde ver: `android-nativo/app/build.gradle.kts`, `android-nativo/gradle/libs.versions.toml`
+
+## D-099: Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A2 do plano Android (fundação e moldura). As telas chegam nas etapas A3 a A7, mas o menu, os links e o + já precisam levar a algum lugar. O iOS resolveu o mesmo com o navegador (D-090 de lá).
+- Decisão: cada rota de `app.routes.ts` vira uma rota tipada (`Tela`, Navigation 3) com a flag `nativa`. A que ainda não é nativa abre a página do `piggu.com.br` num Custom Tab, com o ícone de "abre fora"; as quatro abas mostram o aviso com "Abrir no site", e o + abre a folha com Lançar gasto (`/gastos?rapido=1&valor=`) e Lançar receita no site. A busca e o assistente ficam no topo e avisam que chegam na A4. Os App Links de `https://piggu.com.br` cobrem só as telas nativas (hoje as quatro abas): uma tela que abre no site num Custom Tab voltaria para o app. O Mais segue os grupos do site com o Perfil no topo; no tablet, o trilho (largura média) e a gaveta fixa com os grupos (tela larga). Os módulos de estilo de vida seguem a D-092 do iOS: ausente liga todos, e a lista (até vazia) esconde o que não está nela; o `shell.ts` do site ainda mostra todos.
+- Alternativas: esconder o que não é nativo, que deixaria o menu pela metade; WebView, que pede login de novo e fica fora do visual.
+- Consequências: a página do site no Custom Tab pede login (o app não passa a sessão). Cada etapa troca o link pela tela, acrescenta o caminho no `intent-filter` dos App Links e muda `nativa`. O `assetlinks.json` precisa estar publicado no site para os App Links abrirem o app.
+- Onde ver: `android-nativo/app/src/main/kotlin/br/com/piggu/app/navegacao/`, `android-nativo/app/src/main/kotlin/br/com/piggu/app/moldura/`, `android-nativo/core/ui/.../Site.kt`
+
+## D-100: Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o app Android entra com `refreshNoCorpo: true` (D-072) e precisa guardar o refresh sem o Keychain do iOS. O backend troca o refresh a cada uso, então duas renovações ao mesmo tempo derrubam a sessão.
+- Decisão: o access token fica só na memória. Com "Continuar conectado", o refresh vai para o DataStore cifrado com AES-GCM numa chave do Android Keystore, junto com o perfil; sem, fica só na memória. Refresh que não decifra vale como sessão nenhuma. O `Authenticator` do OkHttp renova no 401 uma única vez por chamada, com um `Mutex`: quem chega durante a renovação espera e usa o token novo. A renovação é uma chamada síncrona na thread de quem esperava, fora da fila do OkHttp, que tem 5 chamadas por servidor e ficaria cheia das que esperam por ela. Só a renovação recusada com 401 ou 403 encerra a sessão (D-075); com o perfil guardado, o app abre logado na hora e renova por trás (D-095 do iOS). Sair manda o refresh para `/api/auth/logout` e apaga o cofre e o cache.
+- Alternativas: EncryptedSharedPreferences, que o Google descontinuou; renovar pela chamada `suspend` do Retrofit, que travava com 5 chamadas simultâneas (teste em `SessaoTest`).
+- Consequências: a fila de gastos, o resumo dos widgets e a conversa do assistente ainda não existem; quem os trouxer apaga ao sair. A chave do Keystore não vai para o backup (o backup do app está desligado).
+- Onde ver: `android-nativo/core/data/.../Sessao.kt`, `AutenticacaoDaSessao.kt`, `android-nativo/core/datastore/`
+
+## D-101: Contrato da API no Android: datas em texto, números em BigDecimal e enum desconhecido
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A2. O app copia `models.ts` e os `docs/api/*.yaml` com kotlinx.serialization e precisa sobreviver a campos e valores novos da API (D-059).
+- Decisão: datas ficam em `String`, como no site e no iOS. Todo `number` do contrato vira `BigDecimal` (também registrado como serializador contextual, para respostas que são só um mapa de números), e todo enum tem `DESCONHECIDO`, também dentro de listas. Os serviços lançam só `ErroDaApi` (sem internet, resposta fora do contrato ou o erro do servidor), e as mensagens seguem `mensagem-de-erro.ts`. O app manda `User-Agent: Piggu-Android/<versão>`, e um 426 com `ATUALIZE_O_APP` abre a tela de atualizar com a ficha do Play, antes do backend mandar esse código. A variante demo põe a API falsa (`ApiDaDemo`, porte de `api-da-demo.ts`) como o último interceptador do OkHttp.
+- Alternativas: `java.time` nos modelos, que quebraria com uma variação do formato que o servidor mande; `Double` para dinheiro.
+- Consequências: o `ContratoTest` confere os nomes dos campos contra os yaml, e o `DemoContraModelosTest` lê toda resposta da demo com os modelos. Uma tela que precise da data a converte onde usa.
+- Onde ver: `android-nativo/core/model/`, `android-nativo/core/network/`, `android-nativo/core/testing/`
+
+## D-102: Visual do Android: 13 cores, cor no aparelho e Material Symbols
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o site tem 13 cores (4 grátis e 9 do Premium), guardadas no aparelho, e a A0 só tinha quatro.
+- Decisão: as 13 saem do `gerar-cores.mjs` com o esquema Vibrant, menos o Grafite, que usa o Neutral (no Vibrant as superfícies ficavam azuis). A cor, o modo (Automático, Claro e Escuro) e a marca de "voltou ao padrão" ficam no DataStore com as chaves do `localStorage` do site; quando o Premium acaba, a cor Premium volta ao Chiclete e o app avisa uma vez. "Cores do celular" (Android 12 ou mais novo) fica só no Android. Os ícones de `icone.ts` são do Material Symbols Outlined, gerados por `gerar-icones.mjs`. O `lerValor` devolve duas casas, e data impossível (30/02) é inválida.
+- Alternativas: o Vibrant também no Grafite; desenhar os ícones do Lucide do site, que não têm equivalente oficial no Android.
+- Consequências: a escolha da cor e do modo no Perfil chega com o Perfil nativo.
+- Onde ver: `android-nativo/core/designsystem/`, `android-nativo/core/ui/.../formatos/`, `android-nativo/core/datastore/.../PreferenciasDoAparelho.kt`
+
+## D-103: Cache do Android: respostas da API em JSON no Room
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o app tem que abrir sem internet com o resumo e os gastos do mês e lançar com as listas guardadas (`listas-guardadas.ts`).
+- Decisão: como o iOS (`RespostaGuardada`), o Room guarda a resposta como veio, em JSON, por chave (`resumo/aaaa-mm`, `gastos/aaaa-mm`, `categorias`, `contas`, `pessoas-da-familia`), com a hora. Os repositórios mostram o guardado, buscam na rede e trocam; sem rede, fica o guardado com a hora. Versão nova do banco começa vazia em vez de migrar. O cache sai ao entrar com outra conta e ao sair.
+- Alternativas: uma tabela por tipo, que só vale quando alguma tela precisar consultar o cache (busca sem internet, por exemplo).
+- Consequências: nenhuma migração de banco por enquanto.
+- Onde ver: `android-nativo/core/database/`, `android-nativo/core/data/.../Carga.kt`, `Repositorios.kt`
 
 # Processo
 

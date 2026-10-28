@@ -63,6 +63,13 @@ interface ServicoDeIdentidade {
     @POST("auth/refresh")
     suspend fun renovar(@Body pedido: PedidoDeRefresh): ParDeTokens
 
+    /**
+     * A mesma renovação, síncrona: roda na thread de quem levou o 401, fora da fila do OkHttp.
+     * Na fila (5 chamadas por servidor) ela esperaria atrás das chamadas que esperam por ela.
+     */
+    @POST("auth/refresh")
+    fun renovarNaHora(@Body pedido: PedidoDeRefresh): retrofit2.Call<ParDeTokens>
+
     /** Encerra a sessão no servidor (204). */
     @POST("auth/logout")
     suspend fun sair(@Body pedido: PedidoDeRefresh)

@@ -21,33 +21,42 @@ plataforma que faltar.
 
 | Módulo | O que tem |
 |---|---|
-| `app` | `MainActivity`, navegação (Navigation 3) e abas (`NavigationSuiteScaffold`) |
-| `core:model` | Tipos do contrato da API, sem Android |
-| `core:network` | Retrofit, OkHttp e kotlinx.serialization |
-| `core:database` | Room, o cache local |
-| `core:datastore` | Preferências do aparelho |
-| `core:data` | Repositórios offline-first e sincronização (WorkManager) |
-| `core:designsystem` | `PigguTheme`: cores, fonte Sora e ícones |
-| `core:ui` | Composables compartilhados (`TelaVazia`) |
-| `core:testing` | API falsa e utilidades de teste |
-| `feature:login`, `feature:painel`, `feature:gastos` | As telas |
+| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra, trilho e gaveta, o Mais e o + (`moldura/`) |
+| `core:model` | Os tipos do contrato da API (`models.ts` e `docs/api/*.yaml`), sem Android: dinheiro em `BigDecimal`, enum com `DESCONHECIDO` (D-101) |
+| `core:network` | Um serviço Retrofit por microserviço, `ErroDaApi` e as mensagens de erro, `User-Agent` e o aviso de atualizar (426) |
+| `core:database` | Room: as respostas da API guardadas em JSON por chave (D-103) |
+| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo) |
+| `core:data` | `Sessao` (login, renovação, sair), as regras da conta (`auth.guard.ts`), o cache offline-first, o monitor de rede |
+| `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
+| `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
+| `core:testing` | `ApiDaDemo`: a API falsa do modo demonstração (porte de `api-da-demo.ts`), usada também nos testes |
+| `feature:login` | Entrar por e-mail e senha (o resto da entrada chega na A3) |
+| `feature:painel`, `feature:gastos` | As abas, por enquanto com o link para o site (chegam na A4) |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
-Na etapa A0, `core:model`, `network`, `database`, `datastore`, `data`, `testing` e
-`feature:login` só têm as dependências: o código chega nas próximas etapas.
+## Sessão e rede
+
+- Login com `refreshNoCorpo: true` (D-072). O access token fica só na memória; com "Continuar
+  conectado", o refresh vai cifrado para o DataStore junto com o perfil, e o app abre logado na
+  hora, renovando por trás (D-100).
+- Um 401 renova uma vez, e as chamadas ao mesmo tempo esperam a mesma renovação. Só a
+  renovação recusada (401 ou 403) leva de volta ao login.
+- Tela que ainda não é nativa abre a página do site num Custom Tab, com o ícone de "abre fora"
+  (D-099). Os links `piggu://gasto?valor=12.50`, `piggu://gastos?id=...&mes=aaaa-mm` e
+  `piggu://<rota do site>` funcionam; os App Links de `https://piggu.com.br` só cobrem as
+  telas nativas.
+- Variante `demo`: a `ApiDaDemo` responde tudo, com qualquer e-mail e senha (a conta da Ana).
 
 ## Tema
 
-- Cores: um esquema Material 3 por variante do perfil (Chiclete, Azul, Lilás e Menta, do
-  `frontend/src/styles.scss`), em claro e escuro, gerado por
-  [`core/designsystem/gerar-cores.mjs`](core/designsystem/gerar-cores.mjs). A primária é a
-  mesma do site. No Android 12 ou mais novo, `PigguTheme(coresDinamicas = true)` usa as
-  cores do papel de parede.
-- Fonte: Sora variável embutida (SIL Open Font License, [OFL-Sora.txt](core/designsystem/OFL-Sora.txt)),
-  em toda a escala de tipografia do Material 3.
-- Ícone adaptativo com camada monocromática (ícones temáticos do Android 13), gerado do ícone
-  do iOS por [`app/gerar-icone.py`](app/gerar-icone.py).
-- Ícones das abas: Material Symbols (Apache 2.0).
+- Cores: as 13 do site (`frontend/src/app/core/ui/tema.ts`), em claro e escuro, geradas por
+  [`core/designsystem/gerar-cores.mjs`](core/designsystem/gerar-cores.mjs). Chiclete, Rosa
+  Piggu, Menta e Azul são grátis; as outras, do Premium, voltam ao Chiclete quando o Premium
+  acaba. Modo Automático, Claro ou Escuro, e as Cores do celular no Android 12 ou mais novo.
+- Fonte: Sora variável embutida (SIL Open Font License, [OFL-Sora.txt](core/designsystem/OFL-Sora.txt)).
+- Ícones: Material Symbols Outlined (Apache 2.0), gerados por
+  [`core/designsystem/gerar-icones.mjs`](core/designsystem/gerar-icones.mjs) com as chaves de `icone.ts`.
+- Ícone adaptativo com camada monocromática, gerado do ícone do iOS por [`app/gerar-icone.py`](app/gerar-icone.py).
 
 ## Versões
 
@@ -62,5 +71,7 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
-[docs/prints/etapa-0](docs/prints/etapa-0): as quatro abas vazias, em claro e escuro,
-celular (Pixel 7) e tablet. O CI confere essas imagens a cada PR.
+- [docs/prints/etapa-2](docs/prints/etapa-2): login, Painel com a moldura (barra no celular,
+  gaveta no tablet), Mais, a folha do +, 404, 500 e os componentes comuns, em claro e escuro,
+  celular (Pixel 7) e tablet. O CI confere essas imagens a cada PR.
+- [docs/prints/etapa-0](docs/prints/etapa-0): as abas vazias da A0, só como registro.
