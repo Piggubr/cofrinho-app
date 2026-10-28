@@ -29,7 +29,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - iOS, etapa 9: acabamento e versão 2.0.0 no TestFlight. Pelo plano, de 4 a 5 semanas com uma sessão por dia.
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
-- Android, etapas A4 a A7: as telas, na mesma ordem do iOS.
+- Android, etapas A5 a A7: as telas, na mesma ordem do iOS.
 - Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
 - Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
 - Android, etapa A9: acabamento, versão 2.0.0 e teste interno no Play.
@@ -49,6 +49,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: Android nativo, etapa A4: Painel, Gastos, Receitas, o + com os formulários, a fila sem internet, importar e exportar, a busca e o assistente, na branch `feature/android-nativo` (D-108 a D-112).
 - 28/10/2026: Android nativo, etapa A3: a entrada inteira (login, Google, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta), na branch `feature/android-nativo` (D-104 a D-107).
 - 28/10/2026: Android nativo, etapa A2: modelos e rede, sessão, 13 cores, componentes, moldura com abas, Mais e gaveta, cache offline, login por e-mail e o modo demonstração, na branch `feature/android-nativo` (D-099 a D-103).
 - 27/10/2026: Android nativo, etapa A0: `android-nativo/` com módulos, tema do Piggu, abas e CI, na branch `feature/android-nativo` ([#106](https://github.com/Piggubr/cofrinho-app/pull/106)).

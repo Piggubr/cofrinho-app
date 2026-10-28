@@ -97,7 +97,7 @@ class EntradaTest {
         val logado = sessao.estado.esperar { it is EstadoDaSessao.Logado } as EstadoDaSessao.Logado
         assertEquals(Pendencia.Termos, logado.usuario.pendencia)
 
-        val aceite = AceiteViewModel(sessao)
+        val aceite = AceiteViewModel(sessao, br.com.piggu.core.testing.FilaNaMemoria())
         aceite.aceitar()
         aceite.estado.esperar { !it.salvando }
         assertNull((sessao.estado.value as EstadoDaSessao.Logado).usuario.pendencia)

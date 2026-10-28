@@ -83,6 +83,9 @@ dependencies {
     baselineProfile(projects.baselineprofile)
 
     testImplementation(libs.junit)
+    // As capturas da A4 sobem o grafo do Hilt de verdade, com a API falsa da variante demo.
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)

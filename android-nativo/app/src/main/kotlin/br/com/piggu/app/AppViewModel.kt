@@ -6,6 +6,7 @@ import br.com.piggu.feature.login.esquecerAContaDoGoogle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.EstadoDaSessao
+import br.com.piggu.core.data.FilaDeGastos
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.data.ehTitular
@@ -59,6 +60,7 @@ class AppViewModel @Inject constructor(
     private val preferencias: PreferenciasDoAparelho,
     private val financas: ServicoDeFinancas,
     private val conversa: ConversaGuardada,
+    private val fila: FilaDeGastos,
     aviso: AvisoDeVersao,
 ) : ViewModel() {
 
@@ -126,8 +128,12 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { preferencias.esquecerQueVoltouAoPadrao() }
     }
 
+    /** "Sair" pelo botão também apaga os gastos guardados sem internet desta pessoa (D-108). */
     fun sair() {
-        viewModelScope.launch { sessao.sair() }
+        viewModelScope.launch {
+            fila.apagarDaPessoa()
+            sessao.sair()
+        }
     }
 
     private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val voltou: Boolean)

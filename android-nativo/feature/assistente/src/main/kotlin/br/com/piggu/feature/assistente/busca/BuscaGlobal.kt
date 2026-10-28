@@ -2,6 +2,7 @@ package br.com.piggu.feature.assistente.busca
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,7 +12,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,15 +93,17 @@ fun ConteudoDaBusca(
 ) {
     val foco = remember { FocusRequester() }
     LaunchedEffect(Unit) { foco.requestFocus() }
-    SearchBar(
-        inputField = {
+    // Uma superfície de tela cheia com o campo no alto: o SearchBar expandido dentro do Dialog
+    // ficava com o campo no meio da tela.
+    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing)) {
             SearchBarDefaults.InputField(
                 query = estado.termo,
                 onQueryChange = digitar,
                 onSearch = { estado.resultados.firstOrNull()?.let { escolher(it.destino) } },
                 expanded = true,
                 onExpandedChange = { if (!it) fechar() },
-                modifier = Modifier.focusRequester(foco),
+                modifier = Modifier.fillMaxWidth().focusRequester(foco),
                 placeholder = { Text(stringResource(R.string.busca_placeholder)) },
                 leadingIcon = {
                     IconButton(fechar) {
@@ -103,36 +111,33 @@ fun ConteudoDaBusca(
                     }
                 },
             )
-        },
-        expanded = true,
-        onExpandedChange = { if (!it) fechar() },
-        modifier = modifier.fillMaxSize(),
-    ) {
-        LazyColumn(Modifier.fillMaxSize()) {
-            itemsIndexed(estado.resultados) { indice, resultado ->
-                if (indice == 0 || estado.resultados[indice - 1].grupo != resultado.grupo) {
-                    Text(
-                        stringResource(NOME_DO_GRUPO.getValue(resultado.grupo)),
-                        Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp).semantics { heading() },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            HorizontalDivider()
+            LazyColumn(Modifier.fillMaxSize()) {
+                itemsIndexed(estado.resultados) { indice, resultado ->
+                    if (indice == 0 || estado.resultados[indice - 1].grupo != resultado.grupo) {
+                        Text(
+                            stringResource(NOME_DO_GRUPO.getValue(resultado.grupo)),
+                            Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp).semantics { heading() },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    ListItem(
+                        headlineContent = { Text(resultado.titulo) },
+                        supportingContent = resultado.detalhe.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
+                        leadingContent = { Icon(painterResource(resultado.icone.desenho), null, tint = MaterialTheme.colorScheme.primary) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable { escolher(resultado.destino) },
                     )
                 }
-                ListItem(
-                    headlineContent = { Text(resultado.titulo) },
-                    supportingContent = resultado.detalhe.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
-                    leadingContent = { Icon(painterResource(resultado.icone.desenho), null, tint = MaterialTheme.colorScheme.primary) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.clickable { escolher(resultado.destino) },
-                )
-            }
-            if (estado.nadaEncontrado) {
-                item {
-                    Text(
-                        stringResource(R.string.busca_nada_encontrado, estado.termo.trim()),
-                        Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                if (estado.nadaEncontrado) {
+                    item {
+                        Text(
+                            stringResource(R.string.busca_nada_encontrado, estado.termo.trim()),
+                            Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
