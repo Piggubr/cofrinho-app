@@ -38,6 +38,8 @@ glance = "1.2.0"
 biometric = "1.1.0"
 codeScanner = "16.1.0"
 documentScanner = "16.0.0"
+# A8 (conferida em 28/10/2026).
+billing = "9.1.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -103,6 +105,7 @@ androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", versi
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 play-services-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "codeScanner" }
+billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }
 play-services-document-scanner = { module = "com.google.android.gms:play-services-mlkit-document-scanner", version.ref = "documentScanner" }
 
 [plugins]

@@ -359,6 +359,10 @@ data class PedidoDePapel(val papel: PigguRole)
 @Serializable
 data class PedidoDeCheckout(val periodo: Periodo, val campanha: String? = null)
 
+/** GooglePlayPurchaseRequest: a assinatura comprada no Google Play (`premium_mensal` ou `premium_anual`). */
+@Serializable
+data class PedidoDeCompraDoGooglePlay(val produto: String, val purchaseToken: String)
+
 /** ErroDoApp: um erro que aconteceu no aparelho, já sem dado pessoal. */
 @Serializable
 data class ErroDoApp(
