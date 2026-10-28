@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nascimento_vazio">Informe sua data de nascimento.</string>
+    <string name="nascimento_invalido">Confira a data de nascimento.</string>
+    <string name="nascimento_menor_de_idade">O Piggu é para quem tem 13 anos ou mais.</string>
+</resources>

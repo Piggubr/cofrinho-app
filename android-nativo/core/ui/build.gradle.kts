@@ -6,4 +6,5 @@ plugins {
 
 dependencies {
     api(projects.core.designsystem)
+    testImplementation(libs.junit)
 }
