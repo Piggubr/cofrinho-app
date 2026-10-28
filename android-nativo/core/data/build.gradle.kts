@@ -14,11 +14,15 @@ dependencies {
     api(projects.core.network)
     api(projects.core.datastore)
     api(projects.core.database)
-    implementation(libs.androidx.work.runtime.ktx)
+    // api: o app liga o HiltWorkerFactory no WorkManager (PigguApplication).
+    api(libs.androidx.work.runtime.ktx)
+    api(libs.androidx.hilt.work)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.androidx.work.testing)
 }

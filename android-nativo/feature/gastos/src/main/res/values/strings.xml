@@ -1,4 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="gastos_titulo">Gastos</string>
+
+    <!-- Formulário de gasto (formulario-de-gasto.html) -->
+    <string name="formulario_descricao">Descrição</string>
+    <string name="formulario_descricao_exemplo">Ex.: Leite</string>
+    <string name="formulario_item_numero">Item %1$d</string>
+    <string name="formulario_adicionar_item">Adicionar item</string>
+    <string name="formulario_remover_item">Remover o item %1$d</string>
+    <string name="formulario_preco_acima">%1$s%% acima da média deste item (%2$s)</string>
+    <string name="formulario_como_pagou">Como pagou</string>
+    <string name="formulario_cartao_de_credito">Cartão de crédito</string>
+    <string name="formulario_debito_pix">Débito/Pix</string>
+    <string name="formulario_cartao">Cartão</string>
+    <string name="formulario_escolha_o_cartao_opcao">Escolha o cartão</string>
+    <string name="formulario_saiu_de_qual_conta">Saiu de qual conta</string>
+    <string name="formulario_escolha_a_conta_opcao">Escolha a conta</string>
+    <string name="formulario_nenhum_cartao">Nenhum cartão cadastrado ainda.</string>
+    <string name="formulario_cadastrar_cartao">Cadastrar cartão</string>
+    <string name="formulario_vai_para_a_fatura">Vai para a fatura de %1$s, que vence em %2$s.</string>
+    <string name="formulario_como_foi_a_compra">Como foi a compra</string>
+    <string name="formulario_a_vista">À vista</string>
+    <string name="formulario_parcelado">Parcelado</string>
+    <string name="formulario_recorrente">Recorrente</string>
+    <string name="formulario_quantas_parcelas">Quantas parcelas</string>
+    <string name="formulario_valor_da_parcela">%1$sx de %2$s, uma em cada mês</string>
+    <string name="formulario_recorrente_explica">Lança sozinho todo dia %1$d, até você desligar em Contas do mês.</string>
+    <string name="formulario_mais_opcoes">Mais opções</string>
+    <string name="formulario_hoje">Hoje</string>
+    <string name="formulario_dividido">dividido</string>
+    <string name="formulario_compartilhado">compartilhado</string>
+    <string name="formulario_data">Data</string>
+    <string name="formulario_escolher_data">Escolher a data</string>
+    <string name="formulario_ok">OK</string>
+    <string name="formulario_cancelar">Cancelar</string>
+    <string name="formulario_estabelecimento">Estabelecimento (opcional)</string>
+    <string name="formulario_estabelecimento_exemplo">Ex.: Mercado do bairro</string>
+    <string name="formulario_moeda_da_compra">Moeda da compra</string>
+    <string name="formulario_convertido">≈ %1$s (cotação de hoje)</string>
+    <string name="formulario_buscando_cotacao">Buscando a cotação…</string>
+    <string name="formulario_dividir_com">Dividir com</string>
+    <string name="formulario_compartilhar">Compartilhado: aparece para quem mora com você</string>
+    <string name="formulario_sem_internet">Você está sem internet. O gasto fica guardado neste aparelho e vai assim que a conexão voltar.</string>
+    <string name="formulario_lancar">Lançar</string>
+    <string name="formulario_guardando">Guardando…</string>
+
+    <!-- Validações e mensagens do formulário -->
+    <string name="formulario_digite_o_item">Digite o nome do item.</string>
+    <string name="formulario_valor_invalido">Digite um valor válido.</string>
+    <string name="formulario_aguarde_a_cotacao">Aguarde a cotação da moeda da compra.</string>
+    <string name="formulario_cadastre_o_cartao">Cadastre o cartão em Cartões e bancos, ou escolha Débito/Pix.</string>
+    <string name="formulario_escolha_o_cartao">Escolha em qual cartão foi a compra.</string>
+    <string name="formulario_escolha_a_conta">Escolha de qual conta saiu o dinheiro.</string>
+    <string name="formulario_parcelas_invalidas">Parcelado: de 2 a 48 parcelas.</string>
+    <string name="formulario_gasto_lancado">Gasto lançado.</string>
+    <string name="formulario_lancado_estourou">Gasto lançado. %1$s passou do limite do mês (%2$s%%).</string>
+    <string name="formulario_lancado_atencao">Gasto lançado. %1$s já usou %2$s%% do limite do mês.</string>
+    <string name="formulario_guardado_sem_internet">Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar.</string>
 </resources>

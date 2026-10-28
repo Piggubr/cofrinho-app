@@ -20,4 +20,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
+    // O formulário lê a rede pelo MonitorDeRede, que precisa do Android.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.ext.junit)
 }
