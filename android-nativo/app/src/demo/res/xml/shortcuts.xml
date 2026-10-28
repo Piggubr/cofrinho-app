@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Os atalhos de src/main/res/xml/shortcuts.xml com o pacote da demo: o XML não aceita o ${applicationId}. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="lancar-gasto"
+        android:shortcutLongLabel="@string/atalho_lancar_gasto"
+        android:shortcutShortLabel="@string/atalho_lancar_gasto">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="piggu://gasto"
+            android:targetClass="br.com.piggu.app.MainActivity"
+            android:targetPackage="br.com.piggu.app.demo" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutId="ver-gastos"
+        android:shortcutLongLabel="@string/atalho_ver_gastos_longo"
+        android:shortcutShortLabel="@string/atalho_ver_gastos">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="piggu://gastos"
+            android:targetClass="br.com.piggu.app.MainActivity"
+            android:targetPackage="br.com.piggu.app.demo" />
+    </shortcut>
+</shortcuts>

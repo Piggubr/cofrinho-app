@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Os widgets da tela inicial (Widgets.kt): leem só o resumo que o app grava. -->
+        <receiver
+            android:name=".GastoDoMesReceiver"
+            android:exported="true"
+            android:label="@string/widget_gasto_do_mes">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_gasto_do_mes" />
+        </receiver>
+        <receiver
+            android:name=".MetaDoMesReceiver"
+            android:exported="true"
+            android:label="@string/widget_meta_do_mes">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_meta_do_mes" />
+        </receiver>
+        <receiver
+            android:name=".LancarGastoReceiver"
+            android:exported="true"
+            android:label="@string/widget_lancar_gasto">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_lancar_gasto" />
+        </receiver>
+
+        <!-- O bloco "Lançar gasto" das Configurações rápidas (BlocoLancarGasto.kt). -->
+        <service
+            android:name=".BlocoLancarGasto"
+            android:exported="true"
+            android:icon="@drawable/ic_adicionar"
+            android:label="@string/bloco_rapido_lancar_gasto"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

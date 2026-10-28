@@ -68,7 +68,8 @@ enum class ModoDeCor(val id: String, @StringRes val nome: Int) {
     }
 }
 
-private fun VarianteDeCor.esquema(escuro: Boolean): ColorScheme = when (this) {
+/** As cores da variante sem o Compose do app: os widgets (Glance) usam também. */
+fun VarianteDeCor.esquema(escuro: Boolean): ColorScheme = when (this) {
     VarianteDeCor.Chiclete -> if (escuro) ChicleteEscuro else ChicleteClaro
     VarianteDeCor.Rosa -> if (escuro) RosaEscuro else RosaClaro
     VarianteDeCor.Menta -> if (escuro) MentaEscuro else MentaClaro
