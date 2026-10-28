@@ -167,6 +167,8 @@ class FormularioDeReceitaViewModelTest {
         val montagem = montar(pasta.root, loja, fixas)
         val formulario = montagem.formulario()
         formulario.estado.esperar { it.categorias.isNotEmpty() }
+        // A família chega numa carga à parte: sem esperar por ela, o "false" seria só o valor inicial.
+        formulario.estado.esperar { montagem.pedidos("GET /api/family").isNotEmpty() }
         assertFalse(formulario.estado.value.temCompanhia)
         formulario.mudarCompartilhada(true)
         formulario.mudarValor(BigDecimal("10"))
