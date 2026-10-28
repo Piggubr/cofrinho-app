@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -81,6 +82,9 @@ import br.com.piggu.feature.login.AvisoDeConfirmarEmail
 import br.com.piggu.feature.painel.PainelScreen
 import br.com.piggu.feature.painel.TelaDoPainel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.merge
+import br.com.piggu.core.ui.LocalAbrirCaminho
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.emptyFlow
@@ -132,7 +136,12 @@ fun PigguApp(
                 // O tour espera o desbloqueio: o diálogo dele abriria por cima da trava.
                 // Link de widget, atalho ou bloco com o app travado espera o desbloqueio (lançar seria por cima da trava).
                 val linksDepoisDaTrava = remember(links) { links.onEach { travaViewModel.estado.first { it.travado == false } } }
-                AppLogado(raiz.perfil, linksDepoisDaTrava, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
+                // "/plano" ou "/contas-e-cartoes" pedidos de dentro de uma tela abrem a tela nativa, como um link.
+                val caminhosDoApp = remember { MutableSharedFlow<Destino>(extraBufferCapacity = 1) }
+                val todosOsLinks = remember(linksDepoisDaTrava) { merge(linksDepoisDaTrava, caminhosDoApp) }
+                CompositionLocalProvider(LocalAbrirCaminho provides { caminho -> lerLink(caminho, ::lerValor)?.let(caminhosDoApp::tryEmit) ?: abrirNoSite(caminho) }) {
+                    AppLogado(raiz.perfil, todosOsLinks, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
+                }
                 if (trava.travado == true) TelaDeTrava(travaViewModel::desbloqueou)
             }
         }
@@ -208,7 +217,11 @@ fun AppLogado(
     LaunchedEffect(links) {
         links.collect { destino ->
             when (destino) {
-                is Destino.Abrir -> abrir(destino.tela)
+                is Destino.Abrir -> {
+                    // Ir para outra tela fecha a folha de lançar (o "Premium" do recibo, por exemplo).
+                    lancando = null
+                    abrir(destino.tela)
+                }
                 is Destino.LancarGasto -> lancarGasto(destino.valor)
                 is Destino.VerGasto -> {
                     gastoParaAbrir = destino.id to destino.mes
@@ -281,7 +294,7 @@ fun AppLogado(
                 }
                 entry<Tela.Relatorios> {
                     if (acoesDaConta) {
-                        TelaDeRelatorios(abrirPremium = { abrirNoSite(Tela.Plano.caminho) }, lancarGasto = { lancarGasto(null) })
+                        TelaDeRelatorios(abrirPremium = { abrir(Tela.Plano) }, lancarGasto = { lancarGasto(null) })
                     } else {
                         AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho)
                     }

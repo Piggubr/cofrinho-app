@@ -26,6 +26,7 @@ frontend/.angular/
 !backend/piggu-identity/src/test/resources/keys/*.pem
 *.p12
 *.jks
+*.keystore
 *.key
 *credentials*.json
 service-account*.json
