@@ -9,6 +9,9 @@ on:
     paths:
       - 'android-nativo/**'
       - '.github/workflows/android-nativo.yml'
+      # Os Termos e o Aviso de Privacidade do app são cópias destes (D-083).
+      - 'frontend/src/app/features/legal/**'
+      - 'frontend/src/app/core/privacidade/aviso.ts'
 
 permissions:
   contents: read
@@ -38,6 +41,14 @@ jobs:
             android-nativo/**/*.gradle.kts
             android-nativo/gradle/libs.versions.toml
             android-nativo/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Termos e Aviso de Privacidade iguais aos do site
+        run: |
+          python3 -I scripts/textos-legais.py
+          git diff --exit-code -- feature/legal/src/main/assets || {
+            echo "::error::O texto legal do site mudou. Rode python3 android-nativo/scripts/textos-legais.py e faça o commit."
+            exit 1
+          }
 
       - name: Build, lint e testes
         run: ./gradlew --no-daemon build
