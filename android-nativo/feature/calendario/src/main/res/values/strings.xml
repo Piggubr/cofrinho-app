@@ -1,3 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Calendário (frontend/src/app/features/calendar) -->
+    <string name="calendario_titulo">Calendário</string>
+    <string-array name="calendario_dias_da_semana">
+        <item>Dom</item>
+        <item>Seg</item>
+        <item>Ter</item>
+        <item>Qua</item>
+        <item>Qui</item>
+        <item>Sex</item>
+        <item>Sáb</item>
+    </string-array>
+    <string name="calendario_dia_hoje">hoje</string>
+    <string name="calendario_dia_gasto">gasto de %1$s</string>
+    <string name="calendario_dia_receita">receita de %1$s</string>
+    <plurals name="calendario_dia_lembretes">
+        <item quantity="one">%1$d lembrete</item>
+        <item quantity="many">%1$d lembretes</item>
+        <item quantity="other">%1$d lembretes</item>
+    </plurals>
+    <string name="calendario_toque_num_dia">Toque num dia para ver o que aconteceu nele.</string>
+    <string name="calendario_nada_no_dia">Nada registrado neste dia.</string>
+    <string name="calendario_gastos">Gastos</string>
+    <string name="calendario_receitas">Receitas</string>
+    <string name="calendario_lembretes">Lembretes</string>
+    <string name="calendario_mais_valor">+%1$s</string>
+
+    <!-- Gráfico do mês (grafico-do-mes.ts) -->
+    <string name="calendario_grafico_titulo">Receitas e gastos do mês</string>
+    <string name="calendario_sem_movimento">Nenhuma receita ou gasto neste mês até agora.</string>
+    <string name="calendario_sobra">Sobra</string>
+    <string name="calendario_receitas_acumuladas">Receitas acumuladas</string>
+    <string name="calendario_gastos_acumulados">Gastos acumulados</string>
+    <string name="calendario_grafico_descricao">Receitas e gastos acumulados no mês. Toque ou arraste para ver um dia.</string>
+    <string name="calendario_ate_o_dia">Até o dia %1$d</string>
+    <string name="calendario_dica_receitas">Receitas %1$s</string>
+    <string name="calendario_dica_gastos">Gastos %1$s</string>
+    <string name="calendario_dica_sobra">Sobra %1$s</string>
+    <string name="calendario_entrou_no_dia">Entrou no dia +%1$s</string>
+    <string name="calendario_saiu_no_dia">Saiu no dia −%1$s</string>
+    <string name="calendario_dia_anterior">Dia anterior</string>
+    <string name="calendario_proximo_dia">Próximo dia</string>
+    <string name="calendario_ver_por_semana">Ver por semana</string>
+    <string name="calendario_esconder_semanas">Esconder a tabela por semana</string>
+    <string name="calendario_semana_dias">Dias</string>
+    <string name="calendario_semana">%1$d a %2$d</string>
+    <string name="calendario_semana_descricao">Dias %1$d a %2$d: receitas %3$s, gastos %4$s, sobra %5$s</string>
+
+    <!-- Notas -->
+    <string name="calendario_nova_nota">Nova nota</string>
+    <string name="calendario_nota_titulo">Título</string>
+    <string name="calendario_nota_com_data">Com data</string>
+    <string name="calendario_nota_data">Data</string>
+    <string name="calendario_nota_valor">Valor do evento (%1$s)</string>
+    <string name="calendario_nota_valor_dica">Deixe vazio se não for pago.</string>
+    <string name="calendario_nota_detalhes">Detalhes</string>
+    <string name="calendario_vira_gasto">Com valor preenchido, esta nota também lança um gasto. Apagar a nota apaga o gasto junto.</string>
+    <string name="calendario_criar_nota">Criar nota</string>
+    <string name="calendario_guardando">Guardando…</string>
+    <string name="calendario_sem_data">Sem data</string>
+    <string name="calendario_nenhuma_nota_solta">Nenhuma nota solta.</string>
+    <string name="calendario_apagar">Apagar</string>
+    <string name="calendario_apagar_nota">Apagar a nota %1$s</string>
+    <string name="calendario_apagar_pergunta">Apagar \"%1$s\"?</string>
+    <string name="calendario_apagar_gasto_junto">O gasto lançado junto também será apagado.</string>
+    <string name="calendario_falta_titulo">Digite o título da nota.</string>
+    <string name="calendario_falta_data">Escolha a data do evento pago.</string>
+    <string name="calendario_nota_criada">Nota criada.</string>
+    <string name="calendario_nota_apagada">Nota apagada.</string>
+    <string name="calendario_escolher_data">Escolher a data</string>
+    <string name="calendario_ok">OK</string>
 </resources>

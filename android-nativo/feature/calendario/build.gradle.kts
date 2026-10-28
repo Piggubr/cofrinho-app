@@ -17,6 +17,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    // WindowSizeClass: no tablet e no dobrável aberto, o mês e o dia lado a lado.
+    implementation(libs.compose.material3.adaptive)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
@@ -24,4 +26,7 @@ dependencies {
     // MonitorDeRede e o que mais pedir o Android nos testes de ViewModel.
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
+    // A grade e a tabela por semana como o TalkBack lê.
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
