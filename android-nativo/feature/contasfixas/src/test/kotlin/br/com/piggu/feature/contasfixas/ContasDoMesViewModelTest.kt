@@ -238,7 +238,8 @@ class ContasDoMesViewModelTest {
             ),
         )
         val contas = contas()
-        val fixa = contas.estado.esperar { it.receitasFixas.isNotEmpty() }.receitasFixas.single()
+        // As receitas fixas e as contas chegam em cargas separadas: espera as duas.
+        val fixa = contas.estado.esperar { it.receitasFixas.isNotEmpty() && it.lista != null }.receitasFixas.single()
         assertEquals("Salário", fixa.descricao)
         assertEquals(5, fixa.segundoDia)
         // A receita fixa não entra nas contas a pagar.
