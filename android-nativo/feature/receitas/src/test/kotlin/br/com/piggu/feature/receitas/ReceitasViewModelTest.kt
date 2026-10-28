@@ -96,15 +96,13 @@ class ReceitasViewModelTest {
         }
         val receitas = montagem.receitas(recusa)
         val receita = receitas.estado.esperar { it.lista != null }.lista!!.first()
-        receitas.estado.test {
-            awaitItem()
-            receitas.pedirParaApagar(receita)
-            awaitItem()
-            receitas.confirmar()
-            assertNull(awaitItem().confirmacao)
-            assertEquals(MensagemDeErro.DoServidor("Receita de outra pessoa."), awaitItem().erro)
-            cancelAndIgnoreRemainingEvents()
-        }
+        receitas.pedirParaApagar(receita)
+        receitas.confirmar()
+        // Espera o estado final: no CI, mais lento, a ordem das emissões no meio do caminho varia.
+        val depois = receitas.estado.esperar { it.erro != null }
+        assertNull(depois.confirmacao)
+        assertEquals(MensagemDeErro.DoServidor("Receita de outra pessoa."), depois.erro)
+        assertTrue(depois.lista!!.any { it.id == receita.id })
         assertEquals(0, montagem.lancamentos.versao.value)
     }
 
