@@ -24,4 +24,7 @@ dependencies {
     // MonitorDeRede e o que mais pedir o Android nos testes de ViewModel.
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
+    // A tela só desenhada: o "Em breve" desabilitado e o texto de cada origem.
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
