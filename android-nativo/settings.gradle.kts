@@ -31,5 +31,6 @@ include(
     ":feature:login",
     ":feature:painel",
     ":feature:gastos",
+    ":feature:legal",
     ":baselineprofile",
 )
