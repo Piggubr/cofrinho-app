@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Os textos de features/places do site. -->
+<resources>
+    <string name="lugares_titulo">Lugares</string>
+    <string name="lugares_novo">Novo lugar</string>
+    <string name="lugares_editar">Editar lugar</string>
+    <string name="lugares_nome">Nome</string>
+    <string name="lugares_categoria">Categoria</string>
+    <string name="lugares_categoria_exemplo">Ex.: Restaurante</string>
+    <string name="lugares_localizacao">Localização</string>
+    <string name="lugares_localizacao_exemplo">Ex.: São Paulo</string>
+    <string name="lugares_data">Data da visita</string>
+    <string name="lugares_escolher_data">Escolher a data da visita</string>
+    <string name="lugares_ok">OK</string>
+    <string name="lugares_valor">Quanto gastamos (%1$s)</string>
+    <string name="lugares_nota">Nota</string>
+    <string name="lugares_nota_n">Nota %1$d</string>
+    <string name="lugares_nota_de_5">Nota %1$d de 5</string>
+    <string name="lugares_comentario">Comentário</string>
+    <string name="lugares_marcadores">Marcadores</string>
+    <string name="lugares_criar_marcador">Criar marcador</string>
+    <string name="lugares_adicionar_marcador">Adicionar marcador</string>
+    <string name="lugares_escolher_foto">Escolher foto</string>
+    <string name="lugares_galeria_descricao">Escolher foto do lugar</string>
+    <string name="lugares_camera">Câmera</string>
+    <string name="lugares_camera_descricao">Tirar foto do lugar</string>
+    <string name="lugares_foto_do_lugar">Foto do lugar</string>
+    <string name="lugares_salvar">Salvar</string>
+    <string name="lugares_guardando">Guardando…</string>
+    <string name="lugares_falta_nome">Digite o nome do lugar.</string>
+    <string name="lugares_marcador_invalido">Digite um nome válido.</string>
+    <string name="lugares_foto_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="lugares_vazio_titulo">Nenhum lugar registrado ainda</string>
+    <string name="lugares_vazio_texto">Guarde os restaurantes e passeios que vocês querem lembrar.</string>
+    <string name="lugares_vazio_acao">Registrar um lugar</string>
+    <string name="lugares_editar_de">Editar %1$s</string>
+    <string name="lugares_apagar">Apagar</string>
+    <string name="lugares_apagar_de">Apagar %1$s</string>
+    <string name="lugares_apagar_pergunta">Apagar \"%1$s\"?</string>
+    <string name="lugares_abrir_no_mapa">Abrir no mapa</string>
+    <string name="lugares_abrir_no_mapa_de">Abrir %1$s no mapa</string>
+    <string name="lugares_sem_mapa">Nenhum app de mapas abriu este lugar.</string>
+</resources>

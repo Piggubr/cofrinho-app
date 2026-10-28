@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Os textos de features/movies do site. -->
+<resources>
+    <string name="filmes_titulo">Filmes</string>
+    <string name="filmes_o_que_assistir">O que vamos assistir?</string>
+    <string name="filmes_genero">Gênero</string>
+    <string name="filmes_genero_qualquer">Qualquer gênero</string>
+    <string name="filmes_genero_acao">Ação</string>
+    <string name="filmes_genero_comedia">Comédia</string>
+    <string name="filmes_genero_drama">Drama</string>
+    <string name="filmes_genero_terror">Terror</string>
+    <string name="filmes_genero_romance">Romance</string>
+    <string name="filmes_genero_ficcao">Ficção científica</string>
+    <string name="filmes_genero_animacao">Animação</string>
+    <string name="filmes_genero_suspense">Suspense</string>
+    <string name="filmes_sortear">Sortear filme</string>
+    <string name="filmes_sorteando">Sorteando…</string>
+    <string name="filmes_nota_tmdb">Nota TMDB: %1$s</string>
+    <string name="filmes_adicionar_a_lista">Adicionar à lista</string>
+    <string name="filmes_adicionar">Adicionar</string>
+    <string name="filmes_adicionar_de">Adicionar %1$s</string>
+    <string name="filmes_buscar_filme">Buscar filme</string>
+    <string name="filmes_nome_do_filme">Nome do filme</string>
+    <string name="filmes_buscar">Buscar</string>
+    <string name="filmes_buscando">Buscando…</string>
+    <string name="filmes_busca_curta">Digite pelo menos duas letras.</string>
+    <string name="filmes_para_assistir">Para assistir</string>
+    <string name="filmes_ja_assistidos">Já assistidos</string>
+    <string name="filmes_ja_assistimos">Já assistimos</string>
+    <string name="filmes_voltar_para_a_fila">Voltar para a fila</string>
+    <string name="filmes_remover_de">Remover %1$s</string>
+    <string name="filmes_vazio_titulo">Nenhum filme na fila</string>
+    <string name="filmes_vazio_texto">Busque um filme e guarde para a próxima noite de sofá.</string>
+    <string name="filmes_nenhum_assistido">Nenhum filme assistido ainda</string>
+    <string name="filmes_sua_nota">Sua nota</string>
+    <string name="filmes_dar_nota">Dar nota %1$d</string>
+    <string name="filmes_nota_de_outro">%1$s: %2$d ★</string>
+    <string name="filmes_ex_membro">Ex-membro</string>
+    <string name="filmes_tirar_pergunta">Tirar \"%1$s\" da lista?</string>
+    <string name="filmes_tirar">Tirar da lista</string>
+    <string name="filmes_poster_de">Pôster de %1$s</string>
+</resources>
