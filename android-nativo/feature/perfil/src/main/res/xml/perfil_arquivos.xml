@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A foto da câmera vai para a pasta de cache, é reduzida e sai para o servidor (FotoDePerfil.kt). -->
+<paths>
+    <cache-path name="perfil" path="perfil/" />
+</paths>
