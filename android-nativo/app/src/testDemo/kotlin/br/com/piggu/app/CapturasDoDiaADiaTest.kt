@@ -90,17 +90,6 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         }
     }
 
-    /** O Robolectric começa sem rede validada: as telas diriam "sem internet" (MonitorDeRede). */
-    private fun comInternet() {
-        val conectividade = ApplicationProvider.getApplicationContext<android.content.Context>()
-            .getSystemService(ConnectivityManager::class.java)
-        val capacidades = ShadowNetworkCapabilities.newInstance().also {
-            shadowOf(it).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            shadowOf(it).addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        }
-        shadowOf(conectividade).setNetworkCapabilities(conectividade.activeNetwork, capacidades)
-    }
-
     /** Espera a API falsa (outra thread) responder e o esqueleto sair. */
     private fun esperarCarregar() {
         compose.waitUntil(15_000) {
@@ -313,4 +302,15 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         Thread.sleep(1_500)
         compose.waitForIdle()
     }
+}
+
+/** O Robolectric começa sem rede validada: as telas diriam "sem internet" (MonitorDeRede). */
+internal fun comInternet() {
+    val conectividade = ApplicationProvider.getApplicationContext<android.content.Context>()
+        .getSystemService(ConnectivityManager::class.java)
+    val capacidades = ShadowNetworkCapabilities.newInstance().also {
+        shadowOf(it).addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        shadowOf(it).addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }
+    shadowOf(conectividade).setNetworkCapabilities(conectividade.activeNetwork, capacidades)
 }

@@ -142,7 +142,7 @@ fun TelaDeCompras(estado: EstadoDasCompras, eventos: EventosDasCompras, modifier
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.compras_titulo)) },
+                title = { Text(stringResource(R.string.compras_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },
@@ -252,7 +252,7 @@ private fun ResultadoDoCatalogo(produto: ProdutoDoCatalogo, eventos: EventosDasC
     val rotulo = stringResource(R.string.compras_adicionar_produto, produto.nome)
     Row(
         Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp))
-            .clickable(onClickLabel = rotulo) { eventos.adicionarDoCatalogo(produto) }
+            .clickable(onClickLabel = rotulo, role = Role.Button) { eventos.adicionarDoCatalogo(produto) }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

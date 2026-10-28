@@ -144,7 +144,7 @@ fun TelaDoGirlsMath(estado: EstadoDoGirlsMath, eventos: EventosDoGirlsMath, modi
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.girlsmath_titulo)) },
+                title = { Text(stringResource(R.string.girlsmath_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

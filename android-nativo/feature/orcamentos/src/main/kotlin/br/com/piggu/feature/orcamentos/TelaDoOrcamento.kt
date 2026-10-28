@@ -113,7 +113,7 @@ fun TelaDoOrcamento(estado: EstadoDoOrcamento, eventos: EventosDoOrcamento, modi
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.orcamento_titulo)) },
+                title = { Text(stringResource(R.string.orcamento_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

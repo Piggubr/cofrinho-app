@@ -61,6 +61,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.window.core.layout.WindowSizeClass
 import br.com.piggu.app.R
 import br.com.piggu.app.navegacao.Tela
@@ -251,7 +253,8 @@ fun MarcaDoApp(modifier: Modifier = Modifier, descricao: String? = null, @Drawab
         Image(painterResource(marca), descricao, modifier.clip(CircleShape))
         return
     }
-    Box(modifier.clip(CircleShape).semantics(mergeDescendants = true) {}) {
+    // Sem mergeDescendants: a descrição sobe para o botão em volta, que o TalkBack lê.
+    Box(modifier.clip(CircleShape)) {
         Image(painterResource(R.mipmap.ic_launcher_background), descricao, Modifier.fillMaxSize().scale(1.5f))
         Image(painterResource(R.mipmap.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.5f))
     }
@@ -267,7 +270,15 @@ private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto
                 onClick = { abrir(tela) },
                 // O rótulo ao lado já é lido pelo TalkBack; descrever o ícone repetiria.
                 icon = { AncoraDoTour(AlvoDoTour.da(tela), tour, TooltipAnchorPosition.Above) { Icon(painterResource(icone), null) } },
-                label = { Text(stringResource(rotulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                // Na tela estreita ou com a fonte grande, o rótulo diminui até caber, em vez de virar "Relató…".
+                label = {
+                    Text(
+                        stringResource(rotulo),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
+                    )
+                },
             )
         }
     }

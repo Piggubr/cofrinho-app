@@ -119,8 +119,21 @@ Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0
 minSdk 26, targetSdk 36 e compileSdk 37: o Compose e o Navigation 3 estáveis pedem
 compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
+## Acessibilidade
+
+- `AcessibilidadeTest` (variante demo) passa pelo Painel, Gastos, lançar gasto e Perfil, rolando
+  até o fim: nenhum nó tocável sem rótulo e pelo menos um título marcado com `heading()`.
+- `ContrasteTest` (`core:designsystem`) confere o WCAG AA (4,5:1) do texto nas 13 cores, em claro
+  e escuro, inclusive o texto na cor do tema sobre o fundo e os cartões. Onde a cor do site não
+  passava, só a `primary` do Android mudou (`texto` em `gerar-cores.mjs`): Chiclete claro
+  `#C60065` e escuro `#FF64B2`, Tangerina claro `#B73A00` e Turquesa claro `#00707B`.
+- Nenhuma Activity trava a orientação.
+
 ## Capturas
 
+- [docs/prints/etapa-9](docs/prints/etapa-9): a fonte do sistema em 200% (Painel, lançar gasto,
+  Gastos e Perfil) e o Painel e Gastos no celular pequeno (320dp, barra), no dobrável aberto
+  (673dp, trilho), no tablet e na tela grande (1920dp, gaveta).
 - [docs/prints/etapa-8](docs/prints/etapa-8): Premium com o "Restaurar compras" (a demonstração
   já é Premium pelo site, então não mostra a compra).
 - [docs/prints/etapa-7](docs/prints/etapa-7): Compras, Lugares, Filmes, Fotos e o tour (o

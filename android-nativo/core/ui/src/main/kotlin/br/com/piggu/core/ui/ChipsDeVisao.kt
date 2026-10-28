@@ -1,7 +1,7 @@
 package br.com.piggu.core.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
@@ -25,7 +25,8 @@ enum class Visao(val id: String) { Tudo("tudo"), Meu("meu"), Compartilhado("casa
 fun ChipsDeVisao(visao: Visao, aoMudar: (Visao) -> Unit, moraComAlguem: Boolean, modifier: Modifier = Modifier) {
     if (!moraComAlguem) return
     val oQueVer = stringResource(R.string.visao_o_que_ver)
-    Row(
+    // Com a fonte grande ou na tela estreita, o chip que não cabe desce de linha em vez de quebrar a palavra.
+    FlowRow(
         modifier.selectableGroup().semantics { contentDescription = oQueVer },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

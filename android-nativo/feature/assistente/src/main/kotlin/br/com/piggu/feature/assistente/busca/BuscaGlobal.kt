@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -127,7 +128,7 @@ fun ConteudoDaBusca(
                         supportingContent = resultado.detalhe.takeIf { it.isNotEmpty() }?.let { { Text(it) } },
                         leadingContent = { Icon(painterResource(resultado.icone.desenho), null, tint = MaterialTheme.colorScheme.primary) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable { escolher(resultado.destino) },
+                        modifier = Modifier.clickable(role = Role.Button) { escolher(resultado.destino) },
                     )
                 }
                 if (estado.nadaEncontrado) {

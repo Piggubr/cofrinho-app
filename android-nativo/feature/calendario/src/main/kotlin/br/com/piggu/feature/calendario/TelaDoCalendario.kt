@@ -171,7 +171,7 @@ fun TelaDoCalendario(
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.calendario_titulo)) },
+                title = { Text(stringResource(R.string.calendario_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

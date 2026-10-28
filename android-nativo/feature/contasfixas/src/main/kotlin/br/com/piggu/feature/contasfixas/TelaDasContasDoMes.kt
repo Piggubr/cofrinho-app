@@ -135,7 +135,7 @@ fun TelaDasContasDoMes(estado: EstadoDasContasDoMes, eventos: EventosDasContasDo
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.contasdomes_titulo)) },
+                title = { Text(stringResource(R.string.contasdomes_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },
