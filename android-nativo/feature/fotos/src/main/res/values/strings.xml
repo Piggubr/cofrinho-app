@@ -1,3 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Os textos de features/feed do site. -->
 <resources>
+    <string name="fotos_titulo">Fotos do mês</string>
+    <string name="fotos_adicionar">Adicionar foto</string>
+    <string name="fotos_adicionar_descricao">Escolher uma foto da galeria</string>
+    <string name="fotos_tirar">Tirar foto</string>
+    <string name="fotos_tirar_descricao">Tirar uma foto com a câmera</string>
+    <string name="fotos_enviando">Enviando…</string>
+    <string name="fotos_premium">Adicionar fotos · Premium</string>
+    <string name="fotos_foto_do_mes">Foto do mês</string>
+    <string name="fotos_legenda">Escreva uma legenda</string>
+    <string name="fotos_legenda_descricao">Legenda da foto</string>
+    <string name="fotos_apagar">Apagar</string>
+    <string name="fotos_apagar_pergunta">Apagar esta foto?</string>
+    <string name="fotos_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="fotos_vazio_titulo">Nenhuma foto neste mês ainda</string>
+    <string name="fotos_vazio_texto">As fotos do mês contam a história do que vocês viveram.</string>
 </resources>
