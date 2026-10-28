@@ -8,7 +8,6 @@ import br.com.piggu.core.testing.esperar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -32,7 +31,6 @@ class FormularioDeReceitaViewModelTest {
 
     @After fun devolver() {
         loja.clear()
-        Dispatchers.resetMain()
     }
 
     /** Espera as categorias e a família chegarem, para o Turbine só ver o que o teste faz. */

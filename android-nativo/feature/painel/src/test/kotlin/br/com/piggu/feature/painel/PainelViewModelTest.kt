@@ -21,11 +21,13 @@ import br.com.piggu.core.testing.esperar
 import br.com.piggu.core.testing.redeDeTeste
 import br.com.piggu.core.ui.Visao
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -73,8 +75,7 @@ class PainelViewModelTest {
     @get:Rule val compose = createComposeRule()
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     private class Painel(val viewModel: PainelViewModel, val fixas: RespostasFixas, val cache: CacheNaMemoria, val aparelho: PainelDoAparelho, val lancamentos: Lancamentos) {
         val estado get() = viewModel.estado.value
     }
@@ -105,7 +106,8 @@ class PainelViewModelTest {
     @Test
     fun `carrega o mes com o nucleo, o resumo e os cartoes`() = runTest {
         val painel = abrir()
-        val estado = painel.pronto { it.metasDoMes != null }
+        // Os avisos vêm num pedido à parte; na demo sempre há um (a Academia vencida em 25/10).
+        val estado = painel.pronto { it.metasDoMes != null && !it.avisos.vazio }
         assertEquals("2026-10", estado.mes)
         assertEquals("Ana", estado.primeiroNome)
         assertTrue(estado.moraComAlguem)
@@ -253,7 +255,11 @@ class PainelViewModelTest {
         painel.pronto()
         val antes = painel.fixas.pedidos.count { it == "GET /api/piggy-bank" }
         painel.lancamentos.avisar()
-        painel.viewModel.estado.esperar { painel.fixas.pedidos.count { p -> p == "GET /api/piggy-bank" } > antes && it.carga is Carga.Pronto }
+        // A recarga traz os mesmos dados, e o StateFlow não emite um estado igual: espera o pedido.
+        withContext(Dispatchers.Default) {
+            withTimeout(30_000) { while (painel.fixas.pedidos.count { it == "GET /api/piggy-bank" } <= antes) delay(20) }
+        }
+        painel.viewModel.estado.esperar { it.carga is Carga.Pronto }
         assertNotNull(painel.estado.resumo)
     }
 

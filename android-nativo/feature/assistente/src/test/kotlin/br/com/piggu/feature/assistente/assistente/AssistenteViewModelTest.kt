@@ -19,7 +19,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -40,8 +39,7 @@ class AssistenteViewModelTest {
     @get:Rule val pasta = TemporaryFolder()
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     private lateinit var rede: RedeDeTeste
     private lateinit var guardada: ConversaGuardada
 

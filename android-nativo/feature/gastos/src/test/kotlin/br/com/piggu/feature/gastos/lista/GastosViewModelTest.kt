@@ -28,7 +28,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -65,7 +64,6 @@ class GastosViewModelTest {
     /** A rede responde noutra thread: o que ainda corre no viewModelScope para antes de devolver o Main. */
     @After fun devolver() {
         criados.forEach { it.viewModelScope.cancel() }
-        Dispatchers.resetMain()
     }
 
     private lateinit var rede: RedeDeTeste
