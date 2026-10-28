@@ -49,8 +49,8 @@ sealed interface Tela : NavKey {
     @Serializable data object Orcamentos : Tela { override val caminho = "/orcamentos"; override val nativa = true }
     @Serializable data object Calendario : Tela { override val caminho = "/calendario"; override val nativa = true }
     @Serializable data object Compras : Tela { override val caminho = "/compras"; override val nativa = true }
-    @Serializable data object Lugares : Tela { override val caminho = "/lugares" }
-    @Serializable data object Filmes : Tela { override val caminho = "/filmes" }
+    @Serializable data object Lugares : Tela { override val caminho = "/lugares"; override val nativa = true }
+    @Serializable data object Filmes : Tela { override val caminho = "/filmes"; override val nativa = true }
     @Serializable data object Feed : Tela { override val caminho = "/feed"; override val nativa = true }
     @Serializable data object Premios : Tela { override val caminho = "/premios"; override val nativa = true }
     @Serializable data object Planejar : Tela { override val caminho = "/planejar"; override val nativa = true }

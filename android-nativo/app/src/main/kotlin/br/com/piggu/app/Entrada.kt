@@ -26,6 +26,8 @@ import br.com.piggu.feature.plano.TelaDoPlano
 import br.com.piggu.feature.premios.TelaDosPremios
 import br.com.piggu.feature.fotos.TelaDasFotos
 import br.com.piggu.feature.listas.compras.TelaDeCompras
+import br.com.piggu.feature.listas.filmes.TelaDeFilmes
+import br.com.piggu.feature.listas.lugares.TelaDeLugares
 import br.com.piggu.feature.contas.TelaDasContasECartoes
 import br.com.piggu.feature.contasfixas.TelaDasContasDoMes
 import br.com.piggu.feature.orcamentos.TelaDoOrcamento
@@ -113,6 +115,8 @@ fun TelaCheia(
         Tela.Plano -> TelaDoPlano(voltar = voltar)
         // Estilo de vida (A7).
         Tela.Compras -> TelaDeCompras(voltar = voltar)
+        Tela.Lugares -> TelaDeLugares(voltar = voltar)
+        Tela.Filmes -> TelaDeFilmes(voltar = voltar)
         Tela.Feed -> TelaDasFotos(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         Tela.Perfil -> {
             val exclusao: ExclusaoViewModel = hiltViewModel()

@@ -271,6 +271,20 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     }
 
     @Test
+    fun lugares() {
+        abrirDoMais("Lugares")
+        esperarImagens()
+        capturar("lugares", 7)
+    }
+
+    @Test
+    fun filmes() {
+        abrirDoMais("Filmes")
+        esperarImagens()
+        capturar("filmes", 7)
+    }
+
+    @Test
     fun fotos() {
         abrirDoMais("Fotos")
         esperarImagens()
