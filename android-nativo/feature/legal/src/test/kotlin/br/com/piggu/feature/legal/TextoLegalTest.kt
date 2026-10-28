@@ -6,7 +6,6 @@ import java.io.FileNotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -24,8 +23,7 @@ private fun doSite(caminho: String) = File("../../../frontend/src/app/$caminho")
 class TextoLegalTest {
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     @Test
     fun `divide em secoes e reconhece listas, tabelas, negrito e links`() {
         val texto = lerTextoLegal(

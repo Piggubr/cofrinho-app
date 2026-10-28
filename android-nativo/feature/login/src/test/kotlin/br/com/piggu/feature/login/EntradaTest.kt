@@ -13,7 +13,6 @@ import br.com.piggu.core.testing.RespostasFixas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -38,8 +37,7 @@ class EntradaTest {
     @get:Rule val pasta = TemporaryFolder()
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     private fun LoginViewModel.preencher(email: String = "ana@piggu.com.br", senha: String = "senha123") {
         mudarEmail(email)
         mudarSenha(senha)
