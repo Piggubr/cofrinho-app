@@ -1,0 +1,56 @@
+name: Android nativo
+
+# App Android em Kotlin (android-nativo/). Roda nos PRs que mexem nele: compila todas as
+# variantes, passa o lint, os testes unitários e confere as capturas Roborazzi contra as
+# de android-nativo/docs/prints/. Não publica nada no Google Play.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android-nativo/**'
+      - '.github/workflows/android-nativo.yml'
+
+permissions:
+  contents: read
+
+# Um push novo num PR cancela o build do commit anterior dele.
+concurrency:
+  group: android-nativo-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build e testes (Android nativo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-nativo
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # O gradle-wrapper.jar é um binário no repositório: confere que é o oficial.
+      - uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            android-nativo/**/*.gradle.kts
+            android-nativo/gradle/libs.versions.toml
+            android-nativo/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Build, lint e testes
+        run: ./gradlew --no-daemon build
+
+      - name: Capturas Roborazzi
+        run: ./gradlew --no-daemon verifyRoborazziDemoDebug
+
+      - name: Guardar relatórios e diferenças das capturas
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-nativo-relatorios
+          path: |
+            android-nativo/**/build/reports/
+            android-nativo/app/build/outputs/roborazzi/
+          retention-days: 14

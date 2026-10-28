@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Só a janela antes do Compose desenhar; as cores do app vêm do PigguTheme. -->
+    <style name="Theme.Piggu" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fundo</item>
+    </style>
+    <color name="fundo">#FFF8F8</color>
+</resources>

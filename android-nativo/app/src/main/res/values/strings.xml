@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Piggu</string>
+    <string name="aba_painel">Painel</string>
+    <string name="aba_gastos">Gastos</string>
+    <string name="aba_relatorios">Relatórios</string>
+    <string name="aba_mais">Mais</string>
+    <string name="em_breve">Esta tela chega nas próximas versões.</string>
+</resources>

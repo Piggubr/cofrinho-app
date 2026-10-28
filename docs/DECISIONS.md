@@ -99,6 +99,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-076](#d-076-o-campo-de-valor-do-site-lê-igual-ao-app-nativo) | O campo de valor do site lê igual ao app nativo | Valendo |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
+| [D-089](#d-089-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -108,6 +109,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-066](#d-066-testes-com-postgres-de-verdade) | Testes com Postgres de verdade | Valendo |
 | [D-067](#d-067-bug-corrigido-vira-teste-de-regressão-com-data) | Bug corrigido vira teste de regressão com data | Valendo |
 | [D-068](#d-068-toda-decisão-nova-vira-um-d-0xx-no-mesmo-pr) | Toda decisão nova vira um D-0xx no mesmo PR | Valendo |
+| [D-090](#d-090-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
 
 ---
 
@@ -825,6 +827,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
+## D-089: Android nativo compila com o SDK 37 e mira o 36
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o plano da etapa A0 pedia compileSdk 36 e as bibliotecas estáveis mais novas. O Compose BOM 2026.09.00 (Material 3 1.4) e o Navigation 3 1.2.0 só aceitam compilar com o SDK 37 ou mais novo.
+- Decisão: `compileSdk = 37` e `targetSdk = 36`. O compileSdk só muda as APIs que o código enxerga ao compilar; o comportamento no aparelho segue o targetSdk. As cores do tema saem do Material Color Utilities (esquema Vibrant) a partir da `--primaria` de cada tema do site, com a primária e o texto sobre ela iguais aos do site (`core/designsystem/gerar-cores.mjs`).
+- Alternativas: voltar para bibliotecas mais velhas que ainda compilam com o 36, ficando sem o Material 3 1.4 e o Navigation 3 estável mais novo.
+- Consequências: o build precisa da plataforma `android-37.0` do SDK, que o Gradle baixa sozinho. Subir o targetSdk para 37 é uma decisão à parte, com teste das mudanças de comportamento.
+- Onde ver: `android-nativo/app/build.gradle.kts`, `android-nativo/gradle/libs.versions.toml`
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
@@ -900,6 +911,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Onde ver: [CLAUDE.md](../CLAUDE.md)
 
 ---
+
+## D-090: Etapas do Android juntam em `feature/android-nativo`
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o app Kotlin vai crescer por várias etapas (A0 a A9) antes de estar pronto para substituir o Capacitor (D-057).
+- Decisão: cada etapa sai numa `android/etapa-N` a partir da `feature/android-nativo`, com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o Dudu pedir.
+- Alternativas: PR de cada etapa direto para a `develop`, como no plano original.
+- Consequências: a `feature/android-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O workflow `android-nativo.yml` roda em PR para qualquer branch.
+- Onde ver: `android-nativo/CLAUDE.md`, `docs/branches.md`
 
 # Perguntas para o Dudu
 

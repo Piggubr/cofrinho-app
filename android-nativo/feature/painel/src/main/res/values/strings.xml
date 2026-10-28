@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="painel_titulo">Painel</string>
+    <string name="painel_em_breve">O resumo do mês aparece aqui em breve.</string>
+</resources>

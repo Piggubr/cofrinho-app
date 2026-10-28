@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gastos_titulo">Gastos</string>
+    <string name="gastos_em_breve">Seus gastos aparecem aqui em breve.</string>
+</resources>
