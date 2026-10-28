@@ -1,4 +1,6 @@
 package br.com.piggu.feature.login
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import app.cash.turbine.test
 import br.com.piggu.core.data.EstadoDaSessao

@@ -5,6 +5,9 @@ plugins {
 
 dependencies {
     api(projects.core.model)
+    // A sessão de teste (SessaoDeTeste.kt) monta a sessão e a rede de verdade.
+    api(projects.core.data)
+    implementation(libs.hilt.android)
     // ApiDaDemo: um interceptador do OkHttp que monta o JSON sem conhecer os modelos.
     api(libs.okhttp)
     api(libs.kotlinx.serialization.json)

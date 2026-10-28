@@ -1,4 +1,6 @@
 package br.com.piggu.feature.login.cpf
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import app.cash.turbine.test
 import br.com.piggu.core.network.MensagemDeErro
@@ -6,7 +8,7 @@ import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.feature.login.R
 import br.com.piggu.feature.login.cadastro.ate
 import br.com.piggu.feature.login.cadastro.usuario
-import br.com.piggu.feature.login.sessaoDeTeste
+import br.com.piggu.core.testing.sessaoDeTeste
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

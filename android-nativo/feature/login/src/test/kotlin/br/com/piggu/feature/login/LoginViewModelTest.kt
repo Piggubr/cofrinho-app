@@ -1,4 +1,6 @@
 package br.com.piggu.feature.login
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import br.com.piggu.core.data.AutenticacaoDaSessao

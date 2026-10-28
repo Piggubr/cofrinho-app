@@ -1,11 +1,13 @@
 package br.com.piggu.feature.login.cadastro
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import app.cash.turbine.test
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.feature.login.R
-import br.com.piggu.feature.login.sessaoDeTeste
+import br.com.piggu.core.testing.sessaoDeTeste
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
