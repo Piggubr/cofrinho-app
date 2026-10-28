@@ -81,6 +81,8 @@ import br.com.piggu.feature.login.AvisoDeConfirmarEmail
 import br.com.piggu.feature.painel.PainelScreen
 import br.com.piggu.feature.painel.TelaDoPainel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.emptyFlow
 
 /** Troca de aba deixando o Painel na base: o voltar de qualquer aba leva ao Painel e, de lá, sai do app. */
@@ -128,7 +130,9 @@ fun PigguApp(
                 }
                 val tourNovo by viewModel.tourNovo.collectAsStateWithLifecycle()
                 // O tour espera o desbloqueio: o diálogo dele abriria por cima da trava.
-                AppLogado(raiz.perfil, links, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
+                // Link de widget, atalho ou bloco com o app travado espera o desbloqueio (lançar seria por cima da trava).
+                val linksDepoisDaTrava = remember(links) { links.onEach { travaViewModel.estado.first { it.travado == false } } }
+                AppLogado(raiz.perfil, linksDepoisDaTrava, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
                 if (trava.travado == true) TelaDeTrava(travaViewModel::desbloqueou)
             }
         }

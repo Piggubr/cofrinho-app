@@ -48,6 +48,9 @@ plataforma que faltar.
 | `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
 | `feature:plano` | Premium: o plano, os preços e o cancelamento; "Em breve" no lugar de assinar até a A8 (D-121) |
 | `feature:perfil` | Perfil: foto e nome, moeda, avisos, aparência, ícone do app (D-119), módulos, segurança (travar com a biometria, esconder nos recentes), senha, privacidade e excluir a conta |
+| `feature:listas` | Compras (com o leitor de código de barras), Lugares (abre no app de mapas) e Filmes |
+| `feature:fotos` | O mural de fotos do mês (Premium) |
+| `widget` | Os widgets do Glance (gasto do mês, meta do mês, lançar gasto) e o bloco "Lançar gasto" das Configurações rápidas, lendo só o resumo que o app grava (D-129) |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
 ## Sessão e rede
@@ -91,13 +94,30 @@ Só versões estáveis, conferidas em 27/10/2026 no Google Maven, no Maven Centr
 Gradle Plugin Portal ([gradle/libs.versions.toml](gradle/libs.versions.toml)): Gradle 9.8.2,
 AGP 9.4.1, Kotlin 2.4.21, Compose BOM 2026.09.00 (Material 3 1.4.0), Navigation 3 1.2.0,
 Hilt 2.60.1, Retrofit 3.0.0, OkHttp 5.5.1, kotlinx.serialization 1.12.0, Room 2.8.5,
-DataStore 1.3.0 e WorkManager 2.12.0.
+DataStore 1.3.0 e WorkManager 2.12.0. Na A7, conferidas em 28/10/2026: Coil 3.6.3, Glance 1.2.0,
+Biometric 1.1.0, o leitor de código de barras 16.1.0 e o recorte de documentos 16.0.0 do Google
+Play services.
+
+## Recursos do Android
+
+- Widgets e atalhos: Gasto do mês, Meta do mês e Lançar gasto; os atalhos "Lançar gasto" e "Ver
+  gastos" no ícone e o bloco das Configurações rápidas (D-129).
+- Trava com a biometria ou o bloqueio de tela, ao abrir e depois de 1 minuto fora, e "Esconder
+  nos apps recentes" (D-131).
+- Imagens pelo Coil; só as do Piggu levam o token (D-127).
+- Mapa: sem chave do Google Maps, "Abrir no mapa" usa o app de mapas do aparelho (D-125). Para pôr
+  o mapa no app: ative o Maps SDK for Android no Google Cloud, crie uma chave restrita ao pacote
+  `br.com.piggu.app` (SHA-1 da chave de assinatura do Play e a de debug) e só a essa API.
+- Push pelo Firebase: espera a A1 (backend) entrar na `feature/android-nativo`.
+- Idioma: só pt-BR, com o `locales_config` pronto para o idioma por app.
 
 minSdk 26, targetSdk 36 e compileSdk 37: o Compose e o Navigation 3 estáveis pedem
 compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-7](docs/prints/etapa-7): Compras, Lugares, Filmes, Fotos e o tour (o
+  balão do +).
 - [docs/prints/etapa-6](docs/prints/etapa-6): Minhas metas, Girls Math, Planejar, Prêmios,
   Família, Premium e Perfil.
 - [docs/prints/etapa-5](docs/prints/etapa-5): Relatórios, Contas do mês, Orçamento,
