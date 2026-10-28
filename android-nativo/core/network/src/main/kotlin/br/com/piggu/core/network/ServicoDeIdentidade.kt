@@ -13,6 +13,7 @@ import br.com.piggu.core.model.PedidoDeAlteracaoDeUsuario
 import br.com.piggu.core.model.PedidoDeAparelho
 import br.com.piggu.core.model.PedidoDeCadastro
 import br.com.piggu.core.model.PedidoDeCheckout
+import br.com.piggu.core.model.PedidoDeCompraDoGooglePlay
 import br.com.piggu.core.model.PedidoDeCompartilhamento
 import br.com.piggu.core.model.PedidoDeEmail
 import br.com.piggu.core.model.PedidoDeFoto
@@ -209,4 +210,11 @@ interface ServicoDeIdentidade {
     /** Trocar cartão, ver recibos e cancelar. */
     @POST("billing/portal")
     suspend fun portal(@Body vazio: JsonObject = JsonObject(emptyMap())): EnderecoDePagamento
+
+    /**
+     * A assinatura do Google Play: o backend confere com o Google, reconhece (acknowledge) e
+     * responde o plano. 409 `OUTRA_CONTA` quando a compra é de outra conta do Piggu.
+     */
+    @POST("billing/google-play/purchases")
+    suspend fun compraDoGooglePlay(@Body pedido: PedidoDeCompraDoGooglePlay): InfoDoPlano
 }

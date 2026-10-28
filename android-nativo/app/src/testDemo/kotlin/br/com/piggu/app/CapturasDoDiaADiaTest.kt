@@ -258,7 +258,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     @Test
     fun plano() {
         abrirDoMais("Premium")
-        capturar("plano", 6)
+        capturar("plano", 8)
     }
 
     @Test

@@ -1,10 +1,11 @@
 package br.com.piggu.feature.plano
 
+import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.database.RespostaGuardada
@@ -21,6 +22,7 @@ import br.com.piggu.core.testing.DIA_DAS_CAPTURAS
 import br.com.piggu.core.testing.RedeDeTeste
 import br.com.piggu.core.testing.RespostaFixa
 import br.com.piggu.core.testing.RespostasFixas
+import br.com.piggu.core.testing.TOKEN_DE_OUTRA_CONTA
 import br.com.piggu.core.testing.esperar
 import br.com.piggu.core.testing.redeDeTeste
 import br.com.piggu.core.ui.FalhaAoCarregar
@@ -41,6 +43,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.annotation.Config
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
@@ -81,8 +86,10 @@ internal val PREMIUM_PELO_SITE = GRATUITO.copy(
     casaTemAssinatura = true,
 )
 
-/** Premium (plan.ts e plan.spec.ts), com a API falsa e o `/billing/plan` que o teste mandar. */
+/** Premium (plan.ts e plan.spec.ts), com a API falsa, o `/billing/plan` que o teste mandar e a loja de mentira. */
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
+@Config(sdk = [36])
 class PlanoViewModelTest {
     @get:Rule val pasta = TemporaryFolder()
     private val loja = ViewModelStore()
@@ -117,17 +124,22 @@ class PlanoViewModelTest {
         rede.entrar()
     }
 
-    private fun plano(identidade: ServicoDeIdentidade = rede.identidade): PlanoViewModel =
+    private fun plano(identidade: ServicoDeIdentidade = rede.identidade, googlePlay: LojaDoGooglePlay = LojaDeMentira()): PlanoViewModel =
         ViewModelProvider.create(
             loja,
-            viewModelFactory { initializer { PlanoViewModel(identidade, cache, rede.sessao, DIA_DAS_CAPTURAS, conectado) } },
+            viewModelFactory { initializer { PlanoViewModel(identidade, cache, rede.sessao, DIA_DAS_CAPTURAS, googlePlay, conectado) } },
         )["vm${criados++}", PlanoViewModel::class]
+
+    /** A folha do Google Play precisa de uma Activity; a loja de mentira não a usa. */
+    private val atividade: Activity by lazy { Robolectric.buildActivity(Activity::class.java).get() }
+
+    private fun compras() = pedidos().filter { it.startsWith("POST /api/billing/google-play/purchases") }
 
     /** Só o que não é entrar: nenhum checkout, portal ou compra sai desta tela sozinho. */
     private fun pedidos() = fixas.pedidos.filterNot { it.startsWith("POST /api/auth/") }
 
     @Test
-    fun `gratuito marca o gratuito, mostra os precos do app e o em breve sem chamar nada`() = runTest {
+    fun `gratuito marca o gratuito, pode assinar e nao chama nada sozinho`() = runTest {
         entrar(GRATUITO)
         val estado = plano().estado.esperar { it.info != null }
         assertEquals(QualPlano.GRATUITO, estado.seuPlano)
@@ -212,19 +224,108 @@ class PlanoViewModelTest {
         entrar()
         val plano = plano()
         plano.estado.esperar { it.info != null }
-        plano.estado.test {
-            awaitItem()
-            plano.pedirReembolso()
-            awaitItem()
-            plano.confirmarReembolso()
-            assertTrue(awaitItem().ocupado)
-            awaitItem().let {
-                assertFalse(it.ocupado)
-                assertEquals(MensagemDeErro.DoServidor("Pagamento indisponível na demonstração: esta conta de exemplo já é Premium."), it.erro)
-                assertNull(it.aviso)
-            }
-            cancelAndIgnoreRemainingEvents()
+        plano.pedirReembolso()
+        plano.confirmarReembolso()
+        val recusado = plano.estado.esperar { it.erro != null }
+        assertFalse(recusado.ocupado)
+        assertEquals(MensagemDeErro.DoServidor("Pagamento indisponível na demonstração: esta conta de exemplo já é Premium."), recusado.erro)
+        assertNull(recusado.aviso)
+    }
+
+    @Test
+    fun `compra ok so vira Premium com a resposta do backend e renova o token`() = runTest {
+        entrar(GRATUITO)
+        val googlePlay = LojaDeMentira(mapOf(PREMIUM_MENSAL to "R$ 22,89", PREMIUM_ANUAL to "R$ 228,85"))
+        val plano = plano(googlePlay = googlePlay)
+        val antes = plano.estado.esperar { it.info != null && it.precosDaLoja.isNotEmpty() }
+        assertEquals("R$ 22,89", antes.precosDaLoja[PREMIUM_MENSAL])
+
+        plano.assinar(atividade, PREMIUM_MENSAL)
+        val depois = plano.estado.esperar { it.aviso != null }
+        assertEquals(R.string.plano_assinado, depois.aviso)
+        assertEquals(QualPlano.PREMIUM, depois.seuPlano)
+        assertEquals(OrigemDaAssinatura.PLAY_STORE, depois.info!!.origem)
+        assertEquals(PREMIUM_MENSAL, depois.produtoDoPlay)
+        assertFalse(depois.ocupado)
+        assertEquals(
+            listOf("""POST /api/billing/google-play/purchases {"produto":"premium_mensal","purchaseToken":"token-de-mentira-premium_mensal"}"""),
+            compras(),
+        )
+        assertEquals(1, fixas.pedidos.count { it.startsWith("POST /api/auth/refresh") })
+    }
+
+    @Test
+    fun `compra de outra conta do Piggu mostra o 409 e continua gratuito`() = runTest {
+        entrar(GRATUITO)
+        val googlePlay = LojaDeMentira { ResultadoDaCompra.Comprada(CompraDoGooglePlay(it, TOKEN_DE_OUTRA_CONTA)) }
+        val plano = plano(googlePlay = googlePlay)
+        plano.estado.esperar { it.info != null }
+        plano.assinar(atividade, PREMIUM_ANUAL)
+        val recusada = plano.estado.esperar { it.erro != null }
+        assertEquals(MensagemDeErro.DoApp(R.string.plano_outra_conta), recusada.erro)
+        assertEquals(QualPlano.GRATUITO, recusada.seuPlano)
+        assertNull(recusada.aviso)
+        assertFalse(recusada.ocupado)
+    }
+
+    @Test
+    fun `pagamento pendente avisa sem chamar o backend, e cancelar nao diz nada`() = runTest {
+        entrar(GRATUITO)
+        var resultado: ResultadoDaCompra = ResultadoDaCompra.Pendente
+        val plano = plano(googlePlay = LojaDeMentira { resultado })
+        plano.estado.esperar { it.info != null }
+
+        plano.assinar(atividade, PREMIUM_MENSAL)
+        val pendente = plano.estado.esperar { it.aviso != null }
+        assertEquals(R.string.plano_pagamento_pendente, pendente.aviso)
+        assertEquals(QualPlano.GRATUITO, pendente.seuPlano)
+
+        resultado = ResultadoDaCompra.Cancelada
+        plano.assinar(atividade, PREMIUM_MENSAL)
+        val cancelada = plano.estado.esperar { !it.ocupado && it.aviso == null }
+        assertNull(cancelada.erro)
+        assertTrue(compras().isEmpty())
+    }
+
+    @Test
+    fun `restaurar manda cada assinatura ativa, ou diz que esta conta do Google nao tem`() = runTest {
+        entrar(GRATUITO)
+        val googlePlay = LojaDeMentira()
+        val plano = plano(googlePlay = googlePlay)
+        plano.estado.esperar { it.info != null }
+        plano.restaurar()
+        assertEquals(R.string.plano_nada_a_restaurar, plano.estado.esperar { it.aviso != null }.aviso)
+
+        // Já reconhecida (o backend recebeu em outro aparelho): ao abrir não vai, no restaurar vai.
+        googlePlay.compradas += CompraDoGooglePlay(PREMIUM_ANUAL, "token-anual", reconhecida = true)
+        plano.restaurar()
+        val restaurado = plano.estado.esperar { it.aviso == R.string.plano_restaurado }
+        assertEquals(QualPlano.PREMIUM, restaurado.seuPlano)
+        assertEquals(listOf("""POST /api/billing/google-play/purchases {"produto":"premium_anual","purchaseToken":"token-anual"}"""), compras())
+    }
+
+    @Test
+    fun `premium de outra origem nao oferece comprar nem manda nada`() = runTest {
+        for (origem in listOf(OrigemDaAssinatura.WEB, OrigemDaAssinatura.APP_STORE)) {
+            entrar(PREMIUM_PELO_SITE.copy(origem = origem))
+            val estado = plano().estado.esperar { it.info != null }
+            assertFalse(estado.podeAssinar)
+            assertTrue(compras().isEmpty())
         }
+    }
+
+    @Test
+    fun `a compra que nao chegou ao backend vai sozinha ao abrir, sem aviso`() = runTest {
+        entrar(GRATUITO)
+        val googlePlay = LojaDeMentira().apply {
+            compradas += CompraDoGooglePlay(PREMIUM_MENSAL, "token-sem-internet")
+            compradas += CompraDoGooglePlay(PREMIUM_ANUAL, "token-antigo", reconhecida = true)
+        }
+        val aberto = plano(googlePlay = googlePlay).estado.esperar { it.seuPlano == QualPlano.PREMIUM }
+        assertEquals(OrigemDaAssinatura.PLAY_STORE, aberto.info!!.origem)
+        assertNull(aberto.aviso)
+        assertNull(aberto.erro)
+        assertEquals(listOf("""POST /api/billing/google-play/purchases {"produto":"premium_mensal","purchaseToken":"token-sem-internet"}"""), compras())
     }
 
     @Test

@@ -3,6 +3,8 @@ package br.com.piggu.app
 import br.com.piggu.core.data.ModuloDoEscopo
 import br.com.piggu.core.network.RespostasDaDemo
 import br.com.piggu.core.testing.ApiDaDemo
+import br.com.piggu.feature.plano.LojaDeMentira
+import br.com.piggu.feature.plano.LojaDoGooglePlay
 import br.com.piggu.core.testing.DIA_DAS_CAPTURAS
 import dagger.Module
 import dagger.Provides
@@ -25,6 +27,11 @@ object DemoDasCapturas {
     @IntoSet
     @RespostasDaDemo
     fun apiDaDemo(): Interceptor = ApiDaDemo(DIA_DAS_CAPTURAS)
+
+    /** A loja de mentira "compra" na hora e manda o token falso à API falsa. */
+    @Provides
+    @Singleton
+    fun loja(): LojaDoGooglePlay = LojaDeMentira()
 }
 
 @Module
