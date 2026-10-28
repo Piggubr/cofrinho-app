@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -20,6 +19,7 @@ import br.com.piggu.core.testing.DIA_DAS_CAPTURAS
 import br.com.piggu.core.testing.RedeDeTeste
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.core.testing.esperar
+import br.com.piggu.core.testing.estadosDe
 import br.com.piggu.core.testing.redeDeTeste
 import br.com.piggu.core.ui.FalhaAoCarregar
 import kotlinx.coroutines.Dispatchers
@@ -194,17 +194,13 @@ class ContasDoMesViewModelTest {
         contas.abrirFormulario()
         contas.mudarDescricao("Luz")
         contas.mudarValor(BigDecimal("100"))
-        contas.estado.test {
-            awaitItem()
-            contas.criar()
-            assertTrue(awaitItem().ocupado)
-            awaitItem().let {
-                assertFalse(it.ocupado)
-                assertTrue(it.formulario.aberto)
-                assertEquals(MensagemDeErro.DoServidor("Limite de contas."), it.formulario.erro)
-            }
-            cancelAndIgnoreRemainingEvents()
+        val estados = estadosDe(contas.estado)
+        contas.criar()
+        contas.estado.esperar { !it.ocupado && it.formulario.erro != null }.let {
+            assertTrue(it.formulario.aberto)
+            assertEquals(MensagemDeErro.DoServidor("Limite de contas."), it.formulario.erro)
         }
+        assertTrue(estados.any { it.ocupado })
         assertEquals(0, lancamentos.versao.value)
     }
 

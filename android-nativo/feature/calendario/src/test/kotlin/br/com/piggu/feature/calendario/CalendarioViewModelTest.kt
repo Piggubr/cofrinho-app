@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -145,16 +144,13 @@ class CalendarioViewModelTest {
         assertEquals(0, estado.semanas.last().gastos.signum()) // 29 a 31 ainda não aconteceram
         assertEquals(0, estado.semanas.fold(BigDecimal.ZERO) { s, sem -> s + sem.gastos }.compareTo(gastosDoMes))
 
-        calendario.estado.test {
-            awaitItem()
-            calendario.apontarNoGrafico(5)
-            assertEquals(5, awaitItem().destaque?.dia)
-            calendario.apontarNoGrafico(40) // além de hoje: fica no último dia que aconteceu
-            assertEquals(28, awaitItem().destaque?.dia)
-            calendario.apontarNoGrafico(null)
-            assertNull(awaitItem().destaque)
-            cancelAndIgnoreRemainingEvents()
-        }
+        // apontarNoGrafico muda o estado na hora: lê o valor, sem contar emissões.
+        calendario.apontarNoGrafico(5)
+        assertEquals(5, calendario.estado.value.destaque?.dia)
+        calendario.apontarNoGrafico(40) // além de hoje: fica no último dia que aconteceu
+        assertEquals(28, calendario.estado.value.destaque?.dia)
+        calendario.apontarNoGrafico(null)
+        assertNull(calendario.estado.value.destaque)
     }
 
     @Test

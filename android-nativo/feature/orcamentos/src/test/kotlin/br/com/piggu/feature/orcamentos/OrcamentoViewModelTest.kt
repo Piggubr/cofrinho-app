@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -23,6 +22,7 @@ import br.com.piggu.core.testing.RedeDeTeste
 import br.com.piggu.core.testing.RespostaFixa
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.core.testing.esperar
+import br.com.piggu.core.testing.estadosDe
 import br.com.piggu.core.testing.redeDeTeste
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -193,17 +193,12 @@ class OrcamentoViewModelTest {
         assertEquals(MensagemDeErro.DoApp(R.string.orcamento_categoria_invalida), vm.estado.value.erro)
         assertTrue(pedidos("PUT").isEmpty())
 
-        vm.estado.test {
-            awaitItem()
-            vm.mudarCategoria("Lazer")
-            awaitItem()
-            vm.salvarCategoria()
-            assertTrue(awaitItem().salvando)
-            val falhou = awaitItem()
-            assertFalse(falhou.salvando)
-            assertEquals(MensagemDeErro.DoServidor("Recurso do Piggu Premium."), falhou.erro)
-            cancelAndIgnoreRemainingEvents()
-        }
+        vm.mudarCategoria("Lazer")
+        val estados = estadosDe(vm.estado)
+        vm.salvarCategoria()
+        val falhou = vm.estado.esperar { !it.salvando && it.erro is MensagemDeErro.DoServidor }
+        assertTrue(estados.any { it.salvando })
+        assertEquals(MensagemDeErro.DoServidor("Recurso do Piggu Premium."), falhou.erro)
         assertEquals(0, lancamentos.versao.value)
     }
 

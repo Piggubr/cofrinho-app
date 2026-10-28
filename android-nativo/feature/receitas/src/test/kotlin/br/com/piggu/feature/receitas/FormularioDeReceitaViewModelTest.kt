@@ -1,10 +1,10 @@
 package br.com.piggu.feature.receitas
 
 import androidx.lifecycle.ViewModelStore
-import app.cash.turbine.test
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.core.testing.esperar
+import br.com.piggu.core.testing.estadosDe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -33,7 +33,7 @@ class FormularioDeReceitaViewModelTest {
         loja.clear()
     }
 
-    /** Espera as categorias e a família chegarem, para o Turbine só ver o que o teste faz. */
+    /** Espera as categorias e a família chegarem, para nenhuma carga mudar o formulário no meio do teste. */
     // "Salário" já vem escolhida antes da lista chegar: espera a lista inteira.
     private suspend fun FormularioDeReceitaViewModel.pronto() = estado.esperar { it.opcoesDeCategoria.size > 1 && it.temCompanhia }
 
@@ -95,20 +95,16 @@ class FormularioDeReceitaViewModelTest {
         formulario.mudarRepetir(true)
         formulario.mudarEmDuasParcelas(true)
 
-        formulario.estado.test {
-            awaitItem()
-            formulario.lancar()
-            assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_segundo_dia), awaitItem().erro)
-            formulario.mudarSegundoDia("32")
-            awaitItem()
-            formulario.lancar()
-            expectNoEvents() // o mesmo erro: nada muda
-            formulario.mudarSegundoDia("5a")
-            assertEquals("5", awaitItem().segundoDia)
-            formulario.lancar()
-            assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_segundo_valor), awaitItem().erro)
-            cancelAndIgnoreRemainingEvents()
-        }
+        // A validação muda o estado na hora, sem ir à rede: lê o valor, sem contar emissões.
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_segundo_dia), formulario.estado.value.erro)
+        formulario.mudarSegundoDia("32")
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_segundo_dia), formulario.estado.value.erro) // o mesmo erro
+        formulario.mudarSegundoDia("5a")
+        assertEquals("5", formulario.estado.value.segundoDia)
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_segundo_valor), formulario.estado.value.erro)
         assertTrue(montagem.pedidos("POST /api/incomes").isEmpty())
 
         formulario.mudarSegundoValor(BigDecimal("3000"))
@@ -142,30 +138,24 @@ class FormularioDeReceitaViewModelTest {
         val montagem = montar(pasta.root, loja, fixas)
         val formulario = montagem.formulario()
         formulario.pronto()
-        formulario.estado.test {
-            awaitItem()
-            formulario.lancar()
-            assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_descricao), awaitItem().erro)
-            formulario.mudarDescricao("   ")
-            awaitItem()
-            formulario.lancar()
-            expectNoEvents()
-            formulario.mudarDescricao("Freela")
-            awaitItem()
-            formulario.mudarValor(BigDecimal.ZERO)
-            awaitItem()
-            formulario.lancar()
-            assertEquals(MensagemDeErro.DoApp(R.string.receita_valor_invalido), awaitItem().erro)
-            formulario.mudarValor(BigDecimal("999999"))
-            awaitItem()
-            formulario.lancar()
-            assertTrue(awaitItem().salvando)
-            val falhou = awaitItem()
-            assertFalse(falhou.salvando)
-            assertEquals(MensagemDeErro.DoServidor("Valor alto demais."), falhou.erro)
-            assertNull(falhou.lancada)
-            assertEquals("Freela", falhou.descricao)
-        }
+        // A validação muda o estado na hora, sem ir à rede: lê o valor, sem contar emissões.
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_descricao), formulario.estado.value.erro)
+        formulario.mudarDescricao("   ")
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_falta_descricao), formulario.estado.value.erro)
+        formulario.mudarDescricao("Freela")
+        formulario.mudarValor(BigDecimal.ZERO)
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(R.string.receita_valor_invalido), formulario.estado.value.erro)
+        formulario.mudarValor(BigDecimal("999999"))
+        val estados = estadosDe(formulario.estado)
+        formulario.lancar()
+        val falhou = formulario.estado.esperar { !it.salvando && it.erro != null }
+        assertTrue(estados.any { it.salvando })
+        assertEquals(MensagemDeErro.DoServidor("Valor alto demais."), falhou.erro)
+        assertNull(falhou.lancada)
+        assertEquals("Freela", falhou.descricao)
         assertEquals(0, montagem.lancamentos.versao.value)
     }
 

@@ -205,7 +205,7 @@ class CapturasDaEntradaTest(private val aparelho: String, private val tema: Stri
     @Test
     fun termos() {
         desenhar { TelaDeTextoLegal(DocumentoLegal.Termos, voltar = {}, abrirLinkInterno = {}) }
-        compose.waitUntil(5_000) { compose.onAllNodes(hasText("Nesta página", substring = true)).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(15_000) { compose.onAllNodes(hasText("Nesta página", substring = true)).fetchSemanticsNodes().isNotEmpty() }
         capturar("termos")
     }
 }

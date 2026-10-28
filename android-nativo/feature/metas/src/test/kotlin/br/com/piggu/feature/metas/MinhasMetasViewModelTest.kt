@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.database.RespostaGuardada
@@ -153,24 +152,19 @@ class MinhasMetasViewModelTest {
         val metas = metas()
         metas.estado.esperar { it.prontas != null }
         metas.abrirNova()
-        metas.estado.test {
-            awaitItem()
-            metas.salvar()
-            awaitItem().formulario.let {
-                assertEquals(CampoDaMeta.Titulo, it.faltou)
-                assertEquals(MensagemDeErro.DoApp(R.string.metas_falta_nome), it.erro)
-            }
-            metas.mudarTitulo("Correr")
-            awaitItem()
-            metas.mudarAlvo("0")
-            awaitItem()
-            metas.salvar()
-            assertEquals(CampoDaMeta.Alvo, awaitItem().formulario.faltou)
-            // Só dígitos: o sinal de menos nem entra.
-            metas.mudarAlvo("-3x")
-            assertEquals("3", awaitItem().formulario.alvo)
-            cancelAndIgnoreRemainingEvents()
+        // A validação muda o estado na hora, sem ir à rede: lê o valor, sem contar emissões.
+        metas.salvar()
+        metas.estado.value.formulario.let {
+            assertEquals(CampoDaMeta.Titulo, it.faltou)
+            assertEquals(MensagemDeErro.DoApp(R.string.metas_falta_nome), it.erro)
         }
+        metas.mudarTitulo("Correr")
+        metas.mudarAlvo("0")
+        metas.salvar()
+        assertEquals(CampoDaMeta.Alvo, metas.estado.value.formulario.faltou)
+        // Só dígitos: o sinal de menos nem entra.
+        metas.mudarAlvo("-3x")
+        assertEquals("3", metas.estado.value.formulario.alvo)
         assertTrue(pedidos("POST /api/personal-goals").isEmpty())
     }
 

@@ -3,8 +3,6 @@ package br.com.piggu.feature.painel
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.ReceiveTurbine
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -99,10 +97,6 @@ class PainelViewModelTest {
         it.carga is Carga.Pronto && it.resumo != null && it.objetivos != null && it.notas != null && it.bancos != null && it.membros.isNotEmpty() && condicao(it)
     }
 
-    private suspend fun ReceiveTurbine<EstadoDoPainel>.ate(condicao: (EstadoDoPainel) -> Boolean): EstadoDoPainel {
-        while (true) awaitItem().takeIf(condicao)?.let { return it }
-    }
-
     @Test
     fun `carrega o mes com o nucleo, o resumo e os cartoes`() = runTest {
         val painel = abrir()
@@ -124,32 +118,27 @@ class PainelViewModelTest {
     @Test
     fun `trocar o mes e a visao busca de novo, com a chave da visao`() = runTest {
         val painel = abrir()
-        painel.viewModel.estado.test {
-            ate { it.carga is Carga.Pronto }
-            painel.viewModel.trocarVisao(Visao.Compartilhado)
-            assertEquals(Visao.Compartilhado, ate { it.visao == Visao.Compartilhado }.visao)
-            ate { it.carga is Carga.Pronto && "painel/2026-10/casal" in painel.cache.guardadas }
-            painel.viewModel.mudarMes("2026-09")
-            ate { it.mes == "2026-09" && it.carga is Carga.Pronto && "painel/2026-09/casal" in painel.cache.guardadas }
-            cancelAndIgnoreRemainingEvents()
-        }
+        val estado = painel.viewModel.estado
+        estado.esperar { it.carga is Carga.Pronto }
+        painel.viewModel.trocarVisao(Visao.Compartilhado)
+        assertEquals(Visao.Compartilhado, estado.esperar { it.visao == Visao.Compartilhado }.visao)
+        estado.esperar { it.carga is Carga.Pronto && "painel/2026-10/casal" in painel.cache.guardadas }
+        painel.viewModel.mudarMes("2026-09")
+        estado.esperar { it.mes == "2026-09" && it.carga is Carga.Pronto && "painel/2026-09/casal" in painel.cache.guardadas }
         assertTrue("resumo/2026-10/casal" in painel.cache.guardadas)
     }
 
     @Test
     fun `o membro nao ve os gastos, a meta nem o guia`() = runTest {
         val painel = abrir(RespostasFixas("POST /api/auth/entrar" to membro("u-beto", "Beto", "MEMBRO")))
-        painel.viewModel.estado.test {
-            val estado = ate { it.carga is Carga.Pronto && it.ehMembro }
-            assertFalse(estado.cartoes.any { it in listOf(IdDoBloco.Mes, IdDoBloco.Categorias, IdDoBloco.Resumo, IdDoBloco.Objetivos) })
-            assertTrue(IdDoBloco.Cofrinho in estado.cartoes)
-            assertFalse(estado.mostraGuia)
-            // Nem ligando no organizar.
-            painel.viewModel.alternarBloco(IdDoBloco.Categorias)
-            val ligado = ate { e -> e.blocos.first { it.id == "categorias" }.visivel }
-            assertFalse(IdDoBloco.Categorias in ligado.cartoes)
-            cancelAndIgnoreRemainingEvents()
-        }
+        val estado = painel.viewModel.estado.esperar { it.carga is Carga.Pronto && it.ehMembro }
+        assertFalse(estado.cartoes.any { it in listOf(IdDoBloco.Mes, IdDoBloco.Categorias, IdDoBloco.Resumo, IdDoBloco.Objetivos) })
+        assertTrue(IdDoBloco.Cofrinho in estado.cartoes)
+        assertFalse(estado.mostraGuia)
+        // Nem ligando no organizar.
+        painel.viewModel.alternarBloco(IdDoBloco.Categorias)
+        val ligado = painel.viewModel.estado.esperar { e -> e.blocos.first { it.id == "categorias" }.visivel }
+        assertFalse(IdDoBloco.Categorias in ligado.cartoes)
     }
 
     @Test
@@ -199,7 +188,7 @@ class PainelViewModelTest {
 
         painel.viewModel.mudarDeposito(BigDecimal("25.00"))
         painel.viewModel.depositar()
-        val depois = painel.viewModel.estado.esperar { (it.carga as Carga.Pronto).valor.cofrinho.totalDepositos.compareTo(cofrinho.totalDepositos + BigDecimal("25.00")) == 0 }
+        val depois = painel.viewModel.estado.esperar { (it.carga as? Carga.Pronto)?.valor?.cofrinho?.totalDepositos?.compareTo(cofrinho.totalDepositos + BigDecimal("25.00")) == 0 }
         assertEquals(null, depois.deposito)
         assertTrue(painel.fixas.pedidos.any { it.startsWith("POST /api/piggy-bank/deposits") && it.contains(""""data":"2026-10-28"""") })
 
@@ -211,7 +200,7 @@ class PainelViewModelTest {
 
         val deposito = (painel.estado.carga as Carga.Pronto).valor.cofrinho.depositos.first()
         painel.viewModel.excluirDeposito(deposito.id)
-        painel.viewModel.estado.esperar { s -> Acao.Deposito !in s.ocupado && (s.carga as Carga.Pronto).valor.cofrinho.depositos.none { it.id == deposito.id } }
+        painel.viewModel.estado.esperar { s -> Acao.Deposito !in s.ocupado && (s.carga as? Carga.Pronto)?.valor?.cofrinho?.depositos?.none { it.id == deposito.id } == true }
 
         // Só quem criou apaga; o que estava guardado nele volta para o cofrinho geral.
         assertTrue(painel.estado.ehMeu(objetivo.usuario))

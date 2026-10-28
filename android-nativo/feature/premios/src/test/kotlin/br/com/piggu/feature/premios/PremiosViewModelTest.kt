@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -118,30 +117,28 @@ class PremiosViewModelTest {
     fun `mostra o saldo, os premios, o historico e os resgates com o nome de quem resgatou`() = runTest {
         entrar()
         val premios = premios()
-        premios.estado.test {
-            val estado = premios.estado.esperar { it.dados != null && it.membros.isNotEmpty() }
-            assertTrue(estado.cuidaDosPremios)
-            assertEquals(120, estado.saldo)
-            assertEquals(listOf("Cinema com pipoca", "Jantar fora", "Dia sem louça"), estado.premios!!.map { it.nome })
-            assertTrue(estado.podeResgatar(estado.premios!![0]))
-            assertFalse(estado.podeResgatar(estado.premios!![1])) // 150 > 120: o botão fica desligado
-            assertFalse(estado.podeResgatar(estado.premios!![2].copy(ativo = false)))
-            val resgate = estado.dados!!.resgates.single()
-            assertEquals(Aviso(R.string.premios_pessoa, listOf("Beto Souza")), estado.quemResgatou(resgate))
-            assertEquals(Aviso(R.string.premios_ex_membro), estado.quemResgatou(resgate.copy(usuario = "u-antigo")))
-            assertEquals(Aviso(R.string.premios_piggu), estado.quemResgatou(resgate.copy(usuario = SISTEMA)))
-            assertEquals(3, estado.dados!!.saldo.historico.size)
-            assertNull(estado.guardadoEm)
-            // Quem cuida dos prêmios vê também os desativados.
-            assertEquals(listOf(true), todos.distinct())
+        val estado = premios.estado.esperar { it.dados != null && it.membros.isNotEmpty() }
+        assertTrue(estado.cuidaDosPremios)
+        assertEquals(120, estado.saldo)
+        assertEquals(listOf("Cinema com pipoca", "Jantar fora", "Dia sem louça"), estado.premios!!.map { it.nome })
+        assertTrue(estado.podeResgatar(estado.premios!![0]))
+        assertFalse(estado.podeResgatar(estado.premios!![1])) // 150 > 120: o botão fica desligado
+        assertFalse(estado.podeResgatar(estado.premios!![2].copy(ativo = false)))
+        val resgate = estado.dados!!.resgates.single()
+        assertEquals(Aviso(R.string.premios_pessoa, listOf("Beto Souza")), estado.quemResgatou(resgate))
+        assertEquals(Aviso(R.string.premios_ex_membro), estado.quemResgatou(resgate.copy(usuario = "u-antigo")))
+        assertEquals(Aviso(R.string.premios_piggu), estado.quemResgatou(resgate.copy(usuario = SISTEMA)))
+        assertEquals(3, estado.dados!!.saldo.historico.size)
+        assertNull(estado.guardadoEm)
+        // Quem cuida dos prêmios vê também os desativados.
+        assertEquals(listOf(true), todos.distinct())
 
-            assertFalse(expectMostRecentItem().mostrarHistorico)
-            premios.alternarHistorico()
-            assertTrue(awaitItem().mostrarHistorico)
-            premios.alternarHistorico()
-            assertFalse(awaitItem().mostrarHistorico)
-            cancelAndIgnoreRemainingEvents()
-        }
+        // alternarHistorico muda o estado na hora: lê o valor, sem contar emissões.
+        assertFalse(premios.estado.value.mostrarHistorico)
+        premios.alternarHistorico()
+        assertTrue(premios.estado.value.mostrarHistorico)
+        premios.alternarHistorico()
+        assertFalse(premios.estado.value.mostrarHistorico)
     }
 
     @Test

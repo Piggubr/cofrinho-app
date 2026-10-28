@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import br.com.piggu.core.data.AutenticacaoDaSessao
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
@@ -163,13 +162,8 @@ class PerfilViewModelTest {
         assertEquals("BRL", aberto.preferencias.moeda)
         assertFalse(aberto.preferencias.mostrarCotacao)
 
-        perfil.estado.test {
-            perfil.mudarMostrarCotacao(true)
-            var estado = awaitItem()
-            while (estado.ocupado || !estado.preferencias.mostrarCotacao) estado = awaitItem()
-            cancelAndIgnoreRemainingEvents()
-        }
-        perfil.estado.esperar { !it.ocupado }
+        perfil.mudarMostrarCotacao(true)
+        perfil.estado.esperar { !it.ocupado && it.preferencias.mostrarCotacao }
         perfil.mudarMoedaCotacao("EUR")
         perfil.estado.esperar { !it.ocupado && sessao.usuario!!.preferencias?.moedaCotacao == "EUR" }
         assertEquals(

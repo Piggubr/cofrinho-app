@@ -2,14 +2,12 @@ package br.com.piggu.feature.login.sobrevoce
 import br.com.piggu.core.testing.sessaoDeTeste
 import br.com.piggu.core.testing.esperar
 
-import app.cash.turbine.test
 import br.com.piggu.core.data.EstadoDaSessao
 import br.com.piggu.core.data.pendencia
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostaFixa
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.feature.login.R
-import br.com.piggu.feature.login.cadastro.ate
 import br.com.piggu.feature.login.cadastro.usuario
 import br.com.piggu.feature.login.cadastro.usuarioJson
 import br.com.piggu.core.testing.sessaoDeTeste
@@ -49,10 +47,8 @@ class SobreVoceViewModelTest {
             assertEquals("Tita", apelido)
             assertFalse(pedeNascimento || pedeCpf || pedeCelular)
         }
-        sessao.estado.test {
-            viewModel.continuar()
-            ate { (it as? EstadoDaSessao.Logado)?.usuario?.cadastroCompleto == true }
-        }
+        viewModel.continuar()
+        sessao.estado.esperar { (it as? EstadoDaSessao.Logado)?.usuario?.cadastroCompleto == true }
         assertEquals(listOf("""PUT /api/me/sobre-voce {"apelido":"Tita"}"""), respondeCompleto.pedidos)
         // A sessão já tem o perfil completo: o app sai da pendência sozinho.
         assertNull(sessao.usuario!!.pendencia)
@@ -87,11 +83,9 @@ class SobreVoceViewModelTest {
         assertEquals(emptyList<String>(), respondeCompleto.pedidos)
 
         viewModel.mudarTelefone("912 345 678")
-        viewModel.estado.test {
-            viewModel.continuar()
-            val salvo = ate { !it.enviando && it.campoComProblema == null }
-            assertNull(salvo.erro)
-        }
+        viewModel.continuar()
+        val salvo = viewModel.estado.esperar { !it.enviando && it.campoComProblema == null }
+        assertNull(salvo.erro)
         assertEquals(
             """PUT /api/me/sobre-voce {"apelido":"Ti","nascimento":"1990-05-10","cpf":"52998224725","telefone":"+351 912 345 678"}""",
             respondeCompleto.pedidos.first(),
@@ -105,11 +99,9 @@ class SobreVoceViewModelTest {
         val sessao = sessaoDeTeste(pasta.root, fixas)
         sessao.entrou(usuario(""","apelido":"Tita","nascimento":"1990-05-10","cadastroCompleto":false"""))
         val viewModel = SobreVoceViewModel(sessao)
-        viewModel.estado.test {
-            viewModel.continuar()
-            val recusado = ate { !it.enviando && it.erro != null }
-            assertNull(recusado.campoComProblema)
-            assertEquals(MensagemDeErro.DoServidor("Tente de novo."), recusado.erro)
-        }
+        viewModel.continuar()
+        val recusado = viewModel.estado.esperar { !it.enviando && it.erro != null }
+        assertNull(recusado.campoComProblema)
+        assertEquals(MensagemDeErro.DoServidor("Tente de novo."), recusado.erro)
     }
 }
