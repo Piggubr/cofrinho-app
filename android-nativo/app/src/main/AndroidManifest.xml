@@ -66,6 +66,12 @@
                 <data android:path="/orcamentos" />
                 <data android:path="/calendario" />
                 <data android:path="/contas-e-cartoes" />
+                <data android:path="/metas" />
+                <data android:path="/girls-math" />
+                <data android:path="/planejar" />
+                <data android:path="/premios" />
+                <data android:path="/familia" />
+                <data android:path="/plano" />
             </intent-filter>
         </activity>
 

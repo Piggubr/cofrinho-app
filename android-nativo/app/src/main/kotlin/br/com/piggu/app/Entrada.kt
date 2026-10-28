@@ -14,6 +14,12 @@ import br.com.piggu.core.ui.CasoDeErro
 import br.com.piggu.core.ui.TelaDeErro
 import br.com.piggu.core.ui.lembrarAbrirNoSite
 import br.com.piggu.feature.calendario.TelaDoCalendario
+import br.com.piggu.feature.familia.TelaDaFamilia
+import br.com.piggu.feature.girlsmath.TelaDoGirlsMath
+import br.com.piggu.feature.metas.TelaDasMinhasMetas
+import br.com.piggu.feature.planejar.TelaDoPlanejar
+import br.com.piggu.feature.plano.TelaDoPlano
+import br.com.piggu.feature.premios.TelaDosPremios
 import br.com.piggu.feature.contas.TelaDasContasECartoes
 import br.com.piggu.feature.contasfixas.TelaDasContasDoMes
 import br.com.piggu.feature.orcamentos.TelaDoOrcamento
@@ -84,6 +90,13 @@ fun TelaCheia(tela: Tela, pilha: MutableList<NavKey>, base: Tela, sair: () -> Un
         Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrirNoSite(Tela.Plano.caminho) })
         Tela.Calendario -> TelaDoCalendario(voltar = voltar)
         Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar, abrirNoSite = abrirNoSite)
+        // Metas e conta (A6).
+        Tela.Metas -> TelaDasMinhasMetas(voltar = voltar)
+        Tela.GirlsMath -> TelaDoGirlsMath(voltar = voltar)
+        Tela.Planejar -> TelaDoPlanejar(voltar = voltar, abrirTela = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) })
+        Tela.Premios -> TelaDosPremios(voltar = voltar)
+        Tela.Familia -> TelaDaFamilia(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
+        Tela.Plano -> TelaDoPlano(voltar = voltar)
         Tela.Erro -> TelaDeErro(CasoDeErro.Servidor, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
         else -> TelaDeErro(CasoDeErro.NaoEncontrada, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
     }
