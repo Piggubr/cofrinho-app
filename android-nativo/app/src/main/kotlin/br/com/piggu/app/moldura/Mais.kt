@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import br.com.piggu.app.R
 import br.com.piggu.app.navegacao.Tela
 import br.com.piggu.core.designsystem.Icone
+import br.com.piggu.core.designsystem.R as Icones
 import br.com.piggu.core.ui.R as RDaUi
 
 /** clickable com o papel para o TalkBack ("botão"). */
@@ -42,7 +43,7 @@ fun Modifier.clickableComPapel(papel: Role, aoTocar: () -> Unit): Modifier = cli
 @Composable
 fun IconeAbreFora() {
     Icon(
-        painterResource(Icone.de("abre-fora")),
+        painterResource(Icones.drawable.ic_abre_fora),
         stringResource(RDaUi.string.abre_no_site),
         Modifier.size(18.dp),
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -100,7 +101,7 @@ fun TelaDoMais(perfil: PerfilDaMoldura, versao: String, abrir: (Tela) -> Unit, s
                 item {
                     ListItem(
                         headlineContent = { Text(stringResource(item.rotulo)) },
-                        leadingContent = { Icon(painterResource(Icone.de(item.icone)), null) },
+                        leadingContent = { Icon(painterResource(item.icone.desenho), null) },
                         trailingContent = { if (!item.tela.nativa) IconeAbreFora() },
                         modifier = Modifier.clickableComPapel(Role.Button) { abrir(item.tela) },
                     )
@@ -125,7 +126,7 @@ fun TelaDoMais(perfil: PerfilDaMoldura, versao: String, abrir: (Tela) -> Unit, s
         item {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.sair), color = MaterialTheme.colorScheme.error) },
-                leadingContent = { Icon(painterResource(Icone.de("sair")), null, tint = MaterialTheme.colorScheme.error) },
+                leadingContent = { Icon(painterResource(Icone.Sair.desenho), null, tint = MaterialTheme.colorScheme.error) },
                 modifier = Modifier.clickableComPapel(Role.Button) { confirmandoSaida = true },
             )
         }

@@ -56,6 +56,10 @@ const icones = {
   enviar: 'send',
   alerta: 'warning',
   cofrinho: 'savings',
+  // Só do app: o "abre fora" das telas que ainda abrem no site e o mostrar a senha.
+  abre_fora: 'open_in_new',
+  olho: 'visibility',
+  olho_fechado: 'visibility_off',
 };
 
 const base = 'https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web';

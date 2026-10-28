@@ -57,6 +57,7 @@ import androidx.window.core.layout.WindowSizeClass
 import br.com.piggu.app.R
 import br.com.piggu.app.navegacao.Tela
 import br.com.piggu.core.designsystem.Icone
+import br.com.piggu.core.designsystem.R as Icones
 import kotlinx.coroutines.launch
 
 /** O que a moldura mostra da pessoa e da conta. */
@@ -132,7 +133,7 @@ fun Moldura(
             },
             floatingActionButton = {
                 FloatingActionButton(onClick = { opcoesAbertas = true }) {
-                    Icon(painterResource(Icone.de("mais")), stringResource(R.string.lancar))
+                    Icon(painterResource(Icone.Mais.desenho), stringResource(R.string.lancar))
                 }
             },
             snackbarHost = { SnackbarHost(avisos) },
@@ -163,18 +164,18 @@ fun Moldura(
                 Modifier.padding(horizontal = 24.dp, vertical = 8.dp).semantics { heading() },
                 style = MaterialTheme.typography.titleLarge,
             )
-            OpcaoDoLancar(R.string.lancar_gasto, "lapis") { opcoesAbertas = false; lancarGasto() }
-            OpcaoDoLancar(R.string.lancar_receita, "entrada") { opcoesAbertas = false; lancarReceita() }
+            OpcaoDoLancar(R.string.lancar_gasto, Icone.Lapis.desenho) { opcoesAbertas = false; lancarGasto() }
+            OpcaoDoLancar(R.string.lancar_receita, Icone.Entrada.desenho) { opcoesAbertas = false; lancarReceita() }
             Spacer(Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun OpcaoDoLancar(rotulo: Int, icone: String, aoTocar: () -> Unit) {
+private fun OpcaoDoLancar(rotulo: Int, icone: Int, aoTocar: () -> Unit) {
     ListItem(
         headlineContent = { Text(stringResource(rotulo)) },
-        leadingContent = { Icon(painterResource(Icone.de(icone)), null) },
+        leadingContent = { Icon(painterResource(icone), null) },
         modifier = Modifier.clickableComPapel(Role.Button, aoTocar),
     )
 }
@@ -209,8 +210,8 @@ private fun Topo(perfil: PerfilDaMoldura, irAoPainel: () -> Unit, buscar: () -> 
             }
         },
         actions = {
-            IconButton(buscar) { Icon(painterResource(Icone.de("busca")), stringResource(R.string.busca)) }
-            IconButton(perguntar) { Icon(painterResource(Icone.de("brilho")), stringResource(R.string.assistente)) }
+            IconButton(buscar) { Icon(painterResource(Icone.Busca.desenho), stringResource(R.string.busca)) }
+            IconButton(perguntar) { Icon(painterResource(Icone.Brilho.desenho), stringResource(R.string.assistente)) }
         },
     )
 }
@@ -232,7 +233,7 @@ private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit) {
                 selected = abaAtual == tela,
                 onClick = { abrir(tela) },
                 // O rótulo ao lado já é lido pelo TalkBack; descrever o ícone repetiria.
-                icon = { Icon(painterResource(Icone.de(icone)), null) },
+                icon = { Icon(painterResource(icone), null) },
                 label = { Text(stringResource(rotulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             )
         }
@@ -247,16 +248,21 @@ private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit) {
             NavigationRailItem(
                 selected = abaAtual == tela,
                 onClick = { abrir(tela) },
-                icon = { Icon(painterResource(Icone.de(icone)), null) },
+                icon = { Icon(painterResource(icone), null) },
                 label = { Text(stringResource(rotulo)) },
             )
         }
     }
 }
 
-/** Os itens das abas, com o Mais no fim ("grade" em icone.ts). */
-private val Abas: List<Triple<Tela, Int, String>> =
-    ITENS_DAS_ABAS.map { Triple(it.tela, it.rotulo, it.icone) } + Triple(Tela.Mais, R.string.tela_mais, "grade")
+/** As abas do celular, com os desenhos da barra (SIMBOLOS de shell.ts) e o Mais no fim. */
+private val Abas: List<Triple<Tela, Int, Int>> = listOf(
+    Triple(Tela.Painel, R.string.tela_painel, Icones.drawable.ic_painel),
+    Triple(Tela.Gastos, R.string.tela_gastos, Icones.drawable.ic_gastos),
+    Triple(Tela.Receitas, R.string.tela_receitas, Icones.drawable.ic_receitas),
+    Triple(Tela.Relatorios, R.string.tela_relatorios, Icones.drawable.ic_relatorios),
+    Triple(Tela.Mais, R.string.tela_mais, Icones.drawable.ic_mais),
+)
 
 /** Gaveta fixa da tela larga: o Perfil, os grupos do menu inteiros e o Sair, como a coluna do site. */
 @Composable
@@ -277,7 +283,7 @@ private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela)
                     item {
                         NavigationDrawerItem(
                             label = { Text(stringResource(item.rotulo)) },
-                            icon = { Icon(painterResource(Icone.de(item.icone)), null) },
+                            icon = { Icon(painterResource(item.icone.desenho), null) },
                             badge = { if (!item.tela.nativa) IconeAbreFora() },
                             selected = abaAtual == item.tela,
                             onClick = { abrir(item.tela) },
@@ -289,7 +295,7 @@ private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela)
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.sair)) },
-                    icon = { Icon(painterResource(Icone.de("sair")), null) },
+                    icon = { Icon(painterResource(Icone.Sair.desenho), null) },
                     selected = false,
                     onClick = sair,
                 )
