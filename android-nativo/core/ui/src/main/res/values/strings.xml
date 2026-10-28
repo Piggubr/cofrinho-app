@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Telas de 404 e 500 (frontend/src/app/features/erros) -->
+    <string name="erro_404_titulo">Essa página fugiu do cofrinho</string>
+    <string name="erro_404_texto">O endereço pode ter mudado ou sido digitado com algum errinho. Seus dados continuam guardados direitinho.</string>
+    <string name="erro_500_titulo">O Piggu tropeçou</string>
+    <string name="erro_500_texto">Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes.</string>
+    <string name="erro_sem_internet_titulo">Você está sem internet</string>
+    <string name="erro_sem_internet_texto">Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo.</string>
+    <string name="erro_carregar_titulo">Não deu para carregar</string>
+    <string name="ir_para_o_inicio">Ir para o início</string>
+    <string name="voltar">Voltar</string>
+    <string name="tentar_de_novo">Tentar de novo</string>
+    <string name="carregando">Carregando…</string>
+    <string name="abre_no_site">Abre no site do Piggu</string>
+    <string name="guardado_sem_internet">Você está sem internet. Mostrando o que estava guardado de %1$s.</string>
+    <string name="guardado_sem_atualizar">Não deu para atualizar. Mostrando o que estava guardado de %1$s.</string>
+</resources>

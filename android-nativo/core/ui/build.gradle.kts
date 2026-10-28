@@ -6,4 +6,6 @@ plugins {
 
 dependencies {
     api(projects.core.designsystem)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.core.ktx)
 }
