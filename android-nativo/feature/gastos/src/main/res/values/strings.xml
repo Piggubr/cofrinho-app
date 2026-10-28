@@ -147,4 +147,33 @@
     <string name="formulario_lancado_estourou">Gasto lançado. %1$s passou do limite do mês (%2$s%%).</string>
     <string name="formulario_lancado_atencao">Gasto lançado. %1$s já usou %2$s%% do limite do mês.</string>
     <string name="formulario_guardado_sem_internet">Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar.</string>
+
+    <!-- Foto do recibo (formulario-de-gasto.html) -->
+    <string name="recibo_ler_por_foto">Ler recibo por foto</string>
+    <string name="recibo_lendo">Lendo recibo…</string>
+    <string name="recibo_tirar_foto">Tirar foto</string>
+    <string name="recibo_escolher_da_galeria">Escolher da galeria</string>
+    <string name="recibo_ler_premium">Ler recibo por foto · Premium</string>
+    <string name="recibo_leituras_acabaram">As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode lançar os itens à mão.</string>
+    <plurals name="recibo_leituras_restantes">
+        <item quantity="one">Resta %1$d leitura de nota grátis neste mês.</item>
+        <item quantity="other">Restam %1$d leituras de nota grátis neste mês.</item>
+    </plurals>
+    <string name="recibo_foto_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="recibo_ler_com_a_ia">Ler com a IA do Google?</string>
+    <string name="recibo_ia_detalhe">A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no Aviso de Privacidade.</string>
+    <string name="recibo_aviso_de_privacidade">Aviso de Privacidade</string>
+    <string name="recibo_autorizar_e_ler">Autorizar e ler</string>
+    <string name="recibo_agora_nao">Agora não</string>
+    <string name="recibo_conferir">Conferir recibo</string>
+    <string name="recibo_sem_estabelecimento">Estabelecimento não identificado</string>
+    <string name="recibo_lido_pelo_piggu">lido pelo Piggu</string>
+    <string name="recibo_lido_pelo_gemini">lido pelo Gemini</string>
+    <string name="recibo_foto">Foto do recibo</string>
+    <plurals name="recibo_usar_itens">
+        <item quantity="one">Usar %1$d item</item>
+        <item quantity="other">Usar %1$d itens</item>
+    </plurals>
+    <string name="recibo_descartar">Descartar</string>
+    <string name="recibo_nenhum_item_valido">Adicione pelo menos um item válido.</string>
 </resources>
