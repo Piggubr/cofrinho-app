@@ -51,6 +51,10 @@
     <!-- Biblioteca oficial da Apple para conferir a compra no app (JWS do StoreKit 2 e
          App Store Server Notifications V2). D-094. -->
     <app-store-server-library.version>5.2.0</app-store-server-library.version>
+    <!-- Cliente oficial da Google Play Developer API (subscriptionsv2.get e acknowledge) para
+         conferir a compra no app Android, com a conta de servico pelo google-auth-library. -->
+    <google-androidpublisher.version>v3-rev20260924-2.0.0</google-androidpublisher.version>
+    <google-auth.version>1.54.0</google-auth.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
@@ -107,6 +111,28 @@
             <artifactId>okhttp</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.google.apis</groupId>
+        <artifactId>google-api-services-androidpublisher</artifactId>
+        <version>${google-androidpublisher.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>listenablefuture</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.google.auth</groupId>
+        <artifactId>google-auth-library-oauth2-http</artifactId>
+        <!-- 1.4x+ usa o google-http-client 2.x, a mesma linha do google-api-client 2.9. -->
+        <version>${google-auth.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.api-client</groupId>
+        <artifactId>google-api-client</artifactId>
+        <version>${google-api-client.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

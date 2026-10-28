@@ -56,6 +56,18 @@ public class GoogleIdTokenVerifier {
         return perfil(token);
     }
 
+    /**
+     * Token OIDC que o Google assina para um servico chamar outro (o push do Pub/Sub do Google Play):
+     * aqui so a assinatura, a validade e o emissor; a audiencia e a conta, quem chama confere.
+     */
+    public Jwt verificarDoGoogle(String token) {
+        Jwt jwt = decodificar(token);
+        if (!propriedades.issuers().contains(jwt.getClaimAsString("iss"))) {
+            throw new UnauthorizedException("Token de outro emissor que não o Google.");
+        }
+        return jwt;
+    }
+
     private Jwt decodificar(String idToken) {
         if (Texto.vazio(idToken)) {
             throw new UnauthorizedException("Faca login com Google para continuar.");
