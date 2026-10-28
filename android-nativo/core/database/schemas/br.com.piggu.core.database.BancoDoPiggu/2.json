@@ -1,0 +1,105 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "7566d3fd63c6102e981a1b73b7cde0f0",
+    "entities": [
+      {
+        "tableName": "respostas_guardadas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chave` TEXT NOT NULL, `json` TEXT NOT NULL, `guardadaEm` INTEGER NOT NULL, PRIMARY KEY(`chave`))",
+        "fields": [
+          {
+            "fieldPath": "chave",
+            "columnName": "chave",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "guardadaEm",
+            "columnName": "guardadaEm",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "chave"
+          ]
+        }
+      },
+      {
+        "tableName": "gastos_aguardando",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ordem` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `usuario` TEXT NOT NULL, `idDoEnvio` TEXT NOT NULL, `json` TEXT NOT NULL, `guardadoEm` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "ordem",
+            "columnName": "ordem",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usuario",
+            "columnName": "usuario",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idDoEnvio",
+            "columnName": "idDoEnvio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "guardadoEm",
+            "columnName": "guardadoEm",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "ordem"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_gastos_aguardando_usuario",
+            "unique": false,
+            "columnNames": [
+              "usuario"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_gastos_aguardando_usuario` ON `${TABLE_NAME}` (`usuario`)"
+          },
+          {
+            "name": "index_gastos_aguardando_idDoEnvio",
+            "unique": true,
+            "columnNames": [
+              "idDoEnvio"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_gastos_aguardando_idDoEnvio` ON `${TABLE_NAME}` (`idDoEnvio`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7566d3fd63c6102e981a1b73b7cde0f0')"
+    ]
+  }
+}

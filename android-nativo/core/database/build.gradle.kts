@@ -1,4 +1,4 @@
-// Cache local (Room): as respostas da API guardadas para abrir sem internet.
+// Banco local (Room): as respostas da API guardadas para abrir sem internet e a fila de gastos.
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
@@ -8,6 +8,15 @@ plugins {
 
 android {
     testOptions.unitTests.all { it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED") }
+    // O MigrationTestHelper lê os esquemas exportados dos assets.
+    testOptions.unitTests.isIncludeAndroidResources = true
+}
+
+androidComponents {
+    onVariants { variante ->
+        variante.hostTests[com.android.build.api.variant.HostTestBuilder.UNIT_TEST_TYPE]
+            ?.sources?.assets?.addStaticSourceDirectory("$projectDir/schemas")
+    }
 }
 
 room {
@@ -26,4 +35,5 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.room.testing)
 }
