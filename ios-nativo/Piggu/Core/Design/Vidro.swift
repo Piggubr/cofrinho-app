@@ -81,9 +81,11 @@ struct GrupoDeVidro<Conteudo: View>: View {
     }
 }
 
-/// O + de lancar gasto, flutuando no canto da tela sobre o conteudo.
+/// O + de lancar, flutuando no canto da tela sobre o conteudo: abre as opcoes, como o balao do
+/// site (shell.html).
 struct BotaoDeLancar: View {
-    let acao: () -> Void
+    let gasto: () -> Void
+    let receita: () -> Void
 
     @Environment(\.paleta) private var paleta
 
@@ -91,12 +93,12 @@ struct BotaoDeLancar: View {
         Group {
             if #available(iOS 26, *) {
                 // O glassProminent ja poe a margem dele em volta: 40 + margem da os 56 do outro.
-                Button(action: acao) { simbolo.frame(width: 40, height: 40) }
+                Menu { opcoes } label: { simbolo.frame(width: 40, height: 40) }
                     .buttonStyle(.glassProminent)
                     .foregroundStyle(paleta.primariaContraste)
                     .buttonBorderShape(.circle)
             } else {
-                Button(action: acao) {
+                Menu { opcoes } label: {
                     simbolo
                         .frame(width: 56, height: 56)
                         .foregroundStyle(paleta.primariaContraste)
@@ -106,8 +108,14 @@ struct BotaoDeLancar: View {
                 .buttonStyle(.plain)
             }
         }
-        .accessibilityLabel("Lançar gasto")
+        .accessibilityLabel("Lançar")
         .padding(20)
+    }
+
+    @ViewBuilder
+    private var opcoes: some View {
+        Button(action: gasto) { Label("Lançar gasto", systemImage: "square.and.pencil") }
+        Button(action: receita) { Label("Lançar receita", systemImage: "arrow.down.circle") }
     }
 
     private var simbolo: some View {

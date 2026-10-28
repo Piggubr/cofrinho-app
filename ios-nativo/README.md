@@ -263,7 +263,9 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Conectar banco** (D-091): o app pede o token da Pluggy com a autorização da pessoa e abre a
   página `/conectar-banco` do site num `ASWebAuthenticationSession` efêmero, nunca num WebView; o
   banco conectado volta em `piggu://banco-conectado?item=...`.
-- **Lançar gasto** (botão +): o lançamento rápido do site: valor com vírgula (`12,50`,
+- **Botão +**: abre as opções do site, Lançar gasto e Lançar receita (a mesma folha da aba
+  Receitas), de qualquer aba (D-098). A foto do recibo do site ainda não veio.
+- **Lançar gasto** (opção do +): o lançamento rápido do site: valor com vírgula (`12,50`,
   `1.234,56`) e aviso de preço acima da média, categoria (Automática ou nova), descrição, cartão
   ou débito/Pix com a conta (a última fica de padrão), a fatura em que a compra cai, à vista,
   parcelado ou recorrente, e em "Mais opções" a data, a moeda da compra (convertida pela
