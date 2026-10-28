@@ -20,4 +20,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
+    // O MonitorDeRede pede um Context de verdade.
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
