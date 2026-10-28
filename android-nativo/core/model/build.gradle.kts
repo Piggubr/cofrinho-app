@@ -6,4 +6,14 @@ plugins {
 
 dependencies {
     api(libs.kotlinx.serialization.json)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.snakeyaml)
+}
+
+// O ContratoTest confere os tipos contra o OpenAPI gerado do backend.
+tasks.test {
+    val contrato = rootDir.resolve("../docs/api")
+    inputs.dir(contrato).withPropertyName("contrato").withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("piggu.contrato", contrato.canonicalPath)
 }
