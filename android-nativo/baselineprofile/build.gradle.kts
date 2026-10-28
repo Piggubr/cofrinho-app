@@ -16,8 +16,15 @@ android {
     targetProjectPath = ":app"
     flavorDimensions += "ambiente"
     productFlavors {
-        create("demo") { dimension = "ambiente" }
-        create("producao") { dimension = "ambiente" }
+        // O pacote do app medido, lido pelo GeradorDePerfil.
+        create("demo") {
+            dimension = "ambiente"
+            testInstrumentationRunnerArguments["targetAppId"] = "br.com.piggu.app.demo"
+        }
+        create("producao") {
+            dimension = "ambiente"
+            testInstrumentationRunnerArguments["targetAppId"] = "br.com.piggu.app"
+        }
     }
 }
 

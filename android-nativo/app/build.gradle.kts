@@ -129,3 +129,9 @@ dependencies {
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
 }
+
+// O perfil gerado na demo (que entra sem backend) vale para as duas variantes: o código é o mesmo.
+baselineProfile {
+    mergeIntoMain = true
+}
+

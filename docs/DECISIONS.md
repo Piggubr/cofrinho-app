@@ -133,6 +133,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-129](#d-129-widgets-atalhos-e-bloco-das-configurações-rápidas-do-android) | Widgets, atalhos e bloco das Configurações rápidas do Android | Valendo |
 | [D-130](#d-130-tour-do-android-em-balões-que-saem-da-moldura) | Tour do Android em balões que saem da moldura | Valendo |
 | [D-131](#d-131-trava-do-android-com-1-minuto-fora-e-esconder-nos-recentes) | Trava do Android com 1 minuto fora e esconder nos recentes | Valendo |
+| [D-132](#d-132-premium-no-android-pela-compra-do-google-play-conferida-no-backend-com-a-play-developer-api) | Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1165,6 +1166,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: travar a cada ida ao fundo, como no iOS (travaria na volta do site e da câmera, e o PIN entraria em laço); travar ao sair, não ao voltar.
 - Consequências: até 1 minuto fora, o app volta sem pedir a prova. Sem o "Esconder nos recentes", a miniatura dos recentes mostra os valores.
 - Onde ver: `android-nativo/app/.../Trava.kt`, `feature/perfil/.../Biometria.kt`
+
+## D-132: Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A8. No app, a assinatura digital tem que ser pela compra do Google Play. O caminho pelo RevenueCat (`/api/billing/stores/play-store/purchases`) nunca foi configurado, e para o iPhone a D-094 do iOS (trazida para esta branch junto com o backend da Apple) já trocou o intermediário pela biblioteca da Apple.
+- Decisão: o app compra `premium_mensal` ou `premium_anual` pelo Play Billing, com o id da conta Piggu no `obfuscatedExternalAccountId`, e manda o `purchaseToken` para `POST /api/billing/google-play/purchases`. Os avisos em tempo real (RTDN) chegam pelo push autenticado do Pub/Sub em `POST /api/billing/webhooks/google-play`, provado pelo token OIDC do Google (`aud` e `email` configurados) com o mesmo `GoogleIdTokenVerifier` do login. O aviso só diz qual token consultar: o estado sempre vem de `purchases.subscriptionsv2.get` (biblioteca oficial `google-api-services-androidpublisher`, conta de serviço). A compra grava no mesmo plano da casa que a Stripe atualiza, com origem `PLAY_STORE` e `premiumAte` = `expiryTime`. Dão Premium ACTIVE, IN_GRACE_PERIOD e CANCELED (até o fim do período). A compra só vale para a conta do `obfuscatedExternalAccountId` (409 `OUTRA_CONTA`). Depois de aplicar, o backend faz o acknowledge, se pendente; se falhar, a compra vale e o próximo aviso tenta de novo. Premium vigente de outra origem (site ou Apple) não é trocado nem derrubado. Sem configuração, as rotas respondem 501 `EM_BREVE`.
+- Alternativas: o RevenueCat (mais um operador de dados e uma conta paga); conferir só no aparelho (qualquer um forjaria o Premium); confiar no conteúdo do RTDN (o aviso não traz validade nem dono).
+- Consequências: o servidor precisa de `GOOGLE_PLAY_PACOTE`, `GOOGLE_PLAY_CREDENCIAIS`, `GOOGLE_PLAY_PUSH_AUDIENCIA` e `GOOGLE_PLAY_PUSH_EMAIL`, e o Google Cloud e o Play Console precisam da conta de serviço, do tópico e da assinatura push (README do android-nativo, seção Premium). Casal e família continuam só no site.
+- Onde ver: `backend/piggu-identity/src/main/java/com/piggu/identity/billing/GooglePlayLoja.java`, `PlayDeveloperApi.java`, `CompraNoGoogleTest.java`
 
 # Processo
 
