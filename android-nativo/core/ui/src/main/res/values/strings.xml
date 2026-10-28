@@ -15,4 +15,7 @@
     <string name="abre_no_site">Abre no site do Piggu</string>
     <string name="guardado_sem_internet">Você está sem internet. Mostrando o que estava guardado de %1$s.</string>
     <string name="guardado_sem_atualizar">Não deu para atualizar. Mostrando o que estava guardado de %1$s.</string>
+    <string name="nascimento_vazio">Informe sua data de nascimento.</string>
+    <string name="nascimento_invalido">Confira a data de nascimento.</string>
+    <string name="nascimento_menor_de_idade">O Piggu é para quem tem 13 anos ou mais.</string>
 </resources>
