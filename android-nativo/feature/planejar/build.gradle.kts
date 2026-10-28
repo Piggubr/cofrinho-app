@@ -24,4 +24,6 @@ dependencies {
     // MonitorDeRede e o que mais pedir o Android nos testes de ViewModel.
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
