@@ -287,7 +287,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 |---|---|---|
 | `household_invites` | `email` (texto(320)), `invited_by` (uuid), `expires_at` | Convite para entrar na família. Único por família e e-mail; vale 7 dias e a retenção apaga os vencidos |
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
-| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). Hoje o lembrete diário só envia para `IOS`; o envio pelo FCM ainda não existe |
+| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
 | `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe, RevenueCat): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
@@ -831,7 +831,7 @@ Encontrado ao montar este documento. Os itens 3, 7 e 8 foram corrigidos em 26/10
 **Restrições que podem morder**
 
 3. ~~`push_devices.platform` só aceita `IOS`.~~ **Corrigido** (identity V36): aceita `ANDROID`,
-   e o token cresceu para 512 caracteres para caber o do FCM. Falta o envio pelo FCM.
+   e o token cresceu para 512 caracteres para caber o do FCM. O envio pelo FCM entrou em 27/10/2026 (D-091).
 4. As chaves únicas por pessoa (`product_memory`, `monthly_goals`, `category_budgets`,
    `category_rules`, `payment_accounts`) incluem `user_id`, que pode ser nulo. No Postgres, nulos
    não colidem, então registros sem dono podem se repetir (por exemplo, duas metas sem dono para o

@@ -29,7 +29,6 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - iOS, etapa 8: Premium pelo StoreKit 2, com validação no backend e o preço no iPhone decidido.
 - iOS, etapa 9: acabamento e versão 2.0.0 no TestFlight. Pelo plano, de 4 a 5 semanas com uma sessão por dia.
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
-- Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
 - Android, etapas A2 a A7: as telas, na mesma ordem do iOS.
 - Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
 - Android, etapa A9: acabamento, versão 2.0.0 e teste interno no Play.
@@ -49,6 +48,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 27/10/2026: Android, etapa A1: push no Android pelo FCM (API HTTP v1) e o ID OAuth do Android em `piggu.google.client-ids` (D-091).
 - 26/10/2026: iOS nativo, etapa 1: login para apps nativos no backend, com o refresh no corpo da resposta e Entrar com Apple (D-072).
 - 24/10/2026: login com Google no app iOS e Android pelo navegador do celular ([#79](https://github.com/Piggubr/cofrinho-app/pull/79)).
 - 24/10/2026: dependências do `npm audit` atualizadas: undici, fast-uri e vitest ([#78](https://github.com/Piggubr/cofrinho-app/pull/78)).

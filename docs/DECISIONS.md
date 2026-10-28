@@ -99,6 +99,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-076](#d-076-o-campo-de-valor-do-site-lê-igual-ao-app-nativo) | O campo de valor do site lê igual ao app nativo | Valendo |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
+| [D-091](#d-091-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -824,6 +825,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
 - Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
+
+## D-091: Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa A1 do plano Android. O app Android já registrava o token do FCM (identity V36), mas o lembrete diário só mandava para o iPhone.
+- Decisão: `CanalFcm` assina um JWT RS256 com a chave da conta de serviço (o JSON em `FCM_CONTA_DE_SERVICO`), troca por um access token no Google (reaproveitado por 50 minutos) e chama `projects/{id}/messages:send`. O lembrete manda para cada aparelho da plataforma pelo canal dela. O token é apagado só quando o FCM responde `UNREGISTERED` ou um 400 que aponta o token; um 404 sem isso (projeto errado) não apaga nada.
+- Alternativas: o Firebase Admin SDK, que traria dezenas de dependências para uma chamada HTTP que o serviço já sabe fazer, como faz com o APNs.
+- Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
+- Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
 
 # Processo
 

@@ -44,10 +44,12 @@ piggu:
   auditoria:
     rota: /api/family/history
   google:
-    # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
-    # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
+    # IDs OAuth aceitos (a audiencia do ID token do Google). O do site e, se o app Android
+    # pedir o token com o proprio client ID em vez do ID do site, o ID OAuth do tipo Android
+    # do Google Cloud. Vazio fica de fora.
     client-ids:
       - ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
+      - ${GOOGLE_CLIENT_ID_ANDROID:}
   apple:
     # Entrar com Apple (app nativo do iPhone): o Bundle ID br.com.piggu.app, e o Services ID se
     # o site ganhar o botao, separados por virgula. Vazio deixa POST /api/auth/apple em 501.
@@ -91,6 +93,9 @@ piggu:
       chave: ${APNS_CHAVE:}
       bundle-id: ${APNS_BUNDLE_ID:}
       sandbox: ${APNS_SANDBOX:false}
+    fcm:
+      # JSON da conta de servico do projeto do Firebase, em uma linha (jq -c . conta.json).
+      conta-de-servico: ${FCM_CONTA_DE_SERVICO:}
 
   assinatura:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.

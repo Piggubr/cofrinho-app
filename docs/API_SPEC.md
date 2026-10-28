@@ -61,9 +61,10 @@ Content-Type: application/json
 **Google**: o app consegue um ID token do Google e manda em `POST /api/auth/google`
 (`{ "idToken": "...", "versaoDosTermos": "...", "lembrar": true }`); a resposta é a mesma do
 login por senha. O servidor só aceita ID tokens cuja audiência esteja em
-`piggu.google.client-ids` (`GOOGLE_CLIENT_ID`): com o SDK nativo, peça o token para o client
-ID web (`serverClientID` no iOS, `requestIdToken` no Android) ou acrescente o client ID do app
-nessa lista. O app atual, que abre o site num WebView, usa o fluxo pelo navegador
+`piggu.google.client-ids` (`GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_ID_ANDROID`): com o SDK nativo,
+peça o token para o client ID web (`serverClientID` no iOS e no Credential Manager do Android)
+ou ponha o client ID do app nessa lista. O ID OAuth do tipo Android (Google Cloud, com o pacote
+`br.com.piggu.app` e o SHA-1 da chave de assinatura) entra em `GOOGLE_CLIENT_ID_ANDROID`. O app atual, que abre o site num WebView, usa o fluxo pelo navegador
 (`POST /api/auth/google/app` e `/api/auth/google/app/troca`, ver `LoginPeloNavegador`).
 
 **Renovar**: `POST /api/auth/refresh` com o cookie devolve um par novo. Renove quando
@@ -116,7 +117,7 @@ rota responde `501` com o código `EM_BREVE`.
 |---|---|
 | Refresh token no corpo da resposta e aceito no corpo de `/api/auth/refresh`, `/api/auth/logout` e `/api/auth/me/senha` | **Pronto** (26/10/2026) |
 | Entrar com Apple | **Pronto** (26/10/2026). Falta revogar o token na Apple ao apagar a conta, que a App Store exige |
-| Push no Android | **Em parte.** `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio). O envio pelo FCM ainda não existe: por enquanto só o iPhone recebe |
+| Push no Android | **Pronto** (27/10/2026). `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio), e o lembrete diário envia pela API HTTP v1 do FCM quando o servidor tem `FCM_CONTA_DE_SERVICO`. Token que o FCM diz não existir mais é apagado, como no iPhone (D-091) |
 
 ## Erros
 

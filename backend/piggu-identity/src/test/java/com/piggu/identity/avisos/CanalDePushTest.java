@@ -46,7 +46,7 @@ class CanalDePushTest {
         when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn((HttpResponse) ok);
 
         CanalDePush canal = new CanalDePush(
-                new AvisosProperties(null, new AvisosProperties.Apns("TEAM123", "KEY123", p8, "app.piggu", true)),
+                new AvisosProperties(null, new AvisosProperties.Apns("TEAM123", "KEY123", p8, "app.piggu", true), null),
                 JsonMapper.builder().build(), http, Clock.systemUTC());
         Mensagem mensagem = new Mensagem("Piggu: 1 aviso de hoje", List.of("Luz vence amanha"));
 
@@ -69,7 +69,7 @@ class CanalDePushTest {
     @Test
     @DisplayName("sem as quatro credenciais o canal fica desligado")
     void desligadoSemCredenciais() {
-        assertThat(new CanalDePush(new AvisosProperties(null, null), JsonMapper.builder().build()).ligado())
+        assertThat(new CanalDePush(new AvisosProperties(null, null, null), JsonMapper.builder().build()).ligado())
                 .isFalse();
     }
 }
