@@ -31,6 +31,4 @@ interface FilaDeGastos {
 
     suspend fun esquecerRecusados()
 
-    /** "Sair" (pelo botão): os da pessoa saem do aparelho. Sessão que só caiu não apaga. */
-    suspend fun apagarDaPessoa()
 }

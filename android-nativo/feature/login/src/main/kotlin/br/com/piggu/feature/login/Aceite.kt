@@ -37,7 +37,6 @@ data class EstadoDoAceite(val salvando: Boolean = false, val erro: MensagemDeErr
 @HiltViewModel
 class AceiteViewModel @Inject constructor(
     private val sessao: Sessao,
-    private val fila: br.com.piggu.core.data.FilaDeGastos,
 ) : ViewModel() {
     private val estadoAtual = MutableStateFlow(EstadoDoAceite())
     val estado: StateFlow<EstadoDoAceite> = estadoAtual.asStateFlow()
@@ -57,7 +56,6 @@ class AceiteViewModel @Inject constructor(
 
     fun sair() {
         viewModelScope.launch {
-            fila.apagarDaPessoa()
             sessao.sair()
         }
     }

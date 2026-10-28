@@ -34,7 +34,6 @@ import br.com.piggu.core.network.ServicoDeIdentidade
 import br.com.piggu.core.network.URL_DA_API
 import br.com.piggu.core.testing.ApiDaDemo
 import br.com.piggu.core.testing.DIA_DAS_CAPTURAS
-import br.com.piggu.core.testing.FilaNaMemoria
 import br.com.piggu.core.testing.RespostaFixa
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.core.testing.esperar
@@ -122,7 +121,7 @@ class PerfilViewModelTest {
             loja,
             viewModelFactory {
                 initializer {
-                    PerfilViewModel(sessao, servico, financas, ListasParaLancar(cache, financas, servico), preferencias, icones, FilaNaMemoria(), conectado)
+                    PerfilViewModel(sessao, servico, financas, ListasParaLancar(cache, financas, servico), preferencias, icones, conectado)
                 }
             },
         )["vm${criados++}", PerfilViewModel::class]

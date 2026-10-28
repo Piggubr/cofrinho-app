@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.EstadoDaSessao
-import br.com.piggu.core.data.FilaDeGastos
 import br.com.piggu.core.data.ListasParaLancar
 import br.com.piggu.core.data.MonitorDeRede
 import br.com.piggu.core.data.Sessao
@@ -110,7 +109,6 @@ class PerfilViewModel internal constructor(
     listas: ListasParaLancar,
     private val preferenciasDoAparelho: PreferenciasDoAparelho,
     private val icones: IconesDoApp,
-    private val fila: FilaDeGastos,
     conectado: StateFlow<Boolean>,
 ) : ViewModel() {
     @Inject constructor(
@@ -120,9 +118,8 @@ class PerfilViewModel internal constructor(
         listas: ListasParaLancar,
         preferenciasDoAparelho: PreferenciasDoAparelho,
         icones: IconesDoApp,
-        fila: FilaDeGastos,
         rede: MonitorDeRede,
-    ) : this(sessao, identidade, financas, listas, preferenciasDoAparelho, icones, fila, rede.conectado)
+    ) : this(sessao, identidade, financas, listas, preferenciasDoAparelho, icones, rede.conectado)
 
     private val estadoAtual = MutableStateFlow(formulariosDe(EstadoDoPerfil(icone = icones.atual()), sessao.usuario))
     val estado: StateFlow<EstadoDoPerfil> = estadoAtual.asStateFlow()
@@ -424,12 +421,9 @@ class PerfilViewModel internal constructor(
         }
     }
 
-    /** "Sair" pelo botão também apaga os gastos guardados sem internet desta pessoa (D-108). */
+    /** Os gastos guardados sem internet ficam para quando a pessoa entrar de novo (D-123). */
     fun sair() {
-        viewModelScope.launch {
-            fila.apagarDaPessoa()
-            sessao.sair()
-        }
+        viewModelScope.launch { sessao.sair() }
     }
 
     // Apoio.
