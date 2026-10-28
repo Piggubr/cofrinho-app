@@ -303,7 +303,7 @@ fun TelaDoPerfil(
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.perfil_titulo)) },
+                title = { Text(stringResource(R.string.perfil_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },
@@ -650,7 +650,7 @@ private fun ContasDaInstalacao(contas: Carga<List<Usuario>>, eventos: EventosDoP
                                     {},
                                     Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                                     readOnly = true,
-                                    singleLine = true,
+                                    // Sem singleLine: com a fonte grande, o papel desce de linha em vez de cortar.
                                     label = { Text(stringResource(R.string.perfil_contas_papel_de, conta.nome)) },
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(aberto) },
                                 )
@@ -717,7 +717,7 @@ private fun Escolha(rotulo: String, codigo: String, moedas: List<MoedaDisponivel
             Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, ativa),
             readOnly = true,
             enabled = ativa,
-            singleLine = true,
+            // Sem singleLine: com a fonte grande, "BRL · Real brasileiro" desce de linha em vez de cortar.
             label = { Text(rotulo) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(aberta) },
         )

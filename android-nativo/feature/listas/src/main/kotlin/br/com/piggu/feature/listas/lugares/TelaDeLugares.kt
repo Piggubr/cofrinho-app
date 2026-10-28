@@ -193,7 +193,7 @@ fun TelaDeLugares(estado: EstadoDosLugares, eventos: EventosDosLugares, modifier
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.lugares_titulo)) },
+                title = { Text(stringResource(R.string.lugares_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

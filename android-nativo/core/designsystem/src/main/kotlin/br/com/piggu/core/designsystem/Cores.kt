@@ -6,7 +6,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 internal val ChicleteClaro = lightColorScheme(
-    primary = Color(0xFFD1006B),
+    primary = Color(0xFFC60065),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFFFD9E1),
     onPrimaryContainer = Color(0xFF8E0047),
@@ -45,7 +45,7 @@ internal val ChicleteClaro = lightColorScheme(
 )
 
 internal val ChicleteEscuro = darkColorScheme(
-    primary = Color(0xFFFF5CAE),
+    primary = Color(0xFFFF64B2),
     onPrimary = Color(0xFF1F0012),
     primaryContainer = Color(0xFF8C0056),
     onPrimaryContainer = Color(0xFFFFD8E5),
@@ -708,7 +708,7 @@ internal val GrafiteEscuro = darkColorScheme(
 )
 
 internal val TangerinaClaro = lightColorScheme(
-    primary = Color(0xFFC43E00),
+    primary = Color(0xFFB73A00),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFFFDBD0),
     onPrimaryContainer = Color(0xFF832700),
@@ -864,7 +864,7 @@ internal val EletricoEscuro = darkColorScheme(
 )
 
 internal val TurquesaClaro = lightColorScheme(
-    primary = Color(0xFF007F8C),
+    primary = Color(0xFF00707B),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFF95F1FF),
     onPrimaryContainer = Color(0xFF004F57),

@@ -126,7 +126,7 @@ fun TelaDeFilmes(estado: EstadoDosFilmes, eventos: EventosDosFilmes, modifier: M
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.filmes_titulo)) },
+                title = { Text(stringResource(R.string.filmes_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

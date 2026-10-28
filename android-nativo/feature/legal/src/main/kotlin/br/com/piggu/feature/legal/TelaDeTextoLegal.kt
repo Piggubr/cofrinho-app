@@ -95,7 +95,7 @@ fun TelaDeTextoLegal(
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(estado.documento.titulo)) },
+                title = { Text(stringResource(estado.documento.titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(voltar) { Icon(painterResource(Icones.drawable.ic_esquerda), stringResource(Comum.string.voltar)) }
                 },

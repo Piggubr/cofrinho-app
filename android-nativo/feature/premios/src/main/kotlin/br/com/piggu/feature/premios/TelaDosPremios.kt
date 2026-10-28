@@ -121,7 +121,7 @@ fun TelaDosPremios(estado: EstadoDosPremios, eventos: EventosDosPremios, modifie
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.premios_titulo)) },
+                title = { Text(stringResource(R.string.premios_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

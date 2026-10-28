@@ -1,6 +1,8 @@
 package br.com.piggu.feature.planejar
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,7 +57,7 @@ fun TelaDoPlanejar(voltar: () -> Unit, abrirTela: (caminho: String) -> Unit, mod
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.planejar_titulo)) },
+                title = { Text(stringResource(R.string.planejar_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

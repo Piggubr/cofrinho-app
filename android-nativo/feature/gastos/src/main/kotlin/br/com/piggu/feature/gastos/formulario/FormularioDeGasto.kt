@@ -11,8 +11,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -348,7 +351,7 @@ private fun LinhaDoItem(estado: EstadoDoFormulario, linha: ItemDoFormulario, ind
 @Composable
 private fun ComoPagou(estado: EstadoDoFormulario, viewModel: FormularioDeGastoViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.formulario_como_pagou), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.formulario_como_pagou), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleSmall)
         Escolhas(
             listOf(FormaDePagamento.CARTAO to R.string.formulario_cartao_de_credito, FormaDePagamento.DEBITO to R.string.formulario_debito_pix),
             estado.forma,
@@ -503,12 +506,14 @@ private fun CampoDeData(data: LocalDate, aoEscolher: (LocalDate) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> Escolhas(opcoes: List<Pair<T, Int>>, escolhida: T, aoEscolher: (T) -> Unit) {
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+    // Com a fonte grande, um texto quebra em duas linhas: todos os segmentos ficam da mesma altura.
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         opcoes.forEachIndexed { indice, (valor, texto) ->
             SegmentedButton(
                 selected = valor == escolhida,
                 onClick = { aoEscolher(valor) },
                 shape = SegmentedButtonDefaults.itemShape(indice, opcoes.size),
+                modifier = Modifier.fillMaxHeight(),
             ) { Text(stringResource(texto)) }
         }
     }
