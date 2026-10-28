@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Subclasse própria: dois androidx.core FileProvider no mesmo app colidem no manifesto. -->
+        <provider
+            android:name="br.com.piggu.feature.relatorios.ArquivosDosRelatorios"
+            android:authorities="${applicationId}.relatorios.arquivos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/relatorios_arquivos" />
+        </provider>
+    </application>
+</manifest>
