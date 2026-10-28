@@ -82,6 +82,9 @@ data class EstadoDoPerfil(
     val coresDoCelular: Boolean = false,
     val voltouAoPadrao: Boolean = false,
     val icone: IconeDoApp = IconeDoApp.Padrao,
+    /** Travar com a biometria ou o bloqueio de tela, e esconder nos recentes: deste aparelho. */
+    val travar: Boolean = false,
+    val esconderNosRecentes: Boolean = false,
     val senha: FormularioDeSenha = FormularioDeSenha(),
     /** Contas da instalação: nulo para quem não é o administrador. */
     val contas: Carga<List<Usuario>>? = null,
@@ -149,6 +152,11 @@ class PerfilViewModel internal constructor(
                         voltouAoPadrao = voltou,
                     )
                 }
+            }.collect()
+        }
+        viewModelScope.launch {
+            combine(preferenciasDoAparelho.travar, preferenciasDoAparelho.esconderNosRecentes) { travar, esconder ->
+                estadoAtual.update { it.copy(travar = travar, esconderNosRecentes = esconder) }
             }.collect()
         }
         viewModelScope.launch {
@@ -322,6 +330,17 @@ class PerfilViewModel internal constructor(
         if (icone == icones.atual()) return
         icones.escolher(icone)
         estadoAtual.update { it.copy(icone = icones.atual()) }
+    }
+
+    // Segurança: deste aparelho.
+
+    /** Ligar só chega aqui depois da prova (a tela pede antes), como no iOS. */
+    fun mudarTravar(ligada: Boolean) {
+        viewModelScope.launch { preferenciasDoAparelho.mudarTravar(ligada) }
+    }
+
+    fun mudarEsconderNosRecentes(ligado: Boolean) {
+        viewModelScope.launch { preferenciasDoAparelho.mudarEsconderNosRecentes(ligado) }
     }
 
     /** O titular vai para o Premium; quem não assina pela família recebe o recado. */

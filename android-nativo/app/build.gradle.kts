@@ -84,6 +84,8 @@ dependencies {
     "demoImplementation"(projects.core.testing)
 
     implementation(libs.androidx.activity.compose)
+    // A trava do app: o BiometricPrompt pede a MainActivity como FragmentActivity.
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.process)

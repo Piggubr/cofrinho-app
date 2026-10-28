@@ -19,6 +19,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    // A trava do app: biometria ou o bloqueio de tela.
+    implementation(libs.androidx.biometric)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
