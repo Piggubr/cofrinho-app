@@ -10,6 +10,7 @@ import coil3.map.Mapper
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
 import javax.inject.Named
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -33,11 +34,15 @@ class PigguApplication : Application(), Configuration.Provider, SingletonImageLo
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(fabricaDeWorkers).build()
 
-    /** As imagens do piggu-media vão pelo mesmo OkHttp da API: com o token e, na demo, a API falsa. */
+    /**
+     * As imagens do piggu-media vão pelo OkHttp da API (com o token e, na demo, a API falsa); as de
+     * fora (catálogo de compras, pôsteres) vão por um cliente sem a sessão: o token nunca sai do Piggu.
+     */
     override fun newImageLoader(context: Context): ImageLoader = ImageLoader.Builder(context)
         .components {
             add(Mapper<AssetDoPiggu, String> { asset, _ -> urlDaImagem(urlDaApi, asset.id) })
-            add(OkHttpNetworkFetcherFactory(callFactory = { cliente }))
+            val semSessao = OkHttpClient.Builder().connectionPool(cliente.connectionPool).build()
+            add(OkHttpNetworkFetcherFactory(callFactory = { chamadasDeImagem(urlDaApi, cliente, semSessao) }))
             add(SvgDecoder.Factory())
         }
         .build()
@@ -51,4 +56,9 @@ class PigguApplication : Application(), Configuration.Provider, SingletonImageLo
             override fun onStop(owner: LifecycleOwner) = iconesDoApp.aplicarPendente()
         })
     }
+}
+
+/** Só o que é da API do Piggu vai pelo cliente com a sessão; o resto, pelo [semSessao]. */
+internal fun chamadasDeImagem(urlDaApi: String, comSessao: Call.Factory, semSessao: Call.Factory) = Call.Factory { pedido ->
+    (if (pedido.url.toString().startsWith(urlDaApi)) comSessao else semSessao).newCall(pedido)
 }
