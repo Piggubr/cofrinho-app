@@ -65,6 +65,9 @@ val DIA_DAS_CAPTURAS: java.time.Clock = java.time.ZoneId.of("America/Sao_Paulo")
     java.time.Clock.fixed(java.time.ZonedDateTime.of(2026, 10, 28, 10, 0, 0, 0, zona).toInstant(), zona)
 }
 
-/** A API falsa responde noutra thread (OkHttp): espera fora do relógio virtual do teste. */
+/**
+ * A API falsa responde noutra thread (OkHttp): espera fora do relógio virtual do teste. 30 s
+ * porque o CI do GitHub é bem mais lento que o Mac; só espera tudo isso quando algo trava.
+ */
 suspend fun <T> StateFlow<T>.esperar(condicao: (T) -> Boolean): T =
-    withContext(Dispatchers.Default) { withTimeout(5_000) { first(condicao) } }
+    withContext(Dispatchers.Default) { withTimeout(30_000) { first(condicao) } }
