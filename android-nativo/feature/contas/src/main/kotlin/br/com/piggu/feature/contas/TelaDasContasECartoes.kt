@@ -332,8 +332,8 @@ private fun CampoDeDia(rotulo: String, dia: String, aoMudar: (String) -> Unit, e
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Bancos(estado: EstadoDasContasECartoes, eventos: EventosDasContasECartoes) {
-    Cartao(stringResource(R.string.bancos_titulo)) {
-        if (estado.bancos.isEmpty()) Detalhe(stringResource(R.string.bancos_vazio))
+    Cartao(stringResource(R.string.cartoes_bancos_titulo)) {
+        if (estado.bancos.isEmpty()) Detalhe(stringResource(R.string.cartoes_bancos_vazio))
         estado.bancos.forEach { conta ->
             Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -345,19 +345,19 @@ private fun Bancos(estado: EstadoDasContasECartoes, eventos: EventosDasContasECa
         }
         estado.conexoes.forEach { (conexaoId, instituicao) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Detalhe(stringResource(R.string.bancos_conectado, instituicao), Modifier.weight(1f))
+                Detalhe(stringResource(R.string.cartoes_bancos_conectado, instituicao), Modifier.weight(1f))
                 OutlinedButton({ eventos.pedirParaDesconectar(conexaoId, instituicao) }, enabled = !estado.mexendoNosBancos) {
-                    Text(stringResource(R.string.bancos_desconectar))
+                    Text(stringResource(R.string.cartoes_bancos_desconectar))
                 }
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (estado.openFinanceLigado) {
-                OutlinedButton(eventos.conectarBanco) { Text(stringResource(R.string.bancos_conectar)) }
+                OutlinedButton(eventos.conectarBanco) { Text(stringResource(R.string.cartoes_bancos_conectar)) }
             }
             if (estado.bancos.isNotEmpty()) {
                 TextButton(eventos.atualizarBancos, enabled = !estado.mexendoNosBancos) {
-                    Text(stringResource(if (estado.mexendoNosBancos) R.string.bancos_aguarde else R.string.bancos_atualizar))
+                    Text(stringResource(if (estado.mexendoNosBancos) R.string.cartoes_bancos_aguarde else R.string.cartoes_bancos_atualizar))
                 }
             }
         }
@@ -438,7 +438,7 @@ private fun FaturaDoCartao(aberta: FaturaNaTela, estado: EstadoDasContasECartoes
 private fun Confirmar(confirmacao: Confirmacao, eventos: EventosDasContasECartoes) {
     val (pergunta, botao) = when (confirmacao) {
         is Confirmacao.ApagarConta -> stringResource(R.string.contas_apagar_pergunta, confirmacao.conta.nome) to R.string.contas_apagar
-        is Confirmacao.Desconectar -> stringResource(R.string.bancos_desconectar_pergunta, confirmacao.instituicao) to R.string.bancos_desconectar
+        is Confirmacao.Desconectar -> stringResource(R.string.cartoes_bancos_desconectar_pergunta, confirmacao.instituicao) to R.string.cartoes_bancos_desconectar
     }
     AlertDialog(
         onDismissRequest = eventos.desistir,

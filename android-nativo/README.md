@@ -36,6 +36,11 @@ plataforma que faltar.
 | `feature:gastos` | A lista do mês (busca, filtros, editar, apagar com Desfazer, divisão, regras, importar e exportar) e o formulário de gasto, com a fila sem internet |
 | `feature:receitas` | Receitas do mês, "Entram todo mês", "A receber" e o formulário de receita |
 | `feature:assistente` | A busca global e o assistente de IA do topo |
+| `feature:contasfixas` | Contas do mês: vencidas, a vencer e pagas, nova conta fixa, marcar como paga e receitas fixas |
+| `feature:orcamentos` | Orçamento: o limite do mês e os limites por categoria (Premium) |
+| `feature:calendario` | Calendário: a grade do mês, as notas e o gráfico acumulado |
+| `feature:relatorios` | Relatórios: o mês por categoria, o ano (Premium) e o CSV do mês |
+| `feature:contas` | Cartões e bancos: contas, cartões, a fatura e os bancos conectados |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
 ## Sessão e rede
@@ -86,6 +91,8 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-5](docs/prints/etapa-5): Relatórios, Contas do mês, Orçamento,
+  Calendário (lado a lado no tablet) e Cartões e bancos.
 - [docs/prints/etapa-4](docs/prints/etapa-4): Painel, Gastos, Receitas, lançar gasto, lançar
   receita, a busca e o assistente, com os dados da demonstração (o Hilt de verdade, D-112).
 - [docs/prints/etapa-3](docs/prints/etapa-3): entrar (com e sem o Google), criar conta,

@@ -97,8 +97,16 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         compose.waitForIdle()
     }
 
-    private fun capturar(nome: String) =
-        compose.onRoot().captureRoboImage("../docs/prints/etapa-4/$nome-$aparelho-$tema.png")
+    private fun capturar(nome: String, etapa: Int = 4) =
+        compose.onRoot().captureRoboImage("../docs/prints/etapa-$etapa/$nome-$aparelho-$tema.png")
+
+    /** Uma tela do Mais: no celular pela aba Mais, no tablet direto na gaveta. */
+    private fun abrirDoMais(rotulo: String) {
+        esperarCarregar()
+        if (aparelho == "celular") tocar("Mais")
+        tocar(rotulo)
+        esperarCarregar()
+    }
 
     /** A aba (barra, trilho ou gaveta) ou a opção com esse texto; o primeiro que der para tocar. */
     private fun tocar(texto: String) =
@@ -160,5 +168,38 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         compose.onNode(hasContentDescription("Assistente")).performClick()
         esperarCarregar()
         capturar("assistente")
+    }
+
+    // Etapa A5: organização.
+
+    @Test
+    fun relatorios() {
+        tocar("Relatórios")
+        esperarCarregar()
+        capturar("relatorios", 5)
+    }
+
+    @Test
+    fun contasDoMes() {
+        abrirDoMais("Contas do mês")
+        capturar("contas-do-mes", 5)
+    }
+
+    @Test
+    fun orcamento() {
+        abrirDoMais("Orçamento")
+        capturar("orcamento", 5)
+    }
+
+    @Test
+    fun calendario() {
+        abrirDoMais("Calendário")
+        capturar("calendario", 5)
+    }
+
+    @Test
+    fun cartoesEBancos() {
+        abrirDoMais("Cartões e bancos")
+        capturar("cartoes-e-bancos", 5)
     }
 }

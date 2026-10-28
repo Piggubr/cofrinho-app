@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Contas do mês (frontend/src/app/features/bills/bills.html) -->
-    <string name="contas_titulo">Contas do mês</string>
+    <string name="contasdomes_titulo">Contas do mês</string>
     <string name="contas_nova">Nova conta fixa</string>
     <string name="contas_em_aberto">Em aberto: %1$s</string>
     <string name="contas_vencidas">Vencidas</string>
@@ -10,11 +10,11 @@
     <string name="contas_lanca_sozinha">lança sozinha</string>
     <string name="contas_marcar_como_paga">Marcar como paga</string>
     <string name="contas_marcar_como_paga_de">Marcar %1$s como paga</string>
-    <string name="contas_apagar">Apagar</string>
+    <string name="contasdomes_apagar">Apagar</string>
     <string name="contas_apagar_de">Apagar %1$s</string>
-    <string name="contas_apagar_pergunta">Apagar a conta fixa \"%1$s\"? Os gastos já lançados continuam.</string>
-    <string name="contas_vazio_titulo">Nenhuma conta fixa ainda</string>
-    <string name="contas_vazio_texto">Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês.</string>
+    <string name="contasdomes_apagar_pergunta">Apagar a conta fixa \"%1$s\"? Os gastos já lançados continuam.</string>
+    <string name="contasdomes_vazio_titulo">Nenhuma conta fixa ainda</string>
+    <string name="contasdomes_vazio_texto">Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês.</string>
     <string name="contas_vazio_acao">Cadastrar a primeira conta</string>
     <string name="contas_paga_aviso">Conta lançada nos gastos.</string>
     <string name="contas_criada_aviso">Conta fixa criada.</string>

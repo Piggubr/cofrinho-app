@@ -135,7 +135,7 @@ fun TelaDasContasDoMes(estado: EstadoDasContasDoMes, eventos: EventosDasContasDo
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.contas_titulo)) },
+                title = { Text(stringResource(R.string.contasdomes_titulo)) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },
@@ -164,8 +164,8 @@ fun TelaDasContasDoMes(estado: EstadoDasContasDoMes, eventos: EventosDasContasDo
                         item {
                             Vazio(
                                 Icone.Recibo,
-                                stringResource(R.string.contas_vazio_titulo),
-                                texto = stringResource(R.string.contas_vazio_texto),
+                                stringResource(R.string.contasdomes_vazio_titulo),
+                                texto = stringResource(R.string.contasdomes_vazio_texto),
                                 acao = stringResource(R.string.contas_vazio_acao) to eventos.abrirFormulario,
                             )
                         }
@@ -318,7 +318,7 @@ private fun NovaContaFixa(estado: EstadoDasContasDoMes, eventos: EventosDasConta
 @Composable
 private fun Confirmar(confirmacao: Confirmacao, eventos: EventosDasContasDoMes) {
     val (pergunta, botao) = when (confirmacao) {
-        is Confirmacao.ApagarConta -> stringResource(R.string.contas_apagar_pergunta, confirmacao.conta.descricao) to R.string.contas_apagar
+        is Confirmacao.ApagarConta -> stringResource(R.string.contasdomes_apagar_pergunta, confirmacao.conta.descricao) to R.string.contasdomes_apagar
         is Confirmacao.PararDeRepetir -> stringResource(R.string.contas_parar_pergunta, confirmacao.fixa.descricao) to R.string.contas_parar_de_repetir
     }
     AlertDialog(

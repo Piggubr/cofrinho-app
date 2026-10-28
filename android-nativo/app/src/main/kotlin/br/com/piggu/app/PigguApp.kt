@@ -30,6 +30,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import br.com.piggu.feature.gastos.formulario.FormularioDeGasto
 import br.com.piggu.feature.receitas.TelaDeReceitas
+import br.com.piggu.feature.relatorios.TelaDeRelatorios
 import br.com.piggu.feature.receitas.FormularioDeReceita
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ModalBottomSheet
@@ -231,7 +232,13 @@ fun AppLogado(
                     if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita })
                     else AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho)
                 }
-                entry<Tela.Relatorios> { AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho) }
+                entry<Tela.Relatorios> {
+                    if (acoesDaConta) {
+                        TelaDeRelatorios(abrirPremium = { abrirNoSite(Tela.Plano.caminho) }, lancarGasto = { lancarGasto(null) })
+                    } else {
+                        AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho)
+                    }
+                }
                 entry<Tela.Mais> {
                     val exclusao: ExclusaoViewModel? = if (acoesDaConta) hiltViewModel() else null
                     TelaDoMais(

@@ -48,12 +48,12 @@
     <string name="nova_conta_falta_fechamento">Informe o dia do fechamento (1 a 31).</string>
 
     <!-- Bancos do Open Finance (cartão dos bancos do painel) -->
-    <string name="bancos_titulo">Bancos conectados</string>
-    <string name="bancos_vazio">Nenhum banco conectado.</string>
-    <string name="bancos_conectado">%1$s conectado</string>
-    <string name="bancos_desconectar">Desconectar</string>
-    <string name="bancos_desconectar_pergunta">Desconectar %1$s? O Piggu para de ler este banco e apaga os saldos guardados.</string>
-    <string name="bancos_conectar">Conectar banco</string>
-    <string name="bancos_atualizar">Atualizar saldos</string>
-    <string name="bancos_aguarde">Aguarde…</string>
+    <string name="cartoes_bancos_titulo">Bancos conectados</string>
+    <string name="cartoes_bancos_vazio">Nenhum banco conectado.</string>
+    <string name="cartoes_bancos_conectado">%1$s conectado</string>
+    <string name="cartoes_bancos_desconectar">Desconectar</string>
+    <string name="cartoes_bancos_desconectar_pergunta">Desconectar %1$s? O Piggu para de ler este banco e apaga os saldos guardados.</string>
+    <string name="cartoes_bancos_conectar">Conectar banco</string>
+    <string name="cartoes_bancos_atualizar">Atualizar saldos</string>
+    <string name="cartoes_bancos_aguarde">Aguarde…</string>
 </resources>

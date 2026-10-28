@@ -114,6 +114,11 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-110](#d-110-gastos-do-android-apagar-com-desfazer-busca-e-filtros-no-aparelho) | Gastos do Android: apagar com Desfazer, busca e filtros no aparelho | Valendo |
 | [D-111](#d-111-lançar-no-android-vários-itens-numa-folha-só-e-a-receita-pelo) | Lançar no Android: vários itens numa folha só, e a receita pelo + | Valendo |
 | [D-112](#d-112-busca-e-assistente-do-android-e-as-capturas-com-o-hilt-de-verdade) | Busca e assistente do Android, e as capturas com o Hilt de verdade | Valendo |
+| [D-113](#d-113-contas-do-mês-do-android-em-três-grupos-com-a-nova-conta-numa-folha) | Contas do mês do Android em três grupos, com a nova conta numa folha | Valendo |
+| [D-114](#d-114-orçamento-do-android-com-um-guardado-só-e-o-alerta-escrito) | Orçamento do Android com um guardado só e o alerta escrito | Valendo |
+| [D-115](#d-115-calendário-do-android-lado-a-lado-pela-largura-e-a-grade-com-limite-de-fonte) | Calendário do Android lado a lado pela largura e a grade com limite de fonte | Valendo |
+| [D-116](#d-116-relatórios-do-android-com-o-csv-do-mês-e-tabela-também-no-mês) | Relatórios do Android com o CSV do mês e tabela também no mês | Valendo |
+| [D-117](#d-117-cartões-e-bancos-do-android-fatura-numa-folha-e-conectar-banco-pelo-site) | Cartões e bancos do Android: fatura numa folha e conectar banco pelo site | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -975,6 +980,51 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: capturas só das telas sem estado, com dados escritos à mão.
 - Consequências: as capturas mostram o que a demonstração mostra; mudar os dados da demo muda as imagens.
 - Onde ver: `android-nativo/feature/assistente/`, `android-nativo/app/src/testDemo/`
+
+## D-113: Contas do mês do Android em três grupos, com a nova conta numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. O site mostra as contas numa lista só, com etiquetas, e o formulário embaixo.
+- Decisão: as contas aparecem em três cartões (Vencidas, A vencer e Pagas), e a nova conta fixa abre numa folha pelo + do topo, como no iOS. "Marcar como paga" lança o gasto do mês (`POST /api/bills/{id}/pay?mes=`). A categoria da conta usa o mesmo campo do lançar, com "+ Nova categoria…". As receitas fixas aparecem como no iOS, com "Parar de repetir".
+- Alternativas: a lista única do site.
+- Consequências: o "pagar várias de uma vez" do site e do iOS ainda não entrou; o seletor de mês não avança além do mês atual.
+- Onde ver: `android-nativo/feature/contasfixas/`
+
+## D-114: Orçamento do Android com um guardado só e o alerta escrito
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5 (`features/budgets` com `features/goals` no topo).
+- Decisão: os limites do mês, o gasto do mês e os limites por categoria são buscados juntos e guardados numa chave só (`orcamento/aaaa-mm`), para a tela abrir inteira sem internet. Os alertas de 80% e 100% aparecem também em texto, não só na cor da barra. Ver e apagar limites é livre; criar limite por categoria sem Premium mostra o convite. O mês do limite vai até 12 meses adiante.
+- Alternativas: avisos de erro separados por bloco, como o site.
+- Consequências: se uma das três buscas falha e não há nada guardado, a tela mostra o erro inteira.
+- Onde ver: `android-nativo/feature/orcamentos/`
+
+## D-115: Calendário do Android lado a lado pela largura e a grade com limite de fonte
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. O plano pedia a cena de lista e detalhe do Navigation 3 no tablet.
+- Decisão: a partir da largura média, a grade e o gráfico ficam à esquerda e o dia escolhido, a nota nova e as notas sem data à direita, numa `Row` pelo WindowSizeClass, e não numa cena do Navigation 3: o "detalhe" é só o dia, e uma pilha de navegação dentro da tela não traria nada. A grade mostra gasto, receita e lembrete do dia, e o mês avança para o futuro por causa dos lembretes. A fonte da grade para em 1,3x, e o TalkBack lê o dia inteiro (D-095 do iOS); o gráfico tem as ações de dia anterior e próximo e a tabela por semana.
+- Alternativas: a cena de lista e detalhe.
+- Consequências: a demonstração não liga notas a gastos, então o aviso de "o gasto vai junto" só aparece com dados de verdade.
+- Onde ver: `android-nativo/feature/calendario/`
+
+## D-116: Relatórios do Android com o CSV do mês e tabela também no mês
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. No site o CSV do mês sai por Gastos; o iOS o põe também em Relatórios.
+- Decisão: a aba Relatórios exporta o CSV do mês pela mesma rota (`/expenses/export`) e com o mesmo nome de arquivo do site, compartilhado por `ACTION_SEND` com um FileProvider próprio. O mês por categoria contra o anterior, com projeção, tem "Ver em tabela", como o ano; o ano mês a mês é do Premium, com o convite para os outros. Os números ficam em linhas (rótulo e valor), para aguentar fonte grande.
+- Alternativas: o CSV só em Gastos.
+- Consequências: as cores de receita (verde do site) e gasto (primária do tema) ficam no módulo até o tema ter cores de série.
+- Onde ver: `android-nativo/feature/relatorios/`
+
+## D-117: Cartões e bancos do Android: fatura numa folha e conectar banco pelo site
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. A página `/conectar-banco` do site (D-091 do iOS) só existe na `feature/ios-nativo`, não na `develop`, e o Open Finance está desligado (`PIGGU_OPEN_FINANCE`).
+- Decisão: a fatura do cartão (entre os fechamentos, porte de `fatura.ts`) abre numa folha, com "Marcar como paga" e "Desfazer" (D-085). "Conectar banco" só aparece com o Open Finance ligado e abre `/contas-e-cartoes` do site num Custom Tab, nunca num WebView; "Atualizar" e "Desconectar" aparecem sempre para quem já tem banco. Os textos de cada módulo têm nomes próprios: um teste do app falha se dois módulos usarem o mesmo nome com textos diferentes (aconteceu com `contas_titulo`).
+- Alternativas: esperar a página do site.
+- Consequências: quando `/conectar-banco` chegar à `develop`, o Android faz como o iOS: `POST /api/banking/connect-token`, a página num Custom Tab e a volta por `piggu://banco-conectado`.
+- Onde ver: `android-nativo/feature/contas/`, `android-nativo/core/ui/.../formatos/Fatura.kt`, `TextosDosModulosTest.kt`
 
 # Processo
 
