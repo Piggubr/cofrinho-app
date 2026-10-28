@@ -34,18 +34,7 @@ class PigguApplication : Application(), Configuration.Provider, SingletonImageLo
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(fabricaDeWorkers).build()
 
-    /**
-     * As imagens do piggu-media vão pelo OkHttp da API (com o token e, na demo, a API falsa); as de
-     * fora (catálogo de compras, pôsteres) vão por um cliente sem a sessão: o token nunca sai do Piggu.
-     */
-    override fun newImageLoader(context: Context): ImageLoader = ImageLoader.Builder(context)
-        .components {
-            add(Mapper<AssetDoPiggu, String> { asset, _ -> urlDaImagem(urlDaApi, asset.id) })
-            val semSessao = OkHttpClient.Builder().connectionPool(cliente.connectionPool).build()
-            add(OkHttpNetworkFetcherFactory(callFactory = { chamadasDeImagem(urlDaApi, cliente, semSessao) }))
-            add(SvgDecoder.Factory())
-        }
-        .build()
+    override fun newImageLoader(context: Context): ImageLoader = carregadorDeImagens(context, urlDaApi, cliente)
 
     override fun onCreate() {
         super.onCreate()
@@ -57,6 +46,20 @@ class PigguApplication : Application(), Configuration.Provider, SingletonImageLo
         })
     }
 }
+
+/**
+ * As imagens do piggu-media vão pelo OkHttp da API (com o token e, na demo, a API falsa); as de
+ * fora (catálogo de compras, pôsteres) vão por um cliente sem a sessão: o token nunca sai do Piggu.
+ */
+internal fun carregadorDeImagens(context: Context, urlDaApi: String, cliente: OkHttpClient): ImageLoader =
+    ImageLoader.Builder(context)
+        .components {
+            add(Mapper<AssetDoPiggu, String> { asset, _ -> urlDaImagem(urlDaApi, asset.id) })
+            val semSessao = OkHttpClient.Builder().connectionPool(cliente.connectionPool).build()
+            add(OkHttpNetworkFetcherFactory(callFactory = { chamadasDeImagem(urlDaApi, cliente, semSessao) }))
+            add(SvgDecoder.Factory())
+        }
+        .build()
 
 /** Só o que é da API do Piggu vai pelo cliente com a sessão; o resto, pelo [semSessao]. */
 internal fun chamadasDeImagem(urlDaApi: String, comSessao: Call.Factory, semSessao: Call.Factory) = Call.Factory { pedido ->

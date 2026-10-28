@@ -80,6 +80,8 @@ dependencies {
     implementation(projects.feature.familia)
     implementation(projects.feature.perfil)
     implementation(projects.feature.plano)
+    implementation(projects.feature.listas)
+    implementation(projects.feature.fotos)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 

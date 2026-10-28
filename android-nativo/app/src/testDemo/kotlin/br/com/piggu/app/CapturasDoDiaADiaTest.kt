@@ -40,6 +40,9 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import javax.inject.Inject
+import javax.inject.Named
+import coil3.SingletonImageLoader
+import okhttp3.OkHttpClient
 
 /** A conta da demonstração: Ana, titular com Premium, todos os módulos ligados. */
 private val ANA = PerfilDaMoldura(nome = "Ana Souza", email = "ana@demo.piggu.app", ehTitular = true, premium = true, modulos = null)
@@ -65,6 +68,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     @get:Rule(order = 1) val compose = createAndroidComposeRule<AtividadeDeTeste>()
 
     @Inject lateinit var sessao: Sessao
+    @Inject lateinit var cliente: OkHttpClient
+    @Inject @Named("urlDaApi") lateinit var urlDaApi: String
 
     @Before
     fun preparar() {
@@ -72,6 +77,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         if (tema == "escuro") RuntimeEnvironment.setQualifiers("+night")
         comInternet()
         hilt.inject()
+        // O HiltTestApplication não é o PigguApplication: o carregador das fotos vem daqui.
+        SingletonImageLoader.setUnsafe { carregadorDeImagens(it, urlDaApi, cliente) }
         runBlocking { sessao.entrarComSenha("ana@demo.piggu.app", "senha123", lembrar = false) }
         compose.setContent {
             CompositionLocalProvider(LocalRippleConfiguration provides null) {
@@ -253,5 +260,26 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     fun perfil() {
         abrirDoMais("Ana Souza")
         capturar("perfil", 6)
+    }
+
+    // Etapa A7: estilo de vida.
+
+    @Test
+    fun compras() {
+        abrirDoMais("Compras")
+        capturar("compras", 7)
+    }
+
+    @Test
+    fun fotos() {
+        abrirDoMais("Fotos")
+        esperarImagens()
+        capturar("fotos", 7)
+    }
+
+    /** O Coil carrega fora da thread principal: espera as fotos da API falsa chegarem. */
+    private fun esperarImagens() {
+        Thread.sleep(1_500)
+        compose.waitForIdle()
     }
 }

@@ -101,12 +101,13 @@ fun TelaDeCompras(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel: 
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
     // O leitor do Google Play services abre a câmera dele: o app não pede permissão de câmera.
-    val leitor = remember(contexto) {
+    // Criado só no toque: o ML Kit nem sempre está pronto ao abrir a tela (e não está no Robolectric).
+    val leitor by remember(contexto) { lazy {
         val formatos = GmsBarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8, Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E)
             .build()
         GmsBarcodeScanning.getClient(contexto, formatos)
-    }
+    } }
     TelaDeCompras(
         estado,
         EventosDasCompras(
@@ -203,7 +204,7 @@ private fun Formulario(estado: EstadoDasCompras, eventos: EventosDasCompras, foc
                 OutlinedTextField(
                     estado.item,
                     eventos.mudarItem,
-                    Modifier.weight(2f).focusRequester(focoNoItem),
+                    Modifier.weight(1f).focusRequester(focoNoItem),
                     label = { Text(stringResource(R.string.compras_item)) },
                     placeholder = { Text(stringResource(R.string.compras_item_exemplo)) },
                     singleLine = true,

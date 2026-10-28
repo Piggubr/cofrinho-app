@@ -240,7 +240,8 @@ private fun CartaoDaFoto(foto: FotoDoFeed, estado: EstadoDasFotos, eventos: Even
                     Modifier.weight(1f).semantics { contentDescription = descricao },
                     placeholder = { Text(stringResource(R.string.fotos_legenda)) },
                     textStyle = MaterialTheme.typography.bodyMedium,
-                    singleLine = true,
+                    // A coluna é estreita no celular: a legenda quebra a linha em vez de sumir.
+                    maxLines = 3,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { foco.clearFocus() }),
                 )
