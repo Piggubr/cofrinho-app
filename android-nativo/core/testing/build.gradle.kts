@@ -5,6 +5,9 @@ plugins {
 
 dependencies {
     api(projects.core.model)
+    // ApiDaDemo: um interceptador do OkHttp que monta o JSON sem conhecer os modelos.
+    api(libs.okhttp)
+    api(libs.kotlinx.serialization.json)
     api(libs.junit)
     api(libs.kotlinx.coroutines.test)
     api(libs.turbine)
