@@ -32,8 +32,6 @@
     <string name="voltar_ao_painel">Piggu, voltar ao Painel</string>
     <string name="busca">Buscar</string>
     <string name="assistente">Assistente</string>
-    <string name="busca_em_breve">A busca chega na próxima versão do app.</string>
-    <string name="assistente_em_breve">O assistente chega na próxima versão do app.</string>
     <string name="cotacao_referencia">Referência de bancos centrais</string>
     <string name="cotacao_desatualizada">Última cotação conhecida</string>
     <string name="lancar">Lançar gasto ou receita</string>

@@ -28,6 +28,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import br.com.piggu.feature.assistente.assistente.FolhaDoAssistente
+import br.com.piggu.feature.assistente.busca.BuscaGlobal
+import br.com.piggu.core.ui.formatos.lerValor
+import br.com.piggu.app.navegacao.lerLink
+import br.com.piggu.app.moldura.gruposVisiveis
+import br.com.piggu.app.moldura.ITENS_DO_MENU
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -128,6 +137,8 @@ fun AppLogado(
     acoesDaConta: Boolean = true,
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
+    /** O gasto de um link ou da busca (id e mês aaaa-mm), que a aba Gastos abre e depois limpa. */
+    var gastoParaAbrir by remember { mutableStateOf<Pair<String, String?>?>(null) }
 
     fun abrir(tela: Tela) {
         when {
@@ -147,7 +158,10 @@ fun AppLogado(
                 is Destino.Abrir -> abrir(destino.tela)
                 // O lançamento e o gasto chegam nativos na A4; até lá, o lançar abre no site.
                 is Destino.LancarGasto -> abrirNoSite(caminhoDoLancar(destino))
-                is Destino.VerGasto -> pilha.irPara(Tela.Gastos)
+                is Destino.VerGasto -> {
+                    gastoParaAbrir = destino.id to destino.mes
+                    pilha.irPara(Tela.Gastos)
+                }
             }
         }
     }
@@ -160,8 +174,14 @@ fun AppLogado(
         return
     }
 
+    var buscando by rememberSaveable { mutableStateOf(false) }
+    var perguntando by rememberSaveable { mutableStateOf(false) }
+    val rotulos = ITENS_DO_MENU.associate { it.tela to stringResource(it.rotulo) }
+
     Moldura(
         perfil = perfil,
+        buscar = { buscando = true },
+        perguntar = { perguntando = true },
         abaAtual = topo,
         demo = BuildConfig.FLAVOR == "demo",
         abrir = ::abrir,
@@ -194,6 +214,33 @@ fun AppLogado(
             },
         )
     }
+    if (acoesDaConta) {
+        TopoAberto(
+            perfil, rotulos,
+            buscando, { buscando = false },
+            perguntando, { perguntando = false },
+            abrirCaminho = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) },
+            abrirGasto = { id, mes -> gastoParaAbrir = id to mes; pilha.irPara(Tela.Gastos) },
+        )
+    }
+}
+
+/** A busca e o assistente do topo (D-097 do iOS); o caminho que devolvem vira uma tela. */
+@Composable
+private fun TopoAberto(
+    perfil: PerfilDaMoldura,
+    rotulos: Map<Tela, String>,
+    buscando: Boolean,
+    fecharBusca: () -> Unit,
+    perguntando: Boolean,
+    fecharAssistente: () -> Unit,
+    abrirCaminho: (String) -> Unit,
+    abrirGasto: (String, String) -> Unit,
+) {
+    val telas = gruposVisiveis(perfil.ehTitular, perfil.modulos).flatMap { it.second }
+        .mapNotNull { item -> rotulos[item.tela]?.let { it to item.tela.caminho } }
+    BuscaGlobal(telas, buscando, fecharBusca, abrirCaminho, abrirGasto)
+    FolhaDoAssistente(perguntando, fecharAssistente, abrirCaminho)
 }
 
 /** O lançamento rápido do site (/gastos?rapido=1&valor=12.50), o mesmo link do app antigo. */
