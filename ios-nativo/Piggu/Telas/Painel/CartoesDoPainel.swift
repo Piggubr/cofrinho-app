@@ -1,5 +1,4 @@
 import AuthenticationServices
-import Charts
 import SwiftUI
 
 // Os cartoes do Painel, um para cada bloco de frontend/src/app/features/dashboard, com os
@@ -351,15 +350,8 @@ struct CartaoDoCofrinho: View {
                 Faixa(texto: erro, tipo: .erro)
             }
             if cofrinho.depositos.isEmpty {
-                VStack(spacing: 8) {
-                    Label("Nenhum depósito ainda", systemImage: "banknote")
-                        .font(.sora(.subheadline, peso: .medium))
-                    Button("Fazer o primeiro depósito") { focado = true }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                VazioDoCartao(icone: "banknote", titulo: "Nenhum depósito ainda",
+                              acao: "Fazer o primeiro depósito") { focado = true }
             } else {
                 ForEach(cofrinho.depositos) { deposito in
                     LinhaDoCartao(titulo: Formatos.moeda(deposito.valor),
@@ -418,20 +410,17 @@ struct CartaoDosObjetivos: View {
                 Faixa(texto: erro, tipo: .erro)
             }
             if let objetivos = modelo.objetivos {
-                if objetivos.isEmpty {
-                    Text("Juntando para uma viagem, um sofá ou a reserva? Dê um nome, quanto e até quando, e o Piggu diz quanto guardar por mês.")
-                        .font(.sora(.footnote))
-                        .foregroundStyle(paleta.textoSuave)
-                }
                 ForEach(objetivos) { objetivo in
                     linha(objetivo)
                     Divider()
                 }
-                if modelo.podeCriarObjetivo {
-                    Button(objetivos.isEmpty ? "Criar o primeiro objetivo" : "Novo objetivo") {
-                        formulario = FormularioDeObjetivo(objetivo: nil)
-                    }
-                    .buttonStyle(.bordered)
+                if objetivos.isEmpty && modelo.podeCriarObjetivo {
+                    VazioDoCartao(icone: "target", titulo: "Nenhum objetivo ainda",
+                                  texto: "Juntando para uma viagem, um sofá ou a reserva? Dê um nome, quanto e até quando, e o Piggu diz quanto guardar por mês.",
+                                  acao: "Criar o primeiro objetivo") { formulario = FormularioDeObjetivo(objetivo: nil) }
+                } else if modelo.podeCriarObjetivo {
+                    Button("Novo objetivo") { formulario = FormularioDeObjetivo(objetivo: nil) }
+                        .buttonStyle(.bordered)
                 } else {
                     Text("No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser.")
                         .font(.sora(.footnote))
@@ -669,38 +658,13 @@ struct CartaoDasCategorias: View {
     let totais: [(categoria: String, total: Decimal)]
     let aoLancar: () -> Void
 
-    @Environment(\.paleta) private var paleta
-
     var body: some View {
         Cartao("Por categoria") {
             if totais.isEmpty {
-                VStack(spacing: 8) {
-                    Label("Nenhum gasto lançado neste mês", systemImage: "doc.text")
-                        .font(.sora(.subheadline, peso: .medium))
-                    Button("Lançar um gasto", action: aoLancar)
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                VazioDoCartao(icone: "doc.text", titulo: "Nenhum gasto lançado neste mês",
+                              acao: "Lançar um gasto", executar: aoLancar)
             } else {
-                Chart(totais, id: \.categoria) { linha in
-                    BarMark(x: .value("Total", linha.total.paraDesenho), y: .value("Categoria", linha.categoria))
-                        .foregroundStyle(paleta.serieGasto)
-                        .cornerRadius(6)
-                        .annotation(position: .trailing) {
-                            Text(Formatos.moeda(linha.total)).font(.sora(.caption)).monospacedDigit()
-                                .foregroundStyle(paleta.textoSuave)
-                        }
-                        .accessibilityLabel(linha.categoria)
-                        .accessibilityValue(Formatos.moeda(linha.total))
-                }
-                .chartXAxis(.hidden)
-                .chartXScale(domain: 0...((totais.first?.total.paraDesenho ?? 1) * 1.45))
-                .chartYAxis {
-                    AxisMarks { _ in AxisValueLabel().font(.sora(.footnote)) }
-                }
-                .frame(height: CGFloat(totais.count) * 34 + 8)
+                BarrasPorCategoria(linhas: totais.map { .init(categoria: $0.categoria, total: $0.total) })
             }
         }
     }

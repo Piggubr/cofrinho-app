@@ -46,7 +46,7 @@ struct CalendarioView: View {
         }
         .scrollContentBackground(.hidden)
         .background(paleta.fundo)
-        .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+        .comSeletorDeMes($mes)
         .navigationTitle("Calendário")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

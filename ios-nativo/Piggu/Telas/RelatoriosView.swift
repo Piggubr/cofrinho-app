@@ -52,7 +52,7 @@ struct RelatoriosView: View {
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
-            .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+            .comSeletorDeMes($mes)
             .navigationTitle("Relatórios")
             .topoDoPiggu()
             .toolbar {
@@ -99,28 +99,9 @@ struct RelatoriosView: View {
     /// Cada categoria deste mes (barra) contra o mes anterior (o traco), como o site.
     private func categorias(_ porCategoria: [ResumoDoMes.PorCategoria]) -> some View {
         Section {
-            Chart(porCategoria) { linha in
-                BarMark(x: .value("Este mês", linha.total.paraDesenho), y: .value("Categoria", linha.categoria))
-                    .foregroundStyle(paleta.serieGasto)
-                    .cornerRadius(5)
-                    .annotation(position: .trailing) {
-                        Text(Formatos.moeda(linha.total)).font(.sora(.caption)).monospacedDigit()
-                            .foregroundStyle(paleta.textoSuave)
-                    }
-                if linha.anterior > 0 {
-                    RectangleMark(x: .value("Mês anterior", linha.anterior.paraDesenho),
-                                  y: .value("Categoria", linha.categoria), width: 3, height: 20)
-                        .foregroundStyle(paleta.texto)
-                }
-            }
-            .chartXAxis(.hidden)
-            .chartXScale(domain: 0...(porCategoria.flatMap { [$0.total, $0.anterior] }.max()?.paraDesenho ?? 1) * 1.45)
-            .chartYAxis { AxisMarks { _ in AxisValueLabel().font(.sora(.footnote)) } }
-            .frame(height: CGFloat(porCategoria.count) * 36 + 8)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(porCategoria.map {
-                "\($0.categoria): \(Formatos.moeda($0.total)). Mês anterior: \(Formatos.moeda($0.anterior))"
-            }.joined(separator: ". "))
+            BarrasPorCategoria(linhas: porCategoria.map {
+                .init(categoria: $0.categoria, total: $0.total, anterior: $0.anterior)
+            })
         } header: {
             HStack(spacing: 14) {
                 Label { Text("Este mês") } icon: { Circle().fill(paleta.serieGasto).frame(width: 10) }
@@ -158,19 +139,7 @@ struct RelatoriosView: View {
         .listRowBackground(paleta.superficie)
         if ehPremium, let doAno, !doAno.porCategoria.isEmpty {
             Section("Para onde foi o dinheiro") {
-                Chart(doAno.porCategoria) { linha in
-                    BarMark(x: .value("Total", linha.total.paraDesenho), y: .value("Categoria", linha.categoria))
-                        .foregroundStyle(paleta.serieGasto)
-                        .cornerRadius(5)
-                        .annotation(position: .trailing) {
-                            Text(Formatos.moeda(linha.total)).font(.sora(.caption)).monospacedDigit()
-                                .foregroundStyle(paleta.textoSuave)
-                        }
-                }
-                .chartXAxis(.hidden)
-                .chartXScale(domain: 0...((doAno.porCategoria.first?.total.paraDesenho ?? 1) * 1.5))
-                .chartYAxis { AxisMarks { _ in AxisValueLabel().font(.sora(.footnote)) } }
-                .frame(height: CGFloat(doAno.porCategoria.count) * 34 + 8)
+                BarrasPorCategoria(linhas: doAno.porCategoria.map { .init(categoria: $0.categoria, total: $0.total) })
             }
             .listRowBackground(paleta.superficie)
         }

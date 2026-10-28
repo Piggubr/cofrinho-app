@@ -58,7 +58,7 @@ struct ContasDoMesView: View {
         }
         .scrollContentBackground(.hidden)
         .background(paleta.fundo)
-        .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+        .comSeletorDeMes($mes)
         .navigationTitle("Contas do mês")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

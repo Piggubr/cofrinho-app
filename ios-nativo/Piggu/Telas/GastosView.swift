@@ -57,12 +57,7 @@ struct GastosView: View {
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
-            .safeAreaInset(edge: .top) {
-                VStack(spacing: 4) {
-                    SeletorDeMes(mes: $mes)
-                    filtros
-                }
-            }
+            .comSeletorDeMes($mes) { filtros }
             .navigationTitle("Gastos")
             .topoDoPiggu()
             .searchable(text: $busca, prompt: Text("Buscar gastos"))
