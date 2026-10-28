@@ -2,7 +2,6 @@ package br.com.piggu.feature.login.cadastro
 import br.com.piggu.core.testing.sessaoDeTeste
 import br.com.piggu.core.testing.esperar
 
-import app.cash.turbine.test
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
@@ -56,12 +55,10 @@ class CadastroViewModelTest {
         val fixas = RespostasFixas()
         val viewModel = preenchido(fixas)
         assertEquals("529.982.247-25", viewModel.estado.value.documento)
-        viewModel.estado.test {
-            viewModel.criar()
-            val criado = ate { it.criadaPara != null }
-            assertEquals("ana@piggu.test", criado.criadaPara)
-            assertNull(criado.erro)
-        }
+        viewModel.criar()
+        val criado = viewModel.estado.esperar { it.criadaPara != null }
+        assertEquals("ana@piggu.test", criado.criadaPara)
+        assertNull(criado.erro)
         assertEquals(
             listOf(
                 "POST /api/auth/cadastro " +
@@ -128,10 +125,8 @@ class CadastroViewModelTest {
         viewModel.mudarPais("PT")
         assertEquals("PT", viewModel.estado.value.paisDoDdi)
         viewModel.mudarTelefone("912 345 678")
-        viewModel.estado.test {
-            viewModel.criar()
-            ate { it.criadaPara != null }
-        }
+        viewModel.criar()
+        viewModel.estado.esperar { it.criadaPara != null }
         val pedido = pedidosDeCadastro(fixas).single()
         assert(""""pais":"PT","documento":"52998224725","telefone":"+351 912 345 678"""" in pedido) { pedido }
     }
@@ -140,25 +135,21 @@ class CadastroViewModelTest {
     fun `VALIDACAO do servidor vai para o campo dele`() = runTest {
         val fixas = RespostasFixas("POST /api/auth/cadastro" to validacao("telefone", "Confira o celular."))
         val viewModel = preenchido(fixas)
-        viewModel.estado.test {
-            viewModel.criar()
-            val recusado = ate { !it.enviando && it.erro != null }
-            assertEquals(CampoDoCadastro.Telefone, recusado.campoComProblema)
-            assertEquals(MensagemDeErro.DoServidor("Confira o celular."), recusado.erro)
-            assertNull(recusado.criadaPara)
-        }
+        viewModel.criar()
+        val recusado = viewModel.estado.esperar { !it.enviando && it.erro != null }
+        assertEquals(CampoDoCadastro.Telefone, recusado.campoComProblema)
+        assertEquals(MensagemDeErro.DoServidor("Confira o celular."), recusado.erro)
+        assertNull(recusado.criadaPara)
     }
 
     @Test
     fun `SENHA_FRACA do servidor vai para a senha`() = runTest {
         val fixas = RespostasFixas("POST /api/auth/cadastro" to RespostasFixas.erro(422, "SENHA_FRACA", "Essa senha é fácil demais."))
         val viewModel = preenchido(fixas)
-        viewModel.estado.test {
-            viewModel.criar()
-            val recusado = ate { !it.enviando && it.erro != null }
-            assertEquals(CampoDoCadastro.Senha, recusado.campoComProblema)
-            assertEquals(MensagemDeErro.DoServidor("Essa senha é fácil demais."), recusado.erro)
-        }
+        viewModel.criar()
+        val recusado = viewModel.estado.esperar { !it.enviando && it.erro != null }
+        assertEquals(CampoDoCadastro.Senha, recusado.campoComProblema)
+        assertEquals(MensagemDeErro.DoServidor("Essa senha é fácil demais."), recusado.erro)
     }
 
     @Test
@@ -172,11 +163,9 @@ class CadastroViewModelTest {
         viewModel.mudarTelefone("11999998888")
         viewModel.mudarDocumento("52998224725")
         viewModel.mudarAceite(true)
-        viewModel.estado.test {
-            viewModel.criar()
-            val recusado = ate { !it.enviando && it.erro != null }
-            assertNull(recusado.campoComProblema)
-            assertEquals(MensagemDeErro.DoApp(Rede.string.erro_sem_conexao), recusado.erro)
-        }
+        viewModel.criar()
+        val recusado = viewModel.estado.esperar { !it.enviando && it.erro != null }
+        assertNull(recusado.campoComProblema)
+        assertEquals(MensagemDeErro.DoApp(Rede.string.erro_sem_conexao), recusado.erro)
     }
 }

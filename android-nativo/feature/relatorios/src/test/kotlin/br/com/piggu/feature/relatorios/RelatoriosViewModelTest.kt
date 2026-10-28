@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
@@ -131,20 +130,18 @@ class RelatoriosViewModelTest {
         val maior = ano.meses.flatMap { listOf(it.receitas, it.gastos) }.max()
         assertEquals(1f, estado.fracaoDoAno(maior))
 
-        relatorios.estado.test {
-            assertFalse(awaitItem().tabelaDoAno)
-            relatorios.alternarTabelaDoAno()
-            assertTrue(awaitItem().tabelaDoAno)
-            relatorios.alternarTabelaDoMes()
-            assertTrue(awaitItem().tabelaDoMes)
-            relatorios.focarMes(9)
-            assertEquals(9, awaitItem().mesEmFoco)
-            relatorios.focarMes(9) // tocar de novo fecha a dica
-            assertNull(awaitItem().mesEmFoco)
-            relatorios.alternarTabelaDoAno()
-            assertFalse(awaitItem().tabelaDoAno)
-            cancelAndIgnoreRemainingEvents()
-        }
+        // Os toques mudam o estado na hora: lê o valor, sem contar emissões.
+        assertFalse(relatorios.estado.value.tabelaDoAno)
+        relatorios.alternarTabelaDoAno()
+        assertTrue(relatorios.estado.value.tabelaDoAno)
+        relatorios.alternarTabelaDoMes()
+        assertTrue(relatorios.estado.value.tabelaDoMes)
+        relatorios.focarMes(9)
+        assertEquals(9, relatorios.estado.value.mesEmFoco)
+        relatorios.focarMes(9) // tocar de novo fecha a dica
+        assertNull(relatorios.estado.value.mesEmFoco)
+        relatorios.alternarTabelaDoAno()
+        assertFalse(relatorios.estado.value.tabelaDoAno)
 
         relatorios.focarMes(3)
         relatorios.mudarMes("2025-12")

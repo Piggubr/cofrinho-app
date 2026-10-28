@@ -44,8 +44,13 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import javax.inject.Inject
 import javax.inject.Named
+import coil3.EventListener
 import coil3.SingletonImageLoader
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
 import okhttp3.OkHttpClient
+import java.util.concurrent.ConcurrentHashMap
 
 /** A conta da demonstração: Ana, titular com Premium, todos os módulos ligados. */
 private val ANA = PerfilDaMoldura(nome = "Ana Souza", email = "ana@demo.piggu.app", ehTitular = true, premium = true, modulos = null)
@@ -74,6 +79,16 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     @Inject lateinit var cliente: OkHttpClient
     @Inject @Named("urlDaApi") lateinit var urlDaApi: String
 
+    /** As imagens que o Coil começou e ainda não terminou. */
+    private val imagensNoAr = ConcurrentHashMap.newKeySet<ImageRequest>()
+
+    private val contarImagens = object : EventListener() {
+        override fun onStart(request: ImageRequest) { imagensNoAr += request }
+        override fun onSuccess(request: ImageRequest, result: SuccessResult) { imagensNoAr -= request }
+        override fun onError(request: ImageRequest, result: ErrorResult) { imagensNoAr -= request }
+        override fun onCancel(request: ImageRequest) { imagensNoAr -= request }
+    }
+
     @Before
     fun preparar() {
         RuntimeEnvironment.setQualifiers(if (aparelho == "celular") RobolectricDeviceQualifiers.Pixel7 else RobolectricDeviceQualifiers.MediumTablet)
@@ -81,7 +96,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         comInternet()
         hilt.inject()
         // O HiltTestApplication não é o PigguApplication: o carregador das fotos vem daqui.
-        SingletonImageLoader.setUnsafe { carregadorDeImagens(it, urlDaApi, cliente) }
+        SingletonImageLoader.setUnsafe { carregadorDeImagens(it, urlDaApi, cliente).newBuilder().eventListener(contarImagens).build() }
         runBlocking { sessao.entrarComSenha("ana@demo.piggu.app", "senha123", lembrar = false) }
         compose.setContent {
             CompositionLocalProvider(LocalRippleConfiguration provides null) {
@@ -101,12 +116,21 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         shadowOf(conectividade).setNetworkCapabilities(conectividade.activeNetwork, capacidades)
     }
 
-    /** Espera a API falsa (outra thread) responder e o esqueleto sair. */
+    /**
+     * Espera a API falsa (outra thread) responder tudo e o esqueleto sair. Os nomes da família, os
+     * bancos e os avisos chegam em cargas à parte: espera nenhum pedido ficar no ar, duas vezes
+     * seguidas, porque uma resposta pode puxar outro pedido.
+     */
     private fun esperarCarregar() {
-        compose.waitUntil(15_000) {
-            compose.onAllNodes(hasContentDescription("Carregando…")).fetchSemanticsNodes().isEmpty()
+        var quieto = 0
+        while (quieto < 2) {
+            compose.waitUntil(15_000) {
+                cliente.dispatcher.runningCallsCount() == 0 &&
+                    compose.onAllNodes(hasContentDescription("Carregando…")).fetchSemanticsNodes().isEmpty()
+            }
+            compose.waitForIdle()
+            quieto = if (cliente.dispatcher.runningCallsCount() == 0) quieto + 1 else 0
         }
-        compose.waitForIdle()
     }
 
     private fun capturar(nome: String, etapa: Int = 4) =
@@ -308,9 +332,16 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         captureScreenRoboImage("../docs/prints/etapa-7/tour-$aparelho-$tema.png")
     }
 
-    /** O Coil carrega fora da thread principal: espera as fotos da API falsa chegarem. */
+    /**
+     * O Coil carrega fora da thread principal: espera as fotos da API falsa chegarem e aparecerem.
+     * Duas vezes, porque uma imagem pode entrar na tela depois da primeira espera. Tela sem foto
+     * (os filmes da demo não têm pôster) passa direto.
+     */
     private fun esperarImagens() {
-        Thread.sleep(1_500)
+        repeat(2) {
+            compose.waitForIdle()
+            compose.waitUntil(15_000) { imagensNoAr.isEmpty() }
+        }
         compose.waitForIdle()
     }
 }

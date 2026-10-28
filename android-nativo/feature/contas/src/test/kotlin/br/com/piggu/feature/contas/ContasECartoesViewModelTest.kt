@@ -1,7 +1,6 @@
 package br.com.piggu.feature.contas
 
 import androidx.lifecycle.ViewModelStore
-import app.cash.turbine.test
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.model.ContaOuCartao
 import br.com.piggu.core.model.TipoDeConta
@@ -71,35 +70,30 @@ class ContasECartoesViewModelTest {
     fun `cartao novo pede nome e dias, o fechamento acompanha o vencimento e vai compartilhado`() = runTest {
         val montagem = montar(pasta.root, loja)
         val contas = montagem.contas()
-        // Tudo carregado antes: o Turbine só vê o que o formulário muda.
+        // Tudo carregado antes: nenhuma carga muda o formulário no meio.
         contas.estado.esperar { it.lista != null && it.temCompanhia && it.openFinanceLigado && it.bancos.isNotEmpty() }
 
-        contas.estado.test {
-            awaitItem()
-            contas.salvar()
-            awaitItem().let {
-                assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_nome), it.erro)
-                assertEquals(CampoDaConta.Nome, it.faltou)
-            }
-            contas.mudarNome(" Visa ")
-            awaitItem()
-            contas.salvar()
-            awaitItem().let {
-                assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_vencimento), it.erro)
-                assertEquals(CampoDaConta.Vencimento, it.faltou)
-            }
-            contas.mudarVencimento("12")
-            assertEquals("5", awaitItem().fechamento)
-            contas.mudarVencimento("20")
-            assertEquals("13", awaitItem().fechamento)
-            contas.mudarFechamento("40")
-            awaitItem()
-            contas.salvar()
-            assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_fechamento), awaitItem().erro)
-            contas.mudarVencimento("25")
-            assertEquals("40", awaitItem().fechamento) // mudado à mão: não acompanha mais
-            cancelAndIgnoreRemainingEvents()
+        // A validação muda o estado na hora, sem ir à rede: lê o valor, sem contar emissões.
+        contas.salvar()
+        contas.estado.value.let {
+            assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_nome), it.erro)
+            assertEquals(CampoDaConta.Nome, it.faltou)
         }
+        contas.mudarNome(" Visa ")
+        contas.salvar()
+        contas.estado.value.let {
+            assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_vencimento), it.erro)
+            assertEquals(CampoDaConta.Vencimento, it.faltou)
+        }
+        contas.mudarVencimento("12")
+        assertEquals("5", contas.estado.value.fechamento)
+        contas.mudarVencimento("20")
+        assertEquals("13", contas.estado.value.fechamento)
+        contas.mudarFechamento("40")
+        contas.salvar()
+        assertEquals(MensagemDeErro.DoApp(R.string.nova_conta_falta_fechamento), contas.estado.value.erro)
+        contas.mudarVencimento("25")
+        assertEquals("40", contas.estado.value.fechamento) // mudado à mão: não acompanha mais
         assertTrue(montagem.pedidos("POST /api/accounts").isEmpty())
 
         contas.mudarFechamento("18")

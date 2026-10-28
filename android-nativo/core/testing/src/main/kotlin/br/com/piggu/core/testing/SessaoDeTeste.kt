@@ -16,10 +16,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 private object SemCifra : Cifra {
     override fun cifrar(claro: ByteArray) = claro
@@ -83,3 +86,11 @@ suspend fun <T> StateFlow<T>.esperar(condicao: (T) -> Boolean): T =
             @Suppress("UNREACHABLE_CODE") value
         }
     }
+
+/**
+ * Guarda cada estado que passa pelo fluxo até o fim do teste, para conferir um estado de passagem
+ * (o "salvando" de um botão) sem contar emissões: uma carga em segundo plano pode emitir no meio.
+ * O estado final se espera com [esperar].
+ */
+fun <T> TestScope.estadosDe(fluxo: StateFlow<T>): List<T> =
+    CopyOnWriteArrayList<T>().also { lista -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { fluxo.collect { lista += it } } }

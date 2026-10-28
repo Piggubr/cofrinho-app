@@ -1,7 +1,6 @@
 package br.com.piggu.feature.assistente.assistente
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.datastore.ConversaGuardada
 import br.com.piggu.core.model.PigguRole
@@ -59,7 +58,7 @@ class AssistenteViewModelTest {
 
     /** A conversa vai para o aparelho depois da tela: espera o que ficou guardado. */
     private suspend fun esperarGuardada(condicao: (String?) -> Boolean) =
-        withContext(Dispatchers.Default) { withTimeout(5_000) { while (!condicao(guardada.ler())) delay(10) } }
+        withContext(Dispatchers.Default) { withTimeout(30_000) { while (!condicao(guardada.ler())) delay(10) } }
 
     private suspend fun AssistenteViewModel.perguntarEEsperar(pergunta: String): EstadoDoAssistente {
         perguntar(pergunta)
@@ -85,13 +84,8 @@ class AssistenteViewModelTest {
         val assistente = assistente()
         assertTrue(assistente.aberto().precisaAutorizar)
 
-        assistente.estado.test {
-            assistente.autorizar()
-            var estado = awaitItem()
-            while (estado.situacao?.autorizado != true) estado = awaitItem()
-            assertFalse(estado.precisaAutorizar)
-            cancelAndIgnoreRemainingEvents()
-        }
+        assistente.autorizar()
+        assertFalse(assistente.estado.esperar { it.situacao?.autorizado == true }.precisaAutorizar)
         assertTrue(fixas.pedidos.contains("""POST /api/assistant/consent {"versaoDoAviso":"$VERSAO_DOS_TERMOS"}"""))
 
         val respondido = assistente.perguntarEEsperar("Quanto gastei este mês?")

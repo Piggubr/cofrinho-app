@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.ehAdmin
@@ -132,19 +131,15 @@ class GirlsMathViewModelTest {
         entrar()
         val girlsMath = girlsMath()
         girlsMath.estado.esperar { it.prontos != null }
-        girlsMath.estado.test {
-            awaitItem()
-            girlsMath.guardar()
-            awaitItem().let {
-                assertEquals(CampoDoGirlsMath.Produto, it.faltou)
-                assertEquals(MensagemDeErro.DoApp(R.string.girlsmath_falta_produto), it.erro)
-            }
-            girlsMath.mudarProduto("  Vestido ")
-            awaitItem()
-            girlsMath.guardar()
-            assertEquals(CampoDoGirlsMath.Valor, awaitItem().faltou)
-            cancelAndIgnoreRemainingEvents()
+        // A validação muda o estado na hora, sem ir à rede: lê o valor, sem contar emissões.
+        girlsMath.guardar()
+        girlsMath.estado.value.let {
+            assertEquals(CampoDoGirlsMath.Produto, it.faltou)
+            assertEquals(MensagemDeErro.DoApp(R.string.girlsmath_falta_produto), it.erro)
         }
+        girlsMath.mudarProduto("  Vestido ")
+        girlsMath.guardar()
+        assertEquals(CampoDoGirlsMath.Valor, girlsMath.estado.value.faltou)
         assertTrue(pedidos("POST /api/girls-math").isEmpty())
 
         girlsMath.mudarLoja("   ")
