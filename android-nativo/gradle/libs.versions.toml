@@ -32,6 +32,12 @@ credentials = "1.6.0"
 googleid = "1.2.1"
 snakeyaml = "2.6"
 exifinterface = "1.4.2"
+# A7 (conferidas em 28/10/2026).
+coil = "3.6.3"
+glance = "1.2.0"
+biometric = "1.1.0"
+codeScanner = "16.1.0"
+documentScanner = "16.0.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -90,6 +96,14 @@ roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose"
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+play-services-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "codeScanner" }
+play-services-document-scanner = { module = "com.google.android.gms:play-services-mlkit-document-scanner", version.ref = "documentScanner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

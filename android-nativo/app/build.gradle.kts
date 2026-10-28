@@ -59,6 +59,9 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.ui)
     implementation(projects.core.data)
+    // O carregador de imagens do Coil usa o OkHttp da sessão; o SVG é o das fotos da demonstração.
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
     implementation(projects.feature.login)
     implementation(projects.feature.legal)
     implementation(projects.feature.painel)
