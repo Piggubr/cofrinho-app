@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compras (features/shopping). Os nomes começam por compras_: Lugares e Filmes ficam no mesmo módulo. -->
+<resources>
+    <string name="compras_titulo">Compras</string>
+    <string name="compras_aba_compras">Compras</string>
+    <string name="compras_aba_desejos">Desejos</string>
+    <string name="compras_item">Item</string>
+    <string name="compras_item_exemplo">Ex.: Ovos</string>
+    <string name="compras_quantidade">Quantidade</string>
+    <string name="compras_quantidade_exemplo">Ex.: 12</string>
+    <string name="compras_adicionar">Adicionar</string>
+    <string name="compras_buscar_no_catalogo">Buscar no catálogo</string>
+    <string name="compras_busca_exemplo">Nome do produto</string>
+    <string name="compras_buscar">Buscar</string>
+    <string name="compras_buscando">Buscando…</string>
+    <string name="compras_ler_codigo">Ler código de barras</string>
+    <string name="compras_adicionar_produto">Adicionar %1$s à lista</string>
+    <string name="compras_a_comprar">A comprar</string>
+    <string name="compras_no_carrinho">Já no carrinho</string>
+    <string name="compras_vazio_titulo">Lista vazia</string>
+    <string name="compras_vazio_texto">Anote o que falta em casa e marque conforme for comprando.</string>
+    <string name="compras_vazio_acao">Adicionar item</string>
+    <string name="compras_apagar_de">Apagar %1$s</string>
+    <string name="compras_falta_item">Digite o que deseja adicionar.</string>
+    <string name="compras_busca_curta">Digite pelo menos duas letras.</string>
+    <string name="compras_leitor_indisponivel">O leitor de código de barras não abriu neste aparelho. Busque pelo nome do produto.</string>
+</resources>
