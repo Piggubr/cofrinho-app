@@ -8,6 +8,8 @@ import androidx.annotation.StringRes
 import br.com.piggu.core.datastore.PreferenciasDoAparelho
 import br.com.piggu.core.designsystem.VarianteDeCor
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -55,6 +57,11 @@ class IconesDoApp @Inject constructor(
     /** O escolhido: o que espera o app sair da frente ou, sem nada esperando, o que está ligado. */
     fun atual(): IconeDoApp = pendente() ?: ligado()
 
+    private val escolhidoAgora by lazy { MutableStateFlow(atual()) }
+
+    /** [atual] que muda na hora da escolha: a marca do topo acompanha (D-097 do iOS). */
+    val escolhido: StateFlow<IconeDoApp> get() = escolhidoAgora
+
     /** O padrão vem ligado no manifesto e os outros desligados: o ligado é o outro que estiver ligado. */
     private fun ligado(): IconeDoApp = IconeDoApp.entries.firstOrNull {
         it != IconeDoApp.Padrao && pacotes.getComponentEnabledSetting(componente(it)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -67,6 +74,7 @@ class IconesDoApp @Inject constructor(
     fun escolher(icone: IconeDoApp) {
         if (icone == ligado()) guardado.edit().remove(CHAVE).apply()
         else guardado.edit().putString(CHAVE, icone.id).apply()
+        escolhidoAgora.value = icone
     }
 
     /** O app chama ao sair da frente (ProcessLifecycleOwner): troca o atalho do lançador. */

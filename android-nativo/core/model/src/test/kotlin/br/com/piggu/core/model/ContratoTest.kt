@@ -33,6 +33,7 @@ class ContratoTest {
         Triple("identity", "CadastroRequest", PedidoDeCadastro.serializer()),
         Triple("identity", "RefreshRequest", PedidoDeRefresh.serializer()),
         Triple("identity", "DefinirSenhaRequest", PedidoDeSenha.serializer()),
+        Triple("identity", "CompraNoGoogleRequest", PedidoDeCompraDoGooglePlay.serializer()),
         Triple("identity", "ConfirmarEmailRequest", PedidoComToken.serializer()),
         Triple("identity", "EsqueciSenhaRequest", PedidoDeEmail.serializer()),
         Triple("identity", "ConviteRequest", PedidoDeEmail.serializer()),
@@ -156,6 +157,12 @@ class ContratoTest {
     private val foraDoApp = setOf(
         // Entrar com Apple é só do iPhone.
         "identity/AppleLoginRequest",
+        // A compra da Apple é só do iPhone.
+        "identity/CompraNaAppleRequest",
+        // Avisos das lojas: servidor para servidor (App Store e Pub/Sub do Google Play).
+        "identity/AvisoDaAppleRequest",
+        "identity/AvisoDoGoogleRequest",
+        "identity/MensagemDoPubSub",
         // Login pelo navegador do app Capacitor; o nativo usa o SDK do Google.
         "identity/TrocaRequest",
         "identity/TrocaResponse",

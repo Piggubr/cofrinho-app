@@ -122,7 +122,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-118](#d-118-tour-do-android-em-diálogos-no-primeiro-acesso-e-pelo-perfil) | Tour do Android em diálogos, no primeiro acesso e pelo Perfil | Substituída por D-130 |
 | [D-119](#d-119-o-ícone-do-app-troca-quando-a-pessoa-sai-do-app) | O ícone do app troca quando a pessoa sai do app | Valendo |
 | [D-120](#d-120-metas-prêmios-e-girls-math-do-android-criar-e-editar-numa-folha) | Metas, Prêmios e Girls Math do Android: criar e editar numa folha | Valendo |
-| [D-121](#d-121-premium-do-android-sem-a-stripe-em-breve-até-a-a8) | Premium do Android sem a Stripe: "Em breve" até a A8 | Valendo |
+| [D-121](#d-121-premium-do-android-sem-a-stripe-em-breve-até-a-a8) | Premium do Android sem a Stripe: "Em breve" até a A8 | Substituída por D-133 |
 | [D-122](#d-122-perfil-do-android-com-o-que-estava-no-mais) | Perfil do Android com o que estava no Mais | Valendo |
 | [D-123](#d-123-sair-do-android-guarda-a-fila-como-no-ios) | "Sair" do Android guarda a fila, como no iOS | Valendo |
 | [D-124](#d-124-compras-do-android-com-leitor-de-código-de-barras) | Compras do Android com leitor de código de barras | Valendo |
@@ -134,6 +134,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-130](#d-130-tour-do-android-em-balões-que-saem-da-moldura) | Tour do Android em balões que saem da moldura | Valendo |
 | [D-131](#d-131-trava-do-android-com-1-minuto-fora-e-esconder-nos-recentes) | Trava do Android com 1 minuto fora e esconder nos recentes | Valendo |
 | [D-132](#d-132-premium-no-android-pela-compra-do-google-play-conferida-no-backend-com-a-play-developer-api) | Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API | Valendo |
+| [D-133](#d-133-premium-do-android-pelo-google-play-billing-e-o-stripe-fora-do-app) | Premium do Android pelo Google Play Billing, e o Stripe fora do app | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1070,7 +1071,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-121: Premium do Android sem a Stripe: "Em breve" até a A8
 - Data: 28/10/2026
-- Situação: Valendo
+- Situação: Substituída por D-133
 - Contexto: etapa A6. A regra de pagamentos do Google Play não deixa o app abrir outro meio de pagamento para um produto digital. A compra pelo Google Play Billing fica para a A8.
 - Decisão: a tela do Premium (`features/plan`) é só do titular, como o `perfilGuard` do site. Ela mostra o plano e os preços, e onde o site tem "Assinar" mostra "Em breve". O checkout e o Portal do Cliente da Stripe nunca abrem no app: quem assinou pelo site lê que deve trocar o cartão ou cancelar pelo navegador. O cancelamento com reembolso nos 7 dias (CDC art. 49) continua no app, como no site.
 - Alternativas: abrir o checkout num Custom Tab (contra a regra do Google Play); esconder a tela até a A8.
@@ -1175,6 +1176,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o RevenueCat (mais um operador de dados e uma conta paga); conferir só no aparelho (qualquer um forjaria o Premium); confiar no conteúdo do RTDN (o aviso não traz validade nem dono).
 - Consequências: o servidor precisa de `GOOGLE_PLAY_PACOTE`, `GOOGLE_PLAY_CREDENCIAIS`, `GOOGLE_PLAY_PUSH_AUDIENCIA` e `GOOGLE_PLAY_PUSH_EMAIL`, e o Google Cloud e o Play Console precisam da conta de serviço, do tópico e da assinatura push (README do android-nativo, seção Premium). Casal e família continuam só no site.
 - Onde ver: `backend/piggu-identity/src/main/java/com/piggu/identity/billing/GooglePlayLoja.java`, `PlayDeveloperApi.java`, `CompraNoGoogleTest.java`
+
+## D-133: Premium do Android pelo Google Play Billing, e o Stripe fora do app
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A8. A D-121 deixava "Em breve" no lugar de assinar até a compra pelo Google Play. No Brasil, o Google Play aceita o faturamento alternativo (user choice billing) para apps que não são jogos: o sistema próprio ao lado do Google Play, com a tela de escolha, as APIs de faturamento alternativo, o relatório de cada venda em até 24 h, e a taxa só 4 pontos menor (cerca de 11% em vez de 15% nas assinaturas). O programa novo de 2026 (links externos com 10%) ainda não inclui o Brasil.
+- Decisão: o app usa a Google Play Billing Library 9.1.0 com as assinaturas `premium_mensal` e `premium_anual`, cada uma com um plano básico, e a oferta de teste grátis quando a pessoa tem direito. A compra leva o id da conta Piggu no `obfuscatedAccountId` e o `purchaseToken` vai ao backend (D-132); a tela só mostra o Premium depois da resposta dele, e o app nunca faz acknowledge. A compra que não chegou ao backend vai sozinha quando a tela abre, e "Restaurar compras" manda todas as ativas. Pagamento pendente só avisa; cancelar não é erro. O preço é o do Google Play (sem ele, o `app` do `/billing/plan`). Quem já é Premium pelo site, pela Apple ou pela casa vê o plano e nenhum botão de compra; quem assinou pelo Google Play gerencia nas assinaturas do Google Play. Casal e família continuam só no site, e o app diz que não os vende, sem apontar o site. O Stripe não é oferecido no app, e nenhum link do app leva ao `/plano` do site: os pedidos de "/plano" abrem a tela nativa.
+- Alternativas: oferecer o Stripe no app pelo faturamento alternativo do Brasil (pagaria cerca de 11% ao Google mais a taxa da Stripe, quase o mesmo que os 15% do Google Play, com a tela de escolha, o relatório diário e o PCI por nossa conta); o RevenueCat.
+- Consequências: no Play Console falta criar as duas assinaturas com os preços do app (R$ 22,89 e R$ 228,85). Até lá, a compra responde "Não foi possível falar com o Google Play". Substitui a D-121.
+- Onde ver: `android-nativo/feature/plano/` (`LojaDoGooglePlay.kt`, `PlanoViewModel.kt`), `android-nativo/app/src/{producao,demo}/.../ModuloDaVariante.kt`
 
 # Processo
 
