@@ -14,6 +14,10 @@ dependencies {
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(libs.androidx.core.ktx)
+    // Photo Picker e câmera (rememberLauncherForActivityResult).
+    implementation(libs.androidx.activity.compose)
+    // Põe a foto da câmera em pé (o ExifInterface do sistema tem falhas nas versões antigas).
+    implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
