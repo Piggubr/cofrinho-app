@@ -34,7 +34,8 @@ class FormularioDeReceitaViewModelTest {
     }
 
     /** Espera as categorias e a família chegarem, para o Turbine só ver o que o teste faz. */
-    private suspend fun FormularioDeReceitaViewModel.pronto() = estado.esperar { it.categorias.isNotEmpty() && it.temCompanhia }
+    // "Salário" já vem escolhida antes da lista chegar: espera a lista inteira.
+    private suspend fun FormularioDeReceitaViewModel.pronto() = estado.esperar { it.opcoesDeCategoria.size > 1 && it.temCompanhia }
 
     @Test
     fun `lanca a receita com a categoria de salario, limpa o formulario e avisa as outras telas`() = runTest {
