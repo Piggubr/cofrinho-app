@@ -14,4 +14,69 @@
     <string name="login_criar_conta">Criar conta</string>
     <string name="login_falta_email_e_senha">Informe seu e-mail e sua senha.</string>
     <string name="login_nao_entrou">Não foi possível entrar.</string>
+    <string name="login_entrar_ou_criar">Entrar ou criar conta</string>
+    <string name="login_google">Fazer login com o Google</string>
+    <string name="login_google_falhou">Não consegui abrir o login do Google. Entre com e-mail e senha.</string>
+    <string name="login_ou">ou</string>
+    <string name="login_conta_criada">Conta criada. Mandamos um link para confirmar o seu e-mail; depois, é só entrar.</string>
+    <string name="login_falta_pouco">Falta pouco para criar sua conta.</string>
+    <string name="login_li_e_aceito">Li e aceito os Termos de Uso e o Aviso de Privacidade.</string>
+    <string name="login_criar_minha_conta">Criar minha conta</string>
+    <string name="voltar">Voltar</string>
+    <string name="termos_de_uso">Termos de Uso</string>
+    <string name="aviso_de_privacidade">Aviso de Privacidade</string>
+
+    <!-- Aceite (features/aceite) -->
+    <string name="aceite_titulo">Os Termos mudaram</string>
+    <string name="aceite_subtitulo">Atualizamos os Termos de Uso e o Aviso de Privacidade. Para seguir usando o Piggu, leia e aceite a versão nova.</string>
+    <string name="aceite_o_que_mudou">O que mudou</string>
+    <string name="aceite_mudanca_1">Na família, cada pessoa usa todas as telas e vê só o que lançou e os gastos divididos com ela.</string>
+    <string name="aceite_mudanca_2">O titular e o parceiro (o casal) veem tudo um do outro e o que lança quem tem de 13 a 17 anos. Por isso pedimos a data de nascimento, e é preciso ter pelo menos 13 anos para ter conta.</string>
+    <string name="aceite_mudanca_3">Quem sai da família, ou é removido, leva o que lançou. Quem exclui a conta tem o que lançou apagado.</string>
+    <string name="aceite_leia">Leia os Termos de Uso e o Aviso de Privacidade completos (versão %1$s).</string>
+    <string name="aceite_aceitar">Aceitar e continuar</string>
+    <string name="sair">Sair</string>
+    <string name="aceite_excluir">Não concordo: excluir minha conta</string>
+
+    <!-- Excluir a conta (aceite.ts e profile.ts) -->
+    <string name="excluir_titulo">Excluir minha conta</string>
+    <string name="excluir_texto">Excluir sua conta apaga tudo o que você lançou. Se você for a última pessoa da família, tudo da família é apagado. Se outras pessoas ficarem, as categorias que você criou ficam com elas, sem o seu nome. Uma assinatura Premium feita por você é cancelada. Isso não tem volta. Digite EXCLUIR para confirmar.</string>
+    <string name="excluir_palavra">EXCLUIR</string>
+    <string name="excluir_campo">Digite EXCLUIR</string>
+    <string name="excluir_confirmar">Excluir</string>
+    <string name="excluindo">Excluindo…</string>
+    <string name="cancelar">Cancelar</string>
+
+    <!-- Confirmar e-mail (features/confirmar-email) -->
+    <string name="confirmar_confirmando">Confirmando seu e-mail…</string>
+    <string name="confirmar_ok_titulo">E-mail confirmado</string>
+    <string name="confirmar_ok_texto">Pronto, seu e-mail está confirmado no Piggu.</string>
+    <string name="confirmar_erro_titulo">Não deu para confirmar</string>
+    <string name="abrir_o_piggu">Abrir o Piggu</string>
+    <string name="confirme_o_email_titulo">Confirme seu e-mail</string>
+    <string name="confirme_o_email_texto">Seu e-mail ainda não foi confirmado. Abra o link que mandamos para %1$s (ou entre uma vez pelo Google com ele); só então dá para aceitar convite de família.</string>
+    <string name="reenviar">Reenviar e-mail de confirmação</string>
+    <string name="reenviado">Mandamos um link novo. Ele vale por 24 horas.</string>
+
+    <!-- Esqueci e redefinir a senha (features/redefinir-senha) -->
+    <string name="esqueci_titulo">Esqueci minha senha</string>
+    <string name="esqueci_subtitulo">Informe o e-mail da sua conta e mandamos um link para criar uma senha nova.</string>
+    <string name="esqueci_mandar">Mandar o link</string>
+    <string name="esqueci_enviado">Se %1$s tem conta no Piggu, mandamos um link para criar uma senha nova. Ele vale por 1 hora. Confira também a caixa de spam.</string>
+    <string name="esqueci_confira_o_email">Confira o e-mail.</string>
+    <string name="esqueci_nao_pediu">Não foi possível pedir o link.</string>
+    <string name="voltar_para_entrar">Voltar para entrar</string>
+    <string name="redefinir_titulo">Senha nova</string>
+    <string name="redefinir_subtitulo">Escolha a senha que você vai usar para entrar no Piggu.</string>
+    <string name="redefinir_senha_nova">Senha nova</string>
+    <string name="redefinir_dica">Pelo menos 8 caracteres, com letras e números.</string>
+    <string name="redefinir_repita">Repita a senha</string>
+    <string name="redefinir_salvar">Salvar a senha nova</string>
+    <string name="redefinir_diferentes">As duas senhas não são iguais.</string>
+    <string name="redefinir_nao_salvou">Não foi possível salvar a senha nova.</string>
+    <string name="redefinir_ok_titulo">Senha nova salva</string>
+    <string name="redefinir_ok_texto">Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova.</string>
+    <string name="redefinir_vencido_titulo">Link vencido</string>
+    <string name="redefinir_vencido_texto">Este link venceu ou já foi usado. Peça outro e use em até 1 hora.</string>
+    <string name="redefinir_pedir_outro">Pedir outro link</string>
 </resources>
