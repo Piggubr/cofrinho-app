@@ -1,6 +1,6 @@
 import XCTest
 
-/// O teclado fecha ao tocar fora, e a busca e o assistente do topo abrem as telas.
+/// O teclado fecha ao tocar fora, o + lanca gasto ou receita, e a busca e o assistente do topo abrem as telas.
 final class TopoETecladoUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -23,6 +23,15 @@ final class TopoETecladoUITests: XCTestCase {
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
         app.navigationBars["Lançar gasto"].staticTexts["Lançar gasto"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
+    }
+
+    /// O + abre as opcoes, como no site: a receita sai de qualquer aba.
+    @MainActor
+    func testMaisLancaReceita() {
+        let app = abrirApp()
+        app.buttons["Lançar"].firstMatch.tap()
+        app.buttons["Lançar receita"].tap()
+        XCTAssertTrue(app.navigationBars["Nova receita"].waitForExistence(timeout: 5))
     }
 
     @MainActor

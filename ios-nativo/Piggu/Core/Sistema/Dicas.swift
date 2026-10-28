@@ -24,7 +24,7 @@ enum Dicas {
     struct Lancar: Tip {
         var title: Text { Text("Lance pelo +") }
         var message: Text? {
-            Text("Gasto de qualquer tela, sem sair de onde está. Dá para ler a nota pela câmera e o Piggu preenche para você.")
+            Text("Gasto ou receita de qualquer tela, sem sair de onde está. No gasto, dá para ler a nota pela câmera e o Piggu preenche para você.")
         }
         var image: Image? { Image(systemName: "plus.circle") }
     }

@@ -69,7 +69,7 @@ struct ReceitasView: View {
             .refreshable { await carregar() }
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
             .sheet(isPresented: $lancando) {
-                NovaReceitaView(temCompanhia: membros.count > 1) { mensagem, data in
+                NovaReceitaView { mensagem, data in
                     erro = nil
                     aviso = mensagem
                     // Mostra o mes em que a receita entrou.

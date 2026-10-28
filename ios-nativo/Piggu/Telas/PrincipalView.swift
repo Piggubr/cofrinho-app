@@ -1,8 +1,8 @@
 import SwiftUI
 import TipKit
 
-/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante, a folha de
-/// lancar gasto, compartilhada pelas abas, e o aviso curto depois de lancar.
+/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante, as folhas de
+/// lancar gasto e receita, compartilhadas pelas abas, e o aviso curto depois de lancar.
 ///
 /// Os gastos guardados sem internet sobem quando a rede volta (e ao abrir o app).
 struct PrincipalView: View {
@@ -13,6 +13,7 @@ struct PrincipalView: View {
     @Environment(MonitorDeRede.self) private var rede
     @State private var aba = PrincipalView.abaInicial
     @State private var lancamento: PedidoDeLancamento? = PrincipalView.lancarAoAbrir ? .init(valor: nil) : nil
+    @State private var lancandoReceita = false
     /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
     @State private var versaoDosDados = 0
     @State private var aviso: String?
@@ -36,6 +37,12 @@ struct PrincipalView: View {
                     versaoDosDados += 1
                     avisar(mensagem)
                     Task { await AtualizadorDoSistema.atualizar(sessao) }
+                }
+            }
+            .sheet(isPresented: $lancandoReceita) {
+                NovaReceitaView { mensagem, _ in
+                    versaoDosDados += 1
+                    avisar(mensagem)
                 }
             }
             .overlay(alignment: .top) {
@@ -114,24 +121,31 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }.comBotaoDeLancar(lancar)
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var gastos: some View {
         GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir) { versaoDosDados += 1 }
-            .comBotaoDeLancar(lancar)
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var receitas: some View {
-        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }.comBotaoDeLancar(lancar)
+        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var relatorios: some View {
-        RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar).comBotaoDeLancar(lancar)
+        RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar)
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private func lancar() {
         lancamento = PedidoDeLancamento(valor: nil)
+    }
+
+    private func lancarReceita() {
+        lancandoReceita = true
     }
 
     private func abrir(_ rota: Rota?) {
@@ -174,10 +188,10 @@ struct PedidoDeLancamento: Identifiable {
 private extension View {
     /// O + flutua sobre a lista, acima da barra de abas; a lista ganha folga embaixo para o
     /// ultimo item nao ficar escondido atras dele.
-    func comBotaoDeLancar(_ acao: @escaping () -> Void) -> some View {
+    func comBotaoDeLancar(gasto: @escaping () -> Void, receita: @escaping () -> Void) -> some View {
         contentMargins(.bottom, 88, for: .scrollContent)
             .overlay(alignment: .bottomTrailing) {
-                BotaoDeLancar(acao: acao)
+                BotaoDeLancar(gasto: gasto, receita: receita)
                     .popoverTip(Dicas.Lancar(), arrowEdge: .bottom)
             }
     }

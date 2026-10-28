@@ -1012,3 +1012,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: uma aba própria para o assistente, que tirava espaço de outra aba; o botão OK sobre o teclado numérico, que o iOS 27 não mostrou numa folha (`ToolbarItemGroup(placement: .keyboard)`).
 - Consequências: o link de um gasto aceita o mês (`piggu://gastos?id=...&mes=aaaa-mm`); sem ele, continua o mês atual, como no Spotlight. Na demonstração o assistente responde com um texto de exemplo.
 - Onde ver: `ios-nativo/Piggu/Telas/Topo/`, `ios-nativo/Piggu/Core/Sistema/Janela.swift`, `ios-nativo/PigguUITests/TopoETecladoUITests.swift`
+
+## D-098: O + do iOS nativo abre as opções, como no site
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: no app Capacitor, o + abre um balão com Lançar gasto, Lançar receita e Foto do recibo. No nativo, o + abria direto o gasto, e a receita só saía pelo botão da aba Receitas. O Dudu sentiu falta no teste do iPhone.
+- Decisão: o + vira um menu com Lançar gasto e Lançar receita, de qualquer aba. A receita abre a mesma folha da aba Receitas, que agora busca a família ela mesma, para saber se mostra "Compartilhada". A foto do recibo fica para um PR à parte, porque precisa de câmera, permissão e consentimento, e no gasto o nativo já lê a nota pela câmera.
+- Alternativas: tocar no + lança gasto e segurar abre o menu, que é mais rápido para o gasto, mas esconde a receita; o + da aba Receitas lançar receita, que muda o botão conforme a aba.
+- Consequências: o gasto passa a pedir um toque a mais pelo +. O atalho, a Siri, o widget e o link `piggu://gasto` continuam abrindo o gasto direto.
+- Onde ver: `ios-nativo/Piggu/Core/Design/Vidro.swift` (`BotaoDeLancar`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/PigguUITests/TopoETecladoUITests.swift`

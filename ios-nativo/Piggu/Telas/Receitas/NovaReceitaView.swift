@@ -3,7 +3,6 @@ import SwiftUI
 /// Nova receita (formulario-de-receita.ts): valor, descricao, categoria, data, se entra
 /// sozinha todo mes e, com mais gente na casa, se e compartilhada.
 struct NovaReceitaView: View {
-    let temCompanhia: Bool
     /// Mensagem e o mes em que a receita entrou.
     let aoLancar: (String, Date) -> Void
 
@@ -14,6 +13,8 @@ struct NovaReceitaView: View {
     @State private var descricao = ""
     @State private var categoria = "Salário"
     @State private var categorias: [String] = []
+    /// Abre do + de qualquer aba, entao busca a familia ela mesma.
+    @State private var temCompanhia = false
     @State private var data = Date()
     @State private var repetir = false
     /// So na recorrente: o salario que entra em duas vezes; o valor acima e a 1a parcela (D-087).
@@ -85,7 +86,13 @@ struct NovaReceitaView: View {
                     Button("Lançar receita") { Task { await lancar() } }.disabled(salvando)
                 }
             }
-            .task { categorias = (try? await sessao.cliente.categoriasDeReceita()) ?? [] }
+            .task {
+                let cliente = sessao.cliente
+                async let categorias = try? cliente.categoriasDeReceita()
+                async let membros = try? cliente.verFamilia().membros
+                self.categorias = await categorias ?? []
+                temCompanhia = (await membros?.count ?? 0) > 1
+            }
         }
     }
 
