@@ -145,6 +145,12 @@ class Sessao @Inject constructor(
         tokenNovo(acesso)
     }
 
+    /** Um serviço recusou com 403 CADASTRO_PENDENTE: a raiz do app passa a mostrar o "Sobre você". */
+    fun cadastroPendente() {
+        val atual = usuario ?: return
+        if (atual.cadastroCompleto != false) estadoAtual.value = EstadoDaSessao.Logado(atual.copy(cadastroCompleto = false))
+    }
+
     /** Apaga a conta no servidor e sai deste aparelho. */
     suspend fun excluirConta() {
         identidade.get().excluirConta()

@@ -73,6 +73,10 @@ data class PerfilDaMoldura(
     /** "1 BRL = US$ 0,1786", quando a cotação está ligada no Perfil. */
     val cotacao: String? = null,
     val cotacaoDesatualizada: Boolean = false,
+    /** Falso: o Mais mostra o aviso de confirmar, com o reenviar. Ausente conta como confirmado. */
+    val emailConfirmado: Boolean = true,
+    /** Falso: o Mais oferece informar o documento (opcional), como o Perfil do site. */
+    val cpfInformado: Boolean = true,
 )
 
 /** Como o menu aparece pela largura da janela (WindowSizeClass). */

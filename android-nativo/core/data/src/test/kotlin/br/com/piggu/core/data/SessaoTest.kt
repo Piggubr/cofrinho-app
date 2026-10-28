@@ -76,6 +76,7 @@ class SessaoTest {
                         refreshValido = "r-novo-$n"
                         MockResponse(200, body = tokens("novo-$n", refreshValido))
                     }
+                    "/api/expenses" -> MockResponse(403, body = """{"erro":"Complete o cadastro.","codigo":"CADASTRO_PENDENTE"}""")
                     "/api/auth/logout" -> MockResponse(204).also { synchronized(logouts) { logouts += corpo } }
                     "/api/auth/me" ->
                         if (request.headers["Authorization"] == "Bearer novo-${renovacoes.get()}" && renovacoes.get() > 0) MockResponse(200, body = USUARIO)
@@ -183,6 +184,15 @@ class SessaoTest {
         assertEquals(EstadoDaSessao.Deslogado, sessao.estado.value)
         assertNull(cofre.refresh())
         assertTrue(cache.guardadas.isEmpty())
+    }
+
+    @Test
+    fun `403 CADASTRO_PENDENTE leva ao Sobre voce`() = runTest {
+        val (sessao, _) = novaSessao()
+        naRede { sessao.entrarComSenha("ana@piggu.com.br", "senha", lembrar = true) }
+        val retrofit = ModuloDaRede.retrofit(servidor.url("/api/").toString(), ModuloDaRede.okHttp("2.0.0", AvisoDeVersao(), AutenticacaoDaSessao(sessao)), JsonDoPiggu)
+        runCatching { naRede { ModuloDaRede.financas(retrofit).listarGastos("2026-10") } }
+        assertEquals(Pendencia.SobreVoce, (sessao.estado.value as EstadoDaSessao.Logado).usuario.pendencia)
     }
 
     @Test

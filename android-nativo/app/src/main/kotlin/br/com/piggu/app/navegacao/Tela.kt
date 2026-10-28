@@ -14,20 +14,22 @@ sealed interface Tela : NavKey {
     val caminho: String
     val nativa: Boolean get() = false
 
-    // Entrada, fora da moldura. Só o login é nativo nesta etapa; o resto chega na A3.
+    // Entrada, fora da moldura (A3): nativas.
     @Serializable data object Entrar : Tela { override val caminho = "/entrar"; override val nativa = true }
-    @Serializable data object Privacidade : Tela { override val caminho = "/privacidade" }
-    @Serializable data object Termos : Tela { override val caminho = "/termos" }
+    @Serializable data object Privacidade : Tela { override val caminho = "/privacidade"; override val nativa = true }
+    @Serializable data object Termos : Tela { override val caminho = "/termos"; override val nativa = true }
     @Serializable data class ConfirmarEmail(val token: String) : Tela {
         override val caminho get() = "/confirmar-email?token=$token"
+        override val nativa get() = true
     }
-    @Serializable data object EsqueciSenha : Tela { override val caminho = "/esqueci-senha" }
+    @Serializable data object EsqueciSenha : Tela { override val caminho = "/esqueci-senha"; override val nativa = true }
     @Serializable data class RedefinirSenha(val token: String) : Tela {
         override val caminho get() = "/redefinir-senha?token=$token"
+        override val nativa get() = true
     }
-    @Serializable data object Aceite : Tela { override val caminho = "/aceite" }
-    @Serializable data object SobreVoce : Tela { override val caminho = "/sobre-voce" }
-    @Serializable data object Cpf : Tela { override val caminho = "/cpf" }
+    @Serializable data object Aceite : Tela { override val caminho = "/aceite"; override val nativa = true }
+    @Serializable data object SobreVoce : Tela { override val caminho = "/sobre-voce"; override val nativa = true }
+    @Serializable data object Cpf : Tela { override val caminho = "/cpf"; override val nativa = true }
 
     // Abas da barra (abas-nativas.ts e shell.ts): nativas, com o conteúdo chegando na A4.
     @Serializable data object Painel : Tela { override val caminho = "/painel"; override val nativa = true }
@@ -63,7 +65,8 @@ sealed interface Tela : NavKey {
         /** As abas, na ordem da barra do celular. */
         val abas: List<Tela> = listOf(Painel, Gastos, Receitas, Relatorios, Mais)
 
-        /** Rotas abertas, sem sessão (as que o site abre sem o autenticadoGuard). */
-        val abertas: Set<Tela> = setOf(Entrar, Privacidade, Termos, EsqueciSenha)
+        /** Abrem sem sessão (as rotas do site sem o autenticadoGuard). */
+        fun aberta(tela: Tela) = tela in setOf(Entrar, Privacidade, Termos, EsqueciSenha) ||
+            tela is ConfirmarEmail || tela is RedefinirSenha
     }
 }

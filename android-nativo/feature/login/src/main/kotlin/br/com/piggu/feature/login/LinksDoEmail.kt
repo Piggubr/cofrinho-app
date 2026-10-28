@@ -1,6 +1,8 @@
 package br.com.piggu.feature.login
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -122,6 +124,38 @@ class ReenvioViewModel @Inject constructor(private val sessao: Sessao) : ViewMod
                 EstadoDoReenvio(enviado = true)
             } catch (falha: ErroDaApi) {
                 EstadoDoReenvio(erro = mensagemDeErro(falha))
+            }
+        }
+    }
+}
+
+/** O aviso do Perfil do site para quem ainda não confirmou o e-mail, com o reenviar. */
+@Composable
+fun AvisoDeConfirmarEmail(email: String, modifier: Modifier = Modifier, viewModel: ReenvioViewModel = hiltViewModel()) {
+    val estado by viewModel.estado.collectAsStateWithLifecycle()
+    AvisoDeConfirmarEmail(email, estado, viewModel::reenviar, modifier)
+}
+
+@Composable
+fun AvisoDeConfirmarEmail(email: String, estado: EstadoDoReenvio, reenviar: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.compose.material3.Card(
+        modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+    ) {
+        androidx.compose.foundation.layout.Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        ) {
+            Text(stringResource(R.string.confirme_o_email_titulo), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.confirme_o_email_texto, email), style = MaterialTheme.typography.bodyMedium)
+            when {
+                estado.enviado -> TextoDeSucesso(stringResource(R.string.reenviado))
+                else -> {
+                    estado.erro?.let { TextoDeErro(it.texto(LocalContext.current)) }
+                    androidx.compose.material3.OutlinedButton(reenviar, enabled = !estado.enviando) {
+                        Text(stringResource(R.string.reenviar))
+                    }
+                }
             }
         }
     }

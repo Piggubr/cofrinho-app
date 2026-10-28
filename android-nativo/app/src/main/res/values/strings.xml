@@ -59,12 +59,9 @@
     <!-- Avisos da sessão -->
     <string name="cor_voltou_ao_padrao">O Premium acabou, então a cor voltou para o padrão.</string>
 
-    <!-- Pendências da conta (aceite e cadastro chegam nativos na A3) -->
-    <string name="pendente_termos_titulo">Os Termos mudaram</string>
-    <string name="pendente_termos_texto">Para continuar, aceite a versão nova dos Termos de Uso e do Aviso de Privacidade no site. Depois, volte aqui.</string>
-    <string name="pendente_cadastro_titulo">Falta pouco</string>
-    <string name="pendente_cadastro_texto">Complete o seu cadastro (como quer ser chamado, nascimento, CPF e celular) no site. Depois, volte aqui.</string>
-    <string name="pendente_ja_fiz">Já fiz, conferir</string>
+    <string name="excluir_minha_conta">Excluir minha conta</string>
+    <string name="cpf_nao_informado">Documento ainda não informado (opcional).</string>
+    <string name="cpf_informar_agora">Informar agora</string>
 
     <!-- Atualize o app (426 ATUALIZE_O_APP) -->
     <string name="atualize_titulo">Atualize o Piggu</string>

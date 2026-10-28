@@ -1,6 +1,7 @@
 package br.com.piggu.core.data
 
 import br.com.piggu.core.network.AutenticacaoDaRede
+import br.com.piggu.core.network.lerCorpoDeErro
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -31,7 +32,12 @@ class AutenticacaoDaSessao @Inject constructor(private val sessao: Sessao) : Aut
         val pedido = corrente.request()
         if (pedido.aberta()) return@Interceptor corrente.proceed(pedido)
         val token = sessao.acesso ?: runBlocking { sessao.tokenNovo(null) }
-        corrente.proceed(if (token == null) pedido else pedido.comToken(token))
+        val resposta = corrente.proceed(if (token == null) pedido else pedido.comToken(token))
+        // O token diz "cadastro incompleto" (D-088): o app leva para o "Sobre você".
+        if (resposta.code == 403 && lerCorpoDeErro(resposta.peekBody(16 * 1024L).string())?.codigo == "CADASTRO_PENDENTE") {
+            sessao.cadastroPendente()
+        }
+        resposta
     }
 
     override val autenticador = object : Authenticator {
