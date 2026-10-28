@@ -7,9 +7,16 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+android {
+    testOptions.unitTests.all { it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED") }
+}
+
 dependencies {
     implementation(projects.core.designsystem)
-    implementation(projects.core.datastore)
+    // O resumo vem da sessão e da API (AtualizadorDoWidget) e sai formatado como no app.
+    implementation(projects.core.data)
+    implementation(projects.core.ui)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)

@@ -82,6 +82,8 @@ dependencies {
     implementation(projects.feature.plano)
     implementation(projects.feature.listas)
     implementation(projects.feature.fotos)
+    // Widgets, o bloco das Configurações rápidas e o resumo que eles leem (A7).
+    implementation(projects.widget)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 
