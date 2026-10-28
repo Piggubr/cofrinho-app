@@ -70,6 +70,13 @@ dependencies {
     implementation(projects.feature.calendario)
     implementation(projects.feature.relatorios)
     implementation(projects.feature.contas)
+    implementation(projects.feature.metas)
+    implementation(projects.feature.girlsmath)
+    implementation(projects.feature.planejar)
+    implementation(projects.feature.premios)
+    implementation(projects.feature.familia)
+    implementation(projects.feature.perfil)
+    implementation(projects.feature.plano)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 
