@@ -105,6 +105,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-101](#d-101-contrato-da-api-no-android-datas-em-texto-números-em-bigdecimal-e-enum-desconhecido) | Contrato da API no Android: datas em texto, números em BigDecimal e enum desconhecido | Valendo |
 | [D-102](#d-102-visual-do-android-13-cores-cor-no-aparelho-e-material-symbols) | Visual do Android: 13 cores, cor no aparelho e Material Symbols | Valendo |
 | [D-103](#d-103-cache-do-android-respostas-da-api-em-json-no-room) | Cache do Android: respostas da API em JSON no Room | Valendo |
+| [D-104](#d-104-google-no-android-pelo-credential-manager-com-o-botão-escondido-até-o-id-do-android-existir) | Google no Android pelo Credential Manager, com o botão escondido até o ID do Android existir | Valendo |
+| [D-105](#d-105-etapa-a3-do-android-a-entrada-nativa-fora-da-moldura) | Etapa A3 do Android: a entrada nativa, fora da moldura | Valendo |
+| [D-106](#d-106-termos-e-aviso-do-android-copiados-do-site-pelo-ci) | Termos e Aviso do Android copiados do site pelo CI | Valendo |
+| [D-107](#d-107-formulários-da-entrada-no-android-com-o-erro-no-campo) | Formulários da entrada no Android com o erro no campo | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -885,6 +889,42 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: uma tabela por tipo, que só vale quando alguma tela precisar consultar o cache (busca sem internet, por exemplo).
 - Consequências: nenhuma migração de banco por enquanto.
 - Onde ver: `android-nativo/core/database/`, `android-nativo/core/data/.../Carga.kt`, `Repositorios.kt`
+
+## D-104: Google no Android pelo Credential Manager, com o botão escondido até o ID do Android existir
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A3 do plano Android. O Google no Android só autoriza um app com um ID OAuth do tipo Android (pacote e SHA-1 da chave) no mesmo projeto do Google Cloud do ID do site, e esse ID ainda não foi criado. Sem ele, o login falha com `DEVELOPER_ERROR`.
+- Decisão: o app usa o Sign in with Google do Credential Manager, com `serverClientId` igual ao ID do site, então o `aud` do ID token é o que o backend já confere (D-084) e o servidor não muda. O botão só aparece com `piggu.googleNoAndroid=true` (Gradle); até lá, só e-mail e senha. Na primeira vez, o TERMOS_NECESSARIOS pede o aceite na própria tela, como o site. Depois de entrar com a senha, o app oferece guardá-la no gerenciador de senhas do aparelho; ao sair, esquece a conta do Google escolhida.
+- Alternativas: o Google pelo navegador, como o app Capacitor (#79), que pede o vai e volta pelo `piggu://`; mostrar o botão e deixar falhar.
+- Consequências: com o ID OAuth do Android criado (os passos estão no PR #107), basta ligar a propriedade e gerar o app de novo. `GOOGLE_CLIENT_ID_ANDROID` no servidor continua opcional.
+- Onde ver: `android-nativo/feature/login/.../Credenciais.kt`, `LoginViewModel.kt`, `android-nativo/feature/login/build.gradle.kts`
+
+## D-105: Etapa A3 do Android: a entrada nativa, fora da moldura
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A3 (login, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta). O Perfil, onde o site oferece reenviar a confirmação, informar o CPF e excluir a conta, só fica nativo mais adiante, e o Google Play exige excluir a conta dentro do app.
+- Decisão: as telas da entrada são telas cheias, sem a moldura, numa pilha própria: sem sessão (login e as telas abertas), com uma pendência (o aceite ou o "Sobre você", na ordem do `auth.guard.ts`) e por cima das abas (termos, CPF, links do e-mail). Um 403 `CADASTRO_PENDENTE` de qualquer serviço marca a conta como incompleta e leva ao "Sobre você". Os App Links passam a cobrir `/confirmar-email`, `/redefinir-senha`, `/esqueci-senha`, `/termos`, `/privacidade` e `/cpf`. Até o Perfil nativo, o Mais mostra o aviso de confirmar o e-mail com o reenviar, o "Informar agora" do documento e "Excluir minha conta", com o texto do site e a palavra EXCLUIR.
+- Alternativas: mandar essas três ações do Mais para o site, que pede login de novo no Custom Tab e não cumpre a regra do Google Play.
+- Consequências: o Perfil nativo leva as três ações para ele e o Mais volta a ficar como o site.
+- Onde ver: `android-nativo/app/.../Entrada.kt`, `PigguApp.kt`, `android-nativo/core/data/.../AutenticacaoDaSessao.kt`, `android-nativo/feature/login/`
+
+## D-106: Termos e Aviso do Android copiados do site pelo CI
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: a D-083 do iOS: o app mostra os Termos e o Aviso sem internet e sem login, com o texto do site.
+- Decisão: `android-nativo/scripts/textos-legais.py` gera `Termos.md` e `Privacidade.md` em `feature/legal/src/main/assets/`, no mesmo formato do iOS, e o CI do Android falha se ficarem diferentes do HTML do site. A tela tem um sumário "Nesta página" que leva a cada seção, e as linhas das tabelas viram cartões. O script corrige um `}` que o do iOS deixa num título do Aviso.
+- Alternativas: abrir o site, que pede internet.
+- Consequências: mudou o texto no site, roda o script e faz o commit no mesmo PR. Vale levar a correção do `}` para o script do iOS.
+- Onde ver: `android-nativo/scripts/textos-legais.py`, `android-nativo/feature/legal/`, `.github/workflows/android-nativo.yml`
+
+## D-107: Formulários da entrada no Android com o erro no campo
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: no site, criar conta, "Sobre você" e CPF mostram um aviso só no topo.
+- Decisão: no app, o primeiro campo com problema ganha o foco, a borda vermelha e a mensagem embaixo; um erro do servidor também vai para o campo (o primeiro de `campos` no `VALIDACAO`, ou pelo código: `IDADE_MINIMA`, `SENHA_FRACA`, `TELEFONE_INVALIDO`, `CPF_NECESSARIO`, `CPF_EM_USO`). Sem campo (sem internet, erro genérico), o aviso fica no topo. As validações e a ordem são as do site; o nascimento sai de um calendário que não deixa escolher o futuro, e a tela do CPF não tem "Sair", como no iOS.
+- Alternativas: o aviso único no topo, como o site.
+- Consequências: o leitor de tela lê o erro junto do campo certo.
+- Onde ver: `android-nativo/feature/login/.../cadastro/`, `sobrevoce/`, `cpf/`, `android-nativo/core/ui/.../formatos/`
 
 # Processo
 

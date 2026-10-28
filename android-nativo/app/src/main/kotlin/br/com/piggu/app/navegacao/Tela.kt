@@ -62,8 +62,11 @@ sealed interface Tela : NavKey {
     @Serializable data object NaoEncontrada : Tela { override val caminho = "/nao-encontrada"; override val nativa = true }
 
     companion object {
-        /** As abas, na ordem da barra do celular. */
-        val abas: List<Tela> = listOf(Painel, Gastos, Receitas, Relatorios, Mais)
+        /**
+         * As abas, na ordem da barra do celular. Getter, e não campo: carregar uma das telas antes
+         * inicializa a interface (métodos default do Kotlin 2), e o campo veria a tela ainda nula.
+         */
+        val abas: List<Tela> get() = listOf(Painel, Gastos, Receitas, Relatorios, Mais)
 
         /** Abrem sem sessão (as rotas do site sem o autenticadoGuard). */
         fun aberta(tela: Tela) = tela in setOf(Entrar, Privacidade, Termos, EsqueciSenha) ||

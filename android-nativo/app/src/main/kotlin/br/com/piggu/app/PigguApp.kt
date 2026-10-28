@@ -124,6 +124,8 @@ fun AppLogado(
     avisos: SnackbarHostState,
     abrirNoSite: (String) -> Unit,
     sair: () -> Unit,
+    // Excluir a conta e reenviar a confirmação têm ViewModel do Hilt; as capturas desligam.
+    acoesDaConta: Boolean = true,
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
 
@@ -177,17 +179,17 @@ fun AppLogado(
                 entry<Tela.Receitas> { AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho) }
                 entry<Tela.Relatorios> { AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho) }
                 entry<Tela.Mais> {
-                    val exclusao: ExclusaoViewModel = hiltViewModel()
+                    val exclusao: ExclusaoViewModel? = if (acoesDaConta) hiltViewModel() else null
                     TelaDoMais(
                         perfil,
                         BuildConfig.VERSION_NAME,
                         ::abrir,
                         sair,
                         PaddingValues(bottom = FOLGA_DO_LANCAR),
-                        excluirConta = exclusao::abrir,
-                        avisoDoEmail = { AvisoDeConfirmarEmail(perfil.email) },
+                        excluirConta = { exclusao?.abrir() },
+                        avisoDoEmail = { if (acoesDaConta) AvisoDeConfirmarEmail(perfil.email) },
                     )
-                    DialogoDeExclusao(exclusao)
+                    exclusao?.let { DialogoDeExclusao(it) }
                 }
             },
         )

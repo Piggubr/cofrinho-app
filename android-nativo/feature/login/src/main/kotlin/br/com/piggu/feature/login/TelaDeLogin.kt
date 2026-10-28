@@ -191,7 +191,7 @@ private fun Avisos(estado: EstadoDoLogin) {
     }
     if (estado.contaCriada) {
         Text(
-            stringResource(R.string.login_conta_criada),
+            stringResource(R.string.cadastro_confira_seu_email, estado.email),
             Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             color = MaterialTheme.colorScheme.primary,
         )

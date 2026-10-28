@@ -130,12 +130,12 @@ class Sessao @Inject constructor(
     suspend fun aceitarTermos() = entrou(identidade.get().aceitarTermos(PedidoDeTermos(VERSAO_DOS_TERMOS)))
 
     /**
-     * Como quer ser chamado e, só na primeira vez, nascimento, CPF e celular (D-088). Com CPF ou
-     * celular, renova o token: o de antes diz "cadastro incompleto" aos outros serviços.
+     * Como quer ser chamado e, só na primeira vez, nascimento, CPF e celular (D-088). Renova o
+     * token depois, como o site: o de antes diz "cadastro incompleto" aos outros serviços.
      */
     suspend fun sobreVoce(pedido: PedidoSobreVoce) {
         val usuario = identidade.get().sobreVoce(pedido)
-        if (pedido.cpf != null || pedido.telefone != null) runCatching { tokenNovo(acesso) }
+        tokenNovo(acesso)
         entrou(usuario)
     }
 

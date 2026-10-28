@@ -31,6 +31,8 @@ import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.network.mensagemDeErro
 import br.com.piggu.core.ui.HumorDoPorquinho
 import br.com.piggu.core.ui.formatos.pareceEmail
+import br.com.piggu.core.ui.formatos.problemaDaSenha
+import br.com.piggu.feature.login.cadastro.textoDaSenha
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -260,8 +262,8 @@ class SenhaNovaViewModel @AssistedInject constructor(
 
     fun salvar() {
         val atual = estadoAtual.value
-        problemaDaSenhaNova(atual.senha)?.let { problema ->
-            estadoAtual.update { it.copy(erro = MensagemDeErro.DoApp(problema)) }
+        problemaDaSenha(atual.senha, "")?.let { problema ->
+            estadoAtual.update { it.copy(erro = MensagemDeErro.DoApp(textoDaSenha(problema))) }
             return
         }
         if (atual.senha != atual.confirmacao) {

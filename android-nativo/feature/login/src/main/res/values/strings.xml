@@ -18,7 +18,6 @@
     <string name="login_google">Fazer login com o Google</string>
     <string name="login_google_falhou">Não consegui abrir o login do Google. Entre com e-mail e senha.</string>
     <string name="login_ou">ou</string>
-    <string name="login_conta_criada">Conta criada. Mandamos um link para confirmar o seu e-mail; depois, é só entrar.</string>
     <string name="login_falta_pouco">Falta pouco para criar sua conta.</string>
     <string name="login_li_e_aceito">Li e aceito os Termos de Uso e o Aviso de Privacidade.</string>
     <string name="login_criar_minha_conta">Criar minha conta</string>

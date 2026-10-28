@@ -36,6 +36,7 @@ import br.com.piggu.core.ui.TelaDeErro
 import br.com.piggu.core.ui.Vazio
 import br.com.piggu.core.ui.Visao
 import br.com.piggu.feature.login.EstadoDoLogin
+import br.com.piggu.feature.login.EventosDoLogin
 import br.com.piggu.feature.login.TelaDeLogin
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -94,7 +95,7 @@ class CapturasTest(private val aparelho: String, private val tema: String) {
 
     @Test
     fun moldura() {
-        desenhar { AppLogado(ANA, emptyFlow(), SnackbarHostState(), abrirNoSite = {}, sair = {}) }
+        desenhar { AppLogado(ANA, emptyFlow(), SnackbarHostState(), abrirNoSite = {}, sair = {}, acoesDaConta = false) }
         capturar("painel")
         // No tablet o Mais vira a gaveta com os grupos: o celular mostra a aba.
         if (aparelho == "celular") {
@@ -108,7 +109,7 @@ class CapturasTest(private val aparelho: String, private val tema: String) {
 
     @Test
     fun login() {
-        desenhar { TelaDeLogin(EstadoDoLogin(email = "ana@demo.piggu.app"), {}, {}, {}, {}, {}, {}) }
+        desenhar { TelaDeLogin(EstadoDoLogin(email = "ana@demo.piggu.app"), EventosDoLogin(), mostrarGoogle = false) }
         capturar("login")
     }
 
