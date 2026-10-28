@@ -644,6 +644,35 @@ paths:
       summary: Abrir o pagamento do Premium no site
       tags:
       - Premium
+  /api/billing/google-play/purchases:
+    post:
+      description: 409 com o código OUTRA_CONTA quando a compra foi feita por outra
+        conta do Piggu.
+      operationId: billingCompraNoGoogle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompraNoGoogleRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanoResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Confirmar a assinatura comprada no Android (token da compra no Google
+        Play)
+      tags:
+      - Premium
   /api/billing/plan:
     get:
       operationId: billingPlano
@@ -773,6 +802,36 @@ paths:
       security: []
       summary: "Aviso da App Store, Server Notifications V2 (servidor para servidor,\
         \ não é para o app)"
+      tags:
+      - Premium
+  /api/billing/webhooks/google-play:
+    post:
+      operationId: billingWebhookGooglePlay
+      parameters:
+      - in: header
+        name: Authorization
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvisoDoGoogleRequest"
+        required: true
+      responses:
+        "200":
+          description: Aviso recebido
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      security: []
+      summary: "Aviso do Google Play em tempo real, pelo push do Pub/Sub (servidor\
+        \ para servidor, não é para o app)"
       tags:
       - Premium
   /api/billing/webhooks/stripe:
@@ -1420,6 +1479,17 @@ components:
           minLength: 0
       required:
       - signedPayload
+    AvisoDoGoogleRequest:
+      type: object
+      properties:
+        message:
+          $ref: "#/components/schemas/MensagemDoPubSub"
+        subscription:
+          type: string
+          maxLength: 500
+          minLength: 0
+      required:
+      - message
     Avisos:
       type: object
       properties:
@@ -1529,6 +1599,20 @@ components:
           minLength: 0
       required:
       - transacao
+    CompraNoGoogleRequest:
+      type: object
+      properties:
+        produto:
+          type: string
+          minLength: 1
+          pattern: premium_(mensal|anual)
+        purchaseToken:
+          type: string
+          maxLength: 4000
+          minLength: 0
+      required:
+      - produto
+      - purchaseToken
     ConfirmarEmailRequest:
       type: object
       properties:
@@ -1719,6 +1803,19 @@ components:
           type: boolean
         premium:
           type: boolean
+    MensagemDoPubSub:
+      type: object
+      properties:
+        data:
+          type: string
+          maxLength: 100000
+          minLength: 0
+        messageId:
+          type: string
+        publishTime:
+          type: string
+      required:
+      - data
     ModulosRequest:
       type: object
       properties:
