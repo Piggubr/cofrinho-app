@@ -27,10 +27,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            <!-- O LAUNCHER fica só nos ícones abaixo: aqui ele somaria um segundo ícone na tela inicial. -->
 
             <!-- piggu://gasto?valor=12.50, piggu://gastos?id=...&mes=aaaa-mm e piggu://<rota do site>. -->
             <intent-filter>
@@ -68,6 +65,156 @@
                 <data android:path="/contas-e-cartoes" />
             </intent-filter>
         </activity>
+
+        <!--
+            Ícone na tela inicial (Perfil > Ícone do app, IconesDoApp.kt): um apelido da MainActivity
+            por ícone, só um ligado por vez. Os mesmos nomes do app Capacitor (IconeDoAppPlugin.java),
+            para o ícone escolhido lá continuar depois da atualização. O padrão vem ligado.
+        -->
+        <activity-alias
+            android:name=".IconePadrao"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeClassico"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_classico"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMonograma"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_monograma"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeSilhueta"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_silhueta"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeAzul"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_azul"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMenta"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_menta"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeLilas"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_lilas"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeCoral"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_coral"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMel"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_mel"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeVinho"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_vinho"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeGrafite"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_grafite"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeNamorados"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_namorados"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- O WorkManager usa a fábrica do Hilt (PigguApplication): sai o inicializador padrão. -->
         <provider

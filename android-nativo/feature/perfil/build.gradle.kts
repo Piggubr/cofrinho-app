@@ -14,6 +14,8 @@ dependencies {
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(libs.androidx.core.ktx)
+    // Foto (galeria e câmera), permissão dos avisos e o arquivo dos dados.
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
