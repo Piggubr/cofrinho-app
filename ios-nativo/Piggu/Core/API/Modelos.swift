@@ -674,6 +674,7 @@ struct PedidoDaApple: Codable, Sendable {
     let idToken: String
     let nonce: String
     var nome: String?
+    var codigo: String?
     var versaoDosTermos: String?
     let lembrar: Bool
     var refreshNoCorpo: Bool?

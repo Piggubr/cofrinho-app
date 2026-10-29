@@ -91,10 +91,13 @@ final class Sessao {
 
     /// Troca o identity token da Apple por um par de tokens do Piggu (D-072).
     /// - Parameter nome: a Apple so entrega na primeira autorizacao; vira o apelido da conta nova.
+    /// - Parameter codigo: o codigo de autorizacao, para o backend revogar o acesso ao excluir a conta.
     func entrarComApple(
-        idToken: String, nonce: String, nome: String?, lembrar: Bool, versaoDosTermos: String? = nil
+        idToken: String, nonce: String, nome: String?, codigo: String? = nil, lembrar: Bool,
+        versaoDosTermos: String? = nil
     ) async throws {
-        let pedido = PedidoDaApple(idToken: idToken, nonce: nonce, nome: nome, versaoDosTermos: versaoDosTermos,
+        let pedido = PedidoDaApple(idToken: idToken, nonce: nonce, nome: nome, codigo: codigo,
+                                   versaoDosTermos: versaoDosTermos,
                                    lembrar: lembrar, refreshNoCorpo: refreshNoCorpo)
         try await abrirSessao("/auth/apple", corpo: pedido, lembrar: lembrar)
     }

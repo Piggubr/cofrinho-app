@@ -55,7 +55,7 @@ class AppleIdTokenVerifierTest {
         });
         jwks.start();
         String uri = "http://127.0.0.1:" + jwks.getAddress().getPort() + "/auth/keys";
-        verificador = new AppleIdTokenVerifier(new AppleProperties(List.of(APP), uri, null));
+        verificador = new AppleIdTokenVerifier(new AppleProperties(List.of(APP), uri, null, null, null, null));
     }
 
     @AfterAll
@@ -67,7 +67,7 @@ class AppleIdTokenVerifierTest {
     @DisplayName("token valido vira o perfil, com o e-mail normalizado; email_verified vale como texto ou booleano")
     void tokenValido() throws Exception {
         assertThat(verificador.verificar(token(c -> { }), NONCE))
-                .isEqualTo(new AppleProfile("001234.apple", "ana@privaterelay.appleid.com"));
+                .isEqualTo(new AppleProfile("001234.apple", "ana@privaterelay.appleid.com", APP));
         assertThat(verificador.verificar(token(c -> c.claim("email_verified", true)), NONCE).email())
                 .isEqualTo("ana@privaterelay.appleid.com");
     }
@@ -126,7 +126,7 @@ class AppleIdTokenVerifierTest {
     @Test
     @DisplayName("sem client ID configurado o servico sobe, mas a rota responde 501")
     void desligado() throws Exception {
-        AppleIdTokenVerifier desligado = new AppleIdTokenVerifier(new AppleProperties(List.of(" "), null, null));
+        AppleIdTokenVerifier desligado = new AppleIdTokenVerifier(new AppleProperties(List.of(" "), null, null, null, null, null));
         String token = token(c -> { });
 
         assertThat(desligado.ligado()).isFalse();

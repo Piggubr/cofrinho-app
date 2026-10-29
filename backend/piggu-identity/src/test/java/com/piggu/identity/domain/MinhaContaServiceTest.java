@@ -44,6 +44,9 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @MockitoBean
     private StripePagamentos pagamentos;
 
+    @MockitoBean
+    private com.piggu.identity.apple.RevogacaoDaApple apple;
+
     @Autowired
     private MinhaContaService contas;
 
@@ -152,6 +155,19 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         contas.excluir(titular.getId());
 
         verify(pagamentos).encerrarCliente("cus_123");
+    }
+
+    @Test
+    @DisplayName("quem entrou com a Apple tem o acesso revogado na Apple, como ela exige")
+    void revogaAApple() {
+        titular.lembrarTokenDaApple("rt-apple", "br.com.piggu.app");
+        usuarios.save(titular);
+        given(apple.ligada()).willReturn(true);
+
+        contas.excluir(titular.getId());
+
+        verify(apple).revogar("rt-apple", "br.com.piggu.app");
+        assertThat(usuarios.findById(titular.getId())).isEmpty();
     }
 
     @Test
