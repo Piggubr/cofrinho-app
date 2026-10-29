@@ -831,7 +831,7 @@ Encontrado ao montar este documento. Os itens 3, 7 e 8 foram corrigidos em 26/10
 **Restrições que podem morder**
 
 3. ~~`push_devices.platform` só aceita `IOS`.~~ **Corrigido** (identity V36): aceita `ANDROID`,
-   e o token cresceu para 512 caracteres para caber o do FCM. O envio pelo FCM entrou em 27/10/2026 (D-091).
+   e o token cresceu para 512 caracteres para caber o do FCM. O envio pelo FCM entrou em 27/10/2026 (D-139).
 4. As chaves únicas por pessoa (`product_memory`, `monthly_goals`, `category_budgets`,
    `category_rules`, `payment_accounts`) incluem `user_id`, que pode ser nulo. No Postgres, nulos
    não colidem, então registros sem dono podem se repetir (por exemplo, duas metas sem dono para o

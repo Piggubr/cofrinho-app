@@ -80,7 +80,6 @@ services:
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
-      GOOGLE_CLIENT_ID_ANDROID: ${GOOGLE_CLIENT_ID_ANDROID:-}
       # Entrar com Apple no app nativo: Bundle ID (br.com.piggu.app). Vazio deixa a rota em 501.
       APPLE_CLIENT_IDS: ${APPLE_CLIENT_IDS:-}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
@@ -103,6 +102,8 @@ services:
       # Open Finance escondido por enquanto (some da lista do Premium). true volta.
       PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
       REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
+      APP_STORE_BUNDLE_ID: ${APP_STORE_BUNDLE_ID:-br.com.piggu.app}
+      APP_STORE_APP_APPLE_ID: ${APP_STORE_APP_APPLE_ID:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
       # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
       PIGGU_EMAIL_API_KEY: ${PIGGU_EMAIL_API_KEY:-}

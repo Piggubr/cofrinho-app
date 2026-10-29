@@ -61,10 +61,9 @@ Content-Type: application/json
 **Google**: o app consegue um ID token do Google e manda em `POST /api/auth/google`
 (`{ "idToken": "...", "versaoDosTermos": "...", "lembrar": true }`); a resposta é a mesma do
 login por senha. O servidor só aceita ID tokens cuja audiência esteja em
-`piggu.google.client-ids` (`GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_ID_ANDROID`): com o SDK nativo,
-peça o token para o client ID web (`serverClientID` no iOS e no Credential Manager do Android)
-ou ponha o client ID do app nessa lista. O ID OAuth do tipo Android (Google Cloud, com o pacote
-`br.com.piggu.app` e o SHA-1 da chave de assinatura) entra em `GOOGLE_CLIENT_ID_ANDROID`. O app atual, que abre o site num WebView, usa o fluxo pelo navegador
+`piggu.google.client-ids` (`GOOGLE_CLIENT_ID`): com o SDK nativo, peça o token para o client
+ID web (`serverClientID` no iOS e no Credential Manager do Android) ou acrescente o client ID do
+app nessa lista, separado por vírgula. O app atual, que abre o site num WebView, usa o fluxo pelo navegador
 (`POST /api/auth/google/app` e `/api/auth/google/app/troca`, ver `LoginPeloNavegador`).
 
 **Renovar**: `POST /api/auth/refresh` com o cookie devolve um par novo. Renove quando

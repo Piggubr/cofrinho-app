@@ -99,7 +99,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-076](#d-076-o-campo-de-valor-do-site-lê-igual-ao-app-nativo) | O campo de valor do site lê igual ao app nativo | Valendo |
 | [D-071](#d-071-chiclete-como-cor-padrão-e-porquinho-neon-como-ícone) | Chiclete como cor padrão e Porquinho Neon como ícone | Valendo |
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
-| [D-091](#d-091-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
+| [D-083](#d-083-termos-e-aviso-do-app-nativo-copiados-do-site-pelo-ci) | Termos e Aviso do app nativo copiados do site pelo CI | Valendo |
+| [D-084](#d-084-google-no-app-nativo-com-o-id-do-site-no-aud) | Google no app nativo com o ID do site no `aud` | Valendo |
+| [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -320,7 +322,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o cadastro por e-mail pede apelido, nascimento, CPF e celular. Quem entrava pelo Google (ou pela Apple) só via "Sobre você" com apelido e nascimento, e nunca informava CPF nem celular. Desde 13/10 o token já não levava a claim `cpf`, então nada barrava a conta sem CPF, ao contrário do que diz D-018.
 - Decisão: `UserAccount.cadastroIncompleto()` falta apelido, nascimento, CPF (ou documento de conta antiga) ou celular. Com o cadastro incompleto, o access token leva `cadastro=false` e os serviços de dados respondem 403 `CADASTRO_PENDENTE` (o identity não barra: é nele que se completa, exporta ou apaga a conta). O perfil ganha `cadastroCompleto` e `celularInformado`, e "Sobre você" (`PUT /api/me/sobre-voce`) passa a pedir também CPF e celular quando faltam. Depois de salvar, o app renova o token. Vale para as contas que já existem: no próximo acesso, quem não tem caem na tela.
 - Alternativas: pedir os dados só para contas novas; voltar a claim `cpf`, que só cobria o CPF.
-- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo precisa pedir CPF e celular na `SobreVoceView` antes de ir para o TestFlight; até lá, a conta incompleta recebe 403 nos dados. O celular ainda não é confirmado por SMS.
+- Consequências: os tokens internos (exclusão da conta, mudança de família, lembrete diário) não levam a claim, para funcionarem com o cadastro pela metade. O iOS nativo pede CPF e celular na `SobreVoceView` desde a etapa 9. O celular ainda não é confirmado por SMS.
 - Onde ver: `UserAccount.cadastroIncompleto`, `TokenService.gerarAccessToken`, `CpfObrigatorio`, `frontend/src/app/features/sobre-voce`
 
 ## D-017: Entrar com e-mail e senha, Google como opção
@@ -826,7 +828,70 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
-## D-091: Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase
+## D-083: Termos e Aviso do app nativo copiados do site pelo CI
+- Data: 26/10/2026
+- Situação: Valendo
+- Contexto: etapa 3 do plano iOS. O app nativo mostra os Termos de Uso e o Aviso de Privacidade em telas próprias, com o mesmo texto do site, e o aceite grava a versão (`VERSAO_DO_AVISO`). Duas cópias escritas à mão acabariam diferentes.
+- Decisão: o texto do site (`features/legal/*.html` e a versão de `aviso.ts`) é a fonte. `ios-nativo/scripts/textos-legais.py` gera `ios-nativo/Piggu/Recursos/Termos.md` e `Privacidade.md`, e o CI do iOS falha se eles ficarem diferentes do HTML. A versão no Swift (`Conta.versaoDosTermos`) é conferida contra o texto nos testes.
+- Alternativas: abrir o site numa web view, que não abre sem internet e fica fora do visual do app, ou guardar os textos no String Catalog, onde cada parágrafo vira uma chave solta.
+- Consequências: mudou o texto no site, roda o script e faz o commit no mesmo PR. O Android vai precisar do mesmo script.
+- Onde ver: `ios-nativo/scripts/textos-legais.py`, `ios-nativo/Piggu/Telas/Entrada/TextoLegalView.swift`, `.github/workflows/ios-nativo.yml`
+
+## D-084: Google no app nativo com o ID do site no `aud`
+- Data: 26/10/2026
+- Situação: Valendo
+- Contexto: etapa 3 do plano iOS. O login do Google no app usa um ID OAuth do tipo iOS, e o backend só aceita ID tokens cuja audiência esteja em `GOOGLE_CLIENT_ID`. Pôr os dois IDs nessa variável, separados por vírgula, não funciona: o `application.yml` a lê como um item só da lista, e o login do site pararia.
+- Decisão: o app abre o login com o ID do iOS e pede o token para o ID do site (`GIDServerClientID`), então o `aud` é o que o backend já aceita e o servidor não muda. Os dois IDs ficam em `ios-nativo/Config/Piggu.xcconfig`, no Git: são públicos e vão dentro do app. O site publica o `apple-app-site-association` com o Team `H766LA27ZJ` para os links de confirmar e-mail e de redefinir senha abrirem o app.
+- Alternativas: aceitar uma lista de IDs no backend, que mexe no servidor sem necessidade; guardar o ID do iOS fora do Git, que só escondia o botão nos builds sem o arquivo.
+- Consequências: trocar o ID do site exige trocar também o `GOOGLE_SERVER_CLIENT_ID` do app. O ID do iOS precisa estar no mesmo projeto do Google Cloud que o do site.
+- Onde ver: `ios-nativo/Config/Piggu.xcconfig`, `ios-nativo/Piggu/Core/Auth/EntradaComGoogle.swift`, `frontend/public/.well-known/apple-app-site-association`, `deploy/Caddyfile`
+
+## D-090: Etapa 4 do iOS: o que ainda não é nativo abre no site
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 4 do plano iOS (Painel, Gastos e Receitas com paridade com o site). Os cartões do Painel e os formulários levam a telas que só chegam ao app nas etapas 5 a 7 (orçamentos, contas do mês, cartões e bancos, metas, Girls Math, calendário, Premium), e duas funções dependem de algo que o app ainda não tem: a leitura de nota por foto (etapa 7) e o widget da Pluggy para conectar banco.
+- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
+- Alternativas: esconder os atalhos até a etapa certa, que deixaria cartões sem saída; abrir o site numa web view, que pede login de novo dentro dela.
+- Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
+- Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
+
+## D-091: Conectar banco no app nativo pela página do site, num ASWebAuthenticationSession
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 5 do plano iOS. O site conecta bancos pelo widget da Pluggy, que só existe em JavaScript e avisa o banco conectado por callback, sem redirecionar. O app nativo não pode abrir um WebView para isso (a pessoa digita a senha do banco), e a Pluggy não tem uma página hospedada que devolva o item por redirecionamento (o `oauthRedirectUri` dela só cobre a volta do OAuth do banco dentro do widget).
+- Decisão: o site ganha a página pública `/conectar-banco`. O app pede o token em `POST /api/banking/connect-token` (com a autorização, como o site), abre `https://piggu.com.br/conectar-banco#token=...` num `ASWebAuthenticationSession` efêmero e espera `piggu://banco-conectado?item=...` (ou `?fechou=1`, `?erro=...`). A página não tem sessão nem chama a API: lê o token do fragmento (que não vai ao servidor nem aos logs), tira ele do histórico, abre o widget com o mesmo `PluggyConnectService` do site e redireciona com o resultado. O app registra o item em `POST /api/banking/items`.
+- Alternativas: o SDK nativo da Pluggy, que é uma biblioteca nova (o app só usa os SDKs da Apple e o Google Sign-In, D-055) e por dentro é um WebView; um WebView próprio, proibido pelo plano.
+- Consequências: o backend não muda e o CSP do site já permite o script e os frames da Pluggy. Bancos que fazem OAuth dentro do widget abrem a página do banco a partir do navegador do sistema; vale testar com um banco de verdade antes do TestFlight.
+- Onde ver: `frontend/src/app/features/conectar-banco/`, `frontend/src/app/core/banking/pluggy-connect.service.ts`, `ios-nativo/Piggu/Core/Bancos/OpenFinance.swift`
+
+## D-092: Etapa 6 do iOS: Mais nos grupos do site, módulos no Perfil e ícone escolhido à parte da cor
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 6 do plano iOS (metas, Girls Math, Planejar, Prêmios, Família e Perfil). O site não tem tela para ligar e desligar os módulos de estilo de vida (só a rota `PUT /auth/me/modules`), troca o ícone do app num seletor próprio, separado da cor, e Compras, Lugares, Filmes e Fotos ainda não estão em nenhuma etapa do plano.
+- Decisão: o Mais segue os grupos e a ordem do menu do site (Planejar, Contas, Estilo de vida, Conta), com o Perfil no topo e o Premium só para o titular. O Perfil ganha "Telas do menu", com os seis módulos, e o Mais esconde o que estiver desligado (ausente liga todos, como no site). O ícone do app tem o seu seletor, como no site, com os mesmos 12 ícones do app Capacitor (`AppIcon-<id>` e `setAlternateIconName`); ele não muda sozinho com a cor, porque o iOS mostra um aviso a cada troca. Compras, Lugares, Filmes e Fotos abrem no site (D-090). Quem é membro vê as mesmas abas e telas, sem o Premium, e na Família a lista com "Sair da família", como no site.
+- Alternativas: trocar o ícone junto com a cor, que mostraria o aviso do sistema a cada troca de cor e não cobre os ícones que não têm cor (Clássico, P de Piggu, Silhueta, Namorados).
+- Consequências: o site pode ganhar a mesma tela de módulos depois; o app já usa o campo `preferencias.modulos`.
+- Onde ver: `ios-nativo/Piggu/Telas/MaisView.swift`, `ios-nativo/Piggu/Telas/Conta/PerfilView.swift`, `ios-nativo/Piggu/Core/Design/IconeDoApp.swift`
+
+## D-093: Etapa 7 do iOS: widgets pelo App Group, Siri com a sessão do app e push que abre o Painel
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 7 do plano iOS (Compras, Lugares, Filmes e Fotos, widgets, Siri, Face ID, notificações, TipKit, leitura da nota e Spotlight). Os widgets rodam fora do app, sem sessão; o push do backend é o resumo do dia (fatura, orçamento, contas) e não diz a tela; o tour do site tem uma dica do assistente, que o app ainda não tem.
+- Decisão: um alvo novo, `PigguWidgetsExtension`, lê só um resumo do mês (gasto, limite, a próxima meta, a cor) que o app grava no App Group `group.br.com.piggu.app` ao abrir, ao voltar e depois de lançar, e recarrega com `WidgetCenter.reloadAllTimelines()`; nada de token, e-mail ou lista de gastos, e o resumo some ao sair da conta. O "Lançar gasto" (Siri, Atalhos e o controle da Central de Controle) é o `LancarGastoIntent` do app Capacitor, compartilhado com o widget, e abre a folha nativa. "Quanto gastei este mês" responde em voz sem abrir o app, com a sessão do próprio app (o refresh no cookie ou no Keychain) e, sem rede, com o último resumo e a hora dele. Tocar numa notificação abre o Painel ("Para ficar de olho"), ou a tela de uma chave `rota` se o backend mandar no futuro. A permissão de notificação é pedida ao ligar "Notificação neste iPhone" no Perfil, como no site. O tour vira dicas do TipKit perto do que explicam, sem a do assistente. A leitura da nota usa o `DataScannerViewController` e só preenche total e data quando acha uma linha de total; senão a pessoa digita. Os gastos do mês vão para o Spotlight e saem ao sair da conta.
+- Alternativas: o widget chamar a API com um token guardado no App Group, que deixaria uma credencial fora do Keychain e de qualquer controle de sessão; pedir a permissão de notificação ao abrir o app, que o site não faz e que a Apple desaconselha.
+- Consequências: para o TestFlight, o App Group, o alvo do widget (`br.com.piggu.app.PigguWidgets`) e o Push Notifications precisam estar no App ID; a assinatura automática do Xcode registra. O backend pode mandar `rota` no push quando quiser abrir uma tela específica.
+- Onde ver: `ios-nativo/PigguWidgets/`, `ios-nativo/Compartilhado/`, `ios-nativo/Piggu/Core/Sistema/`
+
+## D-094: Premium no iPhone pela compra da Apple, conferida no backend com a biblioteca da Apple
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 8 do plano iOS. No site o Premium é vendido pela Stripe; no app, assinatura digital tem que ser pela compra da Apple. O backend já recebia compras das lojas pelo RevenueCat (`/api/billing/stores/{loja}/purchases`), que nunca chegou a ser configurado. No Brasil, desde 18/06/2026 (iOS 26.5), a Apple deixa pôr um link para pagar fora do app, mas com o entitlement de compra externa, a folha de aviso, a compra da Apple sempre ao lado e comissão de 15% (10% depois do primeiro ano da assinatura) sobre o que for vendido até 7 dias depois do toque.
+- Decisão: o app usa o StoreKit 2 (`SubscriptionStoreView`) com dois produtos individuais, `br.com.piggu.premium.mensal` e `br.com.piggu.premium.anual`, no grupo "Piggu Premium". A compra leva o id da conta Piggu como `appAccountToken`, e o app manda a transação assinada a `POST /api/billing/app-store/transactions` antes de finalizá-la. As App Store Server Notifications V2 chegam em `POST /api/billing/webhooks/app-store`. Os dois conferem o JWS com a `app-store-server-library` oficial (5.2.0, sem o cliente HTTP) contra a Apple Root CA - G3 e gravam no mesmo plano da casa que a Stripe atualiza, com origem `APP_STORE`. A compra só vale para a conta do `appAccountToken` (409 `OUTRA_CONTA`). Premium vigente de outra origem (o site) não é trocado nem derrubado por aviso da Apple. O sandbox é aceito também em produção, porque a revisão da Apple compra no sandbox; o ambiente do Xcode, só fora da produção. Quem já é Premium, pelo site ou por outra pessoa da casa, vê o plano e não vê a loja. Os links do app para `/plano` no site viraram a tela nativa. O app não oferece o Stripe por enquanto.
+- Alternativas: o RevenueCat (mais um operador de dados e uma conta paga para o que a biblioteca da Apple faz); conferir só no aparelho (qualquer um forjaria o Premium no backend); oferecer o Stripe no iPhone pelo link externo do Brasil (dá para fazer, mas exige o entitlement, a compra da Apple igualmente visível, relatório mensal pela External Purchase Server API e comissão de 15%, então o ganho sobre os 26% da compra da Apple é pequeno perto do trabalho; fica para depois).
+- Consequências: no App Store Connect falta criar o grupo, os produtos e os preços, e apontar as notificações V2 para a URL acima (produção e sandbox). O servidor precisa de `APP_STORE_APP_APPLE_ID` para aceitar compras de produção. Casal e família continuam só no site. O RevenueCat segue para o Android.
+- Onde ver: `backend/piggu-identity/src/main/java/com/piggu/identity/billing/AppStoreLoja.java`, `ios-nativo/Piggu/Core/Loja/LojaDaApple.swift`, `ios-nativo/Piggu/Telas/Conta/PremiumView.swift`, `ios-nativo/PigguTests/Piggu.storekit`
+
+## D-139: Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase
 - Data: 27/10/2026
 - Situação: Valendo
 - Contexto: etapa A1 do plano Android. O app Android já registrava o token do FCM (identity V36), mas o lembrete diário só mandava para o iPhone.
@@ -909,6 +974,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: decisão antiga nunca é apagada; se mudar, vira "Substituída por".
 - Onde ver: [CLAUDE.md](../CLAUDE.md)
 
+## D-089: App iOS nativo junta na `feature/ios-nativo` antes da `develop`
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: as etapas do iOS nativo saem uma por PR, empilhadas umas nas outras, e o Dudu quer testar o app com tudo junto antes de levar para a `develop`.
+- Decisão: os PRs das etapas (`swift/etapa-N`) vão para a `feature/ios-nativo`, criada a partir da `develop`. Quando o conjunto estiver testado, um PR leva a `feature/ios-nativo` para a `develop`, pelo caminho normal da D-061.
+- Alternativas: cada etapa direto na `develop`, que levaria app pela metade para a branch que junta as features.
+- Consequências: a `feature/ios-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O CI do iOS (`ios-nativo.yml`) roda em PR para qualquer branch.
+- Onde ver: [ios-nativo/CLAUDE.md](../ios-nativo/CLAUDE.md), [branches.md](branches.md)
+
 ---
 
 # Perguntas para o Dudu
@@ -921,3 +995,48 @@ vier, ela entra como Contexto ou Alternativas da decisão citada (ou vira uma de
 
 As oito perguntas de 25/10/2026 foram respondidas em 26/10/2026 e estão em D-001, D-006,
 D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
+
+## D-095: Etapa 9 do iOS: abrir com o perfil guardado e empilhar no texto grande
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa 9 do plano iOS (acabamento antes do TestFlight 2.0.0). Abrindo o app, a sessão esperava a renovação do token na rede antes de mostrar qualquer tela, então nem o Painel guardado aparecia antes da resposta do servidor; o plano pede menos de 1 segundo até o Painel com cache. A auditoria de acessibilidade (a mesma do Accessibility Inspector) e os prints no maior tamanho de texto mostraram valores e palavras quebrados no meio em linhas lado a lado, o calendário com os dias partidos e o anel das metas estourando.
+- Decisão: com o perfil guardado no aparelho, o app abre logado na hora, com o que cada tela guardou, e a renovação segue por trás; só o refresh recusado (401) encerra a sessão, e sem rede ou com o servidor fora a sessão continua. As chamadas feitas antes de o token chegar esperam a renovação em curso, em vez de levar um 401 cada uma. Nos tamanhos de texto de acessibilidade, as linhas lado a lado viram uma embaixo da outra (`LadoALado`), o seletor de mês encurta o nome ("Out. de 2026" ou "10/2026", lendo o nome inteiro no VoiceOver), e o calendário e o número dentro do anel param no tamanho xxLarge e xxxLarge (o VoiceOver lê cada dia e o percentual). As estrelas viram um só elemento ajustável no VoiceOver, e os avisos que somem sozinhos são lidos na hora. O alvo `PigguUITests` roda a auditoria em todas as telas (texto padrão, maior e escuro), tira os prints e mede a abertura pelo intervalo "Abrir ate o Painel" (os_signpost). A versão nativa é a 2.0.0 (D-057), build 2.
+- Alternativas: manter a espera pela renovação (o Painel guardado só servia sem internet); limitar o tamanho do texto no app inteiro, que tira o Dynamic Type de quem precisa dele.
+- Consequências: quem teve a sessão revogada em outro lugar vê por um instante o que estava guardado antes de voltar ao login, como já acontecia sem internet; a trava com Face ID continua cobrindo a tela. Medido no simulador com a build otimizada e o cache cheio: 0,63 a 0,75 s do `init` do app ao Painel com dados, também com 3.000 gastos no mês; o carregamento do sistema antes do `init` no simulador não representa o aparelho e precisa ser conferido no iPhone pelo Instruments (App Launch). Os avisos de contraste em textos sob a barra de abas de vidro e nos rótulos de seção do sistema ficam como estão.
+- Onde ver: `ios-nativo/Piggu/Core/Auth/Sessao.swift`, `ios-nativo/Piggu/Core/Design/LadoALado.swift`, `ios-nativo/Piggu/Core/Sistema/Desempenho.swift`, `ios-nativo/PigguUITests/`
+
+## D-096: CI do iOS nativo no Xcode 27
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o `macos-latest` do GitHub ainda vem com o Xcode 26.6 (SDK do iOS 26.5), e o app usa APIs do iOS 27 desde a etapa 4 (arrastar os cartões do Painel). O build da CI quebrava em todos os PRs das etapas 4 a 9, embora compilasse no Mac do Dudu, que tem o Xcode 27. O archive da 2.0.0 também sai do Xcode 27.
+- Decisão: o job do iOS nativo roda no runner `xcode-27` do GitHub, com o mesmo Xcode do archive.
+- Alternativas: cercar as APIs do iOS 27 com `#if compiler(>=6.4)`, o que faz a CI testar um app diferente do enviado.
+- Consequências: o `xcode-27` ainda é uma imagem de prévia do GitHub e pode demorar mais na fila. Quando o `macos-latest` passar a ter o Xcode 27, o job volta para ele.
+- Onde ver: `.github/workflows/ios-nativo.yml`
+
+## D-097: Topo das abas com a marca, a busca e o assistente; trava em janela própria
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: no primeiro teste no iPhone (build 2.0.0 Ad Hoc), o Dudu achou o topo vazio, sentiu falta da IA e não conseguiu fechar o teclado do valor depois de o aparelho bloquear. A revisão de paridade da etapa 9 percorreu só as rotas, e o assistente e a busca do site ficam no cabeçalho, sem rota. O SwiftUI não fecha o teclado ao tocar fora, e o teclado numérico não tem tecla para fechar. A trava do Face ID era um overlay na raiz, e folhas como o lançar gasto abrem por cima dele. O Dudu também pediu para criar categoria nas regras de categoria e para a barra de abas não sumir ao rolar.
+- Decisão: cada aba ganha o cabeçalho do site: o ícone do app que a pessoa escolheu no Perfil, à esquerda, ocupando uma bolha de vidro, sem o nome ao lado (volta ao Painel) e, à direita, a busca global (telas, gastos de todos os meses pelo servidor, lugares, filmes e compras) e o assistente de IA, numa folha, com a mesma autorização, os mesmos limites e a conversa só no aparelho por 30 dias (no cache, que sai ao sair da conta). Tocar fora de um campo ou arrastar a lista fecha o teclado no app inteiro. A trava abre numa janela própria, acima de qualquer folha, e fecha o teclado ao travar. As regras de categoria usam o mesmo campo do lançar gasto, com "+ Nova categoria…". A barra de abas fica sempre inteira, e encolher ao rolar vira um ajuste no Perfil, desligado.
+- Alternativas: uma aba própria para o assistente, que tirava espaço de outra aba; o botão OK sobre o teclado numérico, que o iOS 27 não mostrou numa folha (`ToolbarItemGroup(placement: .keyboard)`).
+- Consequências: o link de um gasto aceita o mês (`piggu://gastos?id=...&mes=aaaa-mm`); sem ele, continua o mês atual, como no Spotlight. Na demonstração o assistente responde com um texto de exemplo.
+- Onde ver: `ios-nativo/Piggu/Telas/Topo/`, `ios-nativo/Piggu/Core/Sistema/Janela.swift`, `ios-nativo/PigguUITests/TopoETecladoUITests.swift`
+
+## D-098: O + do iOS nativo abre as opções, como no site
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: no app Capacitor, o + abre um balão com Lançar gasto, Lançar receita e Foto do recibo. No nativo, o + abria direto o gasto, e a receita só saía pelo botão da aba Receitas. O Dudu sentiu falta no teste do iPhone.
+- Decisão: o + vira um menu com Lançar gasto e Lançar receita, de qualquer aba. A receita abre a mesma folha da aba Receitas, que agora busca a família ela mesma, para saber se mostra "Compartilhada". A foto do recibo fica para um PR à parte, porque precisa de câmera, permissão e consentimento, e no gasto o nativo já lê a nota pela câmera.
+- Alternativas: tocar no + lança gasto e segurar abre o menu, que é mais rápido para o gasto, mas esconde a receita; o + da aba Receitas lançar receita, que muda o botão conforme a aba.
+- Consequências: o gasto passa a pedir um toque a mais pelo +. O atalho, a Siri, o widget e o link `piggu://gasto` continuam abrindo o gasto direto.
+- Onde ver: `ios-nativo/Piggu/Core/Design/Vidro.swift` (`BotaoDeLancar`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/PigguUITests/TopoETecladoUITests.swift`
+
+## D-099: Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: os primeiros testers do TestFlight acharam três coisas. Ao puxar para recarregar, a lista descia e o seletor de mês ficava parado no topo. Nos gráficos por categoria (Relatórios do mês e do ano, Por categoria no Painel), o valor ficava colado no fim da barra e o nome solto em cima, com folgas diferentes em cada gráfico. E os botões de primeiro passo dos cartões do Painel não tinham padrão: "Fazer o primeiro depósito" no centro e "Criar o primeiro objetivo" à esquerda.
+- Decisão: o seletor de mês continua flutuando no topo, mas desce junto com a lista ao puxar (`comSeletorDeMes`, pela geometria da rolagem, no iOS 18 ou mais novo), nas sete telas com mês. As barras por categoria viram um componente só (`BarrasPorCategoria`): o nome à esquerda e o valor à direita na mesma linha, e a barra embaixo, de 8 pt, contra a maior, com o traço do mês anterior quando houver. O desenho é o mesmo das barras de orçamento e de objetivo. O vazio de um cartão do Painel (`VazioDoCartao`) fica no centro, como o vazio das listas: ícone com título, texto curto e o botão pequeno.
+- Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
+- Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
+- Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`

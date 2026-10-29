@@ -41,6 +41,12 @@ export const routes: Routes = [
     path: 'redefinir-senha',
     loadComponent: () => import('./features/redefinir-senha/redefinir-senha').then((m) => m.RedefinirSenha),
   },
+  // Aberta: o app nativo abre esta pagina num navegador do sistema, sem a sessao do site,
+  // com o token da Pluggy que ele mesmo pediu (D-091).
+  {
+    path: 'conectar-banco',
+    loadComponent: () => import('./features/conectar-banco/conectar-banco').then((m) => m.ConectarBanco),
+  },
   {
     path: 'aceite',
     canActivate: [autenticadoGuard],

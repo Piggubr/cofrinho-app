@@ -113,8 +113,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `PIGGU_ADMIN_EMAILS` | e-mails de quem opera a instalação (viram ADMIN ao entrar) |
 | `PIGGU_LIMITE_PROXIESNAFRENTE` | `2` com o Caddy na frente do gateway (limite de chamadas por IP lê o IP certo) |
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
-| `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo) |
-| `GOOGLE_CLIENT_ID_ANDROID` | opcional: o ID OAuth do tipo Android do Google Cloud (pacote `br.com.piggu.app` e SHA-1 da chave de assinatura). Entra em `piggu.google.client-ids` ao lado do `GOOGLE_CLIENT_ID`; só é preciso se o app Android pedir o ID token com ele em vez do ID do site (público, não é segredo) |
+| `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo). O ID do site e, separados por vírgula, os IDs OAuth dos apps nativos (iOS, Android) |
 | `APPLE_CLIENT_IDS` | Entrar com Apple no app nativo: o Bundle ID `br.com.piggu.app` (público, não é segredo); vazio deixa `POST /api/auth/apple` em 501 |
 | `PIGGU_OPEN_FINANCE` | `false` (padrao desde 11/10/2026) esconde o card de bancos e o Open Finance da lista do Premium; `true` volta (com `PLUGGY_*` e o perfil `open-finance`) |
 | `PIGGU_LEITOR_PROPRIO` | `false` (padrao desde 11/10/2026): recibo lido so pelo Gemini, 10 por mes por familia no gratuito; `true` volta o leitor proprio (Tesseract) primeiro |

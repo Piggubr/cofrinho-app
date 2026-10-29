@@ -100,6 +100,12 @@ O ID token do Google também passou a ser conferido localmente, contra o JWKS
 público do Google, em vez de uma chamada HTTP ao endpoint `tokeninfo` a cada
 login.
 
+O token só passa se a audiência (`aud`) for um dos IDs OAuth em `GOOGLE_CLIENT_ID`
+(`piggu.google.client-ids`), separados por vírgula. O ID token do app nativo traz na
+audiência o ID OAuth do próprio app, não o do site. Por isso, o ID do tipo iOS criado no
+Google Cloud (e depois o do Android) entra nessa lista ao lado do ID do site:
+`GOOGLE_CLIENT_ID=<id do site>,<id do iOS>`.
+
 ### Chaves de assinatura
 
 O identity **recusa subir** sem `JWT_PRIVATE_KEY` e `JWT_PUBLIC_KEY` (PEM inteiro
