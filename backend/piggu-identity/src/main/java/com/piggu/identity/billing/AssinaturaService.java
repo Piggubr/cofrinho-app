@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -328,7 +329,10 @@ public class AssinaturaService {
     private void aplicarDoGoogle(UserAccount conta, GooglePlayLoja.AssinaturaDoGoogle compra) {
         Household familia = familias.daConta(conta);
         boolean tokenAntigo = compra.evento().premiumAte() == null && "PLAY_STORE".equals(familia.getPlanSource())
-                && compra.vence() != null && familia.getPremiumUntil() != null && familia.getPremiumUntil().isAfter(compra.vence());
+                && compra.vence() != null && familia.getPremiumUntil() != null
+                // Em milissegundos, a precisao do Google: o banco guarda microssegundos arredondados, e
+                // o mesmo vencimento pareceria posterior (o fim nunca chegava).
+                && familia.getPremiumUntil().truncatedTo(ChronoUnit.MILLIS).isAfter(compra.vence().truncatedTo(ChronoUnit.MILLIS));
         if (tokenAntigo) {
             log.info("Fim de assinatura antiga do Google Play ignorado: conta={} familia={}", conta.getId(), familia.getId());
         } else {
