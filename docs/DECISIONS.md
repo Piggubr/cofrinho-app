@@ -150,6 +150,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-133](#d-133-premium-do-android-pelo-google-play-billing-e-o-stripe-fora-do-app) | Premium do Android pelo Google Play Billing, e o Stripe fora do app | Valendo |
 | [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
 | [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
+| [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1281,6 +1282,14 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: publicar pelo CI direto no Play Console (decidido manual até o primeiro lançamento); medir só o primeiro quadro.
 - Consequências: gerar o perfil de novo quando a abertura mudar (`./gradlew :app:generateBaselineProfile`, com um emulador do Android 13 ou mais novo).
 - Onde ver: `android-nativo/app/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `android-nativo/baselineprofile/`, README do android-nativo (Lançamento)
+## D-139: Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: etapa A1 do plano Android. O app Android já registrava o token do FCM (identity V36), mas o lembrete diário só mandava para o iPhone.
+- Decisão: `CanalFcm` assina um JWT RS256 com a chave da conta de serviço (o JSON em `FCM_CONTA_DE_SERVICO`), troca por um access token no Google (reaproveitado por 50 minutos) e chama `projects/{id}/messages:send`. O lembrete manda para cada aparelho da plataforma pelo canal dela. O token é apagado só quando o FCM responde `UNREGISTERED` ou um 400 que aponta o token; um 404 sem isso (projeto errado) não apaga nada.
+- Alternativas: o Firebase Admin SDK, que traria dezenas de dependências para uma chamada HTTP que o serviço já sabe fazer, como faz com o APNs.
+- Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
+- Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
 
 # Processo
 

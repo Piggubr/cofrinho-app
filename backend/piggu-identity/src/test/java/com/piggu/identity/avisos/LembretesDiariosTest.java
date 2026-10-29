@@ -45,6 +45,9 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     @MockitoBean
     private CanalDePush push;
 
+    @MockitoBean
+    private CanalFcm fcm;
+
     @Autowired
     private LembretesDiarios lembretes;
 
@@ -80,6 +83,7 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
         when(financeiro.ligado()).thenReturn(true);
         when(email.ligado()).thenReturn(true);
         when(push.ligado()).thenReturn(true);
+        when(fcm.ligado()).thenReturn(true);
         when(email.enviar(anyString(), any())).thenReturn(true);
     }
 
@@ -119,23 +123,28 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("push vai para cada iPhone; o que a Apple recusa e esquecido; o Android fica fora do APNs;"
+    @DisplayName("push vai para cada iPhone pelo APNs e cada Android pelo FCM; o token recusado e esquecido;"
             + " quem nao ligou nada nem e consultado")
     void push() {
         UserAccount caio = familias.criarConta("caio@outra.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
+        String androidVelho = TOKEN_DO_ANDROID.replace('x', 'v');
         auth.escolherAvisos(ana.getId(), false, true);
         aparelhos.registrar(ana.getId(), "aa".repeat(32), "IOS");
         aparelhos.registrar(ana.getId(), "bb".repeat(32), "IOS");
         aparelhos.registrar(ana.getId(), TOKEN_DO_ANDROID, "ANDROID");
+        aparelhos.registrar(ana.getId(), androidVelho, "ANDROID");
         when(financeiro.deHoje(anyString())).thenReturn(List.of(fatura("f1")));
         when(push.enviar(eq("aa".repeat(32)), any())).thenReturn(CanalDePush.Resultado.ENVIADO);
         when(push.enviar(eq("bb".repeat(32)), any())).thenReturn(CanalDePush.Resultado.TOKEN_INVALIDO);
+        when(fcm.enviar(eq(TOKEN_DO_ANDROID), any())).thenReturn(CanalDePush.Resultado.ENVIADO);
+        when(fcm.enviar(eq(androidVelho), any())).thenReturn(CanalDePush.Resultado.TOKEN_INVALIDO);
 
         assertThat(lembretes.enviarDeHoje()).isEqualTo(1);
 
         assertThat(aparelhos.doUsuario(ana.getId(), "IOS")).containsExactly("aa".repeat(32));
         assertThat(aparelhos.doUsuario(ana.getId(), "ANDROID")).containsExactly(TOKEN_DO_ANDROID);
         verify(push, never()).enviar(eq(TOKEN_DO_ANDROID), any());
+        verify(fcm, never()).enviar(eq("aa".repeat(32)), any());
         verify(email, never()).enviar(anyString(), any());
         verify(financeiro, times(1)).deHoje(anyString());
         assertThat(caio.isAlertsByEmail()).isFalse();

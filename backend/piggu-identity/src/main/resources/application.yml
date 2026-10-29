@@ -90,6 +90,9 @@ piggu:
       chave: ${APNS_CHAVE:}
       bundle-id: ${APNS_BUNDLE_ID:}
       sandbox: ${APNS_SANDBOX:false}
+    fcm:
+      # JSON da conta de servico do projeto do Firebase, em uma linha (jq -c . conta.json).
+      conta-de-servico: ${FCM_CONTA_DE_SERVICO:}
 
   assinatura:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.

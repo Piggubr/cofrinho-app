@@ -8,13 +8,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @param email e-mail por API HTTP (formato da Resend: POST com from, to, subject, text)
  * @param apns  push no iPhone pela Apple (chave .p8 de autenticacao por token)
+ * @param fcm   push no Android pelo Firebase Cloud Messaging (conta de servico do Google)
  */
 @ConfigurationProperties(prefix = "piggu.avisos")
-public record AvisosProperties(Email email, Apns apns) {
+public record AvisosProperties(Email email, Apns apns, Fcm fcm) {
 
     public AvisosProperties {
         email = email == null ? new Email(null, null, null) : email;
         apns = apns == null ? new Apns(null, null, null, null, false) : apns;
+        fcm = fcm == null ? new Fcm(null) : fcm;
     }
 
     public record Email(String apiUrl, String apiKey, String remetente) {
@@ -30,6 +32,13 @@ public record AvisosProperties(Email email, Apns apns) {
     public record Apns(String teamId, String keyId, String chave, String bundleId, boolean sandbox) {
         public boolean ligado() {
             return preenchido(teamId) && preenchido(keyId) && preenchido(chave) && preenchido(bundleId);
+        }
+    }
+
+    /** @param contaDeServico conteudo do JSON da conta de servico do projeto do Firebase */
+    public record Fcm(String contaDeServico) {
+        public boolean ligado() {
+            return preenchido(contaDeServico);
         }
     }
 

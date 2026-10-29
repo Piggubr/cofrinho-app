@@ -121,6 +121,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `PIGGU_ASSISTENTE_PERGUNTAS_POR_MES` | perguntas ao assistente de IA por pessoa no mês (padrão 150); o assistente usa a mesma `GEMINI_API_KEY` |
 | `PIGGU_EMAIL_API_KEY`, `PIGGU_EMAIL_REMETENTE` | avisos por e-mail (fatura, orçamento, conta do mês), pela API da Resend; o remetente precisa ser de um domínio verificado lá (ex.: `Piggu <nao-responda@piggu.com.br>`; SPF, DKIM e DMARC em [email-do-dominio.md](email-do-dominio.md)). Também levam o link de confirmar e-mail e o de "esqueci minha senha" |
 | `APNS_TEAM_ID`, `APNS_KEY_ID`, `APNS_CHAVE`, `APNS_BUNDLE_ID` | push no iPhone: a chave `.p8` de "Apple Push Notifications service" criada em developer.apple.com (Keys), o Team ID, o Key ID e o bundle do app. `APNS_SANDBOX=true` para o app instalado pelo Xcode |
+| `FCM_CONTA_DE_SERVICO` | push no Android: o JSON da chave da conta de serviço do projeto do Firebase, em uma linha (`jq -c . conta.json`) e entre aspas simples no `.env`. **Segredo.** A conta só precisa do papel "Firebase Cloud Messaging API Admin" |
 
 Nenhuma delas vai para o Git: o `.env` está no `.gitignore` e o `.env.example` só tem
 valores de desenvolvimento.

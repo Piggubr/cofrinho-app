@@ -23,8 +23,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Mandar o 2.0.0 (build 2) do iOS nativo ao TestFlight e liberar para o grupo de testes, quando o Dudu pedir.
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
-- Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
-- Android: push pelo Firebase (o item 8 da A7), quando a A1 entrar na `feature/android-nativo` e o projeto do Firebase existir.
+- Android: push pelo Firebase no app nativo (o item 8 da A7), com o backend da A1 já na `develop` (D-139), quando o projeto do Firebase existir.
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
 - Android: conectar banco como o iOS, pela página `/conectar-banco` que já está na `develop` (D-117).
 - Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
@@ -57,6 +56,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - 28/10/2026: iOS nativo, ajustes dos testers: o mês desce junto ao puxar para recarregar, as barras por categoria num desenho só e os vazios dos cartões do Painel centralizados (D-099).
 - 28/10/2026: iOS nativo: o + abre as opções, como no site, e lança receita de qualquer aba (D-098).
 - 27/10/2026: Android nativo, etapa A0: `android-nativo/` com módulos, tema do Piggu, abas e CI, na branch `feature/android-nativo` ([#106](https://github.com/Piggubr/cofrinho-app/pull/106)).
+- 27/10/2026: Android, etapa A1: push no Android pelo FCM (API HTTP v1) (D-139).
 - 27/10/2026: iOS nativo, ajustes do primeiro teste no iPhone: logo, busca global e assistente de IA no topo das abas, teclado que fecha ao tocar fora, trava do Face ID acima das folhas, nova categoria nas regras e a barra de abas fixa por padrão (D-097).
 - 27/10/2026: iOS nativo, etapa 9: paridade com todas as rotas do site, "Sobre você" pedindo CPF e celular (D-088), acessibilidade revista pela auditoria em todas as telas (texto grande, VoiceOver, Reduzir Movimento, escuro), iPad do mini ao Pro 13, abrir com o perfil guardado e a versão 2.0.0 (D-095).
 - 27/10/2026: iOS nativo, etapa 8: Premium pela compra da Apple (StoreKit 2) com a transação e as notificações V2 conferidas no backend pela biblioteca da Apple, no mesmo plano da Stripe; quem é Premium pelo site não vê a loja (D-094).
