@@ -96,6 +96,13 @@
     <string name="perfil_tour_titulo">Tour do Piggu</string>
     <string name="perfil_tour_explicacao">O passo a passo das funções principais, o mesmo do primeiro acesso.</string>
     <string name="perfil_tour_ver">Ver o tour de novo</string>
+    <string name="perfil_seguranca_titulo">Segurança</string>
+    <string name="perfil_travar">Travar com a biometria ou o bloqueio de tela</string>
+    <string name="perfil_travar_explicacao">Pede a sua digital, o seu rosto ou o bloqueio de tela ao abrir o Piggu e ao voltar para ele depois de 1 minuto fora. Vale para este aparelho.</string>
+    <string name="perfil_travar_indisponivel">Este aparelho não tem biometria nem bloqueio de tela. Cadastre um nas configurações do Android para travar o Piggu.</string>
+    <string name="perfil_travar_motivo">Travar o Piggu com a sua biometria</string>
+    <string name="perfil_esconder_nos_recentes">Esconder nos apps recentes</string>
+    <string name="perfil_esconder_nos_recentes_explicacao">Os valores somem da tela de apps recentes. Com isso, também não dá para tirar print nem gravar a tela do Piggu. Vale para este aparelho.</string>
     <string name="perfil_ia_titulo">Autorizações da IA</string>
     <string name="perfil_ia_explicacao">Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.</string>
     <string name="perfil_ia_retirar_nota">Retirar autorização da foto da nota</string>

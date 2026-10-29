@@ -19,6 +19,7 @@
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.Piggu">
 
@@ -75,7 +76,8 @@
         <!--
             Ícone na tela inicial (Perfil > Ícone do app, IconesDoApp.kt): um apelido da MainActivity
             por ícone, só um ligado por vez. Os mesmos nomes do app Capacitor (IconeDoAppPlugin.java),
-            para o ícone escolhido lá continuar depois da atualização. O padrão vem ligado.
+            para o ícone escolhido lá continuar depois da atualização. O padrão vem ligado. Os atalhos
+            (shortcuts.xml) vão em todos: o launcher só lê os do apelido ligado.
         -->
         <activity-alias
             android:name=".IconePadrao"
@@ -88,6 +90,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeClassico"
@@ -100,6 +105,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeMonograma"
@@ -112,6 +120,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeSilhueta"
@@ -124,6 +135,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeAzul"
@@ -136,6 +150,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeMenta"
@@ -148,6 +165,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeLilas"
@@ -160,6 +180,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeCoral"
@@ -172,6 +195,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeMel"
@@ -184,6 +210,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeVinho"
@@ -196,6 +225,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeGrafite"
@@ -208,6 +240,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
             android:name=".IconeNamorados"
@@ -220,6 +255,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <!-- O WorkManager usa a fábrica do Hilt (PigguApplication): sai o inicializador padrão. -->

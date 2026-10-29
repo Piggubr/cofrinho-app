@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -40,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -116,9 +119,12 @@ fun Moldura(
     avisos: SnackbarHostState,
     buscar: () -> Unit,
     perguntar: () -> Unit,
+    /** O tour aberto: o balão sai do alvo do passo, ou um diálogo no centro quando não há alvo. */
+    tour: TourAberto? = null,
     conteudo: @Composable () -> Unit,
 ) {
     val forma = formaDoMenu()
+    val tourNaTela = tour?.naMoldura(forma)
     var opcoesAbertas by remember { mutableStateOf(false) }
 
     val principal: @Composable () -> Unit = {
@@ -132,15 +138,18 @@ fun Moldura(
                         irAoPainel = { abrir(Tela.Painel) },
                         buscar = buscar,
                         perguntar = perguntar,
+                        tour = tourNaTela,
                     )
                 }
             },
             bottomBar = {
-                if (forma == FormaDoMenu.Barra) BarraDeAbas(abaAtual, abrir)
+                if (forma == FormaDoMenu.Barra) BarraDeAbas(abaAtual, abrir, tourNaTela)
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { opcoesAbertas = true }) {
-                    Icon(painterResource(Icone.Mais.desenho), stringResource(R.string.lancar))
+                AncoraDoTour(AlvoDoTour.Lancar, tourNaTela, TooltipAnchorPosition.Above) {
+                    FloatingActionButton(onClick = { opcoesAbertas = true }) {
+                        Icon(painterResource(Icone.Mais.desenho), stringResource(R.string.lancar))
+                    }
                 }
             },
             snackbarHost = { SnackbarHost(avisos) },
@@ -154,14 +163,16 @@ fun Moldura(
     when (forma) {
         FormaDoMenu.Barra -> principal()
         FormaDoMenu.Trilho -> Row(Modifier.fillMaxSize()) {
-            TrilhoDeAbas(abaAtual, abrir)
+            TrilhoDeAbas(abaAtual, abrir, tourNaTela)
             Box(Modifier.weight(1f)) { principal() }
         }
         FormaDoMenu.Gaveta -> PermanentNavigationDrawer(
-            drawerContent = { GavetaDoMenu(perfil, abaAtual, abrir, sair) },
+            drawerContent = { GavetaDoMenu(perfil, abaAtual, abrir, sair, tourNaTela) },
             content = principal,
         )
     }
+
+    if (tourNaTela != null && tourNaTela.alvo == null) DialogoDoTour(tourNaTela)
 
     if (opcoesAbertas) {
         // As opções do + (D-098 do iOS): gasto e receita, de qualquer aba.
@@ -203,7 +214,7 @@ private fun FaixaDaDemo() {
 /** Topo das abas (D-097 do iOS): a marca volta ao Painel, a cotação e, à direita, a busca e o assistente. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit, buscar: () -> Unit, perguntar: () -> Unit) {
+private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit, buscar: () -> Unit, perguntar: () -> Unit, tour: TourAberto?) {
     TopAppBar(
         // A faixa da demonstração já desce da barra de status: o topo não soma a folga de novo.
         windowInsets = if (demo) TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal) else TopAppBarDefaults.windowInsets,
@@ -220,8 +231,12 @@ private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit,
             }
         },
         actions = {
-            IconButton(buscar) { Icon(painterResource(Icone.Busca.desenho), stringResource(R.string.busca)) }
-            IconButton(perguntar) { Icon(painterResource(Icone.Brilho.desenho), stringResource(R.string.assistente)) }
+            AncoraDoTour(AlvoDoTour.Busca, tour, TooltipAnchorPosition.Below) {
+                IconButton(buscar) { Icon(painterResource(Icone.Busca.desenho), stringResource(R.string.busca)) }
+            }
+            AncoraDoTour(AlvoDoTour.Assistente, tour, TooltipAnchorPosition.Below) {
+                IconButton(perguntar) { Icon(painterResource(Icone.Brilho.desenho), stringResource(R.string.assistente)) }
+            }
         },
     )
 }
@@ -235,30 +250,32 @@ fun MarcaDoApp(modifier: Modifier = Modifier, descricao: String? = null) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit) {
+private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto?) {
     NavigationBar {
         Abas.forEach { (tela, rotulo, icone) ->
             NavigationBarItem(
                 selected = abaAtual == tela,
                 onClick = { abrir(tela) },
                 // O rótulo ao lado já é lido pelo TalkBack; descrever o ícone repetiria.
-                icon = { Icon(painterResource(icone), null) },
+                icon = { AncoraDoTour(AlvoDoTour.da(tela), tour, TooltipAnchorPosition.Above) { Icon(painterResource(icone), null) } },
                 label = { Text(stringResource(rotulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit) {
+private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto?) {
     NavigationRail(Modifier.statusBarsPadding()) {
         Spacer(Modifier.height(8.dp))
         Abas.forEach { (tela, rotulo, icone) ->
             NavigationRailItem(
                 selected = abaAtual == tela,
                 onClick = { abrir(tela) },
-                icon = { Icon(painterResource(icone), null) },
+                icon = { AncoraDoTour(AlvoDoTour.da(tela), tour, TooltipAnchorPosition.Right) { Icon(painterResource(icone), null) } },
                 label = { Text(stringResource(rotulo)) },
             )
         }
@@ -275,12 +292,25 @@ private val Abas: List<Triple<Tela, Int, Int>> = listOf(
 )
 
 /** Gaveta fixa da tela larga: o Perfil, os grupos do menu inteiros e o Sair, como a coluna do site. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela) -> Unit, sair: () -> Unit) {
+private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela) -> Unit, sair: () -> Unit, tour: TourAberto?) {
+    val grupos = gruposVisiveis(perfil.ehTitular, perfil.modulos)
+    val lista = rememberLazyListState()
+    // O item que o tour aponta pode estar fora da tela: a gaveta rola até ele (o cartão e os títulos contam).
+    LaunchedEffect(tour?.alvo) {
+        val tela = tour?.alvo?.tela ?: return@LaunchedEffect
+        var indice = 1
+        for ((_, itens) in grupos) {
+            val i = itens.indexOfFirst { it.tela == tela }
+            if (i >= 0) return@LaunchedEffect lista.animateScrollToItem(indice + 1 + i)
+            indice += 1 + itens.size
+        }
+    }
     PermanentDrawerSheet(Modifier.width(300.dp)) {
-        LazyColumn(Modifier.statusBarsPadding().padding(horizontal = 12.dp)) {
+        LazyColumn(Modifier.statusBarsPadding().padding(horizontal = 12.dp), lista) {
             item { CartaoDoPerfil(perfil) { abrir(Tela.Perfil) } }
-            gruposVisiveis(perfil.ehTitular, perfil.modulos).forEach { (grupo, itens) ->
+            grupos.forEach { (grupo, itens) ->
                 item {
                     Text(
                         stringResource(grupo.titulo),
@@ -293,7 +323,11 @@ private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela)
                     item {
                         NavigationDrawerItem(
                             label = { Text(stringResource(item.rotulo)) },
-                            icon = { Icon(painterResource(item.icone.desenho), null) },
+                            icon = {
+                                AncoraDoTour(AlvoDoTour.da(item.tela), tour, TooltipAnchorPosition.Right) {
+                                    Icon(painterResource(item.icone.desenho), null)
+                                }
+                            },
                             badge = { if (!item.tela.nativa) IconeAbreFora() },
                             selected = abaAtual == item.tela,
                             onClick = { abrir(item.tela) },

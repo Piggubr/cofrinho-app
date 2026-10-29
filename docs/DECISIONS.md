@@ -119,12 +119,20 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-115](#d-115-calendário-do-android-lado-a-lado-pela-largura-e-a-grade-com-limite-de-fonte) | Calendário do Android lado a lado pela largura e a grade com limite de fonte | Valendo |
 | [D-116](#d-116-relatórios-do-android-com-o-csv-do-mês-e-tabela-também-no-mês) | Relatórios do Android com o CSV do mês e tabela também no mês | Valendo |
 | [D-117](#d-117-cartões-e-bancos-do-android-fatura-numa-folha-e-conectar-banco-pelo-site) | Cartões e bancos do Android: fatura numa folha e conectar banco pelo site | Valendo |
-| [D-118](#d-118-tour-do-android-em-diálogos-no-primeiro-acesso-e-pelo-perfil) | Tour do Android em diálogos, no primeiro acesso e pelo Perfil | Valendo |
+| [D-118](#d-118-tour-do-android-em-diálogos-no-primeiro-acesso-e-pelo-perfil) | Tour do Android em diálogos, no primeiro acesso e pelo Perfil | Substituída por D-130 |
 | [D-119](#d-119-o-ícone-do-app-troca-quando-a-pessoa-sai-do-app) | O ícone do app troca quando a pessoa sai do app | Valendo |
 | [D-120](#d-120-metas-prêmios-e-girls-math-do-android-criar-e-editar-numa-folha) | Metas, Prêmios e Girls Math do Android: criar e editar numa folha | Valendo |
 | [D-121](#d-121-premium-do-android-sem-a-stripe-em-breve-até-a-a8) | Premium do Android sem a Stripe: "Em breve" até a A8 | Valendo |
 | [D-122](#d-122-perfil-do-android-com-o-que-estava-no-mais) | Perfil do Android com o que estava no Mais | Valendo |
 | [D-123](#d-123-sair-do-android-guarda-a-fila-como-no-ios) | "Sair" do Android guarda a fila, como no iOS | Valendo |
+| [D-124](#d-124-compras-do-android-com-leitor-de-código-de-barras) | Compras do Android com leitor de código de barras | Valendo |
+| [D-125](#d-125-lugares-e-filmes-do-android-mapa-pelo-app-de-mapas-formulário-numa-folha) | Lugares e Filmes do Android: mapa pelo app de mapas, formulário numa folha | Valendo |
+| [D-126](#d-126-fotos-do-android-foto-reduzida-e-legenda-que-se-salva-sozinha) | Fotos do Android: foto reduzida e legenda que se salva sozinha | Valendo |
+| [D-127](#d-127-imagens-do-android-pelo-coil-com-o-token-só-para-a-api-do-piggu) | Imagens do Android pelo Coil, com o token só para a API do Piggu | Valendo |
+| [D-128](#d-128-foto-do-recibo-no-android-os-itens-lidos-preenchem-o-formulário) | Foto do recibo no Android: os itens lidos preenchem o formulário | Valendo |
+| [D-129](#d-129-widgets-atalhos-e-bloco-das-configurações-rápidas-do-android) | Widgets, atalhos e bloco das Configurações rápidas do Android | Valendo |
+| [D-130](#d-130-tour-do-android-em-balões-que-saem-da-moldura) | Tour do Android em balões que saem da moldura | Valendo |
+| [D-131](#d-131-trava-do-android-com-1-minuto-fora-e-esconder-nos-recentes) | Trava do Android com 1 minuto fora e esconder nos recentes | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1034,7 +1042,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-118: Tour do Android em diálogos, no primeiro acesso e pelo Perfil
 - Data: 28/10/2026
-- Situação: Valendo
+- Situação: Substituída por D-130
 - Contexto: etapa A6. O tour do site (`tutorial.ts`) destaca cada parte da tela; no Compose, apontar para a aba, o + e a busca em cada tamanho de tela seria muito código para um passo a passo de oito cartões.
 - Decisão: os oito passos, com os textos do site, aparecem em diálogos em sequência, com Próximo (Concluir no último) e Pular. Abre sozinho no primeiro acesso de cada pessoa no aparelho (a chave `piggu_tutorial_<id>` do site, no DataStore) e pelo "Tour do Piggu" do Perfil.
 - Alternativas: destacar os alvos na tela como o site; só abrir pelo Perfil.
@@ -1085,6 +1093,78 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: apagar ao sair (D-108).
 - Consequências: o gasto lançado sem internet não se perde ao sair da conta; ele fica no aparelho até a mesma pessoa entrar de novo.
 - Onde ver: `android-nativo/core/data/.../FilaNoRoom.kt`, `AppViewModel.sair`
+
+## D-124: Compras do Android com leitor de código de barras
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O site busca no catálogo aberto (`/api/shopping/catalog`) só pelo nome.
+- Decisão: um botão de câmera no campo de busca abre o leitor de código de barras do Google Play services (`GmsBarcodeScanning`, só EAN-13, EAN-8, UPC-A e UPC-E), que não pede permissão de câmera ao app; o código lido vai para a busca. Se o leitor não abrir (sem Google Play services), aparece um aviso para buscar pelo nome. Compras e Desejos ficam em botões segmentados, a linha inteira marca e desmarca, e apagar não pede confirmação, como no site.
+- Alternativas: a câmera do próprio app com o ML Kit Barcode Scanning (pediria permissão de câmera).
+- Consequências: o leitor depende do Google Play services; sem ele, só a busca pelo nome.
+- Onde ver: `android-nativo/feature/listas/.../compras/`
+
+## D-125: Lugares e Filmes do Android: mapa pelo app de mapas, formulário numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. Ainda não há chave do Google Maps para o Android, e o `Lugar` não tem latitude e longitude no contrato.
+- Decisão: "Abrir no mapa" abre o app de mapas do aparelho por `geo:0,0?q=<nome>, <localização>`, e só aparece quando há localização. Criar e editar um lugar abrem numa folha, como Prêmios (D-120). A foto do lugar é reduzida a 1600 px e regravada sem EXIF. Os gêneros do sorteio de Filmes ficam em chips, e a nota de cada pessoa aparece separada, com "Ex-membro" para quem saiu da família. Lugares e marcadores ficam guardados juntos, então os marcadores também aparecem sem internet.
+- Alternativas: Maps Compose com uma chave do Google Maps.
+- Consequências: quando a chave existir, o mapa pode entrar dentro do app (README, seção do mapa).
+- Onde ver: `android-nativo/feature/listas/.../lugares/`, `.../filmes/`
+
+## D-126: Fotos do Android: foto reduzida e legenda que se salva sozinha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O site manda o arquivo original (até 5 MB) e salva a legenda ao sair do campo; o iOS salva no "Concluir".
+- Decisão: a foto (Photo Picker ou câmera) é posta em pé pelo EXIF, reduzida a 1600 px e regravada em JPEG antes de enviar, então o limite de 5 MB não aparece e a localização não sai do aparelho. A legenda se salva 800 ms depois da última letra, no escopo do app, para não se perder se a pessoa sair da tela. O seletor de mês não passa do mês atual. Sem Premium, a pessoa vê, legenda e apaga, e "Adicionar fotos" leva ao Premium.
+- Alternativas: mandar o arquivo original; salvar só ao sair do campo.
+- Consequências: a foto guardada tem menos resolução que a original.
+- Onde ver: `android-nativo/feature/fotos/`
+
+## D-127: Imagens do Android pelo Coil, com o token só para a API do Piggu
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. As fotos de Lugares e do mural vêm de `/api/assets/{id}/content`, que pede a sessão; as do catálogo de compras e os pôsteres são de outros servidores.
+- Decisão: o Coil carrega e guarda em cache todas as imagens. Uma imagem do Piggu (`AssetDoPiggu`) vai pelo OkHttp da API, com o token; qualquer outro endereço vai por um cliente sem a sessão, e um teste confere que o token nunca sai para outro servidor. O SVG das fotos da demonstração é lido pelo `coil-svg`.
+- Alternativas: o mesmo cliente para tudo (mandaria o token para o servidor de fora).
+- Consequências: quem mostrar imagem nova usa `ImagemDoAsset` ou `AsyncImage`, nunca o OkHttp da API direto.
+- Onde ver: `android-nativo/app/.../PigguApplication.kt`, `core/ui/.../ImagemDoAsset.kt`, `ImagensSemTokenTest.kt`
+
+## D-128: Foto do recibo no Android: os itens lidos preenchem o formulário
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. No site, "Lançar N itens" do "Conferir recibo" grava na hora.
+- Decisão: "Usar N itens" leva os itens, o estabelecimento e a data para o formulário de gasto, e só o "Lançar" grava, com `reciboId` e `origem: "Foto"`. Assim valem a conta ou cartão, as parcelas, a fila sem internet e o `idDoEnvio`. "Tirar foto" usa o recorte do ML Kit Document Scanner, sem permissão de câmera; sem ele, a câmera do sistema com a foto inteira. A galeria manda a foto inteira. A foto é reduzida a 1600 px, sem EXIF. A autorização do Gemini aparece quando o servidor responde `CONSENTIMENTO_NECESSARIO`, com a `versaoDoAviso` do site.
+- Alternativas: lançar direto do "Conferir recibo", como o site.
+- Consequências: um toque a mais para gravar; o link do Premium com as leituras esgotadas abre o site (conferir a regra do Google Play antes de publicar, A8).
+- Onde ver: `android-nativo/feature/gastos/.../formulario/FotoDoRecibo.kt`
+
+## D-129: Widgets, atalhos e bloco das Configurações rápidas do Android
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O iOS tem os widgets de gasto do mês e de meta e o controle "Lançar gasto" (D-093 de lá).
+- Decisão: três widgets do Jetpack Glance: Gasto do mês, Meta do mês e Lançar gasto (o iOS tem esse só como controle), em tamanho pequeno e médio. Eles leem só um resumo já calculado, num DataStore próprio, sem token nem lista de gastos. O resumo é gravado ao abrir o app, ao voltar para a frente e depois de lançar, e some ao sair da conta. O widget segue o claro ou escuro do aparelho e mostra "Atualizado às HH:mm". Os atalhos "Lançar gasto" e "Ver gastos" (os ids do Capacitor) estão nos 12 activity-alias do ícone, e o bloco "Lançar gasto" das Configurações rápidas abre o formulário. O "Quanto gastei este mês" da Siri não tem equivalente; o widget cobre.
+- Alternativas: widgets da tela de bloqueio (o Android não tem para apps de terceiros).
+- Consequências: o widget só mostra números depois que a pessoa abre o app logada.
+- Onde ver: `android-nativo/widget/`, `app/src/main/res/xml/shortcuts.xml`
+
+## D-130: Tour do Android em balões que saem da moldura
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O D-118 deixou o tour em diálogos, sem apontar onde fica cada coisa. O Material 3 1.4 tem o `TooltipBox` com o `RichTooltip`, que ancora o balão num elemento.
+- Decisão: os oito passos do site (`tutorial.ts`), com os mesmos textos e alvos, viram balões persistentes com seta, Pular, Próximo e Concluir. Cada balão sai do alvo que está na tela, na ordem de preferência do site: o +, a aba, o item do trilho ou da gaveta, a busca e o assistente. No celular e no trilho, Planejar e Família apontam para o Mais, com a dica "Fica dentro de Mais"; na gaveta, cada um tem o seu item, e a gaveta rola até ele. O "Bem-vindo" não tem alvo e fica num diálogo no centro. Tocar fora fecha o tour, como o fundo do site. Abre no primeiro acesso de cada pessoa (`piggu_tutorial_<id>`), só depois de desbloquear a trava (D-131), e pelo Perfil, que volta ao Painel antes.
+- Alternativas: manter os diálogos (D-118); desenhar o recorte escuro do site por cima da tela.
+- Consequências: o fundo não escurece em volta do alvo como no site. O contador "1/8", o "Voltar" e o "Lançar meu primeiro gasto" do site ficaram de fora.
+- Onde ver: `android-nativo/app/.../moldura/Tour.kt`, `Moldura.kt`, `AppLogado`
+
+## D-131: Trava do Android com 1 minuto fora e esconder nos recentes
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O iOS trava com Face ID a cada ida ao fundo (`TravaDoApp`). No Android, o site em Custom Tab, a câmera, a galeria e a tela de PIN do próprio BiometricPrompt também tiram o app da frente.
+- Decisão: "Travar com a biometria ou o bloqueio de tela" no Perfil vale para este aparelho, com a chave do iOS. Pede a prova ao abrir o app e ao voltar depois de 1 minuto ou mais fora, com BIOMETRIC_STRONG ou o bloqueio de tela (antes do Android 11, a biometria fraca). Ligar pede a prova antes; sem biometria nem bloqueio de tela, a opção fica desligada com a explicação. A trava é uma janela por cima de tudo, com o porquinho e "Desbloquear", e um link (widget, atalho, bloco) que chega com o app travado espera o desbloqueio. "Esconder nos apps recentes", só no Android, liga o `FLAG_SECURE`, e o texto avisa que isso também bloqueia o print e a gravação da tela.
+- Alternativas: travar a cada ida ao fundo, como no iOS (travaria na volta do site e da câmera, e o PIN entraria em laço); travar ao sair, não ao voltar.
+- Consequências: até 1 minuto fora, o app volta sem pedir a prova. Sem o "Esconder nos recentes", a miniatura dos recentes mostra os valores.
+- Onde ver: `android-nativo/app/.../Trava.kt`, `feature/perfil/.../Biometria.kt`
 
 # Processo
 

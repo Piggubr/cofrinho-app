@@ -1,7 +1,15 @@
 package br.com.piggu.feature.gastos.formulario
 
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,10 +19,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -24,6 +34,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -43,20 +54,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.piggu.core.designsystem.Icone
+import br.com.piggu.core.model.OrigemDaLeitura
+import br.com.piggu.core.model.ReciboLido
 import br.com.piggu.core.network.mensagemDeErro
 import br.com.piggu.core.ui.CampoDeCategoria
 import br.com.piggu.core.ui.CampoDeValor
@@ -65,6 +82,12 @@ import br.com.piggu.core.ui.formatos.formatarMoeda
 import br.com.piggu.core.ui.formatos.mesPorExtenso
 import br.com.piggu.core.ui.lembrarAbrirNoSite
 import br.com.piggu.feature.gastos.R
+import coil3.compose.AsyncImage
+import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
+import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import java.io.File
+import java.io.InputStream
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -95,6 +118,7 @@ fun FormularioDeGasto(
             viewModel.avisoEntregue()
         }
     }
+    val fotos = lembrarFotosDoRecibo(viewModel::lerFotoDoRecibo)
 
     Column(
         modifier.verticalScroll(rememberScrollState()).padding(16.dp),
@@ -103,8 +127,14 @@ fun FormularioDeGasto(
         if (estado.semInternet) Aviso(stringResource(R.string.formulario_sem_internet), erro = false)
         estado.erro?.let { Aviso(it.texto(contexto), erro = true) }
 
+        // Recibo lido: os itens ficam em conferência no lugar do formulário até a pessoa confirmar.
+        estado.recibo?.let { lido ->
+            ConferirRecibo(estado, lido, viewModel)
+            return@Column
+        }
+
         estado.itens.forEachIndexed { indice, linha ->
-            key(linha.chave) { LinhaDoItem(estado, linha, indice, viewModel) }
+            key(linha.chave) { LinhaDoItem(estado, linha, indice, estado.itens.size > 1, viewModel) }
         }
         if (estado.itens.size < 100) {
             TextButton(viewModel::adicionarItem) {
@@ -120,6 +150,135 @@ fun FormularioDeGasto(
         Button(viewModel::lancar, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !estado.salvando) {
             Text(stringResource(if (estado.salvando) R.string.formulario_guardando else R.string.formulario_lancar))
         }
+        LerRecibo(estado, fotos)
+    }
+    estado.pedidoDeIa?.let { mensagem -> PedidoDeIa(mensagem.texto(contexto), viewModel) }
+}
+
+/** Como a foto do recibo chega: [tirar] nulo sem câmera no aparelho. */
+private class FotosDoRecibo(val tirar: (() -> Unit)?, val escolherDaGaleria: () -> Unit)
+
+/**
+ * Câmera e galeria (Photo Picker). Com o Google Play services, a câmera é o recorte do ML Kit
+ * (Document Scanner), que não pede permissão de câmera; sem ele, ou sem o módulo no aparelho, é a
+ * câmera do sistema com a foto inteira, gravada pelo FileProvider do módulo só ao tirar a foto.
+ */
+@Composable
+private fun lembrarFotosDoRecibo(ler: (abrir: () -> InputStream?) -> Unit): FotosDoRecibo {
+    val contexto = LocalContext.current
+    val atividade = LocalActivity.current
+    val lerUri = { uri: Uri -> ler { contexto.contentResolver.openInputStream(uri) } }
+    val galeria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { it?.let(lerUri) }
+    val destino by remember(contexto) { lazy {
+        val arquivo = File(contexto.cacheDir, "recibos").apply { mkdirs() }.resolve("foto.jpg")
+        FileProvider.getUriForFile(contexto, "${contexto.packageName}.gastos.arquivos", arquivo)
+    } }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { tirou -> if (tirou) lerUri(destino) }
+    val recorte = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { resultado ->
+        GmsDocumentScanningResult.fromActivityResultIntent(resultado.data)?.pages?.firstOrNull()?.imageUri?.let(lerUri)
+    }
+    var semRecorte by rememberSaveable { mutableStateOf(false) }
+    val temCamera = remember(contexto) { contexto.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
+    val tirar: () -> Unit = {
+        if (semRecorte || atividade == null) {
+            camera.launch(destino)
+        } else {
+            val opcoes = GmsDocumentScannerOptions.Builder()
+                .setGalleryImportAllowed(false) // A galeria é o Photo Picker.
+                .setPageLimit(1)
+                .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
+                .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_BASE)
+                .build()
+            GmsDocumentScanning.getClient(opcoes).getStartScanIntent(atividade)
+                .addOnSuccessListener { recorte.launch(IntentSenderRequest.Builder(it).build()) }
+                .addOnFailureListener {
+                    semRecorte = true
+                    camera.launch(destino)
+                }
+        }
+    }
+    return FotosDoRecibo(
+        tirar = tirar.takeIf { temCamera },
+        escolherDaGaleria = { galeria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+    )
+}
+
+/** O botão da foto e o contador do mês; sem leituras grátis, o convite ao Premium. */
+@Composable
+private fun LerRecibo(estado: EstadoDoFormulario, fotos: FotosDoRecibo) {
+    val abrirNoSite = lembrarAbrirNoSite()
+    if (estado.leiturasRestantes == 0) {
+        OutlinedButton({ abrirNoSite("/plano") }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Icon(painterResource(Icone.Camera.desenho), null)
+            Text(stringResource(R.string.recibo_ler_premium), Modifier.padding(start = 8.dp))
+        }
+        Detalhe(stringResource(R.string.recibo_leituras_acabaram))
+        return
+    }
+    var menu by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(
+            { if (fotos.tirar == null) fotos.escolherDaGaleria() else menu = true },
+            Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            enabled = !estado.lendoRecibo,
+        ) {
+            Icon(painterResource(Icone.Camera.desenho), null)
+            Text(stringResource(if (estado.lendoRecibo) R.string.recibo_lendo else R.string.recibo_ler_por_foto), Modifier.padding(start = 8.dp))
+        }
+        DropdownMenu(menu, { menu = false }) {
+            DropdownMenuItem({ Text(stringResource(R.string.recibo_tirar_foto)) }, { menu = false; fotos.tirar?.invoke() })
+            DropdownMenuItem({ Text(stringResource(R.string.recibo_escolher_da_galeria)) }, { menu = false; fotos.escolherDaGaleria() })
+        }
+    }
+    estado.leiturasRestantes?.let { Detalhe(pluralStringResource(R.plurals.recibo_leituras_restantes, it, it)) }
+}
+
+/** "Ler com a IA do Google?": só com a autorização a foto vai ao Gemini; "Agora não" descarta. */
+@Composable
+private fun PedidoDeIa(mensagem: String, viewModel: FormularioDeGastoViewModel) {
+    val abrirNoSite = lembrarAbrirNoSite()
+    AlertDialog(
+        onDismissRequest = viewModel::recusarIa,
+        confirmButton = { TextButton(viewModel::autorizarIa) { Text(stringResource(R.string.recibo_autorizar_e_ler)) } },
+        dismissButton = { TextButton(viewModel::recusarIa) { Text(stringResource(R.string.recibo_agora_nao)) } },
+        title = { Text(stringResource(R.string.recibo_ler_com_a_ia)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(mensagem)
+                Text(stringResource(R.string.recibo_ia_detalhe), style = MaterialTheme.typography.bodySmall)
+                TextButton({ abrirNoSite("/privacidade") }) { Text(stringResource(R.string.recibo_aviso_de_privacidade)) }
+            }
+        },
+    )
+}
+
+/** "Conferir recibo": editar, tirar e confirmar os itens lidos antes de irem para o formulário. */
+@Composable
+private fun ConferirRecibo(estado: EstadoDoFormulario, lido: ReciboLido, viewModel: FormularioDeGastoViewModel) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.recibo_conferir), Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.titleMedium)
+        Text(formatarMoeda(estado.totalDoRecibo, estado.moeda), style = MaterialTheme.typography.titleMedium)
+    }
+    Detalhe(
+        listOf(
+            lido.estabelecimento.ifBlank { stringResource(R.string.recibo_sem_estabelecimento) },
+            dataCurta(lido.data),
+            stringResource(if (lido.origem == OrigemDaLeitura.OCR) R.string.recibo_lido_pelo_piggu else R.string.recibo_lido_pelo_gemini),
+        ).joinToString(" · "),
+    )
+    lido.aviso?.let { Aviso(it, erro = false) }
+    estado.fotoDoRecibo?.let {
+        AsyncImage(it, stringResource(R.string.recibo_foto), Modifier.fillMaxWidth().heightIn(max = 240.dp), contentScale = ContentScale.Fit)
+    }
+    estado.itensDoRecibo.forEachIndexed { indice, linha ->
+        key(linha.chave) { LinhaDoItem(estado, linha, indice, podeRemover = true, viewModel) }
+    }
+    val quantos = estado.itensDoRecibo.size
+    Button(viewModel::confirmarRecibo, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        Text(pluralStringResource(R.plurals.recibo_usar_itens, quantos, quantos))
+    }
+    OutlinedButton(viewModel::descartarRecibo, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        Text(stringResource(R.string.recibo_descartar))
     }
 }
 
@@ -135,11 +294,11 @@ private fun Aviso(texto: String, erro: Boolean) {
 }
 
 @Composable
-private fun LinhaDoItem(estado: EstadoDoFormulario, linha: ItemDoFormulario, indice: Int, viewModel: FormularioDeGastoViewModel) {
+private fun LinhaDoItem(estado: EstadoDoFormulario, linha: ItemDoFormulario, indice: Int, podeRemover: Boolean, viewModel: FormularioDeGastoViewModel) {
     val contexto = LocalContext.current
     val comErro = estado.itemComErro == linha.chave
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (estado.itens.size > 1) {
+        if (podeRemover) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.formulario_item_numero, indice + 1), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                 IconButton({ viewModel.removerItem(linha.chave) }) {
@@ -182,7 +341,7 @@ private fun LinhaDoItem(estado: EstadoDoFormulario, linha: ItemDoFormulario, ind
             isError = comErro && linha.item.isBlank(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
-        if (estado.itens.size > 1) HorizontalDivider()
+        if (podeRemover) HorizontalDivider()
     }
 }
 

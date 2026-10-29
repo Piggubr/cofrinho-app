@@ -59,6 +59,9 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.ui)
     implementation(projects.core.data)
+    // O carregador de imagens do Coil usa o OkHttp da sessão; o SVG é o das fotos da demonstração.
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
     implementation(projects.feature.login)
     implementation(projects.feature.legal)
     implementation(projects.feature.painel)
@@ -77,10 +80,16 @@ dependencies {
     implementation(projects.feature.familia)
     implementation(projects.feature.perfil)
     implementation(projects.feature.plano)
+    implementation(projects.feature.listas)
+    implementation(projects.feature.fotos)
+    // Widgets, o bloco das Configurações rápidas e o resumo que eles leem (A7).
+    implementation(projects.widget)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 
     implementation(libs.androidx.activity.compose)
+    // A trava do app: o BiometricPrompt pede a MainActivity como FragmentActivity.
+    implementation(libs.androidx.biometric)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.process)

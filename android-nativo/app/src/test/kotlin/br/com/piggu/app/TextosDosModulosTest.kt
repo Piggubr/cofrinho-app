@@ -15,7 +15,8 @@ class TextosDosModulosTest {
         val raiz = File("..").canonicalFile
         val textos = raiz.walkTopDown()
             .onEnter { it.name != "build" && !it.name.startsWith(".") }
-            .filter { it.name == "strings.xml" && it.path.contains("src/main/res/values/") }
+            // strings_compras.xml e afins: um módulo com várias telas separa os textos por tela.
+            .filter { it.name.startsWith("strings") && it.extension == "xml" && it.path.contains("src/main/res/values/") }
             .flatMap { arquivo ->
                 Regex("""<string name="([^"]+)"[^>]*>(.*?)</string>""", RegexOption.DOT_MATCHES_ALL)
                     .findAll(arquivo.readText()).map { Triple(it.groupValues[1], it.groupValues[2], arquivo.relativeTo(raiz).path) }

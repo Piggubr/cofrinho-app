@@ -63,6 +63,11 @@
     <string name="atualize_texto">Esta versão do app não funciona mais. Instale a versão nova na Play Store para continuar.</string>
     <string name="atualize_botao">Abrir a Play Store</string>
 
+    <!-- Trava do app (TravaDoApp do iOS) -->
+    <string name="trava_titulo">O Piggu está travado</string>
+    <string name="trava_desbloquear">Desbloquear</string>
+    <string name="trava_motivo">Desbloquear o Piggu</string>
+
     <!-- Tour do Piggu (core/ui/tutorial.ts) -->
     <string name="tour_inicio_titulo">Bem-vindo ao Piggu</string>
     <string name="tour_inicio_texto">Um tour rápido pelas funções principais. Leva menos de um minuto.</string>
@@ -79,8 +84,10 @@
     <string name="tour_busca_titulo">Busca</string>
     <string name="tour_busca_texto">Encontre qualquer tela ou lançamento pela lupa.</string>
     <string name="tour_assistente_titulo">Assistente</string>
-    <string name="tour_assistente_texto">Pergunte sobre o seu dinheiro, como "quanto gastei este mês?", e ele responde.</string>
+    <string name="tour_assistente_texto">Pergunte sobre o seu dinheiro, como \"quanto gastei este mês?\", e ele responde.</string>
     <string name="tour_proximo">Próximo</string>
     <string name="tour_pular">Pular</string>
     <string name="tour_concluir">Concluir</string>
+    <string name="tour_dica_no_mais">Fica dentro de \"Mais\".</string>
+    <string name="tour_dica_rever">Para rever este tour, vá em Perfil.</string>
 </resources>

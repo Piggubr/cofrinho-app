@@ -5,7 +5,9 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -139,6 +141,9 @@ data class EventosDoPerfil(
     val dispensarAvisoDoPadrao: () -> Unit = {},
     val escolherIcone: (IconeDoApp) -> Unit = {},
     val abrirTour: () -> Unit = {},
+    /** A tela pede a biometria ou o bloqueio de tela antes de ligar. */
+    val mudarTravar: (Boolean) -> Unit = {},
+    val mudarEsconderNosRecentes: (Boolean) -> Unit = {},
     val retirarAutorizacaoDaNota: () -> Unit = {},
     val retirarAutorizacaoDoAssistente: () -> Unit = {},
     val informarDocumento: () -> Unit = {},
@@ -195,6 +200,8 @@ fun TelaDoPerfil(
     }
 
     val arquivoDosDadosNome = stringResource(R.string.perfil_dados_arquivo)
+    val atividade = LocalActivity.current as? FragmentActivity
+    val motivoDaTrava = stringResource(R.string.perfil_travar_motivo)
     TelaDoPerfil(
         estado,
         EventosDoPerfil(
@@ -241,6 +248,12 @@ fun TelaDoPerfil(
             dispensarAvisoDoPadrao = viewModel::dispensarAvisoDoPadrao,
             escolherIcone = viewModel::escolherIcone,
             abrirTour = abrirTour,
+            mudarTravar = { ligar ->
+                // Ligar pede a prova antes, para ninguém travar o app de outra pessoa (TravaDoApp do iOS).
+                if (!ligar) viewModel.mudarTravar(false)
+                else if (atividade != null) autenticar(atividade, motivoDaTrava) { viewModel.mudarTravar(true) }
+            },
+            mudarEsconderNosRecentes = viewModel::mudarEsconderNosRecentes,
             retirarAutorizacaoDaNota = viewModel::retirarAutorizacaoDaNota,
             retirarAutorizacaoDoAssistente = viewModel::retirarAutorizacaoDoAssistente,
             informarDocumento = { abrirNoApp(contexto, "piggu://cpf") },
@@ -257,6 +270,7 @@ fun TelaDoPerfil(
         avisoDoEmail = avisoDoEmail,
         modifier = modifier,
         coresDoCelularDisponiveis = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+        travaDisponivel = remember { podeTravar(contexto) },
     )
 }
 
@@ -275,6 +289,8 @@ fun TelaDoPerfil(
     avisoDoEmail: @Composable () -> Unit = {},
     /** Cores do celular só existem no Android 12 ou mais novo. */
     coresDoCelularDisponiveis: Boolean = true,
+    /** O aparelho tem biometria ou bloqueio de tela: sem eles, a trava fica desligada. */
+    travaDisponivel: Boolean = true,
 ) {
     val mensagens = remember { SnackbarHostState() }
     val contexto = LocalContext.current
@@ -317,6 +333,7 @@ fun TelaDoPerfil(
                 Cartao(stringResource(R.string.perfil_tour_titulo), stringResource(R.string.perfil_tour_explicacao)) {
                     OutlinedButton(eventos.abrirTour) { Text(stringResource(R.string.perfil_tour_ver)) }
                 }
+                Seguranca(estado, eventos, travaDisponivel)
                 Cartao(stringResource(R.string.perfil_ia_titulo), stringResource(R.string.perfil_ia_explicacao)) {
                     OutlinedButton(eventos.retirarAutorizacaoDaNota, enabled = !estado.ocupado) { Text(stringResource(R.string.perfil_ia_retirar_nota)) }
                     OutlinedButton(eventos.retirarAutorizacaoDoAssistente, enabled = !estado.ocupado) { Text(stringResource(R.string.perfil_ia_retirar_assistente)) }
@@ -467,6 +484,17 @@ private fun Aparencia(estado: EstadoDoPerfil, eventos: EventosDoPerfil, coresDoC
             Chave(stringResource(R.string.perfil_cores_do_celular), estado.coresDoCelular, true, eventos.mudarCoresDoCelular)
             Explicacao(stringResource(R.string.perfil_cores_do_celular_explicacao))
         }
+    }
+}
+
+/** Travar o app (seguranca do PerfilView do iOS) e esconder nos recentes, que só o Android tem. */
+@Composable
+private fun Seguranca(estado: EstadoDoPerfil, eventos: EventosDoPerfil, travaDisponivel: Boolean) {
+    Cartao(stringResource(R.string.perfil_seguranca_titulo)) {
+        Chave(stringResource(R.string.perfil_travar), estado.travar && travaDisponivel, travaDisponivel, eventos.mudarTravar)
+        Explicacao(stringResource(if (travaDisponivel) R.string.perfil_travar_explicacao else R.string.perfil_travar_indisponivel))
+        Chave(stringResource(R.string.perfil_esconder_nos_recentes), estado.esconderNosRecentes, true, eventos.mudarEsconderNosRecentes)
+        Explicacao(stringResource(R.string.perfil_esconder_nos_recentes_explicacao))
     }
 }
 

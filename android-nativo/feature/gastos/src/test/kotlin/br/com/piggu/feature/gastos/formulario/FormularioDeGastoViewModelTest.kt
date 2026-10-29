@@ -1,6 +1,8 @@
 package br.com.piggu.feature.gastos.formulario
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.test.core.app.ApplicationProvider
@@ -11,11 +13,16 @@ import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Lancamentos
 import br.com.piggu.core.data.ListasParaLancar
 import br.com.piggu.core.data.MonitorDeRede
+import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.database.RespostaGuardada
 import br.com.piggu.core.database.RespostasGuardadasDao
 import br.com.piggu.core.model.Gasto
 import br.com.piggu.core.model.JsonDoPiggu
 import br.com.piggu.core.model.NovoLancamento
+import br.com.piggu.core.model.PedidoDeLeitura
+import br.com.piggu.core.model.PigguRole
+import br.com.piggu.core.model.Plano
+import br.com.piggu.core.model.ReciboLido
 import br.com.piggu.core.network.ErroDaApi
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.network.ServicoDeFinancas
@@ -34,6 +41,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -44,14 +52,22 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowNetworkCapabilities
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.math.BigDecimal
+
+/** Uma foto de câmera, em JPEG. */
+private fun fotoDeCamera(largura: Int, altura: Int): ByteArray =
+    ByteArrayOutputStream().also { Bitmap.createBitmap(largura, altura, Bitmap.Config.ARGB_8888).compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
 
 /** formulario-de-gasto.spec.ts, com a rede de verdade respondida pela API falsa (Ana, BRL, Nubank e Itaú). */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [36])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class FormularioDeGastoViewModelTest {
     @get:Rule val pasta = TemporaryFolder()
     private val contexto: Context = ApplicationProvider.getApplicationContext()
@@ -78,11 +94,13 @@ class FormularioDeGastoViewModelTest {
     private suspend fun TestScope.abrir(
         fixas: RespostasFixas = RespostasFixas(),
         conectado: Boolean = true,
+        gratuito: Boolean = false,
         financas: (ServicoDeFinancas) -> ServicoDeFinancas = { it },
     ): FormularioDeGastoViewModel {
         conectar(conectado)
         val rede = redeDeTeste(pasta.root, fixas)
         rede.entrar()
+        if (gratuito) rede.sessao.entrou(rede.sessao.usuario!!.copy(plano = Plano.GRATUITO, role = PigguRole.TITULAR))
         val listas = ListasParaLancar(CacheDeRespostas(SemCache, DIA_DAS_CAPTURAS), rede.financas, rede.identidade)
         val viewModel = FormularioDeGastoViewModel(
             contexto, rede.sessao, financas(rede.financas), listas, fila, MonitorDeRede(contexto, backgroundScope), lancamentos, DIA_DAS_CAPTURAS,
@@ -358,6 +376,131 @@ class FormularioDeGastoViewModelTest {
         assertEquals(2, ids.size)
         assertNotEquals(ids[0], ids[1])
         assertTrue(fila.aguardando.value.isEmpty())
+    }
+
+    @Test
+    fun `recibo lido fica em conferencia e so preenche o formulario ao confirmar`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = abrir(fixas)
+        // Premium: o contador não é pedido.
+        assertTrue(fixas.pedidos.none { it.startsWith("GET /api/receipts/usage") })
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream(fotoDeCamera(3200, 2400)) }
+        val lendo = viewModel.estado.esperar { it.recibo != null }
+        assertFalse(lendo.lendoRecibo)
+        assertEquals(4, lendo.itensDoRecibo.size)
+        assertEquals(BigDecimal("58.08"), lendo.totalDoRecibo)
+        // Nada gravado nem preenchido ainda; a foto foi reduzida e sem autorização da IA.
+        assertEquals(emptyList<NovoLancamento>(), fixas.lancados())
+        assertEquals("", viewModel.estado.value.itens.single().item)
+        val leitura = fixas.pedidos.single { it.startsWith("POST /api/receipts/parse") }
+        assertTrue(leitura.contains(""""mimeType":"image/jpeg""""))
+        assertFalse(leitura.contains("autorizoIa"))
+        val jpeg = lendo.fotoDoRecibo!!
+        val limites = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, limites)
+        assertEquals(1600, limites.outWidth)
+
+        // Editar e tirar na conferência.
+        val itens = lendo.itensDoRecibo
+        viewModel.mudarDescricao(itens[0].chave, "Arroz integral")
+        viewModel.mudarValor(itens[1].chave, BigDecimal("9.00"))
+        viewModel.removerItem(itens[3].chave)
+        assertEquals(listOf("Arroz integral", "Feijão carioca 1kg", "Café 500g"), viewModel.estado.value.itensDoRecibo.map { it.item })
+        assertEquals("", viewModel.estado.value.itens.single().item)
+
+        viewModel.confirmarRecibo()
+        val preenchido = viewModel.estado.value
+        assertNull(preenchido.recibo)
+        assertNull(preenchido.fotoDoRecibo)
+        assertEquals(listOf("Arroz integral", "Feijão carioca 1kg", "Café 500g"), preenchido.itens.map { it.item })
+        assertEquals(listOf("Alimentação", "Alimentação", "Alimentação"), preenchido.itens.map { it.categoria })
+        assertEquals("Supermercado Bom Preço", preenchido.estabelecimento)
+        assertEquals(java.time.LocalDate.of(2026, 10, 28), preenchido.data)
+
+        viewModel.lancar()
+        viewModel.estado.esperar { it.lancado != null }
+        val pedido = fixas.lancados().single()
+        assertEquals("Foto", pedido.origem)
+        assertEquals(lendo.recibo!!.reciboId, pedido.reciboId)
+        assertEquals(BigDecimal("9.00"), pedido.itens[1].valor)
+        // O próximo volta a ser manual.
+        assertNull(viewModel.estado.value.reciboId)
+    }
+
+    @Test
+    fun `conferencia sem item valido nao confirma e descartar volta ao formulario`() = runTest {
+        val viewModel = abrir()
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream(fotoDeCamera(800, 600)) }
+        viewModel.estado.esperar { it.recibo != null }.itensDoRecibo.forEach { viewModel.removerItem(it.chave) }
+        viewModel.confirmarRecibo()
+        assertEquals(R.string.recibo_nenhum_item_valido, viewModel.erro())
+        assertTrue(viewModel.estado.value.recibo != null)
+        viewModel.descartarRecibo()
+        assertNull(viewModel.estado.value.recibo)
+        assertNull(viewModel.estado.value.fotoDoRecibo)
+        assertEquals(1, viewModel.estado.value.itens.size)
+    }
+
+    @Test
+    fun `foto que nao e imagem avisa sem chamar o servidor`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = abrir(fixas)
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream("não é foto".toByteArray()) }
+        viewModel.estado.esperar { !it.lendoRecibo && it.erro != null }
+        assertEquals(R.string.recibo_foto_ilegivel, viewModel.erro())
+        assertTrue(fixas.pedidos.none { it.contains("/api/receipts/parse") })
+    }
+
+    @Test
+    fun `sem autorizacao pergunta antes de ir a IA - recusar nao envia e autorizar grava a versao`() = runTest {
+        val leituras = mutableListOf<PedidoDeLeitura>()
+        val viewModel = abrir { real ->
+            object : ServicoDeFinancas by real {
+                override suspend fun lerRecibo(pedido: PedidoDeLeitura): ReciboLido {
+                    leituras += pedido
+                    if (pedido.autorizoIa != true) {
+                        throw ErroDaApi.DoServidor(422, "CONSENTIMENTO_NECESSARIO", "Autorize o envio da foto ao Google.", emptyList(), null)
+                    }
+                    return real.lerRecibo(pedido)
+                }
+            }
+        }
+        val foto = fotoDeCamera(800, 600)
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream(foto) }
+        val pedindo = viewModel.estado.esperar { it.pedidoDeIa != null }
+        assertEquals(MensagemDeErro.DoServidor("Autorize o envio da foto ao Google."), pedindo.pedidoDeIa)
+        assertNull(pedindo.erro)
+        viewModel.recusarIa()
+        assertNull(viewModel.estado.value.pedidoDeIa)
+        assertNull(viewModel.estado.value.fotoDoRecibo)
+        assertEquals(1, leituras.size)
+        // Recusou: autorizar depois não manda nada.
+        viewModel.autorizarIa()
+        assertEquals(1, leituras.size)
+
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream(foto) }
+        viewModel.estado.esperar { it.pedidoDeIa != null }
+        viewModel.autorizarIa()
+        viewModel.estado.esperar { it.recibo != null }
+        assertEquals(3, leituras.size)
+        assertEquals(true, leituras.last().autorizoIa)
+        assertEquals(VERSAO_DOS_TERMOS, leituras.last().versaoDoAviso)
+        assertEquals(leituras[1].imageBase64, leituras.last().imageBase64)
+    }
+
+    @Test
+    fun `no gratuito mostra as leituras que sobram e o erro do servidor some com a foto`() = runTest {
+        val fixas = RespostasFixas(
+            "GET /api/receipts/usage" to RespostaFixa(200, """{"usadas":3,"limite":10,"restantes":7}"""),
+            "POST /api/receipts/parse" to RespostasFixas.erro(422, "PLANO_PREMIUM", "As leituras grátis deste mês acabaram."),
+        )
+        val viewModel = abrir(fixas, gratuito = true)
+        assertEquals(7, viewModel.estado.esperar { it.leiturasRestantes != null }.leiturasRestantes)
+        viewModel.lerFotoDoRecibo { ByteArrayInputStream(fotoDeCamera(800, 600)) }
+        val falhou = viewModel.estado.esperar { !it.lendoRecibo && it.erro != null }
+        assertEquals(MensagemDeErro.DoServidor("As leituras grátis deste mês acabaram."), falhou.erro)
+        assertNull(falhou.fotoDoRecibo)
+        assertNull(falhou.pedidoDeIa)
     }
 
     @Test

@@ -14,6 +14,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performTextInput
@@ -25,7 +26,9 @@ import br.com.piggu.app.moldura.PerfilDaMoldura
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.designsystem.PigguTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
+import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
@@ -40,6 +43,9 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import javax.inject.Inject
+import javax.inject.Named
+import coil3.SingletonImageLoader
+import okhttp3.OkHttpClient
 
 /** A conta da demonstração: Ana, titular com Premium, todos os módulos ligados. */
 private val ANA = PerfilDaMoldura(nome = "Ana Souza", email = "ana@demo.piggu.app", ehTitular = true, premium = true, modulos = null)
@@ -52,7 +58,7 @@ private val ANA = PerfilDaMoldura(nome = "Ana Souza", email = "ana@demo.piggu.ap
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, sdk = [36])
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTestApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTestApi::class, ExperimentalRoborazziApi::class)
 class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: String) {
 
     companion object {
@@ -65,6 +71,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     @get:Rule(order = 1) val compose = createAndroidComposeRule<AtividadeDeTeste>()
 
     @Inject lateinit var sessao: Sessao
+    @Inject lateinit var cliente: OkHttpClient
+    @Inject @Named("urlDaApi") lateinit var urlDaApi: String
 
     @Before
     fun preparar() {
@@ -72,6 +80,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
         if (tema == "escuro") RuntimeEnvironment.setQualifiers("+night")
         comInternet()
         hilt.inject()
+        // O HiltTestApplication não é o PigguApplication: o carregador das fotos vem daqui.
+        SingletonImageLoader.setUnsafe { carregadorDeImagens(it, urlDaApi, cliente) }
         runBlocking { sessao.entrarComSenha("ana@demo.piggu.app", "senha123", lembrar = false) }
         compose.setContent {
             CompositionLocalProvider(LocalRippleConfiguration provides null) {
@@ -130,6 +140,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     fun gastos() {
         tocar("Gastos")
         esperarCarregar()
+        // Os nomes da família chegam numa carga à parte ("de Beto Souza").
+        compose.waitUntil(15_000) { compose.onAllNodes(hasText("de Beto Souza", substring = true)).fetchSemanticsNodes().isNotEmpty() }
         capturar("gastos")
     }
 
@@ -253,5 +265,52 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     fun perfil() {
         abrirDoMais("Ana Souza")
         capturar("perfil", 6)
+    }
+
+    // Etapa A7: estilo de vida.
+
+    @Test
+    fun compras() {
+        abrirDoMais("Compras")
+        capturar("compras", 7)
+    }
+
+    @Test
+    fun lugares() {
+        abrirDoMais("Lugares")
+        esperarImagens()
+        capturar("lugares", 7)
+    }
+
+    @Test
+    fun filmes() {
+        abrirDoMais("Filmes")
+        esperarImagens()
+        capturar("filmes", 7)
+    }
+
+    @Test
+    fun fotos() {
+        abrirDoMais("Fotos")
+        esperarImagens()
+        capturar("fotos", 7)
+    }
+
+    @Test
+    fun tour() {
+        abrirDoMais("Ana Souza")
+        compose.onNode(hasText("Ver o tour de novo") and hasClickAction()).performScrollTo().performClick()
+        compose.waitForIdle()
+        // O "Bem-vindo" é um diálogo; o segundo passo é o balão que sai do +.
+        tocar("Próximo")
+        compose.waitForIdle()
+        // O balão é uma janela à parte: a captura é da tela, não da raiz do Compose.
+        captureScreenRoboImage("../docs/prints/etapa-7/tour-$aparelho-$tema.png")
+    }
+
+    /** O Coil carrega fora da thread principal: espera as fotos da API falsa chegarem. */
+    private fun esperarImagens() {
+        Thread.sleep(1_500)
+        compose.waitForIdle()
     }
 }

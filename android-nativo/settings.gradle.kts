@@ -46,5 +46,8 @@ include(
     ":feature:perfil",
     ":feature:plano",
     ":feature:legal",
+    ":feature:listas",
+    ":feature:fotos",
+    ":widget",
     ":baselineprofile",
 )

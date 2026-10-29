@@ -56,6 +56,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -65,7 +67,7 @@ import br.com.piggu.app.moldura.FOLGA_DO_LANCAR
 import br.com.piggu.app.moldura.Moldura
 import br.com.piggu.app.moldura.PerfilDaMoldura
 import br.com.piggu.app.moldura.TelaDoMais
-import br.com.piggu.app.moldura.TourDoPiggu
+import br.com.piggu.app.moldura.TourAberto
 import br.com.piggu.app.navegacao.Destino
 import br.com.piggu.app.navegacao.Tela
 import br.com.piggu.core.designsystem.ModoDeCor
@@ -79,6 +81,8 @@ import br.com.piggu.feature.login.AvisoDeConfirmarEmail
 import br.com.piggu.feature.painel.PainelScreen
 import br.com.piggu.feature.painel.TelaDoPainel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.emptyFlow
 
 /** Troca de aba deixando o Painel na base: o voltar de qualquer aba leva ao Painel e, de lá, sai do app. */
@@ -90,8 +94,16 @@ fun MutableList<NavKey>.irPara(aba: NavKey) {
 
 /** O app inteiro: o tema da pessoa e, pela sessão, o login, uma pendência ou a moldura. */
 @Composable
-fun PigguApp(links: Flow<Destino> = emptyFlow(), viewModel: AppViewModel = hiltViewModel()) {
+fun PigguApp(
+    links: Flow<Destino> = emptyFlow(),
+    viewModel: AppViewModel = hiltViewModel(),
+    travaViewModel: TravaViewModel = hiltViewModel(),
+) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val trava by travaViewModel.estado.collectAsStateWithLifecycle()
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { travaViewModel.foiParaOFundo() }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { travaViewModel.voltou() }
+    EsconderNosRecentes(trava.esconderNosRecentes)
     val escuro = when (estado.modo) {
         ModoDeCor.Automatico -> isSystemInDarkTheme()
         ModoDeCor.Claro -> false
@@ -105,6 +117,8 @@ fun PigguApp(links: Flow<Destino> = emptyFlow(), viewModel: AppViewModel = hiltV
             Raiz.Atualizar -> AtualizeOApp()
             Raiz.Login -> EntradaSemSessao(links)
             is Raiz.Pendente -> key(raiz.pendencia) { PendenciaDaConta(raiz.pendencia, links, viewModel::sair) }
+            // Sem saber ainda se a trava está ligada, nada de valores na tela.
+            is Raiz.Logado if trava.travado == null -> Abrindo()
             is Raiz.Logado -> {
                 val avisos = remember { SnackbarHostState() }
                 val corPadrao = stringResource(R.string.cor_voltou_ao_padrao)
@@ -115,7 +129,11 @@ fun PigguApp(links: Flow<Destino> = emptyFlow(), viewModel: AppViewModel = hiltV
                     }
                 }
                 val tourNovo by viewModel.tourNovo.collectAsStateWithLifecycle()
-                AppLogado(raiz.perfil, links, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo, viuOTour = viewModel::viuOTour)
+                // O tour espera o desbloqueio: o diálogo dele abriria por cima da trava.
+                // Link de widget, atalho ou bloco com o app travado espera o desbloqueio (lançar seria por cima da trava).
+                val linksDepoisDaTrava = remember(links) { links.onEach { travaViewModel.estado.first { it.travado == false } } }
+                AppLogado(raiz.perfil, linksDepoisDaTrava, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
+                if (trava.travado == true) TelaDeTrava(travaViewModel::desbloqueou)
             }
         }
     }
@@ -154,11 +172,14 @@ fun AppLogado(
     val escopoDosAvisos = rememberCoroutineScope()
     /** "Organizar o Painel" do Perfil: a aba Painel abre com a folha de organizar. */
     var organizarAoAbrir by remember { mutableStateOf(false) }
-    var tourAberto by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(tourNovo) { if (tourNovo) tourAberto = true }
-    val fecharTour = {
-        tourAberto = false
-        viuOTour()
+    /** O passo do tour aberto; nulo com ele fechado. Os balões saem da moldura (Tour.kt). */
+    var passoDoTour by rememberSaveable { mutableStateOf<Int?>(null) }
+    LaunchedEffect(tourNovo) { if (tourNovo) passoDoTour = 0 }
+    val tour = passoDoTour?.let { passo ->
+        TourAberto(passo, irPara = { passoDoTour = it }, fechar = {
+            passoDoTour = null
+            viuOTour()
+        })
     }
     val organizarPainel = {
         organizarAoAbrir = true
@@ -204,10 +225,13 @@ fun AppLogado(
         TelaCheia(
             topo, pilha, Tela.Painel, sair,
             organizarPainel = organizarPainel,
-            abrirTour = { tourAberto = true },
+            // Os balões apontam para a moldura: o tour do Perfil abre no Painel.
+            abrirTour = {
+                pilha.irPara(Tela.Painel)
+                passoDoTour = 0
+            },
             avisoDoEmail = { AvisoDeConfirmarEmail(perfil.email) },
         )
-        if (tourAberto) TourDoPiggu(fecharTour)
         return
     }
 
@@ -226,6 +250,7 @@ fun AppLogado(
         lancarReceita = { lancando = Lancamento.Receita },
         sair = sair,
         avisos = avisos,
+        tour = tour,
     ) {
         NavDisplay(
             backStack = pilha,
@@ -282,7 +307,6 @@ fun AppLogado(
             abrirGasto = { id, mes -> gastoParaAbrir = id to mes; pilha.irPara(Tela.Gastos) },
         )
     }
-    if (tourAberto) TourDoPiggu(fecharTour)
 }
 
 /** O que o + lança (D-098 do iOS). */

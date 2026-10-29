@@ -1129,7 +1129,8 @@ class ApiDaDemo(
         // Compras
         rota("GET", "/shopping/catalog") { p ->
             val termo = semAcento(p.param("busca") ?: p.param("q"))
-            PRODUTOS_DO_CATALOGO.filter { semAcento("${it.texto("nome")} ${it.texto("marca")}").contains(termo) }
+            // O código também: o leitor de código de barras do app busca por ele (o OpenFoodFacts acha).
+            PRODUTOS_DO_CATALOGO.filter { semAcento("${it.texto("nome")} ${it.texto("marca")} ${it.texto("codigo")}").contains(termo) }
         }
         rota("GET", "/shopping/items") { p ->
             val lista = p.param("lista")

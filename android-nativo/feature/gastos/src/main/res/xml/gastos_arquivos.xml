@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- O CSV exportado vai para a pasta de cache e sai pelo compartilhamento (TelaDeGastos.kt). -->
+<!-- O CSV exportado vai para a pasta de cache e sai pelo compartilhamento (TelaDeGastos.kt).
+     Sem o recorte, a câmera grava a foto do recibo em recibos/ (FormularioDeGasto.kt). -->
 <paths>
     <cache-path name="exportados" path="exportados/" />
+    <cache-path name="recibos" path="recibos/" />
 </paths>
