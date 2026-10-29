@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O CSV exportado vai para a pasta de cache e sai pelo compartilhamento (TelaDeGastos.kt). -->
+<paths>
+    <cache-path name="exportados" path="exportados/" />
+</paths>

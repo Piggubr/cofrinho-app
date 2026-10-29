@@ -6,12 +6,14 @@ import br.com.piggu.feature.login.esquecerAContaDoGoogle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.EstadoDaSessao
+import br.com.piggu.core.data.FilaDeGastos
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.data.ehTitular
 import br.com.piggu.core.data.modulosLigados
 import br.com.piggu.core.data.pendencia
 import br.com.piggu.core.data.Pendencia
+import br.com.piggu.core.datastore.ConversaGuardada
 import br.com.piggu.core.datastore.PreferenciasDoAparelho
 import br.com.piggu.core.designsystem.ModoDeCor
 import br.com.piggu.core.designsystem.VarianteDeCor
@@ -57,6 +59,8 @@ class AppViewModel @Inject constructor(
     private val sessao: Sessao,
     private val preferencias: PreferenciasDoAparelho,
     private val financas: ServicoDeFinancas,
+    private val conversa: ConversaGuardada,
+    private val fila: FilaDeGastos,
     aviso: AvisoDeVersao,
 ) : ViewModel() {
 
@@ -98,7 +102,11 @@ class AppViewModel @Inject constructor(
         // Saiu, apagou a conta ou a sessão caiu: o próximo "Entrar com o Google" pergunta a conta de novo.
         viewModelScope.launch {
             sessao.estado.map { it is EstadoDaSessao.Deslogado }.distinctUntilChanged().collect { deslogado ->
-                if (deslogado) esquecerAContaDoGoogle(contexto)
+                if (deslogado) {
+                    esquecerAContaDoGoogle(contexto)
+                    // A conversa com o assistente traz números da família: sai junto com a conta.
+                    conversa.esquecerConversa()
+                }
             }
         }
         // A cotação do topo, refeita quando a pessoa troca as moedas ou liga a cotação no Perfil.
@@ -120,8 +128,12 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { preferencias.esquecerQueVoltouAoPadrao() }
     }
 
+    /** "Sair" pelo botão também apaga os gastos guardados sem internet desta pessoa (D-108). */
     fun sair() {
-        viewModelScope.launch { sessao.sair() }
+        viewModelScope.launch {
+            fila.apagarDaPessoa()
+            sessao.sair()
+        }
     }
 
     private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val voltou: Boolean)

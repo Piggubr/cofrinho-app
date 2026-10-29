@@ -63,6 +63,8 @@ dependencies {
     implementation(projects.feature.legal)
     implementation(projects.feature.painel)
     implementation(projects.feature.gastos)
+    implementation(projects.feature.receitas)
+    implementation(projects.feature.assistente)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 
@@ -81,6 +83,9 @@ dependencies {
     baselineProfile(projects.baselineprofile)
 
     testImplementation(libs.junit)
+    // As capturas da A4 sobem o grafo do Hilt de verdade, com a API falsa da variante demo.
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)

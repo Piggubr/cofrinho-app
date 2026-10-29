@@ -1,16 +1,17 @@
 package br.com.piggu.feature.login.cadastro
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import app.cash.turbine.test
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.feature.login.R
-import br.com.piggu.feature.login.sessaoDeTeste
+import br.com.piggu.core.testing.sessaoDeTeste
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -29,8 +30,7 @@ class CadastroViewModelTest {
     @get:Rule val pasta = TemporaryFolder()
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     private val pedidosDeCadastro = { fixas: RespostasFixas -> fixas.pedidos.filter { it.startsWith("POST /api/auth/cadastro") } }
 
     private fun TestScope.preenchido(fixas: RespostasFixas = RespostasFixas()) =

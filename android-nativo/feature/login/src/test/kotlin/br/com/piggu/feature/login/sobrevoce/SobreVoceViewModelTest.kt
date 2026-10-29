@@ -1,4 +1,6 @@
 package br.com.piggu.feature.login.sobrevoce
+import br.com.piggu.core.testing.sessaoDeTeste
+import br.com.piggu.core.testing.esperar
 
 import app.cash.turbine.test
 import br.com.piggu.core.data.EstadoDaSessao
@@ -10,11 +12,10 @@ import br.com.piggu.feature.login.R
 import br.com.piggu.feature.login.cadastro.ate
 import br.com.piggu.feature.login.cadastro.usuario
 import br.com.piggu.feature.login.cadastro.usuarioJson
-import br.com.piggu.feature.login.sessaoDeTeste
+import br.com.piggu.core.testing.sessaoDeTeste
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -34,8 +35,7 @@ class SobreVoceViewModelTest {
     @get:Rule val pasta = TemporaryFolder()
 
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
-    @After fun devolver() = Dispatchers.resetMain()
-
+    // Sem resetMain: resposta atrasada da API falsa (outra thread) iria para um Main desfeito e derrubava o teste seguinte no CI.
     private val respondeCompleto = RespostasFixas(
         "PUT /api/me/sobre-voce" to RespostaFixa(200, usuarioJson(""","apelido":"Tita","nascimento":"1990-05-10","cadastroCompleto":true""")),
     )

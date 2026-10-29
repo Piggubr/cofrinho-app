@@ -109,6 +109,11 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-105](#d-105-etapa-a3-do-android-a-entrada-nativa-fora-da-moldura) | Etapa A3 do Android: a entrada nativa, fora da moldura | Valendo |
 | [D-106](#d-106-termos-e-aviso-do-android-copiados-do-site-pelo-ci) | Termos e Aviso do Android copiados do site pelo CI | Valendo |
 | [D-107](#d-107-formulários-da-entrada-no-android-com-o-erro-no-campo) | Formulários da entrada no Android com o erro no campo | Valendo |
+| [D-108](#d-108-fila-de-gastos-do-android-no-room-com-o-workmanager-e-sair-apaga) | Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga | Valendo |
+| [D-109](#d-109-painel-do-android-com-gráficos-em-canvas-e-organizar-no-próprio-painel) | Painel do Android com gráficos em Canvas e organizar no próprio Painel | Valendo |
+| [D-110](#d-110-gastos-do-android-apagar-com-desfazer-busca-e-filtros-no-aparelho) | Gastos do Android: apagar com Desfazer, busca e filtros no aparelho | Valendo |
+| [D-111](#d-111-lançar-no-android-vários-itens-numa-folha-só-e-a-receita-pelo) | Lançar no Android: vários itens numa folha só, e a receita pelo + | Valendo |
+| [D-112](#d-112-busca-e-assistente-do-android-e-as-capturas-com-o-hilt-de-verdade) | Busca e assistente do Android, e as capturas com o Hilt de verdade | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -925,6 +930,51 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o aviso único no topo, como o site.
 - Consequências: o leitor de tela lê o erro junto do campo certo.
 - Onde ver: `android-nativo/feature/login/.../cadastro/`, `sobrevoce/`, `cpf/`, `android-nativo/core/ui/.../formatos/`
+
+## D-108: Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. Gasto lançado sem internet vai para uma fila (D-073 e D-075 do iOS). No iOS a fila não sai ao sair da conta (D-090 de lá); o Dudu pediu, no plano da A2, que o "Sair" do Android apague a fila.
+- Decisão: a fila fica numa tabela do Room (banco na versão 2, com migração), de cada pessoa, e sobe na ordem por um Worker do WorkManager com a rede como restrição, agendado ao guardar, ao abrir o app, ao entrar e quando a rede volta. Cada toque em "Lançar" tem um `idDoEnvio` novo, e só 400 e 422 tiram da fila e contam como recusados. O "Sair" pelo botão (do Mais e do Aceite) apaga a fila da pessoa antes de sair; a sessão que só caiu não apaga. Os gastos da fila aparecem na lista com "aguardando envio" e não entram no total.
+- Alternativas: guardar até a pessoa voltar, como o iOS.
+- Consequências: quem sai com gastos sem enviar perde esses gastos. Num processo aberto só pelo WorkManager ninguém renova a sessão (duas renovações ao mesmo tempo derrubariam a sessão), então com o app fechado o envio espera a próxima abertura.
+- Onde ver: `android-nativo/core/data/.../FilaNoRoom.kt`, `EnvioDaFila.kt`, `android-nativo/core/database/`, `AppViewModel.sair`
+
+## D-109: Painel do Android com gráficos em Canvas e organizar no próprio Painel
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O site organiza os cartões no Perfil, e o Perfil nativo ainda não existe.
+- Decisão: as barras e o anel são desenhados em Canvas do Compose, sem biblioteca (Vico seria grande para três desenhos). Os cartões se organizam numa folha dentro do Painel, arrastando ou com "mover para cima/baixo" (TalkBack), e a ordem vai para o DataStore na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`), assim como o "pular" dos primeiros passos (`piggu_guia_<id>`). Para o membro da família ficam escondidos o resumo, o mês, as categorias e os objetivos (o site só diz isso num comentário). Cartão que depende de dados some quando eles faltam; conectar banco abre o site, porque o widget da Pluggy só existe lá. O limite de objetivos do plano grátis chega como 422 `PLANO_PREMIUM` e abre o convite do Premium.
+- Alternativas: o Vico; esperar o Perfil nativo para organizar.
+- Consequências: quando o Perfil for nativo, ele pode abrir a mesma folha.
+- Onde ver: `android-nativo/feature/painel/`, `android-nativo/core/ui/.../Graficos.kt`, `android-nativo/core/datastore/.../PainelDoAparelho.kt`
+
+## D-110: Gastos do Android: apagar com Desfazer, busca e filtros no aparelho
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O site confirma antes de apagar e não tem busca nem filtros na lista; o iOS tem.
+- Decisão: deslizar apaga na hora e oferece "Desfazer" na Snackbar; o pedido só vai ao servidor quando ela some. Parcela com próximas pergunta antes ("só esta" ou "esta e as próximas"). A busca (sem acento, por item, estabelecimento e categoria) e os filtros de categoria e de forma de pagamento rodam no aparelho, como no iOS. Editar abre uma folha com item, categoria, valor e compartilhado; o link `piggu://gastos?id=...&mes=...` abre o mês e a edição do gasto. O CSV do mês sai pelo compartilhamento do Android (FileProvider próprio), e o extrato entra pelo seletor de arquivos com a prévia do site.
+- Alternativas: confirmar antes, como o site.
+- Consequências: "apagar as próximas" vale só para parcelas, como no backend.
+- Onde ver: `android-nativo/feature/gastos/.../lista/`
+
+## D-111: Lançar no Android: vários itens numa folha só, e a receita pelo +
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O + abre a folha com Lançar gasto e Lançar receita (D-098 do iOS).
+- Decisão: o formulário de gasto tem vários itens (descrição, categoria e valor), com parcelas e outra moeda valendo para todos e um POST só; data e estabelecimento ficam em "Mais opções", para o lançamento rápido. A última conta usada fica no aparelho, como no site. Sem internet, o gasto vai direto para a fila. A receita é lançada só pela folha do + (também pelo botão da aba), e a aba Receitas segue a ordem do iOS: o seletor de mês fixo no topo, a lista, "Entram todo mês" e "A receber". Lançou, a folha fecha, um aviso curto confirma e as abas recarregam pelo `Lancamentos`.
+- Alternativas: o formulário dentro de cada aba, como o site no computador.
+- Consequências: a foto do recibo chega na A7.
+- Onde ver: `android-nativo/feature/gastos/.../formulario/`, `android-nativo/feature/receitas/`, `PigguApp.kt` (`FolhaDeLancar`)
+
+## D-112: Busca e assistente do Android, e as capturas com o Hilt de verdade
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4 (topo da D-097 do iOS). As telas do dia a dia carregam dados por ViewModels do Hilt, que as capturas do Robolectric não tinham.
+- Decisão: a busca abre em tela cheia, com telas, gastos de todos os meses (pelo servidor) e lugares, filmes e compras só com o módulo ligado, filtrados no aparelho. O assistente é uma folha, só para o Premium, com a autorização do Gemini no primeiro uso; a conversa fica no DataStore por 30 dias (sem cifra, como o `localStorage` do site) e sai ao sair da conta. As capturas da A4 sobem o grafo do Hilt de verdade (`app/src/testDemo`), com a API falsa da demonstração sem atraso, no dia 28/10/2026, e a rede marcada como conectada.
+- Alternativas: capturas só das telas sem estado, com dados escritos à mão.
+- Consequências: as capturas mostram o que a demonstração mostra; mudar os dados da demo muda as imagens.
+- Onde ver: `android-nativo/feature/assistente/`, `android-nativo/app/src/testDemo/`
 
 # Processo
 

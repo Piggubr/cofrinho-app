@@ -28,6 +28,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import br.com.piggu.feature.gastos.formulario.FormularioDeGasto
+import br.com.piggu.feature.receitas.TelaDeReceitas
+import br.com.piggu.feature.receitas.FormularioDeReceita
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ExperimentalMaterial3Api
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import br.com.piggu.feature.assistente.assistente.FolhaDoAssistente
+import br.com.piggu.feature.assistente.busca.BuscaGlobal
+import br.com.piggu.core.ui.formatos.lerValor
+import br.com.piggu.app.navegacao.lerLink
+import br.com.piggu.app.moldura.gruposVisiveis
+import br.com.piggu.app.moldura.ITENS_DO_MENU
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,11 +72,12 @@ import br.com.piggu.core.ui.AbaEmBreve
 import br.com.piggu.core.ui.HumorDoPorquinho
 import br.com.piggu.core.ui.Porquinho
 import br.com.piggu.core.ui.lembrarAbrirNoSite
-import br.com.piggu.feature.gastos.GastosScreen
+import br.com.piggu.feature.gastos.lista.TelaDeGastos
 import br.com.piggu.feature.login.AvisoDeConfirmarEmail
 import br.com.piggu.feature.login.DialogoDeExclusao
 import br.com.piggu.feature.login.ExclusaoViewModel
 import br.com.piggu.feature.painel.PainelScreen
+import br.com.piggu.feature.painel.TelaDoPainel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -128,6 +146,16 @@ fun AppLogado(
     acoesDaConta: Boolean = true,
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
+    /** O gasto de um link ou da busca (id e mês aaaa-mm), que a aba Gastos abre e depois limpa. */
+    var gastoParaAbrir by remember { mutableStateOf<Pair<String, String?>?>(null) }
+    val escopoDosAvisos = rememberCoroutineScope()
+    var lancando by rememberSaveable { mutableStateOf<Lancamento?>(null) }
+    /** O valor de piggu://gasto?valor=12.50, que o formulário já abre preenchido. */
+    var valorDoGasto by remember { mutableStateOf<java.math.BigDecimal?>(null) }
+    fun lancarGasto(valor: java.math.BigDecimal?) {
+        valorDoGasto = valor
+        lancando = Lancamento.Gasto
+    }
 
     fun abrir(tela: Tela) {
         when {
@@ -145,9 +173,11 @@ fun AppLogado(
         links.collect { destino ->
             when (destino) {
                 is Destino.Abrir -> abrir(destino.tela)
-                // O lançamento e o gasto chegam nativos na A4; até lá, o lançar abre no site.
-                is Destino.LancarGasto -> abrirNoSite(caminhoDoLancar(destino))
-                is Destino.VerGasto -> pilha.irPara(Tela.Gastos)
+                is Destino.LancarGasto -> lancarGasto(destino.valor)
+                is Destino.VerGasto -> {
+                    gastoParaAbrir = destino.id to destino.mes
+                    pilha.irPara(Tela.Gastos)
+                }
             }
         }
     }
@@ -160,13 +190,19 @@ fun AppLogado(
         return
     }
 
+    var buscando by rememberSaveable { mutableStateOf(false) }
+    var perguntando by rememberSaveable { mutableStateOf(false) }
+    val rotulos = ITENS_DO_MENU.associate { it.tela to stringResource(it.rotulo) }
+
     Moldura(
         perfil = perfil,
+        buscar = { buscando = true },
+        perguntar = { perguntando = true },
         abaAtual = topo,
         demo = BuildConfig.FLAVOR == "demo",
         abrir = ::abrir,
-        lancarGasto = { abrirNoSite(caminhoDoLancar(Destino.LancarGasto(null))) },
-        lancarReceita = { abrirNoSite(Tela.Receitas.caminho) },
+        lancarGasto = { lancarGasto(null) },
+        lancarReceita = { lancando = Lancamento.Receita },
         sair = sair,
         avisos = avisos,
     ) {
@@ -174,9 +210,27 @@ fun AppLogado(
             backStack = pilha,
             onBack = { pilha.removeLastOrNull() },
             entryProvider = entryProvider {
-                entry<Tela.Painel> { PainelScreen() }
-                entry<Tela.Gastos> { GastosScreen() }
-                entry<Tela.Receitas> { AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho) }
+                entry<Tela.Painel> {
+                    if (acoesDaConta) {
+                        TelaDoPainel(
+                            abrirTela = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) },
+                            lancarGasto = { lancarGasto(null) },
+                        )
+                    } else {
+                        PainelScreen()
+                    }
+                }
+                entry<Tela.Gastos> {
+                    if (acoesDaConta) {
+                        TelaDeGastos(gastoParaAbrir, aoAbrirGasto = { gastoParaAbrir = null }, lancarGasto = { lancarGasto(null) })
+                    } else {
+                        AbaEmBreve(stringResource(R.string.tela_gastos), Tela.Gastos.caminho)
+                    }
+                }
+                entry<Tela.Receitas> {
+                    if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita })
+                    else AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho)
+                }
                 entry<Tela.Relatorios> { AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho) }
                 entry<Tela.Mais> {
                     val exclusao: ExclusaoViewModel? = if (acoesDaConta) hiltViewModel() else null
@@ -194,11 +248,65 @@ fun AppLogado(
             },
         )
     }
+    lancando?.let { tipo ->
+        FolhaDeLancar(tipo, valorDoGasto, fechar = { lancando = null }) { mensagem ->
+            lancando = null
+            escopoDosAvisos.launch { avisos.showSnackbar(mensagem) }
+        }
+    }
+    if (acoesDaConta) {
+        TopoAberto(
+            perfil, rotulos,
+            buscando, { buscando = false },
+            perguntando, { perguntando = false },
+            abrirCaminho = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) },
+            abrirGasto = { id, mes -> gastoParaAbrir = id to mes; pilha.irPara(Tela.Gastos) },
+        )
+    }
 }
 
-/** O lançamento rápido do site (/gastos?rapido=1&valor=12.50), o mesmo link do app antigo. */
-private fun caminhoDoLancar(destino: Destino.LancarGasto) =
-    "/gastos?rapido=1" + (destino.valor?.let { "&valor=${it.toPlainString()}" } ?: "")
+/** O que o + lança (D-098 do iOS). */
+enum class Lancamento { Gasto, Receita }
+
+/**
+ * O formulário do +, numa folha por cima da aba aberta (lancamento-rapido do site). Lançou,
+ * a folha fecha e o aviso curto confirma; as telas abertas recarregam pelo Lancamentos.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FolhaDeLancar(tipo: Lancamento, valorDoGasto: java.math.BigDecimal?, fechar: () -> Unit, aoLancar: (String) -> Unit) {
+    ModalBottomSheet(onDismissRequest = fechar, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Text(
+            stringResource(if (tipo == Lancamento.Gasto) R.string.lancar_gasto else R.string.lancar_receita),
+            Modifier.padding(horizontal = 24.dp, vertical = 8.dp).semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+        )
+        // Uma chave por abertura: a folha nova não lembra o formulário pela metade.
+        val chave = rememberSaveable { java.util.UUID.randomUUID().toString() }
+        when (tipo) {
+            Lancamento.Receita -> FormularioDeReceita(aoLancar, viewModel = hiltViewModel(key = "receita-$chave"))
+            Lancamento.Gasto -> FormularioDeGasto(aoLancar, valorDoGasto, viewModel = hiltViewModel(key = "gasto-$chave"))
+        }
+    }
+}
+
+/** A busca e o assistente do topo (D-097 do iOS); o caminho que devolvem vira uma tela. */
+@Composable
+private fun TopoAberto(
+    perfil: PerfilDaMoldura,
+    rotulos: Map<Tela, String>,
+    buscando: Boolean,
+    fecharBusca: () -> Unit,
+    perguntando: Boolean,
+    fecharAssistente: () -> Unit,
+    abrirCaminho: (String) -> Unit,
+    abrirGasto: (String, String) -> Unit,
+) {
+    val telas = gruposVisiveis(perfil.ehTitular, perfil.modulos).flatMap { it.second }
+        .mapNotNull { item -> rotulos[item.tela]?.let { it to item.tela.caminho } }
+    BuscaGlobal(telas, buscando, fecharBusca, abrirCaminho, abrirGasto)
+    FolhaDoAssistente(perguntando, fecharAssistente, abrirCaminho)
+}
 
 /** Abrindo sem perfil guardado: o porquinho enquanto o servidor responde. */
 @Composable

@@ -32,7 +32,10 @@ plataforma que faltar.
 | `core:testing` | `ApiDaDemo`: a API falsa do modo demonstração (porte de `api-da-demo.ts`), usada também nos testes |
 | `feature:login` | A entrada: entrar (e-mail e senha, Google), criar conta, aceite, "Sobre você", CPF, confirmar e-mail, esqueci e redefinir a senha, excluir a conta |
 | `feature:legal` | Termos de Uso e Aviso de Privacidade nativos, com o texto do site (`scripts/textos-legais.py`) |
-| `feature:painel`, `feature:gastos` | As abas, por enquanto com o link para o site (chegam na A4) |
+| `feature:painel` | O Painel: resumo, meta do mês, categorias, avisos, cofrinho, objetivos, metas, Girls Math, notas e bancos, com organizar os cartões |
+| `feature:gastos` | A lista do mês (busca, filtros, editar, apagar com Desfazer, divisão, regras, importar e exportar) e o formulário de gasto, com a fila sem internet |
+| `feature:receitas` | Receitas do mês, "Entram todo mês", "A receber" e o formulário de receita |
+| `feature:assistente` | A busca global e o assistente de IA do topo |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
 ## Sessão e rede
@@ -83,6 +86,8 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-4](docs/prints/etapa-4): Painel, Gastos, Receitas, lançar gasto, lançar
+  receita, a busca e o assistente, com os dados da demonstração (o Hilt de verdade, D-112).
 - [docs/prints/etapa-3](docs/prints/etapa-3): entrar (com e sem o Google), criar conta,
   aceite do Google, conta criada, esqueci a senha, senha nova, e-mail confirmado, aceite dos
   termos, excluir a conta (só tablet), Sobre você, CPF e os Termos.

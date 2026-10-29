@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Aba Receitas (frontend/src/app/features/incomes/incomes.html) -->
+    <string name="receitas_titulo">Receitas</string>
+    <string name="receitas_nova">Nova receita</string>
+    <string name="receitas_total">Total: %1$s</string>
+    <string name="receitas_vazio_titulo">Nenhuma receita neste mês</string>
+    <string name="receitas_vazio_texto">Salário, freela, um pix de volta: tudo que entra conta para a sobra do mês.</string>
+    <string name="receitas_vazio_acao">Lançar uma receita</string>
+    <string name="receitas_compartilhada">compartilhada</string>
+    <string name="receitas_de">de %1$s</string>
+    <string name="receitas_de_ex_membro">de Ex-membro</string>
+    <string name="receitas_de_piggu">de Piggu</string>
+    <string name="receitas_apagar">Apagar</string>
+    <string name="receitas_apagar_pergunta">Apagar a receita \"%1$s\"?</string>
+    <string name="receitas_entram_todo_mes">Entram todo mês</string>
+    <string name="receitas_todo_dia">Todo dia %1$d · %2$s</string>
+    <string name="receitas_duas_parcelas_detalhe">Dia %1$d: %2$s · dia %3$d: %4$s · %5$s</string>
+    <string name="receitas_parar_de_repetir">Parar de repetir</string>
+    <string name="receitas_parar_pergunta">Parar de lançar \"%1$s\" todo mês? As receitas já lançadas continuam.</string>
+    <string name="receitas_escolher_data">Escolher a data</string>
+    <string name="receitas_ok">OK</string>
+
+    <!-- A receber -->
+    <string name="a_receber_titulo">A receber</string>
+    <string name="a_receber_explicacao">Dinheiro que alguém te deve. Só conta como receita quando você toca em Recebi; passou da data combinada, o Piggu te avisa.</string>
+    <string name="a_receber_vazio">Ninguém te deve nada agora.</string>
+    <string name="a_receber_devendo_desde">Está te devendo desde %1$s</string>
+    <string name="a_receber_combinado">Combinado para %1$s</string>
+    <string name="a_receber_recebi">Recebi</string>
+    <string name="a_receber_apagar_pergunta">Apagar o que %1$s te deve? Nada entra como receita.</string>
+    <string name="a_receber_quem">Quem deve</string>
+    <string name="a_receber_quem_exemplo">Ex.: João</string>
+    <string name="a_receber_motivo">Do quê (opcional)</string>
+    <string name="a_receber_motivo_exemplo">Ex.: Metade da pizza</string>
+    <string name="a_receber_data">Combinado para</string>
+    <string name="a_receber_guardar">Guardar a receber</string>
+    <string name="a_receber_falta_quem">Diga quem está te devendo.</string>
+    <string name="a_receber_falta_valor">Digite quanto vão te pagar.</string>
+    <string name="a_receber_falta_data">Escolha a data combinada para receber.</string>
+    <string name="a_receber_guardado">Guardado. Quando receber, toque em Recebi.</string>
+    <string name="a_receber_pagou">%1$s pagou. Entrou como receita de hoje.</string>
+
+    <!-- Formulário de receita (formulario-de-receita.html) -->
+    <string name="receita_descricao">Descrição</string>
+    <string name="receita_descricao_exemplo">Salário de outubro</string>
+    <string name="receita_data">Data</string>
+    <string name="receita_repetir">Entra sozinha todo mês no dia %1$d (salário, aluguel que você recebe)</string>
+    <string name="receita_duas_parcelas">Em duas parcelas (salário com adiantamento): o valor acima é a 1ª</string>
+    <string name="receita_segundo_dia">Dia da 2ª parcela</string>
+    <string name="receita_segundo_valor">Valor da 2ª parcela</string>
+    <string name="receita_compartilhada">Compartilhada: aparece para quem mora com você</string>
+    <string name="receita_lancar">Lançar receita</string>
+    <string name="receita_falta_descricao">Digite a descrição da receita.</string>
+    <string name="receita_valor_invalido">Digite um valor válido.</string>
+    <string name="receita_falta_segundo_dia">Informe o dia da 2ª parcela (1 a 31).</string>
+    <string name="receita_falta_segundo_valor">Digite o valor da 2ª parcela.</string>
+    <string name="receita_lancada">Receita lançada.</string>
+    <string name="receita_lancada_recorrente">Receita lançada. Ela entra sozinha todo dia %1$d.</string>
+    <string name="receita_lancada_duas_parcelas">Receita lançada. Ela entra sozinha todo dia %1$d e a 2ª parcela todo dia %2$d.</string>
+</resources>

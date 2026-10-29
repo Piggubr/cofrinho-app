@@ -42,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,7 +59,6 @@ import br.com.piggu.app.R
 import br.com.piggu.app.navegacao.Tela
 import br.com.piggu.core.designsystem.Icone
 import br.com.piggu.core.designsystem.R as Icones
-import kotlinx.coroutines.launch
 
 /** O que a moldura mostra da pessoa e da conta. */
 data class PerfilDaMoldura(
@@ -113,13 +111,12 @@ fun Moldura(
     lancarReceita: () -> Unit,
     sair: () -> Unit,
     avisos: SnackbarHostState,
+    buscar: () -> Unit,
+    perguntar: () -> Unit,
     conteudo: @Composable () -> Unit,
 ) {
     val forma = formaDoMenu()
     var opcoesAbertas by remember { mutableStateOf(false) }
-    val escopo = rememberCoroutineScope()
-    val emBreveBusca = stringResource(R.string.busca_em_breve)
-    val emBreveAssistente = stringResource(R.string.assistente_em_breve)
 
     val principal: @Composable () -> Unit = {
         Scaffold(
@@ -129,8 +126,8 @@ fun Moldura(
                     Topo(
                         perfil = perfil,
                         irAoPainel = { abrir(Tela.Painel) },
-                        buscar = { escopo.launch { avisos.showSnackbar(emBreveBusca) } },
-                        perguntar = { escopo.launch { avisos.showSnackbar(emBreveAssistente) } },
+                        buscar = buscar,
+                        perguntar = perguntar,
                     )
                 }
             },
