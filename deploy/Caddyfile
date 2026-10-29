@@ -59,6 +59,10 @@
 		@semHash not path_regexp -[A-Za-z0-9_]{8}\.(js|css|woff2)$
 		header @semHash Cache-Control "no-cache"
 
+		# Universal Links do app nativo: a Apple le este arquivo sem extensao como JSON.
+		@aasa path /.well-known/apple-app-site-association
+		header @aasa Content-Type application/json
+
 		# Rota do Angular (/painel) nao e arquivo: devolve o index.html.
 		try_files {path} /index.html
 		file_server

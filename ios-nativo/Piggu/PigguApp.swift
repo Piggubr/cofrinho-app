@@ -1,0 +1,191 @@
+import CoreSpotlight
+import SwiftUI
+
+@main
+struct PigguApp: App {
+    @UIApplicationDelegateAdaptor(DelegadoDoApp.self) private var delegado
+    @State private var sessao: Sessao
+    @State private var rede = MonitorDeRede()
+
+    init() {
+        Desempenho.abrindo()
+        Fonte.registrar()
+        #if DEBUG
+        // -PigguDemo YES: dados inventados, sem rede (ver TransporteDeDemonstracao).
+        let ajustes = UserDefaults.standard
+        let demo = ajustes.bool(forKey: "PigguDemo")
+        let cliente = demo
+            ? ClienteDaAPI(transporte: TransporteDeDemonstracao(logado: ajustes.bool(forKey: "PigguDemoLogado")))
+            : ClienteDaAPI()
+        #else
+        let demo = false
+        let cliente = ClienteDaAPI()
+        #endif
+        // -PigguDemoCache YES: a demonstracao guarda num arquivo proprio, para medir a abertura com cache.
+        let cache = demo && UserDefaults.standard.bool(forKey: "PigguDemoCache")
+            ? Cache(arquivo: "Demonstracao") : Cache(soNaMemoria: demo)
+        let sessao = Sessao(cliente: cliente, cache: cache)
+        Sessao.atual = sessao
+        _sessao = State(initialValue: sessao)
+        Dicas.configurar(demo: demo)
+    }
+
+    /// Hospedeiro dos testes: sem a interface, que restauraria a sessao na API de verdade a
+    /// cada rodada.
+    private let soHospedandoTestes = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+
+    var body: some Scene {
+        WindowGroup {
+            if soHospedandoTestes {
+                Color.clear
+            } else {
+                raiz
+            }
+        }
+    }
+
+    private var raiz: some View {
+        RaizView()
+            .environment(sessao)
+            .environment(rede)
+            .environment(\.locale, Formatos.localidade)
+    }
+}
+
+/// Decide entre login e app pelo estado da sessao, aplica a cor do Piggu e recebe os links.
+struct RaizView: View {
+    @Environment(Sessao.self) private var sessao
+    @AppStorage(Tema.chave) private var temaEscolhido = Tema.chiclete
+    @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
+    @Environment(\.scenePhase) private var fase
+    @State private var trava = TravaDoApp()
+    private let central = CentralDeRotas.compartilhada
+    /// Link que chegou antes do login: abre depois que a pessoa entra.
+    @State private var rota: Rota?
+    /// Link da conta (e-mail, termos), aberto por cima de qualquer tela.
+    @State private var folha: Rota?
+
+    /// A cor do Premium volta ao Chiclete quando o Premium acaba, como no site.
+    private var tema: Tema {
+        temaEscolhido.premium && sessao.usuario?.plano != .premium ? .chiclete : temaEscolhido
+    }
+
+    var body: some View {
+        Group {
+            switch sessao.estado {
+            case .verificando:
+                VStack(spacing: 16) {
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 96, height: 96)
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .accessibilityLabel("Piggu")
+                    ProgressView()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(tema.paleta.fundo)
+            case .deslogado:
+                LoginView()
+            case let .logado(usuario) where usuario.termosPendentes:
+                AceiteView()
+            case let .logado(usuario) where usuario.sobreVocePendente:
+                SobreVoceView()
+            case .logado:
+                PrincipalView(rota: $rota)
+            }
+        }
+        .background {
+            JanelaDaTrava(trava: trava, ativa: trava.travado && sessao.usuario != nil,
+                          paleta: tema.paleta, esquema: modo.esquema)
+        }
+        .background(FecharTecladoAoTocarFora())
+        .scrollDismissesKeyboard(.interactively)
+        .environment(trava)
+        .onChange(of: fase) { _, nova in
+            if nova == .background { trava.travarSeLigada() }
+        }
+        // Siri, Atalhos, controle da Central de Controle e notificacoes pedem um link.
+        .onChange(of: central.pendente, initial: true) { _, _ in
+            if let link = central.consumir() { abrir(link) }
+        }
+        // Um gasto achado na busca do iPhone abre na aba Gastos.
+        .onContinueUserActivity(CSSearchableItemActionType) { atividade in
+            if let id = atividade.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+               let link = URL(string: "piggu://gastos?id=\(id)") {
+                abrir(link)
+            }
+        }
+        .sheet(item: $folha) { rota in
+            NavigationStack {
+                FolhaDaConta(rota: rota)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Fechar") { folha = nil }
+                        }
+                    }
+            }
+        }
+        .environment(\.paleta, tema.paleta)
+        .preferredColorScheme(modo.esquema)
+        .tint(tema.paleta.primaria)
+        .font(.sora())
+        .animation(.default, value: sessao.estado)
+        // Renovacao e compra feitas fora desta tela chegam ao backend enquanto o app esta aberto.
+        .task { await LojaDaApple.acompanhar(sessao) }
+        .task {
+            await sessao.restaurar()
+            #if DEBUG
+            // -PigguLink piggu://termos: abre um link ao entrar, para os prints.
+            if let link = UserDefaults.standard.string(forKey: "PigguLink"), let url = URL(string: link) {
+                abrir(url)
+            }
+            #endif
+        }
+        .onOpenURL(perform: abrir)
+        // Os links dos textos (Termos, Aviso de Privacidade) abrem aqui, nao no Safari.
+        .environment(\.openURL, OpenURLAction { url in
+            guard let rota = Rota(url: url), rota.abreFolha else { return .systemAction }
+            abrir(url)
+            return .handled
+        })
+    }
+
+    private func abrir(_ url: URL) {
+        if EntradaComGoogle.receber(url) {
+            return
+        }
+        guard let nova = Rota(url: url) else { return }
+        if nova == .cpf && sessao.usuario == nil {
+            // O documento e da conta: sem sessao nao ha onde gravar.
+            return
+        }
+        if nova.abreFolha {
+            folha = nova
+        } else {
+            rota = nova
+        }
+    }
+}
+
+/// O que um link da conta abre por cima do app.
+private struct FolhaDaConta: View {
+    let rota: Rota
+
+    var body: some View {
+        switch rota {
+        case let .confirmarEmail(token):
+            ConfirmarEmailView(token: token)
+        case let .redefinirSenha(token):
+            RedefinirSenhaView(token: token)
+        case let .textoLegal(documento):
+            TextoLegalView(documento: documento)
+        case .esqueciSenha:
+            EsqueciSenhaView()
+        case .cpf:
+            CpfView()
+        case .aba, .tela, .lancarGasto, .verGasto:
+            EmptyView()
+        }
+    }
+}

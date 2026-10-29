@@ -1,0 +1,207 @@
+import SwiftUI
+import TipKit
+
+/// Abas do app logado (cada uma com o seu NavigationStack), o + flutuante, as folhas de
+/// lancar gasto e receita, compartilhadas pelas abas, e o aviso curto depois de lancar.
+///
+/// Os gastos guardados sem internet sobem quando a rede volta (e ao abrir o app).
+struct PrincipalView: View {
+    /// Link a abrir (piggu://, atalho, widget); volta a nil depois de aberto.
+    @Binding var rota: Rota?
+
+    @Environment(Sessao.self) private var sessao
+    @Environment(MonitorDeRede.self) private var rede
+    @State private var aba = PrincipalView.abaInicial
+    @State private var lancamento: PedidoDeLancamento? = PrincipalView.lancarAoAbrir ? .init(valor: nil) : nil
+    @State private var lancandoReceita = false
+    /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
+    @State private var versaoDosDados = 0
+    @State private var aviso: String?
+    /// Gasto achado no Spotlight, para a aba Gastos abrir.
+    @State private var gastoParaAbrir: GastoPedido?
+    @Environment(\.scenePhase) private var fase
+    @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
+    /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
+    @State private var caminhoDoMais: [TelaDoMais] = []
+    @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
+
+    /// Ajuste do Perfil: a barra de abas encolhe ao rolar a lista. Desligado, ela fica sempre inteira.
+    static let chaveEsconderAbas = "piggu_esconder_abas"
+
+    var body: some View {
+        abas
+            // A busca e o assistente do topo abrem telas por aqui.
+            .environment(\.abrirRota, AbrirRota { abrir($0) })
+            .sheet(item: $lancamento) { pedido in
+                LancarGastoView(valorInicial: pedido.valor) { mensagem in
+                    versaoDosDados += 1
+                    avisar(mensagem)
+                    Task { await AtualizadorDoSistema.atualizar(sessao) }
+                }
+            }
+            .sheet(isPresented: $lancandoReceita) {
+                NovaReceitaView { mensagem, _ in
+                    versaoDosDados += 1
+                    avisar(mensagem)
+                }
+            }
+            .overlay(alignment: .top) {
+                if let aviso {
+                    AvisoFlutuante(texto: aviso)
+                        .padding(.top, 8)
+                        .transition(reduzirMovimento ? .opacity : .move(edge: .top).combined(with: .opacity))
+                        .onTapGesture { self.aviso = nil }
+                }
+            }
+            .onChange(of: rota, initial: true) { _, nova in
+                abrir(nova)
+            }
+            // Widgets, Siri e Spotlight ao abrir e ao voltar ao app; o aparelho para os avisos.
+            .task(id: fase) {
+                guard fase == .active else { return }
+                await AtualizadorDoSistema.atualizar(sessao)
+                if sessao.usuario?.avisos?.push == true { await Notificacoes.renovar() }
+            }
+            .task(id: sessao.usuario?.plano) {
+                // O Premium acabou: o icone do Premium volta ao padrao, como a cor (Classico fica).
+                if await IconeDoApp.voltarAoPadraoSemPremium(sessao.usuario?.plano == .premium) {
+                    avisar(String(localized: "O Premium acabou, então a cor e o ícone voltaram para o padrão."))
+                }
+            }
+            .task(id: rede.conectado) {
+                guard rede.conectado else { return }
+                let enviados = await sessao.fila.enviar()
+                if enviados > 0 {
+                    versaoDosDados += 1
+                    avisar(String(localized: "Enviados \(enviados) gastos guardados sem conexão."))
+                }
+            }
+    }
+
+    /// Aviso discreto no topo, que some sozinho.
+    private func avisar(_ texto: String) {
+        withAnimation { aviso = texto }
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            if aviso == texto { withAnimation { aviso = nil } }
+        }
+    }
+
+    @ViewBuilder
+    private var abas: some View {
+        if #available(iOS 18, *) {
+            TabView(selection: $aba) {
+                Tab("Painel", systemImage: "chart.pie.fill", value: Aba.painel) { painel }
+                Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
+                Tab("Receitas", systemImage: "arrow.down.circle.fill", value: Aba.receitas) { receitas }
+                Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
+                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: $caminhoDoMais) }
+            }
+            .tabViewStyle(.sidebarAdaptable)
+            .minimizarAbasAoRolar(esconderAbas)
+        } else {
+            TabView(selection: $aba) {
+                painel
+                    .tabItem { Label("Painel", systemImage: "chart.pie.fill") }
+                    .tag(Aba.painel)
+                gastos
+                    .tabItem { Label("Gastos", systemImage: "list.bullet.rectangle.fill") }
+                    .tag(Aba.gastos)
+                receitas
+                    .tabItem { Label("Receitas", systemImage: "arrow.down.circle.fill") }
+                    .tag(Aba.receitas)
+                relatorios
+                    .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
+                    .tag(Aba.relatorios)
+                MaisView(caminho: $caminhoDoMais)
+                    .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
+                    .tag(Aba.mais)
+            }
+        }
+    }
+
+    private var painel: some View {
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    }
+
+    private var gastos: some View {
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir) { versaoDosDados += 1 }
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    }
+
+    private var receitas: some View {
+        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    }
+
+    private var relatorios: some View {
+        RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar)
+            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    }
+
+    private func lancar() {
+        lancamento = PedidoDeLancamento(valor: nil)
+    }
+
+    private func lancarReceita() {
+        lancandoReceita = true
+    }
+
+    private func abrir(_ rota: Rota?) {
+        switch rota {
+        case let .aba(destino):
+            aba = destino
+        case let .tela(tela):
+            aba = .mais
+            caminhoDoMais = [tela]
+        case let .lancarGasto(valor):
+            lancamento = PedidoDeLancamento(valor: valor)
+        case let .verGasto(id, mes):
+            aba = .gastos
+            gastoParaAbrir = GastoPedido(id: id, mes: mes)
+        case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:
+            // Os da conta abrem na RaizView.
+            return
+        }
+        self.rota = nil
+    }
+
+    // Em Debug, `-PigguAba gastos` e `-PigguLancar YES` abrem direto numa tela (prints).
+    #if DEBUG
+    private static var abaInicial: Aba {
+        UserDefaults.standard.string(forKey: "PigguAba").flatMap(Aba.init(rawValue:)) ?? .painel
+    }
+    private static var lancarAoAbrir: Bool { UserDefaults.standard.bool(forKey: "PigguLancar") }
+    #else
+    private static let abaInicial = Aba.painel
+    private static let lancarAoAbrir = false
+    #endif
+}
+
+/// Cada vez que a folha de lancar abre; o valor vem do link ou do atalho.
+struct PedidoDeLancamento: Identifiable {
+    let id = UUID()
+    let valor: Decimal?
+}
+
+private extension View {
+    /// O + flutua sobre a lista, acima da barra de abas; a lista ganha folga embaixo para o
+    /// ultimo item nao ficar escondido atras dele.
+    func comBotaoDeLancar(gasto: @escaping () -> Void, receita: @escaping () -> Void) -> some View {
+        contentMargins(.bottom, 88, for: .scrollContent)
+            .overlay(alignment: .bottomTrailing) {
+                BotaoDeLancar(gasto: gasto, receita: receita)
+                    .popoverTip(Dicas.Lancar(), arrowEdge: .bottom)
+            }
+    }
+
+    @ViewBuilder
+    func minimizarAbasAoRolar(_ ligado: Bool) -> some View {
+        if #available(iOS 26, *), ligado {
+            tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            self
+        }
+    }
+}

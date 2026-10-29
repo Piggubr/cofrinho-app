@@ -48,6 +48,9 @@
          Spring Boot 4.0 (a 3.1 em diante ja e compilada contra o Boot 4.1). So liga no
          perfil dev e nos testes: em producao /v3/api-docs e o Swagger UI ficam desligados. -->
     <springdoc.version>3.0.3</springdoc.version>
+    <!-- Biblioteca oficial da Apple para conferir a compra no app (JWS do StoreKit 2 e
+         App Store Server Notifications V2). D-094. -->
+    <app-store-server-library.version>5.2.0</app-store-server-library.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
@@ -92,6 +95,18 @@
         <artifactId>piggu-testing</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.apple.itunes.storekit</groupId>
+        <artifactId>app-store-server-library</artifactId>
+        <version>${app-store-server-library.version}</version>
+        <exclusions>
+          <!-- So a conferencia das assinaturas e usada; o cliente HTTP da API da Apple fica de fora. -->
+          <exclusion>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -102,6 +102,8 @@ services:
       # Open Finance escondido por enquanto (some da lista do Premium). true volta.
       PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
       REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
+      APP_STORE_BUNDLE_ID: ${APP_STORE_BUNDLE_ID:-br.com.piggu.app}
+      APP_STORE_APP_APPLE_ID: ${APP_STORE_APP_APPLE_ID:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
       # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
       PIGGU_EMAIL_API_KEY: ${PIGGU_EMAIL_API_KEY:-}
