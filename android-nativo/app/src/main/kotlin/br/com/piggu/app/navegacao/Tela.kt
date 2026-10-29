@@ -40,14 +40,14 @@ sealed interface Tela : NavKey {
     /** Aba do celular com o resto do menu; não existe no site, que abre uma folha. */
     @Serializable data object Mais : Tela { override val caminho = "/mais"; override val nativa = true }
 
-    // Telas do menu (shell.ts), todas no site por enquanto.
+    // Telas do menu (shell.ts): as da A5 já nativas, as outras no site por enquanto.
     @Serializable data object Perfil : Tela { override val caminho = "/perfil" }
     @Serializable data object Familia : Tela { override val caminho = "/familia" }
     @Serializable data object Plano : Tela { override val caminho = "/plano" }
-    @Serializable data object ContasECartoes : Tela { override val caminho = "/contas-e-cartoes" }
-    @Serializable data object ContasFixas : Tela { override val caminho = "/contas-fixas" }
-    @Serializable data object Orcamentos : Tela { override val caminho = "/orcamentos" }
-    @Serializable data object Calendario : Tela { override val caminho = "/calendario" }
+    @Serializable data object ContasECartoes : Tela { override val caminho = "/contas-e-cartoes"; override val nativa = true }
+    @Serializable data object ContasFixas : Tela { override val caminho = "/contas-fixas"; override val nativa = true }
+    @Serializable data object Orcamentos : Tela { override val caminho = "/orcamentos"; override val nativa = true }
+    @Serializable data object Calendario : Tela { override val caminho = "/calendario"; override val nativa = true }
     @Serializable data object Compras : Tela { override val caminho = "/compras" }
     @Serializable data object Lugares : Tela { override val caminho = "/lugares" }
     @Serializable data object Filmes : Tela { override val caminho = "/filmes" }

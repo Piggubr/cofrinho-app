@@ -1,7 +1,6 @@
 package br.com.piggu.feature.receitas
 
 import androidx.lifecycle.ViewModelStore
-import app.cash.turbine.test
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.model.Receita
 import br.com.piggu.core.network.ErroDaApi
@@ -151,28 +150,20 @@ class ReceitasViewModelTest {
         val montagem = montar(pasta.root, loja)
         val receitas = montagem.receitas()
         receitas.estado.esperar { it.lista != null }
-        receitas.estado.test {
-            awaitItem()
-            receitas.guardarAReceber()
-            awaitItem().let {
-                assertEquals(MensagemDeErro.DoApp(R.string.a_receber_falta_quem), it.erro)
-                assertEquals(CampoDoAReceber.Quem, it.faltouNoAReceber)
-            }
-            receitas.mudarQuem("João")
-            awaitItem()
-            receitas.guardarAReceber()
-            awaitItem().let {
-                assertEquals(MensagemDeErro.DoApp(R.string.a_receber_falta_valor), it.erro)
-                assertEquals(CampoDoAReceber.Valor, it.faltouNoAReceber)
-            }
-            receitas.mudarValorAReceber(BigDecimal("25"))
-            awaitItem()
-            receitas.mudarDataAReceber("")
-            awaitItem()
-            receitas.guardarAReceber()
-            assertEquals(MensagemDeErro.DoApp(R.string.a_receber_falta_data), awaitItem().erro)
-            cancelAndIgnoreRemainingEvents()
+        // Sem turbine: a carga do mês ainda pode emitir no meio (CI lento); espera cada falta.
+        receitas.guardarAReceber()
+        receitas.estado.esperar { it.faltouNoAReceber == CampoDoAReceber.Quem }.let {
+            assertEquals(MensagemDeErro.DoApp(R.string.a_receber_falta_quem), it.erro)
         }
+        receitas.mudarQuem("João")
+        receitas.guardarAReceber()
+        receitas.estado.esperar { it.faltouNoAReceber == CampoDoAReceber.Valor }.let {
+            assertEquals(MensagemDeErro.DoApp(R.string.a_receber_falta_valor), it.erro)
+        }
+        receitas.mudarValorAReceber(BigDecimal("25"))
+        receitas.mudarDataAReceber("")
+        receitas.guardarAReceber()
+        receitas.estado.esperar { it.erro == MensagemDeErro.DoApp(R.string.a_receber_falta_data) }
         assertTrue(montagem.pedidos("POST /api/incomes/receivables").isEmpty())
     }
 

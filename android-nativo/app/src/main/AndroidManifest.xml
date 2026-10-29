@@ -62,6 +62,10 @@
                 <data android:path="/termos" />
                 <data android:path="/privacidade" />
                 <data android:path="/cpf" />
+                <data android:path="/contas-fixas" />
+                <data android:path="/orcamentos" />
+                <data android:path="/calendario" />
+                <data android:path="/contas-e-cartoes" />
             </intent-filter>
         </activity>
 

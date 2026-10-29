@@ -12,6 +12,11 @@ import br.com.piggu.app.navegacao.lerLink
 import br.com.piggu.core.data.Pendencia
 import br.com.piggu.core.ui.CasoDeErro
 import br.com.piggu.core.ui.TelaDeErro
+import br.com.piggu.core.ui.lembrarAbrirNoSite
+import br.com.piggu.feature.calendario.TelaDoCalendario
+import br.com.piggu.feature.contas.TelaDasContasECartoes
+import br.com.piggu.feature.contasfixas.TelaDasContasDoMes
+import br.com.piggu.feature.orcamentos.TelaDoOrcamento
 import br.com.piggu.core.ui.formatos.lerValor
 import br.com.piggu.feature.legal.DocumentoLegal
 import br.com.piggu.feature.legal.TelaDeTextoLegal
@@ -44,6 +49,7 @@ private fun MutableList<NavKey>.voltar(base: Tela) {
 @Composable
 fun TelaCheia(tela: Tela, pilha: MutableList<NavKey>, base: Tela, sair: () -> Unit) {
     fun abrir(destino: Tela) { pilha.add(destino) }
+    val abrirNoSite = lembrarAbrirNoSite()
     val voltar = { pilha.voltar(base) }
     when (tela) {
         Tela.Entrar -> TelaDeLogin(
@@ -73,6 +79,11 @@ fun TelaCheia(tela: Tela, pilha: MutableList<NavKey>, base: Tela, sair: () -> Un
         Tela.Aceite -> TelaDoAceite(abrirTermos = { abrir(Tela.Termos) }, abrirPrivacidade = { abrir(Tela.Privacidade) })
         Tela.SobreVoce -> TelaSobreVoce(sair = sair)
         Tela.Cpf -> TelaDoCpf(voltar = voltar)
+        // Organização (A5), abertas pelo Mais e pela gaveta.
+        Tela.ContasFixas -> TelaDasContasDoMes(voltar = voltar)
+        Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrirNoSite(Tela.Plano.caminho) })
+        Tela.Calendario -> TelaDoCalendario(voltar = voltar)
+        Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar, abrirNoSite = abrirNoSite)
         Tela.Erro -> TelaDeErro(CasoDeErro.Servidor, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
         else -> TelaDeErro(CasoDeErro.NaoEncontrada, irParaOInicio = { pilha.recomecar(base) }, voltarOuTentar = voltar)
     }

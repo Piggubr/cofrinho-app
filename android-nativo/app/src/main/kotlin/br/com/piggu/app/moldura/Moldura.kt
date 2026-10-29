@@ -37,6 +37,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -125,6 +128,7 @@ fun Moldura(
                     if (demo) FaixaDaDemo()
                     Topo(
                         perfil = perfil,
+                        demo = demo,
                         irAoPainel = { abrir(Tela.Painel) },
                         buscar = buscar,
                         perguntar = perguntar,
@@ -179,8 +183,6 @@ private fun OpcaoDoLancar(rotulo: Int, icone: Int, aoTocar: () -> Unit) {
     ListItem(
         headlineContent = { Text(stringResource(rotulo)) },
         leadingContent = { Icon(painterResource(icone), null) },
-        // Os formulários chegam nativos na A4; até lá, abrem no site.
-        trailingContent = { IconeAbreFora() },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickableComPapel(Role.Button, aoTocar),
     )
@@ -201,8 +203,10 @@ private fun FaixaDaDemo() {
 /** Topo das abas (D-097 do iOS): a marca volta ao Painel, a cotação e, à direita, a busca e o assistente. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Topo(perfil: PerfilDaMoldura, irAoPainel: () -> Unit, buscar: () -> Unit, perguntar: () -> Unit) {
+private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit, buscar: () -> Unit, perguntar: () -> Unit) {
     TopAppBar(
+        // A faixa da demonstração já desce da barra de status: o topo não soma a folga de novo.
+        windowInsets = if (demo) TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal) else TopAppBarDefaults.windowInsets,
         navigationIcon = {
             IconButton(irAoPainel) { MarcaDoApp(Modifier.size(36.dp), stringResource(R.string.voltar_ao_painel)) }
         },

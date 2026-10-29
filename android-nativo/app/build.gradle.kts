@@ -65,6 +65,11 @@ dependencies {
     implementation(projects.feature.gastos)
     implementation(projects.feature.receitas)
     implementation(projects.feature.assistente)
+    implementation(projects.feature.contasfixas)
+    implementation(projects.feature.orcamentos)
+    implementation(projects.feature.calendario)
+    implementation(projects.feature.relatorios)
+    implementation(projects.feature.contas)
     // A API falsa responde a variante demo inteira, sem backend.
     "demoImplementation"(projects.core.testing)
 

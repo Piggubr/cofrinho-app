@@ -33,6 +33,11 @@ include(
     ":feature:gastos",
     ":feature:receitas",
     ":feature:assistente",
+    ":feature:contasfixas",
+    ":feature:orcamentos",
+    ":feature:calendario",
+    ":feature:relatorios",
+    ":feature:contas",
     ":feature:legal",
     ":baselineprofile",
 )
