@@ -64,7 +64,7 @@ sealed class ErroDaApi(mensagem: String?, causa: Throwable?) : Exception(mensage
     }
 }
 
-internal fun lerCorpoDeErro(texto: String): CorpoDeErro? =
+fun lerCorpoDeErro(texto: String): CorpoDeErro? =
     try {
         JsonDoPiggu.decodeFromString(CorpoDeErro.serializer(), texto)
     } catch (_: SerializationException) {

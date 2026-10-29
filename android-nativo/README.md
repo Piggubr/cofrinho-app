@@ -30,7 +30,8 @@ plataforma que faltar.
 | `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
 | `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
 | `core:testing` | `ApiDaDemo`: a API falsa do modo demonstração (porte de `api-da-demo.ts`), usada também nos testes |
-| `feature:login` | Entrar por e-mail e senha (o resto da entrada chega na A3) |
+| `feature:login` | A entrada: entrar (e-mail e senha, Google), criar conta, aceite, "Sobre você", CPF, confirmar e-mail, esqueci e redefinir a senha, excluir a conta |
+| `feature:legal` | Termos de Uso e Aviso de Privacidade nativos, com o texto do site (`scripts/textos-legais.py`) |
 | `feature:painel`, `feature:gastos` | As abas, por enquanto com o link para o site (chegam na A4) |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
@@ -46,6 +47,17 @@ plataforma que faltar.
   `piggu://<rota do site>` funcionam; os App Links de `https://piggu.com.br` só cobrem as
   telas nativas.
 - Variante `demo`: a `ApiDaDemo` responde tudo, com qualquer e-mail e senha (a conta da Ana).
+
+## Entrada
+
+- Sem sessão, o app abre no login (Entrar e Criar conta na mesma tela, como no site). Os
+  links do e-mail (`/confirmar-email`, `/redefinir-senha`) abrem as telas nativas pelos App
+  Links, quando o `assetlinks.json` estiver no ar.
+- Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
+  (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
+- Google: o botão só aparece com `./gradlew -Ppiggu.googleNoAndroid=true ...` (ou a linha em
+  `gradle.properties`), depois de criar o ID OAuth do Android no Google Cloud (D-104).
+- Termos e Aviso: `python3 -I scripts/textos-legais.py` copia o texto do site; o CI confere.
 
 ## Tema
 
@@ -71,6 +83,9 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-3](docs/prints/etapa-3): entrar (com e sem o Google), criar conta,
+  aceite do Google, conta criada, esqueci a senha, senha nova, e-mail confirmado, aceite dos
+  termos, excluir a conta (só tablet), Sobre você, CPF e os Termos.
 - [docs/prints/etapa-2](docs/prints/etapa-2): login, Painel com a moldura (barra no celular,
   gaveta no tablet), Mais, a folha do +, 404, 500 e os componentes comuns, em claro e escuro,
   celular (Pixel 7) e tablet. O CI confere essas imagens a cada PR.

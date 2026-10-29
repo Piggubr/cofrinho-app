@@ -60,6 +60,7 @@ dependencies {
     implementation(projects.core.ui)
     implementation(projects.core.data)
     implementation(projects.feature.login)
+    implementation(projects.feature.legal)
     implementation(projects.feature.painel)
     implementation(projects.feature.gastos)
     // A API falsa responde a variante demo inteira, sem backend.

@@ -28,3 +28,13 @@ class NavegacaoTest {
         assertEquals(listOf(Tela.Painel, Tela.Gastos), pilha)
     }
 }
+
+class OrdemDeCargaTest {
+    /** Regressão de 28/10/2026: o Painel carregado primeiro deixava a lista das abas com nulo. */
+    @Test
+    fun `as abas existem mesmo com uma tela carregada antes`() {
+        val painel = Tela.Painel
+        assertEquals(true, painel in Tela.abas)
+        assertEquals(false, Tela.abas.any { it == null })
+    }
+}

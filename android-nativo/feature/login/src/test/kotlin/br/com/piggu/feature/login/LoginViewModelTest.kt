@@ -34,17 +34,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
-private object SemCifra : Cifra {
-    override fun cifrar(claro: ByteArray) = claro
-    override fun decifrar(cifrado: ByteArray) = cifrado
-}
-
-private object SemCache : RespostasGuardadasDao {
-    override suspend fun ler(chave: String): RespostaGuardada? = null
-    override suspend fun guardar(resposta: RespostaGuardada) = Unit
-    override suspend fun apagarTudo() = Unit
-}
-
 /** O login com a sessão de verdade, respondida pela API falsa da demonstração. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoginViewModelTest {
@@ -53,14 +42,7 @@ class LoginViewModelTest {
     @Before fun principal() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @After fun devolver() = Dispatchers.resetMain()
 
-    private fun TestScope.sessao(): Sessao {
-        val cofre = CofreDaSessao(PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { pasta.root.resolve("s.preferences_pb") }), SemCifra)
-        lateinit var identidade: ServicoDeIdentidade
-        val sessao = Sessao({ identidade }, cofre, SemCache, backgroundScope)
-        val cliente = ModuloDaRede.okHttp("2.0.0", AvisoDeVersao(), AutenticacaoDaSessao(sessao), setOf(ApiDaDemo()))
-        identidade = ModuloDaRede.identidade(ModuloDaRede.retrofit(URL_DA_API, cliente, JsonDoPiggu))
-        return sessao
-    }
+    private fun TestScope.sessao() = sessaoDeTeste(pasta.root)
 
     @Test
     fun `sem e-mail ou senha pede os dois e nem chama o servidor`() = runTest {
@@ -79,7 +61,7 @@ class LoginViewModelTest {
         viewModel.mudarSenha("qualquer")
         viewModel.entrar()
         // A API falsa responde em outra thread (OkHttp): espera fora do relógio virtual do teste.
-        withContext(Dispatchers.Default) { withTimeout(5_000) { viewModel.estado.first { !it.entrando } } }
+        viewModel.estado.esperar { !it.entrando }
         assertTrue(sessao.estado.value is EstadoDaSessao.Logado)
         assertEquals("", viewModel.estado.value.senha)
         assertEquals(null, viewModel.estado.value.erro)

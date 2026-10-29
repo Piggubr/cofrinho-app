@@ -20,13 +20,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,17 +49,16 @@ import br.com.piggu.app.moldura.PerfilDaMoldura
 import br.com.piggu.app.moldura.TelaDoMais
 import br.com.piggu.app.navegacao.Destino
 import br.com.piggu.app.navegacao.Tela
-import br.com.piggu.core.data.Pendencia
 import br.com.piggu.core.designsystem.ModoDeCor
 import br.com.piggu.core.designsystem.PigguTheme
 import br.com.piggu.core.ui.AbaEmBreve
-import br.com.piggu.core.ui.CasoDeErro
 import br.com.piggu.core.ui.HumorDoPorquinho
 import br.com.piggu.core.ui.Porquinho
-import br.com.piggu.core.ui.TelaDeErro
 import br.com.piggu.core.ui.lembrarAbrirNoSite
 import br.com.piggu.feature.gastos.GastosScreen
-import br.com.piggu.feature.login.TelaDeLogin
+import br.com.piggu.feature.login.AvisoDeConfirmarEmail
+import br.com.piggu.feature.login.DialogoDeExclusao
+import br.com.piggu.feature.login.ExclusaoViewModel
 import br.com.piggu.feature.painel.PainelScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -86,14 +85,8 @@ fun PigguApp(links: Flow<Destino> = emptyFlow(), viewModel: AppViewModel = hiltV
         when (val raiz = estado.raiz) {
             Raiz.Abrindo -> Abrindo()
             Raiz.Atualizar -> AtualizeOApp()
-            Raiz.Login -> {
-                LinksSemSessao(links, abrirNoSite)
-                TelaDeLogin(
-                    esqueciASenha = { abrirNoSite(Tela.EsqueciSenha.caminho) },
-                    criarConta = { abrirNoSite(Tela.Entrar.caminho) },
-                )
-            }
-            is Raiz.Pendente -> TelaDePendencia(raiz.pendencia, abrirNoSite, viewModel::conferirPendencia)
+            Raiz.Login -> EntradaSemSessao(links)
+            is Raiz.Pendente -> key(raiz.pendencia) { PendenciaDaConta(raiz.pendencia, links, viewModel::sair) }
             is Raiz.Logado -> {
                 val avisos = remember { SnackbarHostState() }
                 val corPadrao = stringResource(R.string.cor_voltou_ao_padrao)
@@ -120,17 +113,6 @@ private fun BarrasDoSistema(escuro: Boolean) {
     }
 }
 
-/** Sem sessão, os links das telas abertas (termos, senha, e-mail) abrem no site; os outros esperam o login. */
-@Composable
-private fun LinksSemSessao(links: Flow<Destino>, abrirNoSite: (String) -> Unit) {
-    LaunchedEffect(links) {
-        links.collect { destino ->
-            val tela = (destino as? Destino.Abrir)?.tela ?: return@collect
-            if (tela in Tela.abertas || tela is Tela.ConfirmarEmail || tela is Tela.RedefinirSenha) abrirNoSite(tela.caminho)
-        }
-    }
-}
-
 /**
  * Logado: a moldura com as abas. A pilha guarda as abas e as telas de erro (sem moldura); o que
  * ainda não é nativo abre no site.
@@ -142,6 +124,8 @@ fun AppLogado(
     avisos: SnackbarHostState,
     abrirNoSite: (String) -> Unit,
     sair: () -> Unit,
+    // Excluir a conta e reenviar a confirmação têm ViewModel do Hilt; as capturas desligam.
+    acoesDaConta: Boolean = true,
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
 
@@ -150,8 +134,9 @@ fun AppLogado(
             // perfilGuard('ADMIN', 'TITULAR'): o Premium é do titular; os outros vão ao Painel.
             tela == Tela.Plano && !perfil.ehTitular -> pilha.irPara(Tela.Painel)
             tela in Tela.abas -> pilha.irPara(tela)
-            tela == Tela.Erro || tela == Tela.NaoEncontrada -> pilha.add(tela)
-            tela.nativa -> pilha.irPara(Tela.Painel)
+            // Já logado, o login e as pendências não têm o que fazer: fica no Painel.
+            tela == Tela.Entrar || tela == Tela.Aceite || tela == Tela.SobreVoce -> pilha.irPara(Tela.Painel)
+            tela.nativa -> pilha.add(tela)
             else -> abrirNoSite(tela.caminho)
         }
     }
@@ -167,20 +152,17 @@ fun AppLogado(
         }
     }
 
-    val topo = pilha.lastOrNull()
-    if (topo == Tela.Erro || topo == Tela.NaoEncontrada) {
+    val topo = pilha.lastOrNull() as? Tela ?: Tela.Painel
+    if (topo !in Tela.abas) {
+        // Fora das abas (textos legais, CPF, links do e-mail, erros): tela cheia, sem a moldura.
         BackHandler { pilha.removeLastOrNull() }
-        TelaDeErro(
-            if (topo == Tela.Erro) CasoDeErro.Servidor else CasoDeErro.NaoEncontrada,
-            irParaOInicio = { pilha.irPara(Tela.Painel) },
-            voltarOuTentar = { pilha.removeLastOrNull() },
-        )
+        TelaCheia(topo, pilha, Tela.Painel, sair)
         return
     }
 
     Moldura(
         perfil = perfil,
-        abaAtual = topo as? Tela,
+        abaAtual = topo,
         demo = BuildConfig.FLAVOR == "demo",
         abrir = ::abrir,
         lancarGasto = { abrirNoSite(caminhoDoLancar(Destino.LancarGasto(null))) },
@@ -197,7 +179,17 @@ fun AppLogado(
                 entry<Tela.Receitas> { AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho) }
                 entry<Tela.Relatorios> { AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho) }
                 entry<Tela.Mais> {
-                    TelaDoMais(perfil, BuildConfig.VERSION_NAME, ::abrir, sair, PaddingValues(bottom = FOLGA_DO_LANCAR))
+                    val exclusao: ExclusaoViewModel? = if (acoesDaConta) hiltViewModel() else null
+                    TelaDoMais(
+                        perfil,
+                        BuildConfig.VERSION_NAME,
+                        ::abrir,
+                        sair,
+                        PaddingValues(bottom = FOLGA_DO_LANCAR),
+                        excluirConta = { exclusao?.abrir() },
+                        avisoDoEmail = { if (acoesDaConta) AvisoDeConfirmarEmail(perfil.email) },
+                    )
+                    exclusao?.let { DialogoDeExclusao(it) }
                 }
             },
         )
@@ -215,19 +207,6 @@ private fun Abrindo() {
         Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Porquinho(HumorDoPorquinho.Feliz)
         }
-    }
-}
-
-/** Os Termos mudaram ou falta o cadastro (termosGuard): o aceite e o "Sobre você" chegam nativos na A3. */
-@Composable
-private fun TelaDePendencia(pendencia: Pendencia, abrirNoSite: (String) -> Unit, conferir: () -> Unit) {
-    val (titulo, texto, tela) = when (pendencia) {
-        Pendencia.Termos -> Triple(R.string.pendente_termos_titulo, R.string.pendente_termos_texto, Tela.Aceite)
-        Pendencia.SobreVoce -> Triple(R.string.pendente_cadastro_titulo, R.string.pendente_cadastro_texto, Tela.SobreVoce)
-    }
-    Aviso(stringResource(titulo), stringResource(texto)) {
-        Button({ abrirNoSite(tela.caminho) }) { Text(stringResource(R.string.abrir_no_site)) }
-        OutlinedButton(conferir) { Text(stringResource(R.string.pendente_ja_fiz)) }
     }
 }
 

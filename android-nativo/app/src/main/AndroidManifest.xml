@@ -55,6 +55,12 @@
                 <data android:path="/gastos" />
                 <data android:path="/receitas" />
                 <data android:path="/relatorios" />
+                <data android:path="/confirmar-email" />
+                <data android:path="/redefinir-senha" />
+                <data android:path="/esqueci-senha" />
+                <data android:path="/termos" />
+                <data android:path="/privacidade" />
+                <data android:path="/cpf" />
             </intent-filter>
         </activity>
     </application>

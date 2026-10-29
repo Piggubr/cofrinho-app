@@ -1,6 +1,9 @@
 package br.com.piggu.app
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import br.com.piggu.feature.login.esquecerAContaDoGoogle
+import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.EstadoDaSessao
 import br.com.piggu.core.data.Sessao
@@ -50,6 +53,7 @@ data class EstadoDoApp(
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
+    @ApplicationContext private val contexto: Context,
     private val sessao: Sessao,
     private val preferencias: PreferenciasDoAparelho,
     private val financas: ServicoDeFinancas,
@@ -91,6 +95,12 @@ class AppViewModel @Inject constructor(
                 }
             }
         }
+        // Saiu, apagou a conta ou a sessão caiu: o próximo "Entrar com o Google" pergunta a conta de novo.
+        viewModelScope.launch {
+            sessao.estado.map { it is EstadoDaSessao.Deslogado }.distinctUntilChanged().collect { deslogado ->
+                if (deslogado) esquecerAContaDoGoogle(contexto)
+            }
+        }
         // A cotação do topo, refeita quando a pessoa troca as moedas ou liga a cotação no Perfil.
         viewModelScope.launch {
             sessao.estado.map { (it as? EstadoDaSessao.Logado)?.usuario?.preferencias }.distinctUntilChanged().collect { prefs ->
@@ -114,11 +124,6 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { sessao.sair() }
     }
 
-    /** "Já fiz, conferir": busca o perfil de novo depois do aceite ou do cadastro no site. */
-    fun conferirPendencia() {
-        viewModelScope.launch { sessao.atualizarPerfil() }
-    }
-
     private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val voltou: Boolean)
 }
 
@@ -130,4 +135,6 @@ private fun Usuario.paraAMoldura(cotacao: Cotacao?) = PerfilDaMoldura(
     modulos = modulosLigados,
     cotacao = cotacao?.let { formatarCotacao(it.de, it.para, it.taxa) },
     cotacaoDesatualizada = cotacao?.desatualizada == true,
+    emailConfirmado = emailConfirmado != false,
+    cpfInformado = cpfInformado != false,
 )

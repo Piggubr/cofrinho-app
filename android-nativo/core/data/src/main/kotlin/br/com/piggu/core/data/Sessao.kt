@@ -4,7 +4,15 @@ import br.com.piggu.core.database.RespostasGuardadasDao
 import br.com.piggu.core.datastore.CofreDaSessao
 import br.com.piggu.core.model.JsonDoPiggu
 import br.com.piggu.core.model.ParDeTokens
+import br.com.piggu.core.model.PedidoComToken
+import br.com.piggu.core.model.PedidoDeCadastro
+import br.com.piggu.core.model.PedidoDeEmail
 import br.com.piggu.core.model.PedidoDeLogin
+import br.com.piggu.core.model.PedidoDePais
+import br.com.piggu.core.model.PedidoDeSenhaNova
+import br.com.piggu.core.model.PedidoDeTermos
+import br.com.piggu.core.model.PedidoDoGoogle
+import br.com.piggu.core.model.PedidoSobreVoce
 import br.com.piggu.core.model.PedidoDeRefresh
 import br.com.piggu.core.model.Usuario
 import br.com.piggu.core.network.ErroDaApi
@@ -83,6 +91,70 @@ class Sessao @Inject constructor(
 
     suspend fun entrarComSenha(email: String, senha: String, lembrar: Boolean) {
         abrirSessao(identidade.get().entrarComSenha(PedidoDeLogin(email.trim(), senha, lembrar)), lembrar)
+    }
+
+    /**
+     * Troca o ID token do Google por uma sessão do Piggu. [versaoDosTermos] só na conta nova,
+     * depois do TERMOS_NECESSARIOS: o site pede o aceite e manda de novo.
+     */
+    suspend fun entrarComGoogle(idToken: String, lembrar: Boolean, versaoDosTermos: String? = null) {
+        abrirSessao(identidade.get().entrarComGoogle(PedidoDoGoogle(idToken, versaoDosTermos, lembrar)), lembrar)
+    }
+
+    // Sem sessão (cadastro e os links do e-mail).
+
+    /** Cria a conta sem abrir sessão: a pessoa confirma o e-mail e entra com a senha. Responde igual se o e-mail já existe. */
+    suspend fun cadastrar(pedido: PedidoDeCadastro) = identidade.get().cadastrar(pedido)
+
+    /** Pede o link de senha nova; o backend responde igual com ou sem conta. */
+    suspend fun esqueciSenha(email: String) = identidade.get().esqueciSenha(PedidoDeEmail(email.trim()))
+
+    /** Senha nova pelo link do e-mail. Todas as sessões da conta caem: se havia uma aqui, sai dela também. */
+    suspend fun redefinirSenha(token: String, novaSenha: String) {
+        identidade.get().redefinirSenha(PedidoDeSenhaNova(token, novaSenha))
+        if (usuario != null) encerrarLocalmente()
+    }
+
+    /** Confirma o e-mail pelo link; com sessão aberta, o perfil já sai atualizado. */
+    suspend fun confirmarEmail(token: String) {
+        identidade.get().confirmarEmail(PedidoComToken(token))
+        if (usuario != null) atualizarPerfil()
+    }
+
+    // Completar o cadastro (auth.guard.ts) e a conta.
+
+    /** Manda outro link de confirmação; o anterior deixa de valer. */
+    suspend fun reenviarConfirmacao() = identidade.get().reenviarConfirmacao()
+
+    /** Aceite da versão vigente dos Termos e do Aviso de Privacidade. */
+    suspend fun aceitarTermos() = entrou(identidade.get().aceitarTermos(PedidoDeTermos(VERSAO_DOS_TERMOS)))
+
+    /**
+     * Como quer ser chamado e, só na primeira vez, nascimento, CPF e celular (D-088). Renova o
+     * token depois, como o site: o de antes diz "cadastro incompleto" aos outros serviços.
+     */
+    suspend fun sobreVoce(pedido: PedidoSobreVoce) {
+        val usuario = identidade.get().sobreVoce(pedido)
+        tokenNovo(acesso)
+        entrou(usuario)
+    }
+
+    /** País onde mora e o documento. Renova o token depois: sem isso os outros serviços ainda veem a conta incompleta. */
+    suspend fun informarPais(pais: String, documento: String?) {
+        entrou(identidade.get().informarPais(PedidoDePais(pais, documento)))
+        tokenNovo(acesso)
+    }
+
+    /** Um serviço recusou com 403 CADASTRO_PENDENTE: a raiz do app passa a mostrar o "Sobre você". */
+    fun cadastroPendente() {
+        val atual = usuario ?: return
+        if (atual.cadastroCompleto != false) estadoAtual.value = EstadoDaSessao.Logado(atual.copy(cadastroCompleto = false))
+    }
+
+    /** Apaga a conta no servidor e sai deste aparelho. */
+    suspend fun excluirConta() {
+        identidade.get().excluirConta()
+        encerrarLocalmente()
     }
 
     private suspend fun abrirSessao(tokens: ParDeTokens, lembrar: Boolean) {
