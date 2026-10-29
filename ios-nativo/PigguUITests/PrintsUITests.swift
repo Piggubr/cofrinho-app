@@ -26,6 +26,8 @@ final class PrintsUITests: XCTestCase {
         for tela in telas {
             app.open(URL(string: "piggu://\(tela)")!)
             Thread.sleep(forTimeInterval: 1.5)
+            // O link reabre o app: com a maquina ocupada, a tela demora a sair do "Carregando…".
+            _ = app.descendants(matching: .any)["Carregando…"].waitForNonExistence(timeout: 8)
             try XCUIScreen.main.screenshot().pngRepresentation
                 .write(to: pasta.appendingPathComponent("\(tela).png"))
         }
