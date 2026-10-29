@@ -1440,3 +1440,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
 - Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
 - Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`
+
+## D-137: iPhone deitado, aba e pilhas por janela (iPhone Duo)
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: o iPhone Duo aberto pede a tela deitada, e o projeto do iOS nativo só aceitava retrato no iPhone. Ao abrir e fechar o aparelho, ou com duas janelas do Piggu lado a lado, a aba e a tela aberta não podiam se perder nem ser a mesma nas duas janelas.
+- Decisão: o iPhone aceita retrato e as duas paisagens. Sem o retrato de cabeça para baixo, que é o padrão da Apple no iPhone. A aba e as pilhas do Painel e do Mais ficam no `@SceneStorage` de cada janela. As pilhas são guardadas como texto (`orcamento,cartoes`), e uma tela que não existe mais some da pilha. A sessão continua sendo uma só para o app: a segunda janela não restaura de novo. A linha do filme passa as ações para baixo do título quando não cabem lado a lado, como na tela de fora do Duo e no iPhone mini. O cartão do leitor de nota tem no máximo 520 pt de largura com a tela deitada.
+- Alternativas: só retrato, que deixa o Duo aberto de lado; guardar a aba no `@AppStorage`, que faria as duas janelas pularem juntas.
+- Consequências: as pilhas das abas Gastos, Receitas e Relatórios não são guardadas, porque não empilham telas. As folhas abertas (lançar gasto, receita) não voltam se o sistema fechar a janela.
+- Onde ver: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/Piggu/Telas/TelaDoMais.swift` (`Binding.guardada`), `ios-nativo/Piggu/Telas/Estilo/FilmesView.swift`

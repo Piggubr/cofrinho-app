@@ -317,6 +317,10 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 - No iPad e na janela redimensionável do iOS 27, o layout segue o tamanho disponível: barra
   lateral na janela larga, abas no topo na estreita (como o iPad mini em retrato), e a mesma tela
   do iPhone abaixo disso. Testado do iPhone 17e ao iPad Pro 13 em paisagem.
+- O iPhone aceita retrato e paisagem (o iPhone Duo aberto fica de lado). A aba e as pilhas do
+  Painel e do Mais ficam guardadas por janela (`@SceneStorage`): duas janelas do Piggu ficam
+  cada uma no seu lugar, e a janela volta onde estava (D-137). Os prints da tela estreita saem
+  no iPhone 13 mini, que só existe no simulador do iOS 27.0.
 - Abrir o app com o perfil guardado não espera a rede: as telas mostram o que guardaram e a
   renovação do token segue por trás (D-095). No simulador, com a build otimizada: 0,63 a 0,75 s
   do `init` ao Painel com dados, também com 3.000 gastos.
