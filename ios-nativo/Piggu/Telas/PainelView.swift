@@ -18,9 +18,10 @@ struct PainelView: View {
     @State private var modelo: ModeloDoPainel?
     @State private var painel: PainelOrganizado?
     @State private var organizando = false
+    @SceneStorage("piggu_caminho_do_painel") private var caminho = ""
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: .guardada($caminho)) {
             Group {
                 if let modelo, let painel {
                     conteudo(modelo, painel)
