@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -46,6 +47,8 @@ public class AssinaturaService {
     private final StripePagamentos pagamentos;
 
     private final RevenueCatLoja lojas;
+    private final AppStoreLoja appStore;
+    private final GooglePlayLoja googlePlay;
     private final JdbcTemplate jdbc;
     private final TestesGratis testes;
     private final CanalDeEmail email;
@@ -53,7 +56,7 @@ public class AssinaturaService {
     private final boolean openFinance;
 
     public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, StripePagamentos pagamentos,
-                             RevenueCatLoja lojas, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+                             RevenueCatLoja lojas, AppStoreLoja appStore, GooglePlayLoja googlePlay, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
                              @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
                              @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
         this.openFinance = openFinance;
@@ -61,6 +64,8 @@ public class AssinaturaService {
         this.familias = familias;
         this.pagamentos = pagamentos;
         this.lojas = lojas;
+        this.appStore = appStore;
+        this.googlePlay = googlePlay;
         this.jdbc = jdbc;
         this.testes = testes;
         this.email = email;
@@ -247,6 +252,110 @@ public class AssinaturaService {
                         conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
             }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));
         });
+    }
+
+    /**
+     * Compra feita no iPhone: o app manda a transacao assinada pela Apple logo depois de comprar
+     * ou ao restaurar. So vale para a conta que o app marcou na compra (appAccountToken).
+     */
+    @Transactional
+    public PlanoResponse aplicarCompraDaApple(UUID usuarioId, String transacao) {
+        EventoDeAssinatura evento = appStore.lerTransacao(transacao);
+        if (!usuarioId.equals(evento.usuarioId())) {
+            throw new BusinessException("Esta assinatura da Apple é de outra conta do Piggu.", HttpStatus.CONFLICT, "OUTRA_CONTA");
+        }
+        aplicarDaLoja("APP_STORE", conta(usuarioId), evento);
+        return plano(usuarioId, null);
+    }
+
+    /**
+     * App Store Server Notification V2 (renovacao, cancelamento, expiracao, reembolso).
+     * Idempotente pelo notificationUUID, como os avisos do RevenueCat.
+     */
+    @Transactional
+    public void aplicarAvisoDaApple(String signedPayload) {
+        appStore.lerAviso(signedPayload).ifPresent(aviso -> {
+            int novo = jdbc.update("INSERT INTO billing_events (event_id, provider) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                    aviso.id(), "APP_STORE");
+            if (novo == 0) {
+                log.info("Aviso da App Store repetido ignorado");
+                return;
+            }
+            EventoDeAssinatura evento = aviso.evento();
+            if (evento.usuarioId() == null) {
+                // Compra sem appAccountToken: nao veio do app com alguem logado.
+                log.warn("Aviso da App Store sem conta Piggu id={}", aviso.id());
+                return;
+            }
+            usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> aplicarDaLoja("APP_STORE", conta, evento),
+                    () -> log.warn("Aviso da App Store de conta inexistente id={}", evento.usuarioId()));
+        });
+    }
+
+    /**
+     * Compra feita no Android: o app manda o purchaseToken logo depois de comprar ou ao restaurar.
+     * So vale para a conta que o app marcou na compra (obfuscatedExternalAccountId).
+     */
+    @Transactional
+    public PlanoResponse aplicarCompraDoGoogle(UUID usuarioId, String token) {
+        GooglePlayLoja.AssinaturaDoGoogle compra = googlePlay.lerCompra(token);
+        if (!usuarioId.equals(compra.evento().usuarioId())) {
+            throw new BusinessException("Esta assinatura do Google Play é de outra conta do Piggu.", HttpStatus.CONFLICT, "OUTRA_CONTA");
+        }
+        aplicarDoGoogle(conta(usuarioId), compra);
+        return plano(usuarioId, null);
+    }
+
+    /**
+     * Aviso em tempo real do Google Play (renovacao, cancelamento, expiracao, revogacao, reembolso).
+     * Sem registro em billing_events: o estado vem sempre do Google, reaplicar e inofensivo, e e
+     * o aviso repetido que tenta de novo o acknowledge que falhou.
+     */
+    @Transactional
+    public void aplicarAvisoDoGoogle(String autorizacao, String dados) {
+        googlePlay.lerAviso(autorizacao, dados).ifPresent(compra -> {
+            UUID dono = compra.evento().usuarioId();
+            if (dono == null) {
+                // Compra sem obfuscatedExternalAccountId: nao veio do app com alguem logado.
+                log.warn("Aviso do Google Play sem conta Piggu");
+                return;
+            }
+            usuarios.findById(dono).ifPresentOrElse(conta -> aplicarDoGoogle(conta, compra),
+                    () -> log.warn("Aviso do Google Play de conta inexistente id={}", dono));
+        });
+    }
+
+    /** Na troca de plano o Google cria outro token e encerra o antigo: o fim do antigo nao derruba o novo. */
+    private void aplicarDoGoogle(UserAccount conta, GooglePlayLoja.AssinaturaDoGoogle compra) {
+        Household familia = familias.daConta(conta);
+        boolean tokenAntigo = compra.evento().premiumAte() == null && "PLAY_STORE".equals(familia.getPlanSource())
+                && compra.vence() != null && familia.getPremiumUntil() != null
+                // Em milissegundos, a precisao do Google: o banco guarda microssegundos arredondados, e
+                // o mesmo vencimento pareceria posterior (o fim nunca chegava).
+                && familia.getPremiumUntil().truncatedTo(ChronoUnit.MILLIS).isAfter(compra.vence().truncatedTo(ChronoUnit.MILLIS));
+        if (tokenAntigo) {
+            log.info("Fim de assinatura antiga do Google Play ignorado: conta={} familia={}", conta.getId(), familia.getId());
+        } else {
+            aplicarDaLoja("PLAY_STORE", conta, compra.evento());
+        }
+        googlePlay.confirmar(compra);
+    }
+
+    /** Premium pago por outro caminho (o site ou a outra loja) segue valendo: a loja nao derruba nem encurta. */
+    private void aplicarDaLoja(String origem, UserAccount conta, EventoDeAssinatura evento) {
+        if (evento.emTeste()) {
+            conta.marcarTesteGratisUsado();
+        }
+        Household familia = familias.daConta(conta);
+        if (familia.planoVigente() == Plano.PREMIUM && !origem.equals(familia.getPlanSource())) {
+            log.warn("Compra na loja {} com Premium de outra origem: conta={} familia={} origem={}",
+                    origem, conta.getId(), familia.getId(), familia.getPlanSource());
+            return;
+        }
+        boolean aplicado = familia.aplicarAssinatura(origem, evento.premiumAte(), evento.momento(),
+                evento.inicio(), evento.tipo(), conta.getId());
+        log.info("Assinatura na loja {}: conta={} familia={} plano={} aplicado={}",
+                origem, conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
     }
 
     private UserAccount conta(UUID usuarioId) {

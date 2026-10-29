@@ -103,7 +103,7 @@ fun TelaCheia(
         Tela.Cpf -> TelaDoCpf(voltar = voltar)
         // Organização (A5), abertas pelo Mais e pela gaveta.
         Tela.ContasFixas -> TelaDasContasDoMes(voltar = voltar)
-        Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrirNoSite(Tela.Plano.caminho) })
+        Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         Tela.Calendario -> TelaDoCalendario(voltar = voltar)
         Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar, abrirNoSite = abrirNoSite)
         // Metas e conta (A6).

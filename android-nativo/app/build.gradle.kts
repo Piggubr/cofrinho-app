@@ -35,8 +35,21 @@ android {
         }
     }
 
+    // A chave de upload do Play vem de variáveis de ambiente (o CI tira dos secrets); nunca fica no
+    // repositório. Sem elas, o release sai sem assinatura, só para conferir o build.
+    val chaveDeUpload = System.getenv("PIGGU_UPLOAD_KEYSTORE")?.let(::file)?.takeIf { it.exists() }
+    signingConfigs {
+        if (chaveDeUpload != null) create("upload") {
+            storeFile = chaveDeUpload
+            storePassword = System.getenv("PIGGU_UPLOAD_KEYSTORE_SENHA")
+            keyAlias = System.getenv("PIGGU_UPLOAD_KEY_ALIAS")
+            keyPassword = System.getenv("PIGGU_UPLOAD_KEY_SENHA")
+        }
+    }
+
     buildTypes {
         release {
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
@@ -116,3 +129,9 @@ dependencies {
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
 }
+
+// O perfil gerado na demo (que entra sem backend) vale para as duas variantes: o código é o mesmo.
+baselineProfile {
+    mergeIntoMain = true
+}
+

@@ -33,7 +33,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
 - Android: conectar banco como o iOS quando a página `/conectar-banco` chegar à `develop` (D-117).
 - Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
-- Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
+- Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
 - Android, etapa A9: acabamento, versão 2.0.0 e teste interno no Play.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
 - Religar o Open Finance e o leitor próprio de nota, desligados antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
@@ -51,6 +51,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
 - 28/10/2026: Android nativo, etapa A7: Compras, Lugares, Filmes, Fotos, widgets, atalhos, bloco das Configurações rápidas, trava com a biometria, tour em balões e foto do recibo, na branch `feature/android-nativo` (D-124 a D-131). O push ficou para depois da A1.
 - 28/10/2026: Android nativo, etapa A6: Minhas metas, Girls Math, Planejar, Prêmios, Família, Premium (sem compra até a A8) e Perfil, com o ícone do app e o tour, na branch `feature/android-nativo` (D-118 a D-122).
 - 28/10/2026: Android nativo, etapa A5: Contas do mês, Orçamento, Calendário, Relatórios e Cartões e bancos, na branch `feature/android-nativo` (D-113 a D-117).

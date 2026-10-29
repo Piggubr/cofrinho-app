@@ -20,6 +20,7 @@ import br.com.piggu.core.model.Cotacao
 import br.com.piggu.core.model.Usuario
 import br.com.piggu.core.network.AvisoDeVersao
 import br.com.piggu.core.network.ServicoDeFinancas
+import br.com.piggu.feature.perfil.IconeDoApp
 import br.com.piggu.feature.perfil.IconesDoApp
 import br.com.piggu.core.ui.formatos.formatarCotacao
 import br.com.piggu.app.moldura.PerfilDaMoldura
@@ -74,7 +75,8 @@ class AppViewModel @Inject constructor(
         aviso.precisaAtualizar,
         combine(preferencias.cor, preferencias.modo, preferencias.coresDoCelular, preferencias.voltouAoPadrao, ::Aparencia),
         cotacao,
-    ) { sessao, atualizar, aparencia, cotacao ->
+        iconesDoApp.escolhido,
+    ) { sessao, atualizar, aparencia, cotacao, icone ->
         val usuario = (sessao as? EstadoDaSessao.Logado)?.usuario
         EstadoDoApp(
             raiz = when {
@@ -82,7 +84,7 @@ class AppViewModel @Inject constructor(
                 sessao is EstadoDaSessao.Verificando -> Raiz.Abrindo
                 usuario == null -> Raiz.Login
                 usuario.pendencia != null -> Raiz.Pendente(usuario.pendencia!!)
-                else -> Raiz.Logado(usuario.paraAMoldura(cotacao))
+                else -> Raiz.Logado(usuario.paraAMoldura(cotacao).copy(marca = icone.previa.takeIf { icone != IconeDoApp.Padrao }))
             },
             // Antes do login o plano não se sabe: a cor escolhida vale (tema.ts).
             cor = VarianteDeCor.deId(aparencia.cor).efetiva(usuario?.ehPremium),

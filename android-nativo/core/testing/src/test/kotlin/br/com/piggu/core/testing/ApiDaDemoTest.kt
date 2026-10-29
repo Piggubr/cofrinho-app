@@ -161,6 +161,19 @@ class ApiDaDemoTest {
     }
 
     @Test
+    fun `compra do google play marca a Ana como Premium do Play, e a de outra conta responde 409`() {
+        val outra = post("/api/billing/google-play/purchases", """{"produto":"premium_mensal","purchaseToken":"$TOKEN_DE_OUTRA_CONTA"}""")
+        assertEquals(409, outra.status)
+        assertEquals("OUTRA_CONTA", outra.corpo["codigo"].texto)
+        assertEquals("WEB", get("/api/billing/plan")["origem"].texto)
+
+        val plano = post("/api/billing/google-play/purchases", """{"produto":"premium_mensal","purchaseToken":"token-de-mentira"}""").corpo
+        assertEquals("PLAY_STORE", plano["origem"].texto)
+        assertEquals("false", plano["planoFamilia"].texto)
+        assertEquals("PLAY_STORE", get("/api/billing/plan")["origem"].texto)
+    }
+
+    @Test
     fun `erro vem no formato do backend`() {
         val falha = chamar("DELETE", "/api/me")
         assertEquals(422, falha.status)

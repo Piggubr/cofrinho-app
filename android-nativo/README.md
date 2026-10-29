@@ -46,7 +46,7 @@ plataforma que faltar.
 | `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
 | `feature:premios` | Prêmios: as Fofocoins, os prêmios e os resgates |
 | `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
-| `feature:plano` | Premium: o plano, os preços e o cancelamento; "Em breve" no lugar de assinar até a A8 (D-121) |
+| `feature:plano` | Premium: o plano, os preços, o cancelamento e a assinatura individual pelo Google Play Billing (D-132) |
 | `feature:perfil` | Perfil: foto e nome, moeda, avisos, aparência, ícone do app (D-119), módulos, segurança (travar com a biometria, esconder nos recentes), senha, privacidade e excluir a conta |
 | `feature:listas` | Compras (com o leitor de código de barras), Lugares (abre no app de mapas) e Filmes |
 | `feature:fotos` | O mural de fotos do mês (Premium) |
@@ -96,7 +96,7 @@ AGP 9.4.1, Kotlin 2.4.21, Compose BOM 2026.09.00 (Material 3 1.4.0), Navigation 
 Hilt 2.60.1, Retrofit 3.0.0, OkHttp 5.5.1, kotlinx.serialization 1.12.0, Room 2.8.5,
 DataStore 1.3.0 e WorkManager 2.12.0. Na A7, conferidas em 28/10/2026: Coil 3.6.3, Glance 1.2.0,
 Biometric 1.1.0, o leitor de código de barras 16.1.0 e o recorte de documentos 16.0.0 do Google
-Play services.
+Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0 (`billing-ktx`).
 
 ## Recursos do Android
 
@@ -109,6 +109,11 @@ Play services.
   o mapa no app: ative o Maps SDK for Android no Google Cloud, crie uma chave restrita ao pacote
   `br.com.piggu.app` (SHA-1 da chave de assinatura do Play e a de debug) e só a essa API.
 - Push pelo Firebase: espera a A1 (backend) entrar na `feature/android-nativo`.
+- Premium pelo Google Play (D-132): assinaturas `premium_mensal` e `premium_anual` no Play Console,
+  cada uma com um plano básico (e, se quiser, uma oferta de teste grátis). A compra leva o id da
+  conta Piggu em `obfuscatedAccountId` e vai a `POST /api/billing/google-play/purchases`, que faz o
+  acknowledge. Na variante demo a loja é de mentira (`LojaDeMentira`). A compra de verdade só
+  funciona com o app publicado numa faixa de teste do Play Console.
 - Idioma: só pt-BR, com o `locales_config` pronto para o idioma por app.
 
 minSdk 26, targetSdk 36 e compileSdk 37: o Compose e o Navigation 3 estáveis pedem
@@ -116,6 +121,8 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-8](docs/prints/etapa-8): Premium com o "Restaurar compras" (a demonstração
+  já é Premium pelo site, então não mostra a compra).
 - [docs/prints/etapa-7](docs/prints/etapa-7): Compras, Lugares, Filmes, Fotos e o tour (o
   balão do +).
 - [docs/prints/etapa-6](docs/prints/etapa-6): Minhas metas, Girls Math, Planejar, Prêmios,

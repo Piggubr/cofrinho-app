@@ -80,7 +80,7 @@ import br.com.piggu.core.ui.CampoDeValor
 import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.formatarMoeda
 import br.com.piggu.core.ui.formatos.mesPorExtenso
-import br.com.piggu.core.ui.lembrarAbrirNoSite
+import br.com.piggu.core.ui.lembrarAbrirCaminho
 import br.com.piggu.feature.gastos.R
 import coil3.compose.AsyncImage
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
@@ -206,7 +206,7 @@ private fun lembrarFotosDoRecibo(ler: (abrir: () -> InputStream?) -> Unit): Foto
 /** O botão da foto e o contador do mês; sem leituras grátis, o convite ao Premium. */
 @Composable
 private fun LerRecibo(estado: EstadoDoFormulario, fotos: FotosDoRecibo) {
-    val abrirNoSite = lembrarAbrirNoSite()
+    val abrirNoSite = lembrarAbrirCaminho()
     if (estado.leiturasRestantes == 0) {
         OutlinedButton({ abrirNoSite("/plano") }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Icon(painterResource(Icone.Camera.desenho), null)
@@ -236,7 +236,7 @@ private fun LerRecibo(estado: EstadoDoFormulario, fotos: FotosDoRecibo) {
 /** "Ler com a IA do Google?": só com a autorização a foto vai ao Gemini; "Agora não" descarta. */
 @Composable
 private fun PedidoDeIa(mensagem: String, viewModel: FormularioDeGastoViewModel) {
-    val abrirNoSite = lembrarAbrirNoSite()
+    val abrirNoSite = lembrarAbrirCaminho()
     AlertDialog(
         onDismissRequest = viewModel::recusarIa,
         confirmButton = { TextButton(viewModel::autorizarIa) { Text(stringResource(R.string.recibo_autorizar_e_ler)) } },
@@ -356,7 +356,7 @@ private fun ComoPagou(estado: EstadoDoFormulario, viewModel: FormularioDeGastoVi
         val faltouConta = estado.faltou == CampoQueFaltou.CONTA
         if (estado.forma == FormaDePagamento.CARTAO) {
             if (estado.cartoes.isEmpty()) {
-                val abrirNoSite = lembrarAbrirNoSite()
+                val abrirNoSite = lembrarAbrirCaminho()
                 Detalhe(stringResource(R.string.formulario_nenhum_cartao))
                 TextButton({ abrirNoSite("/contas-e-cartoes") }) { Text(stringResource(R.string.formulario_cadastrar_cartao)) }
             } else {

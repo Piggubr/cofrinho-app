@@ -1,5 +1,6 @@
 package br.com.piggu.app.moldura
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,6 +82,8 @@ data class PerfilDaMoldura(
     val emailConfirmado: Boolean = true,
     /** Falso: o Mais oferece informar o documento (opcional), como o Perfil do site. */
     val cpfInformado: Boolean = true,
+    /** A arte do ícone escolhido no Perfil, para a marca do topo; nulo é o padrão. */
+    @param:DrawableRes val marca: Int? = null,
 )
 
 /** Como o menu aparece pela largura da janela (WindowSizeClass). */
@@ -219,7 +222,7 @@ private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit,
         // A faixa da demonstração já desce da barra de status: o topo não soma a folga de novo.
         windowInsets = if (demo) TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Horizontal) else TopAppBarDefaults.windowInsets,
         navigationIcon = {
-            IconButton(irAoPainel) { MarcaDoApp(Modifier.size(36.dp), stringResource(R.string.voltar_ao_painel)) }
+            IconButton(irAoPainel) { MarcaDoApp(Modifier.size(36.dp), stringResource(R.string.voltar_ao_painel), perfil.marca) }
         },
         title = {
             perfil.cotacao?.let { cotacao ->
@@ -243,7 +246,11 @@ private fun Topo(perfil: PerfilDaMoldura, demo: Boolean, irAoPainel: () -> Unit,
 
 /** O ícone do app (as camadas do ícone adaptativo), recortado em círculo. */
 @Composable
-fun MarcaDoApp(modifier: Modifier = Modifier, descricao: String? = null) {
+fun MarcaDoApp(modifier: Modifier = Modifier, descricao: String? = null, @DrawableRes marca: Int? = null) {
+    if (marca != null) {
+        Image(painterResource(marca), descricao, modifier.clip(CircleShape))
+        return
+    }
     Box(modifier.clip(CircleShape).semantics(mergeDescendants = true) {}) {
         Image(painterResource(R.mipmap.ic_launcher_background), descricao, Modifier.fillMaxSize().scale(1.5f))
         Image(painterResource(R.mipmap.ic_launcher_foreground), null, Modifier.fillMaxSize().scale(1.5f))

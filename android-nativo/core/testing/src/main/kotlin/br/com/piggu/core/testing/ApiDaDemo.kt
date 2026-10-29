@@ -34,6 +34,9 @@ import java.util.Locale
 import kotlin.random.Random
 import kotlin.time.Duration
 
+/** A compra do Google Play com este token responde 409 OUTRA_CONTA, como a de outra conta do Piggu. */
+const val TOKEN_DE_OUTRA_CONTA = "token-de-outra-conta"
+
 /**
  * API falsa do modo demonstração: responde em memória todas as rotas /api, como a
  * frontend/src/app/demo/api-da-demo.ts do site, sem ir à rede.
@@ -54,6 +57,9 @@ class ApiDaDemo(
     private val estado = EstadoDaDemo(LocalDate.now(relogio), relogio.zone, ::novoId)
     private val sorteio = Random(relogio.millis())
     private val rotas = mutableListOf<Rota>()
+
+    /** A Ana assinou o família pelo site; a compra do Google Play troca para o individual do Play. */
+    private var assinadoNoGooglePlay = false
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val pedido = chain.request()
@@ -449,7 +455,7 @@ class ApiDaDemo(
     private fun plano() = registro(
         "plano" to "PREMIUM",
         "premiumAte" to estado.titular["premiumAte"],
-        "origem" to "WEB",
+        "origem" to if (assinadoNoGooglePlay) "PLAY_STORE" else "WEB",
         "reembolsoAte" to null,
         "diasDeTeste" to 0,
         "assinaturaDisponivel" to false,
@@ -460,7 +466,7 @@ class ApiDaDemo(
             "Open Finance", "Notas sem limite", "Orçamento por categoria", "Relatório anual", "Mural de fotos",
             "Vários cofrinhos por objetivo", "Assistente de IA",
         ),
-        "planoFamilia" to true,
+        "planoFamilia" to !assinadoNoGooglePlay,
         "voceAssinou" to true,
         "familiaDisponivel" to false,
         "siteFamilia" to precos("39,99", "399,90"),
@@ -721,6 +727,14 @@ class ApiDaDemo(
         rota("GET", "/billing/plan") { plano() }
         rota("POST", "/billing/(checkout|portal|refund)") {
             throw ErroDaDemo(422, "Pagamento indisponível na demonstração: esta conta de exemplo já é Premium.")
+        }
+        // A loja de mentira do app "compra" com um token falso; este marca a Ana como Premium pelo Google Play.
+        rota("POST", "/billing/google-play/purchases") {
+            if (it.corpo.texto("purchaseToken") == TOKEN_DE_OUTRA_CONTA) {
+                throw ErroDaDemo(409, "Esta assinatura do Google Play é de outra conta do Piggu.", "OUTRA_CONTA")
+            }
+            assinadoNoGooglePlay = true
+            plano()
         }
 
         // Open Finance: contas de exemplo; conectar banco de verdade não.

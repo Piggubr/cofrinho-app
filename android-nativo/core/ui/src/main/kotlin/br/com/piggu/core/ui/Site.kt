@@ -8,6 +8,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
@@ -31,6 +32,16 @@ fun abrirNoSite(contexto: Context, caminho: String, corDaBarra: Int? = null) {
         runCatching { contexto.startActivity(Intent(Intent.ACTION_VIEW, endereco).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 }
+
+/**
+ * Abre um caminho do Piggu ("/plano", "/contas-e-cartoes"): o app fornece a navegação para as
+ * telas nativas; sem ela (prévias, testes), abre no site.
+ */
+val LocalAbrirCaminho = staticCompositionLocalOf<((String) -> Unit)?> { null }
+
+/** Um caminho do Piggu pela tela nativa, quando houver ([LocalAbrirCaminho]); senão, o site. */
+@Composable
+fun lembrarAbrirCaminho(): (String) -> Unit = LocalAbrirCaminho.current ?: lembrarAbrirNoSite()
 
 /** [abrirNoSite] com o contexto e a cor da tela atual. */
 @Composable

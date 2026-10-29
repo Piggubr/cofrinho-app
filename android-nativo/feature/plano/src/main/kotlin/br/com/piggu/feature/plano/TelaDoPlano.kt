@@ -1,5 +1,6 @@
 package br.com.piggu.feature.plano
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -68,12 +70,19 @@ data class EventosDoPlano(
     val pedirReembolso: () -> Unit = {},
     val confirmarReembolso: () -> Unit = {},
     val desistir: () -> Unit = {},
+    /** Com `premium_mensal` ou `premium_anual`. */
+    val assinar: (String) -> Unit = {},
+    val restaurar: () -> Unit = {},
+    val gerenciar: () -> Unit = {},
 )
 
 /** Premium ligada ao [PlanoViewModel]: tela cheia, só para o titular (o app barra os outros). */
 @Composable
 fun TelaDoPlano(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel: PlanoViewModel = hiltViewModel()) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val atividade = LocalActivity.current
+    val navegador = LocalUriHandler.current
+    val pacote = LocalContext.current.packageName
     TelaDoPlano(
         estado,
         EventosDoPlano(
@@ -82,6 +91,10 @@ fun TelaDoPlano(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel: Pl
             pedirReembolso = viewModel::pedirReembolso,
             confirmarReembolso = viewModel::confirmarReembolso,
             desistir = viewModel::desistir,
+            assinar = { produto -> atividade?.let { viewModel.assinar(it, produto) } },
+            restaurar = viewModel::restaurar,
+            // Sem o app da Play Store, openUri lança: o toque só não faz nada.
+            gerenciar = { runCatching { navegador.openUri(enderecoDaAssinatura(estado.produtoDoPlay, pacote)) } },
         ),
         modifier,
     )
@@ -135,28 +148,52 @@ fun TelaDoPlano(estado: EstadoDoPlano, eventos: EventosDoPlano, modifier: Modifi
 @Composable
 private fun Planos(info: InfoDoPlano, estado: EstadoDoPlano, eventos: EventosDoPlano) {
     Situacao(info, estado, eventos)
-    if (estado.podeAssinar) Detalhe(stringResource(R.string.plano_assinar_em_breve_texto))
+    // Fora do quadro: quem assinou e trocou de aparelho (ou de conta) traz o Premium de volta.
+    if (!estado.admin) {
+        TextButton(eventos.restaurar, Modifier.heightIn(min = 48.dp), enabled = !estado.ocupado && estado.conectado) {
+            Text(stringResource(R.string.plano_restaurar))
+        }
+    }
 
-    CartaoDePlano(R.string.plano_gratuito, stringResource(R.string.plano_gratuito_etiqueta), estado.seuPlano == QualPlano.GRATUITO, null, info.gratuito, false)
-    CartaoDePlano(R.string.plano_premium, stringResource(R.string.plano_premium_etiqueta), estado.seuPlano == QualPlano.PREMIUM, info.app, info.premium, estado.podeAssinar)
+    CartaoDePlano(R.string.plano_gratuito, stringResource(R.string.plano_gratuito_etiqueta), estado.seuPlano == QualPlano.GRATUITO, null, info.gratuito)
+    val loja = estado.precosDaLoja
+    val precoDoPremium = info.app?.let { Precos(loja[PREMIUM_MENSAL] ?: emReais(it.mensal), loja[PREMIUM_ANUAL] ?: emReais(it.anual)) }
+    CartaoDePlano(R.string.plano_premium, stringResource(R.string.plano_premium_etiqueta), estado.seuPlano == QualPlano.PREMIUM, precoDoPremium, info.premium) {
+        if (estado.podeAssinar) {
+            val livre = !estado.ocupado && estado.conectado
+            Button({ eventos.assinar(PREMIUM_MENSAL) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = livre) {
+                Text(stringResource(R.string.plano_assinar_mensal))
+            }
+            OutlinedButton({ eventos.assinar(PREMIUM_ANUAL) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = livre) {
+                Text(stringResource(R.string.plano_assinar_anual))
+            }
+        }
+    }
     info.appCasal?.let { precos ->
         CartaoDePlano(
-            R.string.plano_casal, stringResource(R.string.plano_casal_etiqueta), estado.seuPlano == QualPlano.CASAL, precos,
+            R.string.plano_casal, stringResource(R.string.plano_casal_etiqueta), estado.seuPlano == QualPlano.CASAL, precos.emReais(),
             listOf(R.string.plano_casal_item_1, R.string.plano_casal_item_2, R.string.plano_casal_item_3, R.string.plano_casal_item_4).map { stringResource(it) },
-            estado.podeAssinar,
         )
     }
     CartaoDePlano(
-        R.string.plano_familia, pluralStringResource(R.plurals.plano_familia_etiqueta, info.pessoasNoFamilia, info.pessoasNoFamilia), estado.seuPlano == QualPlano.FAMILIA, info.appFamilia,
+        R.string.plano_familia, pluralStringResource(R.plurals.plano_familia_etiqueta, info.pessoasNoFamilia, info.pessoasNoFamilia), estado.seuPlano == QualPlano.FAMILIA,
+        info.appFamilia.emReais(),
         listOf(
             stringResource(R.string.plano_familia_item_1),
             pluralStringResource(R.plurals.plano_familia_item_2, info.pessoasNoFamilia, info.pessoasNoFamilia),
             stringResource(R.string.plano_familia_item_3),
         ),
-        estado.podeAssinar,
     )
+    // Como no iOS, o app só vende o individual.
+    if (estado.podeAssinar) Detalhe(stringResource(R.string.plano_so_individual))
     Detalhe(stringResource(R.string.plano_letras_miudas))
 }
+
+@Composable
+private fun emReais(valor: String) = stringResource(R.string.plano_reais, valor)
+
+@Composable
+private fun Precos.emReais() = Precos(emReais(mensal), emReais(anual))
 
 /** O quadro de cima: o Premium que a pessoa tem, ou por que ela já tem (ou não pode assinar). */
 @Composable
@@ -200,7 +237,10 @@ private fun Situacao(info: InfoDoPlano, estado: EstadoDoPlano, eventos: EventosD
                     }
                 }
                 info.origem == OrigemDaAssinatura.APP_STORE -> Detalhe(stringResource(R.string.plano_origem_app_store))
-                info.origem == OrigemDaAssinatura.PLAY_STORE -> Detalhe(stringResource(R.string.plano_origem_play_store))
+                info.origem == OrigemDaAssinatura.PLAY_STORE -> {
+                    Detalhe(stringResource(R.string.plano_origem_play_store))
+                    OutlinedButton(eventos.gerenciar, Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.plano_gerenciar)) }
+                }
             }
         }
     }
@@ -213,7 +253,14 @@ private fun nomeDoPlano(plano: QualPlano?) = when (plano) {
 }
 
 @Composable
-private fun CartaoDePlano(titulo: Int, etiqueta: String, atual: Boolean, precos: Precos?, itens: List<String>, emBreve: Boolean) {
+private fun CartaoDePlano(
+    titulo: Int,
+    etiqueta: String,
+    atual: Boolean,
+    precos: Precos?,
+    itens: List<String>,
+    acoes: @Composable ColumnScope.() -> Unit = {},
+) {
     val borda = if (atual) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     OutlinedCard(Modifier.fillMaxWidth(), border = borda) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -234,8 +281,7 @@ private fun CartaoDePlano(titulo: Int, etiqueta: String, atual: Boolean, precos:
                     Text(item, Modifier.padding(start = 8.dp), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            // shortcut: a compra pelo Google Play chega na A8; até lá o botão só explica.
-            if (emBreve) Button({}, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = false) { Text(stringResource(R.string.plano_em_breve)) }
+            acoes()
         }
     }
 }
