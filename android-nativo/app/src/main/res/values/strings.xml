@@ -1,9 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Piggu</string>
-    <string name="aba_painel">Painel</string>
-    <string name="aba_gastos">Gastos</string>
-    <string name="aba_relatorios">Relatórios</string>
-    <string name="aba_mais">Mais</string>
-    <string name="em_breve">Esta tela chega nas próximas versões.</string>
+
+    <!-- Menu (shell.ts): grupos e telas -->
+    <string name="grupo_dia_a_dia">Dia a dia</string>
+    <string name="grupo_planejar">Planejar</string>
+    <string name="grupo_contas">Cartões e datas</string>
+    <string name="grupo_estilo">Estilo de vida</string>
+    <string name="grupo_conta">Família e plano</string>
+    <string name="tela_painel">Painel</string>
+    <string name="tela_gastos">Gastos</string>
+    <string name="tela_receitas">Receitas</string>
+    <string name="tela_relatorios">Relatórios</string>
+    <string name="tela_mais">Mais</string>
+    <string name="tela_planejar">Planejar</string>
+    <string name="tela_metas">Minhas metas</string>
+    <string name="tela_orcamentos">Orçamento</string>
+    <string name="tela_contas_fixas">Contas do mês</string>
+    <string name="tela_contas_e_cartoes">Cartões e bancos</string>
+    <string name="tela_calendario">Calendário</string>
+    <string name="tela_compras">Compras</string>
+    <string name="tela_lugares">Lugares</string>
+    <string name="tela_filmes">Filmes</string>
+    <string name="tela_fotos">Fotos</string>
+    <string name="tela_premios">Prêmios</string>
+    <string name="tela_girls_math">Girls Math</string>
+    <string name="tela_familia">Família</string>
+    <string name="tela_premium">Premium</string>
+
+    <!-- Moldura -->
+    <string name="voltar_ao_painel">Piggu, voltar ao Painel</string>
+    <string name="busca">Buscar</string>
+    <string name="assistente">Assistente</string>
+    <string name="busca_em_breve">A busca chega na próxima versão do app.</string>
+    <string name="assistente_em_breve">O assistente chega na próxima versão do app.</string>
+    <string name="cotacao_referencia">Referência de bancos centrais</string>
+    <string name="cotacao_desatualizada">Última cotação conhecida</string>
+    <string name="lancar">Lançar gasto ou receita</string>
+    <string name="lancar_titulo">Lançar</string>
+    <string name="lancar_gasto">Lançar gasto</string>
+    <string name="lancar_receita">Lançar receita</string>
+    <string name="faixa_demo">Demonstração · dados de exemplo, nada é salvo</string>
+    <string name="abrir_no_site">Abrir no site</string>
+
+    <!-- Mais -->
+    <string name="plano">Plano</string>
+    <string name="plano_premium">Premium</string>
+    <string name="plano_gratuito">Gratuito</string>
+    <string name="abre_o_perfil">Abre o Perfil</string>
+    <string name="termos_e_privacidade">Termos e privacidade</string>
+    <string name="termos_de_uso">Termos de Uso</string>
+    <string name="aviso_de_privacidade">Aviso de Privacidade</string>
+    <string name="sair">Sair</string>
+    <string name="sair_pergunta">Sair da conta neste aparelho?</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="versao">Piggu %1$s</string>
+
+    <!-- Avisos da sessão -->
+    <string name="cor_voltou_ao_padrao">O Premium acabou, então a cor voltou para o padrão.</string>
+
+    <!-- Pendências da conta (aceite e cadastro chegam nativos na A3) -->
+    <string name="pendente_termos_titulo">Os Termos mudaram</string>
+    <string name="pendente_termos_texto">Para continuar, aceite a versão nova dos Termos de Uso e do Aviso de Privacidade no site. Depois, volte aqui.</string>
+    <string name="pendente_cadastro_titulo">Falta pouco</string>
+    <string name="pendente_cadastro_texto">Complete o seu cadastro (como quer ser chamado, nascimento, CPF e celular) no site. Depois, volte aqui.</string>
+    <string name="pendente_ja_fiz">Já fiz, conferir</string>
+
+    <!-- Atualize o app (426 ATUALIZE_O_APP) -->
+    <string name="atualize_titulo">Atualize o Piggu</string>
+    <string name="atualize_texto">Esta versão do app não funciona mais. Instale a versão nova na Play Store para continuar.</string>
+    <string name="atualize_botao">Abrir a Play Store</string>
 </resources>

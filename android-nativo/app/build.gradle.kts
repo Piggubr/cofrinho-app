@@ -45,6 +45,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions.unitTests {
@@ -57,12 +58,19 @@ android {
 dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.ui)
+    implementation(projects.core.data)
+    implementation(projects.feature.login)
     implementation(projects.feature.painel)
     implementation(projects.feature.gastos)
+    // A API falsa responde a variante demo inteira, sem backend.
+    "demoImplementation"(projects.core.testing)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.compose.material3.adaptive)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.compose.material3.navigation.suite)
@@ -72,6 +80,8 @@ dependencies {
     baselineProfile(projects.baselineprofile)
 
     testImplementation(libs.junit)
+    testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)

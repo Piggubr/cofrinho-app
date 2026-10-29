@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Perfil > Cor do Piggu, como no site (frontend/src/app/core/ui/tema.ts). -->
+    <string name="cor_chiclete">Chiclete</string>
+    <string name="cor_chiclete_descricao">Vibrante e divertido</string>
+    <string name="cor_rosa">Rosa Piggu</string>
+    <string name="cor_rosa_descricao">Delicado e acolhedor</string>
+    <string name="cor_menta">Menta</string>
+    <string name="cor_menta_descricao">Leve e tranquilo</string>
+    <string name="cor_azul">Azul</string>
+    <string name="cor_azul_descricao">Sereno e organizado</string>
+    <string name="cor_lilas">Lilás</string>
+    <string name="cor_lilas_descricao">Calmo e criativo</string>
+    <string name="cor_coral">Coral</string>
+    <string name="cor_coral_descricao">Quente e animado</string>
+    <string name="cor_mel">Mel</string>
+    <string name="cor_mel_descricao">Doce e ensolarado</string>
+    <string name="cor_vinho">Vinho</string>
+    <string name="cor_vinho_descricao">Elegante e marcante</string>
+    <string name="cor_grafite">Grafite</string>
+    <string name="cor_grafite_descricao">Sóbrio e discreto</string>
+    <string name="cor_tangerina">Tangerina</string>
+    <string name="cor_tangerina_descricao">Quente e radiante</string>
+    <string name="cor_eletrico">Elétrico</string>
+    <string name="cor_eletrico_descricao">Ousado e intenso</string>
+    <string name="cor_turquesa">Turquesa</string>
+    <string name="cor_turquesa_descricao">Fresco e vivo</string>
+    <string name="cor_cobalto">Cobalto</string>
+    <string name="cor_cobalto_descricao">Forte e confiante</string>
+
+    <!-- Perfil > Aparência -->
+    <string name="modo_automatico">Automático</string>
+    <string name="modo_claro">Claro</string>
+    <string name="modo_escuro">Escuro</string>
+</resources>
