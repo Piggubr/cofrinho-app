@@ -45,7 +45,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
-- 29/10/2026: iOS nativo: iPhone deitado (iPhone Duo aberto), aba e pilhas guardadas por janela, prints revistos no iPhone mini e build 3 (D-137).
+- 29/10/2026: iOS nativo: iPhone deitado (iPhone Duo aberto), aba e pilhas guardadas por janela, prints revistos no iPhone mini e build 3 (D-141).
 - 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).
 - 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
 - 28/10/2026: Android nativo, etapa A7: Compras, Lugares, Filmes, Fotos, widgets, atalhos, bloco das Configurações rápidas, trava com a biometria, tour em balões e foto do recibo, na branch `feature/android-nativo` (D-124 a D-131). O push ficou para depois da A1.

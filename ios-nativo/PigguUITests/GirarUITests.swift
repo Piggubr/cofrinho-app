@@ -1,7 +1,7 @@
 import XCTest
 
 /// Deitar e voltar o aparelho (a troca de tamanho do iPhone Duo ao abrir e fechar) nao pode
-/// perder a folha aberta, o que foi digitado nem a tela aberta no Mais (D-137).
+/// perder a folha aberta, o que foi digitado nem a tela aberta no Mais (D-141).
 final class GirarUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false

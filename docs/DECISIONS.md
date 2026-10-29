@@ -112,6 +112,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-097](#d-097-topo-das-abas-com-a-marca-a-busca-e-o-assistente-trava-em-janela-própria) | Topo das abas com a marca, a busca e o assistente; trava em janela própria | Valendo |
 | [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
 | [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
+| [D-141](#d-141-iphone-deitado-aba-e-pilhas-por-janela-iphone-duo) | iPhone deitado, aba e pilhas por janela (iPhone Duo) | Valendo |
 | [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
 | [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
@@ -1441,7 +1442,7 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
 - Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`
 
-## D-137: iPhone deitado, aba e pilhas por janela (iPhone Duo)
+## D-141: iPhone deitado, aba e pilhas por janela (iPhone Duo)
 - Data: 29/10/2026
 - Situação: Valendo
 - Contexto: o iPhone Duo aberto pede a tela deitada, e o projeto do iOS nativo só aceitava retrato no iPhone. Ao abrir e fechar o aparelho, ou com duas janelas do Piggu lado a lado, a aba e a tela aberta não podiam se perder nem ser a mesma nas duas janelas.
