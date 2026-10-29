@@ -203,7 +203,7 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   outros meses por `/expenses/search`), filtros de categoria e forma de pagamento em vidro, editar
   (com "Nova categoria" e o compartilhado), apagar com swipe (e as parcelas seguintes), sugestão e
   regras de categoria, a divisão do mês e importar extrato OFX ou CSV pelo app Arquivos, com a
-  prévia do site: o que já entrou vem desmarcado, categoria por linha e a conta do extrato (D-136).
+  prévia do site: o que já entrou vem desmarcado, categoria por linha e a conta do extrato (D-140).
 - **Receitas** (`features/incomes`): resumo do mês, nova receita (recorrente e compartilhada),
   as que entram todo mês (parar de repetir), a receber (Recebi, apagar) e as receitas do mês.
 - **Relatórios** (`features/reports`): o mês (gastos, mês anterior, projeção e cada categoria
