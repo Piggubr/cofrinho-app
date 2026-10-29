@@ -10,8 +10,9 @@ struct ImportarExtratoView: View {
 
     /// Arquivo ate 2 MB: o mesmo limite do servidor.
     static let tamanhoMaximo = 2_000_000
-    /// OFX nao tem tipo do sistema; o da extensao casa com os arquivos .ofx do app Arquivos.
-    static let tipos: [UTType] = [.commaSeparatedText, .plainText, UTType(filenameExtension: "ofx") ?? .data]
+    /// OFX nao tem tipo do sistema: o Info.plist declara o com.intuit.ofx (.ofx e .qfx), senao o
+    /// app Arquivos mostra o .ofx apagado.
+    static let tipos: [UTType] = [.commaSeparatedText, .plainText, UTType(importedAs: "com.intuit.ofx")]
 
     @Environment(Sessao.self) private var sessao
     @Environment(\.dismiss) private var fechar

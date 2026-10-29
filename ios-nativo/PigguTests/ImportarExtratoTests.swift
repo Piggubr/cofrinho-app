@@ -1,9 +1,18 @@
 import Foundation
 import Testing
+import UniformTypeIdentifiers
 @testable import Piggu
 
 /// Leitura do arquivo e o contrato de /expenses/import (importar-extrato.ts e ExpenseController).
 struct ImportarExtratoTests {
+    /// O .ofx e o .qfx de qualquer banco caem no tipo que o seletor aceita.
+    @Test func ofxEQfxSaoAceitosNoSeletor() {
+        for ext in ["ofx", "qfx", "OFX"] {
+            let tipo = UTType(filenameExtension: ext.lowercased())
+            #expect(tipo.map { t in ImportarExtratoView.tipos.contains { t.conforms(to: $0) } } == true, "\(ext)")
+        }
+    }
+
     @Test func leUtf8ETiraOBom() {
         let dados = Data([0xEF, 0xBB, 0xBF]) + Data("data;descrição;valor".utf8)
         #expect(ImportarExtratoView.texto(de: dados) == "data;descrição;valor")
