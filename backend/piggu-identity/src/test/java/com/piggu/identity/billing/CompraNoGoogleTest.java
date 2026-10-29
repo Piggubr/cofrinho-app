@@ -171,7 +171,9 @@ class CompraNoGoogleTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("cancelar so desliga a renovacao; expirar ou revogar encerra")
     void cancelamentoEExpiracao() throws Exception {
-        GOOGLE.assinatura("tok-4", conta.getId(), "premium_mensal", "SUBSCRIPTION_STATE_CANCELED", Instant.now().plus(Duration.ofDays(10)));
+        // Com nanossegundos, como o relógio do Linux (o CI): o banco arredonda para microssegundos.
+        GOOGLE.assinatura("tok-4", conta.getId(), "premium_mensal", "SUBSCRIPTION_STATE_CANCELED",
+                Instant.now().plus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS).plusNanos(700));
         avisar(GoogleDeTeste.avisoDeAssinatura(CANCELOU, "tok-4")).andExpect(status().isOk());
         assertThat(plano()).isEqualTo(Plano.PREMIUM);
 

@@ -18,7 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
@@ -135,10 +134,7 @@ public class GooglePlayLoja {
         }
     }
 
-    /**
-     * O estado e o de agora, lido no Google: por isso o momento e o instante da leitura. Em
-     * microssegundos, como o Postgres guarda: arredondado para cima, o aviso seguinte pareceria velho.
-     */
+    /** O estado e o de agora, lido no Google: por isso o momento e o instante da leitura. */
     static Optional<AssinaturaDoGoogle> traduzir(SubscriptionPurchaseV2 compra, String token) {
         List<SubscriptionPurchaseLineItem> itens = compra.getLineItems() == null ? List.of() : compra.getLineItems();
         Optional<SubscriptionPurchaseLineItem> premium = itens.stream()
@@ -152,7 +148,7 @@ public class GooglePlayLoja {
         boolean daPremium = DAO_PREMIUM.contains(compra.getSubscriptionState());
         ExternalAccountIdentifiers ids = compra.getExternalAccountIdentifiers();
         EventoDeAssinatura evento = new EventoDeAssinatura(conta(ids == null ? null : ids.getObfuscatedExternalAccountId()), null,
-                daPremium ? vence : null, Instant.now().truncatedTo(ChronoUnit.MICROS), instante(compra.getStartTime()),
+                daPremium ? vence : null, Instant.now(), instante(compra.getStartTime()),
                 item.getOfferPhase() != null && item.getOfferPhase().getFreeTrial() != null,
                 RevenueCatLoja.tipoDoProduto(item.getProductId()), null, null, null);
         return Optional.of(new AssinaturaDoGoogle(evento, item.getProductId(), token, vence,
