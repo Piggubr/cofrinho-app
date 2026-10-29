@@ -220,7 +220,7 @@ private struct LinhaDoFilme<Acoes: View>: View {
         // em vez de espremer o nome do filme letra por letra.
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .top, spacing: 12) { titulo; Spacer(); acoes }
-            VStack(alignment: .leading, spacing: 8) { titulo; acoes }
+            VStack(alignment: .leading, spacing: 8) { titulo; acoes.frame(maxWidth: .infinity, alignment: .trailing) }
         }
         .padding(.vertical, 2)
     }
