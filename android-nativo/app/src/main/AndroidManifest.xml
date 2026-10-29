@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Custom Tabs: as telas que ainda abrem no site precisam achar um navegador (Android 11+). -->
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".PigguApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/regras_de_backup"
+        android:enableOnBackInvokedCallback="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Piggu">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize">
+            <!-- O LAUNCHER fica só nos ícones abaixo: aqui ele somaria um segundo ícone na tela inicial. -->
+
+            <!-- piggu://gasto?valor=12.50, piggu://gastos?id=...&mes=aaaa-mm e piggu://<rota do site>. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="piggu" />
+            </intent-filter>
+
+            <!--
+                App Links do site (assetlinks.json em https://piggu.com.br/.well-known/). Só as telas
+                que já são nativas: uma que abre no site num Custom Tab voltaria para o app. Cada
+                etapa acrescenta as suas.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="piggu.com.br" />
+                <data android:host="www.piggu.com.br" />
+                <data android:path="/painel" />
+                <data android:path="/gastos" />
+                <data android:path="/receitas" />
+                <data android:path="/relatorios" />
+                <data android:path="/confirmar-email" />
+                <data android:path="/redefinir-senha" />
+                <data android:path="/esqueci-senha" />
+                <data android:path="/termos" />
+                <data android:path="/privacidade" />
+                <data android:path="/cpf" />
+                <data android:path="/contas-fixas" />
+                <data android:path="/orcamentos" />
+                <data android:path="/calendario" />
+                <data android:path="/contas-e-cartoes" />
+                <data android:path="/metas" />
+                <data android:path="/girls-math" />
+                <data android:path="/planejar" />
+                <data android:path="/premios" />
+                <data android:path="/familia" />
+                <data android:path="/plano" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Ícone na tela inicial (Perfil > Ícone do app, IconesDoApp.kt): um apelido da MainActivity
+            por ícone, só um ligado por vez. Os mesmos nomes do app Capacitor (IconeDoAppPlugin.java),
+            para o ícone escolhido lá continuar depois da atualização. O padrão vem ligado. Os atalhos
+            (shortcuts.xml) vão em todos: o launcher só lê os do apelido ligado.
+        -->
+        <activity-alias
+            android:name=".IconePadrao"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeClassico"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_classico"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMonograma"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_monograma"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeSilhueta"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_silhueta"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeAzul"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_azul"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMenta"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_menta"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeLilas"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_lilas"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeCoral"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_coral"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeMel"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_mel"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeVinho"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_vinho"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeGrafite"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_grafite"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconeNamorados"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_namorados"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <!-- O WorkManager usa a fábrica do Hilt (PigguApplication): sai o inicializador padrão. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+    </application>
+</manifest>

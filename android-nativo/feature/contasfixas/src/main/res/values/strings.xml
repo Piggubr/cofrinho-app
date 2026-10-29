@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Contas do mês (frontend/src/app/features/bills/bills.html) -->
+    <string name="contasdomes_titulo">Contas do mês</string>
+    <string name="contas_nova">Nova conta fixa</string>
+    <string name="contas_em_aberto">Em aberto: %1$s</string>
+    <string name="contas_vencidas">Vencidas</string>
+    <string name="contas_a_vencer">A vencer</string>
+    <string name="contas_pagas">Pagas</string>
+    <string name="contas_lanca_sozinha">lança sozinha</string>
+    <string name="contas_marcar_como_paga">Marcar como paga</string>
+    <string name="contas_marcar_como_paga_de">Marcar %1$s como paga</string>
+    <string name="contasdomes_apagar">Apagar</string>
+    <string name="contas_apagar_de">Apagar %1$s</string>
+    <string name="contasdomes_apagar_pergunta">Apagar a conta fixa \"%1$s\"? Os gastos já lançados continuam.</string>
+    <string name="contasdomes_vazio_titulo">Nenhuma conta fixa ainda</string>
+    <string name="contasdomes_vazio_texto">Aluguel, luz, internet: cadastre uma vez e o Piggu lembra todo mês.</string>
+    <string name="contas_vazio_acao">Cadastrar a primeira conta</string>
+    <string name="contas_paga_aviso">Conta lançada nos gastos.</string>
+    <string name="contas_criada_aviso">Conta fixa criada.</string>
+    <string name="contas_apagada_aviso">Conta fixa apagada.</string>
+
+    <!-- Receitas fixas (ContasDoMesView do iOS) -->
+    <string name="contas_receitas_titulo">Receitas que entram todo mês</string>
+    <string name="contas_receitas_explicacao">As mesmas de Receitas. Nova receita fixa: em Receitas, marque \"Entra sozinha todo mês\".</string>
+    <string name="contas_receitas_todo_dia">Todo dia %1$d · %2$s</string>
+    <string name="contas_receitas_duas_parcelas">Dia %1$d: %2$s · dia %3$d: %4$s · %5$s</string>
+    <string name="contas_parar_de_repetir">Parar de repetir</string>
+    <string name="contas_parar_de_repetir_de">Parar de repetir %1$s</string>
+    <string name="contas_parar_pergunta">Parar de lançar \"%1$s\" todo mês? As receitas já lançadas continuam.</string>
+    <string name="contas_parou_aviso">Receita fixa parou de repetir.</string>
+
+    <!-- Nova conta fixa -->
+    <string name="contas_descricao">Descrição</string>
+    <string name="contas_descricao_exemplo">Aluguel</string>
+    <string name="contas_dia">Dia do vencimento</string>
+    <string name="contas_automatico">Lançar sozinha no dia do vencimento</string>
+    <string name="contas_criar">Criar conta fixa</string>
+    <string name="contas_nova_invalida">Preencha descrição, valor e um dia de vencimento entre 1 e 31.</string>
+</resources>

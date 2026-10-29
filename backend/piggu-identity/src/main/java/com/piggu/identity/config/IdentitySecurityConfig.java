@@ -43,6 +43,8 @@ public class IdentitySecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/stripe").permitAll()
                             // A App Store tambem nao: o corpo e um JWS assinado pela Apple.
                             .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/app-store").permitAll()
+                            // O Google Play manda um token OIDC do Google, conferido no servico (GooglePlayLoja).
+                            .requestMatchers(HttpMethod.POST, "/api/billing/webhooks/google-play").permitAll()
                             // Idem para o RevenueCat: a prova e o segredo no Authorization.
                             .requestMatchers(HttpMethod.POST, "/api/billing/stores/*/purchases").permitAll()
                             .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
@@ -59,12 +61,13 @@ public class IdentitySecurityConfig {
     }
 
     /**
-     * O RevenueCat manda o segredo dele como "Authorization: Bearer ...". Nessa rota o
-     * cabecalho nao e um JWT do Piggu: sem isto, o resource server tentaria valida-lo e
+     * O RevenueCat manda o segredo dele como "Authorization: Bearer ...", e o push do Google
+     * Play, um token OIDC do Google. Nessas rotas o cabecalho nao e um JWT do Piggu: sem isto, o resource server tentaria valida-lo e
      * recusaria o aviso com 401 antes de chegar ao controller.
      */
     private static BearerTokenResolver tokenForaDosAvisosDasLojas() {
         DefaultBearerTokenResolver padrao = new DefaultBearerTokenResolver();
-        return pedido -> pedido.getRequestURI().startsWith("/api/billing/stores/") ? null : padrao.resolve(pedido);
+        return pedido -> pedido.getRequestURI().startsWith("/api/billing/stores/")
+                || pedido.getRequestURI().equals("/api/billing/webhooks/google-play") ? null : padrao.resolve(pedido);
     }
 }

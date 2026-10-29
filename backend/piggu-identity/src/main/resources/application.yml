@@ -106,6 +106,17 @@ piggu:
     # Revogacao dos certificados (OCSP) na hora de conferir. So os testes desligam.
     checar-online: ${APP_STORE_CHECAR_ONLINE:true}
 
+  google-play:
+    # Compra dentro do app Android, conferida na Google Play Developer API.
+    pacote: ${GOOGLE_PLAY_PACOTE:br.com.piggu.app}
+    # JSON da conta de servico com acesso ao app no Play Console: o conteudo inteiro ou um
+    # caminho (file:/app/keys/google-play.json). Vazio deixa as rotas do Google Play em 501.
+    credenciais: ${GOOGLE_PLAY_CREDENCIAIS:}
+    # Token OIDC do push do Pub/Sub: a audiencia configurada na assinatura push e a conta de
+    # servico que assina o push. Vazios deixam o aviso em 501.
+    push-audiencia: ${GOOGLE_PLAY_PUSH_AUDIENCIA:}
+    push-email: ${GOOGLE_PLAY_PUSH_EMAIL:}
+
   revenuecat:
     # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
     # Vazio deixa a compra pelos apps em 501.

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- O mês (reports.html) -->
+    <string name="relatorios_gastos">Gastos</string>
+    <string name="relatorios_mes_anterior">Mês anterior</string>
+    <string name="relatorios_a_mais">▲ %1$s%% a mais</string>
+    <string name="relatorios_a_menos">▼ %1$s%% a menos</string>
+    <string name="relatorios_igual">igual</string>
+    <string name="relatorios_projecao">Projeção do mês</string>
+    <string name="relatorios_este_mes">Este mês</string>
+    <string name="relatorios_categoria_descricao">%1$s: %2$s neste mês, %3$s no mês anterior</string>
+    <string name="relatorios_vazio_titulo">Nenhum gasto neste mês</string>
+    <string name="relatorios_vazio_texto">Assim que houver gastos, o relatório mostra para onde o dinheiro foi.</string>
+    <string name="relatorios_vazio_acao">Lançar um gasto</string>
+    <string name="relatorios_ver_em_tabela">Ver em tabela</string>
+    <string name="relatorios_esconder_tabela">Esconder a tabela</string>
+    <string name="relatorios_categoria">Categoria</string>
+
+    <!-- O ano (Premium) -->
+    <string name="relatorios_ano_de">Ano de %1$d</string>
+    <string name="relatorios_premium">Premium</string>
+    <string name="relatorios_convite">Veja o ano mês a mês, receitas contra gastos e para onde foi o dinheiro. Faz parte do Piggu Premium.</string>
+    <string name="relatorios_conhecer_premium">Conhecer o Piggu Premium</string>
+    <string name="relatorios_receitas">Receitas</string>
+    <string name="relatorios_sobra">Sobra</string>
+    <string name="relatorios_mes">Mês</string>
+    <string name="relatorios_grafico_do_ano">Receitas e gastos de cada mês de %1$d. Toque numa coluna para ver o mês; a tabela tem todos os valores.</string>
+    <string name="relatorios_dica_titulo">%1$s %2$d</string>
+    <string name="relatorios_dica_receitas">Receitas %1$s</string>
+    <string name="relatorios_dica_gastos">Gastos %1$s</string>
+    <string name="relatorios_dica_sobra">Sobra %1$s</string>
+    <string name="relatorios_para_onde_foi">Para onde foi o dinheiro</string>
+    <string-array name="relatorios_meses_curtos">
+        <item>Jan</item>
+        <item>Fev</item>
+        <item>Mar</item>
+        <item>Abr</item>
+        <item>Mai</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Ago</item>
+        <item>Set</item>
+        <item>Out</item>
+        <item>Nov</item>
+        <item>Dez</item>
+    </string-array>
+
+    <!-- Exportar (importar-extrato.ts) -->
+    <string name="relatorios_exportar">Exportar CSV do mês</string>
+    <string name="relatorios_compartilhar">Compartilhar o CSV</string>
+</resources>
