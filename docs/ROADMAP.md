@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 27/10/2026.
+Última atualização: 29/10/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -12,7 +12,6 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Agora
 
-- Android nativo, etapa A0: criar `android-nativo/` com módulos, tema, CI e `CLAUDE.md` ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 - Google Play: abrir a conta e começar o teste fechado com 12 pessoas por 14 dias, que conta pessoal nova precisa antes de publicar ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 - Documentos do repositório: `docs/API_SPEC.md`, `docs/DATA_MODEL.md` e `docs/DECISIONS.md`, nas branches `docs/contrato-da-api`, `docs/modelo-de-dados` e `docs/decisoes`.
 
@@ -25,9 +24,12 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android, etapa A1: backend para Android (push pelo Firebase e ID do Google do Android).
-- Android, etapas A2 a A7: as telas, na mesma ordem do iOS.
-- Android, etapa A8: Premium pelo Google Play Billing, com validação no backend.
-- Android, etapa A9: acabamento, versão 2.0.0 e teste interno no Play.
+- Android: push pelo Firebase (o item 8 da A7), quando a A1 entrar na `feature/android-nativo` e o projeto do Firebase existir.
+- Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
+- Android: conectar banco como o iOS, pela página `/conectar-banco` que já está na `develop` (D-117).
+- Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
+- Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
+- Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu) e, depois, apagar `frontend/android` e o `android-demo.yml`.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
 - Religar o Open Finance e o leitor próprio de nota, desligados antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
 - Um mês depois do 2.0.0 estar na loja sem problemas: apagar `frontend/ios` e os workflows `ios-demo.yml` e `ios-producao.yml`.
@@ -44,8 +46,17 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).
+- 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
+- 28/10/2026: Android nativo, etapa A7: Compras, Lugares, Filmes, Fotos, widgets, atalhos, bloco das Configurações rápidas, trava com a biometria, tour em balões e foto do recibo, na branch `feature/android-nativo` (D-124 a D-131). O push ficou para depois da A1.
+- 28/10/2026: Android nativo, etapa A6: Minhas metas, Girls Math, Planejar, Prêmios, Família, Premium (sem compra até a A8) e Perfil, com o ícone do app e o tour, na branch `feature/android-nativo` (D-118 a D-122).
+- 28/10/2026: Android nativo, etapa A5: Contas do mês, Orçamento, Calendário, Relatórios e Cartões e bancos, na branch `feature/android-nativo` (D-113 a D-117).
+- 28/10/2026: Android nativo, etapa A4: Painel, Gastos, Receitas, o + com os formulários, a fila sem internet, importar e exportar, a busca e o assistente, na branch `feature/android-nativo` (D-108 a D-112).
+- 28/10/2026: Android nativo, etapa A3: a entrada inteira (login, Google, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta), na branch `feature/android-nativo` (D-104 a D-107).
+- 28/10/2026: Android nativo, etapa A2: modelos e rede, sessão, 13 cores, componentes, moldura com abas, Mais e gaveta, cache offline, login por e-mail e o modo demonstração, na branch `feature/android-nativo` (D-138 e D-100 a D-103).
 - 28/10/2026: iOS nativo, ajustes dos testers: o mês desce junto ao puxar para recarregar, as barras por categoria num desenho só e os vazios dos cartões do Painel centralizados (D-099).
 - 28/10/2026: iOS nativo: o + abre as opções, como no site, e lança receita de qualquer aba (D-098).
+- 27/10/2026: Android nativo, etapa A0: `android-nativo/` com módulos, tema do Piggu, abas e CI, na branch `feature/android-nativo` ([#106](https://github.com/Piggubr/cofrinho-app/pull/106)).
 - 27/10/2026: iOS nativo, ajustes do primeiro teste no iPhone: logo, busca global e assistente de IA no topo das abas, teclado que fecha ao tocar fora, trava do Face ID acima das folhas, nova categoria nas regras e a barra de abas fixa por padrão (D-097).
 - 27/10/2026: iOS nativo, etapa 9: paridade com todas as rotas do site, "Sobre você" pedindo CPF e celular (D-088), acessibilidade revista pela auditoria em todas as telas (texto grande, VoiceOver, Reduzir Movimento, escuro), iPad do mini ao Pro 13, abrir com o perfil guardado e a versão 2.0.0 (D-095).
 - 27/10/2026: iOS nativo, etapa 8: Premium pela compra da Apple (StoreKit 2) com a transação e as notificações V2 conferidas no backend pela biblioteca da Apple, no mesmo plano da Stripe; quem é Premium pelo site não vê a loja (D-094).

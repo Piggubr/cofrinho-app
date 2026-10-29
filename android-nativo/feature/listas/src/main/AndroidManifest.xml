@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Subclasse própria: dois androidx.core FileProvider no mesmo app colidem no manifesto. -->
+        <provider
+            android:name="br.com.piggu.feature.listas.lugares.FotosDosLugares"
+            android:authorities="${applicationId}.lugares.fotos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/lugares_fotos" />
+        </provider>
+    </application>
+</manifest>

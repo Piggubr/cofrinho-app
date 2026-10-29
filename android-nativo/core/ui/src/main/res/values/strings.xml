@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Telas de 404 e 500 (frontend/src/app/features/erros) -->
+    <string name="erro_404_titulo">Essa página fugiu do cofrinho</string>
+    <string name="erro_404_texto">O endereço pode ter mudado ou sido digitado com algum errinho. Seus dados continuam guardados direitinho.</string>
+    <string name="erro_500_titulo">O Piggu tropeçou</string>
+    <string name="erro_500_texto">Algo deu errado do nosso lado e esta tela não abriu. Nada do que você já salvou se perdeu; tente de novo em instantes.</string>
+    <string name="erro_sem_internet_titulo">Você está sem internet</string>
+    <string name="erro_sem_internet_texto">Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo.</string>
+    <string name="erro_carregar_titulo">Não deu para carregar</string>
+    <string name="ir_para_o_inicio">Ir para o início</string>
+    <string name="voltar">Voltar</string>
+    <string name="tentar_de_novo">Tentar de novo</string>
+    <string name="carregando">Carregando…</string>
+    <string name="abre_no_site">Abre no site do Piggu</string>
+    <string name="guardado_sem_internet">Você está sem internet. Mostrando o que estava guardado de %1$s.</string>
+    <string name="guardado_sem_atualizar">Não deu para atualizar. Mostrando o que estava guardado de %1$s.</string>
+    <string name="nascimento_vazio">Informe sua data de nascimento.</string>
+    <string name="nascimento_invalido">Confira a data de nascimento.</string>
+    <string name="nascimento_menor_de_idade">O Piggu é para quem tem 13 anos ou mais.</string>
+    <!-- Componentes comuns -->
+    <string name="valor_rotulo">Valor (%1$s)</string>
+    <string name="categoria">Categoria</string>
+    <string name="categoria_automatica">Automática</string>
+    <string name="categoria_nova">+ Nova categoria…</string>
+    <string name="categoria_nome_da_nova">Nome da nova categoria</string>
+    <string name="categoria_exemplo">Ex.: Pet</string>
+    <string name="categoria_criar">Criar</string>
+    <string name="categoria_digite_o_nome">Digite o nome da categoria.</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="mes_anterior">Mês anterior</string>
+    <string name="proximo_mes">Próximo mês</string>
+    <string name="visao_o_que_ver">O que ver</string>
+    <string name="visao_tudo">Tudo</string>
+    <string name="visao_meu">Meu</string>
+    <string name="visao_compartilhado">Compartilhado</string>
+    <string name="aba_em_breve">Esta tela chega nas próximas versões do app. Enquanto isso, ela abre no site.</string>
+    <string name="abrir_no_site">Abrir no site</string>
+</resources>

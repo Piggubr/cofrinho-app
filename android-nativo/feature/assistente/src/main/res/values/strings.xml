@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Busca global (busca-global.ts) -->
+    <string name="busca_placeholder">Buscar gastos, lugares, filmes, compras e telas</string>
+    <string name="busca_fechar">Fechar a busca</string>
+    <string name="busca_nada_encontrado">Nada encontrado para "%1$s".</string>
+    <string name="busca_grupo_telas">Telas</string>
+    <string name="busca_grupo_gastos">Gastos</string>
+    <string name="busca_grupo_lugares">Lugares</string>
+    <string name="busca_grupo_filmes">Filmes</string>
+    <string name="busca_grupo_compras">Compras</string>
+
+    <!-- Assistente (assistente.ts) -->
+    <string name="assistente_titulo">Assistente</string>
+    <string name="assistente_fechar">Fechar</string>
+    <string name="assistente_nova_conversa">Nova conversa</string>
+    <string name="assistente_nova_conversa_dica">Apaga a conversa deste aparelho</string>
+    <string name="assistente_convite">Pergunte do seu jeito, como "quanto gastei com mercado em setembro?" ou "vou estourar algum orçamento?", e o Piggu responde com os seus números.</string>
+    <string name="assistente_conhecer_premium">Conhecer o Piggu Premium</string>
+    <string name="assistente_desligado_titulo">Assistente desligado</string>
+    <string name="assistente_desligado">O assistente ainda não está ligado nesta instalação.</string>
+    <!-- Os 30 dias são DIAS_GUARDADA (ConversaDoAssistente.kt). -->
+    <string name="assistente_consentimento">Para responder, o assistente envia ao Google (Gemini) só o que a pergunta pede: totais e gastos do período, sem nome nem e-mail. A conversa não fica guardada no Piggu: fica só neste aparelho por 30 dias e sai quando você sai da conta.</string>
+    <string name="assistente_consentimento_detalhe">A IA pode errar e não faz recomendação de investimento.</string>
+    <string name="assistente_aviso_de_privacidade">Aviso de Privacidade</string>
+    <string name="assistente_autorizo">Autorizo e quero perguntar</string>
+    <string name="assistente_vazio">Pergunte sobre gastos, orçamento, contas e cofrinho.</string>
+    <string name="assistente_sugestao_1">Quanto gastei este mês?</string>
+    <string name="assistente_sugestao_2">Vou estourar algum orçamento?</string>
+    <string name="assistente_sugestao_3">Onde dá para cortar gastos?</string>
+    <string name="assistente_sugestao_4">Quanto falta para meus objetivos?</string>
+    <string name="assistente_pensando">Pensando…</string>
+    <string name="assistente_sua_pergunta">Sua pergunta</string>
+    <string name="assistente_exemplo">Ex.: quanto gastei com mercado?</string>
+    <string name="assistente_enviar">Enviar</string>
+    <plurals name="assistente_rodape">
+        <item quantity="one">%1$d de %2$d pergunta neste mês · a IA pode errar</item>
+        <item quantity="other">%1$d de %2$d perguntas neste mês · a IA pode errar</item>
+    </plurals>
+    <string name="assistente_abrir_tela">Abrir %1$s</string>
+    <string name="assistente_fala_da_pessoa">Você: %1$s</string>
+    <string name="assistente_fala_do_assistente">Assistente: %1$s</string>
+
+    <!-- Telas que o assistente pode sugerir (TELAS de assistente.ts) -->
+    <string name="assistente_tela_painel">Painel</string>
+    <string name="assistente_tela_gastos">Gastos</string>
+    <string name="assistente_tela_receitas">Receitas</string>
+    <string name="assistente_tela_relatorios">Relatórios</string>
+    <string name="assistente_tela_orcamentos">Orçamento</string>
+    <string name="assistente_tela_contas_fixas">Contas do mês</string>
+    <string name="assistente_tela_contas_e_cartoes">Cartões e bancos</string>
+    <string name="assistente_tela_calendario">Calendário</string>
+    <string name="assistente_tela_planejar">Planejar</string>
+    <string name="assistente_tela_plano">Plano</string>
+</resources>

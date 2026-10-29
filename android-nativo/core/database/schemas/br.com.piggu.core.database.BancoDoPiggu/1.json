@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "0fcea4affee16572eaa2312b37827af0",
+    "entities": [
+      {
+        "tableName": "respostas_guardadas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chave` TEXT NOT NULL, `json` TEXT NOT NULL, `guardadaEm` INTEGER NOT NULL, PRIMARY KEY(`chave`))",
+        "fields": [
+          {
+            "fieldPath": "chave",
+            "columnName": "chave",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "guardadaEm",
+            "columnName": "guardadaEm",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "chave"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0fcea4affee16572eaa2312b37827af0')"
+    ]
+  }
+}

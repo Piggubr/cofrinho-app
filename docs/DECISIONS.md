@@ -101,6 +101,55 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-072](#d-072-refresh-no-corpo-só-para-quem-pede-e-apple-pelo-e-mail) | Refresh no corpo só para quem pede, e Apple pelo e-mail | Valendo |
 | [D-083](#d-083-termos-e-aviso-do-app-nativo-copiados-do-site-pelo-ci) | Termos e Aviso do app nativo copiados do site pelo CI | Valendo |
 | [D-084](#d-084-google-no-app-nativo-com-o-id-do-site-no-aud) | Google no app nativo com o ID do site no `aud` | Valendo |
+| [D-089](#d-089-app-ios-nativo-junta-na-featureios-nativo-antes-da-develop) | App iOS nativo junta na `feature/ios-nativo` antes da `develop` | Valendo |
+| [D-090](#d-090-etapa-4-do-ios-o-que-ainda-não-é-nativo-abre-no-site) | Etapa 4 do iOS: o que ainda não é nativo abre no site | Valendo |
+| [D-091](#d-091-conectar-banco-no-app-nativo-pela-página-do-site-num-aswebauthenticationsession) | Conectar banco no app nativo pela página do site, num ASWebAuthenticationSession | Valendo |
+| [D-092](#d-092-etapa-6-do-ios-mais-nos-grupos-do-site-módulos-no-perfil-e-ícone-escolhido-à-parte-da-cor) | Etapa 6 do iOS: Mais nos grupos do site, módulos no Perfil e ícone escolhido à parte da cor | Valendo |
+| [D-093](#d-093-etapa-7-do-ios-widgets-pelo-app-group-siri-com-a-sessão-do-app-e-push-que-abre-o-painel) | Etapa 7 do iOS: widgets pelo App Group, Siri com a sessão do app e push que abre o Painel | Valendo |
+| [D-094](#d-094-premium-no-iphone-pela-compra-da-apple-conferida-no-backend-com-a-biblioteca-da-apple) | Premium no iPhone pela compra da Apple, conferida no backend com a biblioteca da Apple | Valendo |
+| [D-095](#d-095-etapa-9-do-ios-abrir-com-o-perfil-guardado-e-empilhar-no-texto-grande) | Etapa 9 do iOS: abrir com o perfil guardado e empilhar no texto grande | Valendo |
+| [D-096](#d-096-ci-do-ios-nativo-no-xcode-27) | CI do iOS nativo no Xcode 27 | Valendo |
+| [D-097](#d-097-topo-das-abas-com-a-marca-a-busca-e-o-assistente-trava-em-janela-própria) | Topo das abas com a marca, a busca e o assistente; trava em janela própria | Valendo |
+| [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
+| [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
+| [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
+| [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
+| [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
+| [D-101](#d-101-contrato-da-api-no-android-datas-em-texto-números-em-bigdecimal-e-enum-desconhecido) | Contrato da API no Android: datas em texto, números em BigDecimal e enum desconhecido | Valendo |
+| [D-102](#d-102-visual-do-android-13-cores-cor-no-aparelho-e-material-symbols) | Visual do Android: 13 cores, cor no aparelho e Material Symbols | Valendo |
+| [D-103](#d-103-cache-do-android-respostas-da-api-em-json-no-room) | Cache do Android: respostas da API em JSON no Room | Valendo |
+| [D-104](#d-104-google-no-android-pelo-credential-manager-com-o-botão-escondido-até-o-id-do-android-existir) | Google no Android pelo Credential Manager, com o botão escondido até o ID do Android existir | Valendo |
+| [D-105](#d-105-etapa-a3-do-android-a-entrada-nativa-fora-da-moldura) | Etapa A3 do Android: a entrada nativa, fora da moldura | Valendo |
+| [D-106](#d-106-termos-e-aviso-do-android-copiados-do-site-pelo-ci) | Termos e Aviso do Android copiados do site pelo CI | Valendo |
+| [D-107](#d-107-formulários-da-entrada-no-android-com-o-erro-no-campo) | Formulários da entrada no Android com o erro no campo | Valendo |
+| [D-108](#d-108-fila-de-gastos-do-android-no-room-com-o-workmanager-e-sair-apaga) | Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga | Substituída em parte por D-123 |
+| [D-109](#d-109-painel-do-android-com-gráficos-em-canvas-e-organizar-no-próprio-painel) | Painel do Android com gráficos em Canvas e organizar no próprio Painel | Valendo |
+| [D-110](#d-110-gastos-do-android-apagar-com-desfazer-busca-e-filtros-no-aparelho) | Gastos do Android: apagar com Desfazer, busca e filtros no aparelho | Valendo |
+| [D-111](#d-111-lançar-no-android-vários-itens-numa-folha-só-e-a-receita-pelo-) | Lançar no Android: vários itens numa folha só, e a receita pelo + | Valendo |
+| [D-112](#d-112-busca-e-assistente-do-android-e-as-capturas-com-o-hilt-de-verdade) | Busca e assistente do Android, e as capturas com o Hilt de verdade | Valendo |
+| [D-113](#d-113-contas-do-mês-do-android-em-três-grupos-com-a-nova-conta-numa-folha) | Contas do mês do Android em três grupos, com a nova conta numa folha | Valendo |
+| [D-114](#d-114-orçamento-do-android-com-um-guardado-só-e-o-alerta-escrito) | Orçamento do Android com um guardado só e o alerta escrito | Valendo |
+| [D-115](#d-115-calendário-do-android-lado-a-lado-pela-largura-e-a-grade-com-limite-de-fonte) | Calendário do Android lado a lado pela largura e a grade com limite de fonte | Valendo |
+| [D-116](#d-116-relatórios-do-android-com-o-csv-do-mês-e-tabela-também-no-mês) | Relatórios do Android com o CSV do mês e tabela também no mês | Valendo |
+| [D-117](#d-117-cartões-e-bancos-do-android-fatura-numa-folha-e-conectar-banco-pelo-site) | Cartões e bancos do Android: fatura numa folha e conectar banco pelo site | Valendo |
+| [D-118](#d-118-tour-do-android-em-diálogos-no-primeiro-acesso-e-pelo-perfil) | Tour do Android em diálogos, no primeiro acesso e pelo Perfil | Substituída por D-130 |
+| [D-119](#d-119-o-ícone-do-app-troca-quando-a-pessoa-sai-do-app) | O ícone do app troca quando a pessoa sai do app | Valendo |
+| [D-120](#d-120-metas-prêmios-e-girls-math-do-android-criar-e-editar-numa-folha) | Metas, Prêmios e Girls Math do Android: criar e editar numa folha | Valendo |
+| [D-121](#d-121-premium-do-android-sem-a-stripe-em-breve-até-a-a8) | Premium do Android sem a Stripe: "Em breve" até a A8 | Substituída por D-133 |
+| [D-122](#d-122-perfil-do-android-com-o-que-estava-no-mais) | Perfil do Android com o que estava no Mais | Valendo |
+| [D-123](#d-123-sair-do-android-guarda-a-fila-como-no-ios) | "Sair" do Android guarda a fila, como no iOS | Valendo |
+| [D-124](#d-124-compras-do-android-com-leitor-de-código-de-barras) | Compras do Android com leitor de código de barras | Valendo |
+| [D-125](#d-125-lugares-e-filmes-do-android-mapa-pelo-app-de-mapas-formulário-numa-folha) | Lugares e Filmes do Android: mapa pelo app de mapas, formulário numa folha | Valendo |
+| [D-126](#d-126-fotos-do-android-foto-reduzida-e-legenda-que-se-salva-sozinha) | Fotos do Android: foto reduzida e legenda que se salva sozinha | Valendo |
+| [D-127](#d-127-imagens-do-android-pelo-coil-com-o-token-só-para-a-api-do-piggu) | Imagens do Android pelo Coil, com o token só para a API do Piggu | Valendo |
+| [D-128](#d-128-foto-do-recibo-no-android-os-itens-lidos-preenchem-o-formulário) | Foto do recibo no Android: os itens lidos preenchem o formulário | Valendo |
+| [D-129](#d-129-widgets-atalhos-e-bloco-das-configurações-rápidas-do-android) | Widgets, atalhos e bloco das Configurações rápidas do Android | Valendo |
+| [D-130](#d-130-tour-do-android-em-balões-que-saem-da-moldura) | Tour do Android em balões que saem da moldura | Valendo |
+| [D-131](#d-131-trava-do-android-com-1-minuto-fora-e-esconder-nos-recentes) | Trava do Android com 1 minuto fora e esconder nos recentes | Valendo |
+| [D-132](#d-132-premium-no-android-pela-compra-do-google-play-conferida-no-backend-com-a-play-developer-api) | Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API | Valendo |
+| [D-133](#d-133-premium-do-android-pelo-google-play-billing-e-o-stripe-fora-do-app) | Premium do Android pelo Google Play Billing, e o Stripe fora do app | Valendo |
+| [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
+| [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -110,6 +159,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-066](#d-066-testes-com-postgres-de-verdade) | Testes com Postgres de verdade | Valendo |
 | [D-067](#d-067-bug-corrigido-vira-teste-de-regressão-com-data) | Bug corrigido vira teste de regressão com data | Valendo |
 | [D-068](#d-068-toda-decisão-nova-vira-um-d-0xx-no-mesmo-pr) | Toda decisão nova vira um D-0xx no mesmo PR | Valendo |
+| [D-137](#d-137-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
 
 ---
 
@@ -890,6 +940,348 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: no App Store Connect falta criar o grupo, os produtos e os preços, e apontar as notificações V2 para a URL acima (produção e sandbox). O servidor precisa de `APP_STORE_APP_APPLE_ID` para aceitar compras de produção. Casal e família continuam só no site. O RevenueCat segue para o Android.
 - Onde ver: `backend/piggu-identity/src/main/java/com/piggu/identity/billing/AppStoreLoja.java`, `ios-nativo/Piggu/Core/Loja/LojaDaApple.swift`, `ios-nativo/Piggu/Telas/Conta/PremiumView.swift`, `ios-nativo/PigguTests/Piggu.storekit`
 
+## D-136: Android nativo compila com o SDK 37 e mira o 36
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o plano da etapa A0 pedia compileSdk 36 e as bibliotecas estáveis mais novas. O Compose BOM 2026.09.00 (Material 3 1.4) e o Navigation 3 1.2.0 só aceitam compilar com o SDK 37 ou mais novo.
+- Decisão: `compileSdk = 37` e `targetSdk = 36`. O compileSdk só muda as APIs que o código enxerga ao compilar; o comportamento no aparelho segue o targetSdk. As cores do tema saem do Material Color Utilities (esquema Vibrant) a partir da `--primaria` de cada tema do site, com a primária e o texto sobre ela iguais aos do site (`core/designsystem/gerar-cores.mjs`).
+- Alternativas: voltar para bibliotecas mais velhas que ainda compilam com o 36, ficando sem o Material 3 1.4 e o Navigation 3 estável mais novo.
+- Consequências: o build precisa da plataforma `android-37.0` do SDK, que o Gradle baixa sozinho. Subir o targetSdk para 37 é uma decisão à parte, com teste das mudanças de comportamento.
+- Onde ver: `android-nativo/app/build.gradle.kts`, `android-nativo/gradle/libs.versions.toml`
+
+## D-138: Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A2 do plano Android (fundação e moldura). As telas chegam nas etapas A3 a A7, mas o menu, os links e o + já precisam levar a algum lugar. O iOS resolveu o mesmo com o navegador (D-090 de lá).
+- Decisão: cada rota de `app.routes.ts` vira uma rota tipada (`Tela`, Navigation 3) com a flag `nativa`. A que ainda não é nativa abre a página do `piggu.com.br` num Custom Tab, com o ícone de "abre fora"; as quatro abas mostram o aviso com "Abrir no site", e o + abre a folha com Lançar gasto (`/gastos?rapido=1&valor=`) e Lançar receita no site. A busca e o assistente ficam no topo e avisam que chegam na A4. Os App Links de `https://piggu.com.br` cobrem só as telas nativas (hoje as quatro abas): uma tela que abre no site num Custom Tab voltaria para o app. O Mais segue os grupos do site com o Perfil no topo; no tablet, o trilho (largura média) e a gaveta fixa com os grupos (tela larga). Os módulos de estilo de vida seguem a D-092 do iOS: ausente liga todos, e a lista (até vazia) esconde o que não está nela; o `shell.ts` do site ainda mostra todos.
+- Alternativas: esconder o que não é nativo, que deixaria o menu pela metade; WebView, que pede login de novo e fica fora do visual.
+- Consequências: a página do site no Custom Tab pede login (o app não passa a sessão). Cada etapa troca o link pela tela, acrescenta o caminho no `intent-filter` dos App Links e muda `nativa`. O `assetlinks.json` precisa estar publicado no site para os App Links abrirem o app.
+- Onde ver: `android-nativo/app/src/main/kotlin/br/com/piggu/app/navegacao/`, `android-nativo/app/src/main/kotlin/br/com/piggu/app/moldura/`, `android-nativo/core/ui/.../Site.kt`
+
+## D-100: Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o app Android entra com `refreshNoCorpo: true` (D-072) e precisa guardar o refresh sem o Keychain do iOS. O backend troca o refresh a cada uso, então duas renovações ao mesmo tempo derrubam a sessão.
+- Decisão: o access token fica só na memória. Com "Continuar conectado", o refresh vai para o DataStore cifrado com AES-GCM numa chave do Android Keystore, junto com o perfil; sem, fica só na memória. Refresh que não decifra vale como sessão nenhuma. O `Authenticator` do OkHttp renova no 401 uma única vez por chamada, com um `Mutex`: quem chega durante a renovação espera e usa o token novo. A renovação é uma chamada síncrona na thread de quem esperava, fora da fila do OkHttp, que tem 5 chamadas por servidor e ficaria cheia das que esperam por ela. Só a renovação recusada com 401 ou 403 encerra a sessão (D-075); com o perfil guardado, o app abre logado na hora e renova por trás (D-095 do iOS). Sair manda o refresh para `/api/auth/logout` e apaga o cofre e o cache.
+- Alternativas: EncryptedSharedPreferences, que o Google descontinuou; renovar pela chamada `suspend` do Retrofit, que travava com 5 chamadas simultâneas (teste em `SessaoTest`).
+- Consequências: a fila de gastos, o resumo dos widgets e a conversa do assistente ainda não existem; quem os trouxer apaga ao sair. A chave do Keystore não vai para o backup (o backup do app está desligado).
+- Onde ver: `android-nativo/core/data/.../Sessao.kt`, `AutenticacaoDaSessao.kt`, `android-nativo/core/datastore/`
+
+## D-101: Contrato da API no Android: datas em texto, números em BigDecimal e enum desconhecido
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A2. O app copia `models.ts` e os `docs/api/*.yaml` com kotlinx.serialization e precisa sobreviver a campos e valores novos da API (D-059).
+- Decisão: datas ficam em `String`, como no site e no iOS. Todo `number` do contrato vira `BigDecimal` (também registrado como serializador contextual, para respostas que são só um mapa de números), e todo enum tem `DESCONHECIDO`, também dentro de listas. Os serviços lançam só `ErroDaApi` (sem internet, resposta fora do contrato ou o erro do servidor), e as mensagens seguem `mensagem-de-erro.ts`. O app manda `User-Agent: Piggu-Android/<versão>`, e um 426 com `ATUALIZE_O_APP` abre a tela de atualizar com a ficha do Play, antes do backend mandar esse código. A variante demo põe a API falsa (`ApiDaDemo`, porte de `api-da-demo.ts`) como o último interceptador do OkHttp.
+- Alternativas: `java.time` nos modelos, que quebraria com uma variação do formato que o servidor mande; `Double` para dinheiro.
+- Consequências: o `ContratoTest` confere os nomes dos campos contra os yaml, e o `DemoContraModelosTest` lê toda resposta da demo com os modelos. Uma tela que precise da data a converte onde usa.
+- Onde ver: `android-nativo/core/model/`, `android-nativo/core/network/`, `android-nativo/core/testing/`
+
+## D-102: Visual do Android: 13 cores, cor no aparelho e Material Symbols
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o site tem 13 cores (4 grátis e 9 do Premium), guardadas no aparelho, e a A0 só tinha quatro.
+- Decisão: as 13 saem do `gerar-cores.mjs` com o esquema Vibrant, menos o Grafite, que usa o Neutral (no Vibrant as superfícies ficavam azuis). A cor, o modo (Automático, Claro e Escuro) e a marca de "voltou ao padrão" ficam no DataStore com as chaves do `localStorage` do site; quando o Premium acaba, a cor Premium volta ao Chiclete e o app avisa uma vez. "Cores do celular" (Android 12 ou mais novo) fica só no Android. Os ícones de `icone.ts` são do Material Symbols Outlined, gerados por `gerar-icones.mjs`. O `lerValor` devolve duas casas, e data impossível (30/02) é inválida.
+- Alternativas: o Vibrant também no Grafite; desenhar os ícones do Lucide do site, que não têm equivalente oficial no Android.
+- Consequências: a escolha da cor e do modo no Perfil chega com o Perfil nativo.
+- Onde ver: `android-nativo/core/designsystem/`, `android-nativo/core/ui/.../formatos/`, `android-nativo/core/datastore/.../PreferenciasDoAparelho.kt`
+
+## D-103: Cache do Android: respostas da API em JSON no Room
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: o app tem que abrir sem internet com o resumo e os gastos do mês e lançar com as listas guardadas (`listas-guardadas.ts`).
+- Decisão: como o iOS (`RespostaGuardada`), o Room guarda a resposta como veio, em JSON, por chave (`resumo/aaaa-mm`, `gastos/aaaa-mm`, `categorias`, `contas`, `pessoas-da-familia`), com a hora. Os repositórios mostram o guardado, buscam na rede e trocam; sem rede, fica o guardado com a hora. Versão nova do banco começa vazia em vez de migrar. O cache sai ao entrar com outra conta e ao sair.
+- Alternativas: uma tabela por tipo, que só vale quando alguma tela precisar consultar o cache (busca sem internet, por exemplo).
+- Consequências: nenhuma migração de banco por enquanto.
+- Onde ver: `android-nativo/core/database/`, `android-nativo/core/data/.../Carga.kt`, `Repositorios.kt`
+
+## D-104: Google no Android pelo Credential Manager, com o botão escondido até o ID do Android existir
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A3 do plano Android. O Google no Android só autoriza um app com um ID OAuth do tipo Android (pacote e SHA-1 da chave) no mesmo projeto do Google Cloud do ID do site, e esse ID ainda não foi criado. Sem ele, o login falha com `DEVELOPER_ERROR`.
+- Decisão: o app usa o Sign in with Google do Credential Manager, com `serverClientId` igual ao ID do site, então o `aud` do ID token é o que o backend já confere (D-084) e o servidor não muda. O botão só aparece com `piggu.googleNoAndroid=true` (Gradle); até lá, só e-mail e senha. Na primeira vez, o TERMOS_NECESSARIOS pede o aceite na própria tela, como o site. Depois de entrar com a senha, o app oferece guardá-la no gerenciador de senhas do aparelho; ao sair, esquece a conta do Google escolhida.
+- Alternativas: o Google pelo navegador, como o app Capacitor (#79), que pede o vai e volta pelo `piggu://`; mostrar o botão e deixar falhar.
+- Consequências: com o ID OAuth do Android criado (os passos estão no PR #107), basta ligar a propriedade e gerar o app de novo. `GOOGLE_CLIENT_ID_ANDROID` no servidor continua opcional.
+- Onde ver: `android-nativo/feature/login/.../Credenciais.kt`, `LoginViewModel.kt`, `android-nativo/feature/login/build.gradle.kts`
+
+## D-105: Etapa A3 do Android: a entrada nativa, fora da moldura
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A3 (login, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta). O Perfil, onde o site oferece reenviar a confirmação, informar o CPF e excluir a conta, só fica nativo mais adiante, e o Google Play exige excluir a conta dentro do app.
+- Decisão: as telas da entrada são telas cheias, sem a moldura, numa pilha própria: sem sessão (login e as telas abertas), com uma pendência (o aceite ou o "Sobre você", na ordem do `auth.guard.ts`) e por cima das abas (termos, CPF, links do e-mail). Um 403 `CADASTRO_PENDENTE` de qualquer serviço marca a conta como incompleta e leva ao "Sobre você". Os App Links passam a cobrir `/confirmar-email`, `/redefinir-senha`, `/esqueci-senha`, `/termos`, `/privacidade` e `/cpf`. Até o Perfil nativo, o Mais mostra o aviso de confirmar o e-mail com o reenviar, o "Informar agora" do documento e "Excluir minha conta", com o texto do site e a palavra EXCLUIR.
+- Alternativas: mandar essas três ações do Mais para o site, que pede login de novo no Custom Tab e não cumpre a regra do Google Play.
+- Consequências: o Perfil nativo leva as três ações para ele e o Mais volta a ficar como o site.
+- Onde ver: `android-nativo/app/.../Entrada.kt`, `PigguApp.kt`, `android-nativo/core/data/.../AutenticacaoDaSessao.kt`, `android-nativo/feature/login/`
+
+## D-106: Termos e Aviso do Android copiados do site pelo CI
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: a D-083 do iOS: o app mostra os Termos e o Aviso sem internet e sem login, com o texto do site.
+- Decisão: `android-nativo/scripts/textos-legais.py` gera `Termos.md` e `Privacidade.md` em `feature/legal/src/main/assets/`, no mesmo formato do iOS, e o CI do Android falha se ficarem diferentes do HTML do site. A tela tem um sumário "Nesta página" que leva a cada seção, e as linhas das tabelas viram cartões. O script corrige um `}` que o do iOS deixa num título do Aviso.
+- Alternativas: abrir o site, que pede internet.
+- Consequências: mudou o texto no site, roda o script e faz o commit no mesmo PR. Vale levar a correção do `}` para o script do iOS.
+- Onde ver: `android-nativo/scripts/textos-legais.py`, `android-nativo/feature/legal/`, `.github/workflows/android-nativo.yml`
+
+## D-107: Formulários da entrada no Android com o erro no campo
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: no site, criar conta, "Sobre você" e CPF mostram um aviso só no topo.
+- Decisão: no app, o primeiro campo com problema ganha o foco, a borda vermelha e a mensagem embaixo; um erro do servidor também vai para o campo (o primeiro de `campos` no `VALIDACAO`, ou pelo código: `IDADE_MINIMA`, `SENHA_FRACA`, `TELEFONE_INVALIDO`, `CPF_NECESSARIO`, `CPF_EM_USO`). Sem campo (sem internet, erro genérico), o aviso fica no topo. As validações e a ordem são as do site; o nascimento sai de um calendário que não deixa escolher o futuro, e a tela do CPF não tem "Sair", como no iOS.
+- Alternativas: o aviso único no topo, como o site.
+- Consequências: o leitor de tela lê o erro junto do campo certo.
+- Onde ver: `android-nativo/feature/login/.../cadastro/`, `sobrevoce/`, `cpf/`, `android-nativo/core/ui/.../formatos/`
+
+## D-108: Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga
+- Data: 28/10/2026
+- Situação: Substituída em parte por D-123 (o "Sair" não apaga mais a fila)
+- Contexto: etapa A4. Gasto lançado sem internet vai para uma fila (D-073 e D-075 do iOS). No iOS a fila não sai ao sair da conta (D-090 de lá); o Dudu pediu, no plano da A2, que o "Sair" do Android apague a fila.
+- Decisão: a fila fica numa tabela do Room (banco na versão 2, com migração), de cada pessoa, e sobe na ordem por um Worker do WorkManager com a rede como restrição, agendado ao guardar, ao abrir o app, ao entrar e quando a rede volta. Cada toque em "Lançar" tem um `idDoEnvio` novo, e só 400 e 422 tiram da fila e contam como recusados. O "Sair" pelo botão (do Mais e do Aceite) apaga a fila da pessoa antes de sair; a sessão que só caiu não apaga. Os gastos da fila aparecem na lista com "aguardando envio" e não entram no total.
+- Alternativas: guardar até a pessoa voltar, como o iOS.
+- Consequências: quem sai com gastos sem enviar perde esses gastos. Num processo aberto só pelo WorkManager ninguém renova a sessão (duas renovações ao mesmo tempo derrubariam a sessão), então com o app fechado o envio espera a próxima abertura.
+- Onde ver: `android-nativo/core/data/.../FilaNoRoom.kt`, `EnvioDaFila.kt`, `android-nativo/core/database/`, `AppViewModel.sair`
+
+## D-109: Painel do Android com gráficos em Canvas e organizar no próprio Painel
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O site organiza os cartões no Perfil, e o Perfil nativo ainda não existe.
+- Decisão: as barras e o anel são desenhados em Canvas do Compose, sem biblioteca (Vico seria grande para três desenhos). Os cartões se organizam numa folha dentro do Painel, arrastando ou com "mover para cima/baixo" (TalkBack), e a ordem vai para o DataStore na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`), assim como o "pular" dos primeiros passos (`piggu_guia_<id>`). Para o membro da família ficam escondidos o resumo, o mês, as categorias e os objetivos (o site só diz isso num comentário). Cartão que depende de dados some quando eles faltam; conectar banco abre o site, porque o widget da Pluggy só existe lá. O limite de objetivos do plano grátis chega como 422 `PLANO_PREMIUM` e abre o convite do Premium.
+- Alternativas: o Vico; esperar o Perfil nativo para organizar.
+- Consequências: quando o Perfil for nativo, ele pode abrir a mesma folha.
+- Onde ver: `android-nativo/feature/painel/`, `android-nativo/core/ui/.../Graficos.kt`, `android-nativo/core/datastore/.../PainelDoAparelho.kt`
+
+## D-110: Gastos do Android: apagar com Desfazer, busca e filtros no aparelho
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O site confirma antes de apagar e não tem busca nem filtros na lista; o iOS tem.
+- Decisão: deslizar apaga na hora e oferece "Desfazer" na Snackbar; o pedido só vai ao servidor quando ela some. Parcela com próximas pergunta antes ("só esta" ou "esta e as próximas"). A busca (sem acento, por item, estabelecimento e categoria) e os filtros de categoria e de forma de pagamento rodam no aparelho, como no iOS. Editar abre uma folha com item, categoria, valor e compartilhado; o link `piggu://gastos?id=...&mes=...` abre o mês e a edição do gasto. O CSV do mês sai pelo compartilhamento do Android (FileProvider próprio), e o extrato entra pelo seletor de arquivos com a prévia do site.
+- Alternativas: confirmar antes, como o site.
+- Consequências: "apagar as próximas" vale só para parcelas, como no backend.
+- Onde ver: `android-nativo/feature/gastos/.../lista/`
+
+## D-111: Lançar no Android: vários itens numa folha só, e a receita pelo +
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4. O + abre a folha com Lançar gasto e Lançar receita (D-098 do iOS).
+- Decisão: o formulário de gasto tem vários itens (descrição, categoria e valor), com parcelas e outra moeda valendo para todos e um POST só; data e estabelecimento ficam em "Mais opções", para o lançamento rápido. A última conta usada fica no aparelho, como no site. Sem internet, o gasto vai direto para a fila. A receita é lançada só pela folha do + (também pelo botão da aba), e a aba Receitas segue a ordem do iOS: o seletor de mês fixo no topo, a lista, "Entram todo mês" e "A receber". Lançou, a folha fecha, um aviso curto confirma e as abas recarregam pelo `Lancamentos`.
+- Alternativas: o formulário dentro de cada aba, como o site no computador.
+- Consequências: a foto do recibo chega na A7.
+- Onde ver: `android-nativo/feature/gastos/.../formulario/`, `android-nativo/feature/receitas/`, `PigguApp.kt` (`FolhaDeLancar`)
+
+## D-112: Busca e assistente do Android, e as capturas com o Hilt de verdade
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A4 (topo da D-097 do iOS). As telas do dia a dia carregam dados por ViewModels do Hilt, que as capturas do Robolectric não tinham.
+- Decisão: a busca abre em tela cheia, com telas, gastos de todos os meses (pelo servidor) e lugares, filmes e compras só com o módulo ligado, filtrados no aparelho. O assistente é uma folha, só para o Premium, com a autorização do Gemini no primeiro uso; a conversa fica no DataStore por 30 dias (sem cifra, como o `localStorage` do site) e sai ao sair da conta. As capturas da A4 sobem o grafo do Hilt de verdade (`app/src/testDemo`), com a API falsa da demonstração sem atraso, no dia 28/10/2026, e a rede marcada como conectada.
+- Alternativas: capturas só das telas sem estado, com dados escritos à mão.
+- Consequências: as capturas mostram o que a demonstração mostra; mudar os dados da demo muda as imagens.
+- Onde ver: `android-nativo/feature/assistente/`, `android-nativo/app/src/testDemo/`
+
+## D-113: Contas do mês do Android em três grupos, com a nova conta numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. O site mostra as contas numa lista só, com etiquetas, e o formulário embaixo.
+- Decisão: as contas aparecem em três cartões (Vencidas, A vencer e Pagas), e a nova conta fixa abre numa folha pelo + do topo, como no iOS. "Marcar como paga" lança o gasto do mês (`POST /api/bills/{id}/pay?mes=`). A categoria da conta usa o mesmo campo do lançar, com "+ Nova categoria…". As receitas fixas aparecem como no iOS, com "Parar de repetir".
+- Alternativas: a lista única do site.
+- Consequências: o "pagar várias de uma vez" do site e do iOS ainda não entrou; o seletor de mês não avança além do mês atual.
+- Onde ver: `android-nativo/feature/contasfixas/`
+
+## D-114: Orçamento do Android com um guardado só e o alerta escrito
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5 (`features/budgets` com `features/goals` no topo).
+- Decisão: os limites do mês, o gasto do mês e os limites por categoria são buscados juntos e guardados numa chave só (`orcamento/aaaa-mm`), para a tela abrir inteira sem internet. Os alertas de 80% e 100% aparecem também em texto, não só na cor da barra. Ver e apagar limites é livre; criar limite por categoria sem Premium mostra o convite. O mês do limite vai até 12 meses adiante.
+- Alternativas: avisos de erro separados por bloco, como o site.
+- Consequências: se uma das três buscas falha e não há nada guardado, a tela mostra o erro inteira.
+- Onde ver: `android-nativo/feature/orcamentos/`
+
+## D-115: Calendário do Android lado a lado pela largura e a grade com limite de fonte
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. O plano pedia a cena de lista e detalhe do Navigation 3 no tablet.
+- Decisão: a partir da largura média, a grade e o gráfico ficam à esquerda e o dia escolhido, a nota nova e as notas sem data à direita, numa `Row` pelo WindowSizeClass, e não numa cena do Navigation 3: o "detalhe" é só o dia, e uma pilha de navegação dentro da tela não traria nada. A grade mostra gasto, receita e lembrete do dia, e o mês avança para o futuro por causa dos lembretes. A fonte da grade para em 1,3x, e o TalkBack lê o dia inteiro (D-095 do iOS); o gráfico tem as ações de dia anterior e próximo e a tabela por semana.
+- Alternativas: a cena de lista e detalhe.
+- Consequências: a demonstração não liga notas a gastos, então o aviso de "o gasto vai junto" só aparece com dados de verdade.
+- Onde ver: `android-nativo/feature/calendario/`
+
+## D-116: Relatórios do Android com o CSV do mês e tabela também no mês
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. No site o CSV do mês sai por Gastos; o iOS o põe também em Relatórios.
+- Decisão: a aba Relatórios exporta o CSV do mês pela mesma rota (`/expenses/export`) e com o mesmo nome de arquivo do site, compartilhado por `ACTION_SEND` com um FileProvider próprio. O mês por categoria contra o anterior, com projeção, tem "Ver em tabela", como o ano; o ano mês a mês é do Premium, com o convite para os outros. Os números ficam em linhas (rótulo e valor), para aguentar fonte grande.
+- Alternativas: o CSV só em Gastos.
+- Consequências: as cores de receita (verde do site) e gasto (primária do tema) ficam no módulo até o tema ter cores de série.
+- Onde ver: `android-nativo/feature/relatorios/`
+
+## D-117: Cartões e bancos do Android: fatura numa folha e conectar banco pelo site
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A5. A página `/conectar-banco` do site (D-091 do iOS) só existe na `feature/ios-nativo`, não na `develop`, e o Open Finance está desligado (`PIGGU_OPEN_FINANCE`).
+- Decisão: a fatura do cartão (entre os fechamentos, porte de `fatura.ts`) abre numa folha, com "Marcar como paga" e "Desfazer" (D-085). "Conectar banco" só aparece com o Open Finance ligado e abre `/contas-e-cartoes` do site num Custom Tab, nunca num WebView; "Atualizar" e "Desconectar" aparecem sempre para quem já tem banco. Os textos de cada módulo têm nomes próprios: um teste do app falha se dois módulos usarem o mesmo nome com textos diferentes (aconteceu com `contas_titulo`).
+- Alternativas: esperar a página do site.
+- Consequências: quando `/conectar-banco` chegar à `develop`, o Android faz como o iOS: `POST /api/banking/connect-token`, a página num Custom Tab e a volta por `piggu://banco-conectado`.
+- Onde ver: `android-nativo/feature/contas/`, `android-nativo/core/ui/.../formatos/Fatura.kt`, `TextosDosModulosTest.kt`
+
+## D-118: Tour do Android em diálogos, no primeiro acesso e pelo Perfil
+- Data: 28/10/2026
+- Situação: Substituída por D-130
+- Contexto: etapa A6. O tour do site (`tutorial.ts`) destaca cada parte da tela; no Compose, apontar para a aba, o + e a busca em cada tamanho de tela seria muito código para um passo a passo de oito cartões.
+- Decisão: os oito passos, com os textos do site, aparecem em diálogos em sequência, com Próximo (Concluir no último) e Pular. Abre sozinho no primeiro acesso de cada pessoa no aparelho (a chave `piggu_tutorial_<id>` do site, no DataStore) e pelo "Tour do Piggu" do Perfil.
+- Alternativas: destacar os alvos na tela como o site; só abrir pelo Perfil.
+- Consequências: o tour não aponta onde está cada coisa; o texto de cada passo diz.
+- Onde ver: `android-nativo/app/.../moldura/Tour.kt`, `AppViewModel.tourNovo`
+
+## D-119: O ícone do app troca quando a pessoa sai do app
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O seletor de ícone liga um dos 12 activity-alias do Capacitor e desliga os outros. Desligar o alias que abriu a tarefa faz o Android fechar o app na hora, como acontecia no Capacitor.
+- Decisão: a escolha fica guardada e a tela já mostra o ícone marcado. A troca no lançador só acontece quando o app sai da frente (`ProcessLifecycleOwner`, `onStop`), e o texto do Perfil avisa. Os ícones do Premium voltam ao Neon quando o Premium acaba, como a cor (D-101).
+- Alternativas: trocar na hora e deixar o app fechar; reabrir o app pelo link `piggu://perfil` (a tarefa nova também morria).
+- Consequências: alguns lançadores levam uns segundos para mostrar o ícone novo.
+- Onde ver: `android-nativo/feature/perfil/.../IconesDoApp.kt`, `PigguApplication.kt`
+
+## D-120: Metas, Prêmios e Girls Math do Android: criar e editar numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. No site, o formulário é um cartão acima da lista; no celular ele empurra a lista para baixo.
+- Decisão: criar e editar abrem numa folha, como no iOS. A foto do Girls Math é posta em pé pelo EXIF, reduzida a 1600 px no lado maior e regravada em JPEG (some a localização) antes de ir para a API. Todo papel usa o Girls Math, o membro também, com foto, como no site e no backend. O Planejar só tem atalhos, como no site, e por isso não tem estados de carregando nem de erro.
+- Alternativas: o cartão do site; mandar a foto original.
+- Consequências: a foto que sai do aparelho é menor que a original.
+- Onde ver: `android-nativo/feature/metas/`, `feature/premios/`, `feature/girlsmath/`, `feature/planejar/`
+
+## D-121: Premium do Android sem a Stripe: "Em breve" até a A8
+- Data: 28/10/2026
+- Situação: Substituída por D-133
+- Contexto: etapa A6. A regra de pagamentos do Google Play não deixa o app abrir outro meio de pagamento para um produto digital. A compra pelo Google Play Billing fica para a A8.
+- Decisão: a tela do Premium (`features/plan`) é só do titular, como o `perfilGuard` do site. Ela mostra o plano e os preços, e onde o site tem "Assinar" mostra "Em breve". O checkout e o Portal do Cliente da Stripe nunca abrem no app: quem assinou pelo site lê que deve trocar o cartão ou cancelar pelo navegador. O cancelamento com reembolso nos 7 dias (CDC art. 49) continua no app, como no site.
+- Alternativas: abrir o checkout num Custom Tab (contra a regra do Google Play); esconder a tela até a A8.
+- Consequências: até a A8, ninguém assina pelo app Android.
+- Onde ver: `android-nativo/feature/plano/`
+
+## D-122: Perfil do Android com o que estava no Mais
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. Até a A5, o Mais tinha o aviso de confirmar o e-mail, o CPF e o "Excluir minha conta", porque o Perfil abria no site.
+- Decisão: com o Perfil nativo, esses três voltam para o Perfil, como no site e no iOS. "Organizar o Painel" abre o Painel com a folha de organizar. Definir ou trocar a senha passa pela sessão (`Sessao.definirSenha`), que manda o refresh token e guarda a sessão nova. A família do Perfil busca o histórico só quando a pessoa pede.
+- Alternativas: deixar os três também no Mais.
+- Consequências: o Mais fica só com o menu, os textos legais, o Sair e a versão.
+- Onde ver: `android-nativo/feature/perfil/`, `android-nativo/app/.../moldura/Mais.kt`
+
+## D-123: "Sair" do Android guarda a fila, como no iOS
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O D-108 fazia o "Sair" apagar os gastos guardados sem internet. O Dudu preferiu o comportamento do iOS (D-090 de lá).
+- Decisão: sair, pelo Mais, pelo Perfil ou pelo Aceite, não apaga a fila. Cada pessoa só vê e envia os seus gastos guardados, quando entrar de novo neste aparelho.
+- Alternativas: apagar ao sair (D-108).
+- Consequências: o gasto lançado sem internet não se perde ao sair da conta; ele fica no aparelho até a mesma pessoa entrar de novo.
+- Onde ver: `android-nativo/core/data/.../FilaNoRoom.kt`, `AppViewModel.sair`
+
+## D-124: Compras do Android com leitor de código de barras
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O site busca no catálogo aberto (`/api/shopping/catalog`) só pelo nome.
+- Decisão: um botão de câmera no campo de busca abre o leitor de código de barras do Google Play services (`GmsBarcodeScanning`, só EAN-13, EAN-8, UPC-A e UPC-E), que não pede permissão de câmera ao app; o código lido vai para a busca. Se o leitor não abrir (sem Google Play services), aparece um aviso para buscar pelo nome. Compras e Desejos ficam em botões segmentados, a linha inteira marca e desmarca, e apagar não pede confirmação, como no site.
+- Alternativas: a câmera do próprio app com o ML Kit Barcode Scanning (pediria permissão de câmera).
+- Consequências: o leitor depende do Google Play services; sem ele, só a busca pelo nome.
+- Onde ver: `android-nativo/feature/listas/.../compras/`
+
+## D-125: Lugares e Filmes do Android: mapa pelo app de mapas, formulário numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. Ainda não há chave do Google Maps para o Android, e o `Lugar` não tem latitude e longitude no contrato.
+- Decisão: "Abrir no mapa" abre o app de mapas do aparelho por `geo:0,0?q=<nome>, <localização>`, e só aparece quando há localização. Criar e editar um lugar abrem numa folha, como Prêmios (D-120). A foto do lugar é reduzida a 1600 px e regravada sem EXIF. Os gêneros do sorteio de Filmes ficam em chips, e a nota de cada pessoa aparece separada, com "Ex-membro" para quem saiu da família. Lugares e marcadores ficam guardados juntos, então os marcadores também aparecem sem internet.
+- Alternativas: Maps Compose com uma chave do Google Maps.
+- Consequências: quando a chave existir, o mapa pode entrar dentro do app (README, seção do mapa).
+- Onde ver: `android-nativo/feature/listas/.../lugares/`, `.../filmes/`
+
+## D-126: Fotos do Android: foto reduzida e legenda que se salva sozinha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O site manda o arquivo original (até 5 MB) e salva a legenda ao sair do campo; o iOS salva no "Concluir".
+- Decisão: a foto (Photo Picker ou câmera) é posta em pé pelo EXIF, reduzida a 1600 px e regravada em JPEG antes de enviar, então o limite de 5 MB não aparece e a localização não sai do aparelho. A legenda se salva 800 ms depois da última letra, no escopo do app, para não se perder se a pessoa sair da tela. O seletor de mês não passa do mês atual. Sem Premium, a pessoa vê, legenda e apaga, e "Adicionar fotos" leva ao Premium.
+- Alternativas: mandar o arquivo original; salvar só ao sair do campo.
+- Consequências: a foto guardada tem menos resolução que a original.
+- Onde ver: `android-nativo/feature/fotos/`
+
+## D-127: Imagens do Android pelo Coil, com o token só para a API do Piggu
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. As fotos de Lugares e do mural vêm de `/api/assets/{id}/content`, que pede a sessão; as do catálogo de compras e os pôsteres são de outros servidores.
+- Decisão: o Coil carrega e guarda em cache todas as imagens. Uma imagem do Piggu (`AssetDoPiggu`) vai pelo OkHttp da API, com o token; qualquer outro endereço vai por um cliente sem a sessão, e um teste confere que o token nunca sai para outro servidor. O SVG das fotos da demonstração é lido pelo `coil-svg`.
+- Alternativas: o mesmo cliente para tudo (mandaria o token para o servidor de fora).
+- Consequências: quem mostrar imagem nova usa `ImagemDoAsset` ou `AsyncImage`, nunca o OkHttp da API direto.
+- Onde ver: `android-nativo/app/.../PigguApplication.kt`, `core/ui/.../ImagemDoAsset.kt`, `ImagensSemTokenTest.kt`
+
+## D-128: Foto do recibo no Android: os itens lidos preenchem o formulário
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. No site, "Lançar N itens" do "Conferir recibo" grava na hora.
+- Decisão: "Usar N itens" leva os itens, o estabelecimento e a data para o formulário de gasto, e só o "Lançar" grava, com `reciboId` e `origem: "Foto"`. Assim valem a conta ou cartão, as parcelas, a fila sem internet e o `idDoEnvio`. "Tirar foto" usa o recorte do ML Kit Document Scanner, sem permissão de câmera; sem ele, a câmera do sistema com a foto inteira. A galeria manda a foto inteira. A foto é reduzida a 1600 px, sem EXIF. A autorização do Gemini aparece quando o servidor responde `CONSENTIMENTO_NECESSARIO`, com a `versaoDoAviso` do site.
+- Alternativas: lançar direto do "Conferir recibo", como o site.
+- Consequências: um toque a mais para gravar; o link do Premium com as leituras esgotadas abre o site (conferir a regra do Google Play antes de publicar, A8).
+- Onde ver: `android-nativo/feature/gastos/.../formulario/FotoDoRecibo.kt`
+
+## D-129: Widgets, atalhos e bloco das Configurações rápidas do Android
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O iOS tem os widgets de gasto do mês e de meta e o controle "Lançar gasto" (D-093 de lá).
+- Decisão: três widgets do Jetpack Glance: Gasto do mês, Meta do mês e Lançar gasto (o iOS tem esse só como controle), em tamanho pequeno e médio. Eles leem só um resumo já calculado, num DataStore próprio, sem token nem lista de gastos. O resumo é gravado ao abrir o app, ao voltar para a frente e depois de lançar, e some ao sair da conta. O widget segue o claro ou escuro do aparelho e mostra "Atualizado às HH:mm". Os atalhos "Lançar gasto" e "Ver gastos" (os ids do Capacitor) estão nos 12 activity-alias do ícone, e o bloco "Lançar gasto" das Configurações rápidas abre o formulário. O "Quanto gastei este mês" da Siri não tem equivalente; o widget cobre.
+- Alternativas: widgets da tela de bloqueio (o Android não tem para apps de terceiros).
+- Consequências: o widget só mostra números depois que a pessoa abre o app logada.
+- Onde ver: `android-nativo/widget/`, `app/src/main/res/xml/shortcuts.xml`
+
+## D-130: Tour do Android em balões que saem da moldura
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O D-118 deixou o tour em diálogos, sem apontar onde fica cada coisa. O Material 3 1.4 tem o `TooltipBox` com o `RichTooltip`, que ancora o balão num elemento.
+- Decisão: os oito passos do site (`tutorial.ts`), com os mesmos textos e alvos, viram balões persistentes com seta, Pular, Próximo e Concluir. Cada balão sai do alvo que está na tela, na ordem de preferência do site: o +, a aba, o item do trilho ou da gaveta, a busca e o assistente. No celular e no trilho, Planejar e Família apontam para o Mais, com a dica "Fica dentro de Mais"; na gaveta, cada um tem o seu item, e a gaveta rola até ele. O "Bem-vindo" não tem alvo e fica num diálogo no centro. Tocar fora fecha o tour, como o fundo do site. Abre no primeiro acesso de cada pessoa (`piggu_tutorial_<id>`), só depois de desbloquear a trava (D-131), e pelo Perfil, que volta ao Painel antes.
+- Alternativas: manter os diálogos (D-118); desenhar o recorte escuro do site por cima da tela.
+- Consequências: o fundo não escurece em volta do alvo como no site. O contador "1/8", o "Voltar" e o "Lançar meu primeiro gasto" do site ficaram de fora.
+- Onde ver: `android-nativo/app/.../moldura/Tour.kt`, `Moldura.kt`, `AppLogado`
+
+## D-131: Trava do Android com 1 minuto fora e esconder nos recentes
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A7. O iOS trava com Face ID a cada ida ao fundo (`TravaDoApp`). No Android, o site em Custom Tab, a câmera, a galeria e a tela de PIN do próprio BiometricPrompt também tiram o app da frente.
+- Decisão: "Travar com a biometria ou o bloqueio de tela" no Perfil vale para este aparelho, com a chave do iOS. Pede a prova ao abrir o app e ao voltar depois de 1 minuto ou mais fora, com BIOMETRIC_STRONG ou o bloqueio de tela (antes do Android 11, a biometria fraca). Ligar pede a prova antes; sem biometria nem bloqueio de tela, a opção fica desligada com a explicação. A trava é uma janela por cima de tudo, com o porquinho e "Desbloquear", e um link (widget, atalho, bloco) que chega com o app travado espera o desbloqueio. "Esconder nos apps recentes", só no Android, liga o `FLAG_SECURE`, e o texto avisa que isso também bloqueia o print e a gravação da tela.
+- Alternativas: travar a cada ida ao fundo, como no iOS (travaria na volta do site e da câmera, e o PIN entraria em laço); travar ao sair, não ao voltar.
+- Consequências: até 1 minuto fora, o app volta sem pedir a prova. Sem o "Esconder nos recentes", a miniatura dos recentes mostra os valores.
+- Onde ver: `android-nativo/app/.../Trava.kt`, `feature/perfil/.../Biometria.kt`
+
+## D-132: Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A8. No app, a assinatura digital tem que ser pela compra do Google Play. O caminho pelo RevenueCat (`/api/billing/stores/play-store/purchases`) nunca foi configurado, e para o iPhone a D-094 do iOS (trazida para esta branch junto com o backend da Apple) já trocou o intermediário pela biblioteca da Apple.
+- Decisão: o app compra `premium_mensal` ou `premium_anual` pelo Play Billing, com o id da conta Piggu no `obfuscatedExternalAccountId`, e manda o `purchaseToken` para `POST /api/billing/google-play/purchases`. Os avisos em tempo real (RTDN) chegam pelo push autenticado do Pub/Sub em `POST /api/billing/webhooks/google-play`, provado pelo token OIDC do Google (`aud` e `email` configurados) com o mesmo `GoogleIdTokenVerifier` do login. O aviso só diz qual token consultar: o estado sempre vem de `purchases.subscriptionsv2.get` (biblioteca oficial `google-api-services-androidpublisher`, conta de serviço). A compra grava no mesmo plano da casa que a Stripe atualiza, com origem `PLAY_STORE` e `premiumAte` = `expiryTime`. Dão Premium ACTIVE, IN_GRACE_PERIOD e CANCELED (até o fim do período). A compra só vale para a conta do `obfuscatedExternalAccountId` (409 `OUTRA_CONTA`). Depois de aplicar, o backend faz o acknowledge, se pendente; se falhar, a compra vale e o próximo aviso tenta de novo. Premium vigente de outra origem (site ou Apple) não é trocado nem derrubado. Sem configuração, as rotas respondem 501 `EM_BREVE`.
+- Alternativas: o RevenueCat (mais um operador de dados e uma conta paga); conferir só no aparelho (qualquer um forjaria o Premium); confiar no conteúdo do RTDN (o aviso não traz validade nem dono).
+- Consequências: o servidor precisa de `GOOGLE_PLAY_PACOTE`, `GOOGLE_PLAY_CREDENCIAIS`, `GOOGLE_PLAY_PUSH_AUDIENCIA` e `GOOGLE_PLAY_PUSH_EMAIL`, e o Google Cloud e o Play Console precisam da conta de serviço, do tópico e da assinatura push (README do android-nativo, seção Premium). Casal e família continuam só no site.
+- Onde ver: `backend/piggu-identity/src/main/java/com/piggu/identity/billing/GooglePlayLoja.java`, `PlayDeveloperApi.java`, `CompraNoGoogleTest.java`
+
+## D-133: Premium do Android pelo Google Play Billing, e o Stripe fora do app
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A8. A D-121 deixava "Em breve" no lugar de assinar até a compra pelo Google Play. No Brasil, o Google Play aceita o faturamento alternativo (user choice billing) para apps que não são jogos: o sistema próprio ao lado do Google Play, com a tela de escolha, as APIs de faturamento alternativo, o relatório de cada venda em até 24 h, e a taxa só 4 pontos menor (cerca de 11% em vez de 15% nas assinaturas). O programa novo de 2026 (links externos com 10%) ainda não inclui o Brasil.
+- Decisão: o app usa a Google Play Billing Library 9.1.0 com as assinaturas `premium_mensal` e `premium_anual`, cada uma com um plano básico, e a oferta de teste grátis quando a pessoa tem direito. A compra leva o id da conta Piggu no `obfuscatedAccountId` e o `purchaseToken` vai ao backend (D-132); a tela só mostra o Premium depois da resposta dele, e o app nunca faz acknowledge. A compra que não chegou ao backend vai sozinha quando a tela abre, e "Restaurar compras" manda todas as ativas. Pagamento pendente só avisa; cancelar não é erro. O preço é o do Google Play (sem ele, o `app` do `/billing/plan`). Quem já é Premium pelo site, pela Apple ou pela casa vê o plano e nenhum botão de compra; quem assinou pelo Google Play gerencia nas assinaturas do Google Play. Casal e família continuam só no site, e o app diz que não os vende, sem apontar o site. O Stripe não é oferecido no app, e nenhum link do app leva ao `/plano` do site: os pedidos de "/plano" abrem a tela nativa.
+- Alternativas: oferecer o Stripe no app pelo faturamento alternativo do Brasil (pagaria cerca de 11% ao Google mais a taxa da Stripe, quase o mesmo que os 15% do Google Play, com a tela de escolha, o relatório diário e o PCI por nossa conta); o RevenueCat.
+- Consequências: no Play Console falta criar as duas assinaturas com os preços do app (R$ 22,89 e R$ 228,85). Até lá, a compra responde "Não foi possível falar com o Google Play". Substitui a D-121.
+- Onde ver: `android-nativo/feature/plano/` (`LojaDoGooglePlay.kt`, `PlanoViewModel.kt`), `android-nativo/app/src/{producao,demo}/.../ModuloDaVariante.kt`
+
+## D-134: A cor do texto do tema no Android passa no WCAG AA
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A9. O rosa do Chiclete do site (`#D1006B`), usado como texto, fica com 4,14:1 sobre o fundo dos cartões do Material 3 (surfaceContainerHighest), abaixo do 4,5:1 do WCAG AA. O mesmo acontece no Chiclete escuro e no Tangerina e Turquesa claros.
+- Decisão: no Android, a `primary` dessas variantes é a cor do site com a luminosidade ajustada só o necessário para 4,5:1 sobre o fundo e todos os containers: Chiclete `#C60065` (claro) e `#FF64B2` (escuro), Tangerina `#B73A00` e Turquesa `#00707B` (claros). O resto do esquema continua saindo da cor do site (`texto` em `gerar-cores.mjs`), e o `ContrasteTest` falha se uma cor nova ficar abaixo de 4,5:1. Os títulos das telas são anunciados como título, a barra de abas diminui o rótulo em vez de cortar, e o `AcessibilidadeTest` falha se um nó tocável não tiver rótulo.
+- Alternativas: manter a cor do site no texto (abaixo do AA em 4 variantes); escurecer também os botões e os containers.
+- Consequências: o rosa do app fica um pouco mais escuro que o do site nessas variantes; o site não muda.
+- Onde ver: `android-nativo/core/designsystem/` (`Cores.kt`, `gerar-cores.mjs`, `ContrasteTest.kt`), `app/src/testDemo/.../AcessibilidadeTest.kt`
+
+## D-135: Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A9. A 2.0.0 nativa substitui o app Capacitor no mesmo pacote (D-057), cujo único APK distribuído tem `versionCode` 1.
+- Decisão: a versão é 2.0.0 com `versionCode` 200. A release usa R8 e o Baseline Profile gerado na demo (entrar, Painel e abas), que vale para as duas variantes (`mergeIntoMain`). A chave de upload é lida de variáveis de ambiente (`PIGGU_UPLOAD_*`) e nunca entra no repositório; no CI, um job gera o AAB de produção como artefato, e o envio ao Play Console é manual, com a confirmação do Dudu. O fim da abertura é o Painel com os números (`ReportDrawnWhen`), não o primeiro quadro: num emulador de API 26 com 2 GB, com o perfil compilado como o Play compila, o Painel abre em ~500 ms (mediana de 8 aberturas a frio). Os links do app para "/plano", "/contas-e-cartoes" e "/privacidade" abrem a tela nativa (`LocalAbrirCaminho`), e a marca do topo segue o ícone escolhido no Perfil, como no iOS (D-097 de lá).
+- Alternativas: publicar pelo CI direto no Play Console (decidido manual até o primeiro lançamento); medir só o primeiro quadro.
+- Consequências: gerar o perfil de novo quando a abertura mudar (`./gradlew :app:generateBaselineProfile`, com um emulador do Android 13 ou mais novo).
+- Onde ver: `android-nativo/app/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `android-nativo/baselineprofile/`, README do android-nativo (Lançamento)
+
 # Processo
 
 ## D-061: `develop` junta, `main` é produção
@@ -974,6 +1366,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Onde ver: [ios-nativo/CLAUDE.md](../ios-nativo/CLAUDE.md), [branches.md](branches.md)
 
 ---
+
+## D-137: Etapas do Android juntam em `feature/android-nativo`
+- Data: 27/10/2026
+- Situação: Valendo
+- Contexto: o app Kotlin vai crescer por várias etapas (A0 a A9) antes de estar pronto para substituir o Capacitor (D-057).
+- Decisão: cada etapa sai numa `android/etapa-N` a partir da `feature/android-nativo`, com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o Dudu pedir.
+- Alternativas: PR de cada etapa direto para a `develop`, como no plano original.
+- Consequências: a `feature/android-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O workflow `android-nativo.yml` roda em PR para qualquer branch.
+- Onde ver: `android-nativo/CLAUDE.md`, `docs/branches.md`
 
 # Perguntas para o Dudu
 

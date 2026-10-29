@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- features/legal: o texto vem de assets/{Termos,Privacidade}.md (scripts/textos-legais.py) -->
+    <string name="legal_termos">Termos de Uso</string>
+    <string name="legal_privacidade">Aviso de Privacidade</string>
+    <string name="legal_nesta_pagina">Nesta página</string>
+    <string name="legal_nao_abriu">Não deu para abrir o texto</string>
+    <string name="legal_leia_no_site">Leia no site do Piggu.</string>
+</resources>

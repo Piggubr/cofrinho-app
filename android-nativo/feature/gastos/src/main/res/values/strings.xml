@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gastos_titulo">Gastos</string>
+    <!-- Lista do mês (features/expenses e GastosView do iOS) -->
+    <string name="gastos_buscar">Buscar gastos</string>
+    <string name="gastos_limpar_busca">Limpar a busca</string>
+    <string name="gastos_categoria">Categoria</string>
+    <string name="gastos_todas_as_categorias">Todas as categorias</string>
+    <string name="gastos_filtrar_categoria">Filtrar por categoria</string>
+    <string name="gastos_pagamento">Pagamento</string>
+    <string name="gastos_filtrar_pagamento">Filtrar por forma de pagamento</string>
+    <string name="gastos_pagamento_todas">Todas as formas</string>
+    <string name="gastos_pagamento_cartao">Cartão de crédito</string>
+    <string name="gastos_pagamento_debito">Débito/Pix</string>
+    <string name="gastos_pagamento_sem_conta">Sem conta informada</string>
+    <string name="gastos_total_do_mes">Total do mês</string>
+    <string name="gastos_total_filtrado">Total filtrado</string>
+    <string name="gastos_limpar_filtros">Limpar filtros</string>
+    <string name="gastos_vazio_titulo">Nenhum gasto neste mês</string>
+    <string name="gastos_vazio_texto">Lance o primeiro gasto ou traga o extrato do banco de uma vez.</string>
+    <string name="gastos_lancar_um">Lançar um gasto</string>
+    <string name="gastos_importar_extrato">Importar extrato</string>
+    <string name="gastos_nada_nos_filtros">Nenhum gasto com esses filtros.</string>
+    <string name="gastos_parcela">parcela %1$d/%2$d</string>
+    <string name="gastos_compartilhado">compartilhado</string>
+    <string name="gastos_de">de %1$s</string>
+    <string name="gastos_aguardando_envio">aguardando envio</string>
+    <string name="gastos_editar">Editar</string>
+    <string name="gastos_apagar">Apagar</string>
+    <string name="gastos_apagado">"%1$s" apagado.</string>
+    <string name="gastos_desfazer">Desfazer</string>
+    <string name="gastos_apagar_pergunta">Apagar "%1$s"?</string>
+    <string name="gastos_parcela_de">Esta é a parcela %1$d de %2$d.</string>
+    <string name="gastos_apagar_so_esta">Apagar só esta</string>
+    <plurals name="gastos_apagar_e_as_proximas">
+        <item quantity="one">Apagar esta e a próxima</item>
+        <item quantity="other">Apagar esta e as %1$d próximas</item>
+    </plurals>
+    <string name="gastos_cancelar">Cancelar</string>
+    <string name="gastos_editar_titulo">Editar gasto</string>
+    <string name="gastos_item">Item</string>
+    <string name="gastos_salvar">Salvar</string>
+    <string name="gastos_confira_nome_e_valor">Confira o nome e o valor do gasto.</string>
+    <plurals name="gastos_recusados">
+        <item quantity="one">%1$d gasto guardado sem conexão foi recusado pelo servidor; lance de novo.</item>
+        <item quantity="other">%1$d gastos guardados sem conexão foram recusados pelo servidor; lance de novo.</item>
+    </plurals>
+    <string name="gastos_entendi">Entendi</string>
+    <string name="gastos_ex_membro">Ex-membro</string>
+
+    <!-- Divisão do mês -->
+    <string name="divisao_titulo">Divisão do mês</string>
+    <string name="divisao_paga">%1$s paga %2$s para %3$s.</string>
+    <string name="divisao_pagou">Pagou %1$s · parte %2$s</string>
+    <string name="divisao_recebe">recebe %1$s</string>
+    <string name="divisao_deve">deve %1$s</string>
+    <string name="divisao_quite">quite</string>
+
+    <!-- Regras de categoria -->
+    <string name="regras_titulo">Regras de categoria</string>
+    <string name="regras_explicacao">Com a categoria em "Automática", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto.</string>
+    <string name="regras_vazio">Nenhuma regra ainda. Ao corrigir a categoria de um gasto, o Piggu sugere uma.</string>
+    <string name="regras_quando_tiver">Quando tiver</string>
+    <string name="regras_salvar">Salvar regra</string>
+    <string name="regras_regra">%1$s → %2$s</string>
+    <string name="regras_apagar">Apagar a regra %1$s</string>
+    <string name="regras_digite_termo">Digite o termo e escolha a categoria.</string>
+    <string name="regras_salva">Regra salva: "%1$s" vai para %2$s.</string>
+    <string name="regras_sugestao">Sempre usar %1$s para "%2$s"?</string>
+    <string name="regras_criar">Criar regra</string>
+    <string name="regras_agora_nao">Agora não</string>
+
+    <!-- Importar e exportar (importar-extrato.ts) -->
+    <string name="importar_titulo">Importar e exportar</string>
+    <string name="importar_explicacao">Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere antes de gravar, e o que já foi importado fica de fora.</string>
+    <string name="importar_escolher">Escolher extrato</string>
+    <string name="importar_exportar">Exportar CSV do mês</string>
+    <string name="importar_compartilhar">Compartilhar o CSV</string>
+    <string name="importar_grande_demais">Arquivo grande demais (máximo 2 MB).</string>
+    <string name="importar_nao_leu">Não deu para ler esse arquivo.</string>
+    <string name="importar_nada_no_extrato">Nenhum gasto encontrado no extrato.</string>
+    <!-- A concordância é com o total (%2$d): "0 de 1 marcado", "1 de 2 marcados". -->
+    <plurals name="importar_marcados">
+        <item quantity="one">%1$d de %2$d marcado · %3$s</item>
+        <item quantity="other">%1$d de %2$d marcados · %3$s</item>
+    </plurals>
+    <string name="importar_conta">Conta do extrato</string>
+    <string name="importar_nao_informar">Não informar</string>
+    <string name="importar_ja_importado">já importado</string>
+    <string name="importar_categoria_de">Categoria de %1$s</string>
+    <string name="importar_importar_marcados">Importar marcados</string>
+    <string name="importar_importados">Importados: %1$d.</string>
+    <string name="importar_importados_e_pulados">Importados: %1$d. Já estavam no Piggu: %2$d.</string>
+
+    <!-- Formulário de gasto (formulario-de-gasto.html) -->
+    <string name="formulario_descricao">Descrição</string>
+    <string name="formulario_descricao_exemplo">Ex.: Leite</string>
+    <string name="formulario_item_numero">Item %1$d</string>
+    <string name="formulario_adicionar_item">Adicionar item</string>
+    <string name="formulario_remover_item">Remover o item %1$d</string>
+    <string name="formulario_preco_acima">%1$s%% acima da média deste item (%2$s)</string>
+    <string name="formulario_como_pagou">Como pagou</string>
+    <string name="formulario_cartao_de_credito">Cartão de crédito</string>
+    <string name="formulario_debito_pix">Débito/Pix</string>
+    <string name="formulario_cartao">Cartão</string>
+    <string name="formulario_escolha_o_cartao_opcao">Escolha o cartão</string>
+    <string name="formulario_saiu_de_qual_conta">Saiu de qual conta</string>
+    <string name="formulario_escolha_a_conta_opcao">Escolha a conta</string>
+    <string name="formulario_nenhum_cartao">Nenhum cartão cadastrado ainda.</string>
+    <string name="formulario_cadastrar_cartao">Cadastrar cartão</string>
+    <string name="formulario_vai_para_a_fatura">Vai para a fatura de %1$s, que vence em %2$s.</string>
+    <string name="formulario_como_foi_a_compra">Como foi a compra</string>
+    <string name="formulario_a_vista">À vista</string>
+    <string name="formulario_parcelado">Parcelado</string>
+    <string name="formulario_recorrente">Recorrente</string>
+    <string name="formulario_quantas_parcelas">Quantas parcelas</string>
+    <string name="formulario_valor_da_parcela">%1$sx de %2$s, uma em cada mês</string>
+    <string name="formulario_recorrente_explica">Lança sozinho todo dia %1$d, até você desligar em Contas do mês.</string>
+    <string name="formulario_mais_opcoes">Mais opções</string>
+    <string name="formulario_hoje">Hoje</string>
+    <string name="formulario_dividido">dividido</string>
+    <string name="formulario_compartilhado">compartilhado</string>
+    <string name="formulario_data">Data</string>
+    <string name="formulario_escolher_data">Escolher a data</string>
+    <string name="formulario_ok">OK</string>
+    <string name="formulario_cancelar">Cancelar</string>
+    <string name="formulario_estabelecimento">Estabelecimento (opcional)</string>
+    <string name="formulario_estabelecimento_exemplo">Ex.: Mercado do bairro</string>
+    <string name="formulario_moeda_da_compra">Moeda da compra</string>
+    <string name="formulario_convertido">≈ %1$s (cotação de hoje)</string>
+    <string name="formulario_buscando_cotacao">Buscando a cotação…</string>
+    <string name="formulario_dividir_com">Dividir com</string>
+    <string name="formulario_compartilhar">Compartilhado: aparece para quem mora com você</string>
+    <string name="formulario_sem_internet">Você está sem internet. O gasto fica guardado neste aparelho e vai assim que a conexão voltar.</string>
+    <string name="formulario_lancar">Lançar</string>
+    <string name="formulario_guardando">Guardando…</string>
+
+    <!-- Validações e mensagens do formulário -->
+    <string name="formulario_digite_o_item">Digite o nome do item.</string>
+    <string name="formulario_valor_invalido">Digite um valor válido.</string>
+    <string name="formulario_aguarde_a_cotacao">Aguarde a cotação da moeda da compra.</string>
+    <string name="formulario_cadastre_o_cartao">Cadastre o cartão em Cartões e bancos, ou escolha Débito/Pix.</string>
+    <string name="formulario_escolha_o_cartao">Escolha em qual cartão foi a compra.</string>
+    <string name="formulario_escolha_a_conta">Escolha de qual conta saiu o dinheiro.</string>
+    <string name="formulario_parcelas_invalidas">Parcelado: de 2 a 48 parcelas.</string>
+    <string name="formulario_gasto_lancado">Gasto lançado.</string>
+    <string name="formulario_lancado_estourou">Gasto lançado. %1$s passou do limite do mês (%2$s%%).</string>
+    <string name="formulario_lancado_atencao">Gasto lançado. %1$s já usou %2$s%% do limite do mês.</string>
+    <string name="formulario_guardado_sem_internet">Sem internet: o gasto ficou guardado neste aparelho e vai assim que a conexão voltar.</string>
+
+    <!-- Foto do recibo (formulario-de-gasto.html) -->
+    <string name="recibo_ler_por_foto">Ler recibo por foto</string>
+    <string name="recibo_lendo">Lendo recibo…</string>
+    <string name="recibo_tirar_foto">Tirar foto</string>
+    <string name="recibo_escolher_da_galeria">Escolher da galeria</string>
+    <string name="recibo_ler_premium">Ler recibo por foto · Premium</string>
+    <string name="recibo_leituras_acabaram">As leituras grátis deste mês acabaram. Com o Premium não há limite; você também pode lançar os itens à mão.</string>
+    <plurals name="recibo_leituras_restantes">
+        <item quantity="one">Resta %1$d leitura de nota grátis neste mês.</item>
+        <item quantity="other">Restam %1$d leituras de nota grátis neste mês.</item>
+    </plurals>
+    <string name="recibo_foto_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="recibo_ler_com_a_ia">Ler com a IA do Google?</string>
+    <string name="recibo_ia_detalhe">A foto é enviada ao Google Gemini, que pode processá-la fora do Brasil, só para ler os itens. Sua autorização fica registrada e vale para as próximas fotos. Detalhes no Aviso de Privacidade.</string>
+    <string name="recibo_aviso_de_privacidade">Aviso de Privacidade</string>
+    <string name="recibo_autorizar_e_ler">Autorizar e ler</string>
+    <string name="recibo_agora_nao">Agora não</string>
+    <string name="recibo_conferir">Conferir recibo</string>
+    <string name="recibo_sem_estabelecimento">Estabelecimento não identificado</string>
+    <string name="recibo_lido_pelo_piggu">lido pelo Piggu</string>
+    <string name="recibo_lido_pelo_gemini">lido pelo Gemini</string>
+    <string name="recibo_foto">Foto do recibo</string>
+    <plurals name="recibo_usar_itens">
+        <item quantity="one">Usar %1$d item</item>
+        <item quantity="other">Usar %1$d itens</item>
+    </plurals>
+    <string name="recibo_descartar">Descartar</string>
+    <string name="recibo_nenhum_item_valido">Adicione pelo menos um item válido.</string>
+</resources>

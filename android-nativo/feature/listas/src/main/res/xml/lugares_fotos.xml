@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A câmera grava a foto do lugar aqui; o app reduz antes de enviar (Fotos.kt). -->
+<paths>
+    <cache-path name="fotos" path="lugares/" />
+</paths>
