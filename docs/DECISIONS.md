@@ -1021,3 +1021,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: tocar no + lança gasto e segurar abre o menu, que é mais rápido para o gasto, mas esconde a receita; o + da aba Receitas lançar receita, que muda o botão conforme a aba.
 - Consequências: o gasto passa a pedir um toque a mais pelo +. O atalho, a Siri, o widget e o link `piggu://gasto` continuam abrindo o gasto direto.
 - Onde ver: `ios-nativo/Piggu/Core/Design/Vidro.swift` (`BotaoDeLancar`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/PigguUITests/TopoETecladoUITests.swift`
+
+## D-099: Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: os primeiros testers do TestFlight acharam três coisas. Ao puxar para recarregar, a lista descia e o seletor de mês ficava parado no topo. Nos gráficos por categoria (Relatórios do mês e do ano, Por categoria no Painel), o valor ficava colado no fim da barra e o nome solto em cima, com folgas diferentes em cada gráfico. E os botões de primeiro passo dos cartões do Painel não tinham padrão: "Fazer o primeiro depósito" no centro e "Criar o primeiro objetivo" à esquerda.
+- Decisão: o seletor de mês continua flutuando no topo, mas desce junto com a lista ao puxar (`comSeletorDeMes`, pela geometria da rolagem, no iOS 18 ou mais novo), nas sete telas com mês. As barras por categoria viram um componente só (`BarrasPorCategoria`): o nome à esquerda e o valor à direita na mesma linha, e a barra embaixo, de 8 pt, contra a maior, com o traço do mês anterior quando houver. O desenho é o mesmo das barras de orçamento e de objetivo. O vazio de um cartão do Painel (`VazioDoCartao`) fica no centro, como o vazio das listas: ícone com título, texto curto e o botão pequeno.
+- Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
+- Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
+- Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`

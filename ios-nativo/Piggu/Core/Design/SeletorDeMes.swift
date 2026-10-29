@@ -68,6 +68,49 @@ struct SeletorDeMes: View {
     }
 }
 
+extension View {
+    /// O seletor de mes (e o que vier `abaixo`, como os filtros dos Gastos) flutuando no topo
+    /// da lista. Ao puxar para recarregar, ele desce junto com a lista.
+    func comSeletorDeMes(_ mes: Binding<Date>, @ViewBuilder abaixo: () -> some View = { EmptyView() }) -> some View {
+        modifier(ComSeletorDeMes(mes: mes, abaixo: abaixo()))
+    }
+}
+
+private struct ComSeletorDeMes<Abaixo: View>: ViewModifier {
+    @Binding var mes: Date
+    let abaixo: Abaixo
+
+    /// Quanto a lista passou do topo ao puxar.
+    @State private var puxado: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .acompanharPuxada($puxado)
+            .safeAreaInset(edge: .top) {
+                VStack(spacing: 4) {
+                    SeletorDeMes(mes: $mes)
+                    abaixo
+                }
+                .offset(y: puxado)
+            }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func acompanharPuxada(_ puxado: Binding<CGFloat>) -> some View {
+        if #available(iOS 18, *) {
+            onScrollGeometryChange(for: CGFloat.self) { geometria in
+                max(0, -(geometria.contentOffset.y + geometria.contentInsets.top))
+            } action: { _, novo in
+                puxado.wrappedValue = novo
+            }
+        } else {
+            self
+        }
+    }
+}
+
 /// Barra horizontal de um valor contra o maior, com a marca opcional do mes anterior.
 struct BarraDeValor: View {
     /// De 0 a 1.

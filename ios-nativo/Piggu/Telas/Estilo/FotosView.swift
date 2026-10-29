@@ -51,7 +51,7 @@ struct FotosView: View {
             .padding(.horizontal, 16)
         }
         .background(paleta.fundo)
-        .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+        .comSeletorDeMes($mes)
         .navigationTitle("Fotos do mês")
         .refreshable { await carregar() }
         .task(id: "\(Formatos.mes(mes))#\(rede.conectado)") { await carregar() }

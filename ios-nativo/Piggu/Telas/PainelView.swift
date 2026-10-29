@@ -29,7 +29,7 @@ struct PainelView: View {
                 }
             }
             .background(paleta.fundo)
-            .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+            .comSeletorDeMes($mes)
             .navigationTitle(saudacao)
             .topoDoPiggu {
                 if let cotacao = modelo?.cotacao {

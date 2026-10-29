@@ -63,7 +63,7 @@ struct ReceitasView: View {
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
-            .safeAreaInset(edge: .top) { SeletorDeMes(mes: $mes) }
+            .comSeletorDeMes($mes)
             .navigationTitle("Receitas")
             .topoDoPiggu()
             .refreshable { await carregar() }

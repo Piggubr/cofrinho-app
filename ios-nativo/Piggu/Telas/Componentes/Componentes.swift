@@ -147,6 +147,71 @@ struct Faixa: View {
 }
 
 /// Barra de progresso do site (.progresso): cheia na cor do tema, vermelha quando estoura.
+/// Quanto cada categoria levou: o nome e o valor numa linha, e a barra embaixo, contra a maior.
+/// O mesmo desenho no Painel e nos Relatorios; `anterior` vira o traco do mes anterior.
+struct BarrasPorCategoria: View {
+    struct Linha: Identifiable {
+        let categoria: String
+        let total: Decimal
+        var anterior: Decimal = 0
+        var id: String { categoria }
+    }
+
+    let linhas: [Linha]
+
+    var body: some View {
+        let maior = linhas.map { max($0.total, $0.anterior) }.max()?.paraDesenho ?? 0
+        VStack(spacing: 14) {
+            ForEach(linhas) { linha in
+                VStack(spacing: 6) {
+                    LadoALado(alinhamento: .firstTextBaseline, espaco: 12) {
+                        Text(linha.categoria).font(.sora(.subheadline))
+                        Spacer(minLength: 0)
+                        Text(Formatos.moeda(linha.total)).font(.sora(.subheadline, peso: .semibold)).monospacedDigit()
+                    }
+                    BarraDeValor(fracao: maior > 0 ? linha.total.paraDesenho / maior : 0,
+                                 marca: linha.anterior > 0 && maior > 0 ? linha.anterior.paraDesenho / maior : nil)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(linha.anterior > 0
+                    ? Text("\(linha.categoria): \(Formatos.moeda(linha.total)). Mês anterior: \(Formatos.moeda(linha.anterior))")
+                    : Text("\(linha.categoria): \(Formatos.moeda(linha.total))"))
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// O vazio dentro de um cartao do Painel: o icone com o titulo, um texto curto e o botao do
+/// primeiro passo, tudo no centro, como o EstadoVazio das listas.
+struct VazioDoCartao: View {
+    let icone: String
+    let titulo: LocalizedStringKey
+    var texto: LocalizedStringKey?
+    let acao: LocalizedStringKey
+    let executar: () -> Void
+
+    @Environment(\.paleta) private var paleta
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Label(titulo, systemImage: icone)
+                .font(.sora(.subheadline, peso: .medium))
+            if let texto {
+                Text(texto)
+                    .font(.sora(.footnote))
+                    .foregroundStyle(paleta.textoSuave)
+                    .multilineTextAlignment(.center)
+            }
+            Button(acao, action: executar)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+    }
+}
+
 struct BarraDeProgresso: View {
     /// 0 a 100.
     let percentual: Double

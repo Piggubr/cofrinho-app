@@ -44,6 +44,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 28/10/2026: iOS nativo, ajustes dos testers: o mês desce junto ao puxar para recarregar, as barras por categoria num desenho só e os vazios dos cartões do Painel centralizados (D-099).
 - 28/10/2026: iOS nativo: o + abre as opções, como no site, e lança receita de qualquer aba (D-098).
 - 27/10/2026: iOS nativo, ajustes do primeiro teste no iPhone: logo, busca global e assistente de IA no topo das abas, teclado que fecha ao tocar fora, trava do Face ID acima das folhas, nova categoria nas regras e a barra de abas fixa por padrão (D-097).
 - 27/10/2026: iOS nativo, etapa 9: paridade com todas as rotas do site, "Sobre você" pedindo CPF e celular (D-088), acessibilidade revista pela auditoria em todas as telas (texto grande, VoiceOver, Reduzir Movimento, escuro), iPad do mini ao Pro 13, abrir com o perfil guardado e a versão 2.0.0 (D-095).
