@@ -45,6 +45,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+<<<<<<< HEAD
 - 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).
 - 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
 - 28/10/2026: Android nativo, etapa A7: Compras, Lugares, Filmes, Fotos, widgets, atalhos, bloco das Configurações rápidas, trava com a biometria, tour em balões e foto do recibo, na branch `feature/android-nativo` (D-124 a D-131). O push ficou para depois da A1.
@@ -53,6 +54,9 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - 28/10/2026: Android nativo, etapa A4: Painel, Gastos, Receitas, o + com os formulários, a fila sem internet, importar e exportar, a busca e o assistente, na branch `feature/android-nativo` (D-108 a D-112).
 - 28/10/2026: Android nativo, etapa A3: a entrada inteira (login, Google, criar conta, aceite, Sobre você, CPF, links do e-mail, termos e excluir a conta), na branch `feature/android-nativo` (D-104 a D-107).
 - 28/10/2026: Android nativo, etapa A2: modelos e rede, sessão, 13 cores, componentes, moldura com abas, Mais e gaveta, cache offline, login por e-mail e o modo demonstração, na branch `feature/android-nativo` (D-138 e D-100 a D-103).
+=======
+- 29/10/2026: iOS nativo: importar extrato OFX ou CSV no próprio app, sem abrir o site (D-136).
+>>>>>>> da7e2389 (Docs: D-136, importar extrato no app iOS)
 - 28/10/2026: iOS nativo, ajustes dos testers: o mês desce junto ao puxar para recarregar, as barras por categoria num desenho só e os vazios dos cartões do Painel centralizados (D-099).
 - 28/10/2026: iOS nativo: o + abre as opções, como no site, e lança receita de qualquer aba (D-098).
 - 27/10/2026: Android nativo, etapa A0: `android-nativo/` com módulos, tema do Piggu, abas e CI, na branch `feature/android-nativo` ([#106](https://github.com/Piggubr/cofrinho-app/pull/106)).

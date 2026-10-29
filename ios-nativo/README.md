@@ -202,7 +202,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Gastos** (`features/expenses`): lista do mês por dia, busca na barra (`.searchable`, também em
   outros meses por `/expenses/search`), filtros de categoria e forma de pagamento em vidro, editar
   (com "Nova categoria" e o compartilhado), apagar com swipe (e as parcelas seguintes), sugestão e
-  regras de categoria, e a divisão do mês.
+  regras de categoria, a divisão do mês e importar extrato OFX ou CSV pelo app Arquivos, com a
+  prévia do site: o que já entrou vem desmarcado, categoria por linha e a conta do extrato (D-136).
 - **Receitas** (`features/incomes`): resumo do mês, nova receita (recorrente e compartilhada),
   as que entram todo mês (parar de repetir), a receber (Recebi, apagar) e as receitas do mês.
 - **Relatórios** (`features/reports`): o mês (gastos, mês anterior, projeção e cada categoria
@@ -354,10 +355,9 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
   (`docs/API_SPEC.md`).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
-- **Demais telas** do app web: até chegarem, os atalhos do Painel e dos formulários abrem a
-  página no site (`LinkDoSite`, D-090).
-- **Leitura da nota pela IA** (a foto inteira com os itens, no site) e **importar extrato**: por
-  enquanto só no site; o app lê o total e a data do cupom pela câmera.
+- **Leitura da nota pela IA** (a foto inteira com os itens, no site): por enquanto só no site; o
+  app lê o total e a data do cupom pela câmera.
+- **Trazer do banco** na importação (os débitos do Open Finance, Premium): por enquanto só no site.
 - Prints para a App Store.
 - Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
   antes do `init` não vale como medida.
