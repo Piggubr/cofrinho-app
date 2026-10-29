@@ -21,6 +21,10 @@ workflow*, escolhendo a branch (ou um push numa `demo/...`).
 Correção urgente: branch `hotfix/<nome>` a partir da `main`, PR direto para a `main`, e
 depois um PR da `main` para a `develop` para as duas não divergirem.
 
+App Android nativo: cada etapa numa `android/etapa-N` a partir da `feature/android-nativo`,
+com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o app estiver
+pronto (D-090).
+
 ## Por que assim
 
 - Só a `main` alcança o servidor: o ambiente `producao` do GitHub (onde ficam a chave SSH
