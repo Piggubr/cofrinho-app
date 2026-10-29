@@ -9,6 +9,7 @@ import br.com.piggu.core.model.PedidoDeCadastro
 import br.com.piggu.core.model.PedidoDeEmail
 import br.com.piggu.core.model.PedidoDeLogin
 import br.com.piggu.core.model.PedidoDePais
+import br.com.piggu.core.model.PedidoDeSenha
 import br.com.piggu.core.model.PedidoDeSenhaNova
 import br.com.piggu.core.model.PedidoDeTermos
 import br.com.piggu.core.model.PedidoDoGoogle
@@ -122,6 +123,18 @@ class Sessao @Inject constructor(
     }
 
     // Completar o cadastro (auth.guard.ts) e a conta.
+
+    /**
+     * Cria a senha (conta só do Google) ou troca a atual. O refresh deste aparelho vai junto: o
+     * servidor encerra as outras sessões da conta e mantém esta. Dentro da trava da renovação,
+     * para o refresh mandado ser o que vale no servidor.
+     *
+     * @param senhaAtual só para trocar; nula cria a senha
+     */
+    suspend fun definirSenha(novaSenha: String, senhaAtual: String?) {
+        val usuario = trava.withLock { identidade.get().definirSenha(PedidoDeSenha(senhaAtual, novaSenha, refresh)) }
+        entrou(usuario)
+    }
 
     /** Manda outro link de confirmação; o anterior deixa de valer. */
     suspend fun reenviarConfirmacao() = identidade.get().reenviarConfirmacao()

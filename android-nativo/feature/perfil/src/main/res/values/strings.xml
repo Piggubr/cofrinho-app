@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- features/profile (profile.html e autorizacoes-de-ia.ts) e PerfilView do iOS -->
+    <string name="perfil_titulo">Perfil</string>
+    <string name="perfil_sem_internet">Você está sem internet. O que você mudar aqui só salva quando a conexão voltar.</string>
+
+    <!-- Foto e nome -->
+    <string name="perfil_foto_de">Foto de %1$s</string>
+    <string name="perfil_ver_familia">Ver minha família</string>
+    <string name="perfil_colocar_foto">Colocar foto</string>
+    <string name="perfil_trocar_foto">Trocar foto</string>
+    <string name="perfil_tirar_foto">Tirar foto</string>
+    <string name="perfil_usar_foto_do_google">Usar foto do Google</string>
+    <string name="perfil_remover_foto">Remover foto</string>
+    <string name="perfil_foto_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="perfil_sem_camera">Não achei um app de câmera neste aparelho.</string>
+    <string name="perfil_foto_trocada">Foto trocada.</string>
+    <string name="perfil_foto_removida">Foto removida.</string>
+    <string name="perfil_foto_do_google">Voltamos para a foto do Google.</string>
+    <string name="perfil_apelido">Como quer ser chamado?</string>
+    <string name="perfil_salvar_apelido">Salvar nome</string>
+    <string name="perfil_apelido_vazio">Conte como podemos te chamar.</string>
+    <string name="perfil_apelido_salvo">Nome salvo.</string>
+    <string name="perfil_papel_admin">Administrador</string>
+    <string name="perfil_papel_titular">Titular</string>
+    <string name="perfil_papel_parceiro">Parceiro</string>
+    <string name="perfil_papel_membro">Membro</string>
+
+    <!-- Moeda -->
+    <string name="perfil_moeda_titulo">Moeda</string>
+    <string name="perfil_moeda_do_app">Moeda do app</string>
+    <string name="perfil_moeda_explicacao">É a moeda em que os valores aparecem; os valores já lançados não são convertidos.</string>
+    <string name="perfil_mostrar_cotacao">Mostrar a cotação no topo do app</string>
+    <string name="perfil_cotacao_entre">Cotação entre</string>
+    <string name="perfil_cotacao_para">e</string>
+    <string name="perfil_cotacao_explicacao">A cotação mostra quanto vale 1 da primeira moeda na segunda, como 1 USD = R$ 5,00. Ela não muda com a moeda do app.</string>
+    <string name="perfil_moeda_opcao">%1$s · %2$s</string>
+
+    <!-- Avisos -->
+    <string name="perfil_avisos_titulo">Avisos</string>
+    <string name="perfil_avisos_explicacao" formatted="false">Fatura do cartão chegando, orçamento em 80% e 100% e conta do mês vencendo, mesmo com o app fechado. No máximo uma vez por dia, e só quando há novidade.</string>
+    <string name="perfil_avisos_email">Por e-mail, para %1$s</string>
+    <string name="perfil_avisos_celular">Notificação neste aparelho</string>
+    <string name="perfil_avisos_salvos">Avisos salvos.</string>
+    <string name="perfil_avisos_sem_permissao">Permita as notificações do Piggu nas configurações do Android e tente de novo.</string>
+
+    <!-- Compartilhamento -->
+    <string name="perfil_compartilhamento_titulo">Compartilhamento</string>
+    <string name="perfil_compartilhamento_explicacao">Cada um vê o que é seu e o que foi marcado como compartilhado. O que é só seu continua só seu, a não ser que você libere abaixo.</string>
+    <string name="perfil_parceiro_ve_tudo">%1$s vê tudo o que eu lanço</string>
+    <string name="perfil_compartilhar_por_padrao">Lançamentos novos já nascem compartilhados</string>
+    <string name="perfil_compartilhamento_salvo">Compartilhamento salvo.</string>
+
+    <!-- Painel e telas do menu -->
+    <string name="perfil_painel_titulo">Organizar o Painel</string>
+    <string name="perfil_painel_explicacao">Ligue os blocos que quer ver na tela inicial e arraste para mudar a ordem. Vale para este aparelho.</string>
+    <string name="perfil_painel_organizar">Organizar o Painel</string>
+    <string name="perfil_modulos_titulo">Telas do menu</string>
+    <string name="perfil_modulos_explicacao">Desligue as telas de estilo de vida que você não usa; elas saem do Mais.</string>
+    <string name="perfil_modulo_compras">Compras</string>
+    <string name="perfil_modulo_lugares">Lugares</string>
+    <string name="perfil_modulo_filmes">Filmes</string>
+    <string name="perfil_modulo_fotos">Fotos</string>
+    <string name="perfil_modulo_premios">Prêmios</string>
+    <string name="perfil_modulo_girls_math">Girls Math</string>
+
+    <!-- Aparência, cor e ícone -->
+    <string name="perfil_aparencia_titulo">Aparência</string>
+    <string name="perfil_aparencia_explicacao">No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.</string>
+    <string name="perfil_cores_do_celular">Cores do celular</string>
+    <string name="perfil_cores_do_celular_explicacao">Usa as cores do seu papel de parede no lugar da Cor do Piggu.</string>
+    <string name="perfil_cor_titulo">Cor do Piggu</string>
+    <string name="perfil_mais_cores_no_premium">Mais cores no Premium</string>
+    <string name="perfil_cor_explicacao">Vale para este aparelho e acompanha o modo claro ou escuro.</string>
+    <string name="perfil_premium">Premium</string>
+    <string name="perfil_do_premium">%1$s, do Premium</string>
+    <string name="perfil_voltou_ao_padrao">O Premium acabou, então a cor e o ícone voltaram para o padrão.</string>
+    <string name="perfil_entendi">Entendi</string>
+    <string name="perfil_premium_do_titular">Essa personalização é do Piggu Premium. Quem cuida da assinatura é o titular da família.</string>
+    <string name="perfil_icone_titulo">Ícone do app</string>
+    <string name="perfil_icone_explicacao">O ícone do Piggu na tela inicial. O novo aparece quando você sair do app; alguns aparelhos levam alguns segundos para mostrar.</string>
+    <string name="perfil_icone_padrao">Neon</string>
+    <string name="perfil_icone_classico">Clássico</string>
+    <string name="perfil_icone_monograma">P de Piggu</string>
+    <string name="perfil_icone_silhueta">Silhueta</string>
+    <string name="perfil_icone_azul">Azul</string>
+    <string name="perfil_icone_menta">Menta</string>
+    <string name="perfil_icone_lilas">Lilás</string>
+    <string name="perfil_icone_coral">Coral</string>
+    <string name="perfil_icone_mel">Mel</string>
+    <string name="perfil_icone_vinho">Vinho</string>
+    <string name="perfil_icone_grafite">Grafite</string>
+    <string name="perfil_icone_namorados">Namorados</string>
+
+    <!-- Tour e IA -->
+    <string name="perfil_tour_titulo">Tour do Piggu</string>
+    <string name="perfil_tour_explicacao">O passo a passo das funções principais, o mesmo do primeiro acesso.</string>
+    <string name="perfil_tour_ver">Ver o tour de novo</string>
+    <string name="perfil_ia_titulo">Autorizações da IA</string>
+    <string name="perfil_ia_explicacao">Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.</string>
+    <string name="perfil_ia_retirar_nota">Retirar autorização da foto da nota</string>
+    <string name="perfil_ia_retirar_assistente">Retirar autorização do assistente</string>
+    <string name="perfil_ia_nota_retirada">Pronto. A foto da nota só vai ao Google se você autorizar de novo.</string>
+    <string name="perfil_ia_assistente_retirada">Pronto. O assistente só envia dados ao Google se você autorizar de novo.</string>
+
+    <!-- Senha de acesso -->
+    <string name="perfil_senha_titulo">Senha de acesso</string>
+    <string name="perfil_senha_tem">Você entra com %1$s e sua senha, ou pelo Google. Trocar a senha encerra as sessões nos outros aparelhos.</string>
+    <string name="perfil_senha_nao_tem">Hoje você entra pelo Google. Crie uma senha para entrar também com %1$s.</string>
+    <string name="perfil_documento_pendente">Documento ainda não informado (opcional).</string>
+    <string name="perfil_informar_agora">Informar agora</string>
+    <string name="perfil_senha_atual">Senha atual</string>
+    <string name="perfil_senha_nova">Nova senha</string>
+    <string name="perfil_senha_repita">Repita a nova senha</string>
+    <string name="perfil_senha_dica">Pelo menos 8 caracteres, com letras e números.</string>
+    <string name="perfil_senha_trocar">Trocar senha</string>
+    <string name="perfil_senha_criar">Criar senha</string>
+    <string name="perfil_senha_informe_a_atual">Informe a senha atual.</string>
+    <string name="perfil_senha_diferentes">As duas senhas não são iguais.</string>
+    <string name="perfil_senha_curta">A senha precisa ter pelo menos 8 caracteres.</string>
+    <string name="perfil_senha_longa">A senha pode ter no máximo 72 caracteres.</string>
+    <string name="perfil_senha_letras_e_numeros">Use letras e números na senha.</string>
+    <string name="perfil_senha_igual_ao_email">A senha não pode ser o seu e-mail.</string>
+    <string name="perfil_senha_trocada">Senha trocada. Os outros aparelhos vão pedir para entrar de novo.</string>
+    <string name="perfil_senha_criada">Senha criada. Agora você também entra com e-mail e senha.</string>
+
+    <!-- Seus dados -->
+    <string name="perfil_dados_titulo">Seus dados</string>
+    <string name="perfil_dados_explicacao">Baixe uma cópia de tudo o que o Piggu guarda sobre você ou exclua a conta. Os dois são gratuitos em qualquer plano.</string>
+    <string name="perfil_dados_baixar">Baixar meus dados</string>
+    <string name="perfil_dados_arquivo" translatable="false">piggu-meus-dados.json</string>
+    <string name="perfil_dados_salvos">Seus dados foram salvos no arquivo escolhido.</string>
+    <string name="perfil_dados_nao_gravou">Não consegui gravar o arquivo. Tente de novo.</string>
+    <string name="perfil_excluir_conta">Excluir minha conta</string>
+
+    <!-- Contas da instalação e sair -->
+    <string name="perfil_contas_titulo">Contas da instalação</string>
+    <string name="perfil_contas_vazio">Nenhuma conta criada ainda.</string>
+    <string name="perfil_contas_papel_de">Perfil de %1$s</string>
+    <string name="perfil_contas_desativar">Desativar</string>
+    <string name="perfil_contas_ativar">Ativar</string>
+    <string name="perfil_sair">Sair da conta</string>
+</resources>

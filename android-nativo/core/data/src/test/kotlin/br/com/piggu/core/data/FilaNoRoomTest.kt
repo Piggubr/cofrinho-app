@@ -134,17 +134,13 @@ class FilaNoRoomTest {
     }
 
     @Test
-    fun `cada pessoa ve e envia so os seus, e apagar ao sair tira so os da pessoa`() = runTest {
+    fun `cada pessoa ve e envia so os seus, e sair nao apaga`() = runTest {
         val m = montar()
         val ana = m.rede.sessao.usuario!!
         m.fila.guardar(gasto("Da Ana"))
         m.rede.sessao.entrou(ana.copy(id = "u-bia"))
         m.fila.guardar(gasto("Da Bia"))
         m.fila.aguardando.esperar { lista -> lista.map { it.idDoEnvio } == listOf("id-Da Bia") }
-
-        m.fila.apagarDaPessoa()
-        assertEquals(0, m.fila.restam())
-        assertEquals(0, m.fila.enviar())
 
         m.rede.sessao.entrou(ana)
         m.fila.aguardando.esperar { lista -> lista.map { it.idDoEnvio } == listOf("id-Da Ana") }

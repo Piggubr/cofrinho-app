@@ -34,8 +34,8 @@ import javax.inject.Singleton
  * A [FilaDeGastos] no Room (tabela gastos_aguardando). Guardar já agenda o envio no WorkManager
  * ([agendarEnvioDaFila]), que espera a rede. Só um envio por vez.
  *
- * Diferente do iOS (D-090 de lá): "Sair" pelo botão apaga a fila da pessoa ([apagarDaPessoa]); a
- * sessão que só caiu não apaga, e a pessoa envia quando entrar de novo.
+ * Como no iOS (D-090 de lá, D-123): sair não apaga a fila; cada pessoa só vê e envia os seus,
+ * quando entrar de novo neste aparelho.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
@@ -93,11 +93,6 @@ class FilaNoRoom @Inject constructor(
     suspend fun restam(): Int = sessao.usuario?.id?.let { dao.daPessoa(it).size } ?: 0
 
     override suspend fun esquecerRecusados() {
-        contagemDeRecusados.value = 0
-    }
-
-    override suspend fun apagarDaPessoa() {
-        sessao.usuario?.id?.let { dao.apagarDaPessoa(it) }
         contagemDeRecusados.value = 0
     }
 

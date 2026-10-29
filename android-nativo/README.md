@@ -25,7 +25,7 @@ plataforma que faltar.
 | `core:model` | Os tipos do contrato da API (`models.ts` e `docs/api/*.yaml`), sem Android: dinheiro em `BigDecimal`, enum com `DESCONHECIDO` (D-101) |
 | `core:network` | Um serviço Retrofit por microserviço, `ErroDaApi` e as mensagens de erro, `User-Agent` e o aviso de atualizar (426) |
 | `core:database` | Room: as respostas da API guardadas em JSON por chave (D-103) |
-| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo) |
+| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, tour visto) |
 | `core:data` | `Sessao` (login, renovação, sair), as regras da conta (`auth.guard.ts`), o cache offline-first, o monitor de rede |
 | `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
 | `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
@@ -41,6 +41,13 @@ plataforma que faltar.
 | `feature:calendario` | Calendário: a grade do mês, as notas e o gráfico acumulado |
 | `feature:relatorios` | Relatórios: o mês por categoria, o ano (Premium) e o CSV do mês |
 | `feature:contas` | Cartões e bancos: contas, cartões, a fatura e os bancos conectados |
+| `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
+| `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
+| `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
+| `feature:premios` | Prêmios: as Fofocoins, os prêmios e os resgates |
+| `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
+| `feature:plano` | Premium: o plano, os preços e o cancelamento; "Em breve" no lugar de assinar até a A8 (D-121) |
+| `feature:perfil` | Perfil: foto e nome, moeda, avisos, aparência, ícone do app (D-119), módulos, senha, privacidade e excluir a conta |
 | `baselineprofile` | Gera o perfil de inicialização com um aparelho conectado |
 
 ## Sessão e rede
@@ -91,6 +98,8 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
 ## Capturas
 
+- [docs/prints/etapa-6](docs/prints/etapa-6): Minhas metas, Girls Math, Planejar, Prêmios,
+  Família, Premium e Perfil.
 - [docs/prints/etapa-5](docs/prints/etapa-5): Relatórios, Contas do mês, Orçamento,
   Calendário (lado a lado no tablet) e Cartões e bancos.
 - [docs/prints/etapa-4](docs/prints/etapa-4): Painel, Gastos, Receitas, lançar gasto, lançar

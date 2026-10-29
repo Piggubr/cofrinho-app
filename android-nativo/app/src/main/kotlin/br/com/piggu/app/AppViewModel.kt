@@ -6,7 +6,6 @@ import br.com.piggu.feature.login.esquecerAContaDoGoogle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.EstadoDaSessao
-import br.com.piggu.core.data.FilaDeGastos
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.data.ehTitular
@@ -21,15 +20,19 @@ import br.com.piggu.core.model.Cotacao
 import br.com.piggu.core.model.Usuario
 import br.com.piggu.core.network.AvisoDeVersao
 import br.com.piggu.core.network.ServicoDeFinancas
+import br.com.piggu.feature.perfil.IconesDoApp
 import br.com.piggu.core.ui.formatos.formatarCotacao
 import br.com.piggu.app.moldura.PerfilDaMoldura
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -60,7 +63,7 @@ class AppViewModel @Inject constructor(
     private val preferencias: PreferenciasDoAparelho,
     private val financas: ServicoDeFinancas,
     private val conversa: ConversaGuardada,
-    private val fila: FilaDeGastos,
+    private val iconesDoApp: IconesDoApp,
     aviso: AvisoDeVersao,
 ) : ViewModel() {
 
@@ -89,6 +92,21 @@ class AppViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, EstadoDoApp())
 
+    private val pessoaLogada = sessao.estado
+        .map { (it as? EstadoDaSessao.Logado)?.usuario?.takeIf { u -> u.pendencia == null }?.id }
+        .distinctUntilChanged()
+
+    /** O tour do primeiro acesso (abrirSeNovo do Tutorial do site): uma vez por pessoa neste aparelho. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tourNovo: StateFlow<Boolean> = pessoaLogada
+        .flatMapLatest { id -> if (id == null) flowOf(false) else preferencias.viuOTour(id).map { !it } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /** Fechou o tour, no fim ou pelo "Pular". */
+    fun viuOTour() {
+        viewModelScope.launch { pessoaLogada.first()?.let { preferencias.marcarTourVisto(it) } }
+    }
+
     init {
         viewModelScope.launch { sessao.restaurar() }
         // Premium que acabou: a cor Premium volta ao Chiclete e a moldura avisa (marcarQueVoltouAoPadrao).
@@ -97,6 +115,8 @@ class AppViewModel @Inject constructor(
                 if (premium == false && VarianteDeCor.deId(preferencias.cor.first()).premium) {
                     preferencias.voltarAoPadrao(VarianteDeCor.Chiclete.id)
                 }
+                // O ícone Premium também volta ao padrão (o Clássico, grátis, fica).
+                if (premium != null) iconesDoApp.voltarAoPadraoSemPremium(premium)
             }
         }
         // Saiu, apagou a conta ou a sessão caiu: o próximo "Entrar com o Google" pergunta a conta de novo.
@@ -128,12 +148,9 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { preferencias.esquecerQueVoltouAoPadrao() }
     }
 
-    /** "Sair" pelo botão também apaga os gastos guardados sem internet desta pessoa (D-108). */
+    /** Os gastos guardados sem internet ficam e vão quando a pessoa entrar de novo, como no iOS (D-123). */
     fun sair() {
-        viewModelScope.launch {
-            fila.apagarDaPessoa()
-            sessao.sair()
-        }
+        viewModelScope.launch { sessao.sair() }
     }
 
     private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val voltou: Boolean)

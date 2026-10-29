@@ -89,22 +89,10 @@ fun TelaDoMais(
     abrir: (Tela) -> Unit,
     sair: () -> Unit,
     folgaEmbaixo: PaddingValues,
-    excluirConta: () -> Unit = {},
-    avisoDoEmail: @Composable () -> Unit = {},
 ) {
     var confirmandoSaida by rememberSaveable { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = folgaEmbaixo) {
         item { CartaoDoPerfil(perfil) { abrir(Tela.Perfil) } }
-        if (!perfil.emailConfirmado) item { Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) { avisoDoEmail() } }
-        if (!perfil.cpfInformado) {
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.cpf_nao_informado)) },
-                    supportingContent = { Text(stringResource(R.string.cpf_informar_agora)) },
-                    modifier = Modifier.clickableComPapel(Role.Button) { abrir(Tela.Cpf) },
-                )
-            }
-        }
         item {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.plano)) },
@@ -144,14 +132,6 @@ fun TelaDoMais(
                 headlineContent = { Text(stringResource(R.string.sair), color = MaterialTheme.colorScheme.error) },
                 leadingContent = { Icon(painterResource(Icone.Sair.desenho), null, tint = MaterialTheme.colorScheme.error) },
                 modifier = Modifier.clickableComPapel(Role.Button) { confirmandoSaida = true },
-            )
-        }
-        // O Google Play exige excluir a conta dentro do app; o Perfil do site tem o mesmo botão.
-        item {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.excluir_minha_conta), color = MaterialTheme.colorScheme.error) },
-                leadingContent = { Icon(painterResource(Icone.Lixeira.desenho), null, tint = MaterialTheme.colorScheme.error) },
-                modifier = Modifier.clickableComPapel(Role.Button, excluirConta),
             )
         }
         item {

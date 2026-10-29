@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Premium (frontend/src/app/features/plan e PremiumView do iOS) -->
+    <string name="plano_titulo">Piggu Premium</string>
+    <string name="plano_voce_tem">Você tem o %1$s</string>
+    <string name="plano_nome_individual">Premium individual</string>
+    <string name="plano_nome_casal">Premium casal</string>
+    <string name="plano_nome_familia">Premium família</string>
+    <string name="plano_ate">Até %1$s</string>
+    <string name="plano_quem_assinou_casal">Quem assinou o plano casal da sua casa cuida da assinatura.</string>
+    <string name="plano_quem_assinou_familia">Quem assinou o plano família da sua casa cuida da assinatura.</string>
+    <string name="plano_origem_site">Assinado pelo site. Para trocar o cartão, ver os recibos ou cancelar, entre no Piggu pelo navegador.</string>
+    <string name="plano_origem_app_store">Assinado pelo iPhone. Para cancelar, use as assinaturas da App Store.</string>
+    <string name="plano_origem_play_store">Assinado pelo app. Para cancelar, use as assinaturas do Google Play.</string>
+    <string name="plano_reembolso_pedir">Cancelar e pedir reembolso</string>
+    <string name="plano_reembolso_ate">Mudou de ideia? Até %1$s você cancela e recebe tudo de volta.</string>
+    <string name="plano_reembolso_confirmar">Cancelar o Premium agora e receber de volta todo o valor pago?</string>
+    <string name="plano_reembolso_manter">Manter o Premium</string>
+    <string name="plano_reembolsado">Premium cancelado. O reembolso aparece na fatura do cartão em alguns dias.</string>
+    <string name="plano_cancelado_no_teste">Premium cancelado. Você estava no teste grátis, então nada foi cobrado.</string>
+    <string name="plano_admin">Como administrador, você já usa tudo do Premium.</string>
+    <string name="plano_casa_tem_casal">Sua casa tem o Premium casal, que vale para o titular e o parceiro. Quem assinou pode trocar para o plano família e liberar o Premium para todos.</string>
+    <string name="plano_casa_tem_individual">Alguém da sua família assinou o Premium individual, que vale só para essa pessoa. Ela pode trocar para o plano família e liberar o Premium para a casa toda.</string>
+    <string name="plano_assinar_em_breve_texto">Em breve você assina o Premium aqui no app, com a cobrança pelo Google Play.</string>
+    <string name="plano_em_breve">Em breve</string>
+    <string name="plano_seu_plano">Seu plano</string>
+    <string name="plano_gratuito">Gratuito</string>
+    <string name="plano_gratuito_etiqueta">R$ 0</string>
+    <string name="plano_premium">Premium</string>
+    <string name="plano_premium_etiqueta">só para você</string>
+    <string name="plano_preco_mensal">R$ %1$s/mês</string>
+    <string name="plano_preco_anual">ou R$ %1$s/ano (2 meses grátis)</string>
+    <string name="plano_casal">Premium casal</string>
+    <string name="plano_casal_etiqueta">você e seu parceiro</string>
+    <string name="plano_casal_item_1">Tudo do Premium para você e seu parceiro</string>
+    <string name="plano_casal_item_2">Cada um vê o seu e escolhe o que compartilhar</string>
+    <string name="plano_casal_item_3">Painel do casal, com quem deve quanto a quem no mês</string>
+    <string name="plano_casal_item_4">Cofrinhos a dois, em que os dois depositam</string>
+    <string name="plano_familia">Premium família</string>
+    <plurals name="plano_familia_etiqueta">
+        <item quantity="one">até %1$d pessoa</item>
+        <item quantity="other">até %1$d pessoas</item>
+    </plurals>
+    <string name="plano_familia_item_1">Tudo do Premium para todas as pessoas da sua família</string>
+    <plurals name="plano_familia_item_2">
+        <item quantity="one">A família pode ter até %1$d pessoa, contando você</item>
+        <item quantity="other">A família pode ter até %1$d pessoas, contando você</item>
+    </plurals>
+    <string name="plano_familia_item_3">Você e seu parceiro podem ver tudo um do outro; os demais veem só o próprio</string>
+    <string name="plano_letras_miudas">Cancele quando quiser, sem multa. Se o Premium acabar, nada do que você guardou some: tudo continua visível.</string>
+</resources>

@@ -65,6 +65,7 @@ import br.com.piggu.app.moldura.FOLGA_DO_LANCAR
 import br.com.piggu.app.moldura.Moldura
 import br.com.piggu.app.moldura.PerfilDaMoldura
 import br.com.piggu.app.moldura.TelaDoMais
+import br.com.piggu.app.moldura.TourDoPiggu
 import br.com.piggu.app.navegacao.Destino
 import br.com.piggu.app.navegacao.Tela
 import br.com.piggu.core.designsystem.ModoDeCor
@@ -75,8 +76,6 @@ import br.com.piggu.core.ui.Porquinho
 import br.com.piggu.core.ui.lembrarAbrirNoSite
 import br.com.piggu.feature.gastos.lista.TelaDeGastos
 import br.com.piggu.feature.login.AvisoDeConfirmarEmail
-import br.com.piggu.feature.login.DialogoDeExclusao
-import br.com.piggu.feature.login.ExclusaoViewModel
 import br.com.piggu.feature.painel.PainelScreen
 import br.com.piggu.feature.painel.TelaDoPainel
 import kotlinx.coroutines.flow.Flow
@@ -115,7 +114,8 @@ fun PigguApp(links: Flow<Destino> = emptyFlow(), viewModel: AppViewModel = hiltV
                         avisos.showSnackbar(corPadrao)
                     }
                 }
-                AppLogado(raiz.perfil, links, avisos, abrirNoSite, viewModel::sair)
+                val tourNovo by viewModel.tourNovo.collectAsStateWithLifecycle()
+                AppLogado(raiz.perfil, links, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo, viuOTour = viewModel::viuOTour)
             }
         }
     }
@@ -145,11 +145,25 @@ fun AppLogado(
     sair: () -> Unit,
     // Excluir a conta e reenviar a confirmação têm ViewModel do Hilt; as capturas desligam.
     acoesDaConta: Boolean = true,
+    tourNovo: Boolean = false,
+    viuOTour: () -> Unit = {},
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
     /** O gasto de um link ou da busca (id e mês aaaa-mm), que a aba Gastos abre e depois limpa. */
     var gastoParaAbrir by remember { mutableStateOf<Pair<String, String?>?>(null) }
     val escopoDosAvisos = rememberCoroutineScope()
+    /** "Organizar o Painel" do Perfil: a aba Painel abre com a folha de organizar. */
+    var organizarAoAbrir by remember { mutableStateOf(false) }
+    var tourAberto by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(tourNovo) { if (tourNovo) tourAberto = true }
+    val fecharTour = {
+        tourAberto = false
+        viuOTour()
+    }
+    val organizarPainel = {
+        organizarAoAbrir = true
+        pilha.irPara(Tela.Painel)
+    }
     var lancando by rememberSaveable { mutableStateOf<Lancamento?>(null) }
     /** O valor de piggu://gasto?valor=12.50, que o formulário já abre preenchido. */
     var valorDoGasto by remember { mutableStateOf<java.math.BigDecimal?>(null) }
@@ -187,7 +201,13 @@ fun AppLogado(
     if (topo !in Tela.abas) {
         // Fora das abas (textos legais, CPF, links do e-mail, erros): tela cheia, sem a moldura.
         BackHandler { pilha.removeLastOrNull() }
-        TelaCheia(topo, pilha, Tela.Painel, sair)
+        TelaCheia(
+            topo, pilha, Tela.Painel, sair,
+            organizarPainel = organizarPainel,
+            abrirTour = { tourAberto = true },
+            avisoDoEmail = { AvisoDeConfirmarEmail(perfil.email) },
+        )
+        if (tourAberto) TourDoPiggu(fecharTour)
         return
     }
 
@@ -216,6 +236,8 @@ fun AppLogado(
                         TelaDoPainel(
                             abrirTela = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) },
                             lancarGasto = { lancarGasto(null) },
+                            organizarAoAbrir = organizarAoAbrir,
+                            aoAbrirOrganizar = { organizarAoAbrir = false },
                         )
                     } else {
                         PainelScreen()
@@ -240,17 +262,7 @@ fun AppLogado(
                     }
                 }
                 entry<Tela.Mais> {
-                    val exclusao: ExclusaoViewModel? = if (acoesDaConta) hiltViewModel() else null
-                    TelaDoMais(
-                        perfil,
-                        BuildConfig.VERSION_NAME,
-                        ::abrir,
-                        sair,
-                        PaddingValues(bottom = FOLGA_DO_LANCAR),
-                        excluirConta = { exclusao?.abrir() },
-                        avisoDoEmail = { if (acoesDaConta) AvisoDeConfirmarEmail(perfil.email) },
-                    )
-                    exclusao?.let { DialogoDeExclusao(it) }
+                    TelaDoMais(perfil, BuildConfig.VERSION_NAME, ::abrir, sair, PaddingValues(bottom = FOLGA_DO_LANCAR))
                 }
             },
         )
@@ -270,6 +282,7 @@ fun AppLogado(
             abrirGasto = { id, mes -> gastoParaAbrir = id to mes; pilha.irPara(Tela.Gastos) },
         )
     }
+    if (tourAberto) TourDoPiggu(fecharTour)
 }
 
 /** O que o + lança (D-098 do iOS). */

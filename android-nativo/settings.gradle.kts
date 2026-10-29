@@ -38,6 +38,13 @@ include(
     ":feature:calendario",
     ":feature:relatorios",
     ":feature:contas",
+    ":feature:metas",
+    ":feature:girlsmath",
+    ":feature:planejar",
+    ":feature:premios",
+    ":feature:familia",
+    ":feature:perfil",
+    ":feature:plano",
     ":feature:legal",
     ":baselineprofile",
 )

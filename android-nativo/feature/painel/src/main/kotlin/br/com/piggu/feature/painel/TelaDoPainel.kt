@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,9 @@ fun TelaDoPainel(
     abrirTela: (caminho: String) -> Unit,
     lancarGasto: () -> Unit,
     modifier: Modifier = Modifier,
+    // "Organizar o Painel" do Perfil: a aba abre com a folha de organizar aberta.
+    organizarAoAbrir: Boolean = false,
+    aoAbrirOrganizar: () -> Unit = {},
     viewModel: PainelViewModel = hiltViewModel(),
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -127,6 +131,8 @@ fun TelaDoPainel(
         abrirTela,
         lancarGasto,
         modifier,
+        organizarAoAbrir = organizarAoAbrir,
+        aoAbrirOrganizar = aoAbrirOrganizar,
     )
 }
 
@@ -142,8 +148,16 @@ fun TelaDoPainel(
     abrirTela: (caminho: String) -> Unit,
     lancarGasto: () -> Unit,
     modifier: Modifier = Modifier,
+    organizarAoAbrir: Boolean = false,
+    aoAbrirOrganizar: () -> Unit = {},
 ) {
     var organizando by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(organizarAoAbrir) {
+        if (organizarAoAbrir) {
+            organizando = true
+            aoAbrirOrganizar()
+        }
+    }
     var pergunta by remember { mutableStateOf<Pergunta?>(null) }
     val perguntar: (Pergunta) -> Unit = { pergunta = it }
     val largura = Modifier.widthIn(max = 720.dp).fillMaxWidth()

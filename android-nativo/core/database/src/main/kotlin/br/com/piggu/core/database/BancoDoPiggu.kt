@@ -77,9 +77,6 @@ interface GastosAguardandoDao {
 
     @Query("DELETE FROM gastos_aguardando WHERE ordem = :ordem")
     suspend fun tirar(ordem: Long)
-
-    @Query("DELETE FROM gastos_aguardando WHERE usuario = :usuario")
-    suspend fun apagarDaPessoa(usuario: String)
 }
 
 /**

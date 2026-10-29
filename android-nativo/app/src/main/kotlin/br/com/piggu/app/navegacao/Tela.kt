@@ -41,9 +41,9 @@ sealed interface Tela : NavKey {
     @Serializable data object Mais : Tela { override val caminho = "/mais"; override val nativa = true }
 
     // Telas do menu (shell.ts): as da A5 já nativas, as outras no site por enquanto.
-    @Serializable data object Perfil : Tela { override val caminho = "/perfil" }
-    @Serializable data object Familia : Tela { override val caminho = "/familia" }
-    @Serializable data object Plano : Tela { override val caminho = "/plano" }
+    @Serializable data object Perfil : Tela { override val caminho = "/perfil"; override val nativa = true }
+    @Serializable data object Familia : Tela { override val caminho = "/familia"; override val nativa = true }
+    @Serializable data object Plano : Tela { override val caminho = "/plano"; override val nativa = true }
     @Serializable data object ContasECartoes : Tela { override val caminho = "/contas-e-cartoes"; override val nativa = true }
     @Serializable data object ContasFixas : Tela { override val caminho = "/contas-fixas"; override val nativa = true }
     @Serializable data object Orcamentos : Tela { override val caminho = "/orcamentos"; override val nativa = true }
@@ -52,10 +52,10 @@ sealed interface Tela : NavKey {
     @Serializable data object Lugares : Tela { override val caminho = "/lugares" }
     @Serializable data object Filmes : Tela { override val caminho = "/filmes" }
     @Serializable data object Feed : Tela { override val caminho = "/feed" }
-    @Serializable data object Premios : Tela { override val caminho = "/premios" }
-    @Serializable data object Planejar : Tela { override val caminho = "/planejar" }
-    @Serializable data object Metas : Tela { override val caminho = "/metas" }
-    @Serializable data object GirlsMath : Tela { override val caminho = "/girls-math" }
+    @Serializable data object Premios : Tela { override val caminho = "/premios"; override val nativa = true }
+    @Serializable data object Planejar : Tela { override val caminho = "/planejar"; override val nativa = true }
+    @Serializable data object Metas : Tela { override val caminho = "/metas"; override val nativa = true }
+    @Serializable data object GirlsMath : Tela { override val caminho = "/girls-math"; override val nativa = true }
 
     // Erros (features/erros): /erro é a 500, e qualquer caminho desconhecido é a 404.
     @Serializable data object Erro : Tela { override val caminho = "/erro"; override val nativa = true }

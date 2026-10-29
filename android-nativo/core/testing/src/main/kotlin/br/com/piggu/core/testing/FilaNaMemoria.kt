@@ -18,5 +18,4 @@ class FilaNaMemoria(aguardando: List<GastoAguardando> = emptyList(), recusados: 
 
     override suspend fun enviar(): Int = 0
     override suspend fun esquecerRecusados() { recusados.value = 0 }
-    override suspend fun apagarDaPessoa() { aguardando.value = emptyList() }
 }

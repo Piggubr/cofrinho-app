@@ -46,6 +46,13 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         }
     }
 
+    /** Se a pessoa já viu (ou pulou) o tour neste aparelho (Tutorial do site). */
+    fun viuOTour(pessoa: String): Flow<Boolean> = dados.data.map { it[tour(pessoa)] ?: false }
+
+    suspend fun marcarTourVisto(pessoa: String) {
+        dados.edit { it[tour(pessoa)] = true }
+    }
+
     suspend fun esquecerQueVoltouAoPadrao() {
         dados.edit { it.remove(VOLTOU) }
     }
@@ -56,5 +63,6 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         val MODO = stringPreferencesKey("piggu_modo")
         val VOLTOU = booleanPreferencesKey("piggu_personalizacao_voltou")
         val CORES_DO_CELULAR = booleanPreferencesKey("cores_do_celular")
+        fun tour(pessoa: String) = booleanPreferencesKey("piggu_tutorial_$pessoa")
     }
 }

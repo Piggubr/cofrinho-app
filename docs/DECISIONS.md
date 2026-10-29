@@ -109,7 +109,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-105](#d-105-etapa-a3-do-android-a-entrada-nativa-fora-da-moldura) | Etapa A3 do Android: a entrada nativa, fora da moldura | Valendo |
 | [D-106](#d-106-termos-e-aviso-do-android-copiados-do-site-pelo-ci) | Termos e Aviso do Android copiados do site pelo CI | Valendo |
 | [D-107](#d-107-formulários-da-entrada-no-android-com-o-erro-no-campo) | Formulários da entrada no Android com o erro no campo | Valendo |
-| [D-108](#d-108-fila-de-gastos-do-android-no-room-com-o-workmanager-e-sair-apaga) | Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga | Valendo |
+| [D-108](#d-108-fila-de-gastos-do-android-no-room-com-o-workmanager-e-sair-apaga) | Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga | Substituída em parte por D-123 |
 | [D-109](#d-109-painel-do-android-com-gráficos-em-canvas-e-organizar-no-próprio-painel) | Painel do Android com gráficos em Canvas e organizar no próprio Painel | Valendo |
 | [D-110](#d-110-gastos-do-android-apagar-com-desfazer-busca-e-filtros-no-aparelho) | Gastos do Android: apagar com Desfazer, busca e filtros no aparelho | Valendo |
 | [D-111](#d-111-lançar-no-android-vários-itens-numa-folha-só-e-a-receita-pelo) | Lançar no Android: vários itens numa folha só, e a receita pelo + | Valendo |
@@ -119,6 +119,12 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-115](#d-115-calendário-do-android-lado-a-lado-pela-largura-e-a-grade-com-limite-de-fonte) | Calendário do Android lado a lado pela largura e a grade com limite de fonte | Valendo |
 | [D-116](#d-116-relatórios-do-android-com-o-csv-do-mês-e-tabela-também-no-mês) | Relatórios do Android com o CSV do mês e tabela também no mês | Valendo |
 | [D-117](#d-117-cartões-e-bancos-do-android-fatura-numa-folha-e-conectar-banco-pelo-site) | Cartões e bancos do Android: fatura numa folha e conectar banco pelo site | Valendo |
+| [D-118](#d-118-tour-do-android-em-diálogos-no-primeiro-acesso-e-pelo-perfil) | Tour do Android em diálogos, no primeiro acesso e pelo Perfil | Valendo |
+| [D-119](#d-119-o-ícone-do-app-troca-quando-a-pessoa-sai-do-app) | O ícone do app troca quando a pessoa sai do app | Valendo |
+| [D-120](#d-120-metas-prêmios-e-girls-math-do-android-criar-e-editar-numa-folha) | Metas, Prêmios e Girls Math do Android: criar e editar numa folha | Valendo |
+| [D-121](#d-121-premium-do-android-sem-a-stripe-em-breve-até-a-a8) | Premium do Android sem a Stripe: "Em breve" até a A8 | Valendo |
+| [D-122](#d-122-perfil-do-android-com-o-que-estava-no-mais) | Perfil do Android com o que estava no Mais | Valendo |
+| [D-123](#d-123-sair-do-android-guarda-a-fila-como-no-ios) | "Sair" do Android guarda a fila, como no iOS | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -938,7 +944,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-108: Fila de gastos do Android no Room, com o WorkManager, e "Sair" apaga
 - Data: 28/10/2026
-- Situação: Valendo
+- Situação: Substituída em parte por D-123 (o "Sair" não apaga mais a fila)
 - Contexto: etapa A4. Gasto lançado sem internet vai para uma fila (D-073 e D-075 do iOS). No iOS a fila não sai ao sair da conta (D-090 de lá); o Dudu pediu, no plano da A2, que o "Sair" do Android apague a fila.
 - Decisão: a fila fica numa tabela do Room (banco na versão 2, com migração), de cada pessoa, e sobe na ordem por um Worker do WorkManager com a rede como restrição, agendado ao guardar, ao abrir o app, ao entrar e quando a rede volta. Cada toque em "Lançar" tem um `idDoEnvio` novo, e só 400 e 422 tiram da fila e contam como recusados. O "Sair" pelo botão (do Mais e do Aceite) apaga a fila da pessoa antes de sair; a sessão que só caiu não apaga. Os gastos da fila aparecem na lista com "aguardando envio" e não entram no total.
 - Alternativas: guardar até a pessoa voltar, como o iOS.
@@ -1025,6 +1031,60 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: esperar a página do site.
 - Consequências: quando `/conectar-banco` chegar à `develop`, o Android faz como o iOS: `POST /api/banking/connect-token`, a página num Custom Tab e a volta por `piggu://banco-conectado`.
 - Onde ver: `android-nativo/feature/contas/`, `android-nativo/core/ui/.../formatos/Fatura.kt`, `TextosDosModulosTest.kt`
+
+## D-118: Tour do Android em diálogos, no primeiro acesso e pelo Perfil
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O tour do site (`tutorial.ts`) destaca cada parte da tela; no Compose, apontar para a aba, o + e a busca em cada tamanho de tela seria muito código para um passo a passo de oito cartões.
+- Decisão: os oito passos, com os textos do site, aparecem em diálogos em sequência, com Próximo (Concluir no último) e Pular. Abre sozinho no primeiro acesso de cada pessoa no aparelho (a chave `piggu_tutorial_<id>` do site, no DataStore) e pelo "Tour do Piggu" do Perfil.
+- Alternativas: destacar os alvos na tela como o site; só abrir pelo Perfil.
+- Consequências: o tour não aponta onde está cada coisa; o texto de cada passo diz.
+- Onde ver: `android-nativo/app/.../moldura/Tour.kt`, `AppViewModel.tourNovo`
+
+## D-119: O ícone do app troca quando a pessoa sai do app
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O seletor de ícone liga um dos 12 activity-alias do Capacitor e desliga os outros. Desligar o alias que abriu a tarefa faz o Android fechar o app na hora, como acontecia no Capacitor.
+- Decisão: a escolha fica guardada e a tela já mostra o ícone marcado. A troca no lançador só acontece quando o app sai da frente (`ProcessLifecycleOwner`, `onStop`), e o texto do Perfil avisa. Os ícones do Premium voltam ao Neon quando o Premium acaba, como a cor (D-101).
+- Alternativas: trocar na hora e deixar o app fechar; reabrir o app pelo link `piggu://perfil` (a tarefa nova também morria).
+- Consequências: alguns lançadores levam uns segundos para mostrar o ícone novo.
+- Onde ver: `android-nativo/feature/perfil/.../IconesDoApp.kt`, `PigguApplication.kt`
+
+## D-120: Metas, Prêmios e Girls Math do Android: criar e editar numa folha
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. No site, o formulário é um cartão acima da lista; no celular ele empurra a lista para baixo.
+- Decisão: criar e editar abrem numa folha, como no iOS. A foto do Girls Math é posta em pé pelo EXIF, reduzida a 1600 px no lado maior e regravada em JPEG (some a localização) antes de ir para a API. Todo papel usa o Girls Math, o membro também, com foto, como no site e no backend. O Planejar só tem atalhos, como no site, e por isso não tem estados de carregando nem de erro.
+- Alternativas: o cartão do site; mandar a foto original.
+- Consequências: a foto que sai do aparelho é menor que a original.
+- Onde ver: `android-nativo/feature/metas/`, `feature/premios/`, `feature/girlsmath/`, `feature/planejar/`
+
+## D-121: Premium do Android sem a Stripe: "Em breve" até a A8
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. A regra de pagamentos do Google Play não deixa o app abrir outro meio de pagamento para um produto digital. A compra pelo Google Play Billing fica para a A8.
+- Decisão: a tela do Premium (`features/plan`) é só do titular, como o `perfilGuard` do site. Ela mostra o plano e os preços, e onde o site tem "Assinar" mostra "Em breve". O checkout e o Portal do Cliente da Stripe nunca abrem no app: quem assinou pelo site lê que deve trocar o cartão ou cancelar pelo navegador. O cancelamento com reembolso nos 7 dias (CDC art. 49) continua no app, como no site.
+- Alternativas: abrir o checkout num Custom Tab (contra a regra do Google Play); esconder a tela até a A8.
+- Consequências: até a A8, ninguém assina pelo app Android.
+- Onde ver: `android-nativo/feature/plano/`
+
+## D-122: Perfil do Android com o que estava no Mais
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. Até a A5, o Mais tinha o aviso de confirmar o e-mail, o CPF e o "Excluir minha conta", porque o Perfil abria no site.
+- Decisão: com o Perfil nativo, esses três voltam para o Perfil, como no site e no iOS. "Organizar o Painel" abre o Painel com a folha de organizar. Definir ou trocar a senha passa pela sessão (`Sessao.definirSenha`), que manda o refresh token e guarda a sessão nova. A família do Perfil busca o histórico só quando a pessoa pede.
+- Alternativas: deixar os três também no Mais.
+- Consequências: o Mais fica só com o menu, os textos legais, o Sair e a versão.
+- Onde ver: `android-nativo/feature/perfil/`, `android-nativo/app/.../moldura/Mais.kt`
+
+## D-123: "Sair" do Android guarda a fila, como no iOS
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A6. O D-108 fazia o "Sair" apagar os gastos guardados sem internet. O Dudu preferiu o comportamento do iOS (D-090 de lá).
+- Decisão: sair, pelo Mais, pelo Perfil ou pelo Aceite, não apaga a fila. Cada pessoa só vê e envia os seus gastos guardados, quando entrar de novo neste aparelho.
+- Alternativas: apagar ao sair (D-108).
+- Consequências: o gasto lançado sem internet não se perde ao sair da conta; ele fica no aparelho até a mesma pessoa entrar de novo.
+- Onde ver: `android-nativo/core/data/.../FilaNoRoom.kt`, `AppViewModel.sair`
 
 # Processo
 
