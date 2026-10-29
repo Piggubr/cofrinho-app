@@ -4,6 +4,7 @@
 |---|---|---|---|---|
 | `main` | Produção (piggu.com.br) | Sim, no push e no PR | **Sim**, depois do CI verde | Só por PR vindo da `develop` ou de `hotfix/...` |
 | `develop` | Onde as features se juntam antes de ir para produção | Sim, no push e no PR | Não | Só por PR |
+| `feature/ios-nativo` | Junta as etapas do app iOS nativo para testar tudo junto antes da `develop` (D-089) | Pelo PR | Não | Por PR das `swift/etapa-N` |
 | Qualquer outra (`feature/...`, `claude/...`, `demo/...`) | Trabalho em andamento | Pelo PR, ou na mão em *Actions > CI > Run workflow* | Não | Push direto |
 
 As outras branches podem, no máximo, rodar os testes com cobertura e as verificações de
@@ -23,7 +24,7 @@ depois um PR da `main` para a `develop` para as duas não divergirem.
 
 App Android nativo: cada etapa numa `android/etapa-N` a partir da `feature/android-nativo`,
 com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o app estiver
-pronto (D-090).
+pronto (D-137).
 
 ## Por que assim
 

@@ -12,6 +12,8 @@ import com.nimbusds.jwt.SignedJWT;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.identity.config.GoogleProperties;
 import com.sun.net.httpserver.HttpServer;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GoogleIdTokenVerifierTest {
 
     private static final String SITE = "site.apps.googleusercontent.com";
+    private static final String IOS = "ios.apps.googleusercontent.com";
 
     private static HttpServer jwks;
     private static RSAKey chave;
@@ -52,7 +56,7 @@ class GoogleIdTokenVerifierTest {
         });
         jwks.start();
         String uri = "http://127.0.0.1:" + jwks.getAddress().getPort() + "/certs";
-        verificador = new GoogleIdTokenVerifier(new GoogleProperties(List.of(SITE), uri, null));
+        verificador = new GoogleIdTokenVerifier(new GoogleProperties(List.of(SITE, IOS), uri, null));
     }
 
     @AfterAll
@@ -67,6 +71,25 @@ class GoogleIdTokenVerifierTest {
 
         assertThat(perfil).isEqualTo(new GoogleProfile("sub-1", "ana@gmail.com", "Ana Souza", "Ana",
                 "https://foto.test/ana.jpg"));
+    }
+
+    @Test
+    @DisplayName("token do app iOS passa: a audiencia e o ID OAuth do app, nao o do site")
+    void tokenDoAppIos() throws Exception {
+        String doIos = token(c -> c.audience(IOS).claim("azp", IOS));
+
+        assertThat(verificador.verificar(doIos).email()).isEqualTo("ana@gmail.com");
+    }
+
+    @Test
+    @DisplayName("GOOGLE_CLIENT_ID com virgula vira a lista de IDs aceitos")
+    void idsSeparadosPorVirgula() {
+        Binder binder = new Binder(new MapConfigurationPropertySource(
+                Map.of("piggu.google.client-ids", SITE + ", " + IOS)));
+
+        GoogleProperties propriedades = binder.bind("piggu.google", GoogleProperties.class).get();
+
+        assertThat(propriedades.clientIds()).containsExactly(SITE, IOS);
     }
 
     @Test

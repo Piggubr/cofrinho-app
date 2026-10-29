@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["H766LA27ZJ.br.com.piggu.app"],
+        "components": [
+          { "/": "/confirmar-email", "?": { "token": "?*" } },
+          { "/": "/redefinir-senha", "?": { "token": "?*" } }
+        ]
+      }
+    ]
+  },
+  "webcredentials": { "apps": ["H766LA27ZJ.br.com.piggu.app"] }
+}

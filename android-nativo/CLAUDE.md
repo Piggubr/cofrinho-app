@@ -7,7 +7,7 @@ estas são as do app Android, para todas as etapas (A0 a A9).
 ## Branches e PR
 
 - Cada etapa numa branch `android/etapa-N` a partir da `feature/android-nativo`, com PR para a
-  `feature/android-nativo` (D-090). Ela vai para a `develop` por PR só quando o Dudu pedir.
+  `feature/android-nativo` (D-137). Ela vai para a `develop` por PR só quando o Dudu pedir.
 - Não mexer em `frontend/android` (o app Capacitor) nem em `ios-nativo`.
 - Nunca publicar nada no Google Play sem o Dudu pedir.
 

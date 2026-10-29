@@ -61,7 +61,7 @@ plataforma que faltar.
 - Um 401 renova uma vez, e as chamadas ao mesmo tempo esperam a mesma renovação. Só a
   renovação recusada (401 ou 403) leva de volta ao login.
 - Tela que ainda não é nativa abre a página do site num Custom Tab, com o ícone de "abre fora"
-  (D-099). Os links `piggu://gasto?valor=12.50`, `piggu://gastos?id=...&mes=aaaa-mm` e
+  (D-138). Os links `piggu://gasto?valor=12.50`, `piggu://gastos?id=...&mes=aaaa-mm` e
   `piggu://<rota do site>` funcionam; os App Links de `https://piggu.com.br` só cobrem as
   telas nativas.
 - Variante `demo`: a `ApiDaDemo` responde tudo, com qualquer e-mail e senha (a conta da Ana).
@@ -117,7 +117,7 @@ Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0
 - Idioma: só pt-BR, com o `locales_config` pronto para o idioma por app.
 
 minSdk 26, targetSdk 36 e compileSdk 37: o Compose e o Navigation 3 estáveis pedem
-compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
+compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 
 ## Lançamento (A9)
 

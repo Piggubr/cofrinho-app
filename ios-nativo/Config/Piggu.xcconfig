@@ -1,0 +1,7 @@
+// Ajustes do alvo Piggu que nao cabem no projeto.
+
+// IDs OAuth do Google (publicos, vao dentro do app). O do iOS abre o login; o do site (o mesmo de
+// app-config.ts) vai no aud do token, que o backend ja aceita em GOOGLE_CLIENT_ID.
+GOOGLE_IOS_CLIENT_ID = 80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360.apps.googleusercontent.com
+GOOGLE_IOS_URL_SCHEME = com.googleusercontent.apps.80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360
+GOOGLE_SERVER_CLIENT_ID = 80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com
