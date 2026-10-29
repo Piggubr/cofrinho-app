@@ -119,8 +119,37 @@ Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0
 minSdk 26, targetSdk 36 e compileSdk 37: o Compose e o Navigation 3 estáveis pedem
 compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-089).
 
+## Lançamento (A9)
+
+- **Versão:** 2.0.0, `versionCode` 200, acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
+- **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`); sem eles, o AAB sai sem assinatura.
+- **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` guarda o `app-producao-release.aab` como artefato. O envio ao Play Console é manual, com a confirmação do Dudu.
+- **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).
+- **Abertura:** num emulador simples (API 26, 2 GB de RAM), com o perfil compilado como o Play compila, o primeiro quadro sai em ~250 ms e o Painel com os números em ~500 ms (mediana de 8 aberturas a frio, `am start -S -W` e o "Fully drawn" do `ReportDrawnWhen`). Sem o perfil compilado (APK instalado à mão), o Painel leva ~1,7 s.
+
+### Teste interno no Play Console
+
+1. Play Console > o app Piggu > Testar e lançar > Teste > **Teste interno** > Criar nova versão.
+2. Envie o `app-producao-release.aab` do artefato do CI (assinado com a chave de upload). Na primeira vez, aceite a assinatura de apps do Google Play.
+3. Nome da versão "2.0.0 (200)" e as notas; Salvar > Revisar versão > Iniciar o lançamento no teste interno.
+4. Em **Testadores**, crie a lista (até 100 e-mails) e copie o link de participação. Quem aceitar instala pela Play Store, em minutos.
+5. Para comprar o Premium sem cobrança, ponha os mesmos e-mails em Configurações > **Teste de licença**.
+
+## Acessibilidade
+
+- `AcessibilidadeTest` (variante demo) passa pelo Painel, Gastos, lançar gasto e Perfil, rolando
+  até o fim: nenhum nó tocável sem rótulo e pelo menos um título marcado com `heading()`.
+- `ContrasteTest` (`core:designsystem`) confere o WCAG AA (4,5:1) do texto nas 13 cores, em claro
+  e escuro, inclusive o texto na cor do tema sobre o fundo e os cartões. Onde a cor do site não
+  passava, só a `primary` do Android mudou (`texto` em `gerar-cores.mjs`): Chiclete claro
+  `#C60065` e escuro `#FF64B2`, Tangerina claro `#B73A00` e Turquesa claro `#00707B`.
+- Nenhuma Activity trava a orientação.
+
 ## Capturas
 
+- [docs/prints/etapa-9](docs/prints/etapa-9): a fonte do sistema em 200% (Painel, lançar gasto,
+  Gastos e Perfil) e o Painel e Gastos no celular pequeno (320dp, barra), no dobrável aberto
+  (673dp, trilho), no tablet e na tela grande (1920dp, gaveta).
 - [docs/prints/etapa-8](docs/prints/etapa-8): Premium com o "Restaurar compras" (a demonstração
   já é Premium pelo site, então não mostra a compra).
 - [docs/prints/etapa-7](docs/prints/etapa-7): Compras, Lugares, Filmes, Fotos e o tour (o

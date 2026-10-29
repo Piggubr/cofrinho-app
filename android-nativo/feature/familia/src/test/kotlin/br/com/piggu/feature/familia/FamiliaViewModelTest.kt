@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.EstadoDaSessao
@@ -21,6 +20,7 @@ import br.com.piggu.core.testing.RedeDeTeste
 import br.com.piggu.core.testing.RespostaFixa
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.core.testing.esperar
+import br.com.piggu.core.testing.estadosDe
 import br.com.piggu.core.testing.redeDeTeste
 import br.com.piggu.core.ui.FalhaAoCarregar
 import kotlinx.coroutines.Dispatchers
@@ -131,17 +131,12 @@ class FamiliaViewModelTest {
         assertTrue(pedidos("POST /api/family/invites").isEmpty())
 
         vm.mudarEmail(" tia@exemplo.com ")
-        vm.estado.test {
-            awaitItem()
-            vm.convidar()
-            assertTrue(awaitItem().ocupado)
-            val convidou = awaitItem()
-            assertFalse(convidou.ocupado)
-            assertEquals(Aviso(R.string.familia_convite_criado), convidou.aviso)
-            assertEquals("", convidou.email)
-            assertTrue(convidou.casa!!.convites.any { it.email == "tia@exemplo.com" })
-            cancelAndIgnoreRemainingEvents()
-        }
+        val estados = estadosDe(vm.estado)
+        vm.convidar()
+        val convidou = vm.estado.esperar { it.aviso == Aviso(R.string.familia_convite_criado) && !it.ocupado }
+        assertTrue(estados.any { it.ocupado })
+        assertEquals("", convidou.email)
+        assertTrue(convidou.casa!!.convites.any { it.email == "tia@exemplo.com" })
         assertEquals(listOf("""POST /api/family/invites {"email":"tia@exemplo.com"}"""), pedidos("POST /api/family/invites"))
 
         val vovo = vm.estado.value.casa!!.convites.first { it.email == "vovo@exemplo.com" }

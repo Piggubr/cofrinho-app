@@ -1,6 +1,7 @@
 package br.com.piggu.feature.fotos
 
 import android.content.pm.PackageManager
+import androidx.compose.ui.semantics.heading
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -131,7 +132,7 @@ fun TelaDasFotos(estado: EstadoDasFotos, eventos: EventosDasFotos, modifier: Mod
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.fotos_titulo)) },
+                title = { Text(stringResource(R.string.fotos_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

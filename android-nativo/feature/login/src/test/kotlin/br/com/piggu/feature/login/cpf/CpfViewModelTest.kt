@@ -2,11 +2,9 @@ package br.com.piggu.feature.login.cpf
 import br.com.piggu.core.testing.sessaoDeTeste
 import br.com.piggu.core.testing.esperar
 
-import app.cash.turbine.test
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
 import br.com.piggu.feature.login.R
-import br.com.piggu.feature.login.cadastro.ate
 import br.com.piggu.feature.login.cadastro.usuario
 import br.com.piggu.core.testing.sessaoDeTeste
 import kotlinx.coroutines.Dispatchers
@@ -54,11 +52,9 @@ class CpfViewModelTest {
         assertEquals("PT", viewModel.estado.value.pais)
         viewModel.mudarPais("US")
         viewModel.mudarDocumento("52998224725")
-        viewModel.estado.test {
-            viewModel.continuar()
-            val gravado = ate { it.gravado }
-            assertNull(gravado.erro)
-        }
+        viewModel.continuar()
+        val gravado = viewModel.estado.esperar { it.gravado }
+        assertNull(gravado.erro)
         assertEquals("""PUT /api/me/pais {"pais":"US","documento":"52998224725"}""", fixas.pedidos.first())
         assertEquals(true, sessao.usuario!!.cpfInformado)
     }

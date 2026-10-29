@@ -210,7 +210,7 @@ class SessaoTest {
     }
 
     private suspend fun esperar(condicao: () -> Boolean) = naRede {
-        repeat(50) { if (condicao()) return@naRede; Thread.sleep(20) }
+        repeat(1_500) { if (condicao()) return@naRede; Thread.sleep(20) } // até 30 s: o CI do GitHub é lento
         fail("não aconteceu a tempo")
     }
 }

@@ -147,7 +147,7 @@ fun TelaDasContasECartoes(estado: EstadoDasContasECartoes, eventos: EventosDasCo
         modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.contas_titulo)) },
+                title = { Text(stringResource(R.string.contas_titulo), Modifier.semantics { heading() }) },
                 navigationIcon = {
                     IconButton(eventos.voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
                 },

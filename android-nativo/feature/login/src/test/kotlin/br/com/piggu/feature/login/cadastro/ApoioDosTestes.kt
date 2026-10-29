@@ -1,7 +1,6 @@
 package br.com.piggu.feature.login.cadastro
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import app.cash.turbine.ReceiveTurbine
 import br.com.piggu.core.data.AutenticacaoDaSessao
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.database.RespostaGuardada
@@ -19,14 +18,6 @@ import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.test.TestScope
 import okhttp3.Interceptor
-
-/** Espera, pelo Turbine, o primeiro estado que cumpre a [condicao]. */
-suspend fun <T> ReceiveTurbine<T>.ate(condicao: (T) -> Boolean): T {
-    while (true) {
-        val item = awaitItem()
-        if (condicao(item)) return item
-    }
-}
 
 /** Um perfil do identity em JSON, para as [RespostaFixa] e para abrir a sessão. */
 fun usuarioJson(extras: String = "") =

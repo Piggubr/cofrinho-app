@@ -1,8 +1,8 @@
 package br.com.piggu.feature.login
 import br.com.piggu.core.testing.sessaoDeTeste
 import br.com.piggu.core.testing.esperar
+import br.com.piggu.core.testing.estadosDe
 
-import app.cash.turbine.test
 import br.com.piggu.core.data.EstadoDaSessao
 import br.com.piggu.core.data.Pendencia
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
@@ -49,15 +49,12 @@ class EntradaTest {
         val sessao = sessaoDeTeste(pasta.root, fixas)
         val viewModel = LoginViewModel(sessao)
         viewModel.preencher(senha = "errada1")
-        viewModel.estado.test {
-            awaitItem()
-            viewModel.entrar()
-            assertTrue(awaitItem().entrando)
-            val depois = awaitItem()
-            assertFalse(depois.entrando)
-            assertEquals(MensagemDeErro.DoServidor("E-mail ou senha incorretos."), depois.erro)
-            assertNull(depois.senhaParaSalvar)
-        }
+        val estados = estadosDe(viewModel.estado)
+        viewModel.entrar()
+        val depois = viewModel.estado.esperar { !it.entrando && it.erro != null }
+        assertTrue(estados.any { it.entrando })
+        assertEquals(MensagemDeErro.DoServidor("E-mail ou senha incorretos."), depois.erro)
+        assertNull(depois.senhaParaSalvar)
         assertEquals(EstadoDaSessao.Verificando, sessao.estado.value)
     }
 

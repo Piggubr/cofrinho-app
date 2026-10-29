@@ -1,7 +1,5 @@
 package br.com.piggu.feature.assistente.busca
 
-import app.cash.turbine.ReceiveTurbine
-import app.cash.turbine.test
 import br.com.piggu.core.model.ModuloDeEstiloDeVida
 import br.com.piggu.core.model.Preferencias
 import br.com.piggu.core.testing.RedeDeTeste
@@ -24,13 +22,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-
-private suspend fun <T> ReceiveTurbine<T>.ate(condicao: (T) -> Boolean): T {
-    while (true) {
-        val item = awaitItem()
-        if (condicao(item)) return item
-    }
-}
 
 /** busca-global.spec.ts, com a sessão de verdade respondida pela API falsa da demonstração. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,13 +59,10 @@ class BuscaViewModelTest {
         advanceTimeBy(ESPERA_DA_BUSCA_MS - 1)
         runCurrent()
         assertEquals(0, buscasDeGastos())
-        busca.estado.test {
-            advanceTimeBy(2)
-            runCurrent()
-            val achou = ate { estado -> estado.resultados.any { it.grupo == GrupoDaBusca.Gastos } }
-            assertTrue(achou.resultados.all { it.grupo == GrupoDaBusca.Gastos && it.titulo == "Jantar de sexta" })
-            cancelAndIgnoreRemainingEvents()
-        }
+        advanceTimeBy(2)
+        runCurrent()
+        val achou = busca.estado.esperar { estado -> estado.resultados.any { it.grupo == GrupoDaBusca.Gastos } }
+        assertTrue(achou.resultados.all { it.grupo == GrupoDaBusca.Gastos && it.titulo == "Jantar de sexta" })
         assertEquals(1, buscasDeGastos())
     }
 

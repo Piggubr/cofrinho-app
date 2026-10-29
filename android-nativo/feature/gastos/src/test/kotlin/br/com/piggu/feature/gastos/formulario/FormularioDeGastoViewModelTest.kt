@@ -7,8 +7,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.ReceiveTurbine
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Lancamentos
 import br.com.piggu.core.data.ListasParaLancar
@@ -113,10 +111,6 @@ class FormularioDeGastoViewModelTest {
         .filter { it.startsWith("POST /api/expenses ") }
         .map { JsonDoPiggu.decodeFromString(NovoLancamento.serializer(), it.substringAfter("POST /api/expenses ")) }
 
-    private suspend fun <T> ReceiveTurbine<T>.ate(condicao: (T) -> Boolean): T {
-        while (true) awaitItem().let { if (condicao(it)) return it }
-    }
-
     private fun FormularioDeGastoViewModel.preencher(item: String, valor: String, linha: Int = 0) {
         val chave = estado.value.itens[linha].chave
         mudarDescricao(chave, item)
@@ -198,16 +192,13 @@ class FormularioDeGastoViewModelTest {
         // Compra em 28/10 no Nubank, que fecha dia 5: fatura de novembro, vencendo 12/11.
         assertEquals("2026-11" to "2026-11-12", viewModel.estado.value.fatura)
 
-        viewModel.estado.test {
-            viewModel.lancar()
-            val lancado = ate { it.lancado != null }
-            assertTrue(lancado.lancado!!.texto in setOf(R.string.formulario_gasto_lancado, R.string.formulario_lancado_atencao, R.string.formulario_lancado_estourou))
-            // Limpo para o próximo, com a conta lembrada.
-            assertEquals(1, lancado.itens.size)
-            assertEquals(ModoDaCompra.VISTA, lancado.modo)
-            assertEquals("", lancado.estabelecimento)
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.lancar()
+        val lancado = viewModel.estado.esperar { it.lancado != null }
+        assertTrue(lancado.lancado!!.texto in setOf(R.string.formulario_gasto_lancado, R.string.formulario_lancado_atencao, R.string.formulario_lancado_estourou))
+        // Limpo para o próximo, com a conta lembrada.
+        assertEquals(1, lancado.itens.size)
+        assertEquals(ModoDaCompra.VISTA, lancado.modo)
+        assertEquals("", lancado.estabelecimento)
         val pedido = fixas.lancados().single()
         assertEquals(listOf("Tênis", "Meia"), pedido.itens.map { it.item })
         assertEquals(listOf(null, "Vestuário"), pedido.itens.map { it.categoria })

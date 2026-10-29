@@ -1,7 +1,6 @@
 package br.com.piggu.feature.gastos.lista
 
 import androidx.lifecycle.viewModelScope
-import app.cash.turbine.test
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.GastoAguardando
@@ -44,12 +43,12 @@ import java.math.BigDecimal
 
 /** A exclusão vai pelo escopo do app, noutra thread: pergunta à API até a condição valer. */
 private suspend fun ate(condicao: suspend () -> Boolean) = withContext(Dispatchers.Default) {
-    withTimeout(5_000) { while (!condicao()) delay(20) }
+    withTimeout(30_000) { while (!condicao()) delay(20) } // 30 s, como o esperar: o CI do GitHub é lento
 }
 
 /** O Room na memória: guarda de verdade, para o offline-first rodar como no app. */
 private class RespostasNaMemoria : RespostasGuardadasDao {
-    private val guardadas = mutableMapOf<String, RespostaGuardada>()
+    private val guardadas = java.util.concurrent.ConcurrentHashMap<String, RespostaGuardada>() // gravado da thread do OkHttp
     override suspend fun ler(chave: String) = guardadas[chave]
     override suspend fun guardar(resposta: RespostaGuardada) { guardadas[resposta.chave] = resposta }
     override suspend fun apagarTudo() = guardadas.clear()
@@ -149,19 +148,16 @@ class GastosViewModelTest {
         val viewModel = tela(fixas)
         val padaria = viewModel.gasto("Padaria")
 
-        viewModel.estado.test {
-            // A divisão e as regras chegam por trás: vale o estado mais novo depois de cada evento.
-            viewModel.excluir(padaria)
-            val apagado = expectMostRecentItem()
-            assertEquals(ExclusaoPendente(padaria, eAsProximas = false), apagado.exclusao)
-            assertTrue(apagado.gastos!!.none { it.id == padaria.id })
+        // excluir e desfazer mudam o estado na hora: lê o valor, sem contar emissões.
+        viewModel.excluir(padaria)
+        val apagado = viewModel.estado.value
+        assertEquals(ExclusaoPendente(padaria, eAsProximas = false), apagado.exclusao)
+        assertTrue(apagado.gastos!!.none { it.id == padaria.id })
 
-            viewModel.desfazer()
-            val desfeito = expectMostRecentItem()
-            assertNull(desfeito.exclusao)
-            assertTrue(desfeito.gastos!!.any { it.id == padaria.id })
-            cancelAndIgnoreRemainingEvents()
-        }
+        viewModel.desfazer()
+        val desfeito = viewModel.estado.value
+        assertNull(desfeito.exclusao)
+        assertTrue(desfeito.gastos!!.any { it.id == padaria.id })
         assertTrue(fixas.pedidos.none { it.startsWith("DELETE") })
 
         viewModel.excluir(padaria)

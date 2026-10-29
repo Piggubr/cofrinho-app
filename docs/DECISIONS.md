@@ -135,6 +135,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-131](#d-131-trava-do-android-com-1-minuto-fora-e-esconder-nos-recentes) | Trava do Android com 1 minuto fora e esconder nos recentes | Valendo |
 | [D-132](#d-132-premium-no-android-pela-compra-do-google-play-conferida-no-backend-com-a-play-developer-api) | Premium no Android pela compra do Google Play, conferida no backend com a Play Developer API | Valendo |
 | [D-133](#d-133-premium-do-android-pelo-google-play-billing-e-o-stripe-fora-do-app) | Premium do Android pelo Google Play Billing, e o Stripe fora do app | Valendo |
+| [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
+| [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1185,6 +1187,24 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: oferecer o Stripe no app pelo faturamento alternativo do Brasil (pagaria cerca de 11% ao Google mais a taxa da Stripe, quase o mesmo que os 15% do Google Play, com a tela de escolha, o relatório diário e o PCI por nossa conta); o RevenueCat.
 - Consequências: no Play Console falta criar as duas assinaturas com os preços do app (R$ 22,89 e R$ 228,85). Até lá, a compra responde "Não foi possível falar com o Google Play". Substitui a D-121.
 - Onde ver: `android-nativo/feature/plano/` (`LojaDoGooglePlay.kt`, `PlanoViewModel.kt`), `android-nativo/app/src/{producao,demo}/.../ModuloDaVariante.kt`
+
+## D-134: A cor do texto do tema no Android passa no WCAG AA
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A9. O rosa do Chiclete do site (`#D1006B`), usado como texto, fica com 4,14:1 sobre o fundo dos cartões do Material 3 (surfaceContainerHighest), abaixo do 4,5:1 do WCAG AA. O mesmo acontece no Chiclete escuro e no Tangerina e Turquesa claros.
+- Decisão: no Android, a `primary` dessas variantes é a cor do site com a luminosidade ajustada só o necessário para 4,5:1 sobre o fundo e todos os containers: Chiclete `#C60065` (claro) e `#FF64B2` (escuro), Tangerina `#B73A00` e Turquesa `#00707B` (claros). O resto do esquema continua saindo da cor do site (`texto` em `gerar-cores.mjs`), e o `ContrasteTest` falha se uma cor nova ficar abaixo de 4,5:1. Os títulos das telas são anunciados como título, a barra de abas diminui o rótulo em vez de cortar, e o `AcessibilidadeTest` falha se um nó tocável não tiver rótulo.
+- Alternativas: manter a cor do site no texto (abaixo do AA em 4 variantes); escurecer também os botões e os containers.
+- Consequências: o rosa do app fica um pouco mais escuro que o do site nessas variantes; o site não muda.
+- Onde ver: `android-nativo/core/designsystem/` (`Cores.kt`, `gerar-cores.mjs`, `ContrasteTest.kt`), `app/src/testDemo/.../AcessibilidadeTest.kt`
+
+## D-135: Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel
+- Data: 28/10/2026
+- Situação: Valendo
+- Contexto: etapa A9. A 2.0.0 nativa substitui o app Capacitor no mesmo pacote (D-057), cujo único APK distribuído tem `versionCode` 1.
+- Decisão: a versão é 2.0.0 com `versionCode` 200. A release usa R8 e o Baseline Profile gerado na demo (entrar, Painel e abas), que vale para as duas variantes (`mergeIntoMain`). A chave de upload é lida de variáveis de ambiente (`PIGGU_UPLOAD_*`) e nunca entra no repositório; no CI, um job gera o AAB de produção como artefato, e o envio ao Play Console é manual, com a confirmação do Dudu. O fim da abertura é o Painel com os números (`ReportDrawnWhen`), não o primeiro quadro: num emulador de API 26 com 2 GB, com o perfil compilado como o Play compila, o Painel abre em ~500 ms (mediana de 8 aberturas a frio). Os links do app para "/plano", "/contas-e-cartoes" e "/privacidade" abrem a tela nativa (`LocalAbrirCaminho`), e a marca do topo segue o ícone escolhido no Perfil, como no iOS (D-097 de lá).
+- Alternativas: publicar pelo CI direto no Play Console (decidido manual até o primeiro lançamento); medir só o primeiro quadro.
+- Consequências: gerar o perfil de novo quando a abertura mudar (`./gradlew :app:generateBaselineProfile`, com um emulador do Android 13 ou mais novo).
+- Onde ver: `android-nativo/app/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `android-nativo/baselineprofile/`, README do android-nativo (Lançamento)
 
 # Processo
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -172,9 +174,17 @@ internal fun CartaoDoResumo(resumo: ResumoDoMes, moeda: String?, abrirTela: (Str
             }
         }
         Text(formatarMoeda(resumo.sobra, moeda), color = texto, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Parcela(stringResource(R.string.resumo_receitas), formatarMoeda(resumo.receitas, moeda), Icone.Entrada, texto, Modifier.weight(1f))
-            Parcela(stringResource(R.string.resumo_gastos), formatarMoeda(resumo.gastos, moeda), Icone.Carteira, texto, Modifier.weight(1f))
+        BoxWithConstraints {
+            // Lado a lado só com uns 150dp para cada na fonte do aparelho; senão o valor quebraria no meio.
+            val ladoALado = maxWidth / LocalDensity.current.fontScale >= 300.dp
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                maxItemsInEachRow = if (ladoALado) 2 else 1,
+            ) {
+                Parcela(stringResource(R.string.resumo_receitas), formatarMoeda(resumo.receitas, moeda), Icone.Entrada, texto, Modifier.weight(1f))
+                Parcela(stringResource(R.string.resumo_gastos), formatarMoeda(resumo.gastos, moeda), Icone.Carteira, texto, Modifier.weight(1f))
+            }
         }
         if (resumo.receitas.signum() == 0) {
             TextButton({ abrirTela("/receitas") }) { Text(stringResource(R.string.resumo_dica), color = texto) }
