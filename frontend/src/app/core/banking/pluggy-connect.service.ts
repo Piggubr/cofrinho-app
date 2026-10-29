@@ -44,12 +44,22 @@ export class PluggyConnectService {
   async conectar(versaoDoAviso: string): Promise<ContaBancaria[] | null> {
     // O script da Pluggy so carrega depois que o backend aceitou a autorizacao.
     const token = await firstValueFrom(this.banking.gerarConnectToken(versaoDoAviso));
-    const PluggyConnect = await this.carregar();
+    const itemId = await this.abrirWidget(token.accessToken, token.sandbox);
+    return itemId ? firstValueFrom(this.banking.registrarItem(itemId)) : null;
+  }
 
-    const itemId = await new Promise<string | null>((resolver, rejeitar) => {
+  /**
+   * So o widget, com um token ja gerado: o site depois de pedir o token e a pagina
+   * /conectar-banco, que o app nativo abre com o token que ele mesmo pediu.
+   *
+   * @returns o item conectado, ou null se a pessoa fechou sem conectar
+   */
+  async abrirWidget(connectToken: string, sandbox: boolean): Promise<string | null> {
+    const PluggyConnect = await this.carregar();
+    return new Promise<string | null>((resolver, rejeitar) => {
       const widget = new PluggyConnect({
-        connectToken: token.accessToken,
-        includeSandbox: token.sandbox,
+        connectToken,
+        includeSandbox: sandbox,
         onSuccess: (dados) => resolver(dados.item.id),
         onError: (erro) =>
           rejeitar(new Error(erro?.message || $localize`Nao foi possivel conectar o banco.`)),
@@ -58,8 +68,6 @@ export class PluggyConnectService {
       // init() pode devolver promise: se falhar, a conexao falha com o erro dela.
       Promise.resolve(widget.init()).catch(rejeitar);
     });
-
-    return itemId ? firstValueFrom(this.banking.registrarItem(itemId)) : null;
   }
 
   private carregar(): Promise<NonNullable<Window['PluggyConnect']>> {

@@ -44,10 +44,9 @@ piggu:
   auditoria:
     rota: /api/family/history
   google:
-    # IDs OAuth aceitos. O segundo permite manter uma implantacao de testes em
-    # paralelo, como faziam GOOGLE_CLIENT_ID e GOOGLE_CLIENT_ID_TEST no Apps Script.
-    client-ids:
-      - ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
+    # IDs OAuth aceitos, separados por virgula: o do site e os dos apps nativos (iOS, Android),
+    # porque o ID token do app traz o ID do app na audiencia.
+    client-ids: ${GOOGLE_CLIENT_ID:80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com}
   apple:
     # Entrar com Apple (app nativo do iPhone): o Bundle ID br.com.piggu.app, e o Services ID se
     # o site ganhar o botao, separados por virgula. Vazio deixa POST /api/auth/apple em 501.
@@ -95,6 +94,14 @@ piggu:
   assinatura:
     # Teste gratis do Premium ao assinar pelo site, uma vez por conta e por CPF. 0 desliga.
     dias-de-teste: ${PIGGU_DIAS_DE_TESTE:14}
+
+  app-store:
+    # Compra dentro do app iOS, conferida com a biblioteca da Apple (D-094).
+    bundle-id: ${APP_STORE_BUNDLE_ID:br.com.piggu.app}
+    # Apple ID do app (App Store Connect > App Information). Vazio aceita so o sandbox.
+    app-apple-id: ${APP_STORE_APP_APPLE_ID:}
+    # Revogacao dos certificados (OCSP) na hora de conferir. So os testes desligam.
+    checar-online: ${APP_STORE_CHECAR_ONLINE:true}
 
   revenuecat:
     # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).

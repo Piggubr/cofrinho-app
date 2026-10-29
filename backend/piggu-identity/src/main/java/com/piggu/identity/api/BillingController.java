@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,15 @@ public class BillingController {
     /** @param campanha codigo de promocao que liberou o teste (vem do link /plano?promo=); opcional */
     public record CheckoutRequest(@NotNull(message = "Escolha mensal ou anual.") Periodo periodo,
                                   @Size(max = 40) String campanha) {
+    }
+
+    /** @param transacao o {@code jwsRepresentation} da transacao verificada pelo StoreKit 2 */
+    public record CompraNaAppleRequest(@NotBlank(message = "Mande a transação assinada pela Apple.")
+                                       @Size(max = 20_000) String transacao) {
+    }
+
+    /** Corpo das App Store Server Notifications V2. */
+    public record AvisoDaAppleRequest(@NotBlank @Size(max = 100_000) String signedPayload) {
     }
 
     @Operation(summary = "Plano atual e opções de assinatura")
@@ -75,6 +85,28 @@ public class BillingController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
     public Map<String, Boolean> reembolso(@AuthUser CurrentUser usuario) {
         return Map.of("reembolsado", assinaturas.cancelarComReembolso(usuario.id()));
+    }
+
+    /**
+     * Compra feita no iPhone pelo StoreKit 2. O app manda a transacao assinada pela Apple logo
+     * depois de comprar ou ao restaurar; devolve o plano ja atualizado.
+     */
+    @Operation(summary = "Confirmar a assinatura comprada no iPhone (transação assinada pela Apple)",
+            description = "409 com o código OUTRA_CONTA quando a compra foi feita por outra conta do Piggu.")
+    @PostMapping("/app-store/transactions")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TITULAR')")
+    public PlanoResponse compraNaApple(@Valid @RequestBody CompraNaAppleRequest pedido, @AuthUser CurrentUser usuario) {
+        return assinaturas.aplicarCompraDaApple(usuario.id(), pedido.transacao());
+    }
+
+    /** Aberto: quem prova a origem e a assinatura da Apple no proprio corpo (JWS). */
+    @Operation(summary = "Aviso da App Store, Server Notifications V2 (servidor para servidor, não é para o app)")
+    @ApiResponse(responseCode = "200", description = "Aviso recebido")
+    @SecurityRequirements
+    @PostMapping("/webhooks/app-store")
+    public ResponseEntity<Void> webhookAppStore(@Valid @RequestBody AvisoDaAppleRequest aviso) {
+        assinaturas.aplicarAvisoDaApple(aviso.signedPayload());
+        return ResponseEntity.ok().build();
     }
 
     /** Aberto: quem prova a origem e a assinatura HMAC do cabecalho, nao um token. */
