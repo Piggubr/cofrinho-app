@@ -85,6 +85,30 @@ class MediaClientTest {
     }
 
     @Test
+    @DisplayName("recusa sem corpo do Piggu (proxy) ainda volta como recusa, com o status")
+    void recusaSemCorpo() {
+        media.expect(requestTo("http://media.test/api/assets"))
+                .andRespond(withStatus(HttpStatus.CONTENT_TOO_LARGE).contentType(MediaType.TEXT_HTML).body("<html>"));
+
+        assertThatThrownBy(() -> cliente.enviar("aGVsbG8=", "image/png", "lugar"))
+                .isInstanceOfSatisfying(BusinessException.class, erro -> {
+                    assertThat(erro.getMessage()).isEqualTo("A foto foi recusada.");
+                    assertThat(erro.getStatus()).isEqualTo(HttpStatus.CONTENT_TOO_LARGE);
+                });
+    }
+
+    @Test
+    @DisplayName("o circuito deixa passar a recusa; o resto vira media indisponivel")
+    void quedaDoCircuito() {
+        BusinessException recusa = new BusinessException("Grande demais.");
+        assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", recusa)).isSameAs(recusa);
+        assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", new UpstreamException("sem id")))
+                .hasMessageContaining("indisponivel");
+        assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", new IllegalStateException("caiu")))
+                .isInstanceOf(UpstreamException.class).hasMessageContaining("indisponivel");
+    }
+
+    @Test
     @DisplayName("resposta sem id e erro de servico externo")
     void respostaSemId() {
         media.expect(requestTo("http://media.test/api/assets"))

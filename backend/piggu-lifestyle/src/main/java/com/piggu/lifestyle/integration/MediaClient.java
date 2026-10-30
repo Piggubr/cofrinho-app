@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
@@ -73,7 +74,7 @@ public class MediaClient {
         } catch (HttpClientErrorException recusada) {
             // Foto recusada (tipo, tamanho, limite da familia): o motivo do media vai para a tela, e tentar
             // de novo nao adianta. Nao conta como media fora do ar (ignoreExceptions do circuito).
-            ApiError corpo = recusada.getResponseBodyAs(ApiError.class);
+            ApiError corpo = corpoDe(recusada);
             throw new BusinessException(corpo != null && corpo.erro() != null ? corpo.erro() : "A foto foi recusada.",
                     HttpStatus.valueOf(recusada.getStatusCode().value()), corpo == null ? null : corpo.codigo());
         }
@@ -106,6 +107,15 @@ public class MediaClient {
         }
     }
 
+    /** O ApiError do media; nulo quando a recusa veio de outro lugar (proxy) e o corpo nao e JSON. */
+    private static ApiError corpoDe(HttpClientErrorException recusada) {
+        try {
+            return recusada.getResponseBodyAs(ApiError.class);
+        } catch (RestClientException semJson) {
+            return null;
+        }
+    }
+
     private String autorizacao() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao != null && autenticacao.getPrincipal() instanceof Jwt jwt) {
@@ -114,8 +124,8 @@ public class MediaClient {
         throw new UpstreamException("Sessao ausente para falar com o servico de fotos.");
     }
 
-    @SuppressWarnings("unused")
-    private UUID falhaAoEnviar(String imageBase64, String mimeType, String contexto, Throwable erro) {
+    /** Chamado pelo circuito; visivel para o teste. */
+    UUID falhaAoEnviar(String imageBase64, String mimeType, String contexto, Throwable erro) {
         if (erro instanceof BusinessException recusada && !(erro instanceof UpstreamException)) {
             throw recusada;
         }
