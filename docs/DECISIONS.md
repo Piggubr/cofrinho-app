@@ -69,6 +69,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-037](#d-037-versão-de-produção-pela-data) | Versão de produção pela data | Valendo |
 | [D-069](#d-069-repositório-privado) | Repositório privado | Valendo |
 | [D-070](#d-070-e-mails-pela-resend) | E-mails pela Resend | Valendo |
+| [D-149](#d-149-cada-família-guarda-até-1-gb-de-fotos) | Cada família guarda até 1 GB de fotos | Valendo |
 | **Pagamentos e Premium** | | |
 | [D-038](#d-038-o-backend-aplica-os-limites-do-premium) | O backend aplica os limites do Premium | Valendo |
 | [D-039](#d-039-premium-da-família-inteira) | Premium da família inteira | Substituída por D-040 |
@@ -627,6 +628,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: a Resend foi escolha do Claude, sem comparação registrada com outros serviços (Dudu, 26/10/2026).
 - Consequências: o domínio precisa de SPF, DKIM e DMARC verificados na Resend. Em 19/10/2026 o DNS não tinha nenhum deles, e o Dudu disse em 26/10/2026 que os e-mails parecem não estar funcionando. Sem e-mail configurado, o identity escreve no log o link que mandaria.
 - Onde ver: [e-mail do domínio](email-do-dominio.md), [implantação, seção 4](implantacao-producao.md#4-demais-variáveis)
+
+## D-149: Cada família guarda até 1 GB de fotos
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: as fotos ficam no mesmo disco do Postgres e só tinham o teto de 5 MB por foto e 15 por minuto. Uma conta, ou um app num laço de reenvio, enchia o disco em horas e o banco parava de gravar para todas as famílias.
+- Decisão: o media soma o `size_bytes` da família toda (as fotos privadas também) e recusa a foto que passa de 1 GB (`PIGGU_FOTOS_POR_FAMILIA_MB`), igual no grátis e no Premium. Escolha do Dudu em 30/10/2026.
+- Alternativas: teto por plano (500 MB grátis, 5 GB Premium), que pede o plano no media.
+- Consequências: a soma não trava a família; duas fotos ao mesmo tempo passam um pouco do teto.
+- Onde ver: `AssetService.guardar`, `AssetRepository.bytesDaFamilia`
 
 # Pagamentos e Premium
 

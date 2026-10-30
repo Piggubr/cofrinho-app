@@ -234,6 +234,7 @@ services:
       DRIVE_CREDENTIALS: ${DRIVE_CREDENTIALS:-}
       DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
       STORAGE_LOCAL_PATH: /dados/fotos
+      PIGGU_FOTOS_POR_FAMILIA_MB: ${PIGGU_FOTOS_POR_FAMILIA_MB:-1024}
     volumes:
       - piggu-fotos:/dados/fotos
     depends_on:
