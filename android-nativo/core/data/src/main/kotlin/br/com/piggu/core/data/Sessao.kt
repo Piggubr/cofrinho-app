@@ -228,14 +228,23 @@ class Sessao @Inject constructor(
         entrou(tokens.usuario)
     }
 
-    /** Sai neste aparelho: avisa o servidor (falhar não impede de sair) e apaga o que é da conta. */
-    suspend fun sair() {
+    /**
+     * Sai neste aparelho: avisa o servidor (falhar não impede de sair) e apaga o que é da conta.
+     * Na trava: com uma renovação em curso, sai depois dela e manda o refresh que vale no servidor.
+     * A rota de sair é aberta, então não passa pelo autenticador, que também pede a trava.
+     */
+    suspend fun sair() = trava.withLock {
         runCatching { identidade.get().sair(PedidoDeRefresh(refresh)) }
-        encerrarLocalmente()
+        encerrarSemTrava()
     }
 
-    /** Descarta a sessão sem falar com o servidor: tokens, perfil e cache. */
-    suspend fun encerrarLocalmente() {
+    /**
+     * Descarta a sessão sem falar com o servidor: tokens, perfil e cache. Espera a renovação em
+     * curso, que senão gravaria a sessão de volta depois de sair.
+     */
+    suspend fun encerrarLocalmente() = trava.withLock { encerrarSemTrava() }
+
+    private suspend fun encerrarSemTrava() {
         acesso = null
         refresh = null
         lembrar = false

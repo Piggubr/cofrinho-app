@@ -28,7 +28,10 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+
 
 private const val USUARIO = """{"id":"u1","email":"ana@piggu.com.br","nome":"Ana Souza","primeiroNome":"Ana","role":"TITULAR","ativo":true,"plano":"PREMIUM","familia":"f1"}"""
 
@@ -61,6 +64,8 @@ class SessaoTest {
     /** O que o refresh responde quando não é para dar certo (401, 500, sem rede). */
     @Volatile private var falhaDoRefresh: MockResponse? = null
     private val logouts = mutableListOf<String>()
+    private val renovacaoComecou = CountDownLatch(1)
+
 
     init {
         servidor.dispatcher = object : Dispatcher() {
@@ -70,8 +75,10 @@ class SessaoTest {
                     "/api/auth/entrar" -> MockResponse(200, body = tokens("a1", "r1")).also { refreshValido = "r1" }
                     "/api/auth/refresh" -> falhaDoRefresh ?: run {
                         if (!corpo.contains("\"$refreshValido\"")) return MockResponse(401, body = """{"erro":"Sessão expirada.","codigo":"NAO_AUTENTICADO"}""")
+                        renovacaoComecou.countDown()
                         // Devagar, para as outras chamadas chegarem durante a renovação.
                         Thread.sleep(150)
+
                         val n = renovacoes.incrementAndGet()
                         refreshValido = "r-novo-$n"
                         MockResponse(200, body = tokens("novo-$n", refreshValido))
@@ -187,7 +194,23 @@ class SessaoTest {
     }
 
     @Test
+    fun `sair durante uma renovacao espera ela e nao volta a entrar`() = runTest {
+        val (sessao, cofre) = novaSessao()
+        naRede { sessao.entrarComSenha("ana@piggu.com.br", "senha", lembrar = true) }
+        // O /me recusa o token do login: a chamada renova, e a pessoa toca em Sair no meio.
+        val chamada = async(Dispatchers.IO) { runCatching { sessaoServico(sessao).meuPerfil() } }
+        naRede { assertTrue(renovacaoComecou.await(30, TimeUnit.SECONDS)) }
+        naRede { sessao.sair() }
+        chamada.await()
+        assertEquals(EstadoDaSessao.Deslogado, sessao.estado.value)
+        // O refresh que vale no servidor, para a sessão nova não ficar aberta por 30 dias.
+        assertEquals(listOf("""{"refreshToken":"r-novo-1"}"""), logouts)
+        assertNull(cofre.refresh())
+    }
+
+    @Test
     fun `403 CADASTRO_PENDENTE leva ao Sobre voce`() = runTest {
+
         val (sessao, _) = novaSessao()
         naRede { sessao.entrarComSenha("ana@piggu.com.br", "senha", lembrar = true) }
         val retrofit = ModuloDaRede.retrofit(servidor.url("/api/").toString(), ModuloDaRede.okHttp("2.0.0", AvisoDeVersao(), AutenticacaoDaSessao(sessao)), JsonDoPiggu)
