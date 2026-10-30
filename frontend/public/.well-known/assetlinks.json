@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.piggu.app",
+      "sha256_cert_fingerprints": [
+        "05:E3:4F:AC:C3:E5:5A:E7:98:08:D6:8C:D7:28:DA:BE:D0:A7:04:E1:72:E6:03:5F:77:EE:C5:6E:E9:78:5B:77",
+        "26:88:C2:02:15:DD:C7:55:E9:8C:76:A9:B9:1B:62:39:D1:90:93:41:37:80:13:5E:50:3B:67:7F:8F:12:D1:EF"
+      ]
+    }
+  }
+]

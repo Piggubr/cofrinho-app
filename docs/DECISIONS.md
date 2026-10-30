@@ -151,6 +151,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
 | [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
+| [D-140](#d-140-conectar-banco-no-android-pela-página-do-site-num-custom-tab-em-tarefa-própria) | Conectar banco no Android pela página do site num Custom Tab em tarefa própria | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1114,7 +1115,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-117: Cartões e bancos do Android: fatura numa folha e conectar banco pelo site
 - Data: 28/10/2026
-- Situação: Valendo
+- Situação: Valendo (conectar banco agora pelo D-140)
 - Contexto: etapa A5. A página `/conectar-banco` do site (D-091 do iOS) só existe na `feature/ios-nativo`, não na `develop`, e o Open Finance está desligado (`PIGGU_OPEN_FINANCE`).
 - Decisão: a fatura do cartão (entre os fechamentos, porte de `fatura.ts`) abre numa folha, com "Marcar como paga" e "Desfazer" (D-085). "Conectar banco" só aparece com o Open Finance ligado e abre `/contas-e-cartoes` do site num Custom Tab, nunca num WebView; "Atualizar" e "Desconectar" aparecem sempre para quem já tem banco. Os textos de cada módulo têm nomes próprios: um teste do app falha se dois módulos usarem o mesmo nome com textos diferentes (aconteceu com `contas_titulo`).
 - Alternativas: esperar a página do site.
@@ -1290,6 +1291,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o Firebase Admin SDK, que traria dezenas de dependências para uma chamada HTTP que o serviço já sabe fazer, como faz com o APNs.
 - Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
 - Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
+
+## D-140: Conectar banco no Android pela página do site num Custom Tab em tarefa própria
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a página `/conectar-banco` chegou à `develop`, e D-117 dizia que o Android faria como o iOS quando ela chegasse. O Android não tem um equivalente ao `ASWebAuthenticationSession`, que fecha sozinho no link de volta.
+- Decisão: "Conectar banco" pede o token (`POST /api/banking/connect-token`, com a autorização) e abre `/conectar-banco#token=...` num Custom Tab lançado com `FLAG_ACTIVITY_NEW_TASK`. A página responde em `piggu://banco-conectado?item=...` (ou `?fechou=1`, `?erro=...`); com a aba noutra tarefa, o link acha a MainActivity no topo da tarefa do app (`singleTop`) em vez de abrir outra por cima da aba. A MainActivity entrega a volta ao `RetornoDoBanco` (singleton), que Cartões e bancos lê e registra com `POST /api/banking/items`. Na página, o "Voltar ao app" passa a levar o mesmo resultado da ida automática, porque o Chrome pode barrar a ida ao app sem um toque.
+- Alternativas: `launchMode="singleTask"`, que fecharia qualquer Custom Tab do app ao tocar no ícone; uma activity só para receber a volta, que brigaria com o `intent-filter` de `piggu://` da MainActivity.
+- Consequências: a aba de conectar aparece como uma tarefa à parte nos recentes. Não foi testado num aparelho com a Pluggy de verdade (o Open Finance está desligado na produção); entra no teste da fase 6 do manual.
+- Onde ver: `android-nativo/core/data/.../RetornoDoBanco.kt`, `android-nativo/feature/contas/`, `android-nativo/core/ui/.../Site.kt`, `frontend/src/app/features/conectar-banco/`
 
 # Processo
 

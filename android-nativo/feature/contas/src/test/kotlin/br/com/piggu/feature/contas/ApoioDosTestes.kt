@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Lancamentos
 import br.com.piggu.core.data.ListasParaLancar
+import br.com.piggu.core.data.RetornoDoBanco
 import br.com.piggu.core.database.RespostaGuardada
 import br.com.piggu.core.database.RespostasGuardadasDao
 import br.com.piggu.core.network.ServicoDeBancos
@@ -36,13 +37,14 @@ class Montagem(val rede: RedeDeTeste, val fixas: RespostasFixas, private val loj
     val guardado = GuardadoNaMemoria()
     val lancamentos = Lancamentos()
     val conectado = MutableStateFlow(true)
+    val retornoDoBanco = RetornoDoBanco()
     private val cache = CacheDeRespostas(guardado, DIA_DAS_CAPTURAS)
 
     fun contas(financas: ServicoDeFinancas = rede.financas, bancos: ServicoDeBancos = rede.bancos): ContasECartoesViewModel =
         ViewModelProvider.create(loja, viewModelFactory {
             initializer {
                 ContasECartoesViewModel(
-                    financas, bancos, cache, ListasParaLancar(cache, financas, rede.identidade), rede.sessao, lancamentos, DIA_DAS_CAPTURAS, conectado,
+                    financas, bancos, cache, ListasParaLancar(cache, financas, rede.identidade), rede.sessao, lancamentos, DIA_DAS_CAPTURAS, conectado, retornoDoBanco,
                 )
             }
         })["vm${loja.keys().size}", ContasECartoesViewModel::class]

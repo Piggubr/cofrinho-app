@@ -270,6 +270,50 @@ class ContasECartoesViewModelTest {
     }
 
     @Test
+    fun `conectar banco abre a pagina do site com o token e registra o banco que volta`() = runTest {
+        val montagem = montar(
+            pasta.root,
+            loja,
+            RespostasFixas(
+                "POST /api/banking/connect-token" to RespostaFixa(200, """{"accessToken":"tk+1","sandbox":true}"""),
+                "POST /api/banking/items" to RespostaFixa(
+                    200,
+                    """[{"id":"c9","conexaoId":"conexao-nova","instituicao":"Nubank","nome":"Conta","tipo":"BANK","saldo":10.5,"moeda":"BRL","status":"UPDATED"}]""",
+                ),
+            ),
+        )
+        val contas = montagem.contas()
+        contas.estado.esperar { it.openFinanceLigado && it.bancos.isNotEmpty() }
+        var aberto: String? = null
+        contas.conectarBanco { aberto = it }
+        contas.estado.esperar { aberto != null && !it.mexendoNosBancos }
+        // O token vai no fragmento, que não sai do aparelho.
+        assertEquals("/conectar-banco#token=tk%2B1&sandbox=1", aberto)
+        assertTrue(montagem.pedidos("POST /api/banking/connect-token").single().endsWith("""{"versaoDoAviso":"2026-10-16","autorizo":true}"""))
+
+        assertTrue(montagem.retornoDoBanco.receber("piggu://banco-conectado?item=item-1"))
+        val estado = contas.estado.esperar { it.bancos.any { b -> b.conexaoId == "conexao-nova" } && !it.mexendoNosBancos }
+        assertEquals(listOf("""POST /api/banking/items {"itemId":"item-1"}"""), montagem.pedidos("POST /api/banking/items"))
+        assertNull(estado.erro)
+        assertNull(montagem.retornoDoBanco.resultado.value)
+    }
+
+    @Test
+    fun `erro na pagina de conectar aparece na tela e fechar nao faz nada`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = montagem.contas()
+        contas.estado.esperar { it.lista != null }
+        montagem.retornoDoBanco.receber("piggu://banco-conectado?fechou=1")
+        contas.estado.esperar { montagem.retornoDoBanco.resultado.value == null }
+        assertNull(contas.estado.value.erro)
+
+        montagem.retornoDoBanco.receber("piggu://banco-conectado?erro=Senha%20errada.")
+        val estado = contas.estado.esperar { it.erro != null }
+        assertEquals(MensagemDeErro.DoServidor("Senha errada."), estado.erro)
+        assertTrue(montagem.pedidos("POST /api/banking/items").isEmpty())
+    }
+
+    @Test
     fun `sem internet mostra o guardado com a hora, ou o erro quando nao ha nada`() = runTest {
         val montagem = montar(pasta.root, loja)
         montagem.contas().estado.esperar { it.lista != null }

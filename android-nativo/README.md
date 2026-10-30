@@ -40,7 +40,7 @@ plataforma que faltar.
 | `feature:orcamentos` | Orçamento: o limite do mês e os limites por categoria (Premium) |
 | `feature:calendario` | Calendário: a grade do mês, as notas e o gráfico acumulado |
 | `feature:relatorios` | Relatórios: o mês por categoria, o ano (Premium) e o CSV do mês |
-| `feature:contas` | Cartões e bancos: contas, cartões, a fatura e os bancos conectados |
+| `feature:contas` | Cartões e bancos: contas, cartões, a fatura, os bancos conectados e conectar banco pelo site (D-140) |
 | `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
 | `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
 | `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
@@ -70,7 +70,8 @@ plataforma que faltar.
 
 - Sem sessão, o app abre no login (Entrar e Criar conta na mesma tela, como no site). Os
   links do e-mail (`/confirmar-email`, `/redefinir-senha`) abrem as telas nativas pelos App
-  Links, quando o `assetlinks.json` estiver no ar.
+  Links. O `frontend/public/.well-known/assetlinks.json` tem os SHA-256 das chaves de upload e
+  de debug; o da chave do Play entra depois do primeiro envio ao Play Console.
 - Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
   (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
 - Google: o botão está ligado (`piggu.googleNoAndroid=true` em `gradle.properties`). Cada chave
