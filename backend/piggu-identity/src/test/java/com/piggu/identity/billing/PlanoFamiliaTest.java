@@ -83,7 +83,54 @@ class PlanoFamiliaTest {
     }
 
     @Test
+    @DisplayName("Premium da loja que vale: aviso do site, de fim ou de renovacao, nao derruba nem toma o plano")
+    void siteNaoMexeNoPremiumDaLoja() {
+        UUID ana = UUID.randomUUID();
+        Household casa = new Household("Casa");
+        Instant agora = Instant.now();
+        casa.aplicarAssinatura("PLAY_STORE", agora.plus(Duration.ofDays(30)), agora, agora, TipoDePlano.FAMILIA, ana);
+
+        assertThat(casa.aplicarAssinatura("WEB", null, agora.plusSeconds(60), null, TipoDePlano.INDIVIDUAL, ana)).isFalse();
+        assertThat(casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(365)), agora.plusSeconds(120), agora,
+                TipoDePlano.INDIVIDUAL, ana)).isFalse();
+
+        assertThat(casa.getPlanSource()).isEqualTo("PLAY_STORE");
+        assertThat(casa.isFamilia()).isTrue();
+        assertThat(casa.planoVigente()).isEqualTo(Plano.PREMIUM);
+    }
+
+    @Test
+    @DisplayName("Premium de quem paga: a renovacao de outra pessoa da casa nao troca o assinante nem o plano")
+    void renovacaoDeOutraPessoa() {
+        UUID ana = UUID.randomUUID();
+        UUID beto = UUID.randomUUID();
+        Household casa = new Household("Casa");
+        Instant agora = Instant.now();
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora, agora, TipoDePlano.FAMILIA, ana);
+
+        assertThat(casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora.plusSeconds(1), agora,
+                TipoDePlano.INDIVIDUAL, beto)).isFalse();
+
+        assertThat(casa.getSubscriberId()).isEqualTo(ana);
+        assertThat(casa.isFamilia()).isTrue();
+    }
+
+    @Test
+    @DisplayName("dois avisos no mesmo segundo: o incompleto nao apaga o Premium do ativo")
+    void empateNaoEncurta() {
+        UUID ana = UUID.randomUUID();
+        Household casa = new Household("Casa");
+        Instant segundo = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        casa.aplicarAssinatura("WEB", segundo.plus(Duration.ofDays(30)), segundo, segundo, TipoDePlano.INDIVIDUAL, ana);
+
+        assertThat(casa.aplicarAssinatura("WEB", null, segundo, null, TipoDePlano.INDIVIDUAL, ana)).isFalse();
+
+        assertThat(casa.planoVigente()).isEqualTo(Plano.PREMIUM);
+    }
+
+    @Test
     @DisplayName("casal: quem assinou e o parceiro sao Premium; o membro, nao")
+
     void casal() {
         Household casa = new Household("Casa");
         UserAccount parceiro = new UserAccount("parceiro@piggu.test", PigguRole.PARCEIRO, casa.getId());
@@ -122,9 +169,9 @@ class PlanoFamiliaTest {
         assertThat(aviso(pagamentos, "price_ca").tipo()).isEqualTo(TipoDePlano.CASAL);
         assertThat(aviso(pagamentos, "price_fm").tipo()).isEqualTo(TipoDePlano.FAMILIA);
         assertThat(aviso(pagamentos, "price_m").tipo()).isEqualTo(TipoDePlano.INDIVIDUAL);
-        assertThat(RevenueCatLoja.tipoDoProduto("piggu_casal_anual")).isEqualTo(TipoDePlano.CASAL);
-        assertThat(RevenueCatLoja.tipoDoProduto("piggu_familia_mensal")).isEqualTo(TipoDePlano.FAMILIA);
-        assertThat(RevenueCatLoja.tipoDoProduto("piggu_premium_mensal")).isEqualTo(TipoDePlano.INDIVIDUAL);
+        assertThat(TipoDePlano.doProduto("piggu_casal_anual")).isEqualTo(TipoDePlano.CASAL);
+        assertThat(TipoDePlano.doProduto("piggu_familia_mensal")).isEqualTo(TipoDePlano.FAMILIA);
+        assertThat(TipoDePlano.doProduto("piggu_premium_mensal")).isEqualTo(TipoDePlano.INDIVIDUAL);
     }
 
     @Test

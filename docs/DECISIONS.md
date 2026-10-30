@@ -52,6 +52,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
+| [D-144](#d-144-a-retenção-não-apaga-quem-paga-um-premium-que-vale) | A retenção não apaga quem paga um Premium que vale | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -74,7 +75,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-041](#d-041-stripe-no-site-revenuecat-nas-lojas) | Stripe no site, RevenueCat nas lojas | Valendo |
 | [D-042](#d-042-premium-só-muda-pelo-webhook-assinado) | Premium só muda pelo webhook assinado | Valendo |
 | [D-043](#d-043-cobrar-pelo-open-finance-sim-pela-desconexão-nunca) | Cobrar pelo Open Finance sim, pela desconexão nunca | Valendo |
-| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Valendo |
+| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Substituída por D-146 (o teste) |
 | [D-045](#d-045-open-finance-desligado-por-enquanto) | Open Finance desligado por enquanto | Valendo |
 | [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
 | [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Valendo |
@@ -82,6 +83,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
 | [D-079](#d-079-cartão-recusado-dá-7-dias-de-premium) | Cartão recusado dá 7 dias de Premium | Valendo |
 | [D-081](#d-081-stripe-e-revenuecat-sem-interface) | Stripe e RevenueCat sem interface | Valendo |
+| [D-143](#d-143-premium-que-vale-só-muda-pela-mesma-origem-e-pelo-mesmo-assinante) | Premium que vale só muda pela mesma origem e pelo mesmo assinante | Valendo |
+| [D-145](#d-145-revenuecat-sai-do-backend) | RevenueCat sai do backend | Valendo |
+| [D-146](#d-146-catorze-dias-de-teste-grátis) | Catorze dias de teste grátis | Valendo |
 | **Apps (site, iOS e Android)** | | |
 | [D-049](#d-049-site-em-angular-com-telas-sob-demanda) | Site em Angular, com telas sob demanda | Valendo |
 | [D-050](#d-050-só-o-login-conhece-os-tokens-uma-renovação-por-vez) | Só o login conhece os tokens; uma renovação por vez | Valendo |
@@ -483,6 +487,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o contexto de log da requisição não vai junto; e-mail que falha só aparece no log.
 - Onde ver: `ConfirmacaoDeEmail.depoisDoCommit`
 
+## D-144: A retenção não apaga quem paga um Premium que vale
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a retenção apaga a conta sem acesso há 24 meses. O pai que paga o plano Família e não abre o app perdia a conta, a casa perdia o Premium e, pela Apple ou pelo Google, a loja seguia cobrando, porque o servidor não cancela a assinatura dela.
+- Decisão: `semAcessoDesde` deixa de fora quem é o assinante de uma casa com Premium que ainda vale. Quando o Premium vence, a conta entra na próxima rodada.
+- Alternativas: cancelar a assinatura antes de apagar, o que não dá nas lojas.
+- Consequências: a conta de quem paga fica enquanto paga, mesmo sem uso.
+- Onde ver: `UserAccountRepository.semAcessoDesde`, `RetencaoDeDadosTest`
+
 # Dados
 
 ## D-028: Fora do identity, só o id da conta
@@ -662,7 +675,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-044: Sete dias de teste e sete de arrependimento
 - Data: 01/10/2026 (teste); 09/10/2026 (arrependimento)
-- Situação: Valendo
+- Situação: Substituída por D-146 no prazo do teste; o arrependimento de 7 dias segue valendo
 - Contexto: o Código de Defesa do Consumidor (art. 49) dá 7 dias de arrependimento.
 - Decisão: 7 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. Nos 7 primeiros dias pagos, o botão "Cancelar e pedir reembolso" cancela e devolve pela Stripe. Cancelar é tão fácil quanto assinar.
 - Alternativas: não registradas.
@@ -731,6 +744,33 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: manter as interfaces "para depois" (D-041).
 - Consequências: trocar de provedor é extrair a interface antes; o resto de D-041 continua valendo.
 - Onde ver: `backend/piggu-identity/.../billing/`
+
+## D-143: Premium que vale só muda pela mesma origem e pelo mesmo assinante
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a regra "Premium de outra origem segue valendo" só existia para as lojas. Um aviso da Stripe (o fim de uma assinatura antiga, ou uma cobrança que entrou depois) derrubava ou tomava um Premium pago na Apple ou no Google. E dois avisos da Stripe ao mesmo tempo (created e updated no mesmo segundo) corriam: o último a gravar ganhava, mesmo sendo o mais velho.
+- Decisão: enquanto o Premium vale, `Household.aplicarAssinatura` só aceita aviso da mesma origem e do mesmo assinante, venha de onde vier. Os avisos de pagamento travam a linha da casa (`HouseholdRepository.travar`) e, no empate de horário, não encurtam o Premium.
+- Alternativas: repetir a guarda no caminho da Stripe; `@Version` na casa, que transforma a corrida em erro e depende do reenvio.
+- Consequências: quem paga em dois lugares ao mesmo tempo continua cobrado nos dois; vale o primeiro até vencer. Generaliza D-078.
+- Onde ver: `Household.aplicarAssinatura`, `AssinaturaService`, `PlanoFamiliaTest`
+
+## D-145: RevenueCat sai do backend
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a compra nos apps passou a ir direto à Apple (D-094) e ao Google (D-132, D-133). O caminho do RevenueCat nunca foi configurado e gravava o Premium sem a guarda de D-143.
+- Decisão: saem `RevenueCatLoja`, a rota `POST /api/billing/stores/{loja}/purchases` e `REVENUECAT_WEBHOOK_SECRET`. O plano do produto passa a sair de `TipoDePlano.doProduto`.
+- Alternativas: manter o caminho desligado, com a guarda.
+- Consequências: nenhum app chama a rota. A tabela `billing_events` continua, para os avisos da Stripe e da Apple. D-081 fica só com a Stripe.
+- Onde ver: `docs/api/identity.yaml`, `TipoDePlano`
+
+## D-146: Catorze dias de teste grátis
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: D-044 dizia 7 dias de teste, mas o servidor dava 14 desde o commit 26c7aad9 e a tela do Premium já mostrava "14 dias grátis". O Dudu confirmou os 14 em 30/10/2026.
+- Decisão: 14 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. O arrependimento continua em 7 dias da primeira cobrança (D-044).
+- Alternativas: voltar o servidor para 7.
+- Consequências: os documentos falam em 14 dias.
+- Onde ver: `application.yml` do identity, [planos Premium](planos-premium.md)
 
 # Apps (site, iOS e Android)
 

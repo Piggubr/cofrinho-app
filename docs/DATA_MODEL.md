@@ -227,7 +227,7 @@ erDiagram
 | `premium_until` | timestamptz | não | Até quando o Premium vale; nulo ou no passado é gratuito |
 | `premium_since` | timestamptz | não | Quando a assinatura começou |
 | `first_charge_at` | timestamptz | não | Primeira cobrança paga; o prazo de arrependimento (CDC art. 49) conta daqui, não do teste grátis |
-| `plan_source` | texto(20) | não | De onde veio a assinatura: `WEB` (Stripe), `APP_STORE` ou `PLAY_STORE` (RevenueCat); nulo é teste ou cortesia |
+| `plan_source` | texto(20) | não | De onde veio a assinatura: `WEB` (Stripe), `APP_STORE` (Apple) ou `PLAY_STORE` (Google); nulo é teste ou cortesia |
 | `plan_kind` | texto(20) | sim (padrão `INDIVIDUAL`) | `INDIVIDUAL`, `CASAL` ou `FAMILIA` |
 | `subscriber_id` | uuid | não | Conta que assinou (`users.id`) |
 | `billing_event_at` | timestamptz | não | Momento do último aviso do provedor aplicado; aviso mais velho que este é ignorado |
@@ -289,7 +289,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
 | `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
-| `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe, RevenueCat): cada um conta uma vez |
+| `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe e Apple; o RevenueCat, que saiu em D-145, também gravava aqui): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
 | `trial_campaign_uses` | `user_id`, `code` (chave composta), `used_at` | Qual campanha cada conta usou |
 | `trial_cpf_history` | `cpf_indice` (chave), `used_at` | Teste grátis já usado por CPF de conta excluída: só o HMAC e a data. Apagado 5 anos depois |

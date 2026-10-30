@@ -12,5 +12,11 @@ package com.piggu.identity.billing;
 public enum TipoDePlano {
     INDIVIDUAL,
     CASAL,
-    FAMILIA
+    FAMILIA;
+
+    /** Produtos do familia e do casal nas lojas tem o plano no id (ex.: piggu_familia_mensal, piggu_casal_anual). */
+    static TipoDePlano doProduto(String produto) {
+        String id = produto.toLowerCase(java.util.Locale.ROOT);
+        return id.contains("familia") ? FAMILIA : id.contains("casal") ? CASAL : INDIVIDUAL;
+    }
 }

@@ -161,7 +161,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
                 || caminho.equals("/api/auth/confirmar-email") || caminho.equals("/api/auth/senha/esqueci")
                 || caminho.equals("/api/auth/senha/redefinir")
                 || caminho.equals("/api/auth/logout") || caminho.startsWith("/api/billing/webhooks/")
-                || caminho.startsWith("/api/billing/stores/") || caminho.equals("/api/app/erros");
+                || caminho.equals("/api/app/erros");
     }
 
     /**
