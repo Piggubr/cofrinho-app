@@ -178,6 +178,11 @@ class AssetServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> comTetoDeUmMega.guardar(seiscentosKb, "image/png", "FEED", null, UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class).hasMessageContaining("limite de 1 MB");
         assertThat(repositorio.count()).isEqualTo(1);
+
+        // O teto padrao, em GB: a familia que ja guardou 1 GB nao guarda a proxima.
+        repositorio.save(new Asset("ja-guardado", "image/png", 1024L * 1024 * 1024, "FEED", TITULAR.id()));
+        assertThatThrownBy(() -> new AssetService(repositorio, armazenamento, 1024).guardar(seiscentosKb, "image/png",
+                "FEED", null, TITULAR.id())).hasMessageContaining("limite de 1 GB");
     }
 
     private Asset guardar(byte[] conteudo, String tipo) {
