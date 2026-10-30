@@ -130,7 +130,6 @@ class PlanoFamiliaTest {
 
     @Test
     @DisplayName("casal: quem assinou e o parceiro sao Premium; o membro, nao")
-
     void casal() {
         Household casa = new Household("Casa");
         UserAccount parceiro = new UserAccount("parceiro@piggu.test", PigguRole.PARCEIRO, casa.getId());

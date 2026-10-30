@@ -85,7 +85,6 @@ class RetencaoDeDadosTest extends PostgresIntegrationTest {
 
     @Test
     @DisplayName("sessao e convite vencidos saem")
-
     void sessoesEConvites() {
         UserAccount conta = criar("sessao@x.test");
         sessoes.save(new RefreshSession(conta.getId(), "vencida", null, Instant.now().minusSeconds(60)));
