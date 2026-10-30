@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * Lembrete diario: fatura chegando, orcamento em 80/100% e conta fixa vencendo, por
@@ -34,11 +35,12 @@ public class LembretesDiarios {
     private final Aparelhos aparelhos;
     private final CanalDeEmail email;
     private final CanalDePush push;
+    private final CanalFcm fcm;
     private final AvisosDoFinanceiro financeiro;
 
     public LembretesDiarios(UserAccountRepository usuarios, FamiliaService familias, TokenService tokens,
                             AvisosEnviados enviados, Aparelhos aparelhos, CanalDeEmail email, CanalDePush push,
-                            AvisosDoFinanceiro financeiro) {
+                            CanalFcm fcm, AvisosDoFinanceiro financeiro) {
         this.usuarios = usuarios;
         this.familias = familias;
         this.tokens = tokens;
@@ -46,6 +48,7 @@ public class LembretesDiarios {
         this.aparelhos = aparelhos;
         this.email = email;
         this.push = push;
+        this.fcm = fcm;
         this.financeiro = financeiro;
     }
 
@@ -87,18 +90,28 @@ public class LembretesDiarios {
             entregue = email.enviar(conta.getEmail(), mensagem);
         }
         if (conta.isAlertsByPush() && push.ligado()) {
-            // So o iPhone por enquanto: o Android ja registra o aparelho, mas o envio pelo FCM ainda nao existe.
-            for (String aparelho : aparelhos.doUsuario(conta.getId(), "IOS")) {
-                CanalDePush.Resultado resultado = push.enviar(aparelho, mensagem);
-                if (resultado == CanalDePush.Resultado.ENVIADO) {
-                    entregue = true;
-                } else if (resultado == CanalDePush.Resultado.TOKEN_INVALIDO) {
-                    aparelhos.esquecer(aparelho);
-                }
-            }
+            entregue |= mandarPush(conta, "IOS", push::enviar, mensagem);
+        }
+        if (conta.isAlertsByPush() && fcm.ligado()) {
+            entregue |= mandarPush(conta, "ANDROID", fcm::enviar, mensagem);
         }
         if (entregue) {
             enviados.marcar(conta.getId(), novos.stream().map(Aviso::chave).toList());
+        }
+        return entregue;
+    }
+
+    /** Cada aparelho da plataforma pelo canal dela; token recusado e esquecido. */
+    private boolean mandarPush(UserAccount conta, String plataforma,
+                               BiFunction<String, Mensagem, CanalDePush.Resultado> canal, Mensagem mensagem) {
+        boolean entregue = false;
+        for (String aparelho : aparelhos.doUsuario(conta.getId(), plataforma)) {
+            CanalDePush.Resultado resultado = canal.apply(aparelho, mensagem);
+            if (resultado == CanalDePush.Resultado.ENVIADO) {
+                entregue = true;
+            } else if (resultado == CanalDePush.Resultado.TOKEN_INVALIDO) {
+                aparelhos.esquecer(aparelho);
+            }
         }
         return entregue;
     }

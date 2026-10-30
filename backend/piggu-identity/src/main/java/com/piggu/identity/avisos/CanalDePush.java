@@ -113,12 +113,16 @@ public class CanalDePush {
     }
 
     static ECPrivateKey chavePrivada(String pem) {
-        String base64 = pem.replace("\\n", "").replaceAll("-----[A-Z ]+-----", "").replaceAll("\\s", "");
         try {
-            return (ECPrivateKey) KeyFactory.getInstance("EC")
-                    .generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(base64)));
+            return (ECPrivateKey) KeyFactory.getInstance("EC").generatePrivate(pkcs8(pem));
         } catch (java.security.GeneralSecurityException | IllegalArgumentException erro) {
             throw new IllegalStateException("Chave do APNs invalida (esperado o conteudo do AuthKey .p8).", erro);
         }
+    }
+
+    /** PEM PKCS#8, com quebras de linha de verdade ou escritas como \n (variavel de ambiente). */
+    static PKCS8EncodedKeySpec pkcs8(String pem) {
+        String base64 = pem.replace("\\n", "").replaceAll("-----[A-Z ]+-----", "").replaceAll("\\s", "");
+        return new PKCS8EncodedKeySpec(Base64.getDecoder().decode(base64));
     }
 }

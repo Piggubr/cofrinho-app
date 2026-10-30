@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Os textos de features/minhas-metas do site. -->
+<resources>
+    <string name="minhasmetas_titulo">Minhas metas</string>
+    <string name="metas_sobretitulo">Seu plano do mês</string>
+    <string name="metas_para_alcancar">Metas para alcançar este mês</string>
+    <!-- A concordância é com o total: "1 de 1 concluída", "1 de 3 concluídas". -->
+    <plurals name="metas_concluidas">
+        <item quantity="one">%1$d de %2$d concluída</item>
+        <item quantity="other">%1$d de %2$d concluídas</item>
+    </plurals>
+    <string name="metas_mensagem_vazia">Crie sua jornada de metas.</string>
+    <string name="metas_mensagem_todas">Você concluiu todas as metas do mês.</string>
+    <string name="metas_mensagem_ritmo">Continue no seu ritmo.</string>
+    <string name="metas_anel">Progresso das metas do mês</string>
+    <string name="metas_percentual">%1$d%%</string>
+    <string name="metas_concluido">concluído</string>
+    <string name="metas_concluida">Concluída</string>
+    <string name="metas_de">%1$d de %2$d</string>
+    <string name="metas_mais_um">Mais um em %1$s</string>
+    <string name="metas_editar_de">Editar %1$s</string>
+    <string name="metas_apagar_de">Apagar %1$s</string>
+    <string name="metas_apagar">Apagar</string>
+    <string name="metas_apagar_pergunta">Apagar a meta \"%1$s\"?</string>
+    <string name="metas_vazio_titulo">Nenhuma meta criada.</string>
+    <string name="metas_vazio_texto">Crie uma meta pequena para começar.</string>
+    <string name="metas_criar">Criar meta</string>
+    <string name="metas_editar">Editar meta</string>
+    <string name="metas_rodape">As metas expiram automaticamente quando o mês muda.</string>
+    <string name="metas_compartilhar">Compartilhar</string>
+    <string name="metas_compartilhar_cabecalho">Minhas metas de %1$s:</string>
+    <!-- Uma linha do texto de compartilhar: o sinal (feita ou não), o título e o progresso. -->
+    <string name="metas_compartilhar_linha">%1$s %2$s: %3$d de %4$d</string>
+    <string name="metas_nome">Nome da meta</string>
+    <string name="metas_nome_exemplo">Ex.: Ler 2 livros</string>
+    <string name="metas_alvo">Quantidade desejada</string>
+    <string name="metas_atual">Progresso atual</string>
+    <string name="metas_salvar">Salvar meta</string>
+    <string name="metas_guardando">Guardando…</string>
+    <string name="metas_falta_nome">Dê um nome para a meta.</string>
+    <string name="metas_alvo_invalido">A quantidade desejada precisa ser um número inteiro a partir de 1.</string>
+    <string name="metas_atual_invalido">O progresso precisa ser um número inteiro, zero ou mais.</string>
+</resources>

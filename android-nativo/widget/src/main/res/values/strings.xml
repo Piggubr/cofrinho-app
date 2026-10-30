@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widgets da tela inicial. -->
+    <string name="widget_gasto_do_mes">Gasto do mês</string>
+    <string name="widget_gasto_do_mes_descricao">Quanto você gastou no mês contra o limite do orçamento.</string>
+    <string name="widget_meta_do_mes">Meta do mês</string>
+    <string name="widget_meta_do_mes_descricao">O progresso da sua próxima meta do mês.</string>
+    <string name="widget_lancar_gasto">Lançar gasto</string>
+    <string name="widget_lancar_gasto_descricao">Abre o Piggu pronto para lançar um gasto.</string>
+    <string name="widget_entre_no_piggu">Entre no Piggu para ver seus números aqui.</string>
+    <string name="widget_abra_o_piggu">Abra o Piggu para atualizar o mês.</string>
+    <string name="widget_sem_limite">Sem limite para este mês</string>
+    <string name="widget_resta_do_limite">Resta %1$s de %2$s</string>
+    <string name="widget_passou_do_limite">Passou %1$s do limite</string>
+    <string name="widget_porcentagem_e_hora">%1$d%% do limite · atualizado às %2$s</string>
+    <string name="widget_sem_meta">Crie uma meta no Piggu para acompanhar aqui.</string>
+    <string name="widget_progresso_da_meta">%1$d de %2$d · %3$d de %4$d concluídas</string>
+
+    <!-- Atalhos do ícone (toque longo), em app/src/*/res/xml/shortcuts.xml. -->
+    <string name="atalho_lancar_gasto">Lançar gasto</string>
+    <string name="atalho_ver_gastos">Ver gastos</string>
+    <string name="atalho_ver_gastos_longo">Ver os gastos do mês</string>
+
+    <!-- Configurações rápidas. -->
+    <string name="bloco_rapido_lancar_gasto">Lançar gasto</string>
+</resources>

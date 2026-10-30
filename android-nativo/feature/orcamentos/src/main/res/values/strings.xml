@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="orcamento_titulo">Orçamento</string>
+
+    <!-- Limite do mês (goals) -->
+    <string name="orcamento_limite_do_mes">Limite do mês</string>
+    <string name="orcamento_gasto_de_limite">%1$s de %2$s</string>
+    <string name="orcamento_usado">%1$d%% usado</string>
+    <string name="orcamento_usado_estourou">%1$d%% usado · limite ultrapassado</string>
+    <string name="orcamento_sem_limite_titulo">Nenhum limite definido para este mês ainda</string>
+    <string name="orcamento_sem_limite_texto">Com um limite, o Piggu avisa quando o mês estiver chegando perto.</string>
+    <string name="orcamento_definir_limite">Definir o limite</string>
+    <string name="orcamento_total_no_mes">Total no mês (%1$s)</string>
+    <string name="orcamento_salvar_limite">Salvar limite</string>
+    <string name="orcamento_guardando">Guardando…</string>
+    <string name="orcamento_limite_invalido">Digite um valor válido para o limite.</string>
+    <string name="orcamento_outros_meses">Limites dos outros meses</string>
+    <string name="orcamento_nenhum_limite">Nenhum limite cadastrado</string>
+    <string name="orcamento_editar_mes">Editar o limite de %1$s</string>
+
+    <!-- Por categoria (budgets) -->
+    <string name="orcamento_por_categoria">Por categoria · %1$s</string>
+    <string name="orcamento_gasto_de_limite_percentual">%1$s de %2$s · %3$s%%</string>
+    <string name="orcamento_alerta_atencao" formatted="false">Chegou a 80% do limite</string>
+    <string name="orcamento_alerta_estourou" formatted="false">Chegou a 100% do limite</string>
+    <string name="orcamento_sem_categoria_titulo">Nenhuma categoria com limite ainda</string>
+    <string name="orcamento_sem_categoria_texto">Escolha uma categoria, como mercado ou lazer, e quanto quer gastar nela.</string>
+    <string name="orcamento_mudar">Mudar o limite de %1$s</string>
+    <string name="orcamento_apagar">Apagar o limite de %1$s</string>
+    <string name="orcamento_limite_por_categoria">Limite por categoria</string>
+    <string name="orcamento_premium">Premium</string>
+    <string name="orcamento_explicacao" formatted="false">Você recebe um aviso quando a categoria chega a 80% e a 100% do limite no mês.</string>
+    <string name="orcamento_limite_no_mes">Limite no mês</string>
+    <string name="orcamento_salvar_categoria">Salvar categoria</string>
+    <string name="orcamento_categoria_invalida">Escolha a categoria e um limite maior que zero.</string>
+    <string name="orcamento_convite" formatted="false">Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do Piggu Premium.</string>
+    <string name="orcamento_conhecer_premium">Conhecer o Piggu Premium</string>
+</resources>

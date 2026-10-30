@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="painel_titulo">Painel</string>
+    <string name="ola">Olá, %1$s</string>
+    <string name="personalizar">Personalizar o Painel</string>
+    <string name="guardado_quando">%1$s às %2$s</string>
+
+    <!-- Nomes na tela de organizar (BLOCOS_DO_PAINEL). -->
+    <string name="bloco_resumo">Resumo do mês</string>
+    <string name="bloco_avisos">Para ficar de olho</string>
+    <string name="bloco_mes">Gasto e limite do mês</string>
+    <string name="bloco_cofrinho">Cofrinho</string>
+    <string name="bloco_objetivos">Cofrinhos por objetivo</string>
+    <string name="bloco_metas">Minhas metas</string>
+    <string name="bloco_categorias">Por categoria</string>
+    <string name="bloco_notas">Suas notas</string>
+    <string name="bloco_girls_math">Girls Math</string>
+
+    <!-- Organizar. -->
+    <string name="organizar_rodape">Fica neste aparelho: o celular pode ter uma ordem e o computador outra. Arraste pela alça para mudar a ordem.</string>
+    <string name="organizar_padrao">Voltar ao padrão</string>
+    <string name="organizar_pronto">Pronto</string>
+    <string name="organizar_subir">Mover para cima</string>
+    <string name="organizar_descer">Mover para baixo</string>
+    <string name="organizar_arrastar">Arrastar %1$s</string>
+
+    <!-- Resumo do mês. -->
+    <string name="resumo_titulo">Sobra do mês</string>
+    <string name="resumo_poupado">%1$s%% poupado</string>
+    <string name="resumo_receitas">Receitas</string>
+    <string name="resumo_gastos">Gastos</string>
+    <string name="resumo_dica">Lance as receitas do mês para ver quanto sobrou e quanto você poupou.</string>
+
+    <!-- Avisos. -->
+    <string name="aviso_orcamento">Orçamento</string>
+    <string name="aviso_orcamento_estourou">%1$s passou do limite: %2$s de %3$s</string>
+    <string name="aviso_orcamento_atencao">%1$s já usou %2$s%% do limite</string>
+    <string name="aviso_fatura">Fatura do cartão</string>
+    <string name="aviso_fatura_vence">%1$s vence em %2$s: %3$s</string>
+    <string name="aviso_venceu">Venceu em %1$s</string>
+    <string name="aviso_vence">Vence em %1$s</string>
+    <string name="aviso_devendo">Está te devendo desde %1$s</string>
+
+    <!-- Gasto e limite do mês. -->
+    <string name="mes_gasto">Gasto no mês</string>
+    <string name="mes_limite">Limite do mês</string>
+    <string name="mes_progresso">%1$d%% do limite</string>
+    <string name="mes_estourou">%1$d%% do limite · limite ultrapassado</string>
+    <string name="mes_sem_limite">Sem limite definido para este mês.</string>
+    <string name="mes_definir_limite">Definir limite</string>
+    <string name="mes_ver_gastos">Ver gastos</string>
+
+    <!-- Por categoria. -->
+    <string name="categorias_vazio">Nenhum gasto lançado neste mês</string>
+    <string name="lancar_um_gasto">Lançar um gasto</string>
+
+    <!-- Cofrinho. -->
+    <string name="cofrinho_depositado">Depositado</string>
+    <string name="cofrinho_gasto">Gasto desde o início</string>
+    <string name="cofrinho_novo_deposito">Novo depósito (%1$s)</string>
+    <string name="cofrinho_depositar">Depositar</string>
+    <string name="cofrinho_guardando">Guardando…</string>
+    <string name="cofrinho_vazio">Nenhum depósito ainda</string>
+    <string name="cofrinho_primeiro">Fazer o primeiro depósito</string>
+    <string name="cofrinho_apagar_pergunta">Apagar este depósito?</string>
+    <string name="deposito_invalido">Digite um valor de depósito válido.</string>
+    <string name="data_e_pessoa">%1$s · %2$s</string>
+    <string name="ex_membro">Ex-membro</string>
+
+    <!-- Objetivos. -->
+    <string name="objetivo_a_dois">a dois</string>
+    <string name="objetivo_guardado">%1$s de %2$s</string>
+    <string name="objetivo_criado_por">Criado por %1$s</string>
+    <string name="objetivo_alcancado">Objetivo alcançado!</string>
+    <string name="objetivo_atrasado">O prazo passou e faltam %1$s.</string>
+    <string name="objetivo_por_mes">Guarde %1$s por mês até %2$s.</string>
+    <string name="objetivo_sem_prazo">Faltam %1$s, sem prazo.</string>
+    <string name="objetivo_guardar_em">Guardar em %1$s (%2$s)</string>
+    <string name="objetivo_guardar">Guardar</string>
+    <string name="objetivos_vazio">Juntando para uma viagem, um sofá ou a reserva? Dê um nome, quanto e até quando, e o Piggu diz quanto guardar por mês.</string>
+    <string name="objetivo_primeiro">Criar o primeiro objetivo</string>
+    <string name="objetivo_novo">Novo objetivo</string>
+    <string name="objetivo_editar">Editar objetivo</string>
+    <string name="objetivo_nome">Nome</string>
+    <string name="objetivo_nome_exemplo">Viagem de férias</string>
+    <string name="objetivo_quanto">Quanto (%1$s)</string>
+    <string name="objetivo_ate_quando">Até quando (opcional)</string>
+    <string name="objetivo_prazo">Até %1$s</string>
+    <string name="objetivo_tirar_prazo">Sem prazo</string>
+    <string name="objetivo_compartilhado">A dois: quem mora com você vê e deposita junto</string>
+    <string name="objetivo_salvar">Salvar objetivo</string>
+    <string name="objetivo_sem_nome">Dê um nome ao objetivo.</string>
+    <string name="objetivo_sem_alvo">Digite quanto quer juntar.</string>
+    <string name="objetivo_convite">No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser.</string>
+    <string name="objetivo_conhecer_premium">Conhecer o Premium</string>
+    <string name="objetivo_apagar_pergunta">Apagar \"%1$s\"? O que foi guardado nele volta para o cofrinho geral.</string>
+
+    <!-- Minhas metas. -->
+    <string name="metas_ritmo">Seu ritmo</string>
+    <string name="metas_titulo">Metas do mês</string>
+    <plurals name="metas_concluidas">
+        <item quantity="one">%1$d de %2$d concluída</item>
+        <item quantity="many">%1$d de %2$d concluídas</item>
+        <item quantity="other">%1$d de %2$d concluídas</item>
+    </plurals>
+    <string name="metas_vazio">Crie sua primeira meta para começar a jornada.</string>
+    <string name="metas_ver">Ver metas</string>
+    <string name="metas_percentual">%1$d%%</string>
+
+    <!-- Girls Math. -->
+    <string name="girls_math_texto">Você deixou de gastar este mês</string>
+    <string name="girls_math_registrar">Registrar o que não comprei</string>
+
+    <!-- Notas. -->
+    <string name="notas_ver_todas">Ver todas</string>
+    <string name="notas_vazio">Nenhuma nota ainda.</string>
+    <string name="notas_titulo_campo">Título</string>
+    <string name="notas_texto_campo">Nota</string>
+    <string name="notas_texto_exemplo">Escreve aqui…</string>
+    <string name="notas_salvar">Salvar nota</string>
+    <string name="notas_criar">+ Criar outra</string>
+    <string name="nota_sem_titulo">Digite o título da nota.</string>
+    <string name="nota_apagar_pergunta">Apagar a nota \"%1$s\"?</string>
+
+    <!-- Contas bancárias. -->
+    <string name="bancos_titulo">Contas bancárias</string>
+    <string name="bancos_vazio">Nenhum banco conectado.</string>
+    <string name="bancos_conectado">%1$s conectado</string>
+    <string name="bancos_desconectar">Desconectar</string>
+    <string name="bancos_desconectar_pergunta">Desconectar %1$s? O Piggu para de ler este banco e apaga os saldos guardados.</string>
+    <string name="bancos_conectar">Conectar banco</string>
+    <string name="bancos_conectar_premium">Conectar banco com o Premium</string>
+    <string name="bancos_atualizar">Atualizar saldos</string>
+    <string name="bancos_aguarde">Aguarde…</string>
+
+    <!-- Primeiros passos. -->
+    <string name="guia_titulo">Primeiros passos</string>
+    <string name="guia_feitos">%1$d de 3</string>
+    <string name="guia_moeda">1. Em que moeda você gasta?</string>
+    <string name="guia_moeda_campo">Moeda</string>
+    <string name="guia_usar_esta">Usar esta</string>
+    <string name="guia_limite">2. Quanto quer gastar por mês?</string>
+    <string name="guia_definir_limite">Definir o limite</string>
+    <string name="guia_gasto">3. Lance o primeiro gasto ou importe o extrato</string>
+    <string name="guia_lancar">Lançar gasto</string>
+    <string name="guia_importar">Importar extrato</string>
+    <string name="guia_pular">Pular o guia</string>
+    <string name="guia_feito">feito</string>
+
+    <string name="apagar">Apagar</string>
+    <string name="editar">Editar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="ok">OK</string>
+</resources>

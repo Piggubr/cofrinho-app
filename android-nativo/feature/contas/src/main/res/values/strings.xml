@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cartões e bancos (frontend/src/app/features/accounts/accounts.html) -->
+    <string name="contas_titulo">Cartões e bancos</string>
+    <string name="contas_suas">Suas contas</string>
+    <string name="contas_vazio_titulo">Nenhuma conta ainda</string>
+    <string name="contas_vazio_texto">Cadastre para escolher no lançamento e ver a fatura do cartão.</string>
+    <string name="contas_do_casal">do casal</string>
+    <string name="contas_de">De %1$s</string>
+    <string name="contas_de_ex_membro">De Ex-membro</string>
+    <string name="contas_fecha_vence">Fecha dia %1$d · vence dia %2$d</string>
+    <string name="contas_fatura_aberta">Fatura aberta (%1$s): %2$s</string>
+    <string name="contas_destaque_fechamento">Compras até %1$s entram nesta fatura. A partir de %2$s, dia do fechamento, vão para a próxima.</string>
+    <string name="contas_fatura_paga">Fatura de %1$s paga</string>
+    <string name="contas_a_pagar">A pagar: %1$s até %2$s</string>
+    <string name="contas_tipo_conta">Conta</string>
+    <string name="contas_ver_fatura">Ver fatura</string>
+    <string name="contas_compartilhar">Compartilhar</string>
+    <string name="contas_deixar_so_meu">Deixar só meu</string>
+    <string name="contas_apagar">Apagar</string>
+    <string name="contas_apagar_conta">Apagar %1$s</string>
+    <string name="contas_apagar_pergunta">Apagar \"%1$s\"? Os gastos continuam, só sem a conta.</string>
+
+    <!-- Fatura do cartão -->
+    <string name="fatura_titulo">%1$s · %2$s</string>
+    <string name="fatura_anterior">Fatura anterior</string>
+    <string name="fatura_proxima">Próxima fatura</string>
+    <string name="fatura_periodo">Compras de %1$s a %2$s · fecha em %3$s · vence em %4$s</string>
+    <string name="fatura_paga">Paga</string>
+    <string name="fatura_marcar_paga">Marcar como paga</string>
+    <string name="fatura_desfazer">Desfazer pagamento</string>
+    <string name="fatura_parcela">parcela %1$d/%2$d</string>
+    <string name="fatura_vazia">Nenhum gasto nesta fatura.</string>
+
+    <!-- Nova conta ou cartão -->
+    <string name="nova_conta_titulo">Nova conta ou cartão</string>
+    <string name="nova_conta_nome">Nome</string>
+    <string name="nova_conta_nome_exemplo">Ex.: Nubank</string>
+    <string name="nova_conta_cartao">Cartão de crédito</string>
+    <string name="nova_conta_conta">Conta</string>
+    <string name="nova_conta_vencimento">Dia do vencimento da fatura</string>
+    <string name="nova_conta_fechamento">Dia do fechamento</string>
+    <string name="nova_conta_dica">O fechamento fica 7 dias antes do vencimento; mude se o seu banco usar outro dia. Compras feitas do dia do fechamento em diante vão para a fatura seguinte.</string>
+    <string name="nova_conta_do_casal">Do casal: tudo o que for lançado nela já nasce compartilhado (conta conjunta, cartão adicional)</string>
+    <string name="nova_conta_salvar">Salvar</string>
+    <string name="nova_conta_falta_nome">Digite o nome da conta ou do cartão.</string>
+    <string name="nova_conta_falta_vencimento">Informe o dia do vencimento da fatura (1 a 31).</string>
+    <string name="nova_conta_falta_fechamento">Informe o dia do fechamento (1 a 31).</string>
+
+    <!-- Bancos do Open Finance (cartão dos bancos do painel) -->
+    <string name="cartoes_bancos_titulo">Bancos conectados</string>
+    <string name="cartoes_bancos_vazio">Nenhum banco conectado.</string>
+    <string name="cartoes_bancos_conectado">%1$s conectado</string>
+    <string name="cartoes_bancos_desconectar">Desconectar</string>
+    <string name="cartoes_bancos_desconectar_pergunta">Desconectar %1$s? O Piggu para de ler este banco e apaga os saldos guardados.</string>
+    <string name="cartoes_bancos_conectar">Conectar banco</string>
+    <string name="cartoes_bancos_atualizar">Atualizar saldos</string>
+    <string name="cartoes_bancos_aguarde">Aguarde…</string>
+</resources>

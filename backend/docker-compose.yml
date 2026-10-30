@@ -104,6 +104,10 @@ services:
       REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
       APP_STORE_BUNDLE_ID: ${APP_STORE_BUNDLE_ID:-br.com.piggu.app}
       APP_STORE_APP_APPLE_ID: ${APP_STORE_APP_APPLE_ID:-}
+      GOOGLE_PLAY_PACOTE: ${GOOGLE_PLAY_PACOTE:-br.com.piggu.app}
+      GOOGLE_PLAY_CREDENCIAIS: ${GOOGLE_PLAY_CREDENCIAIS:-}
+      GOOGLE_PLAY_PUSH_AUDIENCIA: ${GOOGLE_PLAY_PUSH_AUDIENCIA:-}
+      GOOGLE_PLAY_PUSH_EMAIL: ${GOOGLE_PLAY_PUSH_EMAIL:-}
       SITE_URL: ${SITE_URL:-http://localhost:4200}
       # Avisos fora do app (fatura, orcamento, conta fixa): cada canal liga com as credenciais.
       PIGGU_EMAIL_API_KEY: ${PIGGU_EMAIL_API_KEY:-}
@@ -113,6 +117,7 @@ services:
       APNS_CHAVE: ${APNS_CHAVE:-}
       APNS_BUNDLE_ID: ${APNS_BUNDLE_ID:-}
       APNS_SANDBOX: ${APNS_SANDBOX:-false}
+      FCM_CONTA_DE_SERVICO: ${FCM_CONTA_DE_SERVICO:-}
       # Exportar e apagar a conta passa por todos os servicos com dado de pessoas.
       FINANCE_URL: http://finance:8082
       REWARDS_URL: http://rewards:8083

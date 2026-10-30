@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Os textos de features/girls-math do site. -->
+<resources>
+    <string name="girlsmath_titulo">Girls Math</string>
+    <string name="girlsmath_lead">Registre o que você deixou de comprar.</string>
+    <string name="girlsmath_este_mes">Você deixou de gastar este mês</string>
+    <string name="girlsmath_desde_sempre">Desde o começo: %1$s</string>
+    <string name="girlsmath_novo">O que você não comprou?</string>
+    <string name="girlsmath_produto">Nome do produto</string>
+    <string name="girlsmath_loja">Loja onde você viu</string>
+    <string name="girlsmath_valor">Quanto custava (%1$s)</string>
+    <string name="girlsmath_guardar">Guardar no Girls Math</string>
+    <string name="girlsmath_guardando">Guardando…</string>
+    <string name="girlsmath_galeria">Foto</string>
+    <string name="girlsmath_galeria_descricao">Escolher foto do produto</string>
+    <string name="girlsmath_camera">Câmera</string>
+    <string name="girlsmath_camera_descricao">Tirar foto do produto</string>
+    <string name="girlsmath_tirar_a_foto">Tirar a foto</string>
+    <string name="girlsmath_sem_foto">Sem foto</string>
+    <string name="girlsmath_foto_do_produto">Foto do produto</string>
+    <string name="girlsmath_falta_produto">Digite o nome do produto.</string>
+    <string name="girlsmath_falta_valor">Digite quanto custava.</string>
+    <string name="girlsmath_foto_ilegivel">Não consegui ler essa imagem.</string>
+    <string name="girlsmath_vazio_titulo">Nenhum item guardado ainda</string>
+    <string name="girlsmath_vazio_texto">Registre o que você viu, quis e não comprou, e veja quanto ficou no bolso.</string>
+    <string name="girlsmath_apagar">Apagar</string>
+    <string name="girlsmath_apagar_de">Apagar %1$s</string>
+    <string name="girlsmath_apagar_pergunta">Apagar \"%1$s\"?</string>
+</resources>

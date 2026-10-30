@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Subclasse própria: dois androidx.core FileProvider no mesmo app colidem no manifesto. -->
+        <provider
+            android:name="br.com.piggu.feature.girlsmath.FotosDoGirlsMath"
+            android:authorities="${applicationId}.girlsmath.fotos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/girlsmath_fotos" />
+        </provider>
+    </application>
+</manifest>
