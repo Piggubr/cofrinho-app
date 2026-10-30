@@ -36,6 +36,8 @@ x-logs-monitoramento: &logs-monitoramento
 services:
   postgres:
     logging: *logs
+    # Volta sozinho depois de reiniciar o servidor ou de morrer sem memoria.
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_POSTGRES:-512m}
     image: postgres:16-alpine
     environment:
@@ -66,6 +68,7 @@ services:
 
   identity:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_IDENTITY:-512m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/identity:${PIGGU_VERSAO:-dev}
     build:
@@ -138,6 +141,7 @@ services:
 
   finance:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_FINANCE:-1g}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/finance:${PIGGU_VERSAO:-dev}
     build:
@@ -164,6 +168,7 @@ services:
 
   rewards:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_REWARDS:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/rewards:${PIGGU_VERSAO:-dev}
     build:
@@ -186,6 +191,7 @@ services:
 
   lifestyle:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_LIFESTYLE:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/lifestyle:${PIGGU_VERSAO:-dev}
     build:
@@ -210,6 +216,7 @@ services:
 
   media:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_MEDIA:-512m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/media:${PIGGU_VERSAO:-dev}
     build:
@@ -239,6 +246,7 @@ services:
   # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
   banking:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_BANKING:-384m}
     profiles: ["open-finance"]
     image: ${PIGGU_IMAGENS:-localhost/piggu}/banking:${PIGGU_VERSAO:-dev}
@@ -267,6 +275,7 @@ services:
 
   gateway:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_GATEWAY:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/gateway:${PIGGU_VERSAO:-dev}
     build:
