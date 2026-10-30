@@ -66,7 +66,26 @@ class RetencaoDeDadosTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("quem paga um Premium que vale fica, mesmo sem entrar ha 24 meses; vencido sai")
+    void quemPagaFica() {
+        UserAccount pagante = criar("pagante@x.test");
+        UserAccount venceu = criar("venceu@x.test");
+        jdbc.update("UPDATE users SET last_login_at = now() - interval '25 months' WHERE id IN (?, ?)",
+                pagante.getId(), venceu.getId());
+        jdbc.update("UPDATE households SET subscriber_id = ?, premium_until = now() + interval '20 days' WHERE id = ?",
+                pagante.getId(), pagante.getHouseholdId());
+        jdbc.update("UPDATE households SET subscriber_id = ?, premium_until = now() - interval '1 day' WHERE id = ?",
+                venceu.getId(), venceu.getHouseholdId());
+
+        retencao.aplicar();
+
+        assertThat(usuarios.findById(pagante.getId())).isPresent();
+        assertThat(usuarios.findById(venceu.getId())).isEmpty();
+    }
+
+    @Test
     @DisplayName("sessao e convite vencidos saem")
+
     void sessoesEConvites() {
         UserAccount conta = criar("sessao@x.test");
         sessoes.save(new RefreshSession(conta.getId(), "vencida", null, Instant.now().minusSeconds(60)));
