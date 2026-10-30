@@ -1,5 +1,6 @@
 package com.piggu.lifestyle.integration;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.CorrelacaoFilter;
 import org.junit.jupiter.api.AfterEach;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -25,6 +27,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 /** Fotos dos lugares no piggu-media: o token de quem chamou vai junto, e apagar nunca falha. */
@@ -64,6 +67,21 @@ class MediaClientTest {
 
         assertThat(cliente.enviar("aGVsbG8=", null, "lugar")).isEqualTo(FOTO);
         media.verify();
+    }
+
+    @Test
+    @DisplayName("foto recusada pelo media volta com o motivo e o status dele, nao como media fora do ar")
+    void fotoRecusada() {
+        media.expect(requestTo("http://media.test/api/assets"))
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_CONTENT).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"erro\":\"A foto precisa ser JPEG, PNG ou WebP.\",\"codigo\":\"BusinessException\"}"));
+
+        assertThatThrownBy(() -> cliente.enviar("aGVsbG8=", "image/heic", "lugar"))
+                .isInstanceOfSatisfying(BusinessException.class, erro -> {
+                    assertThat(erro).isNotInstanceOf(UpstreamException.class);
+                    assertThat(erro.getMessage()).isEqualTo("A foto precisa ser JPEG, PNG ou WebP.");
+                    assertThat(erro.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+                });
     }
 
     @Test

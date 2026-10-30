@@ -1,5 +1,7 @@
 package com.piggu.lifestyle.integration;
 
+import com.piggu.common.error.ApiError;
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UpstreamException;
 import com.piggu.common.web.CorrelacaoFilter;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -8,10 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 
@@ -55,15 +59,24 @@ public class MediaClient {
      */
     @CircuitBreaker(name = "media", fallbackMethod = "falhaAoEnviar")
     public UUID enviar(String imageBase64, String mimeType, String contexto) {
-        JsonNode resposta = cliente.post()
-                .uri("/api/assets")
-                .header(HttpHeaders.AUTHORIZATION, autorizacao())
-                .body(Map.of(
-                        "imageBase64", imageBase64,
-                        "mimeType", mimeType == null ? "image/jpeg" : mimeType,
-                        "contexto", contexto))
-                .retrieve()
-                .body(JsonNode.class);
+        JsonNode resposta;
+        try {
+            resposta = cliente.post()
+                    .uri("/api/assets")
+                    .header(HttpHeaders.AUTHORIZATION, autorizacao())
+                    .body(Map.of(
+                            "imageBase64", imageBase64,
+                            "mimeType", mimeType == null ? "image/jpeg" : mimeType,
+                            "contexto", contexto))
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (HttpClientErrorException recusada) {
+            // Foto recusada (tipo, tamanho, limite da familia): o motivo do media vai para a tela, e tentar
+            // de novo nao adianta. Nao conta como media fora do ar (ignoreExceptions do circuito).
+            ApiError corpo = recusada.getResponseBodyAs(ApiError.class);
+            throw new BusinessException(corpo != null && corpo.erro() != null ? corpo.erro() : "A foto foi recusada.",
+                    HttpStatus.valueOf(recusada.getStatusCode().value()), corpo == null ? null : corpo.codigo());
+        }
 
         if (resposta == null || !resposta.hasNonNull("id")) {
             throw new UpstreamException("Nao consegui guardar a foto agora.");
@@ -103,6 +116,9 @@ public class MediaClient {
 
     @SuppressWarnings("unused")
     private UUID falhaAoEnviar(String imageBase64, String mimeType, String contexto, Throwable erro) {
+        if (erro instanceof BusinessException recusada && !(erro instanceof UpstreamException)) {
+            throw recusada;
+        }
         log.error("Servico de media indisponivel ao enviar foto", erro);
         throw new UpstreamException("O servico de fotos esta indisponivel. Tente novamente em instantes.");
     }
