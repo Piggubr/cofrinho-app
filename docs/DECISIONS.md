@@ -32,6 +32,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
 | [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
 | [D-087](#d-087-salário-em-duas-parcelas-numa-receita-só) | Salário em duas parcelas numa receita só | Valendo |
+| [D-148](#d-148-o-dia-1-lança-o-que-a-última-rodada-do-mês-passado-perdeu) | O dia 1 lança o que a última rodada do mês passado perdeu | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -314,6 +315,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: duas receitas recorrentes separadas, que funcionam hoje sem mudar o backend, mas aparecem como dois salários na lista.
 - Consequências: só a receita lançada pelo formulário de receita tem segunda parcela; a conta fixa de gasto não usa. Editar a receita recorrente ainda não muda a segunda parcela: para trocar, pare de repetir e lance de novo.
 - Onde ver: `ContasFixasService.receberSegundaParcela`, [DATA_MODEL.md, `recurring_bills`](DATA_MODEL.md)
+
+## D-148: O dia 1 lança o que a última rodada do mês passado perdeu
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o lançamento automático das contas fixas roda às 6h e só olha o mês corrente; o `@Scheduled` não repete a rodada perdida. Um deploy ou o banco fora às 6h do dia 31 deixava o aluguel de outubro sem lançar para sempre, sem erro.
+- Decisão: no dia 1, antes do mês novo, a rodada lança o que venceu no mês passado e não foi lançado, só das contas criadas antes do mês novo.
+- Alternativas: ShedLock ou uma tabela de rodadas, para um serviço que roda num contêiner só; repetir a busca do mês passado todo dia, o que lançaria meses de quem ligou o automático depois.
+- Consequências: se a rodada do dia 1 também falhar, o mês passado fica de fora, como antes.
+- Onde ver: `ContasFixasService.lancarAutomaticas`, `ContasFixasTest`
 
 # Segurança e privacidade
 

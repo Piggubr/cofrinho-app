@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +36,9 @@ class ContasFixasTest extends PostgresIntegrationTest {
 
     @Autowired
     private ContasFixasService contas;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private DuasFamilias casas;
 
@@ -84,6 +88,31 @@ class ContasFixasTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].item").value("Internet"))
                 .andExpect(jsonPath("$[0].usuario").value(TokensDeTeste.idDe("auto-" + familia + "@piggu.test").toString()));
+    }
+
+    @Test
+    @DisplayName("no dia 1 entra o que venceu no ultimo dia do mes passado e a rodada perdeu; conta nova nao ganha o mes")
+    void diaUmRecuperaOFimDoMes() throws Exception {
+        UUID familia = UUID.randomUUID();
+        RequestPostProcessor casa = TokensDeTeste.da(familia, "virada-" + familia + "@piggu.test", PigguRole.TITULAR);
+        criarConta(casa, "Aluguel", 31, true);
+        criarConta(casa, "Academia", 31, true);
+        jdbc.update("UPDATE recurring_bills SET created_at = '2026-10-15' WHERE household_id = ? AND description = 'Aluguel'",
+                familia);
+        // Criada na manha do dia 1 (Brasilia): outubro nao era dela.
+        jdbc.update("UPDATE recurring_bills SET created_at = '2026-11-01 05:00-03' WHERE household_id = ? AND description = 'Academia'",
+                familia);
+
+        // A rodada de 31/10 nao aconteceu.
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 1));
+        contas.lancarAutomaticas(LocalDate.of(2026, 11, 1));
+
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-10").with(casa))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].item").value("Aluguel"))
+                .andExpect(jsonPath("$[0].data").value("2026-10-31"));
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-11").with(casa))
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
