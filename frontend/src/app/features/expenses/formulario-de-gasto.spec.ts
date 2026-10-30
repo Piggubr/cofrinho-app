@@ -303,19 +303,40 @@ describe('FormularioDeGasto', () => {
     expect(alerta(tela)).toContain('Cadastre o cartão');
   });
 
+  it('a parcela mostrada e a que o servidor grava, em centavos inteiros', () => {
+    const tela = abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+
+    digitar(pagina, '#item', 'Livro');
+    digitar(pagina, '#valor', '19,90');
+    clicar(pagina, 'Cartão de crédito');
+    tela.detectChanges();
+    digitar(pagina, '#cartao', 'c1');
+    clicar(pagina, 'Parcelado');
+    tela.detectChanges();
+    digitar(pagina, '#parcelas', '2');
+    tela.detectChanges();
+
+    expect(pagina.textContent).toContain('9,95');
+    expect(pagina.textContent).not.toContain('9,94');
+  });
+
   it('compra em outra moeda espera a cotacao e grava convertida', () => {
+
     const tela = abrir([conta({ id: 'b1' })]);
     const pagina: HTMLElement = tela.nativeElement;
 
     digitar(pagina, '#item', 'Jantar');
-    digitar(pagina, '#valor', '100');
+    digitar(pagina, '#valor', '7,50');
     digitar(pagina, '#moeda-compra', 'USD');
+
     const cotacao = http.expectOne((r) => r.url === '/api/exchange-rate');
     expect(cotacao.request.params.get('de')).toBe('USD');
     clicar(pagina, 'Lançar');
     expect(alerta(tela)).toBe('Aguarde a cotação da moeda da compra.');
 
-    cotacao.flush({ de: 'USD', para: 'EUR', taxa: 0.9, data: '2026-10-05' });
+    cotacao.flush({ de: 'USD', para: 'BRL', taxa: 5.43, data: '2026-10-05' });
+
     tela.detectChanges();
     expect(pagina.textContent).toContain('cotação de hoje');
     expect(pagina.querySelector('summary')?.textContent).toContain('USD');
@@ -325,11 +346,13 @@ describe('FormularioDeGasto', () => {
 
     clicar(pagina, 'Lançar');
     const pedido = http.expectOne((r) => r.method === 'POST');
+    // 7,50 x 5,43 = 40,725: arredonda para cima, como o app nativo e o servidor.
     expect(pedido.request.body.itens[0]).toMatchObject({
-      valor: 90,
+      valor: 40.73,
       moedaOriginal: 'USD',
-      valorOriginal: 100,
+      valorOriginal: 7.5,
     });
+
     pedido.flush([]);
 
     digitar(pagina, '#moeda-compra', 'GBP');

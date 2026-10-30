@@ -84,7 +84,26 @@ describe('FilaDeGastos', () => {
     expect(fila.recusados()).toBe(1);
   });
 
+  it('cartao apagado (404 do Piggu) tira da fila; 404 sem o codigo, de proxy, espera', async () => {
+    const fila = TestBed.inject(FilaDeGastos);
+    fila.guardar(pedido('Pao'));
+
+    let envio = fila.enviar();
+    http.expectOne('/api/expenses').flush('<html>', { status: 404, statusText: 'Not Found' });
+    await envio;
+    expect(fila.pendentes()).toHaveLength(1);
+
+    envio = fila.enviar();
+    http
+      .expectOne('/api/expenses')
+      .flush({ erro: 'Conta ou cartao nao encontrado.', codigo: 'NotFoundException' }, { status: 404, statusText: 'Not Found' });
+    await envio;
+    expect(fila.pendentes()).toEqual([]);
+    expect(fila.recusados()).toBe(1);
+  });
+
   it('outra aba guardou um gasto: le de novo e nao grava por cima', () => {
+
     const fila = TestBed.inject(FilaDeGastos);
     fila.guardar(pedido('Pao'));
     const daOutraAba = [

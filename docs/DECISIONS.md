@@ -155,6 +155,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
 | [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
+| [D-147](#d-147-o-404-do-piggu-também-tira-o-gasto-da-fila) | O 404 do Piggu também tira o gasto da fila | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -1330,6 +1331,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o Firebase Admin SDK, que traria dezenas de dependências para uma chamada HTTP que o serviço já sabe fazer, como faz com o APNs.
 - Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
 - Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
+
+## D-147: O 404 do Piggu também tira o gasto da fila
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o gasto guardado sem sinal num cartão que alguém apagou no site volta 404 `NotFoundException` para sempre. Por D-075, ele parava a fila: esse gasto e todos os guardados depois dele nunca subiam, sem aviso.
+- Decisão: no site e no Android, o 404 com o código `NotFoundException` conta como recusado, como o 400 e o 422: sai da fila e entra na contagem de recusados. O 404 sem esse código (de proxy, rota que não existe) segue parando a fila. Complementa D-075.
+- Alternativas: mandar o gasto de novo sem o cartão; perde a escolha da pessoa sem ela saber.
+- Consequências: a pessoa vê "recusado" e lança de novo com outro cartão.
+- Onde ver: `fila-de-gastos.ts`, `FilaNoRoom.recusado`
 
 # Processo
 
