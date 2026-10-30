@@ -76,7 +76,6 @@ class FilaNoRoomTest {
 
     private fun servidor(status: Int, codigo: String? = null) = ErroDaApi.DoServidor(status, codigo, null, emptyList(), null)
 
-
     @Test
     fun `envia na ordem e avisa as telas, e guardar agenda o trabalho unico com rede`() = runTest {
         val m = montar()
@@ -134,13 +133,10 @@ class FilaNoRoomTest {
         val trabalho = WorkManager.getInstance(contexto).getWorkInfosForUniqueWork(ENVIO_DA_FILA).get().single()
         assertTrue(trabalho.id != primeiro)
         assertEquals(androidx.work.WorkInfo.State.ENQUEUED, trabalho.state)
-
-
     }
 
     @Test
     fun `500, 401 e sem rede param o envio e guardam o resto`() = runTest {
-
         val m = montar()
         m.fila.guardar(gasto("Leite"))
         m.fila.guardar(gasto("Pão"))

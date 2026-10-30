@@ -264,7 +264,6 @@ describe('AuthService', () => {
   });
 
   it('sair avisa o servidor, limpa a sessao, esquece a conta do Google e vai para o login', async () => {
-
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     auth.atualizarUsuario(usuarioDeTeste());
     storage.guardar(tokens());

@@ -77,7 +77,6 @@ export class FilaDeGastos {
           if (!recusado(erro)) {
             break;
           }
-
           recusados++;
         }
         // Pelo conteudo: a lista pode ter sido relida de outra aba durante o envio.
@@ -105,7 +104,6 @@ function recusado(erro: unknown): boolean {
 }
 
 /** Falha de rede: o pedido nem chegou. Vale guardar e mandar depois. */
-
 export function semConexao(erro: unknown): boolean {
   return erro instanceof HttpErrorResponse && erro.status === 0;
 }

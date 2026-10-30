@@ -103,7 +103,6 @@ describe('FilaDeGastos', () => {
   });
 
   it('outra aba guardou um gasto: le de novo e nao grava por cima', () => {
-
     const fila = TestBed.inject(FilaDeGastos);
     fila.guardar(pedido('Pao'));
     const daOutraAba = [

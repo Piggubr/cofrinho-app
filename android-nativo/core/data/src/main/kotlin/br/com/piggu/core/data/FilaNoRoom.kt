@@ -78,7 +78,6 @@ class FilaNoRoom @Inject constructor(
                     enviados++
                 } catch (erro: ErroDaApi) {
                     if (!recusado(erro)) break
-
                     recusadosAgora++
                 }
             }
@@ -98,7 +97,6 @@ class FilaNoRoom @Inject constructor(
         (erro.status == 400 || erro.status == 422 || erro.status == 404 && erro.codigo == "NotFoundException")
 
     /** Quantos da pessoa logada ainda esperam, lido do banco (o Worker decide se tenta de novo). */
-
     suspend fun restam(): Int = sessao.usuario?.id?.let { dao.daPessoa(it).size } ?: 0
 
     override suspend fun esquecerRecusados() {

@@ -322,21 +322,18 @@ describe('FormularioDeGasto', () => {
   });
 
   it('compra em outra moeda espera a cotacao e grava convertida', () => {
-
     const tela = abrir([conta({ id: 'b1' })]);
     const pagina: HTMLElement = tela.nativeElement;
 
     digitar(pagina, '#item', 'Jantar');
     digitar(pagina, '#valor', '7,50');
     digitar(pagina, '#moeda-compra', 'USD');
-
     const cotacao = http.expectOne((r) => r.url === '/api/exchange-rate');
     expect(cotacao.request.params.get('de')).toBe('USD');
     clicar(pagina, 'Lançar');
     expect(alerta(tela)).toBe('Aguarde a cotação da moeda da compra.');
 
     cotacao.flush({ de: 'USD', para: 'BRL', taxa: 5.43, data: '2026-10-05' });
-
     tela.detectChanges();
     expect(pagina.textContent).toContain('cotação de hoje');
     expect(pagina.querySelector('summary')?.textContent).toContain('USD');
@@ -352,7 +349,6 @@ describe('FormularioDeGasto', () => {
       moedaOriginal: 'USD',
       valorOriginal: 7.5,
     });
-
     pedido.flush([]);
 
     digitar(pagina, '#moeda-compra', 'GBP');

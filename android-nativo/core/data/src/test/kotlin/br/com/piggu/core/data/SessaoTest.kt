@@ -32,7 +32,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-
 private const val USUARIO = """{"id":"u1","email":"ana@piggu.com.br","nome":"Ana Souza","primeiroNome":"Ana","role":"TITULAR","ativo":true,"plano":"PREMIUM","familia":"f1"}"""
 
 private fun tokens(acesso: String, refresh: String) =
@@ -66,7 +65,6 @@ class SessaoTest {
     private val logouts = mutableListOf<String>()
     private val renovacaoComecou = CountDownLatch(1)
 
-
     init {
         servidor.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
@@ -78,7 +76,6 @@ class SessaoTest {
                         renovacaoComecou.countDown()
                         // Devagar, para as outras chamadas chegarem durante a renovação.
                         Thread.sleep(150)
-
                         val n = renovacoes.incrementAndGet()
                         refreshValido = "r-novo-$n"
                         MockResponse(200, body = tokens("novo-$n", refreshValido))
@@ -210,7 +207,6 @@ class SessaoTest {
 
     @Test
     fun `403 CADASTRO_PENDENTE leva ao Sobre voce`() = runTest {
-
         val (sessao, _) = novaSessao()
         naRede { sessao.entrarComSenha("ana@piggu.com.br", "senha", lembrar = true) }
         val retrofit = ModuloDaRede.retrofit(servidor.url("/api/").toString(), ModuloDaRede.okHttp("2.0.0", AvisoDeVersao(), AutenticacaoDaSessao(sessao)), JsonDoPiggu)

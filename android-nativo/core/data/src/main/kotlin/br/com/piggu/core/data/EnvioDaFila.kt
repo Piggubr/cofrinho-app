@@ -34,7 +34,6 @@ fun agendarEnvioDaFila(contexto: Context) {
         .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
         .build()
     WorkManager.getInstance(contexto).enqueueUniqueWork(ENVIO_DA_FILA, ExistingWorkPolicy.REPLACE, pedido)
-
 }
 
 /**
