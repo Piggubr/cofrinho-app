@@ -8,6 +8,8 @@ import TipKit
 struct PainelView: View {
     let versaoDosDados: Int
     let aoLancar: () -> Void
+    /// Importou o extrato pelo guia: as outras abas recarregam.
+    let aoMudar: () -> Void
     let irPara: (Aba) -> Void
 
     @Environment(Sessao.self) private var sessao
@@ -77,7 +79,7 @@ struct PainelView: View {
                     }
                     TipView(Dicas.BoasVindas())
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
-                                    temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar)
+                                    temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
                     if modelo.temCompanhia {
                         Picker("O que ver", selection: $visao) {
                             ForEach(Visao.allCases, id: \.self) { Text($0.nome).tag($0) }

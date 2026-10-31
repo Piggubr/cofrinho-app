@@ -292,6 +292,25 @@ actor TransporteDeDemonstracao: Transporte {
             return responder(url, 200, Array(achados.prefix(20)))
         case ("POST", "/expenses"):
             return responder(url, 201, lancar(pedido.httpBody))
+        case ("POST", "/expenses/import/preview"):
+            // Qualquer arquivo vira o mesmo extrato; a ultima linha ja "entrou" antes.
+            let hoje = Formatos.dia(Date())
+            return responder(url, 200, [
+                ["data": hoje, "descricao": "PIX ENVIADO PADARIA", "valor": 18.5, "idExterno": "demo:1",
+                 "categoria": "Alimentação", "jaImportada": false],
+                ["data": hoje, "descricao": "COMPRA CARTAO POSTO", "valor": 150, "idExterno": "demo:2",
+                 "categoria": "Transporte", "jaImportada": false],
+                ["data": hoje, "descricao": "DEBITO AUT ENEL", "valor": 189.32, "idExterno": "demo:3",
+                 "categoria": "Casa", "jaImportada": true],
+            ])
+        case ("POST", "/expenses/import"):
+            let linhas = corpo["linhas"] as? [[String: Any]] ?? []
+            gastos += linhas.map {
+                Self.gasto($0["descricao"] as? String ?? "", $0["categoria"] as? String ?? "Outros",
+                           ($0["valor"] as? NSNumber)?.doubleValue ?? 0, $0["data"] as? String ?? "", "",
+                           conta: corpo["contaId"] as? String)
+            }
+            return responder(url, 200, ["importados": linhas.count, "pulados": 0])
         case ("GET", "/reports/month"):
             return responder(url, 200, resumo(url))
         default:

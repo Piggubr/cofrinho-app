@@ -112,6 +112,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-097](#d-097-topo-das-abas-com-a-marca-a-busca-e-o-assistente-trava-em-janela-própria) | Topo das abas com a marca, a busca e o assistente; trava em janela própria | Valendo |
 | [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
 | [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
+| [D-140](#d-140-importar-extrato-no-app-ios-sem-passar-pelo-site) | Importar extrato no app iOS, sem passar pelo site | Valendo |
 | [D-141](#d-141-iphone-deitado-aba-e-pilhas-por-janela-iphone-duo) | iPhone deitado, aba e pilhas por janela (iPhone Duo) | Valendo |
 | [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
@@ -901,7 +902,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Data: 27/10/2026
 - Situação: Valendo
 - Contexto: etapa 4 do plano iOS (Painel, Gastos e Receitas com paridade com o site). Os cartões do Painel e os formulários levam a telas que só chegam ao app nas etapas 5 a 7 (orçamentos, contas do mês, cartões e bancos, metas, Girls Math, calendário, Premium), e duas funções dependem de algo que o app ainda não tem: a leitura de nota por foto (etapa 7) e o widget da Pluggy para conectar banco.
-- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
+- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato (nativa desde a D-140) e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
 - Alternativas: esconder os atalhos até a etapa certa, que deixaria cartões sem saída; abrir o site numa web view, que pede login de novo dentro dela.
 - Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
 - Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
@@ -1441,6 +1442,15 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
 - Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
 - Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`
+
+## D-140: Importar extrato no app iOS, sem passar pelo site
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: pela D-090, "Importar extrato" (vazio de Gastos e guia de primeiros passos) abria o `piggu.com.br/gastos#importar` no Safari. Quem testou achou que era bug: tocava num botão do app e caía no site.
+- Decisão: a importação de OFX ou CSV fica nativa, numa folha (`ImportarExtratoView`) aberta pelos Gastos (uma linha acima das regras de categoria) e pelo guia do Painel. Segue o `importar-extrato.ts`: o arquivo vem do app Arquivos (`fileImporter`), até 2 MB, lido em UTF-8 e, se não for UTF-8 válido, em Latin-1; a prévia (`POST /expenses/import/preview`) vem com o já importado desmarcado; cada linha troca de categoria e todas podem ir para uma conta; `POST /expenses/import` grava os marcados e mostra importados e pulados. Substitui essa parte da D-090. Com isso o `LinkDoSite` ficou sem uso e saiu.
+- Alternativas: esconder o botão no iOS (a pessoa teria que lembrar do site); manter o link com um aviso de que abre o site.
+- Consequências: o OFX não tem tipo do sistema, então o `Info.plist` declara o `com.intuit.ofx` (`.ofx` e `.qfx`); sem isso, o `.ofx` poderia aparecer apagado no app Arquivos. O "Trazer do banco" (Open Finance, Premium) e o "Exportar CSV do mês" desse bloco do site não entram aqui: o CSV já sai pelos Relatórios, e o do banco fica para depois. Nenhuma rota nova no backend.
+- Onde ver: `ios-nativo/Piggu/Telas/Gastos/ImportarExtratoView.swift`, `ios-nativo/Piggu/Telas/GastosView.swift`, `ios-nativo/Piggu/Telas/Painel/PrimeirosPassos.swift`
 
 ## D-141: iPhone deitado, aba e pilhas por janela (iPhone Duo)
 - Data: 29/10/2026

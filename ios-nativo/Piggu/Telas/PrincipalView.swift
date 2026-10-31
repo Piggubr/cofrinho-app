@@ -122,7 +122,7 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { aba = $0 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
