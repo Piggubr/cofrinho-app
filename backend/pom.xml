@@ -47,7 +47,7 @@
     <!-- Gera o contrato da API (docs/api) a partir dos controllers. A linha 3.0 e a do
          Spring Boot 4.0 (a 3.1 em diante ja e compilada contra o Boot 4.1). So liga no
          perfil dev e nos testes: em producao /v3/api-docs e o Swagger UI ficam desligados. -->
-    <springdoc.version>3.0.3</springdoc.version>
+    <springdoc.version>3.2.0</springdoc.version>
     <!-- Biblioteca oficial da Apple para conferir a compra no app (JWS do StoreKit 2 e
          App Store Server Notifications V2). D-094. -->
     <app-store-server-library.version>5.2.0</app-store-server-library.version>
