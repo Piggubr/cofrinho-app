@@ -73,8 +73,9 @@ plataforma que faltar.
   Links, quando o `assetlinks.json` estiver no ar.
 - Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
   (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
-- Google: o botão só aparece com `./gradlew -Ppiggu.googleNoAndroid=true ...` (ou a linha em
-  `gradle.properties`), depois de criar o ID OAuth do Android no Google Cloud (D-104).
+- Google: o botão está ligado (`piggu.googleNoAndroid=true` em `gradle.properties`). Cada chave
+  que assina o app precisa de um ID OAuth do Android no Google Cloud, senão o login falha com
+  DEVELOPER_ERROR: upload e debug já têm, o da chave do Play falta (D-104).
 - Termos e Aviso: `python3 -I scripts/textos-legais.py` copia o texto do site; o CI confere.
 
 ## Tema
