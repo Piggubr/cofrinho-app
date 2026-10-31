@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ParDeTokens, Usuario } from '../api/models';
 import { APP_CONFIG } from '../config/app-config';
 import { VERSAO_DO_AVISO } from '../privacidade/aviso';
@@ -238,6 +239,28 @@ describe('AuthService', () => {
     expect(recebidos).toEqual(['acesso', 'acesso']);
     auth.renovar().subscribe();
     http.expectOne('/api/auth/refresh').flush(tokens());
+  });
+
+  it('entre abas, a renovacao espera a trava do navegador', async () => {
+    let liberar: () => void = () => {};
+    const request = vi.fn((_nome: string, fazer: () => Promise<unknown>) =>
+      // A trava de outra aba: so roda quando ela soltar.
+      new Promise<void>((pronto) => (liberar = pronto)).then(fazer),
+    );
+    Object.defineProperty(navigator, 'locks', { value: { request }, configurable: true });
+    try {
+      const renovado = firstValueFrom(auth.renovar());
+      expect(request).toHaveBeenCalledWith('piggu-renovar', expect.any(Function));
+      http.expectNone('/api/auth/refresh');
+
+      liberar();
+      await new Promise((pronto) => setTimeout(pronto));
+      http.expectOne('/api/auth/refresh').flush(tokens());
+
+      expect((await renovado).accessToken).toBe('acesso');
+    } finally {
+      delete (navigator as { locks?: unknown }).locks;
+    }
   });
 
   it('sair avisa o servidor, limpa a sessao, esquece a conta do Google e vai para o login', async () => {

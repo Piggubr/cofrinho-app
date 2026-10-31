@@ -21,15 +21,17 @@ struct EntradaComApple: Equatable, Sendable {
         pedido.nonce = nonceComHash
     }
 
-    /// O identity token e o nome (so na primeira autorizacao) do que a Apple devolveu.
-    static func credencial(de autorizacao: ASAuthorization) -> (idToken: String, nome: String?)? {
+    /// O identity token, o nome (so na primeira autorizacao) e o codigo de autorizacao, que o
+    /// backend troca por um refresh token para revogar o acesso quando a conta for excluida.
+    static func credencial(de autorizacao: ASAuthorization) -> (idToken: String, nome: String?, codigo: String?)? {
         guard let credencial = autorizacao.credential as? ASAuthorizationAppleIDCredential,
               let dados = credencial.identityToken,
               let idToken = String(data: dados, encoding: .utf8) else {
             return nil
         }
         let nome = credencial.fullName.map { PersonNameComponentsFormatter().string(from: $0) }
-        return (idToken, nome?.isEmpty == false ? nome : nil)
+        let codigo = credencial.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+        return (idToken, nome?.isEmpty == false ? nome : nil, codigo)
     }
 
     private static func novoNonce() -> String {

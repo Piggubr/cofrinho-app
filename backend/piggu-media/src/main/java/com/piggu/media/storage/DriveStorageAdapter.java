@@ -1,6 +1,7 @@
 package com.piggu.media.storage;
 
 import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -74,9 +75,19 @@ public class DriveStorageAdapter implements StoragePort {
             File lixeira = new File();
             lixeira.setTrashed(true);
             drive.files().update(idNoProvedor, lixeira).execute();
+        } catch (HttpResponseException erro) {
+            if (erro.getStatusCode() != 404) {
+                throw naoApagou(idNoProvedor, erro);
+            }
         } catch (IOException erro) {
-            log.warn("Nao foi possivel apagar o arquivo {} no Drive", idNoProvedor, erro);
+            throw naoApagou(idNoProvedor, erro);
         }
+    }
+
+    /** Quem chama mantem o registro e tenta de novo: sem ele, o arquivo ficaria no Drive para sempre. */
+    private static UpstreamException naoApagou(String idNoProvedor, IOException erro) {
+        log.warn("Nao foi possivel apagar o arquivo {} no Drive", idNoProvedor, erro);
+        return new UpstreamException("Nao consegui apagar a foto agora. Tente de novo em instantes.");
     }
 
     private String resolverPasta(String nomeDaPasta) throws IOException {

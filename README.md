@@ -45,7 +45,7 @@ Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
   ("Lançar gasto no Piggu", com ou sem o valor) e por links `piggu://gastos?rapido=1`.
 - **Notas fiscais:** leitura por OCR próprio e, no Premium, pelo Gemini.
 - **Estilo de vida:** compras com histórico de preço, filmes, lugares, fotos e prêmios.
-- **Premium:** Stripe no site e RevenueCat nas lojas, com 7 dias de teste
+- **Premium:** Stripe no site, App Store no iPhone e Google Play no Android, com 14 dias de teste
   ([planos](docs/planos-premium.md)).
 - **Privacidade:** exportar e excluir a conta, aceite dos termos gravado com data e
   versão, retenção automática, sessão com refresh token em cookie HttpOnly e aviso de

@@ -212,6 +212,13 @@ public class UserAccount {
     @Column(name = "stripe_customer_id")
     private String stripeCustomerId;
 
+    /** Refresh token do Entrar com Apple e o Bundle ID que o emitiu: revogados ao excluir a conta. */
+    @Column(name = "apple_refresh_token")
+    private String appleRefreshToken;
+
+    @Column(name = "apple_client_id")
+    private String appleClientId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -657,6 +664,19 @@ public class UserAccount {
 
     public String getStripeCustomerId() {
         return stripeCustomerId;
+    }
+
+    public void lembrarTokenDaApple(String refreshToken, String clienteId) {
+        this.appleRefreshToken = refreshToken;
+        this.appleClientId = clienteId;
+    }
+
+    public String getAppleRefreshToken() {
+        return appleRefreshToken;
+    }
+
+    public String getAppleClientId() {
+        return appleClientId;
     }
 
     public boolean temCpf() {

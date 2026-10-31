@@ -51,6 +51,12 @@ piggu:
     # Entrar com Apple (app nativo do iPhone): o Bundle ID br.com.piggu.app, e o Services ID se
     # o site ganhar o botao, separados por virgula. Vazio deixa POST /api/auth/apple em 501.
     client-ids: ${APPLE_CLIENT_IDS:}
+    # Chave .p8 com o Entrar com Apple ligado (Certificates, Identifiers & Profiles > Keys): com
+    # ela o servico guarda o token da Apple no login e o revoga ao excluir a conta, como a Apple
+    # exige. Pode ser a mesma chave do APNs, se ela tiver o Entrar com Apple marcado.
+    team-id: ${APPLE_TEAM_ID:}
+    key-id: ${APPLE_KEY_ID:}
+    chave: ${APPLE_CHAVE:}
   jwt:
     issuer: ${JWT_ISSUER:https://piggu.app}
     # Sem valor padrao de proposito: sem JWT_PRIVATE_KEY e JWT_PUBLIC_KEY o servico
@@ -116,11 +122,6 @@ piggu:
     # servico que assina o push. Vazios deixam o aviso em 501.
     push-audiencia: ${GOOGLE_PLAY_PUSH_AUDIENCIA:}
     push-email: ${GOOGLE_PLAY_PUSH_EMAIL:}
-
-  revenuecat:
-    # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
-    # Vazio deixa a compra pelos apps em 501.
-    webhook-secret: ${REVENUECAT_WEBHOOK_SECRET:}
 
   stripe:
     # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.

@@ -11,6 +11,7 @@ import com.piggu.identity.api.dto.TokenResponse;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.apple.AppleIdTokenVerifier;
 import com.piggu.identity.apple.AppleProfile;
+import com.piggu.identity.apple.RevogacaoDaApple;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class AuthService {
 
     private final GoogleIdTokenVerifier verificador;
     private final AppleIdTokenVerifier apple;
+    private final RevogacaoDaApple revogacaoDaApple;
     private final UserAccountRepository usuarios;
     private final FamiliaService familias;
     private final RefreshSessionRepository sessoes;
@@ -83,6 +85,7 @@ public class AuthService {
 
     public AuthService(GoogleIdTokenVerifier verificador,
                        AppleIdTokenVerifier apple,
+                       RevogacaoDaApple revogacaoDaApple,
                        UserAccountRepository usuarios,
                        FamiliaService familias,
                        RefreshSessionRepository sessoes,
@@ -94,6 +97,7 @@ public class AuthService {
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.apple = apple;
+        this.revogacaoDaApple = revogacaoDaApple;
         this.usuarios = usuarios;
         this.familias = familias;
         this.sessoes = sessoes;
@@ -127,11 +131,12 @@ public class AuthService {
     /**
      * Troca o identity token da Apple por um par de tokens do Piggu, como no Google: a conta e
      * achada pelo e-mail e criada no primeiro acesso. A Apple so manda o nome na primeira
-     * autorizacao, e o app o repassa em {@code nome}; o resto do perfil vem do Piggu.
+     * autorizacao, e o app o repassa em {@code nome}; o resto do perfil vem do Piggu. O
+     * {@code codigo} vira o refresh token da Apple, revogado quando a conta for excluida.
      */
     @Transactional
-    public TokenResponse entrarComApple(String idToken, String nonce, String nome, String versaoDosTermos,
-                                        boolean lembrar, String userAgent) {
+    public TokenResponse entrarComApple(String idToken, String nonce, String nome, String codigo,
+                                        String versaoDosTermos, boolean lembrar, String userAgent) {
         AppleProfile perfil = apple.verificar(idToken, nonce);
         String nomeLimpo = Texto.limitar(Texto.espacoUnico(nome), 120);
         String primeiroNome = nomeLimpo.isEmpty() ? null : nomeLimpo.split(" ")[0];
@@ -139,6 +144,12 @@ public class AuthService {
         UserAccount conta = contaDoProvedor(perfil.email(), primeiroNome, versaoDosTermos, "Apple");
         if (nova && !nomeLimpo.isEmpty()) {
             conta.setNickname(nomeLimpo);
+        }
+        if (!Texto.vazio(codigo) && revogacaoDaApple.ligada()) {
+            String token = revogacaoDaApple.trocarCodigo(codigo, perfil.clienteId());
+            if (token != null) {
+                conta.lembrarTokenDaApple(token, perfil.clienteId());
+            }
         }
         conta.registrarAcesso();
         return concluirLogin(conta, userAgent, lembrar);
@@ -247,19 +258,24 @@ public class AuthService {
     public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent,
                                         String origem) {
         Instant agora = Instant.now();
-        UserAccount conta = usuarios.travarParaLogin(Texto.email(emailBruto)).orElse(null);
+        String email = Texto.email(emailBruto);
+        // O BCrypt (~250 ms) roda antes de travar a linha: com ela presa, as tentativas da conta iam
+        // uma de cada vez segurando conexoes do banco, e uma rajada num e-mail parava todo login.
+        // Sem conta ou sem senha, confere contra o hash de enchimento: o mesmo tempo.
+        String hash = usuarios.senhaDe(email).orElse(null);
+        boolean certa = senhas.confere(senha, hash);
+        UserAccount conta = usuarios.travarParaLogin(email).orElse(null);
         if (conta == null) {
-            senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
         String chave = conta.getId() + "|" + (origem == null ? "" : origem);
         // Travada ou so com Google: a mesma resposta da senha errada, para o login nao
         // revelar quais e-mails tem conta nem como cada uma entra.
         if (conta.senhaTravada(agora) || origemTravada(chave, agora) || !conta.temSenha()) {
-            senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
-        if (!senhas.confere(senha, conta.getPasswordHash())) {
+        // Senha trocada entre conferir e travar: vale a que esta gravada agora.
+        if (!certa || !conta.getPasswordHash().equals(hash)) {
             conta.registrarSenhaErrada(TENTATIVAS_DA_CONTA, TRAVA_DA_SENHA, agora);
             usuarios.save(conta);
             errouDe(chave, agora);

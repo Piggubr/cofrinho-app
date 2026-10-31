@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -113,9 +114,9 @@ public class BankingService {
     /**
      * Debitos confirmados das contas da pessoa desde a data pedida, para revisar e importar
      * como gastos. Nada e gravado aqui: o financeiro recebe as linhas escolhidas e pula as
-     * que ja entraram pelo id externo ("pluggy:" + id do lancamento).
+     * que ja entraram pelo id externo ("pluggy:" + id do lancamento). Sem transacao em volta: as
+     * chamadas a Pluggy nao seguram uma conexao do banco (D-074).
      */
-    @Transactional(readOnly = true)
     public List<GastoDoBanco> gastosDesde(LocalDate desde, CurrentUser usuario) {
         LocalDate hoje = LocalDate.now();
         if (desde.isAfter(hoje) || desde.isBefore(hoje.minusDays(MAXIMO_DE_DIAS))) {
@@ -133,6 +134,9 @@ public class BankingService {
             }
         }
         gastos.sort(Comparator.comparing(GastoDoBanco::data).reversed());
+        if (!doUsuario.isEmpty()) {
+            conexoes.marcarUso(usuario.id(), Instant.now());
+        }
         log.info("Gastos lidos dos bancos: contas={} gastos={}", doUsuario.size(), gastos.size());
         return gastos;
     }

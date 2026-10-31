@@ -29,8 +29,12 @@ describe('ConectarBanco', () => {
 
   it('abre o widget com o token do fragmento e devolve o item ao app', async () => {
     abrirWidget.mockResolvedValue('item 1');
-    criar('#token=tk&sandbox=1');
+    const pagina = criar('#token=tk&sandbox=1');
     await vi.waitFor(() => expect(destinos).toEqual(['piggu://banco-conectado?item=item%201']));
+    // Se o navegador barrar a ida sozinha, o "Voltar ao app" leva o mesmo item.
+    expect((pagina as unknown as { volta(): string }).volta()).toBe(
+      'piggu://banco-conectado?item=item%201',
+    );
     expect(abrirWidget).toHaveBeenCalledWith('tk', true);
     // O token sai da barra de endereco e do historico.
     expect(window.location.hash).toBe('');

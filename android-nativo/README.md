@@ -40,7 +40,7 @@ plataforma que faltar.
 | `feature:orcamentos` | Orçamento: o limite do mês e os limites por categoria (Premium) |
 | `feature:calendario` | Calendário: a grade do mês, as notas e o gráfico acumulado |
 | `feature:relatorios` | Relatórios: o mês por categoria, o ano (Premium) e o CSV do mês |
-| `feature:contas` | Cartões e bancos: contas, cartões, a fatura e os bancos conectados |
+| `feature:contas` | Cartões e bancos: contas, cartões, a fatura, os bancos conectados e conectar banco pelo site (D-150) |
 | `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
 | `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
 | `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
@@ -70,7 +70,8 @@ plataforma que faltar.
 
 - Sem sessão, o app abre no login (Entrar e Criar conta na mesma tela, como no site). Os
   links do e-mail (`/confirmar-email`, `/redefinir-senha`) abrem as telas nativas pelos App
-  Links, quando o `assetlinks.json` estiver no ar.
+  Links. O `frontend/public/.well-known/assetlinks.json` tem os SHA-256 das chaves de upload e
+  de debug; o da chave do Play entra depois do primeiro envio ao Play Console.
 - Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
   (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
 - Google: o botão está ligado (`piggu.googleNoAndroid=true` em `gradle.properties`). Cada chave
@@ -122,7 +123,7 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 
 ## Lançamento (A9)
 
-- **Versão:** 2.0.0, `versionCode` 200, acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
+- **Versão:** 2.0.0, `versionCode` 201 (o 200 foi gasto num envio descartado), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
 - **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`); sem eles, o AAB sai sem assinatura.
 - **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` guarda o `app-producao-release.aab` como artefato. O envio ao Play Console é manual, com a confirmação do Dudu.
 - **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).

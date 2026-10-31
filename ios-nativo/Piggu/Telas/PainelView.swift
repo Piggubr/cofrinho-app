@@ -8,6 +8,8 @@ import TipKit
 struct PainelView: View {
     let versaoDosDados: Int
     let aoLancar: () -> Void
+    /// Importou o extrato pelo guia: as outras abas recarregam.
+    let aoMudar: () -> Void
     let irPara: (Aba) -> Void
 
     @Environment(Sessao.self) private var sessao
@@ -18,9 +20,10 @@ struct PainelView: View {
     @State private var modelo: ModeloDoPainel?
     @State private var painel: PainelOrganizado?
     @State private var organizando = false
+    @SceneStorage("piggu_caminho_do_painel") private var caminho = ""
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: .guardada($caminho)) {
             Group {
                 if let modelo, let painel {
                     conteudo(modelo, painel)
@@ -76,7 +79,7 @@ struct PainelView: View {
                     }
                     TipView(Dicas.BoasVindas())
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
-                                    temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar)
+                                    temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
                     if modelo.temCompanhia {
                         Picker("O que ver", selection: $visao) {
                             ForEach(Visao.allCases, id: \.self) { Text($0.nome).tag($0) }

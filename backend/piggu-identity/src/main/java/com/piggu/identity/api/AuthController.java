@@ -97,7 +97,7 @@ public class AuthController {
     public ResponseEntity<TokenResponse> entrarComApple(@Valid @RequestBody AppleLoginRequest pedido,
                                                         @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
         boolean lembrar = !Boolean.FALSE.equals(pedido.lembrar());
-        return responder(servico.entrarComApple(pedido.idToken(), pedido.nonce(), pedido.nome(),
+        return responder(servico.entrarComApple(pedido.idToken(), pedido.nonce(), pedido.nome(), pedido.codigo(),
                 pedido.versaoDosTermos(), lembrar, userAgent), pedido.refreshNoCorpo());
     }
 

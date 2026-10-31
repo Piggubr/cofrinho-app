@@ -24,12 +24,16 @@ import javax.inject.Singleton
 /** O nome do trabalho único que envia a fila de gastos. */
 const val ENVIO_DA_FILA = "enviar-fila-de-gastos"
 
-/** Agenda o envio da fila para quando houver rede; o que já estava agendado continua (APPEND_OR_REPLACE). */
+/**
+ * Agenda o envio da fila para quando houver rede. Troca o que já estava agendado: em APPEND, o
+ * pedido novo esperaria o recuo do anterior (até 5 h) mesmo com o app aberto e com rede. Cancelar
+ * um envio no meio é seguro: o mesmo idDoEnvio não lança duas vezes (D-073).
+ */
 fun agendarEnvioDaFila(contexto: Context) {
     val pedido = OneTimeWorkRequestBuilder<EnvioDaFilaWorker>()
         .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
         .build()
-    WorkManager.getInstance(contexto).enqueueUniqueWork(ENVIO_DA_FILA, ExistingWorkPolicy.APPEND_OR_REPLACE, pedido)
+    WorkManager.getInstance(contexto).enqueueUniqueWork(ENVIO_DA_FILA, ExistingWorkPolicy.REPLACE, pedido)
 }
 
 /**

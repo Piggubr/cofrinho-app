@@ -90,14 +90,23 @@ public class AvisosDoDia {
             }
         }
 
-        for (ContasFixasService.ContaDoMes conta : contasFixas.doMes(mes)) {
+        List<ContasFixasService.ContaDoMes> contas = new ArrayList<>(contasFixas.doMes(mes));
+        // A conta do dia 1 ou 2 do mes que vem tambem avisa 2 dias antes, ainda neste mes.
+        YearMonth mesDoAviso = YearMonth.from(hoje.plusDays(DIAS_ANTES_DA_CONTA));
+        if (mesDoAviso.isAfter(mes)) {
+            contas.addAll(contasFixas.doMes(mesDoAviso));
+        }
+        for (ContasFixasService.ContaDoMes conta : contas) {
+            // O mes da chave e o do vencimento: o aviso dado em 30/10 para 01/11 nao se repete em novembro.
+            YearMonth doVencimento = YearMonth.from(conta.vencimento());
             if (conta.situacao() == ContasFixasService.Situacao.VENCIDA) {
-                avisos.add(new Aviso("conta:" + conta.conta().getId() + ":" + mes + ":vencida", Tipo.CONTA_VENCIDA,
+                avisos.add(new Aviso("conta:" + conta.conta().getId() + ":" + doVencimento + ":vencida", Tipo.CONTA_VENCIDA,
                         conta.conta().getDescription(), conta.conta().getAmount(), null, null, conta.vencimento()));
             } else if (conta.situacao() == ContasFixasService.Situacao.PENDENTE
                     && !conta.vencimento().isAfter(hoje.plusDays(DIAS_ANTES_DA_CONTA))) {
-                avisos.add(new Aviso("conta:" + conta.conta().getId() + ":" + mes + ":vencendo", Tipo.CONTA_VENCENDO,
-                        conta.conta().getDescription(), conta.conta().getAmount(), null, null, conta.vencimento()));
+                avisos.add(new Aviso("conta:" + conta.conta().getId() + ":" + doVencimento + ":vencendo",
+                        Tipo.CONTA_VENCENDO, conta.conta().getDescription(), conta.conta().getAmount(), null, null,
+                        conta.vencimento()));
             }
         }
 

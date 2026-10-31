@@ -32,7 +32,8 @@ struct LeitorDeNota: View {
                 Button("Cancelar") { fechar() }.font(.sora(.subheadline))
             }
             .padding(18)
-            .frame(maxWidth: .infinity)
+            // Deitado, o cartao nao atravessa a tela toda e deixa mais cupom a vista.
+            .frame(maxWidth: 520)
             .pigguVidro(em: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .padding(16)
         }

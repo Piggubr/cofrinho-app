@@ -59,6 +59,8 @@ piggu:
     application-name: Piggu Media
   storage:
     local-path: ${STORAGE_LOCAL_PATH:./dados-fotos}
+    # Teto das fotos de cada familia, no mesmo disco do banco.
+    limite-da-familia-mb: ${PIGGU_FOTOS_POR_FAMILIA_MB:1024}
 
 # Contrato da API (docs/api e docs/API_SPEC.md), gerado pelo springdoc. Desligado aqui, o que
 # vale para producao; o perfil dev (application-dev.yml) e os testes ligam.

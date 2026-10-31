@@ -51,7 +51,8 @@ public class RecurringBill {
     @Column(nullable = false)
     private boolean active = true;
 
-    @Column(name = "last_paid_month", length = 7)
+    // So o UPDATE condicional de pagar muda depois de criada: o save de uma edicao nao desfaz o pago.
+    @Column(name = "last_paid_month", length = 7, updatable = false)
     private String lastPaidMonth;
 
     /** Segunda parcela da receita (o salario do dia 20 e do dia 5); nulos quando entra de uma vez. */
@@ -61,7 +62,7 @@ public class RecurringBill {
     @Column(name = "second_amount", precision = 12, scale = 2)
     private BigDecimal secondAmount;
 
-    @Column(name = "second_paid_month", length = 7)
+    @Column(name = "second_paid_month", length = 7, updatable = false)
     private String secondPaidMonth;
 
     /** Compartilhado com a familia: aparece para todos da casa, nao so para quem lancou. */

@@ -2,14 +2,14 @@ import { Component, inject, signal } from '@angular/core';
 import { PluggyConnectService } from '../../core/banking/pluggy-connect.service';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 
-/** Para onde o app nativo espera a resposta; o ASWebAuthenticationSession fecha nela. */
+/** Para onde o app nativo espera a resposta: o ASWebAuthenticationSession do iOS fecha nela, e o Android abre o app. */
 const VOLTA = 'piggu://banco-conectado';
 
 /**
  * Conectar banco pelo app nativo (D-091).
  *
  * <p>O widget da Pluggy so existe em JavaScript e avisa o resultado por callback, sem
- * redirecionar. O app iOS pede o token (gravando a autorizacao da pessoa), abre esta pagina
+ * redirecionar. O app iOS ou Android pede o token (gravando a autorizacao da pessoa), abre esta pagina
  * num navegador do sistema com o token no fragmento (#token=..., que nao vai ao servidor nem
  * aos logs) e recebe o item de volta em piggu://banco-conectado. A pagina nao tem sessao e
  * nao chama a API: so abre o widget e devolve o que ele disse.</p>
@@ -25,7 +25,7 @@ const VOLTA = 'piggu://banco-conectado';
         <p i18n role="status">Abrindo a Pluggy para você entrar no seu banco…</p>
       }
       <p>
-        <a i18n class="botao contorno" [href]="volta">Voltar ao app</a>
+        <a i18n class="botao contorno" [href]="volta()">Voltar ao app</a>
       </p>
     </main>
   `,
@@ -42,7 +42,7 @@ export class ConectarBanco {
   private readonly pluggy = inject(PluggyConnectService);
 
   protected readonly erro = signal('');
-  protected volta = `${VOLTA}?fechou=1`;
+  protected readonly volta = signal(`${VOLTA}?fechou=1`);
 
   constructor() {
     const parametros = new URLSearchParams(window.location.hash.slice(1));
@@ -59,12 +59,14 @@ export class ConectarBanco {
   private async abrir(token: string, sandbox: boolean): Promise<void> {
     try {
       const item = await this.pluggy.abrirWidget(token, sandbox);
-      this.ir(item ? `${VOLTA}?item=${encodeURIComponent(item)}` : `${VOLTA}?fechou=1`);
+      // O Chrome do Android pode barrar a ida sozinha ao app: o botao leva o mesmo resultado.
+      this.volta.set(item ? `${VOLTA}?item=${encodeURIComponent(item)}` : `${VOLTA}?fechou=1`);
+      this.ir(this.volta());
     } catch (falha) {
       const mensagem = mensagemDeErro(falha, falha instanceof Error ? falha.message : undefined);
       this.erro.set(mensagem);
-      this.volta = `${VOLTA}?erro=${encodeURIComponent(mensagem)}`;
-      this.ir(this.volta);
+      this.volta.set(`${VOLTA}?erro=${encodeURIComponent(mensagem)}`);
+      this.ir(this.volta());
     }
   }
 

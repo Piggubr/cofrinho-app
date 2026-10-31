@@ -45,6 +45,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -67,13 +69,11 @@ import br.com.piggu.core.ui.AvisoDeGuardado
 import br.com.piggu.core.ui.EstadoDeErro
 import br.com.piggu.core.ui.Esqueleto
 import br.com.piggu.core.ui.Vazio
+import br.com.piggu.core.ui.abrirNoSite
 import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.formatarMoeda
 import br.com.piggu.core.ui.formatos.mesPorExtenso
 import br.com.piggu.core.ui.R as Comum
-
-/** O caminho do site que conecta o banco (o widget da Pluggy só existe lá, D-091). */
-internal const val CAMINHO_DE_CONECTAR_BANCO = "/contas-e-cartoes"
 
 data class EventosDasContasECartoes(
     val voltar: () -> Unit = {},
@@ -99,18 +99,19 @@ data class EventosDasContasECartoes(
 )
 
 /**
- * Cartões e bancos, tela cheia ligada ao [ContasECartoesViewModel]. [abrirNoSite] recebe o
- * caminho do site e abre num Custom Tab (lembrarAbrirNoSite): conectar banco passa pela senha
- * do banco, então nunca num WebView.
+ * Cartões e bancos, tela cheia ligada ao [ContasECartoesViewModel]. Conectar banco abre a página
+ * /conectar-banco do site num Custom Tab (o widget da Pluggy só existe lá, D-117): passa pela
+ * senha do banco, então nunca num WebView.
  */
 @Composable
 fun TelaDasContasECartoes(
     voltar: () -> Unit,
-    abrirNoSite: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ContasECartoesViewModel = hiltViewModel(),
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val contexto = LocalContext.current
+    val cor = MaterialTheme.colorScheme.surface.toArgb()
     TelaDasContasECartoes(
         estado,
         EventosDasContasECartoes(
@@ -129,7 +130,7 @@ fun TelaDasContasECartoes(
             proximaFatura = viewModel::proximaFatura,
             fecharFatura = viewModel::fecharFatura,
             alternarPagamento = viewModel::alternarPagamento,
-            conectarBanco = { abrirNoSite(CAMINHO_DE_CONECTAR_BANCO) },
+            conectarBanco = { viewModel.conectarBanco { caminho -> abrirNoSite(contexto, caminho, cor, voltaParaOApp = true) } },
             atualizarBancos = viewModel::atualizarBancos,
             pedirParaDesconectar = viewModel::pedirParaDesconectar,
             confirmar = viewModel::confirmar,

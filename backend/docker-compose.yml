@@ -36,6 +36,8 @@ x-logs-monitoramento: &logs-monitoramento
 services:
   postgres:
     logging: *logs
+    # Volta sozinho depois de reiniciar o servidor ou de morrer sem memoria.
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_POSTGRES:-512m}
     image: postgres:16-alpine
     environment:
@@ -66,6 +68,7 @@ services:
 
   identity:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_IDENTITY:-512m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/identity:${PIGGU_VERSAO:-dev}
     build:
@@ -82,6 +85,10 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?defina GOOGLE_CLIENT_ID no arquivo .env}
       # Entrar com Apple no app nativo: Bundle ID (br.com.piggu.app). Vazio deixa a rota em 501.
       APPLE_CLIENT_IDS: ${APPLE_CLIENT_IDS:-}
+      # Chave .p8 do Entrar com Apple: revoga o acesso na Apple ao excluir a conta (D-142).
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+      APPLE_KEY_ID: ${APPLE_KEY_ID:-}
+      APPLE_CHAVE: ${APPLE_CHAVE:-}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
       PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
       # Cifra do CPF (32 bytes base64). Vazia so em desenvolvimento; em producao o identity recusa subir.
@@ -101,7 +108,6 @@ services:
       PIGGU_DIAS_DE_TESTE: ${PIGGU_DIAS_DE_TESTE:-14}
       # Open Finance escondido por enquanto (some da lista do Premium). true volta.
       PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
-      REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
       APP_STORE_BUNDLE_ID: ${APP_STORE_BUNDLE_ID:-br.com.piggu.app}
       APP_STORE_APP_APPLE_ID: ${APP_STORE_APP_APPLE_ID:-}
       GOOGLE_PLAY_PACOTE: ${GOOGLE_PLAY_PACOTE:-br.com.piggu.app}
@@ -139,6 +145,7 @@ services:
 
   finance:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_FINANCE:-1g}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/finance:${PIGGU_VERSAO:-dev}
     build:
@@ -165,6 +172,7 @@ services:
 
   rewards:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_REWARDS:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/rewards:${PIGGU_VERSAO:-dev}
     build:
@@ -187,6 +195,7 @@ services:
 
   lifestyle:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_LIFESTYLE:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/lifestyle:${PIGGU_VERSAO:-dev}
     build:
@@ -211,6 +220,7 @@ services:
 
   media:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_MEDIA:-512m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/media:${PIGGU_VERSAO:-dev}
     build:
@@ -228,6 +238,7 @@ services:
       DRIVE_CREDENTIALS: ${DRIVE_CREDENTIALS:-}
       DRIVE_ROOT_FOLDER_ID: ${DRIVE_ROOT_FOLDER_ID:-}
       STORAGE_LOCAL_PATH: /dados/fotos
+      PIGGU_FOTOS_POR_FAMILIA_MB: ${PIGGU_FOTOS_POR_FAMILIA_MB:-1024}
     volumes:
       - piggu-fotos:/dados/fotos
     depends_on:
@@ -240,6 +251,7 @@ services:
   # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
   banking:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_BANKING:-384m}
     profiles: ["open-finance"]
     image: ${PIGGU_IMAGENS:-localhost/piggu}/banking:${PIGGU_VERSAO:-dev}
@@ -268,6 +280,7 @@ services:
 
   gateway:
     logging: *logs
+    restart: unless-stopped
     mem_limit: ${PIGGU_MEMORIA_GATEWAY:-384m}
     image: ${PIGGU_IMAGENS:-localhost/piggu}/gateway:${PIGGU_VERSAO:-dev}
     build:

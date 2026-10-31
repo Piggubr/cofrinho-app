@@ -37,6 +37,9 @@ class AssetServiceTest extends PostgresIntegrationTest {
     @Autowired
     private AssetRepository repositorio;
 
+    @Autowired
+    private StoragePort armazenamento;
+
     @BeforeEach
     void limpar() {
         repositorio.deleteAll();
@@ -163,6 +166,23 @@ class AssetServiceTest extends PostgresIntegrationTest {
 
         assets.apagar(asset.getId(), dona);
         assertThat(repositorio.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("a familia que chegou ao teto nao guarda mais fotos, nem as privadas contam de fora")
+    void tetoDaFamilia() {
+        AssetService comTetoDeUmMega = new AssetService(repositorio, armazenamento, 1);
+        String seiscentosKb = Base64.getEncoder().encodeToString(png(new int[600 * 1024]));
+        comTetoDeUmMega.guardar(seiscentosKb, "image/png", "GIRLS_MATH", null, TITULAR.id());
+
+        assertThatThrownBy(() -> comTetoDeUmMega.guardar(seiscentosKb, "image/png", "FEED", null, UUID.randomUUID()))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("limite de 1 MB");
+        assertThat(repositorio.count()).isEqualTo(1);
+
+        // O teto padrao, em GB: a familia que ja guardou 1 GB nao guarda a proxima.
+        repositorio.save(new Asset("ja-guardado", "image/png", 1024L * 1024 * 1024, "FEED", TITULAR.id()));
+        assertThatThrownBy(() -> new AssetService(repositorio, armazenamento, 1024).guardar(seiscentosKb, "image/png",
+                "FEED", null, TITULAR.id())).hasMessageContaining("limite de 1 GB");
     }
 
     private Asset guardar(byte[] conteudo, String tipo) {

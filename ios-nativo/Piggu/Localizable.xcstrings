@@ -43,6 +43,9 @@
     "%@ · Premium" : {
 
     },
+    "%@ · já importado" : {
+
+    },
     "%@ → %@" : {
 
     },
@@ -85,6 +88,9 @@
 
     },
     "%lld de %lld concluídas" : {
+
+    },
+    "%lld de %lld marcados · %@" : {
 
     },
     "%lld de %lld perguntas neste mês · a IA pode errar" : {
@@ -199,9 +205,6 @@
 
     },
     "A vencer" : {
-
-    },
-    "Abre no site do Piggu" : {
 
     },
     "Abre o Painel" : {
@@ -346,6 +349,9 @@
 
     },
     "Aponte para a parte do cupom com o total." : {
+
+    },
+    "Arquivo grande demais (máximo 2 MB)." : {
 
     },
     "As duas senhas não são iguais." : {
@@ -513,6 +519,9 @@
     "Categoria" : {
 
     },
+    "Categoria de %@" : {
+
+    },
     "Celular" : {
 
     },
@@ -622,6 +631,9 @@
 
     },
     "Conta" : {
+
+    },
+    "Conta do extrato" : {
 
     },
     "Conta fixa apagada." : {
@@ -1053,6 +1065,9 @@
     "Escolher da galeria" : {
 
     },
+    "Escolher extrato" : {
+
+    },
     "Escolher foto" : {
 
     },
@@ -1326,7 +1341,19 @@
     "Hoje você entra pelo Google. Crie uma senha para entrar também com %@. Pelo menos 8 caracteres, com letras e números." : {
 
     },
+    "Importados: %lld." : {
+
+    },
+    "Importados: %lld. Já estavam no Piggu: %lld." : {
+
+    },
+    "Importar" : {
+
+    },
     "Importar extrato" : {
+
+    },
+    "Importe o extrato do banco em OFX ou CSV (colunas data, descrição e valor). Você confere antes de gravar, e o que já foi importado fica de fora." : {
 
     },
     "Informar agora" : {
@@ -1581,6 +1608,9 @@
     "Nenhum filme na fila" : {
 
     },
+    "Nenhum gasto encontrado no extrato." : {
+
+    },
     "Nenhum gasto lançado neste mês" : {
 
     },
@@ -1771,6 +1801,9 @@
 
     },
     "Não foi possível entrar." : {
+
+    },
+    "Não informar" : {
 
     },
     "O Piggu está travado" : {
@@ -2461,6 +2494,9 @@
 
     },
     "Toque para editar" : {
+
+    },
+    "Toque para marcar ou desmarcar" : {
 
     },
     "Total %@%@" : {

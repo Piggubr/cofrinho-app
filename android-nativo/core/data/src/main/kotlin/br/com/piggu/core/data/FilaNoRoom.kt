@@ -77,8 +77,7 @@ class FilaNoRoom @Inject constructor(
                     financas.lancarGastos(pedido)
                     enviados++
                 } catch (erro: ErroDaApi) {
-                    // Só 400 e 422 dizem que o gasto é inválido; sem rede, servidor fora ou sessão caída: depois (D-075).
-                    if (!(erro is ErroDaApi.DoServidor && (erro.status == 400 || erro.status == 422))) break
+                    if (!recusado(erro)) break
                     recusadosAgora++
                 }
             }
@@ -88,6 +87,14 @@ class FilaNoRoom @Inject constructor(
         if (enviados > 0) lancamentos.avisar()
         enviados
     }
+
+    /**
+     * Só 400 e 422 dizem que o gasto é inválido, e o 404 do Piggu que a conta ou o cartão foi
+     * apagado (D-147): nunca vai passar. Sem rede, servidor fora, sessão caída ou 404 de proxy
+     * (sem o código): depois (D-075).
+     */
+    private fun recusado(erro: ErroDaApi) = erro is ErroDaApi.DoServidor &&
+        (erro.status == 400 || erro.status == 422 || erro.status == 404 && erro.codigo == "NotFoundException")
 
     /** Quantos da pessoa logada ainda esperam, lido do banco (o Worker decide se tenta de novo). */
     suspend fun restam(): Int = sessao.usuario?.id?.let { dao.daPessoa(it).size } ?: 0

@@ -46,7 +46,6 @@ public class AssinaturaService {
     private final FamiliaService familias;
     private final StripePagamentos pagamentos;
 
-    private final RevenueCatLoja lojas;
     private final AppStoreLoja appStore;
     private final GooglePlayLoja googlePlay;
     private final JdbcTemplate jdbc;
@@ -56,14 +55,13 @@ public class AssinaturaService {
     private final boolean openFinance;
 
     public AssinaturaService(UserAccountRepository usuarios, FamiliaService familias, StripePagamentos pagamentos,
-                             RevenueCatLoja lojas, AppStoreLoja appStore, GooglePlayLoja googlePlay, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
+                             AppStoreLoja appStore, GooglePlayLoja googlePlay, JdbcTemplate jdbc, TestesGratis testes, CanalDeEmail email,
                              @Value("${piggu.assinatura.dias-de-teste:14}") int diasDeTeste,
                              @Value("${piggu.open-finance.ligado:false}") boolean openFinance) {
         this.openFinance = openFinance;
         this.usuarios = usuarios;
         this.familias = familias;
         this.pagamentos = pagamentos;
-        this.lojas = lojas;
         this.appStore = appStore;
         this.googlePlay = googlePlay;
         this.jdbc = jdbc;
@@ -158,7 +156,7 @@ public class AssinaturaService {
                     if (evento.testeAcabaEm() != null) {
                         avisarFimDoTeste(conta, evento.testeAcabaEm());
                     }
-                    Household familia = familias.daConta(conta);
+                    Household familia = familias.daContaTravada(conta);
                     boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
                             evento.inicio(), evento.tipo(), conta.getId());
                     if (aplicado) {
@@ -208,7 +206,7 @@ public class AssinaturaService {
     @Transactional
     public boolean cancelarComReembolso(UUID usuarioId) {
         UserAccount conta = conta(usuarioId);
-        Household familia = familias.daConta(conta);
+        Household familia = familias.daContaTravada(conta);
         if (!conta.getId().equals(familia.getSubscriberId())) {
             throw new BusinessException("Só quem assinou pode pedir o reembolso.");
         }
@@ -219,39 +217,6 @@ public class AssinaturaService {
         familia.aplicarAssinatura("WEB", null, Instant.now());
         log.info("Arrependimento: conta={} familia={} reembolsado={}", conta.getId(), familia.getId(), reembolsado);
         return reembolsado;
-    }
-
-    /**
-     * Aviso de compra feita no app. Idempotente: o mesmo aviso reenviado nao conta duas
-     * vezes, e um aviso antigo que chega depois de um mais novo e ignorado pela familia.
-     *
-     * @param loja APP_STORE ou PLAY_STORE
-     */
-    @Transactional
-    public void aplicarAvisoDaLoja(String loja, String corpo, String autorizacao) {
-        if (!lojas.habilitada()) {
-            throw new BusinessException("A assinatura pelo app chega junto com os apps.",
-                    HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");
-        }
-        lojas.lerAviso(loja, corpo, autorizacao).ifPresent(aviso -> {
-            int novo = jdbc.update("INSERT INTO billing_events (event_id, provider) VALUES (?, ?) ON CONFLICT DO NOTHING",
-                    aviso.id(), aviso.origem());
-            if (novo == 0) {
-                log.info("Aviso da loja repetido ignorado");
-                return;
-            }
-            EventoDeAssinatura evento = aviso.evento();
-            usuarios.findById(evento.usuarioId()).ifPresentOrElse(conta -> {
-                if (evento.emTeste()) {
-                    conta.marcarTesteGratisUsado();
-                }
-                Household familia = familias.daConta(conta);
-                boolean aplicado = familia.aplicarAssinatura(aviso.origem(), evento.premiumAte(), evento.momento(),
-                        evento.inicio(), evento.tipo(), conta.getId());
-                log.info("Assinatura na loja: conta={} familia={} origem={} plano={} aplicado={}",
-                        conta.getId(), familia.getId(), aviso.origem(), familia.planoVigente(), aplicado);
-            }, () -> log.warn("Aviso da loja de conta inexistente id={}", evento.usuarioId()));
-        });
     }
 
     /**
@@ -270,7 +235,7 @@ public class AssinaturaService {
 
     /**
      * App Store Server Notification V2 (renovacao, cancelamento, expiracao, reembolso).
-     * Idempotente pelo notificationUUID, como os avisos do RevenueCat.
+     * Idempotente pelo notificationUUID.
      */
     @Transactional
     public void aplicarAvisoDaApple(String signedPayload) {
@@ -327,7 +292,7 @@ public class AssinaturaService {
 
     /** Na troca de plano o Google cria outro token e encerra o antigo: o fim do antigo nao derruba o novo. */
     private void aplicarDoGoogle(UserAccount conta, GooglePlayLoja.AssinaturaDoGoogle compra) {
-        Household familia = familias.daConta(conta);
+        Household familia = familias.daContaTravada(conta);
         boolean tokenAntigo = compra.evento().premiumAte() == null && "PLAY_STORE".equals(familia.getPlanSource())
                 && compra.vence() != null && familia.getPremiumUntil() != null
                 // Em milissegundos, a precisao do Google: o banco guarda microssegundos arredondados, e
@@ -346,12 +311,7 @@ public class AssinaturaService {
         if (evento.emTeste()) {
             conta.marcarTesteGratisUsado();
         }
-        Household familia = familias.daConta(conta);
-        if (familia.planoVigente() == Plano.PREMIUM && !origem.equals(familia.getPlanSource())) {
-            log.warn("Compra na loja {} com Premium de outra origem: conta={} familia={} origem={}",
-                    origem, conta.getId(), familia.getId(), familia.getPlanSource());
-            return;
-        }
+        Household familia = familias.daContaTravada(conta);
         boolean aplicado = familia.aplicarAssinatura(origem, evento.premiumAte(), evento.momento(),
                 evento.inicio(), evento.tipo(), conta.getId());
         log.info("Assinatura na loja {}: conta={} familia={} plano={} aplicado={}",

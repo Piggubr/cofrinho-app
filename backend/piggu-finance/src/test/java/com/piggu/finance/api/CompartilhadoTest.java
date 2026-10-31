@@ -119,6 +119,31 @@ class CompartilhadoTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("conta fixa do casal no cartao so dela: ele marca como paga, e o gasto entra sem o cartao")
+    void contaDoCasalNoCartaoDela() throws Exception {
+        UUID casa = UUID.randomUUID();
+        RequestPostProcessor ela = TokensDeTeste.da(casa, ELA, PigguRole.TITULAR);
+        RequestPostProcessor ele = TokensDeTeste.da(casa, ELE, PigguRole.PARCEIRO);
+        String cartao = json.readTree(mockMvc.perform(post("/api/accounts").with(ela)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Nubank dela\",\"tipo\":\"CARTAO\",\"vencimento\":10}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).path("id").asString();
+        mockMvc.perform(post("/api/expenses").with(ela).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":\"2026-09-05\",\"recorrente\":true,\"compartilhado\":true,\"contaId\":\"%s\","
+                                .formatted(cartao) + "\"itens\":[{\"item\":\"Internet\",\"valor\":100}]}"))
+                .andExpect(status().isCreated());
+        String conta = json.readTree(mockMvc.perform(get("/api/bills").param("mes", "2026-10").with(ele))
+                .andReturn().getResponse().getContentAsString()).path(0).path("id").asString();
+
+        mockMvc.perform(post("/api/bills/" + conta + "/pay").param("mes", "2026-10").with(ele))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.contaId").doesNotExist());
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-10").with(ela))
+                .andExpect(jsonPath("$[*].item").value(containsInAnyOrder("Internet")));
+    }
+
+    @Test
     @DisplayName("painel: visao meu soma o que eu lancei; visao casal, so o compartilhado")
     void visaoDoPainel() throws Exception {
         UUID casa = UUID.randomUUID();
