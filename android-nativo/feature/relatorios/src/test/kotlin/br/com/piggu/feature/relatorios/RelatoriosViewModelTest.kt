@@ -212,7 +212,8 @@ class RelatoriosViewModelTest {
         relatorios.estado.esperar { it.resumoPronto?.sobra == BigDecimal(1) }
         montagem.lancamentos.avisar()
         relatorios.estado.esperar { it.resumoPronto?.sobra == BigDecimal(2) }
-        relatorios.estado.esperar { it.anoPronto != null }
+        // O ano da primeira carga já está pronto: espera o segundo pedido, não o estado.
+        relatorios.estado.esperar { montagem.pedidos("GET /api/reports/year").size >= 2 }
         assertEquals(2, montagem.pedidos("GET /api/reports/year").size)
     }
 

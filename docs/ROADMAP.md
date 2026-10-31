@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 29/10/2026.
+Última atualização: 30/10/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -26,9 +26,8 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Android: push pelo Firebase no app nativo (o item 8 da A7), com o backend da A1 já na `develop` (D-139), quando o projeto do Firebase existir.
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
 - Android: conectar banco como o iOS, pela página `/conectar-banco` que já está na `develop` (D-117).
-- Android: criar o ID OAuth do Android no Google Cloud e ligar o botão do Google (D-104).
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
-- Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu) e, depois, apagar `frontend/android` e o `android-demo.yml`.
+- Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104) e, depois, apagar `frontend/android` e o `android-demo.yml`.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
 - Religar o Open Finance e o leitor próprio de nota, desligados antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
 - Um mês depois do 2.0.0 estar na loja sem problemas: apagar `frontend/ios` e os workflows `ios-demo.yml` e `ios-producao.yml`.
@@ -45,6 +44,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 30/10/2026: Android: ID OAuth do Android no Google Cloud (chaves de upload e debug) e botão do Google ligado no app nativo (D-104).
 - 29/10/2026: Entrar com Apple: excluir a conta revoga o acesso na Apple, como a App Store exige (D-142).
 - 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).
 - 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
