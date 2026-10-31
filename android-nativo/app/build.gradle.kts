@@ -18,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 36
         // O nativo entra como 2.0.0 do mesmo app das lojas (D-057).
-        versionCode = 200
+        versionCode = 201
         versionName = "2.0.0"
     }
 
