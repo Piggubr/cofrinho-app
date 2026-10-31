@@ -29,7 +29,7 @@ xcodebuild -project Piggu.xcodeproj -scheme Piggu -destination 'platform=iOS Sim
 xcodebuild -project Piggu.xcodeproj -scheme PigguUITests -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-O esquema **PigguUITests** tem quatro testes:
+O esquema **PigguUITests** tem cinco testes:
 
 - `AcessibilidadeUITests`: abre cada tela logada pela demonstração e roda a auditoria do
   sistema (a mesma do Accessibility Inspector: contraste, Dynamic Type, texto cortado, área de
@@ -45,6 +45,8 @@ O esquema **PigguUITests** tem quatro testes:
 - `TopoETecladoUITests`: tocar fora fecha o teclado do lançar gasto, a busca do topo abre um
   gasto e o assistente (na demonstração, com resposta de exemplo) pede a autorização, responde e
   abre a tela sugerida.
+- `GirarUITests`: deitar e voltar o iPhone não perde a folha de lançar, o valor digitado nem a
+  tela aberta no Mais (a troca de tamanho do iPhone Duo, D-141).
 - `DesempenhoUITests`: mede "Abrir ate o Painel" (do `init` do app ao Painel com dados, um
   `os_signpost` nos Points of Interest) com o cache cheio, com e sem 3.000 gastos, e a rolagem
   dos Gastos e do Painel. A meta é menos de 1 s; no Instruments, o intervalo aparece na trilha
@@ -318,6 +320,12 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 - No iPad e na janela redimensionável do iOS 27, o layout segue o tamanho disponível: barra
   lateral na janela larga, abas no topo na estreita (como o iPad mini em retrato), e a mesma tela
   do iPhone abaixo disso. Testado do iPhone 17e ao iPad Pro 13 em paisagem.
+- O iPhone aceita retrato e paisagem (o iPhone Duo aberto fica de lado). A aba e as pilhas do
+  Painel e do Mais ficam guardadas por janela (`@SceneStorage`): duas janelas do Piggu ficam
+  cada uma no seu lugar, e a janela volta onde estava (D-141). Os prints da tela estreita saem
+  no iPhone 13 mini, que só existe no simulador do iOS 27.0. O simulador do iPhone Duo não dobra nem gira:
+  `GirarUITests` deita e volta o iPhone com a folha de lançar e uma tela do Mais abertas, e abrir
+  e fechar o Duo se testa no aparelho.
 - Abrir o app com o perfil guardado não espera a rede: as telas mostram o que guardaram e a
   renovação do token segue por trás (D-095). No simulador, com a build otimizada: 0,63 a 0,75 s
   do `init` ao Painel com dados, também com 3.000 gastos.

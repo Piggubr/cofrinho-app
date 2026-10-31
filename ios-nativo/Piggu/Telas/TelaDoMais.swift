@@ -90,6 +90,14 @@ extension View {
     }
 }
 
+extension Binding where Value == [TelaDoMais] {
+    /// A pilha guardada na janela: o @SceneStorage so guarda texto ("orcamento,cartoes").
+    static func guardada(_ texto: Binding<String>) -> Binding<[TelaDoMais]> {
+        Binding(get: { texto.wrappedValue.split(separator: ",").compactMap { TelaDoMais(rawValue: String($0)) } },
+                set: { texto.wrappedValue = $0.map(\.rawValue).joined(separator: ",") })
+    }
+}
+
 /// Seletor de mes simples, dentro de um formulario (o input type="month" do site).
 struct EscolhaDeMes: View {
     let titulo: LocalizedStringKey

@@ -113,6 +113,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
 | [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
 | [D-140](#d-140-importar-extrato-no-app-ios-sem-passar-pelo-site) | Importar extrato no app iOS, sem passar pelo site | Valendo |
+| [D-141](#d-141-iphone-deitado-aba-e-pilhas-por-janela-iphone-duo) | iPhone deitado, aba e pilhas por janela (iPhone Duo) | Valendo |
 | [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
 | [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
@@ -1450,3 +1451,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: esconder o botão no iOS (a pessoa teria que lembrar do site); manter o link com um aviso de que abre o site.
 - Consequências: o OFX não tem tipo do sistema, então o `Info.plist` declara o `com.intuit.ofx` (`.ofx` e `.qfx`); sem isso, o `.ofx` poderia aparecer apagado no app Arquivos. O "Trazer do banco" (Open Finance, Premium) e o "Exportar CSV do mês" desse bloco do site não entram aqui: o CSV já sai pelos Relatórios, e o do banco fica para depois. Nenhuma rota nova no backend.
 - Onde ver: `ios-nativo/Piggu/Telas/Gastos/ImportarExtratoView.swift`, `ios-nativo/Piggu/Telas/GastosView.swift`, `ios-nativo/Piggu/Telas/Painel/PrimeirosPassos.swift`
+
+## D-141: iPhone deitado, aba e pilhas por janela (iPhone Duo)
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: o iPhone Duo aberto pede a tela deitada, e o projeto do iOS nativo só aceitava retrato no iPhone. Ao abrir e fechar o aparelho, ou com duas janelas do Piggu lado a lado, a aba e a tela aberta não podiam se perder nem ser a mesma nas duas janelas.
+- Decisão: o iPhone aceita retrato e as duas paisagens. Sem o retrato de cabeça para baixo, que é o padrão da Apple no iPhone. A aba e as pilhas do Painel e do Mais ficam no `@SceneStorage` de cada janela. As pilhas são guardadas como texto (`orcamento,cartoes`), e uma tela que não existe mais some da pilha. A sessão continua sendo uma só para o app: a segunda janela não restaura de novo. Na tela estreita (a de fora do Duo e o iPhone mini), quando não cabem lado a lado, as ações da linha do filme descem para baixo do título e os botões de foto (galeria e câmera) ficam um embaixo do outro. O cartão do leitor de nota tem no máximo 520 pt de largura com a tela deitada.
+- Alternativas: só retrato, que deixa o Duo aberto de lado; guardar a aba no `@AppStorage`, que faria as duas janelas pularem juntas.
+- Consequências: o simulador do iPhone Duo do Xcode 27.1 não dobra nem gira, então a troca de tamanho é testada girando o iPhone (`GirarUITests`), e abrir e fechar o Duo fica para o aparelho. As pilhas das abas Gastos, Receitas e Relatórios não são guardadas, porque não empilham telas. As folhas abertas (lançar gasto, receita) não voltam se o sistema fechar a janela.
+- Onde ver: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/Piggu/Telas/TelaDoMais.swift` (`Binding.guardada`), `ios-nativo/Piggu/Telas/Estilo/FilmesView.swift`
