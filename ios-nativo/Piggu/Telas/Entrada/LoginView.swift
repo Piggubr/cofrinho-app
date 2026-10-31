@@ -13,7 +13,7 @@ struct LoginView: View {
     /// reaproveitado, sem pedir de novo.
     enum ContaNova {
         case google(idToken: String)
-        case apple(idToken: String, nonce: String, nome: String?)
+        case apple(idToken: String, nonce: String, nome: String?, codigo: String?)
     }
 
     @Environment(Sessao.self) private var sessao
@@ -209,9 +209,10 @@ struct LoginView: View {
                 return
             }
             let nonce = apple.nonce
-            await tentar(contaNovaSePedir: .apple(idToken: credencial.idToken, nonce: nonce, nome: credencial.nome)) {
+            await tentar(contaNovaSePedir: .apple(idToken: credencial.idToken, nonce: nonce, nome: credencial.nome,
+                                                  codigo: credencial.codigo)) {
                 try await sessao.entrarComApple(idToken: credencial.idToken, nonce: nonce, nome: credencial.nome,
-                                                lembrar: lembrar)
+                                                codigo: credencial.codigo, lembrar: lembrar)
             }
         case let .failure(falha):
             if (falha as? ASAuthorizationError)?.code != .canceled {
@@ -228,9 +229,9 @@ struct LoginView: View {
             switch contaNova {
             case let .google(idToken):
                 try await sessao.entrarComGoogle(idToken: idToken, lembrar: lembrar, versaoDosTermos: versao)
-            case let .apple(idToken, nonce, nome):
-                try await sessao.entrarComApple(idToken: idToken, nonce: nonce, nome: nome, lembrar: lembrar,
-                                                versaoDosTermos: versao)
+            case let .apple(idToken, nonce, nome, codigo):
+                try await sessao.entrarComApple(idToken: idToken, nonce: nonce, nome: nome, codigo: codigo,
+                                                lembrar: lembrar, versaoDosTermos: versao)
             }
         }
     }

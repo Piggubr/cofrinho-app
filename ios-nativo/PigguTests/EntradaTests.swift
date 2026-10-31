@@ -53,7 +53,7 @@ struct EntradaTests {
     @Test func appleMandaONonceOriginalEONome() async throws {
         let (sessao, transporte) = roteirizada([(200, tokensNovos)])
 
-        try await sessao.entrarComApple(idToken: "id", nonce: "abc", nome: "Ana", lembrar: false,
+        try await sessao.entrarComApple(idToken: "id", nonce: "abc", nome: "Ana", codigo: "c1", lembrar: false,
                                         versaoDosTermos: "2026-10-16")
 
         let pedido = try #require(await transporte.recebidos.first)
@@ -63,6 +63,7 @@ struct EntradaTests {
         #expect(enviado["idToken"] as? String == "id")
         #expect(enviado["nonce"] as? String == "abc")
         #expect(enviado["nome"] as? String == "Ana")
+        #expect(enviado["codigo"] as? String == "c1")
         #expect(enviado["versaoDosTermos"] as? String == "2026-10-16")
         #expect(enviado["lembrar"] as? Bool == false)
         // Sem o Keychain ligado, o refresh continua no cookie.

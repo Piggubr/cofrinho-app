@@ -17,7 +17,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Depois (próximos 1 a 2 meses)
 
-- Entrar com Apple: pôr o Bundle ID em `APPLE_CLIENT_IDS` no servidor e revogar o token na Apple quando a conta é apagada, que a App Store exige antes da revisão (D-072).
+- Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
 - Mandar o 2.0.0 (build 2) do iOS nativo ao TestFlight e liberar para o grupo de testes, quando o Dudu pedir.
@@ -45,6 +45,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 ## Feito recentemente
 
 - 30/10/2026: Android: ID OAuth do Android no Google Cloud (chaves de upload e debug) e botão do Google ligado no app nativo (D-104).
+- 29/10/2026: Entrar com Apple: excluir a conta revoga o acesso na Apple, como a App Store exige (D-142).
 - 29/10/2026: iOS nativo: iPhone deitado (iPhone Duo aberto), aba e pilhas guardadas por janela, prints revistos no iPhone mini e build 3 (D-141).
 - 29/10/2026: iOS nativo: importar extrato OFX ou CSV no próprio app, sem abrir o site (D-140).
 - 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).

@@ -115,6 +115,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
 | `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo). O ID do site e, separados por vírgula, os IDs OAuth dos apps nativos (iOS, Android) |
 | `APPLE_CLIENT_IDS` | Entrar com Apple no app nativo: o Bundle ID `br.com.piggu.app` (público, não é segredo); vazio deixa `POST /api/auth/apple` em 501 |
+| `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_CHAVE` | revogar o Entrar com Apple ao excluir a conta, que a Apple exige (D-142): uma chave `.p8` com "Sign in with Apple" marcado em developer.apple.com (Keys), configurada para o App ID `br.com.piggu.app`, com o Team ID e o Key ID. Pode ser a mesma chave do APNs, se ela tiver os dois marcados. `APPLE_CHAVE` é **segredo** |
 | `PIGGU_OPEN_FINANCE` | `false` (padrao desde 11/10/2026) esconde o card de bancos e o Open Finance da lista do Premium; `true` volta (com `PLUGGY_*` e o perfil `open-finance`) |
 | `PIGGU_LEITOR_PROPRIO` | `false` (padrao desde 11/10/2026): recibo lido so pelo Gemini, 10 por mes por familia no gratuito; `true` volta o leitor proprio (Tesseract) primeiro |
 | `GEMINI_API_KEY`, `PLUGGY_*`, `STRIPE_*`, `TMDB_READ_TOKEN`, `DRIVE_*` | integrações; vazias, o recurso fica desligado |

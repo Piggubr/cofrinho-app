@@ -6,6 +6,8 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.PigguRole;
 import com.piggu.identity.apple.AppleIdTokenVerifier;
 import com.piggu.identity.apple.AppleProfile;
+import com.piggu.identity.apple.RevogacaoDaApple;
+import com.piggu.identity.domain.UserAccountRepository;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
 import com.piggu.testing.PostgresIntegrationTest;
@@ -51,6 +53,12 @@ class AppNativoTest extends PostgresIntegrationTest {
 
     @MockitoBean
     private AppleIdTokenVerifier apple;
+
+    @MockitoBean
+    private RevogacaoDaApple revogacaoDaApple;
+
+    @Autowired
+    private UserAccountRepository usuarios;
 
     @BeforeEach
     void preparar() {
@@ -135,11 +143,13 @@ class AppNativoTest extends PostgresIntegrationTest {
     @DisplayName("entrar com a Apple cria a conta com o nome que o app manda e devolve o par")
     void entrarComApple() throws Exception {
         given(apple.verificar(eq("token-apple"), eq("nonce-1")))
-                .willReturn(new AppleProfile("001.apple", "maca@privaterelay.appleid.com"));
+                .willReturn(new AppleProfile("001.apple", "maca@privaterelay.appleid.com", "br.com.piggu.app"));
+        given(revogacaoDaApple.ligada()).willReturn(true);
+        given(revogacaoDaApple.trocarCodigo("codigo-1", "br.com.piggu.app")).willReturn("rt-apple");
 
         MvcResult primeira = mockMvc.perform(post("/api/auth/apple").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"idToken\":\"token-apple\",\"nonce\":\"nonce-1\",\"nome\":\"  Maria   Maçã \","
-                                + TERMOS + ",\"refreshNoCorpo\":true}"))
+                                + TERMOS + ",\"refreshNoCorpo\":true,\"codigo\":\"codigo-1\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuario.email").value("maca@privaterelay.appleid.com"))
                 .andExpect(jsonPath("$.usuario.apelido").value("Maria Maçã"))
@@ -147,6 +157,9 @@ class AppNativoTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.usuario.emailConfirmado").value(true))
                 .andReturn();
         assertThat(refreshDe(primeira)).isNotBlank();
+        // O token da Apple fica guardado para revogar quando a conta for excluida.
+        assertThat(usuarios.findByEmail("maca@privaterelay.appleid.com").orElseThrow().getAppleRefreshToken())
+                .isEqualTo("rt-apple");
 
         // Nas proximas vezes a Apple nao manda o nome, e os termos ja foram aceitos.
         mockMvc.perform(post("/api/auth/apple").contentType(MediaType.APPLICATION_JSON)

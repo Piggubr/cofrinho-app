@@ -52,6 +52,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
+| [D-142](#d-142-revogar-o-entrar-com-apple-ao-excluir-a-conta) | Revogar o Entrar com Apple ao excluir a conta | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -877,7 +878,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: etapa 1 do plano iOS. O app nativo não tem o cookie do site (D-058), e o site não pode passar a ver o refresh (D-014).
 - Decisão: o login (`/api/auth/google`, `/entrar` e `/apple`) com `refreshNoCorpo: true` devolve `refreshToken` no corpo e não põe cookie. `/api/auth/refresh`, `/logout` e `/me/senha` aceitam `refreshToken` no corpo; renovar pelo corpo devolve o novo no corpo. O refresh que chegou pelo cookie nunca volta no corpo, peça o cliente o que pedir: um XSS no site consegue renovar, mas não leva o refresh. Entrar com Apple confere o identity token contra o JWKS da Apple (emissor, Bundle ID, validade, e-mail verificado e o nonce, que é o SHA-256 do valor que o app manda) e acha a conta pelo e-mail, como o Google. Sem `APPLE_CLIENT_IDS` a rota responde 501.
 - Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
-- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
+- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. A revogação do token na Apple ao apagar a conta veio na D-142, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
 ## D-083: Termos e Aviso do app nativo copiados do site pelo CI
@@ -1460,3 +1461,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: só retrato, que deixa o Duo aberto de lado; guardar a aba no `@AppStorage`, que faria as duas janelas pularem juntas.
 - Consequências: o simulador do iPhone Duo do Xcode 27.1 não dobra nem gira, então a troca de tamanho é testada girando o iPhone (`GirarUITests`), e abrir e fechar o Duo fica para o aparelho. As pilhas das abas Gastos, Receitas e Relatórios não são guardadas, porque não empilham telas. As folhas abertas (lançar gasto, receita) não voltam se o sistema fechar a janela.
 - Onde ver: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/Piggu/Telas/TelaDoMais.swift` (`Binding.guardada`), `ios-nativo/Piggu/Telas/Estilo/FilmesView.swift`
+
+## D-142: Revogar o Entrar com Apple ao excluir a conta
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: a Apple exige, para app com o Entrar com Apple, que excluir a conta revogue o acesso dado ao app (Diretriz 5.1.1(v)). A D-072 deixou isso para depois, e a revisão da Apple recusaria o app sem ele.
+- Decisão: o app manda o `authorizationCode` em `codigo` no `POST /api/auth/apple`. O identity troca o código por um refresh token da Apple (`/auth/token`) e o guarda na conta (`users.apple_refresh_token`, com o Bundle ID em `apple_client_id`). Ao excluir a conta, manda esse token para `/auth/revoke`. Os dois pedidos levam um client secret: um JWT ES256 de 5 minutos assinado com uma chave `.p8` com o Entrar com Apple ligado (`APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_CHAVE`). Pode ser a mesma chave do APNs, se ela tiver o Entrar com Apple marcado. A troca é refeita a cada login com a Apple, então fica sempre o token mais novo. Se a Apple recusar ou estiver fora do ar, nem o login nem a exclusão param: a falha fica no log.
+- Alternativas: pedir o Entrar com Apple de novo na hora de excluir e trocar o código ali, sem guardar token, o que não cobre quem exclui pelo site; guardar o token cifrado como o CPF, o que não vale a pena, porque o token sozinho não serve sem a chave `.p8` do Piggu.
+- Consequências: contas que entraram com a Apple antes desta mudança só ganham o token no próximo login com a Apple. Sem as três variáveis, o servidor não guarda token nem revoga, e o login segue igual. O token não vai no arquivo de "exportar meus dados", porque é uma credencial e não um dado da pessoa.
+- Onde ver: `backend/piggu-identity/.../apple/RevogacaoDaApple.java`, `.../domain/MinhaContaService.java` (`excluir`), `.../domain/AuthService.java` (`entrarComApple`), `ios-nativo/Piggu/Core/Auth/EntradaComApple.swift`
