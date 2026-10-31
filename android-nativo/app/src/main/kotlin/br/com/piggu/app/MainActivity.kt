@@ -7,16 +7,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import br.com.piggu.app.navegacao.Destino
 import br.com.piggu.app.navegacao.lerLink
+import br.com.piggu.core.data.RetornoDoBanco
 import br.com.piggu.core.ui.formatos.lerValor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import javax.inject.Inject
 
 // FragmentActivity: o BiometricPrompt da trava do app precisa dela.
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
     /** Os links (piggu://, App Links do piggu.com.br, atalhos) que o app ainda vai abrir. */
     private val links = Channel<Destino>(Channel.BUFFERED)
+
+    @Inject lateinit var retornoDoBanco: RetornoDoBanco
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -33,6 +37,8 @@ class MainActivity : FragmentActivity() {
 
     private fun receber(intent: Intent?) {
         val link = intent?.dataString ?: return
+        // A volta de conectar banco fica na tela de Cartões e bancos, que estava aberta.
+        if (retornoDoBanco.receber(link)) return
         lerLink(link, ::lerValor)?.let { links.trySend(it) }
     }
 }

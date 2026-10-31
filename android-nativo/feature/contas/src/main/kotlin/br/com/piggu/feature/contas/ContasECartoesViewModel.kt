@@ -7,12 +7,18 @@ import br.com.piggu.core.data.Carga
 import br.com.piggu.core.data.Lancamentos
 import br.com.piggu.core.data.ListasParaLancar
 import br.com.piggu.core.data.MonitorDeRede
+import br.com.piggu.core.data.ResultadoDoBanco
+import br.com.piggu.core.data.RetornoDoBanco
 import br.com.piggu.core.data.Sessao
+import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.model.ContaBancaria
+import br.com.piggu.core.model.ConnectToken
 import br.com.piggu.core.model.ContaOuCartao
 import br.com.piggu.core.model.FaturaComGastos
 import br.com.piggu.core.model.MembroDaFamilia
 import br.com.piggu.core.model.NovaConta
+import br.com.piggu.core.model.PedidoDeConexao
+import br.com.piggu.core.model.PedidoDeItem
 import br.com.piggu.core.model.PedidoDeCompartilhar
 import br.com.piggu.core.model.TipoDeConta
 import br.com.piggu.core.network.ErroDaApi
@@ -29,10 +35,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.Clock
+import java.net.URLEncoder
 import java.time.YearMonth
 import javax.inject.Inject
 
@@ -113,6 +121,7 @@ class ContasECartoesViewModel internal constructor(
     private val lancamentos: Lancamentos,
     private val relogio: Clock,
     conectado: StateFlow<Boolean>,
+    retorno: RetornoDoBanco,
 ) : ViewModel() {
     @Inject constructor(
         financas: ServicoDeFinancas,
@@ -123,7 +132,8 @@ class ContasECartoesViewModel internal constructor(
         lancamentos: Lancamentos,
         relogio: Clock,
         rede: MonitorDeRede,
-    ) : this(financas, bancos, cache, listas, sessao, lancamentos, relogio, rede.conectado)
+        retorno: RetornoDoBanco,
+    ) : this(financas, bancos, cache, listas, sessao, lancamentos, relogio, rede.conectado, retorno)
 
     private val recarga = MutableStateFlow(0)
     private val estadoAtual = MutableStateFlow(
@@ -137,6 +147,16 @@ class ContasECartoesViewModel internal constructor(
             combine(lancamentos.versao, recarga, conectado) { _, _, conectado -> conectado }.collectLatest { conectado ->
                 estadoAtual.update { it.copy(conectado = conectado) }
                 carregar()
+            }
+        }
+        viewModelScope.launch {
+            retorno.resultado.filterNotNull().collect { resultado ->
+                retorno.usar()
+                when (resultado) {
+                    is ResultadoDoBanco.Conectado -> agirNosBancos { bancos.registrarItem(PedidoDeItem(resultado.item)) }
+                    is ResultadoDoBanco.Falhou -> estadoAtual.update { it.copy(erro = MensagemDeErro.DoServidor(resultado.mensagem)) }
+                    ResultadoDoBanco.Fechou -> Unit
+                }
             }
         }
     }
@@ -285,6 +305,15 @@ class ContasECartoesViewModel internal constructor(
 
     fun atualizarBancos() = agirNosBancos { bancos.sincronizar() }
 
+    /**
+     * Pede o token (com a autorização da pessoa) e manda [abrir] o caminho da página do site que
+     * abre a Pluggy (D-117). O banco volta pelo [RetornoDoBanco].
+     */
+    fun conectarBanco(abrir: (String) -> Unit) = agirNosBancos {
+        abrir(caminhoDeConectarBanco(bancos.gerarConnectToken(PedidoDeConexao(VERSAO_DOS_TERMOS))))
+        estadoAtual.value.bancos
+    }
+
     private fun agirNosBancos(chamada: suspend () -> List<ContaBancaria>) {
         if (estadoAtual.value.mexendoNosBancos) return
         estadoAtual.update { it.copy(mexendoNosBancos = true, erro = null) }
@@ -347,3 +376,7 @@ class ContasECartoesViewModel internal constructor(
 
     private fun soODia(texto: String) = texto.filter(Char::isDigit).take(2)
 }
+
+/** `/conectar-banco#token=...`: o token vai no fragmento, que não sai do aparelho (OpenFinance.pagina do iOS). */
+internal fun caminhoDeConectarBanco(token: ConnectToken): String =
+    "/conectar-banco#token=" + URLEncoder.encode(token.accessToken, "UTF-8") + if (token.sandbox) "&sandbox=1" else ""

@@ -12,7 +12,6 @@ import br.com.piggu.app.navegacao.lerLink
 import br.com.piggu.core.data.Pendencia
 import br.com.piggu.core.ui.CasoDeErro
 import br.com.piggu.core.ui.TelaDeErro
-import br.com.piggu.core.ui.lembrarAbrirNoSite
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import br.com.piggu.feature.calendario.TelaDoCalendario
 import br.com.piggu.feature.login.DialogoDeExclusao
@@ -71,7 +70,6 @@ fun TelaCheia(
     avisoDoEmail: @Composable () -> Unit = {},
 ) {
     fun abrir(destino: Tela) { pilha.add(destino) }
-    val abrirNoSite = lembrarAbrirNoSite()
     val voltar = { pilha.voltar(base) }
     when (tela) {
         Tela.Entrar -> TelaDeLogin(
@@ -105,7 +103,7 @@ fun TelaCheia(
         Tela.ContasFixas -> TelaDasContasDoMes(voltar = voltar)
         Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         Tela.Calendario -> TelaDoCalendario(voltar = voltar)
-        Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar, abrirNoSite = abrirNoSite)
+        Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar)
         // Metas e conta (A6).
         Tela.Metas -> TelaDasMinhasMetas(voltar = voltar)
         Tela.GirlsMath -> TelaDoGirlsMath(voltar = voltar)

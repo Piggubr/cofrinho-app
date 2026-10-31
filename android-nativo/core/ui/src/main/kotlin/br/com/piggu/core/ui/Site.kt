@@ -19,13 +19,17 @@ const val ENDERECO_DO_SITE = "https://piggu.com.br"
 /**
  * Abre uma página do site num Custom Tab, com a barra na cor do tema. Sem navegador que
  * entenda Custom Tabs, abre no que houver.
+ *
+ * @param voltaParaOApp a página responde num link `piggu://`: a aba vai numa tarefa própria,
+ * para o link achar a MainActivity no topo da do app (singleTop) em vez de abrir outra.
  */
-fun abrirNoSite(contexto: Context, caminho: String, corDaBarra: Int? = null) {
+fun abrirNoSite(contexto: Context, caminho: String, corDaBarra: Int? = null, voltaParaOApp: Boolean = false) {
     val endereco = (ENDERECO_DO_SITE + caminho).toUri()
     val aba = CustomTabsIntent.Builder()
         .setShowTitle(true)
         .apply { corDaBarra?.let { setDefaultColorSchemeParams(CustomTabColorSchemeParams.Builder().setToolbarColor(it).build()) } }
         .build()
+    if (voltaParaOApp) aba.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
         aba.launchUrl(contexto, endereco)
     } catch (_: ActivityNotFoundException) {
