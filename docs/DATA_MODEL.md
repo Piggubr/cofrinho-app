@@ -278,6 +278,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 | **Assinatura e termos** | | | |
 | `trial_used_at` | timestamptz | não | Quando usou o teste grátis; nulo ainda pode usar |
 | `stripe_customer_id` | texto(255) | não, única | Cliente na Stripe, para abrir o portal |
+| `apple_refresh_token`, `apple_client_id` | texto, texto(200) | não | Refresh token do Entrar com Apple e o Bundle ID que o emitiu, para revogar ao excluir a conta (D-142) |
 | `terms_version`, `terms_accepted_at` | texto(20), timestamptz | não | Versão dos termos aceita e quando |
 | `partner_invited_at` | timestamptz | não | Quando o titular convidou para ser parceiro; vira parceiro ao aceitar |
 

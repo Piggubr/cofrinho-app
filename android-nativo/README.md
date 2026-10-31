@@ -73,8 +73,9 @@ plataforma que faltar.
   Links, quando o `assetlinks.json` estiver no ar.
 - Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
   (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
-- Google: o botão só aparece com `./gradlew -Ppiggu.googleNoAndroid=true ...` (ou a linha em
-  `gradle.properties`), depois de criar o ID OAuth do Android no Google Cloud (D-104).
+- Google: o botão está ligado (`piggu.googleNoAndroid=true` em `gradle.properties`). Cada chave
+  que assina o app precisa de um ID OAuth do Android no Google Cloud, senão o login falha com
+  DEVELOPER_ERROR: upload e debug já têm, o da chave do Play falta (D-104).
 - Termos e Aviso: `python3 -I scripts/textos-legais.py` copia o texto do site; o CI confere.
 
 ## Tema
@@ -121,7 +122,7 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 
 ## Lançamento (A9)
 
-- **Versão:** 2.0.0, `versionCode` 200, acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
+- **Versão:** 2.0.0, `versionCode` 201 (o 200 foi gasto num envio descartado), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
 - **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`); sem eles, o AAB sai sem assinatura.
 - **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` guarda o `app-producao-release.aab` como artefato. O envio ao Play Console é manual, com a confirmação do Dudu.
 - **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).

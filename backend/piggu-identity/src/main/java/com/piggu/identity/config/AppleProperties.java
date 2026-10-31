@@ -11,12 +11,19 @@ import java.util.List;
  *                  dia o site tiver o botao, o Services ID. Vazio desliga a rota (501).
  * @param jwkSetUri chaves publicas da Apple usadas para conferir a assinatura do token
  * @param issuer    emissor aceito
+ * @param teamId    Team ID da conta de desenvolvedor, para assinar o client secret
+ * @param keyId     ID da chave .p8 com o Entrar com Apple ligado
+ * @param chave     conteudo do AuthKey_XXXX.p8 (PEM). Sem as tres, o servico nao guarda o token
+ *                  da Apple nem revoga ao excluir a conta.
  */
 @ConfigurationProperties(prefix = "piggu.apple")
 public record AppleProperties(
         List<String> clientIds,
         String jwkSetUri,
-        String issuer
+        String issuer,
+        String teamId,
+        String keyId,
+        String chave
 ) {
 
     public AppleProperties {
@@ -27,5 +34,10 @@ public record AppleProperties(
 
     public boolean ligado() {
         return !clientIds.isEmpty();
+    }
+
+    public boolean revogacaoLigada() {
+        return ligado() && teamId != null && !teamId.isBlank() && keyId != null && !keyId.isBlank()
+                && chave != null && !chave.isBlank();
     }
 }

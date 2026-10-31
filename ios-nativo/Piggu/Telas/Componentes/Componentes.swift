@@ -244,20 +244,6 @@ struct BarraDeProgresso: View {
     }
 }
 
-/// Telas do site que o app ainda nao tem (orcamentos, contas do mes, metas...): abrem o
-/// piggu.com.br no navegador ate chegarem ao app nas proximas etapas.
-struct LinkDoSite: View {
-    let titulo: LocalizedStringKey
-    let caminho: String
-
-    var body: some View {
-        Link(destination: URL(string: "https://piggu.com.br" + caminho)!) {
-            Label(titulo, systemImage: "arrow.up.right.square")
-        }
-        .accessibilityHint("Abre no site do Piggu")
-    }
-}
-
 /// Convite ao Premium: abre a tela de planos com a compra da Apple, nunca o site (D-094).
 struct LinkDoPremium: View {
     let titulo: LocalizedStringKey

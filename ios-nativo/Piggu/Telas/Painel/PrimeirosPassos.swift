@@ -9,6 +9,7 @@ struct PrimeirosPassos: View {
     let temLimite: Bool
     let temGasto: Bool
     let aoLancar: () -> Void
+    let aoImportar: () -> Void
 
     /// As moedas mais comuns de quem usa o Piggu; a lista inteira fica no Perfil.
     private static let moedas = ["BRL", "EUR", "USD", "GBP", "ARS", "CLP", "UYU", "JPY"]
@@ -16,6 +17,7 @@ struct PrimeirosPassos: View {
     @State private var estado = Estado()
     @State private var moedaEscolhida = Formatos.codigoDaMoeda
     @State private var salvando = false
+    @State private var importando = false
     @Environment(\.paleta) private var paleta
 
     struct Estado: Codable {
@@ -64,7 +66,7 @@ struct PrimeirosPassos: View {
                         if !temGasto {
                             HStack {
                                 Button("Lançar gasto", action: aoLancar).buttonStyle(.bordered)
-                                LinkDoSite(titulo: "Importar extrato", caminho: "/gastos#importar")
+                                Button("Importar extrato") { importando = true }.buttonStyle(.bordered)
                             }
                         }
                     }
@@ -76,6 +78,7 @@ struct PrimeirosPassos: View {
                 }
             }
         }
+        .sheet(isPresented: $importando) { ImportarExtratoView(aoImportar: aoImportar) }
         .onAppear {
             estado = UserDefaults.standard.data(forKey: chave)
                 .flatMap { try? JSONDecoder().decode(Estado.self, from: $0) } ?? Estado()

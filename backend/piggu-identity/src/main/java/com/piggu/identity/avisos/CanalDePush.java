@@ -112,11 +112,12 @@ public class CanalDePush {
         return jwt;
     }
 
-    static ECPrivateKey chavePrivada(String pem) {
+    /** Tambem assina o client secret do Entrar com Apple ({@code RevogacaoDaApple}). */
+    public static ECPrivateKey chavePrivada(String pem) {
         try {
             return (ECPrivateKey) KeyFactory.getInstance("EC").generatePrivate(pkcs8(pem));
         } catch (java.security.GeneralSecurityException | IllegalArgumentException erro) {
-            throw new IllegalStateException("Chave do APNs invalida (esperado o conteudo do AuthKey .p8).", erro);
+            throw new IllegalStateException("Chave da Apple invalida (esperado o conteudo do AuthKey .p8).", erro);
         }
     }
 

@@ -1412,6 +1412,10 @@ components:
     AppleLoginRequest:
       type: object
       properties:
+        codigo:
+          type: string
+          maxLength: 1000
+          minLength: 0
         idToken:
           type: string
           maxLength: 4096

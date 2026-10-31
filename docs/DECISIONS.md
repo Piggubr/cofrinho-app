@@ -53,6 +53,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
+| [D-142](#d-142-revogar-o-entrar-com-apple-ao-excluir-a-conta) | Revogar o Entrar com Apple ao excluir a conta | Valendo |
 | [D-144](#d-144-a-retenção-não-apaga-quem-paga-um-premium-que-vale) | A retenção não apaga quem paga um Premium que vale | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
@@ -118,6 +119,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-097](#d-097-topo-das-abas-com-a-marca-a-busca-e-o-assistente-trava-em-janela-própria) | Topo das abas com a marca, a busca e o assistente; trava em janela própria | Valendo |
 | [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
 | [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
+| [D-140](#d-140-importar-extrato-no-app-ios-sem-passar-pelo-site) | Importar extrato no app iOS, sem passar pelo site | Valendo |
+| [D-141](#d-141-iphone-deitado-aba-e-pilhas-por-janela-iphone-duo) | iPhone deitado, aba e pilhas por janela (iPhone Duo) | Valendo |
 | [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
 | [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
@@ -936,7 +939,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: etapa 1 do plano iOS. O app nativo não tem o cookie do site (D-058), e o site não pode passar a ver o refresh (D-014).
 - Decisão: o login (`/api/auth/google`, `/entrar` e `/apple`) com `refreshNoCorpo: true` devolve `refreshToken` no corpo e não põe cookie. `/api/auth/refresh`, `/logout` e `/me/senha` aceitam `refreshToken` no corpo; renovar pelo corpo devolve o novo no corpo. O refresh que chegou pelo cookie nunca volta no corpo, peça o cliente o que pedir: um XSS no site consegue renovar, mas não leva o refresh. Entrar com Apple confere o identity token contra o JWKS da Apple (emissor, Bundle ID, validade, e-mail verificado e o nonce, que é o SHA-256 do valor que o app manda) e acha a conta pelo e-mail, como o Google. Sem `APPLE_CLIENT_IDS` a rota responde 501.
 - Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
-- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
+- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. A revogação do token na Apple ao apagar a conta veio na D-142, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
 ## D-083: Termos e Aviso do app nativo copiados do site pelo CI
@@ -961,7 +964,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Data: 27/10/2026
 - Situação: Valendo
 - Contexto: etapa 4 do plano iOS (Painel, Gastos e Receitas com paridade com o site). Os cartões do Painel e os formulários levam a telas que só chegam ao app nas etapas 5 a 7 (orçamentos, contas do mês, cartões e bancos, metas, Girls Math, calendário, Premium), e duas funções dependem de algo que o app ainda não tem: a leitura de nota por foto (etapa 7) e o widget da Pluggy para conectar banco.
-- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
+- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato (nativa desde a D-140) e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
 - Alternativas: esconder os atalhos até a etapa certa, que deixaria cartões sem saída; abrir o site numa web view, que pede login de novo dentro dela.
 - Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
 - Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
@@ -1510,3 +1513,30 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
 - Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
 - Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`
+
+## D-140: Importar extrato no app iOS, sem passar pelo site
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: pela D-090, "Importar extrato" (vazio de Gastos e guia de primeiros passos) abria o `piggu.com.br/gastos#importar` no Safari. Quem testou achou que era bug: tocava num botão do app e caía no site.
+- Decisão: a importação de OFX ou CSV fica nativa, numa folha (`ImportarExtratoView`) aberta pelos Gastos (uma linha acima das regras de categoria) e pelo guia do Painel. Segue o `importar-extrato.ts`: o arquivo vem do app Arquivos (`fileImporter`), até 2 MB, lido em UTF-8 e, se não for UTF-8 válido, em Latin-1; a prévia (`POST /expenses/import/preview`) vem com o já importado desmarcado; cada linha troca de categoria e todas podem ir para uma conta; `POST /expenses/import` grava os marcados e mostra importados e pulados. Substitui essa parte da D-090. Com isso o `LinkDoSite` ficou sem uso e saiu.
+- Alternativas: esconder o botão no iOS (a pessoa teria que lembrar do site); manter o link com um aviso de que abre o site.
+- Consequências: o OFX não tem tipo do sistema, então o `Info.plist` declara o `com.intuit.ofx` (`.ofx` e `.qfx`); sem isso, o `.ofx` poderia aparecer apagado no app Arquivos. O "Trazer do banco" (Open Finance, Premium) e o "Exportar CSV do mês" desse bloco do site não entram aqui: o CSV já sai pelos Relatórios, e o do banco fica para depois. Nenhuma rota nova no backend.
+- Onde ver: `ios-nativo/Piggu/Telas/Gastos/ImportarExtratoView.swift`, `ios-nativo/Piggu/Telas/GastosView.swift`, `ios-nativo/Piggu/Telas/Painel/PrimeirosPassos.swift`
+
+## D-141: iPhone deitado, aba e pilhas por janela (iPhone Duo)
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: o iPhone Duo aberto pede a tela deitada, e o projeto do iOS nativo só aceitava retrato no iPhone. Ao abrir e fechar o aparelho, ou com duas janelas do Piggu lado a lado, a aba e a tela aberta não podiam se perder nem ser a mesma nas duas janelas.
+- Decisão: o iPhone aceita retrato e as duas paisagens. Sem o retrato de cabeça para baixo, que é o padrão da Apple no iPhone. A aba e as pilhas do Painel e do Mais ficam no `@SceneStorage` de cada janela. As pilhas são guardadas como texto (`orcamento,cartoes`), e uma tela que não existe mais some da pilha. A sessão continua sendo uma só para o app: a segunda janela não restaura de novo. Na tela estreita (a de fora do Duo e o iPhone mini), quando não cabem lado a lado, as ações da linha do filme descem para baixo do título e os botões de foto (galeria e câmera) ficam um embaixo do outro. O cartão do leitor de nota tem no máximo 520 pt de largura com a tela deitada.
+- Alternativas: só retrato, que deixa o Duo aberto de lado; guardar a aba no `@AppStorage`, que faria as duas janelas pularem juntas.
+- Consequências: o simulador do iPhone Duo do Xcode 27.1 não dobra nem gira, então a troca de tamanho é testada girando o iPhone (`GirarUITests`), e abrir e fechar o Duo fica para o aparelho. As pilhas das abas Gastos, Receitas e Relatórios não são guardadas, porque não empilham telas. As folhas abertas (lançar gasto, receita) não voltam se o sistema fechar a janela.
+- Onde ver: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/Piggu/Telas/TelaDoMais.swift` (`Binding.guardada`), `ios-nativo/Piggu/Telas/Estilo/FilmesView.swift`
+
+## D-142: Revogar o Entrar com Apple ao excluir a conta
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: a Apple exige, para app com o Entrar com Apple, que excluir a conta revogue o acesso dado ao app (Diretriz 5.1.1(v)). A D-072 deixou isso para depois, e a revisão da Apple recusaria o app sem ele.
+- Decisão: o app manda o `authorizationCode` em `codigo` no `POST /api/auth/apple`. O identity troca o código por um refresh token da Apple (`/auth/token`) e o guarda na conta (`users.apple_refresh_token`, com o Bundle ID em `apple_client_id`). Ao excluir a conta, manda esse token para `/auth/revoke`. Os dois pedidos levam um client secret: um JWT ES256 de 5 minutos assinado com uma chave `.p8` com o Entrar com Apple ligado (`APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_CHAVE`). Pode ser a mesma chave do APNs, se ela tiver o Entrar com Apple marcado. A troca é refeita a cada login com a Apple, então fica sempre o token mais novo. Se a Apple recusar ou estiver fora do ar, nem o login nem a exclusão param: a falha fica no log.
+- Alternativas: pedir o Entrar com Apple de novo na hora de excluir e trocar o código ali, sem guardar token, o que não cobre quem exclui pelo site; guardar o token cifrado como o CPF, o que não vale a pena, porque o token sozinho não serve sem a chave `.p8` do Piggu.
+- Consequências: contas que entraram com a Apple antes desta mudança só ganham o token no próximo login com a Apple. Sem as três variáveis, o servidor não guarda token nem revoga, e o login segue igual. O token não vai no arquivo de "exportar meus dados", porque é uma credencial e não um dado da pessoa.
+- Onde ver: `backend/piggu-identity/.../apple/RevogacaoDaApple.java`, `.../domain/MinhaContaService.java` (`excluir`), `.../domain/AuthService.java` (`entrarComApple`), `ios-nativo/Piggu/Core/Auth/EntradaComApple.swift`
