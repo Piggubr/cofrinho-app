@@ -43,7 +43,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
-- 30/10/2026: Android: conectar banco pela página `/conectar-banco` do site, com a volta ao app (D-140), e o `assetlinks.json` dos App Links com as chaves de upload e de debug.
+- 30/10/2026: Android: conectar banco pela página `/conectar-banco` do site, com a volta ao app (D-150), e o `assetlinks.json` dos App Links com as chaves de upload e de debug.
 - 30/10/2026: Android: ID OAuth do Android no Google Cloud (chaves de upload e debug) e botão do Google ligado no app nativo (D-104).
 - 28/10/2026: Android nativo, etapa A9: paridade conferida, acessibilidade (TalkBack, fonte grande, contraste), tamanhos do celular pequeno à tela grande, R8 e Baseline Profile (Painel em ~500 ms num aparelho simples), versão 2.0.0 e AAB no CI, na branch `feature/android-nativo` (D-134 e D-135).
 - 28/10/2026: Android nativo, etapa A8: Premium pelo Google Play Billing no app e no backend (Play Developer API e RTDN), no mesmo plano da Stripe e da Apple, na branch `feature/android-nativo` (D-132 e D-133).
