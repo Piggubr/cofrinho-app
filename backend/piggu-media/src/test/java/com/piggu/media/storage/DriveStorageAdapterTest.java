@@ -1,6 +1,8 @@
 package com.piggu.media.storage;
 
 import com.google.api.client.http.AbstractInputStreamContent;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -128,7 +131,7 @@ class DriveStorageAdapterTest {
     }
 
     @Test
-    @DisplayName("apagar manda para a lixeira, e falha ao apagar nao derruba o pedido")
+    @DisplayName("apagar manda para a lixeira; arquivo que ja sumiu e ok, falha de verdade avisa quem chamou")
     void apagaParaALixeira() throws IOException {
         Drive.Files.Update update = mock(Drive.Files.Update.class);
         when(arquivos.update(eq("arquivo-1"), any(File.class))).thenReturn(update);
@@ -140,7 +143,10 @@ class DriveStorageAdapterTest {
         assertThat(mudanca.getValue().getTrashed()).isTrue();
         verify(update).execute();
 
-        when(update.execute()).thenThrow(new IOException("fora do ar"));
+        when(update.execute()).thenThrow(new HttpResponseException.Builder(404, "Not Found", new HttpHeaders()).build());
         assertThatCode(() -> adaptador.apagar("arquivo-1")).doesNotThrowAnyException();
+
+        doThrow(new IOException("fora do ar")).when(update).execute();
+        assertThatThrownBy(() -> adaptador.apagar("arquivo-1")).isInstanceOf(UpstreamException.class);
     }
 }

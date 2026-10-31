@@ -745,41 +745,6 @@ paths:
       summary: Desistir em até 7 dias com reembolso
       tags:
       - Premium
-  /api/billing/stores/{loja}/purchases:
-    post:
-      operationId: billingCompraNaLoja
-      parameters:
-      - in: path
-        name: loja
-        required: true
-        schema:
-          type: string
-      - in: header
-        name: Authorization
-        required: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-        required: true
-      responses:
-        "200":
-          description: Aviso recebido
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
-            \ um código estável."
-      security: []
-      summary: "Aviso de compra nas lojas pelo RevenueCat (servidor para servidor,\
-        \ não é para o app)"
-      tags:
-      - Premium
   /api/billing/webhooks/app-store:
     post:
       operationId: billingWebhookAppStore

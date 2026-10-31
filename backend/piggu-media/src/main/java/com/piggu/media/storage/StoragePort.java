@@ -31,7 +31,9 @@ public interface StoragePort {
      * Apaga um arquivo.
      *
      * <p>Nao lanca excecao se o arquivo ja nao existir: apagar o que ja sumiu e o
-     * resultado desejado de qualquer forma.</p>
+     * resultado desejado de qualquer forma. Qualquer outra falha lanca
+     * {@link com.piggu.common.error.UpstreamException}, para quem chama nao apagar o registro
+     * que aponta para o arquivo.</p>
      */
     void apagar(String idNoProvedor);
 

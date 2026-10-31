@@ -32,6 +32,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
 | [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
 | [D-087](#d-087-salário-em-duas-parcelas-numa-receita-só) | Salário em duas parcelas numa receita só | Valendo |
+| [D-148](#d-148-o-dia-1-lança-o-que-a-última-rodada-do-mês-passado-perdeu) | O dia 1 lança o que a última rodada do mês passado perdeu | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -53,6 +54,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
 | [D-142](#d-142-revogar-o-entrar-com-apple-ao-excluir-a-conta) | Revogar o Entrar com Apple ao excluir a conta | Valendo |
+| [D-144](#d-144-a-retenção-não-apaga-quem-paga-um-premium-que-vale) | A retenção não apaga quem paga um Premium que vale | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -68,6 +70,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-037](#d-037-versão-de-produção-pela-data) | Versão de produção pela data | Valendo |
 | [D-069](#d-069-repositório-privado) | Repositório privado | Valendo |
 | [D-070](#d-070-e-mails-pela-resend) | E-mails pela Resend | Valendo |
+| [D-149](#d-149-cada-família-guarda-até-1-gb-de-fotos) | Cada família guarda até 1 GB de fotos | Valendo |
 | **Pagamentos e Premium** | | |
 | [D-038](#d-038-o-backend-aplica-os-limites-do-premium) | O backend aplica os limites do Premium | Valendo |
 | [D-039](#d-039-premium-da-família-inteira) | Premium da família inteira | Substituída por D-040 |
@@ -75,7 +78,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-041](#d-041-stripe-no-site-revenuecat-nas-lojas) | Stripe no site, RevenueCat nas lojas | Valendo |
 | [D-042](#d-042-premium-só-muda-pelo-webhook-assinado) | Premium só muda pelo webhook assinado | Valendo |
 | [D-043](#d-043-cobrar-pelo-open-finance-sim-pela-desconexão-nunca) | Cobrar pelo Open Finance sim, pela desconexão nunca | Valendo |
-| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Valendo |
+| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Substituída por D-146 (o teste) |
 | [D-045](#d-045-open-finance-desligado-por-enquanto) | Open Finance desligado por enquanto | Valendo |
 | [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
 | [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Valendo |
@@ -83,6 +86,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
 | [D-079](#d-079-cartão-recusado-dá-7-dias-de-premium) | Cartão recusado dá 7 dias de Premium | Valendo |
 | [D-081](#d-081-stripe-e-revenuecat-sem-interface) | Stripe e RevenueCat sem interface | Valendo |
+| [D-143](#d-143-premium-que-vale-só-muda-pela-mesma-origem-e-pelo-mesmo-assinante) | Premium que vale só muda pela mesma origem e pelo mesmo assinante | Valendo |
+| [D-145](#d-145-revenuecat-sai-do-backend) | RevenueCat sai do backend | Valendo |
+| [D-146](#d-146-catorze-dias-de-teste-grátis) | Catorze dias de teste grátis | Valendo |
 | **Apps (site, iOS e Android)** | | |
 | [D-049](#d-049-site-em-angular-com-telas-sob-demanda) | Site em Angular, com telas sob demanda | Valendo |
 | [D-050](#d-050-só-o-login-conhece-os-tokens-uma-renovação-por-vez) | Só o login conhece os tokens; uma renovação por vez | Valendo |
@@ -154,6 +160,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
 | [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
+| [D-147](#d-147-o-404-do-piggu-também-tira-o-gasto-da-fila) | O 404 do Piggu também tira o gasto da fila | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
 | [D-062](#d-062-dependabot-abre-pr-na-develop) | Dependabot abre PR na `develop` | Valendo |
@@ -312,6 +319,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: duas receitas recorrentes separadas, que funcionam hoje sem mudar o backend, mas aparecem como dois salários na lista.
 - Consequências: só a receita lançada pelo formulário de receita tem segunda parcela; a conta fixa de gasto não usa. Editar a receita recorrente ainda não muda a segunda parcela: para trocar, pare de repetir e lance de novo.
 - Onde ver: `ContasFixasService.receberSegundaParcela`, [DATA_MODEL.md, `recurring_bills`](DATA_MODEL.md)
+
+## D-148: O dia 1 lança o que a última rodada do mês passado perdeu
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o lançamento automático das contas fixas roda às 6h e só olha o mês corrente; o `@Scheduled` não repete a rodada perdida. Um deploy ou o banco fora às 6h do dia 31 deixava o aluguel de outubro sem lançar para sempre, sem erro.
+- Decisão: no dia 1, antes do mês novo, a rodada lança o que venceu no mês passado e não foi lançado, só das contas criadas antes do mês novo.
+- Alternativas: ShedLock ou uma tabela de rodadas, para um serviço que roda num contêiner só; repetir a busca do mês passado todo dia, o que lançaria meses de quem ligou o automático depois.
+- Consequências: se a rodada do dia 1 também falhar, o mês passado fica de fora, como antes.
+- Onde ver: `ContasFixasService.lancarAutomaticas`, `ContasFixasTest`
 
 # Segurança e privacidade
 
@@ -486,6 +502,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o contexto de log da requisição não vai junto; e-mail que falha só aparece no log.
 - Onde ver: `ConfirmacaoDeEmail.depoisDoCommit`
 
+## D-144: A retenção não apaga quem paga um Premium que vale
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a retenção apaga a conta sem acesso há 24 meses. O pai que paga o plano Família e não abre o app perdia a conta, a casa perdia o Premium e, pela Apple ou pelo Google, a loja seguia cobrando, porque o servidor não cancela a assinatura dela.
+- Decisão: `semAcessoDesde` deixa de fora quem é o assinante de uma casa com Premium que ainda vale. Quando o Premium vence, a conta entra na próxima rodada.
+- Alternativas: cancelar a assinatura antes de apagar, o que não dá nas lojas.
+- Consequências: a conta de quem paga fica enquanto paga, mesmo sem uso.
+- Onde ver: `UserAccountRepository.semAcessoDesde`, `RetencaoDeDadosTest`
+
 # Dados
 
 ## D-028: Fora do identity, só o id da conta
@@ -607,6 +632,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o domínio precisa de SPF, DKIM e DMARC verificados na Resend. Em 19/10/2026 o DNS não tinha nenhum deles, e o Dudu disse em 26/10/2026 que os e-mails parecem não estar funcionando. Sem e-mail configurado, o identity escreve no log o link que mandaria.
 - Onde ver: [e-mail do domínio](email-do-dominio.md), [implantação, seção 4](implantacao-producao.md#4-demais-variáveis)
 
+## D-149: Cada família guarda até 1 GB de fotos
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: as fotos ficam no mesmo disco do Postgres e só tinham o teto de 5 MB por foto e 15 por minuto. Uma conta, ou um app num laço de reenvio, enchia o disco em horas e o banco parava de gravar para todas as famílias.
+- Decisão: o media soma o `size_bytes` da família toda (as fotos privadas também) e recusa a foto que passa de 1 GB (`PIGGU_FOTOS_POR_FAMILIA_MB`), igual no grátis e no Premium. Escolha do Dudu em 30/10/2026.
+- Alternativas: teto por plano (500 MB grátis, 5 GB Premium), que pede o plano no media.
+- Consequências: a soma não trava a família; duas fotos ao mesmo tempo passam um pouco do teto.
+- Onde ver: `AssetService.guardar`, `AssetRepository.bytesDaFamilia`
+
 # Pagamentos e Premium
 
 ## D-038: O backend aplica os limites do Premium
@@ -665,7 +699,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-044: Sete dias de teste e sete de arrependimento
 - Data: 01/10/2026 (teste); 09/10/2026 (arrependimento)
-- Situação: Valendo
+- Situação: Substituída por D-146 no prazo do teste; o arrependimento de 7 dias segue valendo
 - Contexto: o Código de Defesa do Consumidor (art. 49) dá 7 dias de arrependimento.
 - Decisão: 7 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. Nos 7 primeiros dias pagos, o botão "Cancelar e pedir reembolso" cancela e devolve pela Stripe. Cancelar é tão fácil quanto assinar.
 - Alternativas: não registradas.
@@ -734,6 +768,33 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: manter as interfaces "para depois" (D-041).
 - Consequências: trocar de provedor é extrair a interface antes; o resto de D-041 continua valendo.
 - Onde ver: `backend/piggu-identity/.../billing/`
+
+## D-143: Premium que vale só muda pela mesma origem e pelo mesmo assinante
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a regra "Premium de outra origem segue valendo" só existia para as lojas. Um aviso da Stripe (o fim de uma assinatura antiga, ou uma cobrança que entrou depois) derrubava ou tomava um Premium pago na Apple ou no Google. E dois avisos da Stripe ao mesmo tempo (created e updated no mesmo segundo) corriam: o último a gravar ganhava, mesmo sendo o mais velho.
+- Decisão: enquanto o Premium vale, `Household.aplicarAssinatura` só aceita aviso da mesma origem e do mesmo assinante, venha de onde vier. Os avisos de pagamento travam a linha da casa (`HouseholdRepository.travar`) e, no empate de horário, não encurtam o Premium.
+- Alternativas: repetir a guarda no caminho da Stripe; `@Version` na casa, que transforma a corrida em erro e depende do reenvio.
+- Consequências: quem paga em dois lugares ao mesmo tempo continua cobrado nos dois; vale o primeiro até vencer. Generaliza D-078.
+- Onde ver: `Household.aplicarAssinatura`, `AssinaturaService`, `PlanoFamiliaTest`
+
+## D-145: RevenueCat sai do backend
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a compra nos apps passou a ir direto à Apple (D-094) e ao Google (D-132, D-133). O caminho do RevenueCat nunca foi configurado e gravava o Premium sem a guarda de D-143.
+- Decisão: saem `RevenueCatLoja`, a rota `POST /api/billing/stores/{loja}/purchases` e `REVENUECAT_WEBHOOK_SECRET`. O plano do produto passa a sair de `TipoDePlano.doProduto`.
+- Alternativas: manter o caminho desligado, com a guarda.
+- Consequências: nenhum app chama a rota. A tabela `billing_events` continua, para os avisos da Stripe e da Apple. D-081 fica só com a Stripe.
+- Onde ver: `docs/api/identity.yaml`, `TipoDePlano`
+
+## D-146: Catorze dias de teste grátis
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: D-044 dizia 7 dias de teste, mas o servidor dava 14 desde o commit 26c7aad9 e a tela do Premium já mostrava "14 dias grátis". O Dudu confirmou os 14 em 30/10/2026.
+- Decisão: 14 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. O arrependimento continua em 7 dias da primeira cobrança (D-044).
+- Alternativas: voltar o servidor para 7.
+- Consequências: os documentos falam em 14 dias.
+- Onde ver: `application.yml` do identity, [planos Premium](planos-premium.md)
 
 # Apps (site, iOS e Android)
 
@@ -1293,6 +1354,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: o Firebase Admin SDK, que traria dezenas de dependências para uma chamada HTTP que o serviço já sabe fazer, como faz com o APNs.
 - Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
 - Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
+
+## D-147: O 404 do Piggu também tira o gasto da fila
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o gasto guardado sem sinal num cartão que alguém apagou no site volta 404 `NotFoundException` para sempre. Por D-075, ele parava a fila: esse gasto e todos os guardados depois dele nunca subiam, sem aviso.
+- Decisão: no site e no Android, o 404 com o código `NotFoundException` conta como recusado, como o 400 e o 422: sai da fila e entra na contagem de recusados. O 404 sem esse código (de proxy, rota que não existe) segue parando a fila. Complementa D-075.
+- Alternativas: mandar o gasto de novo sem o cartão; perde a escolha da pessoa sem ela saber.
+- Consequências: a pessoa vê "recusado" e lança de novo com outro cartão.
+- Onde ver: `fila-de-gastos.ts`, `FilaNoRoom.recusado`
 
 # Processo
 

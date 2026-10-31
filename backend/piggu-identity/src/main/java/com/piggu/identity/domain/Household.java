@@ -155,9 +155,10 @@ public class Household {
      */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio,
                                      TipoDePlano tipo, UUID assinante) {
-        // Fim de assinatura de quem nao paga mais esta casa (entrou depois do fim da dele) nao derruba a de quem paga.
-        boolean encerra = ate == null || !ate.isAfter(Instant.now());
-        if (encerra && subscriberId != null && !subscriberId.equals(assinante) && planoVigente() == Plano.PREMIUM) {
+        // Premium que vale so muda pela mesma origem e pelo mesmo assinante: o fim da assinatura de outro
+        // lugar ou de outra pessoa nao derruba nem toma o plano de quem paga agora (D-078, D-143).
+        if (planoVigente() == Plano.PREMIUM && (planSource != null && !planSource.equals(origem)
+                || subscriberId != null && !subscriberId.equals(assinante))) {
             return false;
         }
         if (!aplicarAssinatura(origem, ate, momento, inicio)) {
@@ -171,6 +172,10 @@ public class Household {
     /** @param inicio quando a assinatura comecou; nulo mantem o que ja se sabia */
     public boolean aplicarAssinatura(String origem, Instant ate, Instant momento, Instant inicio) {
         if (billingEventAt != null && momento.isBefore(billingEventAt)) {
+            return false;
+        }
+        // Dois eventos no mesmo segundo (a Stripe manda created e updated juntos): o empate nao encurta o Premium.
+        if (momento.equals(billingEventAt) && premiumUntil != null && (ate == null || ate.isBefore(premiumUntil))) {
             return false;
         }
         this.premiumUntil = ate;

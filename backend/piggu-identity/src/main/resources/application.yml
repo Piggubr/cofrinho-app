@@ -123,11 +123,6 @@ piggu:
     push-audiencia: ${GOOGLE_PLAY_PUSH_AUDIENCIA:}
     push-email: ${GOOGLE_PLAY_PUSH_EMAIL:}
 
-  revenuecat:
-    # Segredo combinado no painel do RevenueCat (cabecalho Authorization do webhook).
-    # Vazio deixa a compra pelos apps em 501.
-    webhook-secret: ${REVENUECAT_WEBHOOK_SECRET:}
-
   stripe:
     # So por variavel de ambiente. Vazio deixa a assinatura pelo site indisponivel.
     secret-key: ${STRIPE_SECRET_KEY:}

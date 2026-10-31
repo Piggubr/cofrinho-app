@@ -74,8 +74,7 @@ export class FilaDeGastos {
           await firstValueFrom(this.finance.lancarGastos(gasto.pedido));
           enviados++;
         } catch (erro) {
-          // So 400 e 422 dizem que o gasto e invalido; sessao encerrada, limite ou sem rede: depois.
-          if (!(erro instanceof HttpErrorResponse && (erro.status === 400 || erro.status === 422))) {
+          if (!recusado(erro)) {
             break;
           }
           recusados++;
@@ -91,6 +90,17 @@ export class FilaDeGastos {
       this.recusados.set(recusados);
     }
   }
+}
+
+/**
+ * So 400 e 422 dizem que o gasto e invalido, e o 404 do Piggu que a conta ou o cartao foi apagado
+ * (D-147): nunca vai passar. Sessao encerrada, limite, sem rede ou 404 de proxy (sem o codigo): depois.
+ */
+function recusado(erro: unknown): boolean {
+  return (
+    erro instanceof HttpErrorResponse &&
+    (erro.status === 400 || erro.status === 422 || (erro.status === 404 && erro.error?.codigo === 'NotFoundException'))
+  );
 }
 
 /** Falha de rede: o pedido nem chegou. Vale guardar e mandar depois. */

@@ -127,8 +127,9 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
   `POST /api/billing/app-store/transactions` e as App Store Server Notifications V2 a
   `POST /api/billing/webhooks/app-store`, conferidas com a biblioteca oficial da Apple. Mesmo
   plano da Stripe, origem `APP_STORE`. Premium vigente pelo site não é trocado pela Apple.
-- Compra no Android: `POST /api/billing/stores/{loja}/purchases` (RevenueCat) responde `501`
-  até o app existir.
+- Compra no Android: Google Play Billing direto (D-132, D-133), origem `PLAY_STORE`.
+- Premium que vale só muda pela mesma origem e pelo mesmo assinante (D-143): o site não
+  derruba o da loja, nem a loja o do site.
 - Cancelar é tão fácil quanto assinar: botão "Gerenciar assinatura" abre o portal da Stripe.
 
 ## Falta antes de cobrar de verdade
@@ -144,15 +145,12 @@ por isso o preço do app é separado. A tela web mostra só o preço do site.
 4. ~~Arrependimento de 7 dias~~ (CDC art. 49): feito, botão "Cancelar e pedir reembolso"
    na tela de planos nos 7 primeiros dias, que cancela e devolve pela API da Stripe.
 5. ~~Aviso de privacidade~~: feito, a Stripe está na lista de operadores em `/privacidade`.
-6. ~~Teste grátis~~: 7 dias (`PIGGU_DIAS_DE_TESTE`) por `trial_period_days` no Checkout,
+6. ~~Teste grátis~~: 14 dias (`PIGGU_DIAS_DE_TESTE`, D-146) por `trial_period_days` no Checkout,
    uma vez por conta (marcado quando a Stripe avisa que o teste começou).
 7. **App Store**: criar no App Store Connect o grupo "Piggu Premium" e os produtos
    `br.com.piggu.premium.mensal` e `br.com.piggu.premium.anual` (preço da tabela acima ou o
    ponto de preço mais próximo), apontar as notificações V2 para
    `/api/billing/webhooks/app-store` e preencher `APP_STORE_APP_APPLE_ID` (D-094).
-8. ~~Apps~~ (agora só o Android, D-094): webhook do RevenueCat em `POST /api/billing/stores/{app-store|play-store}/purchases`
-   (o RevenueCat valida o recibo com as lojas), autenticado pelo segredo
-   `REVENUECAT_WEBHOOK_SECRET`, idempotente pelo id do aviso. Falta criar a conta no
-   RevenueCat e publicar os apps com o id da conta Piggu como `app_user_id`.
+8. ~~Apps~~: a Apple (D-094) e o Google (D-132, D-133) direto, sem RevenueCat (D-145).
 9. ~~Premium magro~~: entraram o orçamento por categoria com alerta e o relatório do ano
    com gráficos (C5). Exportar os dados e o relatório do mês seguem grátis.

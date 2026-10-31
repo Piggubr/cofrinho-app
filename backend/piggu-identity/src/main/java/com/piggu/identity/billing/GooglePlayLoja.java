@@ -150,7 +150,7 @@ public class GooglePlayLoja {
         EventoDeAssinatura evento = new EventoDeAssinatura(conta(ids == null ? null : ids.getObfuscatedExternalAccountId()), null,
                 daPremium ? vence : null, Instant.now(), instante(compra.getStartTime()),
                 item.getOfferPhase() != null && item.getOfferPhase().getFreeTrial() != null,
-                RevenueCatLoja.tipoDoProduto(item.getProductId()), null, null, null);
+                TipoDePlano.doProduto(item.getProductId()), null, null, null);
         return Optional.of(new AssinaturaDoGoogle(evento, item.getProductId(), token, vence,
                 daPremium && "ACKNOWLEDGEMENT_STATE_PENDING".equals(compra.getAcknowledgementState())));
     }

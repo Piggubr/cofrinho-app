@@ -71,6 +71,22 @@ class AvisosDoDiaTest {
     }
 
     @Test
+    @DisplayName("em 30/10 a conta do dia 1/11 ja avisa, com a chave de novembro; a do dia 5/11 ainda nao")
+    void contaDoComecoDoMesQueVem() {
+        LocalDate dia30 = LocalDate.of(2026, 10, 30);
+        AvisosDoDia noFimDoMes = new AvisosDoDia(orcamentos, cartoes, contasFixas, aReceber,
+                Clock.fixed(dia30.atStartOfDay(Meses.BRASILIA).plusHours(9).toInstant(), Meses.BRASILIA));
+        RecurringBill aluguel = new RecurringBill("Aluguel", "Casa", new BigDecimal("2000"), 1, false, null);
+        RecurringBill escola = new RecurringBill("Escola", "Casa", new BigDecimal("900"), 5, false, null);
+        when(contasFixas.doMes(YearMonth.of(2026, 11))).thenReturn(List.of(
+                new ContasFixasService.ContaDoMes(aluguel, LocalDate.of(2026, 11, 1), ContasFixasService.Situacao.PENDENTE),
+                new ContasFixasService.ContaDoMes(escola, LocalDate.of(2026, 11, 5), ContasFixasService.Situacao.PENDENTE)));
+
+        assertThat(noFimDoMes.deHoje()).extracting(AvisosDoDia.Aviso::chave)
+                .containsExactly("conta:" + aluguel.getId() + ":2026-11:vencendo");
+    }
+
+    @Test
     @DisplayName("quem deve avisa so depois da data combinada, uma vez por valor")
     void aReceber() {
         Receivable atrasado = new Receivable("Joao", "Pizza", new BigDecimal("40"), HOJE.minusDays(1), null);

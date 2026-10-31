@@ -36,6 +36,9 @@ class LancarUmaVezTest extends PostgresIntegrationTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private RecurringBillRepository repositorio;
+
     private final UUID familia = UUID.randomUUID();
     private final UUID dona = UUID.randomUUID();
 
@@ -49,6 +52,25 @@ class LancarUmaVezTest extends PostgresIntegrationTest {
 
         assertThat(jdbc.queryForObject("SELECT count(*) FROM expenses WHERE household_id = ?", Integer.class, familia))
                 .isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("editar a conta lida antes de alguem pagar nao desfaz o pago (senao ela seria lancada de novo)")
+    void editarNaoDesfazOPago() {
+        UUID id = FamiliaAtual.como(familia, () -> contas.criar("Luz", "Outros", BigDecimal.TEN, 5, false, dona,
+                false).getId());
+
+        FamiliaAtual.como(familia, () -> transacao.executeWithoutResult(status -> {
+            RecurringBill lida = repositorio.findById(id).orElseThrow();
+            // O "Paga" de outra pessoa grava enquanto esta edicao esta aberta.
+            jdbc.update("UPDATE recurring_bills SET last_paid_month = '2026-10', second_paid_month = '2026-10' WHERE id = ?", id);
+            lida.editar("Luz da casa", "Outros", BigDecimal.TEN, 5, true);
+        }));
+
+        assertThat(jdbc.queryForMap("SELECT description, last_paid_month, second_paid_month FROM recurring_bills WHERE id = ?", id))
+                .containsEntry("description", "Luz da casa")
+                .containsEntry("last_paid_month", "2026-10")
+                .containsEntry("second_paid_month", "2026-10");
     }
 
     @Test

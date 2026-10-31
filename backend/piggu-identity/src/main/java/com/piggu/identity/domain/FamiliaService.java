@@ -125,6 +125,12 @@ public class FamiliaService {
                 .orElseThrow(() -> new IllegalStateException("Conta sem familia: " + conta.getId()));
     }
 
+    /** A casa travada ate o fim da transacao, para aplicar um aviso de pagamento sem corrida. */
+    public Household daContaTravada(UserAccount conta) {
+        return familias.travar(conta.getHouseholdId())
+                .orElseThrow(() -> new IllegalStateException("Conta sem familia: " + conta.getId()));
+    }
+
     @Transactional(readOnly = true)
     public FamiliaResponse ver(CurrentUser usuario) {
         UserAccount conta = conta(usuario);

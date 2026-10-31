@@ -258,19 +258,24 @@ public class AuthService {
     public TokenResponse entrarComSenha(String emailBruto, String senha, boolean lembrar, String userAgent,
                                         String origem) {
         Instant agora = Instant.now();
-        UserAccount conta = usuarios.travarParaLogin(Texto.email(emailBruto)).orElse(null);
+        String email = Texto.email(emailBruto);
+        // O BCrypt (~250 ms) roda antes de travar a linha: com ela presa, as tentativas da conta iam
+        // uma de cada vez segurando conexoes do banco, e uma rajada num e-mail parava todo login.
+        // Sem conta ou sem senha, confere contra o hash de enchimento: o mesmo tempo.
+        String hash = usuarios.senhaDe(email).orElse(null);
+        boolean certa = senhas.confere(senha, hash);
+        UserAccount conta = usuarios.travarParaLogin(email).orElse(null);
         if (conta == null) {
-            senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
         String chave = conta.getId() + "|" + (origem == null ? "" : origem);
         // Travada ou so com Google: a mesma resposta da senha errada, para o login nao
         // revelar quais e-mails tem conta nem como cada uma entra.
         if (conta.senhaTravada(agora) || origemTravada(chave, agora) || !conta.temSenha()) {
-            senhas.confere(senha, null);
             throw new UnauthorizedException(SENHA_ERRADA);
         }
-        if (!senhas.confere(senha, conta.getPasswordHash())) {
+        // Senha trocada entre conferir e travar: vale a que esta gravada agora.
+        if (!certa || !conta.getPasswordHash().equals(hash)) {
             conta.registrarSenhaErrada(TENTATIVAS_DA_CONTA, TRAVA_DA_SENHA, agora);
             usuarios.save(conta);
             errouDe(chave, agora);

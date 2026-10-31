@@ -110,7 +110,8 @@ export class FormularioDeGasto {
   protected readonly valorDaParcela = computed(() => {
     const valor = this.novoValor();
     const parcelas = this.novasParcelas() ?? 0;
-    return valor && Number.isInteger(parcelas) && parcelas >= 2 ? Math.floor((valor / parcelas) * 100) / 100 : null;
+    // Em centavos inteiros, como o servidor (BigDecimal DOWN): 19,90 em 2x e 9,95, nao 9,94.
+    return valor && Number.isInteger(parcelas) && parcelas >= 2 ? Math.floor(Math.round(valor * 100) / parcelas) / 100 : null;
   });
   protected readonly diaDaCompra = computed(() => Number(this.novaData().slice(8, 10)));
 
@@ -123,7 +124,9 @@ export class FormularioDeGasto {
   protected readonly convertido = computed(() => {
     const taxa = this.cotacao();
     const valor = this.novoValor();
-    return taxa === null || valor === null ? null : Math.round(valor * taxa * 100) / 100;
+    // toFixed tira o erro do ponto flutuante antes de arredondar (HALF_UP, como o app nativo):
+    // 7,50 x 5,43 da 40,7249999... e viraria 40,72 em vez de 40,73.
+    return taxa === null || valor === null ? null : Math.round(Number((valor * taxa * 100).toFixed(6))) / 100;
   });
 
   protected readonly membros = signal<MembroDaFamilia[]>([]);
