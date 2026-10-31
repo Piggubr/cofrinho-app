@@ -61,6 +61,15 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Autowired
     private com.piggu.identity.avisos.Aparelhos aparelhos;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    private Senhas senhas;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate transacao;
+
     @BeforeEach
     void limpar() {
         sessoes.deleteAll();
@@ -178,6 +187,26 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, SENHA, true, null, "203.0.113.9"))
                 .as("o IP continua travado")
                 .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    @DisplayName("a senha confere antes de travar a conta: o BCrypt nao segura a linha nem enfileira as tentativas")
+    void bcryptSemATrava() {
+        cadastrar(EMAIL);
+        java.util.concurrent.atomic.AtomicBoolean livre = new java.util.concurrent.atomic.AtomicBoolean();
+        org.mockito.Mockito.doAnswer(chamada -> {
+            // Outra conexao tenta pegar a linha enquanto o BCrypt roda.
+            try (var outra = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+                livre.set(outra.submit(() -> transacao.execute(status -> !jdbc.queryForList(
+                        "SELECT id FROM users WHERE email = ? FOR UPDATE SKIP LOCKED", EMAIL).isEmpty())).get());
+            }
+            return chamada.callRealMethod();
+        }).when(senhas).confere(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "errada123", true, null, "203.0.113.9"))
+                .isInstanceOf(UnauthorizedException.class);
+
+        assertThat(livre).isTrue();
     }
 
     @Test

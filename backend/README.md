@@ -9,7 +9,7 @@ uma plataforma de microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL.
 | Serviço | Porta | Banco | Responsabilidade |
 |---|---|---|---|
 | `piggu-gateway` | 8080 | — | Porta de entrada única, roteamento e CORS |
-| `piggu-identity` | 8081 | `piggu_identity` | Login por e-mail e senha ou Google, contas, famílias, sessões, JWKS, Premium (Stripe e RevenueCat), avisos por e-mail e push, exportar e apagar a conta |
+| `piggu-identity` | 8081 | `piggu_identity` | Login por e-mail e senha ou Google, contas, famílias, sessões, JWKS, Premium (Stripe, App Store e Google Play), avisos por e-mail e push, exportar e apagar a conta |
 | `piggu-finance` | 8082 | `piggu_finance` | Gastos, metas, cofrinho, notas, memória de preços, câmbio, recibos |
 | `piggu-rewards` | 8083 | `piggu_rewards` | Fofocoins, prêmios, resgates |
 | `piggu-lifestyle` | 8084 | `piggu_lifestyle` | Lugares, filmes, listas de compras, metas do mês e Girls Math (pessoais) |

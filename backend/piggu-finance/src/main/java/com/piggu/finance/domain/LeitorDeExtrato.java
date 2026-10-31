@@ -97,18 +97,25 @@ public final class LeitorDeExtrato {
         }
         List<Linha> lidas = new ArrayList<>();
         for (int i = 1; i < linhasDoArquivo.length; i++) {
-            if (linhasDoArquivo[i].isBlank()) {
-                continue;
-            }
             if (linhasDoArquivo[i].length() > MAXIMO_POR_LINHA) {
                 throw new BusinessException("Linha " + (i + 1) + " do CSV e comprida demais.");
             }
+            // Linha so de separadores (";;;" que o Excel deixa no fim) tambem e vazia.
+            if (linhasDoArquivo[i].replace(String.valueOf(separador), "").isBlank()) {
+                continue;
+            }
             String[] celulas = celulas(linhasDoArquivo[i], separador);
+            // "12,50" sem aspas num CSV com virgula vira duas celulas: o valor seria lido como 12.
+            if (java.util.Arrays.stream(celulas, Math.min(colunas.size(), celulas.length), celulas.length)
+                    .anyMatch(sobra -> !sobra.isBlank())) {
+                throw new BusinessException("Linha " + (i + 1) + " do CSV tem colunas a mais. Use ; como separador "
+                        + "ou ponha o valor entre aspas.");
+            }
             try {
                 lidas.add(new Linha(dataDe(celula(celulas, data)), limpar(celula(celulas, descricao)),
                         valorDe(celula(celulas, valor)), id >= 0 && !celula(celulas, id).isEmpty()
                         ? "csv:" + celula(celulas, id) : null));
-            } catch (DateTimeParseException | NumberFormatException | ArrayIndexOutOfBoundsException invalida) {
+            } catch (DateTimeParseException | NumberFormatException | IndexOutOfBoundsException invalida) {
                 throw new BusinessException("Linha " + (i + 1) + " do CSV nao pode ser lida.");
             }
         }

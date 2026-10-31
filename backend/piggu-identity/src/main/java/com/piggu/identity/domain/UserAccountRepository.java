@@ -15,6 +15,10 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     Optional<UserAccount> findByEmail(String email);
 
+    /** So o hash, sem carregar a conta: o login confere a senha antes de travar a linha. */
+    @Query("SELECT u.passwordHash FROM UserAccount u WHERE u.email = :email")
+    Optional<String> senhaDe(@Param("email") String email);
+
     /**
      * Para o login por senha: a linha fica presa ate o fim da transacao, entao tentativas ao
      * mesmo tempo na mesma conta contam uma a uma (sem isso uma rajada perdia os erros e a trava).
@@ -33,8 +37,14 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     List<UserAccount> findByHouseholdIdOrderByCreatedAtAsc(UUID householdId);
 
-    /** Sem nenhum acesso desde o limite (conta que nunca entrou conta pela criacao). */
-    @Query("SELECT u.id FROM UserAccount u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :limite")
+    /**
+     * Sem nenhum acesso desde o limite (conta que nunca entrou conta pela criacao). Quem paga um
+     * Premium que vale fica: apagar derrubaria o plano da casa e a loja seguiria cobrando (D-144).
+     */
+    @Query("""
+            SELECT u.id FROM UserAccount u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :limite
+              AND NOT EXISTS (SELECT 1 FROM Household h WHERE h.subscriberId = u.id AND h.premiumUntil > CURRENT_TIMESTAMP)
+            """)
     List<UUID> semAcessoDesde(@Param("limite") Instant limite);
 
     /** Quem pediu aviso fora do app e ve as financas da familia (o membro nao ve). */

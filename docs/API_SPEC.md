@@ -104,8 +104,12 @@ dele (em hexadecimal) para o `ASAuthorizationAppleIDRequest` e manda o nonce ori
 
 ```json
 { "idToken": "<identityToken>", "nonce": "<nonce original>", "nome": "Ana Souza",
-  "versaoDosTermos": "...", "refreshNoCorpo": true }
+  "codigo": "<authorizationCode>", "versaoDosTermos": "...", "refreshNoCorpo": true }
 ```
+
+Mande também o `authorizationCode` em `codigo`: o servidor o troca por um refresh token da Apple
+e o revoga quando a conta for excluída, como a Apple exige (D-142). Sem `codigo`, o login funciona
+igual, mas excluir a conta não revoga nada na Apple.
 
 A Apple só entrega o nome na primeira autorização: mande `nome` nessa vez, que vira o apelido
 da conta nova. A conta é achada pelo e-mail, como no Google; quem oculta o e-mail na Apple
@@ -115,7 +119,7 @@ rota responde `501` com o código `EM_BREVE`.
 | Item | Situação |
 |---|---|
 | Refresh token no corpo da resposta e aceito no corpo de `/api/auth/refresh`, `/api/auth/logout` e `/api/auth/me/senha` | **Pronto** (26/10/2026) |
-| Entrar com Apple | **Pronto** (26/10/2026). Falta revogar o token na Apple ao apagar a conta, que a App Store exige |
+| Entrar com Apple | **Pronto** (26/10/2026). Revoga o token na Apple ao apagar a conta desde 29/10/2026 (D-142), quando o servidor tem `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE` |
 | Push no Android | **Pronto** (27/10/2026). `POST /api/auth/me/devices` aceita `plataforma: "ANDROID"` com o token do FCM (guardado como veio), e o lembrete diário envia pela API HTTP v1 do FCM quando o servidor tem `FCM_CONTA_DE_SERVICO`. Token que o FCM diz não existir mais é apagado, como no iPhone (D-139) |
 
 ## Erros

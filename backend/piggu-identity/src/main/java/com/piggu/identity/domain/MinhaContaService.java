@@ -7,6 +7,7 @@ import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.api.dto.UserResponse;
+import com.piggu.identity.apple.RevogacaoDaApple;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.avisos.AvisosEnviados;
 import com.piggu.identity.billing.StripePagamentos;
@@ -49,6 +50,7 @@ public class MinhaContaService {
     private final Aparelhos aparelhos;
     private final AvisosEnviados avisosEnviados;
     private final TestesGratis testes;
+    private final RevogacaoDaApple apple;
 
 
     public MinhaContaService(UserAccountRepository usuarios,
@@ -61,8 +63,10 @@ public class MinhaContaService {
                              CofreDeCpf cofre,
                              Aparelhos aparelhos,
                              AvisosEnviados avisosEnviados,
-                             TestesGratis testes) {
+                             TestesGratis testes,
+                             RevogacaoDaApple apple) {
         this.testes = testes;
+        this.apple = apple;
         this.cofre = cofre;
         this.aparelhos = aparelhos;
         this.avisosEnviados = avisosEnviados;
@@ -289,7 +293,8 @@ public class MinhaContaService {
 
     /**
      * Exclui a conta. Primeiro os outros servicos (se algum falhar, a conta fica e a
-     * pessoa tenta de novo), depois a assinatura na Stripe, por ultimo a linha daqui.
+     * pessoa tenta de novo), depois a assinatura na Stripe e o acesso do Entrar com Apple, por
+     * ultimo a linha daqui.
      */
     @Transactional
     public void excluir(UUID contaId) {
@@ -301,6 +306,14 @@ public class MinhaContaService {
                 pagamentos.encerrarCliente(conta.getStripeCustomerId());
             } else {
                 log.warn("Conta {} tinha cliente na Stripe, mas a Stripe esta desligada", conta.getId());
+            }
+        }
+
+        if (conta.getAppleRefreshToken() != null) {
+            if (apple.ligada()) {
+                apple.revogar(conta.getAppleRefreshToken(), conta.getAppleClientId());
+            } else {
+                log.warn("Conta {} tinha token da Apple, mas a chave da Apple esta desligada", conta.getId());
             }
         }
 

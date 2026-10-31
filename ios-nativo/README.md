@@ -29,7 +29,7 @@ xcodebuild -project Piggu.xcodeproj -scheme Piggu -destination 'platform=iOS Sim
 xcodebuild -project Piggu.xcodeproj -scheme PigguUITests -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-O esquema **PigguUITests** tem quatro testes:
+O esquema **PigguUITests** tem cinco testes:
 
 - `AcessibilidadeUITests`: abre cada tela logada pela demonstração e roda a auditoria do
   sistema (a mesma do Accessibility Inspector: contraste, Dynamic Type, texto cortado, área de
@@ -45,6 +45,8 @@ O esquema **PigguUITests** tem quatro testes:
 - `TopoETecladoUITests`: tocar fora fecha o teclado do lançar gasto, a busca do topo abre um
   gasto e o assistente (na demonstração, com resposta de exemplo) pede a autorização, responde e
   abre a tela sugerida.
+- `GirarUITests`: deitar e voltar o iPhone não perde a folha de lançar, o valor digitado nem a
+  tela aberta no Mais (a troca de tamanho do iPhone Duo, D-141).
 - `DesempenhoUITests`: mede "Abrir ate o Painel" (do `init` do app ao Painel com dados, um
   `os_signpost` nos Points of Interest) com o cache cheio, com e sem 3.000 gastos, e a rolagem
   dos Gastos e do Painel. A meta é menos de 1 s; no Instruments, o intervalo aparece na trilha
@@ -202,7 +204,8 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Gastos** (`features/expenses`): lista do mês por dia, busca na barra (`.searchable`, também em
   outros meses por `/expenses/search`), filtros de categoria e forma de pagamento em vidro, editar
   (com "Nova categoria" e o compartilhado), apagar com swipe (e as parcelas seguintes), sugestão e
-  regras de categoria, e a divisão do mês.
+  regras de categoria, a divisão do mês e importar extrato OFX ou CSV pelo app Arquivos, com a
+  prévia do site: o que já entrou vem desmarcado, categoria por linha e a conta do extrato (D-140).
 - **Receitas** (`features/incomes`): resumo do mês, nova receita (recorrente e compartilhada),
   as que entram todo mês (parar de repetir), a receber (Recebi, apagar) e as receitas do mês.
 - **Relatórios** (`features/reports`): o mês (gastos, mês anterior, projeção e cada categoria
@@ -317,6 +320,12 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 - No iPad e na janela redimensionável do iOS 27, o layout segue o tamanho disponível: barra
   lateral na janela larga, abas no topo na estreita (como o iPad mini em retrato), e a mesma tela
   do iPhone abaixo disso. Testado do iPhone 17e ao iPad Pro 13 em paisagem.
+- O iPhone aceita retrato e paisagem (o iPhone Duo aberto fica de lado). A aba e as pilhas do
+  Painel e do Mais ficam guardadas por janela (`@SceneStorage`): duas janelas do Piggu ficam
+  cada uma no seu lugar, e a janela volta onde estava (D-141). Os prints da tela estreita saem
+  no iPhone 13 mini, que só existe no simulador do iOS 27.0. O simulador do iPhone Duo não dobra nem gira:
+  `GirarUITests` deita e volta o iPhone com a folha de lançar e uma tela do Mais abertas, e abrir
+  e fechar o Duo se testa no aparelho.
 - Abrir o app com o perfil guardado não espera a rede: as telas mostram o que guardaram e a
   renovação do token segue por trás (D-095). No simulador, com a build otimizada: 0,63 a 0,75 s
   do `init` ao Painel com dados, também com 3.000 gastos.
@@ -354,10 +363,9 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
   (`docs/API_SPEC.md`).
 - **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
   estiver em produção.
-- **Demais telas** do app web: até chegarem, os atalhos do Painel e dos formulários abrem a
-  página no site (`LinkDoSite`, D-090).
-- **Leitura da nota pela IA** (a foto inteira com os itens, no site) e **importar extrato**: por
-  enquanto só no site; o app lê o total e a data do cupom pela câmera.
+- **Leitura da nota pela IA** (a foto inteira com os itens, no site): por enquanto só no site; o
+  app lê o total e a data do cupom pela câmera.
+- **Trazer do banco** na importação (os débitos do Open Finance, Premium): por enquanto só no site.
 - Prints para a App Store.
 - Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
   antes do `init` não vale como medida.

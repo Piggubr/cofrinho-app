@@ -32,6 +32,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-082](#d-082-corrida-perdida-no-banco-responde-409) | Corrida perdida no banco responde 409 | Valendo |
 | [D-085](#d-085-fatura-paga-só-sai-do-a-pagar) | Fatura paga só sai do "a pagar" | Valendo |
 | [D-087](#d-087-salário-em-duas-parcelas-numa-receita-só) | Salário em duas parcelas numa receita só | Valendo |
+| [D-148](#d-148-o-dia-1-lança-o-que-a-última-rodada-do-mês-passado-perdeu) | O dia 1 lança o que a última rodada do mês passado perdeu | Valendo |
 | **Segurança e privacidade** | | |
 | [D-012](#d-012-dois-tokens-access-curto-e-refresh-longo) | Dois tokens: access curto e refresh longo | Valendo |
 | [D-013](#d-013-serviço-recusa-subir-com-segredo-fraco) | Serviço recusa subir com segredo fraco | Valendo |
@@ -52,6 +53,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-080](#d-080-e-mail-da-conta-sai-depois-do-commit-fora-da-requisição) | E-mail da conta sai depois do commit, fora da requisição | Valendo |
 | [D-086](#d-086-no-plano-casal-o-convidado-entra-como-parceiro) | No plano casal, o convidado entra como parceiro | Valendo |
 | [D-088](#d-088-entrar-pelo-google-pede-o-mesmo-cadastro-do-e-mail) | Entrar pelo Google pede o mesmo cadastro do e-mail | Valendo |
+| [D-142](#d-142-revogar-o-entrar-com-apple-ao-excluir-a-conta) | Revogar o Entrar com Apple ao excluir a conta | Valendo |
+| [D-144](#d-144-a-retenção-não-apaga-quem-paga-um-premium-que-vale) | A retenção não apaga quem paga um Premium que vale | Valendo |
 | **Dados** | | |
 | [D-028](#d-028-fora-do-identity-só-o-id-da-conta) | Fora do identity, só o id da conta | Valendo |
 | [D-029](#d-029-migration-aplicada-nunca-muda) | Migration aplicada nunca muda | Valendo |
@@ -67,6 +70,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-037](#d-037-versão-de-produção-pela-data) | Versão de produção pela data | Valendo |
 | [D-069](#d-069-repositório-privado) | Repositório privado | Valendo |
 | [D-070](#d-070-e-mails-pela-resend) | E-mails pela Resend | Valendo |
+| [D-149](#d-149-cada-família-guarda-até-1-gb-de-fotos) | Cada família guarda até 1 GB de fotos | Valendo |
 | **Pagamentos e Premium** | | |
 | [D-038](#d-038-o-backend-aplica-os-limites-do-premium) | O backend aplica os limites do Premium | Valendo |
 | [D-039](#d-039-premium-da-família-inteira) | Premium da família inteira | Substituída por D-040 |
@@ -74,7 +78,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-041](#d-041-stripe-no-site-revenuecat-nas-lojas) | Stripe no site, RevenueCat nas lojas | Valendo |
 | [D-042](#d-042-premium-só-muda-pelo-webhook-assinado) | Premium só muda pelo webhook assinado | Valendo |
 | [D-043](#d-043-cobrar-pelo-open-finance-sim-pela-desconexão-nunca) | Cobrar pelo Open Finance sim, pela desconexão nunca | Valendo |
-| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Valendo |
+| [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Substituída por D-146 (o teste) |
 | [D-045](#d-045-open-finance-desligado-por-enquanto) | Open Finance desligado por enquanto | Valendo |
 | [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
 | [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Valendo |
@@ -82,6 +86,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
 | [D-079](#d-079-cartão-recusado-dá-7-dias-de-premium) | Cartão recusado dá 7 dias de Premium | Valendo |
 | [D-081](#d-081-stripe-e-revenuecat-sem-interface) | Stripe e RevenueCat sem interface | Valendo |
+| [D-143](#d-143-premium-que-vale-só-muda-pela-mesma-origem-e-pelo-mesmo-assinante) | Premium que vale só muda pela mesma origem e pelo mesmo assinante | Valendo |
+| [D-145](#d-145-revenuecat-sai-do-backend) | RevenueCat sai do backend | Valendo |
+| [D-146](#d-146-catorze-dias-de-teste-grátis) | Catorze dias de teste grátis | Valendo |
 | **Apps (site, iOS e Android)** | | |
 | [D-049](#d-049-site-em-angular-com-telas-sob-demanda) | Site em Angular, com telas sob demanda | Valendo |
 | [D-050](#d-050-só-o-login-conhece-os-tokens-uma-renovação-por-vez) | Só o login conhece os tokens; uma renovação por vez | Valendo |
@@ -112,6 +119,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-097](#d-097-topo-das-abas-com-a-marca-a-busca-e-o-assistente-trava-em-janela-própria) | Topo das abas com a marca, a busca e o assistente; trava em janela própria | Valendo |
 | [D-098](#d-098-o--do-ios-nativo-abre-as-opções-como-no-site) | O + do iOS nativo abre as opções, como no site | Valendo |
 | [D-099](#d-099-mês-que-acompanha-o-puxar-barras-por-categoria-num-desenho-só-e-vazios-dos-cartões-no-centro) | Mês que acompanha o puxar, barras por categoria num desenho só e vazios dos cartões no centro | Valendo |
+| [D-140](#d-140-importar-extrato-no-app-ios-sem-passar-pelo-site) | Importar extrato no app iOS, sem passar pelo site | Valendo |
+| [D-141](#d-141-iphone-deitado-aba-e-pilhas-por-janela-iphone-duo) | iPhone deitado, aba e pilhas por janela (iPhone Duo) | Valendo |
 | [D-136](#d-136-android-nativo-compila-com-o-sdk-37-e-mira-o-36) | Android nativo compila com o SDK 37 e mira o 36 | Valendo |
 | [D-138](#d-138-etapa-a2-do-android-o-que-ainda-não-é-nativo-abre-no-site-num-custom-tab) | Etapa A2 do Android: o que ainda não é nativo abre no site num Custom Tab | Valendo |
 | [D-100](#d-100-sessão-do-android-refresh-cifrado-pelo-keystore-e-uma-renovação-por-vez) | Sessão do Android: refresh cifrado pelo Keystore e uma renovação por vez | Valendo |
@@ -151,6 +160,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-134](#d-134-a-cor-do-texto-do-tema-no-android-passa-no-wcag-aa) | A cor do texto do tema no Android passa no WCAG AA | Valendo |
 | [D-135](#d-135-release-do-android-chave-de-upload-por-variável-aab-no-ci-e-abertura-medida-no-painel) | Release do Android: chave de upload por variável, AAB no CI e abertura medida no Painel | Valendo |
 | [D-139](#d-139-push-no-android-pela-api-http-v1-do-fcm-sem-o-sdk-do-firebase) | Push no Android pela API HTTP v1 do FCM, sem o SDK do Firebase | Valendo |
+| [D-147](#d-147-o-404-do-piggu-também-tira-o-gasto-da-fila) | O 404 do Piggu também tira o gasto da fila | Valendo |
 | [D-150](#d-150-conectar-banco-no-android-pela-página-do-site-num-custom-tab-em-tarefa-própria) | Conectar banco no Android pela página do site num Custom Tab em tarefa própria | Valendo |
 | **Processo** | | |
 | [D-061](#d-061-develop-junta-main-é-produção) | `develop` junta, `main` é produção | Valendo |
@@ -310,6 +320,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: duas receitas recorrentes separadas, que funcionam hoje sem mudar o backend, mas aparecem como dois salários na lista.
 - Consequências: só a receita lançada pelo formulário de receita tem segunda parcela; a conta fixa de gasto não usa. Editar a receita recorrente ainda não muda a segunda parcela: para trocar, pare de repetir e lance de novo.
 - Onde ver: `ContasFixasService.receberSegundaParcela`, [DATA_MODEL.md, `recurring_bills`](DATA_MODEL.md)
+
+## D-148: O dia 1 lança o que a última rodada do mês passado perdeu
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o lançamento automático das contas fixas roda às 6h e só olha o mês corrente; o `@Scheduled` não repete a rodada perdida. Um deploy ou o banco fora às 6h do dia 31 deixava o aluguel de outubro sem lançar para sempre, sem erro.
+- Decisão: no dia 1, antes do mês novo, a rodada lança o que venceu no mês passado e não foi lançado, só das contas criadas antes do mês novo.
+- Alternativas: ShedLock ou uma tabela de rodadas, para um serviço que roda num contêiner só; repetir a busca do mês passado todo dia, o que lançaria meses de quem ligou o automático depois.
+- Consequências: se a rodada do dia 1 também falhar, o mês passado fica de fora, como antes.
+- Onde ver: `ContasFixasService.lancarAutomaticas`, `ContasFixasTest`
 
 # Segurança e privacidade
 
@@ -484,6 +503,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o contexto de log da requisição não vai junto; e-mail que falha só aparece no log.
 - Onde ver: `ConfirmacaoDeEmail.depoisDoCommit`
 
+## D-144: A retenção não apaga quem paga um Premium que vale
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a retenção apaga a conta sem acesso há 24 meses. O pai que paga o plano Família e não abre o app perdia a conta, a casa perdia o Premium e, pela Apple ou pelo Google, a loja seguia cobrando, porque o servidor não cancela a assinatura dela.
+- Decisão: `semAcessoDesde` deixa de fora quem é o assinante de uma casa com Premium que ainda vale. Quando o Premium vence, a conta entra na próxima rodada.
+- Alternativas: cancelar a assinatura antes de apagar, o que não dá nas lojas.
+- Consequências: a conta de quem paga fica enquanto paga, mesmo sem uso.
+- Onde ver: `UserAccountRepository.semAcessoDesde`, `RetencaoDeDadosTest`
+
 # Dados
 
 ## D-028: Fora do identity, só o id da conta
@@ -605,6 +633,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o domínio precisa de SPF, DKIM e DMARC verificados na Resend. Em 19/10/2026 o DNS não tinha nenhum deles, e o Dudu disse em 26/10/2026 que os e-mails parecem não estar funcionando. Sem e-mail configurado, o identity escreve no log o link que mandaria.
 - Onde ver: [e-mail do domínio](email-do-dominio.md), [implantação, seção 4](implantacao-producao.md#4-demais-variáveis)
 
+## D-149: Cada família guarda até 1 GB de fotos
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: as fotos ficam no mesmo disco do Postgres e só tinham o teto de 5 MB por foto e 15 por minuto. Uma conta, ou um app num laço de reenvio, enchia o disco em horas e o banco parava de gravar para todas as famílias.
+- Decisão: o media soma o `size_bytes` da família toda (as fotos privadas também) e recusa a foto que passa de 1 GB (`PIGGU_FOTOS_POR_FAMILIA_MB`), igual no grátis e no Premium. Escolha do Dudu em 30/10/2026.
+- Alternativas: teto por plano (500 MB grátis, 5 GB Premium), que pede o plano no media.
+- Consequências: a soma não trava a família; duas fotos ao mesmo tempo passam um pouco do teto.
+- Onde ver: `AssetService.guardar`, `AssetRepository.bytesDaFamilia`
+
 # Pagamentos e Premium
 
 ## D-038: O backend aplica os limites do Premium
@@ -663,7 +700,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-044: Sete dias de teste e sete de arrependimento
 - Data: 01/10/2026 (teste); 09/10/2026 (arrependimento)
-- Situação: Valendo
+- Situação: Substituída por D-146 no prazo do teste; o arrependimento de 7 dias segue valendo
 - Contexto: o Código de Defesa do Consumidor (art. 49) dá 7 dias de arrependimento.
 - Decisão: 7 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. Nos 7 primeiros dias pagos, o botão "Cancelar e pedir reembolso" cancela e devolve pela Stripe. Cancelar é tão fácil quanto assinar.
 - Alternativas: não registradas.
@@ -732,6 +769,33 @@ no fim, em vez de ganhar um motivo inventado.
 - Alternativas: manter as interfaces "para depois" (D-041).
 - Consequências: trocar de provedor é extrair a interface antes; o resto de D-041 continua valendo.
 - Onde ver: `backend/piggu-identity/.../billing/`
+
+## D-143: Premium que vale só muda pela mesma origem e pelo mesmo assinante
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a regra "Premium de outra origem segue valendo" só existia para as lojas. Um aviso da Stripe (o fim de uma assinatura antiga, ou uma cobrança que entrou depois) derrubava ou tomava um Premium pago na Apple ou no Google. E dois avisos da Stripe ao mesmo tempo (created e updated no mesmo segundo) corriam: o último a gravar ganhava, mesmo sendo o mais velho.
+- Decisão: enquanto o Premium vale, `Household.aplicarAssinatura` só aceita aviso da mesma origem e do mesmo assinante, venha de onde vier. Os avisos de pagamento travam a linha da casa (`HouseholdRepository.travar`) e, no empate de horário, não encurtam o Premium.
+- Alternativas: repetir a guarda no caminho da Stripe; `@Version` na casa, que transforma a corrida em erro e depende do reenvio.
+- Consequências: quem paga em dois lugares ao mesmo tempo continua cobrado nos dois; vale o primeiro até vencer. Generaliza D-078.
+- Onde ver: `Household.aplicarAssinatura`, `AssinaturaService`, `PlanoFamiliaTest`
+
+## D-145: RevenueCat sai do backend
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: a compra nos apps passou a ir direto à Apple (D-094) e ao Google (D-132, D-133). O caminho do RevenueCat nunca foi configurado e gravava o Premium sem a guarda de D-143.
+- Decisão: saem `RevenueCatLoja`, a rota `POST /api/billing/stores/{loja}/purchases` e `REVENUECAT_WEBHOOK_SECRET`. O plano do produto passa a sair de `TipoDePlano.doProduto`.
+- Alternativas: manter o caminho desligado, com a guarda.
+- Consequências: nenhum app chama a rota. A tabela `billing_events` continua, para os avisos da Stripe e da Apple. D-081 fica só com a Stripe.
+- Onde ver: `docs/api/identity.yaml`, `TipoDePlano`
+
+## D-146: Catorze dias de teste grátis
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: D-044 dizia 7 dias de teste, mas o servidor dava 14 desde o commit 26c7aad9 e a tela do Premium já mostrava "14 dias grátis". O Dudu confirmou os 14 em 30/10/2026.
+- Decisão: 14 dias de teste grátis (`PIGGU_DIAS_DE_TESTE`), uma vez por conta. O arrependimento continua em 7 dias da primeira cobrança (D-044).
+- Alternativas: voltar o servidor para 7.
+- Consequências: os documentos falam em 14 dias.
+- Onde ver: `application.yml` do identity, [planos Premium](planos-premium.md)
 
 # Apps (site, iOS e Android)
 
@@ -876,7 +940,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: etapa 1 do plano iOS. O app nativo não tem o cookie do site (D-058), e o site não pode passar a ver o refresh (D-014).
 - Decisão: o login (`/api/auth/google`, `/entrar` e `/apple`) com `refreshNoCorpo: true` devolve `refreshToken` no corpo e não põe cookie. `/api/auth/refresh`, `/logout` e `/me/senha` aceitam `refreshToken` no corpo; renovar pelo corpo devolve o novo no corpo. O refresh que chegou pelo cookie nunca volta no corpo, peça o cliente o que pedir: um XSS no site consegue renovar, mas não leva o refresh. Entrar com Apple confere o identity token contra o JWKS da Apple (emissor, Bundle ID, validade, e-mail verificado e o nonce, que é o SHA-256 do valor que o app manda) e acha a conta pelo e-mail, como o Google. Sem `APPLE_CLIENT_IDS` a rota responde 501.
 - Alternativas: um cabeçalho `X-Piggu-Cliente: nativo`, que pediria abrir o CORS do gateway e que o próprio site poderia mandar. Guardar o `sub` da Apple numa coluna nova, que fica para quando o e-mail não bastar.
-- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. Falta revogar o token na Apple quando a conta é apagada, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
+- Consequências: quem escolhe "Ocultar meu e-mail" na Apple recebe um e-mail de retransmissão (`privaterelay.appleid.com`) e ganha uma conta separada da que tem pelo Google. A revogação do token na Apple ao apagar a conta veio na D-142, que a App Store exige: precisa da chave do Sign in with Apple e entra antes da revisão.
 - Onde ver: `backend/piggu-identity/.../api/AuthController.java`, `.../apple/AppleIdTokenVerifier.java`, [API_SPEC, "Entrar e manter a sessão"](API_SPEC.md#entrar-e-manter-a-sessão)
 
 ## D-083: Termos e Aviso do app nativo copiados do site pelo CI
@@ -901,7 +965,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Data: 27/10/2026
 - Situação: Valendo
 - Contexto: etapa 4 do plano iOS (Painel, Gastos e Receitas com paridade com o site). Os cartões do Painel e os formulários levam a telas que só chegam ao app nas etapas 5 a 7 (orçamentos, contas do mês, cartões e bancos, metas, Girls Math, calendário, Premium), e duas funções dependem de algo que o app ainda não tem: a leitura de nota por foto (etapa 7) e o widget da Pluggy para conectar banco.
-- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
+- Decisão: esses atalhos abrem a página do `piggu.com.br` no navegador, com um ícone de "abre fora"; o resto da tela é nativo. A importação de extrato (nativa desde a D-140) e a leitura de nota ficam fora do app por enquanto. Os gráficos do Painel usam o Swift Charts (SDK da Apple). A ordem do Painel fica no aparelho na mesma chave e no mesmo JSON do site (`piggu_painel_<id>`); no iOS 27 os cartões se arrastam no próprio Painel (`reorderable`), antes pela tela de personalizar (`List` com `onMove`). Gasto lançado sem internet vai para uma fila no SwiftData, com o mesmo `idDoEnvio` no reenvio, e a fila não é apagada ao sair da conta: só a pessoa que lançou envia, quando entrar de novo.
 - Alternativas: esconder os atalhos até a etapa certa, que deixaria cartões sem saída; abrir o site numa web view, que pede login de novo dentro dela.
 - Consequências: cada etapa seguinte troca o link do site pela tela nativa. Os links ficam em `LinkDoSite`, fáceis de achar.
 - Onde ver: `ios-nativo/Piggu/Telas/Componentes/Componentes.swift` (`LinkDoSite`), `ios-nativo/Piggu/Core/Painel/PainelOrganizado.swift`, `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`
@@ -1292,6 +1356,15 @@ no fim, em vez de ganhar um motivo inventado.
 - Consequências: o envio só liga com `FCM_CONTA_DE_SERVICO` preenchida. A troca do token sempre vai para `oauth2.googleapis.com`, ignorando o `token_uri` do JSON. A mensagem é só notificação (título e resumo), sem dados para o app abrir uma tela.
 - Onde ver: `backend/piggu-identity/.../avisos/CanalFcm.java`, `LembretesDiarios.java`, [implantacao-producao.md](implantacao-producao.md)
 
+## D-147: O 404 do Piggu também tira o gasto da fila
+- Data: 30/10/2026
+- Situação: Valendo
+- Contexto: o gasto guardado sem sinal num cartão que alguém apagou no site volta 404 `NotFoundException` para sempre. Por D-075, ele parava a fila: esse gasto e todos os guardados depois dele nunca subiam, sem aviso.
+- Decisão: no site e no Android, o 404 com o código `NotFoundException` conta como recusado, como o 400 e o 422: sai da fila e entra na contagem de recusados. O 404 sem esse código (de proxy, rota que não existe) segue parando a fila. Complementa D-075.
+- Alternativas: mandar o gasto de novo sem o cartão; perde a escolha da pessoa sem ela saber.
+- Consequências: a pessoa vê "recusado" e lança de novo com outro cartão.
+- Onde ver: `fila-de-gastos.ts`, `FilaNoRoom.recusado`
+
 ## D-150: Conectar banco no Android pela página do site num Custom Tab em tarefa própria
 - Data: 30/10/2026
 - Situação: Valendo
@@ -1450,3 +1523,30 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o mês como primeiro item da lista, que desce ao puxar mas some ao rolar (o Dudu preferiu fixo); manter o Swift Charts com mais folga, que segue cortando o valor com nomes longos e textos grandes; os vazios à esquerda, como o resto do cartão.
 - Consequências: no iOS 17 o mês segue parado ao puxar. O gráfico do ano, mês a mês, continua no Swift Charts.
 - Onde ver: `ios-nativo/Piggu/Core/Design/SeletorDeMes.swift`, `ios-nativo/Piggu/Telas/Componentes/Componentes.swift`
+
+## D-140: Importar extrato no app iOS, sem passar pelo site
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: pela D-090, "Importar extrato" (vazio de Gastos e guia de primeiros passos) abria o `piggu.com.br/gastos#importar` no Safari. Quem testou achou que era bug: tocava num botão do app e caía no site.
+- Decisão: a importação de OFX ou CSV fica nativa, numa folha (`ImportarExtratoView`) aberta pelos Gastos (uma linha acima das regras de categoria) e pelo guia do Painel. Segue o `importar-extrato.ts`: o arquivo vem do app Arquivos (`fileImporter`), até 2 MB, lido em UTF-8 e, se não for UTF-8 válido, em Latin-1; a prévia (`POST /expenses/import/preview`) vem com o já importado desmarcado; cada linha troca de categoria e todas podem ir para uma conta; `POST /expenses/import` grava os marcados e mostra importados e pulados. Substitui essa parte da D-090. Com isso o `LinkDoSite` ficou sem uso e saiu.
+- Alternativas: esconder o botão no iOS (a pessoa teria que lembrar do site); manter o link com um aviso de que abre o site.
+- Consequências: o OFX não tem tipo do sistema, então o `Info.plist` declara o `com.intuit.ofx` (`.ofx` e `.qfx`); sem isso, o `.ofx` poderia aparecer apagado no app Arquivos. O "Trazer do banco" (Open Finance, Premium) e o "Exportar CSV do mês" desse bloco do site não entram aqui: o CSV já sai pelos Relatórios, e o do banco fica para depois. Nenhuma rota nova no backend.
+- Onde ver: `ios-nativo/Piggu/Telas/Gastos/ImportarExtratoView.swift`, `ios-nativo/Piggu/Telas/GastosView.swift`, `ios-nativo/Piggu/Telas/Painel/PrimeirosPassos.swift`
+
+## D-141: iPhone deitado, aba e pilhas por janela (iPhone Duo)
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: o iPhone Duo aberto pede a tela deitada, e o projeto do iOS nativo só aceitava retrato no iPhone. Ao abrir e fechar o aparelho, ou com duas janelas do Piggu lado a lado, a aba e a tela aberta não podiam se perder nem ser a mesma nas duas janelas.
+- Decisão: o iPhone aceita retrato e as duas paisagens. Sem o retrato de cabeça para baixo, que é o padrão da Apple no iPhone. A aba e as pilhas do Painel e do Mais ficam no `@SceneStorage` de cada janela. As pilhas são guardadas como texto (`orcamento,cartoes`), e uma tela que não existe mais some da pilha. A sessão continua sendo uma só para o app: a segunda janela não restaura de novo. Na tela estreita (a de fora do Duo e o iPhone mini), quando não cabem lado a lado, as ações da linha do filme descem para baixo do título e os botões de foto (galeria e câmera) ficam um embaixo do outro. O cartão do leitor de nota tem no máximo 520 pt de largura com a tela deitada.
+- Alternativas: só retrato, que deixa o Duo aberto de lado; guardar a aba no `@AppStorage`, que faria as duas janelas pularem juntas.
+- Consequências: o simulador do iPhone Duo do Xcode 27.1 não dobra nem gira, então a troca de tamanho é testada girando o iPhone (`GirarUITests`), e abrir e fechar o Duo fica para o aparelho. As pilhas das abas Gastos, Receitas e Relatórios não são guardadas, porque não empilham telas. As folhas abertas (lançar gasto, receita) não voltam se o sistema fechar a janela.
+- Onde ver: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (`INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `ios-nativo/Piggu/Telas/TelaDoMais.swift` (`Binding.guardada`), `ios-nativo/Piggu/Telas/Estilo/FilmesView.swift`
+
+## D-142: Revogar o Entrar com Apple ao excluir a conta
+- Data: 29/10/2026
+- Situação: Valendo
+- Contexto: a Apple exige, para app com o Entrar com Apple, que excluir a conta revogue o acesso dado ao app (Diretriz 5.1.1(v)). A D-072 deixou isso para depois, e a revisão da Apple recusaria o app sem ele.
+- Decisão: o app manda o `authorizationCode` em `codigo` no `POST /api/auth/apple`. O identity troca o código por um refresh token da Apple (`/auth/token`) e o guarda na conta (`users.apple_refresh_token`, com o Bundle ID em `apple_client_id`). Ao excluir a conta, manda esse token para `/auth/revoke`. Os dois pedidos levam um client secret: um JWT ES256 de 5 minutos assinado com uma chave `.p8` com o Entrar com Apple ligado (`APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_CHAVE`). Pode ser a mesma chave do APNs, se ela tiver o Entrar com Apple marcado. A troca é refeita a cada login com a Apple, então fica sempre o token mais novo. Se a Apple recusar ou estiver fora do ar, nem o login nem a exclusão param: a falha fica no log.
+- Alternativas: pedir o Entrar com Apple de novo na hora de excluir e trocar o código ali, sem guardar token, o que não cobre quem exclui pelo site; guardar o token cifrado como o CPF, o que não vale a pena, porque o token sozinho não serve sem a chave `.p8` do Piggu.
+- Consequências: contas que entraram com a Apple antes desta mudança só ganham o token no próximo login com a Apple. Sem as três variáveis, o servidor não guarda token nem revoga, e o login segue igual. O token não vai no arquivo de "exportar meus dados", porque é uma credencial e não um dado da pessoa.
+- Onde ver: `backend/piggu-identity/.../apple/RevogacaoDaApple.java`, `.../domain/MinhaContaService.java` (`excluir`), `.../domain/AuthService.java` (`entrarComApple`), `ios-nativo/Piggu/Core/Auth/EntradaComApple.swift`

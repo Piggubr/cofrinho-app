@@ -63,7 +63,9 @@ public class LocalStorageAdapter implements StoragePort {
         try {
             Files.deleteIfExists(resolverSeguro(idNoProvedor));
         } catch (IOException erro) {
+            // Quem chama mantem o registro e tenta de novo: sem ele, o arquivo ficaria no disco para sempre.
             log.warn("Nao foi possivel apagar o arquivo local {}", idNoProvedor, erro);
+            throw new UpstreamException("Nao consegui apagar a foto agora. Tente de novo em instantes.");
         }
     }
 

@@ -207,31 +207,32 @@ export class AuthService {
    * <p>Varias chamadas podem esbarrar no token vencido ao mesmo tempo. O
    * shareReplay faz todas esperarem a mesma renovacao, em vez de dispararem uma
    * cada e invalidarem o refresh umas das outras, ja que o backend rotaciona o
-   * refresh a cada uso.</p>
+   * refresh a cada uso. Entre abas, a trava do navegador faz o mesmo: a segunda espera a
+   * primeira e manda o cookie ja trocado, em vez de levar 401 e apagar o que e offline.</p>
    */
   renovar(): Observable<ParDeTokens> {
     if (this.renovacaoEmCurso) {
       return this.renovacaoEmCurso;
     }
 
-    this.renovacaoEmCurso = this.http
-      .post<ParDeTokens>(`${this.config.apiUrl}/auth/refresh`, {}, { withCredentials: true })
-      .pipe(
-        tap({
-          next: (tokens) => {
-            this.storage.guardar(tokens);
-            this.usuarioAtual.set(tokens.usuario);
-            if (lerPerfilOffline()) {
-              guardarPerfilOffline(tokens.usuario);
-            }
-            this.renovacaoEmCurso = undefined;
-          },
-          error: () => {
-            this.renovacaoEmCurso = undefined;
-          },
-        }),
-        shareReplay({ bufferSize: 1, refCount: false }),
-      );
+    this.renovacaoEmCurso = naTravaEntreAbas(
+      this.http.post<ParDeTokens>(`${this.config.apiUrl}/auth/refresh`, {}, { withCredentials: true }),
+    ).pipe(
+      tap({
+        next: (tokens) => {
+          this.storage.guardar(tokens);
+          this.usuarioAtual.set(tokens.usuario);
+          if (lerPerfilOffline()) {
+            guardarPerfilOffline(tokens.usuario);
+          }
+          this.renovacaoEmCurso = undefined;
+        },
+        error: () => {
+          this.renovacaoEmCurso = undefined;
+        },
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
 
     return this.renovacaoEmCurso;
   }
@@ -290,4 +291,21 @@ function esquecerPerfilOffline(): void {
   } catch {
     // Nada guardado.
   }
+}
+
+/** O pedido dentro da trava 'piggu-renovar' do navegador; sem Web Locks (navegador antigo), direto. */
+function naTravaEntreAbas<T>(pedido: Observable<T>): Observable<T> {
+  const travas = globalThis.navigator?.locks;
+  if (!travas) {
+    return pedido;
+  }
+  return new Observable<T>((quem) => {
+    travas.request('piggu-renovar', () => firstValueFrom(pedido)).then(
+      (resposta) => {
+        quem.next(resposta);
+        quem.complete();
+      },
+      (erro) => quem.error(erro),
+    );
+  });
 }

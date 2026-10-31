@@ -58,6 +58,18 @@ class LeitorDeExtratoTest {
     }
 
     @Test
+    @DisplayName("valor com virgula sem aspas num CSV com virgula e recusado, nao lido como 12; linha so de ; e pulada")
+    void colunasAMais() {
+        assertThatThrownBy(() -> LeitorDeExtrato.ler("data,descricao,valor\n05/10/2026,Padaria,12,50\n"))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("colunas a mais");
+        List<LeitorDeExtrato.Linha> linhas = LeitorDeExtrato.ler("data;descricao;valor\n05/10/2026;Padaria;-12,50;\n;;;\n");
+        assertThat(linhas).hasSize(1);
+        assertThat(linhas.get(0).valor()).isEqualByComparingTo("12.50");
+        assertThatThrownBy(() -> LeitorDeExtrato.ler("data;descricao;valor\n;Padaria;-1,00\n"))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("nao pode ser lida");
+    }
+
+    @Test
     @DisplayName("linha enorme cheia de separadores e recusada na hora, sem prender a CPU")
     void linhaEnorme() {
         String csv = "data;descricao;valor\n" + ";".repeat(1_000_000) + "\n";

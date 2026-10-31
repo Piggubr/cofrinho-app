@@ -51,7 +51,7 @@ class LocalStorageAdapterTest {
         LocalStorageAdapter local = new LocalStorageAdapter(raiz.resolve("fotos"));
 
         assertThatThrownBy(() -> local.ler("../segredo.txt")).isInstanceOf(UpstreamException.class);
-        local.apagar("../segredo.txt");
+        assertThatThrownBy(() -> local.apagar("../segredo.txt")).isInstanceOf(UpstreamException.class);
         assertThat(Files.exists(segredo)).isTrue();
     }
 

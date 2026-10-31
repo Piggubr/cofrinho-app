@@ -29,6 +29,7 @@ struct GastosView: View {
     @State private var transferencias: [TransferenciaDoAcerto] = []
     @State private var editando: Gasto?
     @State private var apagando: Gasto?
+    @State private var importando = false
     @State private var sugestao: RegraSugerida?
     @State private var aviso: String?
     @State private var erro: String?
@@ -75,6 +76,7 @@ struct GastosView: View {
                     aoMudar()
                 }
             }
+            .sheet(isPresented: $importando) { ImportarExtratoView(aoImportar: aoMudar) }
             .confirmationDialog(apagando.map { String(localized: "Apagar \"\($0.item)\"?") } ?? "",
                                 isPresented: Binding(get: { apagando != nil }, set: { if !$0 { apagando = nil } }),
                                 titleVisibility: .visible, presenting: apagando) { gasto in
@@ -151,8 +153,6 @@ struct GastosView: View {
                 EstadoVazio(icone: "doc.text", titulo: "Nenhum gasto neste mês",
                             texto: "Lance o primeiro gasto ou traga o extrato do banco de uma vez.",
                             acao: ("Lançar um gasto", aoLancar))
-                LinkDoSite(titulo: "Importar extrato", caminho: "/gastos#importar")
-                    .frame(maxWidth: .infinity)
             }
             .listRowBackground(Color.clear)
         } else {
@@ -239,6 +239,11 @@ struct GastosView: View {
             }
             .listRowBackground(paleta.superficie)
         }
+
+        Section {
+            Button { importando = true } label: { Label("Importar extrato", systemImage: "doc.badge.plus") }
+        }
+        .listRowBackground(paleta.superficie)
 
         Section {
             ForEach(regras) { regra in

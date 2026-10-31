@@ -83,7 +83,8 @@ public class AppleIdTokenVerifier {
         if (email.isEmpty()) {
             throw new UnauthorizedException("A Apple nao informou o seu e-mail.");
         }
-        return new AppleProfile(token.getSubject(), email);
+        String clienteId = audiencia.stream().filter(propriedades.clientIds()::contains).findFirst().orElseThrow();
+        return new AppleProfile(token.getSubject(), email, clienteId);
     }
 
     static String sha256(String texto) {

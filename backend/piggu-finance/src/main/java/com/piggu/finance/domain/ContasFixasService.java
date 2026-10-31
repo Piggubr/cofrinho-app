@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -49,18 +51,20 @@ public class ContasFixasService {
     private final ExpenseService gastos;
     private final IncomeService receitas;
     private final CategoryService categorias;
+    private final PaymentAccountRepository contasECartoes;
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transacao;
     private final Clock relogio;
     private final TrilhaDeAuditoria trilha;
 
     public ContasFixasService(RecurringBillRepository repositorio, ExpenseService gastos, IncomeService receitas,
-                              CategoryService categorias, JdbcTemplate jdbc, TransactionTemplate transacao,
-                              TrilhaDeAuditoria trilha) {
+                              CategoryService categorias, PaymentAccountRepository contasECartoes, JdbcTemplate jdbc,
+                              TransactionTemplate transacao, TrilhaDeAuditoria trilha) {
         this.repositorio = repositorio;
         this.gastos = gastos;
         this.receitas = receitas;
         this.categorias = categorias;
+        this.contasECartoes = contasECartoes;
         this.jdbc = jdbc;
         this.transacao = transacao;
         this.relogio = Clock.system(Meses.BRASILIA);
@@ -187,10 +191,13 @@ public class ContasFixasService {
             receitas.criar(conta.vencimentoEm(mes), conta.getDescription(), conta.getCategory(), conta.getAmount(),
                     autor, conta.isShared());
         } else {
-            // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou.
+            // A conta fixa do casal lanca o gasto compartilhado, em nome de quem pagou. O cartao so do
+            // dono fica de fora quando outra pessoa paga: ela nao o ve, e o gasto daria 404.
+            UUID cartao = conta.getAccountId() != null && contasECartoes.findById(conta.getAccountId()).isPresent()
+                    ? conta.getAccountId() : null;
             gasto = gastos.salvar(new SaveExpensesRequest(conta.vencimentoEm(mes), "", null, ORIGEM,
                     List.of(new ExpenseItemRequest(conta.getDescription(), conta.getCategory(), conta.getAmount(),
-                            "Fixo")), conta.getAccountId(), null, null, null, conta.isShared(), null), autor).get(0);
+                            "Fixo")), cartao, null, null, null, conta.isShared(), null), autor).get(0);
         }
         conta.marcarPaga(mes);
         trilha.registrar(TrilhaDeAuditoria.Acao.PAGOU, "conta-fixa", id, null,
@@ -211,15 +218,28 @@ public class ContasFixasService {
 
     void lancarAutomaticas(LocalDate hoje) {
         YearMonth mes = YearMonth.from(hoje);
-        int ateODia = hoje.getDayOfMonth() == mes.lengthOfMonth() ? 31 : hoje.getDayOfMonth();
+        if (hoje.getDayOfMonth() == 1) {
+            // A rodada do ultimo dia do mes passado pode ter falhado (deploy, banco fora) e o @Scheduled
+            // nao repete: o que venceu nele e nao foi lancado entra agora, no mes certo. So contas que ja
+            // existiam no mes passado, para a criada hoje nao ganhar um mes que nao era dela.
+            lancarDoMes(mes.minusMonths(1), 31, mes.atDay(1).atStartOfDay(Meses.BRASILIA).toInstant());
+        }
+        lancarDoMes(mes, hoje.getDayOfMonth() == mes.lengthOfMonth() ? 31 : hoje.getDayOfMonth(), relogio.instant());
+    }
+
+    private void lancarDoMes(YearMonth mes, int ateODia, Instant criadasAntes) {
+        Timestamp antes = Timestamp.from(criadasAntes);
         lancarAutomaticas(jdbc.queryForList("""
                 SELECT id, household_id, user_id FROM recurring_bills
                 WHERE active AND auto_launch AND due_day <= ? AND (last_paid_month IS NULL OR last_paid_month < ?)
-                """, ateODia, mes.toString()), (id, dono) -> pagar(id, mes, dono), "Contas fixas");
+                  AND created_at < ?
+                """, ateODia, mes.toString(), antes), (id, dono) -> pagar(id, mes, dono), "Contas fixas de " + mes);
         lancarAutomaticas(jdbc.queryForList("""
                 SELECT id, household_id, user_id FROM recurring_bills
                 WHERE active AND auto_launch AND second_due_day <= ? AND (second_paid_month IS NULL OR second_paid_month < ?)
-                """, ateODia, mes.toString()), (id, dono) -> receberSegundaParcela(id, mes, dono), "Segundas parcelas");
+                  AND created_at < ?
+                """, ateODia, mes.toString(), antes), (id, dono) -> receberSegundaParcela(id, mes, dono),
+                "Segundas parcelas de " + mes);
     }
 
     private void lancarAutomaticas(List<Map<String, Object>> devidas, BiConsumer<UUID, UUID> lancar, String oQue) {

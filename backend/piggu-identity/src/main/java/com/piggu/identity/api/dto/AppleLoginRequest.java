@@ -13,11 +13,14 @@ import jakarta.validation.constraints.Size;
  * @param versaoDosTermos como no Google: so conta nova precisa
  * @param lembrar         como no Google
  * @param refreshNoCorpo  como no Google; o app nativo sempre manda true
+ * @param codigo          authorization code da Apple: o servidor troca por um refresh token para
+ *                        revogar o acesso quando a conta for excluida
  */
 public record AppleLoginRequest(@NotBlank(message = "Faca login com a Apple para continuar.") @Size(max = 4096) String idToken,
                                 @NotBlank(message = "Faca login com a Apple para continuar.") @Size(max = 200) String nonce,
                                 @Size(max = 120) String nome,
                                 @Size(max = 20) String versaoDosTermos,
                                 Boolean lembrar,
-                                Boolean refreshNoCorpo) {
+                                Boolean refreshNoCorpo,
+                                @Size(max = 1000) String codigo) {
 }

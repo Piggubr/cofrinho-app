@@ -123,7 +123,7 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 
 ## Lançamento (A9)
 
-- **Versão:** 2.0.0, `versionCode` 200, acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
+- **Versão:** 2.0.0, `versionCode` 201 (o 200 foi gasto num envio descartado), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
 - **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`); sem eles, o AAB sai sem assinatura.
 - **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` guarda o `app-producao-release.aab` como artefato. O envio ao Play Console é manual, com a confirmação do Dudu.
 - **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).

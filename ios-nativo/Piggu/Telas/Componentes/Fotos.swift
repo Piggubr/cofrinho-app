@@ -13,14 +13,13 @@ struct BotoesDeFoto: View {
     private var temCamera: Bool { UIImagePickerController.isSourceTypeAvailable(.camera) }
 
     var body: some View {
-        LadoALado {
-            PhotosPicker(selection: $item, matching: .images, photoLibrary: .shared()) {
-                Label(tituloDaGaleria, systemImage: "photo.on.rectangle")
-            }
-            if temCamera {
-                Button { usandoCamera = true } label: { Label("Tirar foto", systemImage: "camera") }
-            }
+        // Lado a lado so se os dois cabem inteiros; na tela estreita (iPhone mini, a de fora do
+        // Duo) e no texto grande, um embaixo do outro, sem quebrar o texto do botao.
+        ViewThatFits(in: .horizontal) {
+            HStack { botoes }.fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading) { botoes }
         }
+        .labelStyle(.titleAndIcon)
         .buttonStyle(.bordered)
         .controlSize(.small)
         .onChange(of: item) { _, novo in
@@ -34,6 +33,15 @@ struct BotoesDeFoto: View {
         }
         .fullScreenCover(isPresented: $usandoCamera) {
             Camera { aoEscolher($0) }.ignoresSafeArea()
+        }
+    }
+
+    @ViewBuilder private var botoes: some View {
+        PhotosPicker(selection: $item, matching: .images, photoLibrary: .shared()) {
+            Label(tituloDaGaleria, systemImage: "photo.on.rectangle")
+        }
+        if temCamera {
+            Button { usandoCamera = true } label: { Label("Tirar foto", systemImage: "camera") }
         }
     }
 }

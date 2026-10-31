@@ -203,9 +203,14 @@ class BankingServiceTest extends PostgresIntegrationTest {
         when(pluggy.listarTransacoes("cg2", desde)).thenReturn(List.of(
                 transacao("d", desde.plusDays(4), "Cinema", "60", true, true)));
 
+        jdbc.update("UPDATE bank_connections SET synced_at = now() - interval '89 days' WHERE pluggy_item_id = 'item-g'");
+
         List<BankingService.GastoDoBanco> gastos = servico.gastosDesde(desde, titular);
 
         assertThat(gastos).extracting(BankingService.GastoDoBanco::idExterno).containsExactly("pluggy:d", "pluggy:a");
+        // Quem importa toda semana usa o banco: a retencao de 90 dias nao o desconecta.
+        assertThat(jdbc.queryForObject("SELECT synced_at > now() - interval '1 minute' FROM bank_connections"
+                + " WHERE pluggy_item_id = 'item-g'", Boolean.class)).isTrue();
         assertThat(gastos.get(0).conta()).isEqualTo("Nubank · Cartao");
         assertThat(gastos.get(1).valor()).isEqualByComparingTo("12.50");
     }

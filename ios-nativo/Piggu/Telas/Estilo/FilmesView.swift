@@ -216,16 +216,23 @@ private struct LinhaDoFilme<Acoes: View>: View {
     @Environment(\.paleta) private var paleta
 
     var body: some View {
+        // Na tela estreita (iPhone mini, a de fora do Duo) as acoes descem para baixo do titulo,
+        // em vez de espremer o nome do filme letra por letra.
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: 12) { titulo; Spacer(); acoes }
+            VStack(alignment: .leading, spacing: 8) { titulo; acoes.frame(maxWidth: .infinity, alignment: .trailing) }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var titulo: some View {
         LadoALado(alinhamento: .top, espaco: 12) {
             Miniatura(url: filme.poster, simbolo: "film", lado: 52)
             VStack(alignment: .leading, spacing: 2) {
                 Text(filme.titulo).font(.sora(.subheadline, peso: .semibold))
                 if let ano = filme.ano { Text(ano).font(.sora(.footnote)).foregroundStyle(paleta.textoSuave) }
             }
-            Spacer()
-            acoes
         }
-        .padding(.vertical, 2)
     }
 }
 
