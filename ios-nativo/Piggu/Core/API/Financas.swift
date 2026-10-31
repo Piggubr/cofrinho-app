@@ -29,6 +29,16 @@ extension ClienteDaAPI {
         try await get("/expenses/search", query: ["q": termo])
     }
 
+    /// Le o extrato (OFX ou CSV) e devolve a previa; nada e gravado.
+    func previaDoExtrato(_ conteudo: String) async throws -> [LinhaDoExtrato] {
+        try await post("/expenses/import/preview", corpo: ["conteudo": conteudo])
+    }
+
+    /// As ja importadas sao puladas pelo `idExterno`.
+    func importarExtrato(_ linhas: [LinhaDoExtrato], contaId: String?) async throws -> ResultadoDaImportacao {
+        try await post("/expenses/import", corpo: PedidoDeImportacao(linhas: linhas, contaId: contaId))
+    }
+
     func acertoDoMes(_ mes: String) async throws -> [AcertoDeDivisao] {
         try await get("/expenses/splits", query: ["mes": mes])
     }

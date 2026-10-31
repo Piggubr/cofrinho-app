@@ -11,7 +11,8 @@ struct PrincipalView: View {
 
     @Environment(Sessao.self) private var sessao
     @Environment(MonitorDeRede.self) private var rede
-    @State private var aba = PrincipalView.abaInicial
+    /// Aba e pilhas ficam por janela: duas janelas do Piggu, cada uma no seu lugar.
+    @SceneStorage("piggu_aba") private var aba = PrincipalView.abaInicial
     @State private var lancamento: PedidoDeLancamento? = PrincipalView.lancarAoAbrir ? .init(valor: nil) : nil
     @State private var lancandoReceita = false
     /// Sobe a cada gasto lancado: Painel, Gastos, Receitas e Relatorios recarregam.
@@ -22,7 +23,7 @@ struct PrincipalView: View {
     @Environment(\.scenePhase) private var fase
     @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
-    @State private var caminhoDoMais: [TelaDoMais] = []
+    @SceneStorage("piggu_caminho_do_mais") private var caminhoDoMais = ""
     @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
 
     /// Ajuste do Perfil: a barra de abas encolhe ao rolar a lista. Desligado, ela fica sempre inteira.
@@ -95,7 +96,7 @@ struct PrincipalView: View {
                 Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
                 Tab("Receitas", systemImage: "arrow.down.circle.fill", value: Aba.receitas) { receitas }
                 Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
-                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: $caminhoDoMais) }
+                Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: .guardada($caminhoDoMais)) }
             }
             .tabViewStyle(.sidebarAdaptable)
             .minimizarAbasAoRolar(esconderAbas)
@@ -113,7 +114,7 @@ struct PrincipalView: View {
                 relatorios
                     .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
                     .tag(Aba.relatorios)
-                MaisView(caminho: $caminhoDoMais)
+                MaisView(caminho: .guardada($caminhoDoMais))
                     .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
                     .tag(Aba.mais)
             }
@@ -121,7 +122,7 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar) { aba = $0 }
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { aba = $0 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
@@ -154,7 +155,7 @@ struct PrincipalView: View {
             aba = destino
         case let .tela(tela):
             aba = .mais
-            caminhoDoMais = [tela]
+            caminhoDoMais = tela.rawValue
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
         case let .verGasto(id, mes):

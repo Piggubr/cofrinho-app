@@ -134,6 +134,8 @@ struct RaizView: View {
         // Renovacao e compra feitas fora desta tela chegam ao backend enquanto o app esta aberto.
         .task { await LojaDaApple.acompanhar(sessao) }
         .task {
+            // A segunda janela usa a sessao que a primeira ja restaurou.
+            guard sessao.estado == .verificando else { return }
             await sessao.restaurar()
             #if DEBUG
             // -PigguLink piggu://termos: abre um link ao entrar, para os prints.

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import Piggu
 
@@ -56,6 +57,17 @@ struct RotaTests {
     ])
     func ignoraOQueNaoConhece(link: String) {
         #expect(Rota(url: URL(string: link)!) == nil)
+    }
+
+    @MainActor @Test func pilhaGuardadaNaJanelaVaiEVolta() {
+        var texto = ""
+        let pilha = Binding<[TelaDoMais]>.guardada(Binding(get: { texto }, set: { texto = $0 }))
+        pilha.wrappedValue = [.planejar, .orcamento]
+        #expect(texto == "planejar,orcamento")
+        #expect(pilha.wrappedValue == [.planejar, .orcamento])
+        // Tela que saiu do app numa versao nova: some da pilha, sem travar.
+        texto = "perfil,telaQueNaoExisteMais"
+        #expect(pilha.wrappedValue == [.perfil])
     }
 
     @Test func valorParaDigitarUsaVirgula() {

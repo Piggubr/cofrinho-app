@@ -152,6 +152,30 @@ struct NovoLancamento: Codable, Equatable, Sendable {
     var idDoEnvio: String?
 }
 
+/// Linha da previa do extrato (POST /expenses/import/preview); a mesma vai de volta no import.
+struct LinhaDoExtrato: Codable, Identifiable, Equatable, Sendable {
+    /// aaaa-mm-dd
+    let data: String
+    let descricao: String
+    let valor: Decimal
+    let idExterno: String
+    var categoria: String
+    let jaImportada: Bool
+
+    var id: String { idExterno }
+}
+
+/// Corpo de POST /expenses/import. Sem `contaId`, os gastos ficam sem conta.
+struct PedidoDeImportacao: Codable, Sendable {
+    let linhas: [LinhaDoExtrato]
+    let contaId: String?
+}
+
+struct ResultadoDaImportacao: Codable, Equatable, Sendable {
+    let importados: Int
+    let pulados: Int
+}
+
 /// Corpo de PUT /expenses/{id}. `compartilhado` ausente fica como esta (so quem lancou muda).
 struct EdicaoDeGasto: Codable, Sendable {
     let item: String
