@@ -54,7 +54,7 @@
     <!-- Cliente oficial da Google Play Developer API (subscriptionsv2.get e acknowledge) para
          conferir a compra no app Android, com a conta de servico pelo google-auth-library. -->
     <google-androidpublisher.version>v3-rev20260924-2.0.0</google-androidpublisher.version>
-    <google-auth.version>1.54.0</google-auth.version>
+    <google-auth.version>1.55.0</google-auth.version>
     <!-- Correcoes de seguranca acima do que o Spring Boot 4.0.8 traz (revisao de 12/10/2026).
          Tomcat 11.0.25+: CVE-2026-65905, -65182 e -68525. Jackson 3.1.7 e 2.21.7: negacao de
          servico ao ler JSON (CVE-2026-89425, -89407, -91777, -91776, -68497) e mais duas.
