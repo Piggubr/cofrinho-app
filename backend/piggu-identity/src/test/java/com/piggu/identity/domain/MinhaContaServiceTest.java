@@ -171,6 +171,19 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("sem a chave da Apple a conta e excluida mesmo assim, sem tentar revogar")
+    void excluiSemAChaveDaApple() {
+        titular.lembrarTokenDaApple("rt-apple", "br.com.piggu.app");
+        usuarios.save(titular);
+        given(apple.ligada()).willReturn(false);
+
+        contas.excluir(titular.getId());
+
+        verify(apple, never()).revogar(anyString(), anyString());
+        assertThat(usuarios.findById(titular.getId())).isEmpty();
+    }
+
+    @Test
     @DisplayName("foto propria aparece no lugar da do Google, para a pessoa e para a familia")
     void fotoPropria() {
         titular.atualizarPerfilGoogle("Ana", "Ana", "https://lh3.googleusercontent.com/ana");

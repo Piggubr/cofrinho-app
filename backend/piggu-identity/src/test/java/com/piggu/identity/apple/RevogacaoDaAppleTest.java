@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -35,14 +36,7 @@ class RevogacaoDaAppleTest {
     @DisplayName("troca o codigo pelo refresh token, revoga e assina o client secret com a chave .p8")
     @SuppressWarnings("unchecked")
     void trocaERevoga() throws Exception {
-        KeyPairGenerator gerador = KeyPairGenerator.getInstance("EC");
-        gerador.initialize(new ECGenParameterSpec("secp256r1"));
-        KeyPair par = gerador.generateKeyPair();
-        // Chave gerada agora, so para o teste (cabecalho montado para o gitleaks nao confundir).
-        String marca = "PRIVATE" + " KEY-----";
-        String p8 = "-----BEGIN " + marca + "\n"
-                + Base64.getMimeEncoder().encodeToString(par.getPrivate().getEncoded())
-                + "\n-----END " + marca;
+        KeyPair par = parDeChaves();
         HttpClient http = mock(HttpClient.class);
         HttpResponse<String> resposta = mock(HttpResponse.class);
         when(resposta.statusCode()).thenReturn(200, 200, 400);
@@ -50,9 +44,7 @@ class RevogacaoDaAppleTest {
                 "{\"error\":\"invalid_grant\"}");
         when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn((HttpResponse) resposta);
 
-        RevogacaoDaApple apple = new RevogacaoDaApple(
-                new AppleProperties(List.of(APP), null, null, "TEAM123", "KEY123", p8),
-                JsonMapper.builder().build(), http, Clock.systemUTC());
+        RevogacaoDaApple apple = apple(http, par);
 
         assertThat(apple.ligada()).isTrue();
         assertThat(apple.trocarCodigo("codigo-1", APP)).isEqualTo("rt-1");
@@ -75,9 +67,47 @@ class RevogacaoDaAppleTest {
     }
 
     @Test
+    @DisplayName("Apple recusando, fora do ar ou respondendo lixo vira nulo ou falso, sem excecao")
+    @SuppressWarnings("unchecked")
+    void falhasDaApple() throws Exception {
+        HttpClient http = mock(HttpClient.class);
+        HttpResponse<String> resposta = mock(HttpResponse.class);
+        when(resposta.statusCode()).thenReturn(200, 200, 400);
+        when(resposta.body()).thenReturn("{}", "nao e json", "{\"error\":\"invalid_token\"}");
+        when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+                .thenReturn((HttpResponse) resposta, (HttpResponse) resposta, (HttpResponse) resposta)
+                .thenThrow(new IOException("sem rede"), new IOException("sem rede"), new InterruptedException());
+        RevogacaoDaApple apple = apple(http, parDeChaves());
+
+        assertThat(apple.trocarCodigo("sem-token", APP)).isNull();
+        assertThat(apple.trocarCodigo("corpo-ilegivel", APP)).isNull();
+        assertThat(apple.revogar("rt-vencido", APP)).isFalse();
+        assertThat(apple.trocarCodigo("fora-do-ar", APP)).isNull();
+        assertThat(apple.revogar("fora-do-ar", APP)).isFalse();
+        assertThat(apple.trocarCodigo("interrompido", APP)).isNull();
+        assertThat(Thread.interrupted()).isTrue();
+    }
+
+    @Test
     @DisplayName("sem a chave .p8 a revogacao fica desligada")
     void desligadaSemChave() {
         assertThat(new RevogacaoDaApple(new AppleProperties(List.of(APP), null, null, "TEAM123", null, null),
                 JsonMapper.builder().build()).ligada()).isFalse();
+    }
+
+    private static RevogacaoDaApple apple(HttpClient http, KeyPair par) {
+        // Chave gerada agora, so para o teste (cabecalho montado para o gitleaks nao confundir).
+        String marca = "PRIVATE" + " KEY-----";
+        String p8 = "-----BEGIN " + marca + "\n"
+                + Base64.getMimeEncoder().encodeToString(par.getPrivate().getEncoded())
+                + "\n-----END " + marca;
+        return new RevogacaoDaApple(new AppleProperties(List.of(APP), null, null, "TEAM123", "KEY123", p8),
+                JsonMapper.builder().build(), http, Clock.systemUTC());
+    }
+
+    private static KeyPair parDeChaves() throws Exception {
+        KeyPairGenerator gerador = KeyPairGenerator.getInstance("EC");
+        gerador.initialize(new ECGenParameterSpec("secp256r1"));
+        return gerador.generateKeyPair();
     }
 }
