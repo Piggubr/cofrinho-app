@@ -36,6 +36,12 @@ public class TrilhaDeAuditoria {
     /** Um ano e um mes: cobre a pergunta do mes passado e o fechamento do ano. */
     public static final Duration RETENCAO_PADRAO = Duration.ofDays(400);
 
+    /**
+     * Eventos do que so a pessoa ve (orcamento e meta do mes, como no {@code DonoAtual.SO_DA_PESSOA}; os dados da
+     * conta no identity): ninguem mais da familia ve, nem o titular (D-154).
+     */
+    public static final java.util.Set<String> ENTIDADES_PRIVADAS = java.util.Set.of("orcamento", "meta", "conta");
+
     /** Autor de mudanca feita por job agendado (conta fixa automatica, resgate). */
     public static final UUID SISTEMA = new UUID(0L, 0L);
 
@@ -119,10 +125,11 @@ public class TrilhaDeAuditoria {
 
     /**
      * Os mais recentes da familia, para a tela de historico. SQL puro: filtra a familia (e os
-     * autores) a mao.
+     * autores) a mao. Evento de {@link #ENTIDADES_PRIVADAS} so aparece para quem o fez.
      *
-     * @param autores  so o que estas pessoas (e o sistema) fizeram; nulo = todos
-     * @param semAutor inclui o que ficou sem autor (de quem excluiu a conta): o titular ve
+     * @param autores  so o que estas pessoas (e o sistema) fizeram; nulo = todos. A primeira e
+     *                 quem pede ({@code CurrentUser.visiveis()})
+     * @param semAutor inclui o que ficou sem autor (a familia, sem a pessoa que saiu)
      */
     public List<Evento> recentes(UUID familia, String entidade, int limite, List<UUID> autores, boolean semAutor) {
         List<Object> parametros = new java.util.ArrayList<>(List.of(familia));
@@ -140,7 +147,9 @@ public class TrilhaDeAuditoria {
             comSistema.add(SISTEMA);
             parametros.add(comSistema.toArray(UUID[]::new));
             parametros.add(semAutor);
-
+            sql += " AND (entidade <> ALL(?) OR autor_id = ?)";
+            parametros.add(ENTIDADES_PRIVADAS.toArray(String[]::new));
+            parametros.add(autores.getFirst());
         }
         sql += " ORDER BY id DESC LIMIT ?";
         parametros.add(limite);
@@ -158,12 +167,15 @@ public class TrilhaDeAuditoria {
 
     /**
      * Para o servico que nao usa o {@code DadosDaFamilia} (o identity): a familia sumiu,
-     * os eventos dela saem; a pessoa saiu, os eventos ficam sem autor.
+     * os eventos dela saem; a pessoa saiu, o que e so dela ({@link #ENTIDADES_PRIVADAS}) sai
+     * junto e o resto (entrou, mudou de papel) fica com a familia, sem autor (D-154).
      */
     public void esquecer(UUID familia, UUID pessoa, boolean familiaInteira) {
         if (familiaInteira) {
             jdbc.update("DELETE FROM eventos_de_auditoria WHERE household_id = ?", familia);
         } else {
+            jdbc.update("DELETE FROM eventos_de_auditoria WHERE household_id = ? AND autor_id = ? AND entidade = ANY(?)",
+                    familia, pessoa, ENTIDADES_PRIVADAS.toArray(String[]::new));
             jdbc.update("UPDATE eventos_de_auditoria SET autor_id = NULL WHERE household_id = ? AND autor_id = ?",
                     familia, pessoa);
         }

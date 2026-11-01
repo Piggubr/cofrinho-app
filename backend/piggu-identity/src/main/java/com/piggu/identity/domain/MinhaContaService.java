@@ -115,10 +115,9 @@ public class MinhaContaService {
                 .toList());
         arquivo.put("aparelhosQueRecebemAvisos", aparelhos.paraExportar(conta.getId()));
         arquivo.put("avisosEnviados", avisosEnviados.paraExportar(conta.getId()));
-        // O titular leva o historico da familia; os demais, o que eles mesmos fizeram.
-        arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE).stream()
-                .filter(evento -> usuario.isTitular() || usuario.id().equals(evento.autor()))
-                .toList());
+        // O mesmo historico que a tela mostra a quem pede (D-154).
+        arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE,
+                usuario.visiveis(), usuario.isResponsavel()));
         Map<String, JsonNode> servicos = cascata.exportar(token);
         arquivo.put("dados", servicos);
         log.info("Dados exportados: conta={} servicos={}", conta.getId(), servicos.keySet());

@@ -192,6 +192,13 @@ public class UserAccount {
     @Column(name = "password_locked_until")
     private Instant passwordLockedUntil;
 
+    /**
+     * Assinatura do aviso ou transacao da App Store mais recente desta conta. Transacao assinada
+     * antes dela (de antes de um reembolso) nao vale mais, em qualquer familia (D-155).
+     */
+    @Column(name = "app_store_event_at")
+    private Instant appStoreEventAt;
+
     /** Quando o titular convidou para ser parceiro; nulo sem convite. Vira parceiro ao aceitar. */
     @Column(name = "partner_invited_at")
     private Instant partnerInvitedAt;
@@ -298,6 +305,15 @@ public class UserAccount {
         this.cpfInformadoEm = null;
         this.showsAllTo = null;
         this.partnerInvitedAt = null;
+    }
+
+    /** @return falso quando {@code momento} e anterior ao ultimo evento da App Store ja visto */
+    public boolean registrarEventoDaAppStore(Instant momento) {
+        if (appStoreEventAt != null && momento.isBefore(appStoreEventAt)) {
+            return false;
+        }
+        this.appStoreEventAt = momento;
+        return true;
     }
 
     public boolean isEmailVerified() {
