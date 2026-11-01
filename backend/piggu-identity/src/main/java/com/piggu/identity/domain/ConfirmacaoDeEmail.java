@@ -139,13 +139,24 @@ public class ConfirmacaoDeEmail {
         enviar(conta);
     }
 
+    /**
+     * Confirma o e-mail de uma conta com senha so com a sessao da propria conta aberta (D-152).
+     * O link prova o e-mail, mas nao quem escolheu a senha: sem isso, quem cadastrou o e-mail de
+     * outra pessoa seguiria entrando na conta depois que o dono clicasse.
+     *
+     * @param quem conta da sessao que abriu o link, ou null sem sessao
+     */
     @Transactional
-    public void confirmar(String token) {
+    public void confirmar(String token, UUID quem) {
         UserAccount conta = token == null || token.isBlank() ? null
                 : usuarios.findByEmailTokenHash(tokens.hash(token.trim())).orElse(null);
         if (conta == null || !conta.linkDeEmailValido(Instant.now())) {
             throw new BusinessException("Este link de confirmacao venceu ou ja foi usado. Peca outro no Perfil.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "LINK_INVALIDO");
+        }
+        if (conta.temSenha() && !conta.getId().equals(quem)) {
+            throw new BusinessException("Para confirmar, entre no Piggu com a conta deste e-mail e abra o link de novo.",
+                    HttpStatus.FORBIDDEN, "ENTRE_PARA_CONFIRMAR");
         }
         conta.confirmarEmail();
         usuarios.save(conta);

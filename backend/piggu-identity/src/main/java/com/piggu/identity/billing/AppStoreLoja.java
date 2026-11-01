@@ -37,7 +37,8 @@ import java.util.stream.Collectors;
  * e o {@code appAccountToken}, que o app preenche com o id da conta Piggu na hora de comprar.</p>
  *
  * <p>Sandbox e sempre aceito: a revisao da Apple compra no sandbox contra o servidor de
- * producao. O ambiente do Xcode (sem assinatura de verdade) so fora da producao.</p>
+ * producao. O ambiente do Xcode nao tem assinatura de verdade, entao so entra com
+ * {@code piggu.app-store.aceitar-xcode=true}, ligado a mao no desenvolvimento (D-151).</p>
  */
 @Component
 public class AppStoreLoja {
@@ -52,13 +53,13 @@ public class AppStoreLoja {
                         @Value("${piggu.app-store.bundle-id:br.com.piggu.app}") String bundleId,
                         @Value("${piggu.app-store.app-apple-id:}") String appAppleId,
                         @Value("${piggu.app-store.checar-online:true}") boolean checarOnline,
-                        @Value("${piggu.ambiente:dev}") String ambiente) {
+                        @Value("${piggu.app-store.aceitar-xcode:false}") boolean aceitarXcode) {
         List<byte[]> certificados = ler(raizes);
         if (appAppleId != null && !appAppleId.isBlank()) {
             verificadores.add(verificador(certificados, bundleId, Long.valueOf(appAppleId.trim()), Environment.PRODUCTION, checarOnline));
         }
         verificadores.add(verificador(certificados, bundleId, null, Environment.SANDBOX, checarOnline));
-        if (!"producao".equals(ambiente)) {
+        if (aceitarXcode) {
             verificadores.add(verificador(certificados, bundleId, null, Environment.XCODE, checarOnline));
         }
     }

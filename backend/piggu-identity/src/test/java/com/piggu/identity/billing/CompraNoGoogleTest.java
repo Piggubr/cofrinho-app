@@ -211,6 +211,21 @@ class CompraNoGoogleTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("revogar o token que vale derruba o Premium, mesmo com o vencimento puxado para agora (D-155)")
+    void revogacaoDoTokenQueVale() throws Exception {
+        GOOGLE.assinatura("tok-r", conta.getId(), "premium_anual", ATIVA,
+                Instant.now().plus(Duration.ofDays(365)).truncatedTo(ChronoUnit.MILLIS));
+        comprar("premium_anual", "tok-r").andExpect(status().isOk());
+        assertThat(plano()).isEqualTo(Plano.PREMIUM);
+
+        GOOGLE.assinaturas.get("tok-r").setSubscriptionState(EXPIRADA)
+                .getLineItems().getFirst().setExpiryTime(Instant.now().toString());
+        avisar(GoogleDeTeste.avisoDeAssinatura(12, "tok-r")).andExpect(status().isOk());
+
+        assertThat(plano()).isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
     @DisplayName("quem ja e Premium pelo site continua pelo site: o Google nao troca nem derruba")
     void premiumPeloSite() throws Exception {
         Household casa = familias.daConta(conta);

@@ -137,7 +137,7 @@ public class FamiliaService {
         Household familia = daConta(conta);
         List<UserAccount> membros = usuarios.findByHouseholdIdOrderByCreatedAtAsc(familia.getId());
         // Convites pendentes trazem e-mail de quem ainda nao entrou: so o titular ve.
-        List<HouseholdInvite> pendentes = usuario.isTitular()
+        List<HouseholdInvite> pendentes = cuidaDaFamilia(conta)
                 ? convites.findByHouseholdIdOrderByCreatedAtDesc(familia.getId()).stream().filter(HouseholdInvite::valido).toList()
                 : List.of();
         return FamiliaResponse.de(familia, membros, pendentes);
@@ -186,28 +186,40 @@ public class FamiliaService {
 
         Instant agora = Instant.now();
         Instant vence = agora.plus(VALIDADE_DO_CONVITE);
-        convites.findByHouseholdIdAndEmail(usuario.familia(), email).ifPresentOrElse(
+        Optional<HouseholdInvite> existente = convites.findByHouseholdIdAndEmail(usuario.familia(), email);
+        // Renovar o que ainda vale e de graca; o vencido volta a ocupar vaga e passa pelos limites (D-159).
+        if (existente.isEmpty() || !existente.get().valido()) {
+            exigirVagaParaConvite(usuario.familia(), agora);
+        }
+        existente.ifPresentOrElse(
                 convite -> convite.renovar(vence),
-                () -> {
-                    // Anti-abuso: convite vira linha no banco e aparece para o e-mail convidado.
-                    if (convites.countByHouseholdIdAndExpiresAtAfter(usuario.familia(), agora) >= MAXIMO_DE_CONVITES) {
-                        throw new BusinessException("Ja ha " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
-                                + "Cancele algum para convidar outra pessoa.", HttpStatus.UNPROCESSABLE_CONTENT,
-                                "LIMITE_DE_CONVITES");
-                    }
-                    // No plano familia a casa tem ate 5 pessoas: e quanto o Premium cobre.
-                    Household casa = familias.findById(usuario.familia()).orElseThrow();
-                    if (casa.isFamilia() && casa.planoVigente() == Plano.PREMIUM
-                            && pessoasNaCasa(usuario.familia()) >= Periodo.PESSOAS_NO_FAMILIA) {
-                        throw new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
-                                + " pessoas, contando os convites pendentes.", HttpStatus.UNPROCESSABLE_CONTENT,
-                                "LIMITE_DO_FAMILIA");
-                    }
-                    convites.save(new HouseholdInvite(usuario.familia(), email, usuario.id(), vence));
-                });
+                () -> convites.save(new HouseholdInvite(usuario.familia(), email, usuario.id(), vence)));
         // Sem o e-mail no log: e o dado pessoal de quem ainda nem aceitou nada.
         log.info("Convite para a familia {} criado", usuario.familia());
         return ver(usuario);
+    }
+
+    private void exigirVagaParaConvite(UUID familiaId, Instant agora) {
+        // Anti-abuso: convite vira linha no banco e aparece para o e-mail convidado.
+        if (convites.countByHouseholdIdAndExpiresAtAfter(familiaId, agora) >= MAXIMO_DE_CONVITES) {
+            throw new BusinessException("Ja ha " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
+                    + "Cancele algum para convidar outra pessoa.", HttpStatus.UNPROCESSABLE_CONTENT,
+                    "LIMITE_DE_CONVITES");
+        }
+        // No plano familia a casa tem ate 5 pessoas: e quanto o Premium cobre.
+        if (familiaCheia(familiaId, pessoasNaCasa(familiaId))) {
+            throw limiteDoFamilia();
+        }
+    }
+
+    private boolean familiaCheia(UUID familiaId, long pessoas) {
+        Household casa = familias.findById(familiaId).orElseThrow();
+        return casa.isFamilia() && casa.planoVigente() == Plano.PREMIUM && pessoas >= Periodo.PESSOAS_NO_FAMILIA;
+    }
+
+    private static BusinessException limiteDoFamilia() {
+        return new BusinessException("O plano família cobre até " + Periodo.PESSOAS_NO_FAMILIA
+                + " pessoas, contando os convites pendentes.", HttpStatus.UNPROCESSABLE_CONTENT, "LIMITE_DO_FAMILIA");
     }
 
     @Transactional
@@ -255,6 +267,11 @@ public class FamiliaService {
             throw new BusinessException("Você assina o Premium da sua família. Para entrar em outra, cancele a "
                     + "assinatura e aceite o convite depois que o Premium terminar.", HttpStatus.CONFLICT,
                     "ASSINATURA_ATIVA");
+        }
+
+        // A vaga se confere de novo na entrada: o convite nao e passe para alem das 5 pessoas (D-159).
+        if (familiaCheia(convite.getHouseholdId(), usuarios.findByHouseholdIdOrderByCreatedAtAsc(convite.getHouseholdId()).size())) {
+            throw limiteDoFamilia();
         }
 
         PigguRole papel = entraComoParceiro(conta, convite.getHouseholdId()) ? PigguRole.PARCEIRO : PigguRole.MEMBRO;
@@ -505,10 +522,18 @@ public class FamiliaService {
         return conta.getRole() == PigguRole.TITULAR || conta.getRole() == PigguRole.ADMIN;
     }
 
-    private static void exigirTitular(CurrentUser usuario) {
-        if (!usuario.isTitular()) {
+    /**
+     * Papel e familia do banco, nao do token: quem acabou de sair da familia ou de deixar de ser
+     * titular ainda tem ate 5 minutos de token antigo, e ele nao vale aqui (D-158).
+     */
+    private void exigirTitular(CurrentUser usuario) {
+        if (!usuario.isTitular() || !ehTitularDaFamiliaDoToken(conta(usuario), usuario)) {
             throw new ForbiddenException("So o titular cuida da familia.");
         }
+    }
+
+    private static boolean ehTitularDaFamiliaDoToken(UserAccount conta, CurrentUser usuario) {
+        return cuidaDaFamilia(conta) && conta.getHouseholdId().equals(usuario.familia());
     }
 
     /**

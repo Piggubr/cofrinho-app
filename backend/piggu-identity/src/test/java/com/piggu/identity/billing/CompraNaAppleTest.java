@@ -129,6 +129,30 @@ class CompraNaAppleTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("depois do reembolso, a transacao antiga nao volta a dar Premium nem numa familia nova (D-155)")
+    void transacaoAntigaDepoisDoReembolso() throws Exception {
+        Instant inicio = Instant.now().minus(Duration.ofDays(2));
+        Map<String, Object> compra = APPLE.transacao(conta.getId(), inicio, Duration.ofDays(365));
+        String guardada = APPLE.assinar(compra);
+        comprar(guardada).andExpect(status().isOk());
+        assertThat(plano()).isEqualTo(Plano.PREMIUM);
+
+        Map<String, Object> reembolsada = APPLE.transacao(conta.getId(), inicio, Duration.ofDays(365));
+        reembolsada.put("revocationDate", Instant.now().toEpochMilli());
+        reembolsada.put("revocationReason", 0);
+        avisar(APPLE.aviso("REFUND", null, reembolsada, Instant.now())).andExpect(status().isOk());
+        assertThat(plano()).isEqualTo(Plano.GRATUITO);
+
+        Household nova = casas.save(new Household(UUID.randomUUID(), "Nova"));
+        conta = usuarios.findById(conta.getId()).orElseThrow();
+        conta.mudarDeFamilia(nova.getId(), PigguRole.TITULAR);
+        conta = usuarios.save(conta);
+
+        comprar(guardada).andExpect(status().isOk());
+        assertThat(plano()).isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
     @DisplayName("cancelar so desliga a renovacao; o Premium vai ate expirar, e a expiracao encerra")
     void cancelamentoEExpiracao() throws Exception {
         Instant inicio = Instant.now().minus(Duration.ofDays(10));

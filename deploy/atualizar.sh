@@ -66,6 +66,12 @@ main() {
     exit 2
   fi
 
+  # Sem o modo de producao as protecoes do backend ficam desligadas (D-151): nao sobe assim.
+  if ! grep -qE '^PIGGU_AMBIENTE=producao[[:space:]]*$' backend/.env 2> /dev/null; then
+    echo "backend/.env precisa de PIGGU_AMBIENTE=producao; nada foi feito." >&2
+    exit 2
+  fi
+
   echo "==> Buscando $RAMO"
   git fetch --quiet origin "$RAMO"
   if ! git merge-base --is-ancestor "$sha" "origin/$RAMO"; then

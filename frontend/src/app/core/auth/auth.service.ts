@@ -127,6 +127,11 @@ export class AuthService {
 
   /** Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. */
   async confirmarEmail(token: string): Promise<void> {
+    // A sessao vai junto: conta com senha so confirma com ela (D-152). Aberto direto pelo
+    // link, o site ainda nao renovou o token.
+    if (!this.autenticado()) {
+      await this.restaurarSessao();
+    }
     await firstValueFrom(
       this.http.post<void>(`${this.config.apiUrl}/auth/confirmar-email`, { token }),
     );

@@ -460,6 +460,10 @@ public class AuthService {
     public UserResponse escolherAvisos(java.util.UUID usuarioId, boolean porEmail, boolean porPush) {
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+        // Aviso por e-mail so para endereco provado: o Piggu nao manda texto de ninguem a quem nao pediu (D-157).
+        if (porEmail && !conta.isAlertsByEmail()) {
+            FamiliaService.exigirEmailConfirmado(conta);
+        }
         conta.escolherAvisos(porEmail, porPush);
         return UserResponse.de(conta, familias.daConta(conta));
     }

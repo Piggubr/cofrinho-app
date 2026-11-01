@@ -53,6 +53,8 @@ public class MinhaContaService {
     private final RevogacaoDaApple apple;
 
 
+    private final TentativasDeCpf tentativasDeCpf;
+
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
                              HouseholdRepository familias,
@@ -64,7 +66,9 @@ public class MinhaContaService {
                              Aparelhos aparelhos,
                              AvisosEnviados avisosEnviados,
                              TestesGratis testes,
-                             RevogacaoDaApple apple) {
+                             RevogacaoDaApple apple,
+                             TentativasDeCpf tentativasDeCpf) {
+        this.tentativasDeCpf = tentativasDeCpf;
         this.testes = testes;
         this.apple = apple;
         this.cofre = cofre;
@@ -115,10 +119,9 @@ public class MinhaContaService {
                 .toList());
         arquivo.put("aparelhosQueRecebemAvisos", aparelhos.paraExportar(conta.getId()));
         arquivo.put("avisosEnviados", avisosEnviados.paraExportar(conta.getId()));
-        // O titular leva o historico da familia; os demais, o que eles mesmos fizeram.
-        arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE).stream()
-                .filter(evento -> usuario.isTitular() || usuario.id().equals(evento.autor()))
-                .toList());
+        // O mesmo historico que a tela mostra a quem pede (D-154).
+        arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE,
+                usuario.visiveis(), usuario.isResponsavel()));
         Map<String, JsonNode> servicos = cascata.exportar(token);
         arquivo.put("dados", servicos);
         log.info("Dados exportados: conta={} servicos={}", conta.getId(), servicos.keySet());
@@ -153,10 +156,12 @@ public class MinhaContaService {
      */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
+        tentativasDeCpf.exigirTentativa(conta.getId());
         String indice = cofre.indice(cpf);
         boolean deOutraConta = usuarios.findByCpfIndice(indice).stream()
                 .anyMatch(outra -> !outra.getId().equals(conta.getId()));
         if (deOutraConta) {
+            tentativasDeCpf.recusado(conta.getId());
             log.warn("CPF de outra conta recusado: conta={}", conta.getId());
             throw new BusinessException(
                     "Esse CPF já está em outra conta do Piggu. Se não foi você, fale com a gente pelo canal de privacidade.",

@@ -72,6 +72,9 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
     @Autowired
     private JwtDecoder decoder;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     private UserAccount ana;
 
     @BeforeEach
@@ -108,6 +111,21 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
 
         assertThat(lembretes.enviarDeHoje()).isZero();
         verify(email, times(2)).enviar(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("e-mail nao confirmado nao liga o aviso por e-mail nem recebe lembrete (D-157)")
+    void emailNaoConfirmado() {
+        jdbc.update("UPDATE users SET email_verified = false WHERE id = ?", ana.getId());
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> auth.escolherAvisos(ana.getId(), true, false))
+                .isInstanceOfSatisfying(com.piggu.common.error.BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("EMAIL_NAO_CONFIRMADO"));
+
+        // Ligado antes da regra: o lembrete nao sai para o endereco sem prova.
+        jdbc.update("UPDATE users SET alerts_by_email = true WHERE id = ?", ana.getId());
+        when(financeiro.deHoje(anyString())).thenReturn(List.of(fatura("f1")));
+        lembretes.enviarDeHoje();
+        verify(email, never()).enviar(anyString(), any());
     }
 
     @Test

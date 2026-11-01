@@ -290,24 +290,40 @@ public class AssinaturaService {
         });
     }
 
-    /** Na troca de plano o Google cria outro token e encerra o antigo: o fim do antigo nao derruba o novo. */
+    /**
+     * Na troca de plano o Google cria outro token e encerra o antigo: o fim do antigo nao derruba o
+     * novo. O antigo e o que nao e o token guardado na familia; a revogacao do token que vale
+     * derruba o Premium (D-155).
+     */
     private void aplicarDoGoogle(UserAccount conta, GooglePlayLoja.AssinaturaDoGoogle compra) {
         Household familia = familias.daContaTravada(conta);
-        boolean tokenAntigo = compra.evento().premiumAte() == null && "PLAY_STORE".equals(familia.getPlanSource())
-                && compra.vence() != null && familia.getPremiumUntil() != null
-                // Em milissegundos, a precisao do Google: o banco guarda microssegundos arredondados, e
-                // o mesmo vencimento pareceria posterior (o fim nunca chegava).
-                && familia.getPremiumUntil().truncatedTo(ChronoUnit.MILLIS).isAfter(compra.vence().truncatedTo(ChronoUnit.MILLIS));
+        boolean fim = compra.evento().premiumAte() == null && "PLAY_STORE".equals(familia.getPlanSource());
+        boolean tokenAntigo;
+        if (familia.getPlayPurchaseToken() != null) {
+            tokenAntigo = fim && !familia.getPlayPurchaseToken().equals(compra.token());
+        } else {
+            // Premium de antes do token guardado: decide pelo vencimento, como antes.
+            tokenAntigo = fim && compra.vence() != null && familia.getPremiumUntil() != null
+                    // Em milissegundos, a precisao do Google: o banco guarda microssegundos arredondados, e
+                    // o mesmo vencimento pareceria posterior (o fim nunca chegava).
+                    && familia.getPremiumUntil().truncatedTo(ChronoUnit.MILLIS).isAfter(compra.vence().truncatedTo(ChronoUnit.MILLIS));
+        }
         if (tokenAntigo) {
             log.info("Fim de assinatura antiga do Google Play ignorado: conta={} familia={}", conta.getId(), familia.getId());
-        } else {
-            aplicarDaLoja("PLAY_STORE", conta, compra.evento());
+        } else if (aplicarDaLoja("PLAY_STORE", conta, compra.evento()) && compra.evento().premiumAte() != null) {
+            familia.lembrarTokenDoPlay(compra.token());
         }
         googlePlay.confirmar(compra);
     }
 
     /** Premium pago por outro caminho (o site ou a outra loja) segue valendo: a loja nao derruba nem encurta. */
-    private void aplicarDaLoja(String origem, UserAccount conta, EventoDeAssinatura evento) {
+    private boolean aplicarDaLoja(String origem, UserAccount conta, EventoDeAssinatura evento) {
+        // A ordem da Apple e por conta, nao por familia: trocar de familia nao reabre uma
+        // transacao de antes do reembolso (D-155).
+        if ("APP_STORE".equals(origem) && !conta.registrarEventoDaAppStore(evento.momento())) {
+            log.info("Transacao da App Store anterior a ultima vista ignorada: conta={}", conta.getId());
+            return false;
+        }
         if (evento.emTeste()) {
             conta.marcarTesteGratisUsado();
         }
@@ -316,6 +332,7 @@ public class AssinaturaService {
                 evento.inicio(), evento.tipo(), conta.getId());
         log.info("Assinatura na loja {}: conta={} familia={} plano={} aplicado={}",
                 origem, conta.getId(), familia.getId(), familia.planoVigente(), aplicado);
+        return aplicado;
     }
 
     private UserAccount conta(UUID usuarioId) {

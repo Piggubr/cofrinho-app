@@ -135,9 +135,10 @@ final class Sessao {
         }
     }
 
-    /// Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado.
+    /// Confirma o e-mail pelo link; com sessao aberta, o perfil ja sai atualizado. A sessao vai
+    /// junto: conta com senha so confirma com ela (D-152).
     func confirmarEmail(token: String) async throws {
-        let _: SemCorpo = try await cliente.post("/auth/confirmar-email", corpo: PedidoComToken(token: token), aberta: true)
+        let _: SemCorpo = try await cliente.post("/auth/confirmar-email", corpo: PedidoComToken(token: token), aberta: usuario == nil)
         if usuario != nil {
             await atualizarPerfil()
         }

@@ -35,6 +35,7 @@ describe('Calendar', () => {
   afterEach(() => {
     http.verify();
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   function responder(notas: Nota[], mesDosGastos = mes) {
@@ -83,6 +84,9 @@ describe('Calendar', () => {
   });
 
   it('o grafico do mes soma receitas e gastos e marca o dia aberto', async () => {
+    // O grafico para em hoje: nos dias 1 e 2 os lancamentos do dia 3 ainda nao entram.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(hoje.getFullYear(), hoje.getMonth(), 28, 12));
     const tela = await abrir();
     const pagina: HTMLElement = tela.nativeElement;
 

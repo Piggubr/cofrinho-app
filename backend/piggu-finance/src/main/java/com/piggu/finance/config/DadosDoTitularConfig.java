@@ -47,7 +47,8 @@ public class DadosDoTitularConfig {
                 Tabela.privada("monthly_goals", "user_id"),
                 Tabela.privada("product_memory", "user_id"),
                 Tabela.compartilhada("custom_categories", "created_by_id"),
-                Tabela.compartilhada("eventos_de_auditoria", "autor_id"),
+                // O historico vai com a pessoa: quem sai nao deixa o que fez para a familia ver (D-154).
+                Tabela.pessoal("eventos_de_auditoria", "autor_id"),
                 Tabela.pessoal("consents", "user_id"),
                 Tabela.pessoal("assistant_usage", "user_id"),
                 new Tabela("receipt_usage", null, false)
