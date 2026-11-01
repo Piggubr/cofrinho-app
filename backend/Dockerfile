@@ -26,7 +26,7 @@ COPY . .
 ARG MODULO
 RUN mvn -B -q -pl ${MODULO} -am package -DskipTests -Dcheckstyle.skip
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:24-jre-alpine
 # Liga a imagem publicada no GitHub (ghcr.io) ao repositorio.
 LABEL org.opencontainers.image.source=https://github.com/Piggubr/cofrinho-app
 WORKDIR /app
