@@ -459,6 +459,18 @@ services:
       - loki
     restart: unless-stopped
 
+# IPv6 na rede do compose: sem ela o Docker repassa o IPv6 pelo docker-proxy e o Caddy ve o
+# endereco da ponte no lugar do cliente, e os limites por IP viram um balde so (D-161).
+# Nome novo de proposito: a rede antiga, sem IPv6, nao e alterada no lugar (o compose pararia
+# perguntando); os containers so passam para esta no proximo up.
+networks:
+  default:
+    name: piggu-rede
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fd8e:6967:6775::/64
+
 volumes:
   piggu-dados:
   piggu-fotos:

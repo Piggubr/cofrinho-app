@@ -85,10 +85,33 @@ public class LimitePorIpGlobalFilter implements GlobalFilter, Ordered {
         String cabecalho = pedido.getHeaders().getFirst("X-Forwarded-For");
         if (cabecalho != null && !cabecalho.isBlank()) {
             String[] saltos = cabecalho.split(",");
-            return saltos[saltos.length - 1].trim();
+            return porRede(saltos[saltos.length - 1].trim());
         }
         InetSocketAddress conexao = pedido.getRemoteAddress();
-        return conexao == null || conexao.getAddress() == null ? "-" : conexao.getAddress().getHostAddress();
+        return conexao == null || conexao.getAddress() == null ? "-" : porRede(conexao.getAddress().getHostAddress());
+    }
+
+    /**
+     * IPv6 conta por /64: um cliente IPv6 costuma ter o /64 inteiro e trocaria de endereco a
+     * cada pedido para escapar do limite (D-161).
+     */
+    static String porRede(String ip) {
+        if (ip == null || !ip.contains(":") || !ip.matches("[0-9A-Fa-f:.]+")) {
+            return ip;
+        }
+        try {
+            byte[] bytes = java.net.InetAddress.getByName(ip).getAddress();
+            if (bytes.length != 16) {
+                return ip;
+            }
+            StringBuilder rede = new StringBuilder();
+            for (int i = 0; i < 8; i += 2) {
+                rede.append(Integer.toHexString(((bytes[i] & 0xff) << 8) | (bytes[i + 1] & 0xff))).append(':');
+            }
+            return rede.append(":/64").toString();
+        } catch (java.net.UnknownHostException invalido) {
+            return ip;
+        }
     }
 
     /** Mesmo corpo de erro dos servicos (ApiError), que o front ja sabe mostrar. */

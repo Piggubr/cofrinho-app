@@ -53,6 +53,8 @@ public class MinhaContaService {
     private final RevogacaoDaApple apple;
 
 
+    private final TentativasDeCpf tentativasDeCpf;
+
     public MinhaContaService(UserAccountRepository usuarios,
                              RefreshSessionRepository sessoes,
                              HouseholdRepository familias,
@@ -64,7 +66,9 @@ public class MinhaContaService {
                              Aparelhos aparelhos,
                              AvisosEnviados avisosEnviados,
                              TestesGratis testes,
-                             RevogacaoDaApple apple) {
+                             RevogacaoDaApple apple,
+                             TentativasDeCpf tentativasDeCpf) {
+        this.tentativasDeCpf = tentativasDeCpf;
         this.testes = testes;
         this.apple = apple;
         this.cofre = cofre;
@@ -152,10 +156,12 @@ public class MinhaContaService {
      */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
+        tentativasDeCpf.exigirTentativa(conta.getId());
         String indice = cofre.indice(cpf);
         boolean deOutraConta = usuarios.findByCpfIndice(indice).stream()
                 .anyMatch(outra -> !outra.getId().equals(conta.getId()));
         if (deOutraConta) {
+            tentativasDeCpf.recusado(conta.getId());
             log.warn("CPF de outra conta recusado: conta={}", conta.getId());
             throw new BusinessException(
                     "Esse CPF já está em outra conta do Piggu. Se não foi você, fale com a gente pelo canal de privacidade.",

@@ -85,7 +85,11 @@ public class LeitorDeRecibos {
         try {
             return lerDentroDaCota(pedido, usuario).comRestantes(restantes);
         } catch (RuntimeException falhou) {
-            cota.devolver(usuario);
+            // O Gemini ja leu e cobrou: a leitura conta mesmo sem itens (D-156).
+            if (!(falhou instanceof GeminiReceiptReader.LeituraCobrada
+                    || falhou instanceof GeminiReceiptReader.RespostaCobrada)) {
+                cota.devolver(usuario);
+            }
             throw falhou;
         }
     }

@@ -67,6 +67,20 @@ class LimitePorIpGlobalFilterTest {
     }
 
     @Test
+    @DisplayName("IPv6 conta pelo /64: trocar o fim do endereco nao escapa do limite (D-161)")
+    void ipv6PorRede() {
+        LimitePorIpGlobalFilter filtro = new LimitePorIpGlobalFilter(1, relogio);
+        chamar(filtro, doIp("2001:db8:1:2::1"));
+
+        MockServerWebExchange mesmoBloco = chamar(filtro, doIp("2001:db8:1:2:ffff::9"));
+        MockServerWebExchange outroBloco = chamar(filtro, doIp("2001:db8:1:3::1"));
+
+        assertThat(mesmoBloco.getResponse().getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(outroBloco.getResponse().getStatusCode()).isNotEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(LimitePorIpGlobalFilter.porRede("200.1.1.1")).isEqualTo("200.1.1.1");
+    }
+
+    @Test
     @DisplayName("o IP e o que o Caddy escreveu (a direita), nao o que o cliente inventou")
     void ipDaDireita() {
         LimitePorIpGlobalFilter filtro = new LimitePorIpGlobalFilter(1, relogio);

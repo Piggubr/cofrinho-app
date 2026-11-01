@@ -18,6 +18,15 @@ Com isso ligado:
 | Chave JWT | identity (`TokenConfig`) | recusa a chave de desenvolvimento (`piggu-dev-*.pem`) |
 | Chave que vazou | identity, em **qualquer** ambiente | recusa o par que esteve no Git até o commit `c5f54e1` |
 
+O `deploy/atualizar.sh` não sobe nada se o `backend/.env` não tiver exatamente
+`PIGGU_AMBIENTE=producao` (D-151). A compra pelo StoreKit do Xcode só vale com
+`APP_STORE_ACEITAR_XCODE=true`, que nunca vai no servidor.
+
+**IPv6.** A rede do compose se chama `piggu-rede` e tem IPv6 (D-161), para o Caddy ver o
+endereço real de quem chega por IPv6. O Docker do servidor precisa ser o 27 ou mais novo. No
+primeiro deploy com ela os containers passam para a rede nova; depois, `docker network rm
+backend_default` apaga a antiga.
+
 ## 2. Chave JWT nova
 
 A chave privada assina todos os tokens: quem tem ela entra como qualquer pessoa. O par
