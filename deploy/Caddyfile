@@ -4,6 +4,12 @@
 # DOMINIO, e redireciona todo acesso por HTTP para HTTPS (308) sem configuracao extra.
 {
 	email {$EMAIL_DO_CERTIFICADO}
+	# Atras do tunel da Cloudflare, quem conecta e o cloudflared: o IP de quem chamou vem no
+	# CF-Connecting-IP, e so vale quando a conexao chega de um proxy confiavel (D-161).
+	servers {
+		trusted_proxies static {$PIGGU_PROXIES_CONFIAVEIS:127.0.0.1/32}
+		client_ip_headers CF-Connecting-IP
+	}
 }
 
 {$DOMINIO} {
@@ -42,9 +48,12 @@
 	# So /api vai para o gateway. /.well-known (chave publica do JWT) e o actuator ficam
 	# de fora de proposito: quem usa sao os servicos, pela rede interna.
 	handle /api/* {
-		# Sem trusted_proxies, o Caddy descarta o X-Forwarded-For de quem chamou e escreve
-		# o IP real; o gateway acrescenta o dele. Por isso PIGGU_LIMITE_PROXIESNAFRENTE=2.
-		reverse_proxy gateway:8080
+		# O X-Forwarded-For sai com um IP so, o de quem chamou ({client_ip}: o da conexao, ou o
+		# do CF-Connecting-IP atras do tunel); o gateway acrescenta o dele. Por isso
+		# PIGGU_LIMITE_PROXIESNAFRENTE=2.
+		reverse_proxy gateway:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
 	}
 
 	handle {

@@ -323,6 +323,9 @@ services:
     environment:
       DOMINIO: "${DOMINIO:?defina DOMINIO no arquivo .env (ex.: piggu.app)}"
       EMAIL_DO_CERTIFICADO: ${EMAIL_DO_CERTIFICADO:?defina EMAIL_DO_CERTIFICADO no arquivo .env}
+      # Com o tunel da Cloudflare na frente: private_ranges, para o Caddy ler o IP real do
+      # CF-Connecting-IP (D-161). Sem tunel, o padrao nao confia em ninguem.
+      PIGGU_PROXIES_CONFIAVEIS: ${PIGGU_PROXIES_CONFIAVEIS:-127.0.0.1/32}
     ports:
       - "80:80"
       - "443:443"
@@ -458,18 +461,6 @@ services:
       - prometheus
       - loki
     restart: unless-stopped
-
-# IPv6 na rede do compose: sem ela o Docker repassa o IPv6 pelo docker-proxy e o Caddy ve o
-# endereco da ponte no lugar do cliente, e os limites por IP viram um balde so (D-161).
-# Nome novo de proposito: a rede antiga, sem IPv6, nao e alterada no lugar (o compose pararia
-# perguntando); os containers so passam para esta no proximo up.
-networks:
-  default:
-    name: piggu-rede
-    enable_ipv6: true
-    ipam:
-      config:
-        - subnet: fd8e:6967:6775::/64
 
 volumes:
   piggu-dados:

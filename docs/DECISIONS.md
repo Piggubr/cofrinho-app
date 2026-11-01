@@ -1641,14 +1641,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: a contagem fica em memória, por instância, como as travas de login. Uma consulta isolada de um CPF segue possível, e isso é aceito.
 - Onde ver: `backend/piggu-identity/.../domain/TentativasDeCpf.java`, `.../domain/MinhaContaService.java` (`prenderCpf`)
 
-## D-161: IPv6 na rede do compose e limites por /64
+## D-161: Atrás do túnel da Cloudflare, o IP vem do CF-Connecting-IP, e IPv6 conta por /64
 - Data: 01/11/2026
 - Situação: Valendo
-- Contexto: sem IPv6 na rede do compose, o Docker repassa as conexões IPv6 pelo docker-proxy, e o Caddy vê o endereço da ponte no lugar do cliente. Todos os clientes IPv6 viravam um balde só nos limites por IP e na trava de 5 senhas erradas por IP. E um cliente IPv6 escapava do limite trocando o fim do endereço.
-- Decisão: a rede padrão do compose passa a se chamar `piggu-rede`, com IPv6 (`fd8e:6967:6775::/64`), e assim o Docker mantém o endereço do cliente. O gateway e os serviços contam IPv6 pelo /64.
-- Alternativas: o Caddy com `network_mode: host`, que muda como ele chega ao gateway e não funciona igual no Docker Desktop.
-- Consequências: o próximo deploy cria a rede nova e recria os containers nela; a `backend_default` antiga fica sem uso e pode ser apagada à mão. O Docker do servidor precisa de suporte a IPv6 em rede de usuário (Docker 27 ou mais novo, com `ip6tables`, que já vem ligado).
-- Onde ver: `backend/docker-compose.yml`, `backend/piggu-common/.../web/LimiteDeRequisicoes.java`, `backend/piggu-gateway/.../LimitePorIpGlobalFilter.java`
+- Contexto: em produção, o tráfego chega ao Caddy pelo `cloudflared` (túnel da Cloudflare, no `docker-compose.override.yml` do servidor, com o `web` sem porta pública). O Caddy escrevia no X-Forwarded-For o IP do `cloudflared`, e todo mundo virava um IP só: o limite de 20 logins por minuto valia para o site inteiro, e 5 senhas erradas travavam a entrada por senha de uma conta para todos. E um cliente IPv6 escapava dos limites trocando o fim do endereço.
+- Decisão: o Caddy confia nos proxies de `PIGGU_PROXIES_CONFIAVEIS` (no servidor, `private_ranges`, que é de onde o `cloudflared` conecta) e, vindo deles, lê o IP de quem chamou no `CF-Connecting-IP`. O X-Forwarded-For sai com esse IP só. Sem a variável, o Caddy não confia em ninguém e usa o IP da conexão, como antes. O gateway e os serviços contam IPv6 pelo /64.
+- Alternativas: IPv6 na rede do compose, que só ajuda quando o Caddy publica porta direto, o que não é o caso em produção; confiar só no IP do `cloudflared`, que muda a cada recriação do container.
+- Consequências: o `.env` do servidor precisa de `PIGGU_PROXIES_CONFIAVEIS=private_ranges`. Ninguém chega ao Caddy sem passar pela Cloudflare, porque o `web` não publica porta, e por isso o cabeçalho não tem como ser inventado. Se um dia o Caddy voltar a publicar porta, a variável tem que sair.
+- Onde ver: `deploy/Caddyfile`, `backend/docker-compose.yml` (`web`), `backend/piggu-common/.../web/LimiteDeRequisicoes.java`, `backend/piggu-gateway/.../LimitePorIpGlobalFilter.java`
 
 ## D-162: Siri, widget e busca do iPhone respeitam o bloqueio e a trava
 - Data: 01/11/2026

@@ -22,10 +22,10 @@ O `deploy/atualizar.sh` não sobe nada se o `backend/.env` não tiver exatamente
 `PIGGU_AMBIENTE=producao` (D-151). A compra pelo StoreKit do Xcode só vale com
 `APP_STORE_ACEITAR_XCODE=true`, que nunca vai no servidor.
 
-**IPv6.** A rede do compose se chama `piggu-rede` e tem IPv6 (D-161), para o Caddy ver o
-endereço real de quem chega por IPv6. O Docker do servidor precisa ser o 27 ou mais novo. No
-primeiro deploy com ela os containers passam para a rede nova; depois, `docker network rm
-backend_default` apaga a antiga.
+**Túnel da Cloudflare.** Com o `cloudflared` na frente do Caddy e o `web` sem porta
+pública, ponha `PIGGU_PROXIES_CONFIAVEIS=private_ranges` no `.env`. Assim o Caddy lê o IP de
+quem chamou no `CF-Connecting-IP`, e os limites por IP valem por pessoa, não para o site
+inteiro (D-161). Sem túnel, com o Caddy publicando a porta, deixe a variável de fora.
 
 ## 2. Chave JWT nova
 
