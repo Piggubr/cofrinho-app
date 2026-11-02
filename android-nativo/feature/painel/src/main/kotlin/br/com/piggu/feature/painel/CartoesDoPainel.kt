@@ -321,7 +321,7 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
     ) {
         Column(Modifier.padding(20.dp).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                stringResource(if (passado) R.string.gastar_titulo_passado else R.string.gastar_titulo, mesPorExtenso(estado.mes)),
+                stringResource(if (passado) R.string.gastar_titulo_passado else R.string.gastar_titulo, mesPorExtenso(estado.mes).lowercase(Locale.forLanguageTag("pt-BR"))),
                 Modifier.semantics { heading() },
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -335,7 +335,7 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
             }
             val passou = resta.signum() < 0
             Text(
-                formatarMoeda(resta.abs(), estado.moeda),
+                formatarMoeda(resta, estado.moeda),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = if (passou) MaterialTheme.colorScheme.error else LocalContentColor.current,
