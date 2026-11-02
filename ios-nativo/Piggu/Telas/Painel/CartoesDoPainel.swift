@@ -176,12 +176,12 @@ struct CartaoAindaDaParaGastar: View {
                 .accessibilityAddTraits(.isHeader)
             if let conta {
                 let passou = conta.resta < 0
-                Text(Formatos.moeda(abs(conta.resta)))
+                Text(Formatos.moeda(conta.resta))
                     .font(.sora(.largeTitle, peso: .bold))
                     .monospacedDigit()
                     .foregroundStyle(passou ? paleta.perigo : paleta.primaria)
                 if passou {
-                    Text("Você passou desse valor este mês.").font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
+                    Text("Já passou do que dava para gastar este mês.").font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
                 } else if let porDia = conta.porDia {
                     Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
                 }

@@ -21,6 +21,7 @@ struct PrincipalView: View {
     /// Gasto achado no Spotlight, para a aba Gastos abrir.
     @State private var gastoParaAbrir: GastoPedido?
     @Environment(\.scenePhase) private var fase
+    @Environment(\.paleta) private var paleta
     @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @SceneStorage("piggu_caminho_do_mais") private var caminhoDoMais = ""
@@ -153,6 +154,7 @@ struct PrincipalView: View {
             .padding(.vertical, 8)
             if lancamentos == .receitas { receitas } else { gastos }
         }
+        .background(paleta.fundo)
     }
 
     /// Planejar, com os Relatórios dentro (D-164).
