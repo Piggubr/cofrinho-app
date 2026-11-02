@@ -101,7 +101,7 @@ struct PrincipalView: View {
     private var abas: some View {
         if #available(iOS 18, *) {
             TabView(selection: $aba) {
-                Tab("Painel", systemImage: "chart.pie.fill", value: Aba.painel) { painel }
+                Tab("Painel", systemImage: "house.fill", value: Aba.painel) { painel }
                 Tab("Lançamentos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { abaDeLancamentos }
                 Tab("Planejar", systemImage: "target", value: Aba.planejar) { planejar }
                 Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: .guardada($caminhoDoMais)) }
@@ -111,7 +111,7 @@ struct PrincipalView: View {
         } else {
             TabView(selection: $aba) {
                 painel
-                    .tabItem { Label("Painel", systemImage: "chart.pie.fill") }
+                    .tabItem { Label("Painel", systemImage: "house.fill") }
                     .tag(Aba.painel)
                 abaDeLancamentos
                     .tabItem { Label("Lançamentos", systemImage: "list.bullet.rectangle.fill") }
