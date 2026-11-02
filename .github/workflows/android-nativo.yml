@@ -56,6 +56,9 @@ jobs:
       - name: Capturas Roborazzi
         run: ./gradlew --no-daemon verifyRoborazziDemoDebug
 
+      - name: Cobertura (piso no build.gradle.kts da raiz)
+        run: ./gradlew --no-daemon koverVerify koverLog
+
       - name: Guardar relatórios e diferenças das capturas
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
