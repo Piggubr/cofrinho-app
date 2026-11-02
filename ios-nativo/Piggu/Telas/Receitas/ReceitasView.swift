@@ -5,6 +5,8 @@ import SwiftUI
 struct ReceitasView: View {
     let versaoDosDados: Int
     /// Lancou, recebeu ou apagou: as outras abas recarregam.
+    /// A troca entre Gastos e Receitas, quando a tela esta na aba Lançamentos.
+    var lancamentos: Binding<Aba>? = nil
     let aoMudar: () -> Void
 
     @Environment(Sessao.self) private var sessao
@@ -64,6 +66,7 @@ struct ReceitasView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .comSeletorDeMes($mes)
+            .comTrocaDeLancamentos(lancamentos)
             .navigationTitle("Receitas")
             .topoDoPiggu()
             .refreshable { await carregar() }
