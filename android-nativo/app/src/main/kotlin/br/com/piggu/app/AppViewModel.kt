@@ -25,15 +25,12 @@ import br.com.piggu.feature.perfil.IconesDoApp
 import br.com.piggu.core.ui.formatos.formatarCotacao
 import br.com.piggu.app.moldura.PerfilDaMoldura
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -93,21 +90,6 @@ class AppViewModel @Inject constructor(
             avisarCorPadrao = aparencia.voltou,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, EstadoDoApp())
-
-    private val pessoaLogada = sessao.estado
-        .map { (it as? EstadoDaSessao.Logado)?.usuario?.takeIf { u -> u.pendencia == null }?.id }
-        .distinctUntilChanged()
-
-    /** O tour do primeiro acesso (abrirSeNovo do Tutorial do site): uma vez por pessoa neste aparelho. */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tourNovo: StateFlow<Boolean> = pessoaLogada
-        .flatMapLatest { id -> if (id == null) flowOf(false) else preferencias.viuOTour(id).map { !it } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    /** Fechou o tour, no fim ou pelo "Pular". */
-    fun viuOTour() {
-        viewModelScope.launch { pessoaLogada.first()?.let { preferencias.marcarTourVisto(it) } }
-    }
 
     init {
         viewModelScope.launch { sessao.restaurar() }

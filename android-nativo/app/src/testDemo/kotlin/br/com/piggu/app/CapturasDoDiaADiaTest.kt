@@ -140,8 +140,11 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     }
 
     /** A aba (barra, trilho ou gaveta) ou a opção com esse texto; o primeiro que der para tocar. */
-    private fun tocar(texto: String) =
+    /** Toca no primeiro dos [textos] que estiver na tela: "Lançamentos" na barra, "Gastos" na gaveta (D-164). */
+    private fun tocar(vararg textos: String) {
+        val texto = textos.firstOrNull { compose.onAllNodes(hasText(it) and hasClickAction()).fetchSemanticsNodes().isNotEmpty() } ?: textos.last()
         compose.onAllNodes(hasText(texto) and hasClickAction()).onFirst().performClick()
+    }
 
     @Test
     fun painel() {
@@ -151,7 +154,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun gastos() {
-        tocar("Gastos")
+        tocar("Lançamentos", "Gastos")
         esperarCarregar()
         // Os nomes da família chegam numa carga à parte ("de Beto Souza").
         compose.waitUntil(15_000) { compose.onAllNodes(hasText("de Beto Souza", substring = true)).fetchSemanticsNodes().isNotEmpty() }
@@ -160,6 +163,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun receitas() {
+        tocar("Lançamentos", "Receitas")
         tocar("Receitas")
         esperarCarregar()
         capturar("receitas")
@@ -207,6 +211,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun relatorios() {
+        tocar("Planejar")
         tocar("Relatórios")
         esperarCarregar()
         capturar("relatorios", 5)
@@ -240,7 +245,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun metas() {
-        abrirDoMais("Minhas metas")
+        abrirDoMais("Metas do mês")
         capturar("metas", 6)
     }
 
@@ -252,7 +257,8 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun planejar() {
-        abrirDoMais("Planejar")
+        esperarCarregar()
+        tocar("Planejar")
         capturar("planejar", 6)
     }
 

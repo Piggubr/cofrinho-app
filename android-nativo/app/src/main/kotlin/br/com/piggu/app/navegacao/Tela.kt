@@ -63,10 +63,11 @@ sealed interface Tela : NavKey {
 
     companion object {
         /**
-         * As abas, na ordem da barra do celular. Getter, e não campo: carregar uma das telas antes
+         * As telas de aba, que abrem dentro da moldura e substituem a anterior. Na barra do celular
+         * são quatro (D-164): Receitas marca Lançamentos, e Relatórios marca Planejar. Getter, e não campo: carregar uma das telas antes
          * inicializa a interface (métodos default do Kotlin 2), e o campo veria a tela ainda nula.
          */
-        val abas: List<Tela> get() = listOf(Painel, Gastos, Receitas, Relatorios, Mais)
+        val abas: List<Tela> get() = listOf(Painel, Gastos, Receitas, Relatorios, Planejar, Mais)
 
         /** Abrem sem sessão (as rotas do site sem o autenticadoGuard). */
         fun aberta(tela: Tela) = tela in setOf(Entrar, Privacidade, Termos, EsqueciSenha) ||

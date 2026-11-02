@@ -108,9 +108,10 @@ class PainelViewModelTest {
         assertTrue(estado.gastoNoMes.signum() > 0)
         assertTrue(estado.porCategoria.isNotEmpty())
         assertEquals(0, estado.gastoNoMes.compareTo(estado.porCategoria.fold(BigDecimal.ZERO) { s, c -> s + c.total }))
-        assertEquals(listOf(IdDoBloco.Resumo, IdDoBloco.Avisos, IdDoBloco.Mes, IdDoBloco.Cofrinho, IdDoBloco.Objetivos), estado.cartoes)
+        assertEquals(listOf(IdDoBloco.Avisos, IdDoBloco.Cofrinho, IdDoBloco.Objetivos), estado.cartoes)
         // Open Finance ligado na demo: o cartão dos bancos vai junto do "mes".
-        assertEquals(IdDoBloco.Mes, estado.bancosJuntoDe)
+        // Com o Mes desligado de saída, os bancos vão junto do primeiro cartão.
+        assertEquals(IdDoBloco.Avisos, estado.bancosJuntoDe)
         // O núcleo e o resumo ficaram guardados para abrir sem internet.
         assertTrue(painel.cache.guardadas.keys.containsAll(listOf("painel/2026-10", "resumo/2026-10")))
     }
@@ -261,8 +262,8 @@ class PainelViewModelTest {
         compose.setContent { PigguTheme { TelaDoPainel(estado, EventosDoPainel(), {}, {}) } }
         compose.onNodeWithText("Olá, Ana").assertExists()
         val lista = compose.onNode(hasScrollAction())
-        listOf("Sobra do mês", "Contas bancárias", "Cofrinhos por objetivo", "Metas do mês", "Por categoria", "Suas notas", "Girls Math", "Personalizar o Painel")
-            .forEach { lista.performScrollToNode(hasText(it)) }
+        listOf("Ainda dá para gastar", "Sobra do mês", "Contas bancárias", "Objetivos do cofrinho", "Metas do mês", "Por categoria", "Suas notas", "Girls Math", "Personalizar o Painel")
+            .forEach { lista.performScrollToNode(hasText(it, substring = true)) }
         compose.onNodeWithText("Personalizar o Painel").performClick()
         compose.onNodeWithText("Voltar ao padrão").assertExists()
     }

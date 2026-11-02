@@ -53,7 +53,7 @@ private val PASSOS = listOf(
     PassoDoTour(Icone.Mais, R.string.tour_lancar_titulo, R.string.tour_lancar_texto, listOf(AlvoDoTour.Lancar)),
     PassoDoTour(Icone.Casa, R.string.tour_painel_titulo, R.string.tour_painel_texto, listOf(AlvoDoTour.Painel)),
     PassoDoTour(Icone.Alvo, R.string.tour_planejar_titulo, R.string.tour_planejar_texto, listOf(AlvoDoTour.Planejar, AlvoDoTour.Mais)),
-    PassoDoTour(Icone.Grafico, R.string.tour_relatorios_titulo, R.string.tour_relatorios_texto, listOf(AlvoDoTour.Relatorios, AlvoDoTour.Mais)),
+    PassoDoTour(Icone.Grafico, R.string.tour_relatorios_titulo, R.string.tour_relatorios_texto, listOf(AlvoDoTour.Relatorios, AlvoDoTour.Planejar)),
     PassoDoTour(Icone.Pessoas, R.string.tour_familia_titulo, R.string.tour_familia_texto, listOf(AlvoDoTour.Familia, AlvoDoTour.Mais)),
     PassoDoTour(Icone.Busca, R.string.tour_busca_titulo, R.string.tour_busca_texto, listOf(AlvoDoTour.Busca)),
     PassoDoTour(Icone.Brilho, R.string.tour_assistente_titulo, R.string.tour_assistente_texto, listOf(AlvoDoTour.Assistente)),
@@ -74,13 +74,14 @@ data class TourAberto(
     fun avancar() = if (ultimo) fechar() else irPara(passo + 1)
 
     /**
-     * O primeiro alvo do passo que está na tela (alvoNaTela do site): no celular e no trilho, o
-     * Planejar e a Família ficam no Mais; na gaveta, cada um tem o seu item.
+     * O primeiro alvo do passo que está na tela (alvoNaTela do site): no celular e no trilho, os
+     * Relatórios ficam no Planejar e a Família no Mais; na gaveta, cada um tem o seu item.
      */
     fun naMoldura(forma: FormaDoMenu): TourAberto = copy(
         alvo = PASSOS[passo].alvos.firstOrNull { alvo ->
             when (alvo) {
-                AlvoDoTour.Planejar, AlvoDoTour.Familia -> forma == FormaDoMenu.Gaveta
+                // Os Relatórios e a Família só têm item próprio na gaveta; fora dela, ficam no Planejar e no Mais.
+                AlvoDoTour.Relatorios, AlvoDoTour.Familia -> forma == FormaDoMenu.Gaveta
                 AlvoDoTour.Mais -> forma != FormaDoMenu.Gaveta
                 else -> true
             }

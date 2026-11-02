@@ -11,7 +11,8 @@ class PainelOrganizadoTest {
     fun `sem nada salvo e o padrao do site`() {
         val padrao = PainelOrganizado.ordemValida(null)
         assertEquals(listOf("resumo", "avisos", "mes", "cofrinho", "objetivos", "metas", "categorias", "notas", "girls-math"), padrao.map { it.id })
-        assertEquals(listOf("resumo", "avisos", "mes", "cofrinho", "objetivos"), padrao.filter { it.visivel }.map { it.id })
+        // Resumo e Mes nascem desligados (D-164): o "Ainda dá para gastar" do topo já diz isso.
+        assertEquals(listOf("avisos", "cofrinho", "objetivos"), padrao.filter { it.visivel }.map { it.id })
     }
 
     @Test
@@ -34,7 +35,7 @@ class PainelOrganizadoTest {
     @Test
     fun `o JSON e o mesmo do site`() {
         val blocos = PainelOrganizado.alternar(PainelOrganizado.padrao, IdDoBloco.Notas).take(2)
-        assertEquals("""[{"id":"resumo","visivel":true},{"id":"avisos","visivel":true}]""", PainelOrganizado.paraJson(blocos))
+        assertEquals("""[{"id":"resumo","visivel":false},{"id":"avisos","visivel":true}]""", PainelOrganizado.paraJson(blocos))
         // O que o app grava volta igual, e o site lê o mesmo texto.
         val todos = PainelOrganizado.moverPara(PainelOrganizado.padrao, IdDoBloco.GirlsMath, 0)
         assertEquals(todos, PainelOrganizado.ordemValida(PainelOrganizado.paraJson(todos)))

@@ -15,9 +15,10 @@ import kotlinx.serialization.json.jsonPrimitive
  * padrão; [padrao] diz se aparece de início (o que só vive no Painel) ou se a pessoa liga.
  */
 enum class IdDoBloco(val id: String, val padrao: Boolean, @param:StringRes val nome: Int) {
-    Resumo("resumo", true, R.string.bloco_resumo),
+    // Resumo e Mes nascem desligados desde o D-164: o "Ainda dá para gastar" fixo no topo já diz isso.
+    Resumo("resumo", false, R.string.bloco_resumo),
     Avisos("avisos", true, R.string.bloco_avisos),
-    Mes("mes", true, R.string.bloco_mes),
+    Mes("mes", false, R.string.bloco_mes),
     Cofrinho("cofrinho", true, R.string.bloco_cofrinho),
     Objetivos("objetivos", true, R.string.bloco_objetivos),
     Metas("metas", false, R.string.bloco_metas),
