@@ -111,6 +111,8 @@ piggu:
     app-apple-id: ${APP_STORE_APP_APPLE_ID:}
     # Revogacao dos certificados (OCSP) na hora de conferir. So os testes desligam.
     checar-online: ${APP_STORE_CHECAR_ONLINE:true}
+    # Aceita o JWS do Xcode, que vem sem assinatura. So no desenvolvimento, nunca no servidor (D-151).
+    aceitar-xcode: ${APP_STORE_ACEITAR_XCODE:false}
 
   google-play:
     # Compra dentro do app Android, conferida na Google Play Developer API.

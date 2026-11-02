@@ -182,7 +182,7 @@ public class GeminiReceiptReader {
             }
         });
         if (texto.isEmpty()) {
-            throw new BusinessException("A IA nao encontrou itens no recibo.");
+            throw new LeituraCobrada("A IA nao encontrou itens no recibo.");
         }
         return texto.toString();
     }
@@ -193,7 +193,7 @@ public class GeminiReceiptReader {
         } catch (Exception erro) {
             // O texto e o recibo da pessoa: so o tamanho vai para o log.
             log.error("Resposta do Gemini fora do formato esperado ({} caracteres)", texto.length(), erro);
-            throw new UpstreamException("A IA devolveu uma resposta que nao consegui entender.");
+            throw new RespostaCobrada("A IA devolveu uma resposta que nao consegui entender.");
         }
     }
 
@@ -211,7 +211,7 @@ public class GeminiReceiptReader {
                     valor));
         });
         if (resultado.isEmpty()) {
-            throw new BusinessException("A IA nao encontrou itens no recibo.");
+            throw new LeituraCobrada("A IA nao encontrou itens no recibo.");
         }
         return resultado;
     }
@@ -233,5 +233,22 @@ public class GeminiReceiptReader {
             case 429 -> new UpstreamException("A cota do Gemini acabou por enquanto. Tente mais tarde.");
             default -> new UpstreamException("O Gemini nao conseguiu ler o recibo agora (erro " + codigo + ").");
         };
+    }
+
+    /**
+     * O Gemini leu a foto (e cobrou) mas nao achou itens: a leitura conta na cota do mes. So a
+     * falha antes da chamada paga devolve a reserva (D-156).
+     */
+    public static final class LeituraCobrada extends BusinessException {
+        LeituraCobrada(String mensagem) {
+            super(mensagem);
+        }
+    }
+
+    /** Resposta do Gemini fora do formato: a chamada ja foi cobrada, como em {@link LeituraCobrada}. */
+    public static final class RespostaCobrada extends UpstreamException {
+        RespostaCobrada(String mensagem) {
+            super(mensagem);
+        }
     }
 }

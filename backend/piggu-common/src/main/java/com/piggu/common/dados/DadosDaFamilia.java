@@ -1,5 +1,6 @@
 package com.piggu.common.dados;
 
+import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.security.CurrentUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,9 +163,16 @@ public class DadosDaFamilia {
                 // O mesmo que a pessoa ve no app (DonoAtual): o dela, e titular e parceiro
                 // tambem o do outro, o dos menores e o que ficou sem dono.
 
-                linhas = jdbc.queryForObject(sql + " AND (" + tabela.autor() + " = ANY(?) OR (" + tabela.autor()
-                                + " IS NULL AND ?))", String.class,
-                        usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isResponsavel());
+                String visivel = sql + " AND (" + tabela.autor() + " = ANY(?) OR (" + tabela.autor() + " IS NULL AND ?))";
+                if (tabela.nome().equals("eventos_de_auditoria")) {
+                    // Como no historico: evento do que so a pessoa ve sai so para ela (D-154).
+                    linhas = jdbc.queryForObject(visivel + " AND (entidade <> ALL(?) OR autor_id = ?)", String.class,
+                            usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isResponsavel(),
+                            TrilhaDeAuditoria.ENTIDADES_PRIVADAS.toArray(String[]::new), usuario.id());
+                } else {
+                    linhas = jdbc.queryForObject(visivel, String.class,
+                            usuario.familia(), usuario.visiveis().toArray(UUID[]::new), usuario.isResponsavel());
+                }
             }
 
             dados.put(tabela.nome(), ler(linhas));

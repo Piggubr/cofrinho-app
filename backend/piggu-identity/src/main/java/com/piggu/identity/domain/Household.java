@@ -39,6 +39,10 @@ public class Household {
     @Column(name = "billing_event_at")
     private Instant billingEventAt;
 
+    /** purchaseToken do Google Play que deu o Premium; o fim de outro token nao o derruba (D-155). */
+    @Column(name = "play_purchase_token", length = 4000)
+    private String playPurchaseToken;
+
     @Column(name = "premium_since")
     private Instant premiumSince;
 
@@ -185,6 +189,14 @@ public class Household {
             this.premiumSince = inicio;
         }
         return true;
+    }
+
+    public String getPlayPurchaseToken() {
+        return playPurchaseToken;
+    }
+
+    public void lembrarTokenDoPlay(String token) {
+        this.playPurchaseToken = token;
     }
 
     public Instant getPremiumSince() {

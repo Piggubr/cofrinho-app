@@ -86,7 +86,7 @@ public class LembretesDiarios {
         }
         Mensagem mensagem = Mensagem.de(novos, conta.getCurrency());
         boolean entregue = false;
-        if (conta.isAlertsByEmail() && email.ligado()) {
+        if (conta.isAlertsByEmail() && conta.isEmailVerified() && email.ligado()) {
             entregue = email.enviar(conta.getEmail(), mensagem);
         }
         if (conta.isAlertsByPush() && push.ligado()) {

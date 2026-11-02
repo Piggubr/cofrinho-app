@@ -68,8 +68,12 @@ jobs:
 
   # O AAB de produção assinado com a chave de upload, guardado como artefato. Não envia ao Play
   # Console: o envio é manual, com a confirmação do Dudu. Sem os secrets, sai sem assinatura.
+  # Só à mão, na main, no ambiente assinatura-android: a chave nunca chega ao código de um PR,
+  # e o ambiente só libera os secrets para a main (D-153).
   aab:
     name: AAB de produção (Android nativo)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: assinatura-android
     needs: build
     runs-on: ubuntu-latest
     defaults:

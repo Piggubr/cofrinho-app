@@ -146,11 +146,34 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
     public static String ipDeOrigem(HttpServletRequest pedido, Limites limites) {
         String cabecalho = pedido.getHeader("X-Forwarded-For");
         if (cabecalho == null || cabecalho.isBlank()) {
-            return pedido.getRemoteAddr();
+            return porRede(pedido.getRemoteAddr());
         }
         String[] saltos = cabecalho.split(",");
         int indice = saltos.length - limites.proxiesNaFrente();
-        return indice >= 0 ? saltos[indice].trim() : saltos[0].trim();
+        return porRede(indice >= 0 ? saltos[indice].trim() : saltos[0].trim());
+    }
+
+    /**
+     * IPv6 conta por /64: um cliente IPv6 costuma ter o /64 inteiro e trocaria de endereco a
+     * cada pedido para escapar do limite (D-161).
+     */
+    static String porRede(String ip) {
+        if (ip == null || !ip.contains(":") || !ip.matches("[0-9A-Fa-f:.]+")) {
+            return ip;
+        }
+        try {
+            byte[] bytes = java.net.InetAddress.getByName(ip).getAddress();
+            if (bytes.length != 16) {
+                return ip;
+            }
+            StringBuilder rede = new StringBuilder();
+            for (int i = 0; i < 8; i += 2) {
+                rede.append(Integer.toHexString(((bytes[i] & 0xff) << 8) | (bytes[i + 1] & 0xff))).append(':');
+            }
+            return rede.append(":/64").toString();
+        } catch (java.net.UnknownHostException invalido) {
+            return ip;
+        }
     }
 
     private static boolean ehRotaAberta(String caminho) {

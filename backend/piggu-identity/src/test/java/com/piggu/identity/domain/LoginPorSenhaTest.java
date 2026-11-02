@@ -411,21 +411,43 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         conta.pedirConfirmacaoDeEmail(tokens.hash("link-1"), java.time.Instant.now().plusSeconds(60));
         usuarios.save(conta);
         confirmacao.reenviar(acesso.usuario().id());
-        assertThatThrownBy(() -> confirmacao.confirmar("link-1"))
+        assertThatThrownBy(() -> confirmacao.confirmar("link-1", acesso.usuario().id()))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo("LINK_INVALIDO"));
 
         conta = usuarios.findByEmail(EMAIL).orElseThrow();
         conta.pedirConfirmacaoDeEmail(tokens.hash("link-2"), java.time.Instant.now().plusSeconds(60));
         usuarios.save(conta);
-        confirmacao.confirmar("link-2");
+        confirmacao.confirmar("link-2", acesso.usuario().id());
         assertThat(usuarios.findByEmail(EMAIL).orElseThrow().isEmailVerified()).isTrue();
-        assertThatThrownBy(() -> confirmacao.confirmar("link-2")).isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> confirmacao.confirmar("link-2", acesso.usuario().id())).isInstanceOf(BusinessException.class);
 
         conta = usuarios.findByEmail(EMAIL).orElseThrow();
         conta.pedirConfirmacaoDeEmail(tokens.hash("vencido"), java.time.Instant.now().minusSeconds(1));
         usuarios.save(conta);
-        assertThatThrownBy(() -> confirmacao.confirmar("vencido")).isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> confirmacao.confirmar("vencido", acesso.usuario().id())).isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("o link nao confirma conta com senha sem a sessao dela: quem cadastrou o e-mail alheio nao fica com a conta")
+    void confirmacaoExigeASessaoDaConta() {
+        TokenResponse acesso = cadastrar(EMAIL);
+        UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
+        conta.pedirConfirmacaoDeEmail(tokens.hash("link-3"), java.time.Instant.now().plusSeconds(60));
+        usuarios.save(conta);
+
+        assertThatThrownBy(() -> confirmacao.confirmar("link-3", null))
+                .as("sem sessao")
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("ENTRE_PARA_CONFIRMAR"));
+        assertThatThrownBy(() -> confirmacao.confirmar("link-3", java.util.UUID.randomUUID()))
+                .as("sessao de outra conta")
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("ENTRE_PARA_CONFIRMAR"));
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().isEmailVerified()).isFalse();
+
+        confirmacao.confirmar("link-3", acesso.usuario().id());
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().isEmailVerified()).isTrue();
     }
 
     @Test
