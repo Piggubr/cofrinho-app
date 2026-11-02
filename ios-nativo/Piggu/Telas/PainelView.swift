@@ -77,7 +77,12 @@ struct PainelView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(paleta.alertaSuave, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-                    TipView(Dicas.BoasVindas())
+                    // Fixo no topo, e logo abaixo os primeiros passos até terminar ou pular (D-164).
+                    if sessao.usuario?.role != .membro {
+                        CartaoAindaDaParaGastar(mes: mes, conta: AindaDaParaGastar.calcular(
+                            limite: nucleo.metas[Formatos.mes(mes)] ?? 0, receitas: modelo.resumo?.receitas,
+                            gasto: modelo.gastoNoMes(nucleo), contas: modelo.contasFixas, mes: Formatos.mes(mes)), irPara: irPara)
+                    }
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
                                     temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
                     if modelo.temCompanhia {

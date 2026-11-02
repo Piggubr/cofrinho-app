@@ -153,8 +153,9 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
 - **Liquid Glass** só no que flutua: o `+` de lançar, o seletor de mês, os filtros de Gastos e o
   aviso depois de lançar (`pigguVidro()`, `GrupoDeVidro`, `botaoPrincipal()`). No iOS 17 e 18 vira o material translúcido do sistema;
   com Reduzir Transparência, fundo sólido.
-- **Navegação**: abas Painel, Gastos, Receitas, Relatórios e Mais. O Mais segue os grupos e a
-  ordem do menu do site (Planejar, Contas, Estilo de vida, Conta), com o Perfil no topo, o
+- **Navegação**: abas Painel, Lançamentos (Gastos e Receitas, com um seletor no topo), Planejar
+  (Orçamento, Contas do mês, Relatórios e Metas do mês) e Mais (D-164). O Mais segue os grupos do
+  menu (Planejar, Contas, Conta e, por último, Extras), com o Perfil no topo, o
   Premium só para o titular e as telas de estilo de vida que a pessoa ligou no Perfil (D-092) (`Tab` e `.sidebarAdaptable` no iOS
   18+, barra que encolhe ao rolar no 26), um `NavigationStack` por aba, o `+` flutuante e os
   links `piggu://`.
@@ -192,7 +193,7 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, só com "Continuar conectado"), e
   `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). Fica desligada até a etapa 1 do
   backend chegar à produção.
-- **Painel** (`features/dashboard`): os cartões do site na ordem e com a visibilidade escolhidas em
+- **Painel** (`features/dashboard`): no topo, fixo, o "Ainda dá para gastar" (D-164); depois os cartões do site na ordem e com a visibilidade escolhidas em
   "Personalizar o Painel" (mesma chave e JSON do site, `piggu_painel_<id>`): sobra do mês,
   Para ficar de olho (orçamentos, fatura, contas do mês, quem está devendo), gasto e limite,
   contas bancárias do Open Finance (atualizar e desconectar), cofrinho com depósitos, cofrinhos

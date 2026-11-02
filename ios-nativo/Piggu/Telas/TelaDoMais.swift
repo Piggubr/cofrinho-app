@@ -10,7 +10,7 @@ enum TelaDoMais: String, CaseIterable, Hashable {
     var titulo: String {
         switch self {
         case .planejar: String(localized: "Planejar")
-        case .metas: String(localized: "Minhas metas")
+        case .metas: String(localized: "Metas do mês")
         case .orcamento: String(localized: "Orçamento")
         case .contasDoMes: String(localized: "Contas do mês")
         case .cartoes: String(localized: "Cartões e bancos")

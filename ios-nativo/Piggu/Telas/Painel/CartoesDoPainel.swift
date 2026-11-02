@@ -157,6 +157,62 @@ private struct LinhaDeAviso: View {
     }
 }
 
+/// Ainda dá para gastar (D-164): fixo no topo do Painel, fora do Personalizar.
+struct CartaoAindaDaParaGastar: View {
+    let mes: Date
+    /// nil sem limite e sem receita.
+    let conta: AindaDaParaGastar?
+    let irPara: (Aba) -> Void
+
+    @Environment(\.paleta) private var paleta
+
+    private var passado: Bool { Formatos.mes(mes) < Formatos.mes(Date()) }
+    private var nomeDoMes: String { Formatos.nomeDoMes(mes) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(passado ? "Sobrou em \(nomeDoMes)" : "Ainda dá para gastar em \(nomeDoMes)")
+                .font(.sora(.headline, peso: .semibold))
+                .accessibilityAddTraits(.isHeader)
+            if let conta {
+                let passou = conta.resta < 0
+                Text(Formatos.moeda(abs(conta.resta)))
+                    .font(.sora(.largeTitle, peso: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(passou ? paleta.perigo : paleta.primaria)
+                if passou {
+                    Text("Você passou desse valor este mês.").font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
+                } else if let porDia = conta.porDia {
+                    Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
+                }
+                // A conta à vista: quem não entende o número entende de onde ele veio.
+                Group {
+                    if conta.tetoEhOLimite {
+                        Text("Limite de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                    } else {
+                        Text("Receitas de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                    }
+                }
+                .font(.sora(.footnote))
+                .foregroundStyle(paleta.textoSuave)
+            } else {
+                Text("Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.")
+                    .font(.sora(.subheadline))
+                HStack {
+                    NavigationLink("Definir limite", value: TelaDoMais.orcamento)
+                    Spacer()
+                    Button("Lançar receitas") { irPara(.receitas) }
+                }
+                .font(.sora(.subheadline, peso: .medium))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(paleta.suave, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .accessibilityElement(children: .contain)
+    }
+}
+
 /// Gasto e limite do mes, com a barra do limite.
 struct CartaoDoMes: View {
     let mes: Date
