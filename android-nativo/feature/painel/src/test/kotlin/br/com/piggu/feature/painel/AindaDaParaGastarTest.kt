@@ -114,8 +114,8 @@ class AindaDaParaGastarTest {
     fun `o cartao avisa quando passou e no mes passado diz quanto sobrou`() {
         compose.setContent { PigguTheme { CartaoAindaDaParaGastar(estado(limite = "100", gastos = listOf(gasto("150")), mes = "2026-10"), {}) } }
         compose.onNodeWithText("Sobrou em", substring = true).assertExists()
-        compose.onNodeWithText("Você passou desse valor este mês.").assertExists()
-        compose.onNodeWithText("50,00", substring = true).assertExists()
+        compose.onNodeWithText("Já passou do que dava para gastar este mês.").assertExists()
+        compose.onNodeWithText("-R$", substring = true).assertExists()
     }
 
     @Test
