@@ -1,27 +1,31 @@
 import { expect, test } from '@playwright/test';
 
-/** As 5 abas do celular, o "+" de lancar e as telas que ficam sempre no menu. */
+/** As 4 abas do celular (D-164), o "+" de lancar e as telas que ficam sempre no menu. */
 
 test.describe('no celular', () => {
   test.skip(({ isMobile }) => !isMobile, 'a barra de abas e o "+" sao do celular');
 
-  test('as 5 abas levam as telas principais', async ({ page }) => {
+  test('as 4 abas levam as telas principais, e Lançamentos troca entre Gastos e Receitas', async ({
+    page,
+  }) => {
     await page.goto('/painel');
     const abas = page.getByRole('navigation', { name: 'Atalhos' });
 
-    await expect(abas.locator('.aba')).toHaveText([
-      'Painel',
-      'Gastos',
-      'Receitas',
-      'Relatórios',
-      'Mais',
-    ]);
-    await abas.getByRole('link', { name: 'Relatórios' }).click();
-    await expect(page).toHaveURL(/\/relatorios$/);
-    await abas.getByRole('link', { name: 'Receitas' }).click();
+    await expect(abas.locator('.aba')).toHaveText(['Painel', 'Lançamentos', 'Planejar', 'Mais']);
+    await abas.getByRole('link', { name: 'Lançamentos' }).click();
+    await expect(page).toHaveURL(/\/gastos$/);
+    await page
+      .getByRole('navigation', { name: 'Lançamentos' })
+      .getByRole('link', { name: 'Receitas' })
+      .click();
     await expect(page).toHaveURL(/\/receitas$/);
-  });
+    await expect(abas.getByRole('link', { name: 'Lançamentos' })).toHaveClass(/ativo/);
 
+    await abas.getByRole('link', { name: 'Planejar' }).click();
+    await page.getByRole('link', { name: /Relatórios/ }).click();
+    await expect(page).toHaveURL(/\/relatorios$/);
+    await expect(abas.getByRole('link', { name: 'Planejar' })).toHaveClass(/ativo/);
+  });
 
   test('"Mais" mostra so o que nao tem aba, sem rolar, e fecha ao escolher uma tela', async ({
     page,
@@ -38,9 +42,9 @@ test.describe('no celular', () => {
     await expect(menu.locator('.menu-grupo-titulo').first()).toBeHidden();
     const rola = await menu.evaluate((nav) => nav.scrollHeight > nav.clientHeight);
     expect(rola).toBe(false);
-    await menu.getByRole('link', { name: 'Planejar' }).click();
+    await menu.getByRole('link', { name: 'Orçamento' }).click();
 
-    await expect(page).toHaveURL(/\/planejar$/);
+    await expect(page).toHaveURL(/\/orcamentos$/);
     // Fechado, o menu fica com visibility: hidden depois da animacao e some da
     // arvore de acessibilidade: o localizador por papel nao acha mais a classe.
     await expect(menu).toBeHidden();
@@ -71,7 +75,9 @@ test.describe('no celular', () => {
     page,
   }) => {
     await page.goto('/painel');
-    const mais = page.getByRole('navigation', { name: 'Atalhos' }).getByRole('button', { name: 'Mais' });
+    const mais = page
+      .getByRole('navigation', { name: 'Atalhos' })
+      .getByRole('button', { name: 'Mais' });
     const menu = page.getByRole('navigation', { name: 'Telas' });
     await mais.click();
     // Espera a folha terminar de subir antes de medir onde esta a alca.
@@ -166,7 +172,10 @@ test('o "+" abre o balao e o lancamento por cima da tela; lancou, o painel fecha
   // "Lançar receita" no balao ja abre o painel na aba Receita.
   await mais.click();
   await page.getByRole('menuitem', { name: 'Lançar receita' }).click();
-  await expect(painel.getByRole('tab', { name: 'Receita' })).toHaveAttribute('aria-selected', 'true');
+  await expect(painel.getByRole('tab', { name: 'Receita' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
   await painel.locator('#rapido-valor-receita').fill('300');
   await painel.locator('#rapido-descricao-receita').fill('Freela');
   await painel.getByRole('button', { name: 'Lançar receita' }).click();

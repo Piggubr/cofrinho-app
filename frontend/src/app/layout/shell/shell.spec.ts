@@ -75,15 +75,17 @@ describe('Shell', () => {
     auth.preferir({ moeda: 'BRL', moedaCotacao: 'BRL', moedaConversao: 'USD' });
     const tela = abrir();
 
-    http.expectOne((req) => req.url === '/api/exchange-rate').flush({
-      de: 'BRL',
-      para: 'USD',
-      taxa: 0.178563,
-      data: '',
-      fonte: '',
-      estimativa: true,
-      desatualizada: false,
-    });
+    http
+      .expectOne((req) => req.url === '/api/exchange-rate')
+      .flush({
+        de: 'BRL',
+        para: 'USD',
+        taxa: 0.178563,
+        data: '',
+        fonte: '',
+        estimativa: true,
+        desatualizada: false,
+      });
     tela.detectChanges();
 
     const texto: string = tela.nativeElement.querySelector('.cotacao').textContent;
@@ -139,13 +141,13 @@ describe('Shell', () => {
     });
   });
 
-  it('cinco abas embaixo, o "+" flutuando e o "Mais" abre o menu em grupos', () => {
+  it('quatro abas embaixo (D-164), o "+" flutuando e o "Mais" abre o menu em grupos', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
 
     const abas = [...pagina.querySelectorAll('nav.abas .aba')].map((a) => a.textContent?.trim());
-    expect(abas).toEqual(['Painel', 'Gastos', 'Receitas', 'Relatórios', 'Mais']);
+    expect(abas).toEqual(['Painel', 'Lançamentos', 'Planejar', 'Mais']);
     expect(pagina.querySelector('button.lancar-flutuante')).not.toBeNull();
     expect(pagina.querySelector('nav.menu')!.classList).not.toContain('aberto');
 
@@ -153,13 +155,9 @@ describe('Shell', () => {
     tela.detectChanges();
     expect(pagina.querySelector('nav.menu')!.classList).toContain('aberto');
     expect(pagina.querySelectorAll('nav.menu .menu-itens a').length).toBe(18);
-    expect([...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim())).toEqual([
-      'Dia a dia',
-      'Planejar',
-      'Cartões e datas',
-      'Estilo de vida',
-      'Família e plano',
-    ]);
+    expect(
+      [...pagina.querySelectorAll('.menu-grupo-titulo')].map((t) => t.textContent?.trim()),
+    ).toEqual(['Dia a dia', 'Planejar', 'Cartões e datas', 'Família e plano', 'Extras']);
   });
 
   it('no "Mais" do celular, as telas que ja tem aba ficam de fora e o resto segue a ordem de uso', () => {
@@ -168,28 +166,33 @@ describe('Shell', () => {
     const pagina: HTMLElement = tela.nativeElement;
     const itens = [...pagina.querySelectorAll<HTMLElement>('nav.menu .menu-itens a')];
 
-    const naBarra = itens.filter((a) => a.classList.contains('na-barra')).map((a) => a.textContent?.trim());
-    expect(naBarra).toEqual(['Painel', 'Gastos', 'Receitas', 'Relatórios']);
+    const naBarra = itens
+      .filter((a) => a.classList.contains('na-barra'))
+      .map((a) => a.textContent?.trim());
+    expect(naBarra).toEqual(['Painel', 'Gastos', 'Receitas', 'Relatórios', 'Planejar']);
 
     const noMais = itens
       .filter((a) => !a.classList.contains('na-barra'))
-      .sort((a, b) => +a.style.getPropertyValue('--ordem-no-mais') - +b.style.getPropertyValue('--ordem-no-mais'))
+      .sort(
+        (a, b) =>
+          +a.style.getPropertyValue('--ordem-no-mais') -
+          +b.style.getPropertyValue('--ordem-no-mais'),
+      )
       .map((a) => a.textContent?.trim());
     expect(noMais).toEqual([
-      'Planejar',
       'Contas do mês',
       'Orçamento',
-      'Minhas metas',
+      'Metas do mês',
       'Cartões e bancos',
       'Calendário',
+      'Família',
+      'Premium',
       'Compras',
       'Girls Math',
       'Lugares',
       'Filmes',
       'Fotos',
       'Prêmios',
-      'Família',
-      'Premium',
     ]);
   });
 
@@ -199,7 +202,9 @@ describe('Shell', () => {
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
     const pagina: HTMLElement = tela.nativeElement;
-    const itens = [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) => a.textContent?.trim());
+    const itens = [...pagina.querySelectorAll('nav.menu .menu-itens a')].map((a) =>
+      a.textContent?.trim(),
+    );
 
     for (const nome of ['Compras', 'Lugares', 'Filmes', 'Fotos', 'Prêmios', 'Girls Math']) {
       expect(itens).toContain(nome);
@@ -252,6 +257,47 @@ describe('Shell', () => {
     expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
     expect(animacoes.at(-1)![0]['transform']).toBe('translateX(-36px)');
     expect(animacoes.length).toBe(3);
+  });
+
+  it('Gastos e Receitas acendem Lançamentos, com a troca no topo; Relatórios acende Planejar (D-164)', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Shell],
+      providers: [
+        provideRouter(
+          ['painel', 'gastos', 'receitas', 'relatorios'].map((path) => ({
+            path,
+            component: TelaVazia,
+          })),
+        ),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: APP_CONFIG, useValue: { apiUrl: '/api', googleClientId: 'x' } },
+        { provide: AuthService, useValue: auth },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/painel');
+    const tela = abrir();
+    http.match(() => true).forEach((pedido) => pedido.flush(null));
+    const pagina: HTMLElement = tela.nativeElement;
+    const ativa = () => pagina.querySelector('nav.abas .aba.ativo')?.textContent?.trim();
+    const troca = () =>
+      [...pagina.querySelectorAll('.alternador.lancamentos a')].map((a) => a.getAttribute('href'));
+
+    expect(troca()).toEqual([]);
+
+    await router.navigateByUrl('/receitas');
+    tela.detectChanges();
+    expect(ativa()).toBe('Lançamentos');
+    expect(troca()).toEqual(['/gastos', '/receitas']);
+    expect(pagina.querySelector('.titulo-da-tela')).toBeNull();
+
+    await router.navigateByUrl('/relatorios');
+    tela.detectChanges();
+    expect(ativa()).toBe('Planejar');
+    expect(troca()).toEqual([]);
+    expect(pagina.querySelector('.titulo-da-tela')?.textContent?.trim()).toBe('Relatórios');
   });
 
   it('o voltar do cabecalho vai ao Painel quando a pessoa abriu direto na tela', async () => {
@@ -387,7 +433,9 @@ describe('Shell', () => {
       // Para baixo: o fundo clareia e, passado um terco, fecha.
       dedo('pointerdown', 100);
       dedo('pointermove', 300);
-      expect(Number((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity)).toBeLessThan(1);
+      expect(
+        Number((pagina.querySelector('.menu-fundo') as HTMLElement).style.opacity),
+      ).toBeLessThan(1);
       dedo('pointerup', 600);
       expect(menu.classList).not.toContain('aberto');
       // Soltar sem ter comecado nao faz nada.
@@ -438,9 +486,9 @@ describe('Shell', () => {
     auth.usuario.set(usuarioDeTeste({ role: 'PARCEIRO' }));
     const tela = abrir();
     http.match(() => true).forEach((pedido) => pedido.flush(null));
-    const itens = [...(tela.nativeElement as HTMLElement).querySelectorAll('nav.menu .menu-itens a')].map((a) =>
-      a.textContent?.trim(),
-    );
+    const itens = [
+      ...(tela.nativeElement as HTMLElement).querySelectorAll('nav.menu .menu-itens a'),
+    ].map((a) => a.textContent?.trim());
 
     expect(itens).toContain('Gastos');
     expect(itens).toContain('Receitas');
@@ -472,8 +520,7 @@ describe('Shell', () => {
     expect(configuradas.at(-1)!.map((aba) => aba.id)).toEqual([
       '/painel',
       '/gastos',
-      '/receitas',
-      '/relatorios',
+      '/planejar',
       'mais',
     ]);
 
@@ -492,7 +539,8 @@ describe('Shell', () => {
       return { tela, pagina: tela.nativeElement as HTMLElement };
     }
 
-    const titulo = (pagina: HTMLElement) => pagina.querySelector('#titulo-tour')?.textContent?.trim();
+    const titulo = (pagina: HTMLElement) =>
+      pagina.querySelector('#titulo-tour')?.textContent?.trim();
     const botao = (pagina: HTMLElement, texto: string) =>
       [...pagina.querySelectorAll<HTMLButtonElement>('.balao button')].find(
         (b) => b.textContent?.trim() === texto,

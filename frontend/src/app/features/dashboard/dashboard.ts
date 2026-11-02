@@ -13,6 +13,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
 import { PrimeirosPassos } from './primeiros-passos';
+import { AindaDaParaGastar } from './ainda-da-para-gastar';
 import { Objetivos } from './objetivos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
@@ -43,7 +44,8 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [CampoDeValor, 
+  imports: [
+    CampoDeValor,
     Focar,
     Icone,
     FormsModule,
@@ -53,11 +55,15 @@ interface TotalPorCategoria {
     PessoaPipe,
     ResumoDoMesCard,
     PrimeirosPassos,
+    AindaDaParaGastar,
     AvisosDoMes,
     Objetivos,
     MetasDoPainel,
     GirlsMathDoPainel,
-    NotasDoPainel, Carregando, Vazio],
+    NotasDoPainel,
+    Carregando,
+    Vazio,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

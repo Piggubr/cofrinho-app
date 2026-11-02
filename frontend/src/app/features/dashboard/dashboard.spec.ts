@@ -55,7 +55,9 @@ describe('Dashboard', () => {
 
   function responderCards(): void {
     for (const extra of http.match((req) =>
-      /\/api\/(reports|bills|budgets|accounts|incomes\/receivables|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(req.url),
+      /\/api\/(reports|bills|budgets|accounts|incomes\/receivables|piggy-bank\/goals|personal-goals|girls-math|notes)/.test(
+        req.url,
+      ),
     )) {
       extra.flush(extra.request.url.includes('reports') ? null : []);
     }
@@ -76,7 +78,9 @@ describe('Dashboard', () => {
 
     botoes[2].click();
     tela.detectChanges();
-    http.expectOne('/api/piggy-bank').flush({ depositos: [], totalDepositos: 0, totalGastos: 0, saldo: 0 });
+    http
+      .expectOne('/api/piggy-bank')
+      .flush({ depositos: [], totalDepositos: 0, totalGastos: 0, saldo: 0 });
     const gastos = http.expectOne((req) => req.url === '/api/expenses');
     expect(gastos.request.params.get('visao')).toBe('casal');
     gastos.flush([]);
@@ -203,11 +207,11 @@ describe('Dashboard', () => {
 
       expect(ordemNaTela(tela, 'app-notas-do-painel')).toBe('0');
       expect(ordemNaTela(tela, '#titulo-notas-painel')).toBe('0');
-      expect(Number(ordemNaTela(tela, 'app-resumo-do-mes'))).toBeGreaterThan(1);
+      expect(Number(ordemNaTela(tela, 'app-avisos-do-mes'))).toBeGreaterThan(1);
       // Fora do que estava salvo e desligado no padrao: so aparece se a pessoa ligar.
       expect(ordemNaTela(tela, 'app-metas-do-painel')).toBe('ausente');
-      const titulos = [...tela.nativeElement.querySelectorAll('h2')].map(
-        (h: HTMLElement) => h.textContent?.trim(),
+      const titulos = [...tela.nativeElement.querySelectorAll('h2')].map((h: HTMLElement) =>
+        h.textContent?.trim(),
       );
       expect(titulos).not.toContain('Por categoria');
       expect(titulos).toContain('Cofrinho');

@@ -22,7 +22,7 @@ export function textoParaCompartilhar(metas: readonly MetaDoMes[], rotuloDoMes: 
     (meta) => `${meta.concluida ? '✅' : '⏳'} ${meta.titulo}: ${meta.atual} de ${meta.alvo}`,
   );
   // O ":" fica fora: logo depois de uma interpolacao ele abriria metadados do $localize.
-  return [$localize`Minhas metas de ${rotuloDoMes}` + ':', ...linhas].join('\n');
+  return [$localize`Metas do mês de ${rotuloDoMes}` + ':', ...linhas].join('\n');
 }
 
 /**
@@ -148,7 +148,7 @@ export class MinhasMetas {
     this.erro.set('');
     try {
       if (navigator.share) {
-        await navigator.share({ title: $localize`Minhas metas`, text: texto });
+        await navigator.share({ title: $localize`Metas do mês`, text: texto });
         return;
       }
       await navigator.clipboard.writeText(texto);

@@ -43,6 +43,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).
 - 30/10/2026: Android: conectar banco pela página `/conectar-banco` do site, com a volta ao app (D-150), e o `assetlinks.json` dos App Links com as chaves de upload e de debug.
 - 30/10/2026: Android: ID OAuth do Android no Google Cloud (chaves de upload e debug) e botão do Google ligado no app nativo (D-104).
 - 29/10/2026: Entrar com Apple: excluir a conta revoga o acesso na Apple, como a App Store exige (D-142).
