@@ -21,7 +21,6 @@ struct PrincipalView: View {
     /// Gasto achado no Spotlight, para a aba Gastos abrir.
     @State private var gastoParaAbrir: GastoPedido?
     @Environment(\.scenePhase) private var fase
-    @Environment(\.paleta) private var paleta
     @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @SceneStorage("piggu_caminho_do_mais") private var caminhoDoMais = ""
@@ -133,28 +132,18 @@ struct PrincipalView: View {
     }
 
     private var gastos: some View {
-        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir) { versaoDosDados += 1 }
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var receitas: some View {
-        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }
+        ReceitasView(versaoDosDados: versaoDosDados, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     /// Gastos e Receitas, cada uma com a sua tela, trocadas pelo seletor no topo (D-164).
     private var abaDeLancamentos: some View {
-        VStack(spacing: 0) {
-            Picker("Lançamentos", selection: $lancamentos) {
-                Text("Gastos").tag(Aba.gastos)
-                Text("Receitas").tag(Aba.receitas)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            if lancamentos == .receitas { receitas } else { gastos }
-        }
-        .background(paleta.fundo)
+        Group { if lancamentos == .receitas { receitas } else { gastos } }
     }
 
     /// Planejar, com os Relatórios dentro (D-164).

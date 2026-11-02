@@ -10,6 +10,8 @@ struct GastosView: View {
     /// Gasto achado no Spotlight: a tela volta ao mes atual e abre a edicao dele.
     @Binding var abrirGasto: GastoPedido?
     /// Editou ou apagou: as outras abas recarregam.
+    /// A troca entre Gastos e Receitas, quando a tela esta na aba Lançamentos.
+    var lancamentos: Binding<Aba>? = nil
     let aoMudar: () -> Void
 
     @Environment(Sessao.self) private var sessao
@@ -59,6 +61,7 @@ struct GastosView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .comSeletorDeMes($mes) { filtros }
+            .comTrocaDeLancamentos(lancamentos)
             .navigationTitle("Gastos")
             .topoDoPiggu()
             .searchable(text: $busca, prompt: Text("Buscar gastos"))
