@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -354,6 +355,42 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
+        }
+    }
+}
+
+// Começo do mês (D-165)
+
+/** O mês de hoje ainda sem gasto mostra o anterior, apagado, para o Painel não parecer zerado. */
+@Composable
+internal fun CartaoDoMesPassado(estado: EstadoDoPainel, abrirTela: (String) -> Unit, lancarGasto: () -> Unit, modifier: Modifier = Modifier) {
+    val anterior = LocalDate.parse(estado.mesAtual + "-01").minusMonths(1).toString().take(7)
+    CartaoBase(stringResource(R.string.mes_passado_titulo, mesPorExtenso(anterior).lowercase(Locale.forLanguageTag("pt-BR"))), modifier) {
+        Text(stringResource(R.string.mes_passado_texto), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.alpha(0.75f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            estado.porCategoriaDoMesPassado.forEach { linha ->
+                Column(Modifier.semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row {
+                        Text(linha.categoria, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Text(formatarMoeda(linha.total, estado.moeda), style = MaterialTheme.typography.bodyLarge)
+                    }
+                    BarraDeProgresso(linha.fracao)
+                }
+            }
+            Text(stringResource(R.string.mes_passado_ultimos), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.titleSmall)
+            estado.recentesDoMesPassado.forEach { gasto ->
+                Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(gasto.estabelecimento?.takeIf { it.isNotBlank() } ?: gasto.item, style = MaterialTheme.typography.bodyLarge)
+                        Text("${dataCurta(gasto.data)} · ${gasto.categoria}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(formatarMoeda(gasto.valor, estado.moeda), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(lancarGasto) { Text(stringResource(R.string.lancar_um_gasto)) }
+            TextButton({ abrirTela("/relatorios") }) { Text(stringResource(R.string.mes_passado_ver_ano)) }
         }
     }
 }

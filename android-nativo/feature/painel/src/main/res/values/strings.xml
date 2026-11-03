@@ -60,6 +60,10 @@
 
     <!-- Por categoria. -->
     <string name="categorias_vazio">Nenhum gasto lançado neste mês</string>
+    <string name="mes_passado_titulo">Como foi %1$s</string>
+    <string name="mes_passado_texto">Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar.</string>
+    <string name="mes_passado_ultimos">Últimos gastos</string>
+    <string name="mes_passado_ver_ano">Ver o ano</string>
     <string name="lancar_um_gasto">Lançar um gasto</string>
 
     <!-- Cofrinho. -->

@@ -85,6 +85,9 @@ struct PainelView: View {
                     }
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
                                     temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
+                    if !modelo.gastosDoMesPassado.isEmpty {
+                        CartaoDoMesPassado(modelo: modelo, mes: mes, aoLancar: aoLancar, irPara: irPara)
+                    }
                     if modelo.temCompanhia {
                         Picker("O que ver", selection: $visao) {
                             ForEach(Visao.allCases, id: \.self) { Text($0.nome).tag($0) }

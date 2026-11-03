@@ -195,6 +195,7 @@ fun TelaDoPainel(
                     // Fixo no topo, e logo abaixo os primeiros passos até a pessoa terminar ou pular (D-164).
                     if (estado.mostraAindaDaParaGastar) item(key = "ainda-da-para-gastar") { CartaoAindaDaParaGastar(estado, abrirTela, largura) }
                     if (estado.mostraGuia) item(key = "guia") { CartaoDoGuia(estado, eventos, abrirTela, lancarGasto, largura) }
+                    if (estado.mostraMesPassado) item(key = "mes-passado") { CartaoDoMesPassado(estado, abrirTela, lancarGasto, largura) }
                     items(estado.cartoes, key = { it.id }) { bloco ->
                         Column(largura, verticalArrangement = Arrangement.spacedBy(14.dp)) {
                             Cartao(bloco, estado, eventos, abrirTela, lancarGasto, perguntar)
