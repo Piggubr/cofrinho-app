@@ -8,11 +8,11 @@ async function abrirPainel(page: Page) {
   await expect(page.getByText('Olá, Ana')).toBeVisible();
 }
 
-test('o painel abre com a sobra do mes e o aviso de demonstracao', async ({ page }) => {
+test('o painel abre com o "Ainda da para gastar" e o aviso de demonstracao', async ({ page }) => {
   await abrirPainel(page);
 
   await expect(page.getByText('Demonstração · dados de exemplo')).toBeVisible();
-  await expect(page.getByText('Sobra do mês')).toBeVisible();
+  await expect(page.getByText(/Ainda dá para gastar em/)).toBeVisible();
   await expect(page.getByText('Para ficar de olho')).toBeVisible();
 });
 

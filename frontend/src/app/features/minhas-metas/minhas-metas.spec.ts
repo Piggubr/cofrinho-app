@@ -120,7 +120,7 @@ describe('MinhasMetas', () => {
 
   it('o texto para compartilhar leva so titulo e progresso', () => {
     expect(textoParaCompartilhar([LER, TREINAR], 'outubro de 2026')).toBe(
-      'Minhas metas de outubro de 2026:\n⏳ Ler 2 livros: 1 de 2\n✅ Treinar: 3 de 3',
+      'Metas do mês de outubro de 2026:\n⏳ Ler 2 livros: 1 de 2\n✅ Treinar: 3 de 3',
     );
   });
 });
