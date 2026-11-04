@@ -61,7 +61,7 @@ jobs:
       # Meta: 85%.
       - name: Cobertura
         env:
-          PISO: 7
+          PISO: 8
         run: |
           cobertura=$(xcrun xccov view --report --only-targets --json "$RUNNER_TEMP/testes.xcresult" \
             | jq '[.[] | select(.name == "Piggu.app")][0].lineCoverage * 100')

@@ -95,7 +95,7 @@ struct BuscaView: View {
     private var telas: [Resultado] {
         guard !termoLimpo.isEmpty else { return [] }
         let abas: [Resultado] = [
-            Resultado(id: "painel", simbolo: "chart.pie.fill", titulo: String(localized: "Painel"), rota: .aba(.painel)),
+            Resultado(id: "painel", simbolo: "house.fill", titulo: String(localized: "Painel"), rota: .aba(.painel)),
             Resultado(id: "gastos", simbolo: "list.bullet.rectangle.fill", titulo: String(localized: "Gastos"), rota: .aba(.gastos)),
             Resultado(id: "receitas", simbolo: "arrow.down.circle.fill", titulo: String(localized: "Receitas"), rota: .aba(.receitas)),
             Resultado(id: "relatorios", simbolo: "chart.bar.xaxis", titulo: String(localized: "Relatórios"), rota: .aba(.relatorios)),

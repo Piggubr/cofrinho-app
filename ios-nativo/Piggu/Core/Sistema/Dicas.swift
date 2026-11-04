@@ -13,14 +13,6 @@ enum Dicas {
         try? Tips.configure([.displayFrequency(.immediate)])
     }
 
-    struct BoasVindas: Tip {
-        var title: Text { Text("Bem-vindo ao Piggu") }
-        var message: Text? {
-            Text("O resumo do mês: quanto entrou, quanto saiu, quanto ainda dá para gastar e as contas que vencem.")
-        }
-        var image: Image? { Image(systemName: "house") }
-    }
-
     struct Lancar: Tip {
         var title: Text { Text("Lance pelo +") }
         var message: Text? {

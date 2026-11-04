@@ -1,8 +1,11 @@
 import Foundation
 
 /// Aba do app logado. O valor e o caminho da rota do site.
+/// As abas da barra são painel, gastos (Lançamentos), planejar e mais (D-164). Receitas e
+/// relatorios ficam para os links e para a aba guardada na janela: abrem dentro de Lançamentos e
+/// do Planejar.
 enum Aba: String, CaseIterable, Sendable {
-    case painel, gastos, receitas, relatorios, mais
+    case painel, gastos, receitas, relatorios, planejar, mais
 }
 
 /// Para onde um link leva: `piggu://...` (atalhos, Siri, widgets) ou um endereco do site.
@@ -81,7 +84,7 @@ enum Rota: Hashable, Identifiable, Sendable {
         case "calendario":
             self = .tela(.calendario)
         case "planejar":
-            self = .tela(.planejar)
+            self = .aba(.planejar)
         case "metas":
             self = .tela(.metas)
         case "compras":

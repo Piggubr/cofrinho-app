@@ -9,6 +9,8 @@ import UniformTypeIdentifiers
 struct RelatoriosView: View {
     let versaoDosDados: Int
     let aoLancar: () -> Void
+    /// Falso dentro da pilha de outra aba (o Planejar, D-164).
+    var comPilha = true
 
     @Environment(Sessao.self) private var sessao
     @Environment(MonitorDeRede.self) private var rede
@@ -24,7 +26,15 @@ struct RelatoriosView: View {
     private var ehPremium: Bool { sessao.usuario?.plano == .premium }
 
     var body: some View {
-        NavigationStack {
+        if comPilha {
+            NavigationStack { conteudo }
+        } else {
+            conteudo
+        }
+    }
+
+    private var conteudo: some View {
+        Group {
             List {
                 switch carga {
                 case .carregando:

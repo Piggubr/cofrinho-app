@@ -284,3 +284,35 @@ final class ModeloDoPainel {
         }
     }
 }
+
+/// O número fixo no topo do Painel (D-164): o teto do mês menos o gasto e as contas fixas de
+/// gasto ainda não pagas. O teto é o limite do mês ou, sem ele, as receitas do mês.
+struct AindaDaParaGastar: Equatable {
+    let teto: Decimal
+    let tetoEhOLimite: Bool
+    let gasto: Decimal
+    let contasAPagar: Decimal
+    /// Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído.
+    let porDia: Decimal?
+
+    /// Negativo é o que passou.
+    var resta: Decimal { teto - gasto - contasAPagar }
+
+    /// nil sem limite e sem receita: o cartão convida a definir um dos dois.
+    static func calcular(limite: Decimal, receitas: Decimal?, gasto: Decimal, contas: [ContaFixa],
+                         mes: String, hoje: Date = Date(), calendario: Calendar = .current) -> AindaDaParaGastar? {
+        let tetoEhOLimite = limite > 0
+        guard let teto = tetoEhOLimite ? limite : receitas.flatMap({ $0 > 0 ? $0 : nil }) else { return nil }
+        // As pagas já viraram gasto; a receita fixa não é conta a pagar.
+        let contasAPagar = contas.filter { $0.situacao != .paga && $0.tipo != "RECEITA" }.reduce(0) { $0 + $1.valor }
+        let resta = teto - gasto - contasAPagar
+        var porDia: Decimal?
+        if resta > 0, mes == Formatos.mes(hoje), let dias = calendario.range(of: .day, in: .month, for: hoje)?.count {
+            var dividido = resta / Decimal(dias - calendario.component(.day, from: hoje) + 1)
+            var arredondado = Decimal()
+            NSDecimalRound(&arredondado, &dividido, 2, .down)
+            porDia = arredondado
+        }
+        return AindaDaParaGastar(teto: teto, tetoEhOLimite: tetoEhOLimite, gasto: gasto, contasAPagar: contasAPagar, porDia: porDia)
+    }
+}

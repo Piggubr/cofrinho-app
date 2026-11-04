@@ -14,19 +14,20 @@ enum IdDoBloco: String, Codable, CaseIterable, Sendable {
         case .avisos: "Para ficar de olho"
         case .mes: "Gasto e limite do mês"
         case .cofrinho: "Cofrinho"
-        case .objetivos: "Cofrinhos por objetivo"
-        case .metas: "Minhas metas"
+        case .objetivos: "Objetivos do cofrinho"
+        case .metas: "Metas do mês"
         case .categorias: "Por categoria"
         case .notas: "Suas notas"
         case .girlsMath: "Girls Math"
         }
     }
 
-    /// De inicio aparece so o que vive apenas no Painel; o resto a pessoa liga.
+    /// De inicio aparece so o que vive apenas no Painel; o resto a pessoa liga. Resumo e mes
+    /// nascem desligados desde o D-164: o "Ainda dá para gastar" fixo no topo ja diz isso.
     var padrao: Bool {
         switch self {
-        case .resumo, .avisos, .mes, .cofrinho, .objetivos: true
-        case .metas, .categorias, .notas, .girlsMath: false
+        case .avisos, .cofrinho, .objetivos: true
+        case .resumo, .mes, .metas, .categorias, .notas, .girlsMath: false
         }
     }
 }
