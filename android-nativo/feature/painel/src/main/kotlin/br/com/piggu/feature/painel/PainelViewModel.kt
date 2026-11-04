@@ -82,6 +82,17 @@ data class AvisosDoMes(
 
 data class TotalDaCategoria(val categoria: String, val total: BigDecimal, val fracao: Float)
 
+/** Total de cada categoria, do maior para o menor, com a fatia do total. */
+private fun totaisPorCategoria(gastos: List<Gasto>): List<TotalDaCategoria> {
+    val total = gastos.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
+    return gastos.groupBy { it.categoria }
+        .map { (categoria, doGrupo) ->
+            val soma = doGrupo.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
+            TotalDaCategoria(categoria, soma, if (total.signum() > 0) (soma.toDouble() / total.toDouble()).toFloat() else 0f)
+        }
+        .sortedByDescending { it.total }
+}
+
 /** Novo objetivo ([id] nulo) ou editar um. [prazo] aaaa-mm-dd. */
 data class FormularioDeObjetivo(
     val id: String? = null,
@@ -146,6 +157,8 @@ data class EstadoDoPainel(
     val limiteDoGratuito: Boolean = false,
     val notaNova: NotaNova? = null,
     val moedaEscolhida: String? = null,
+    /** Começo do mês (D-165): o mês de hoje ainda sem gasto mostra o anterior como referência. */
+    val gastosDoMesPassado: List<Gasto> = emptyList(),
 ) {
     private val nucleo: Nucleo? get() = (carga as? Carga.Pronto)?.valor
 
@@ -195,16 +208,13 @@ data class EstadoDoPainel(
     val mostraAindaDaParaGastar: Boolean get() = nucleo != null && !ehMembro
 
     /** Total de cada categoria no mês, do maior para o menor, com a fatia do total. */
-    val porCategoria: List<TotalDaCategoria>
-        get() {
-            val total = gastoNoMes
-            return nucleo?.gastos.orEmpty().groupBy { it.categoria }
-                .map { (categoria, gastos) ->
-                    val soma = gastos.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
-                    TotalDaCategoria(categoria, soma, if (total.signum() > 0) (soma.toDouble() / total.toDouble()).toFloat() else 0f)
-                }
-                .sortedByDescending { it.total }
-        }
+    val porCategoria: List<TotalDaCategoria> get() = totaisPorCategoria(nucleo?.gastos.orEmpty())
+
+    /** Some no primeiro gasto do mês: o cartão só aparece com o mês de hoje vazio. */
+    val mostraMesPassado: Boolean get() = gastosDoMesPassado.isNotEmpty() && nucleo?.gastos?.isEmpty() == true
+    val porCategoriaDoMesPassado: List<TotalDaCategoria> get() = totaisPorCategoria(gastosDoMesPassado)
+    val recentesDoMesPassado: List<Gasto>
+        get() = gastosDoMesPassado.sortedWith(compareByDescending<Gasto> { it.data }.thenByDescending { it.registradoEm.orEmpty() }).take(5)
 
     // Primeiros passos (primeiros-passos.ts): limite e gasto contam pelo que já existe na conta.
     val temLimite: Boolean get() = nucleo?.metas?.values?.any { it.signum() > 0 } == true
@@ -348,8 +358,18 @@ class PainelViewModel @Inject constructor(
                     Nucleo(cofrinho.await(), gastos.await(), metas.await())
                 }
             }.collect { carga -> estadoAtual.update { it.copy(carga = carga) } }
+            carregarMesPassado(mes, parametro)
             estadoAtual.update { it.copy(atualizando = false) }
         }
+    }
+
+    /** Só no mês de hoje e enquanto ele não tem gasto; sem resposta, fica o Painel de sempre. */
+    private suspend fun carregarMesPassado(mes: String, visao: String?) {
+        val atual = estadoAtual.value
+        val vazio = (atual.carga as? Carga.Pronto)?.valor?.gastos?.isEmpty() == true
+        val anterior = LocalDate.now(relogio).minusMonths(1).toString().take(7)
+        val gastos = if (mes == atual.mesAtual && vazio) buscar(null) { financas.listarGastos(anterior, visao) }.orEmpty() else emptyList()
+        estadoAtual.update { it.copy(gastosDoMesPassado = gastos) }
     }
 
     private suspend fun carregarAvisos(mes: String) = coroutineScope {

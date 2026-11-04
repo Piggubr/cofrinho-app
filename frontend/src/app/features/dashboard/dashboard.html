@@ -18,6 +18,44 @@
   }
   <app-primeiros-passos [temLimite]="temLimite()" [temGasto]="temGasto()" />
 
+  @if (gastosDoMesPassado().length) {
+    <section class="cartao mes-passado" aria-labelledby="titulo-mes-passado">
+      <div class="cartao-titulo">
+        <h2 i18n id="titulo-mes-passado">Como foi {{ rotuloDoMesPassado() }}</h2>
+      </div>
+      <p i18n class="linha-detalhe">
+        Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar.
+      </p>
+      <div class="referencia">
+        @for (item of porCategoriaDoMesPassado(); track item.categoria) {
+          <div class="categoria">
+            <div class="linha sem-borda">
+              <p class="linha-titulo">{{ item.categoria }}</p>
+              <span class="linha-valor">{{ item.total | moeda }}</span>
+            </div>
+            <div class="progresso">
+              <span [style.width.%]="item.fatia"></span>
+            </div>
+          </div>
+        }
+        <h3 i18n class="mes-passado-titulo">Últimos gastos</h3>
+        @for (gasto of recentesDoMesPassado(); track gasto.id) {
+          <div class="linha">
+            <div>
+              <p class="linha-titulo">{{ gasto.estabelecimento || gasto.item }}</p>
+              <p class="linha-detalhe">{{ gasto.data | dataBr }} · {{ gasto.categoria }}</p>
+            </div>
+            <span class="linha-valor">{{ gasto.valor | moeda }}</span>
+          </div>
+        }
+      </div>
+      <p class="mes-passado-acoes">
+        <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
+        <a i18n class="botao fantasma pequeno" routerLink="/relatorios" fragment="ano">Ver o ano</a>
+      </p>
+    </section>
+  }
+
   <!-- A ordem e o que aparece vem do Perfil (PainelOrganizado); o CSS order arruma. -->
   @if (pessoas.temCompanhia()) {
     <div class="alternador visao" role="radiogroup" aria-label="O que ver" i18n-aria-label>

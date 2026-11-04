@@ -1683,3 +1683,19 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
   - Juntar gastos e receitas numa lista só, com filtro, exige uma tela nova; o seletor reaproveita as duas telas que existem.
 - Consequências: no site, "Gasto e limite do mês" continua ligado por padrão, porque é nele que fica a troca de mês do Painel; só o "Resumo do mês" nasce desligado. No site, Relatórios abre por dentro do Planejar, com voltar, e Gastos e Receitas saem da folha do Mais, como nos apps. Quem já tinha organizado o Painel continua com a própria ordem.
 - Onde ver: `android-nativo/feature/painel/` (`CartaoAindaDaParaGastar`, `EstadoDoPainel.aindaDaParaGastar`), `android-nativo/app/src/main/kotlin/br/com/piggu/app/moldura/`, `ios-nativo/Piggu/Telas/Painel/` (`CartaoAindaDaParaGastar`, `AindaDaParaGastar`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `frontend/src/app/features/dashboard/ainda-da-para-gastar.ts`, `frontend/src/app/layout/shell/` (abas e troca de Lançamentos) e os prints em `docs/prints/painel-a-c/`
+
+## D-165: Começo do mês mostra o mês passado no Painel
+- Data: 03/11/2026
+- Situação: Valendo no Android, no iOS e no site (que também é o app Capacitor)
+- Contexto: no dia 1º o Painel fica sem nada de gasto, e quem testou o app estranhou ("sentiram falta dos dados na tela"). A sugestão veio de um usuário: mostrar os gastos mais recentes do mês anterior.
+- Decisão:
+  - No mês de hoje, enquanto ele não tem nenhum gasto, aparece o cartão "Como foi outubro de 2026" logo abaixo do "Ainda dá para gastar" e dos primeiros passos. Ele fica fora do "Personalizar o Painel", porque o "Por categoria" nasce desligado e quase ninguém veria.
+  - O cartão mostra, em tom apagado, as categorias do mês anterior e os cinco gastos mais recentes dele (por data e hora do registro), com "Lançar um gasto" e "Ver o ano" (Relatórios, onde está o "Ano de 2026", que continua Premium).
+  - O cartão some no primeiro gasto do mês. Em meses passados nada muda, e sem gasto também no mês anterior fica o Painel de sempre.
+  - O "Ainda dá para gastar" não usa o mês passado: a conta continua só com o mês de hoje.
+- Alternativas:
+  - Mostrar o mês passado até um dia fixo (o dia 5, por exemplo): mistura os dois meses quando a pessoa já lançou gastos.
+  - Usar o vazio do "Por categoria": esse cartão nasce desligado, então a maioria não veria.
+  - Um resumo do ano novo e gratuito: o "Ano de 2026" já existe em Relatórios, então o cartão só leva até lá.
+- Consequências: com o mês de hoje vazio, o Painel faz uma busca a mais (os gastos do mês anterior, na mesma visão). Se ela falhar, o cartão não aparece e nada mais muda. A API não muda.
+- Onde ver: `frontend/src/app/features/dashboard/dashboard.ts` (`gastosDoMesPassado`), `ios-nativo/Piggu/Telas/Painel/` (`CartaoDoMesPassado`, `ModeloDoPainel.gastosDoMesPassado`), `android-nativo/feature/painel/` (`CartaoDoMesPassado`, `EstadoDoPainel.mostraMesPassado`)

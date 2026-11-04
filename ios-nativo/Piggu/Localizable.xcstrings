@@ -576,6 +576,9 @@
     "Como administrador, você já usa tudo do Premium." : {
 
     },
+    "Como foi %@" : {
+
+    },
     "Como foi a compra" : {
 
     },
@@ -1647,6 +1650,9 @@
     "Nenhum gasto neste mês" : {
 
     },
+    "Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar." : {
+
+    },
     "Nenhum item guardado ainda" : {
 
     },
@@ -2652,6 +2658,9 @@
     "Ver minha família" : {
 
     },
+    "Ver o ano" : {
+
+    },
     "Ver por semana" : {
 
     },
@@ -2866,6 +2875,9 @@
 
     },
     "Última cotação conhecida" : {
+
+    },
+    "Últimos gastos" : {
 
     },
     "−%@" : {

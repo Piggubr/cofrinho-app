@@ -39,7 +39,7 @@ describe('Dashboard', () => {
 
   afterEach(() => http.verify());
 
-  function abrir() {
+  function abrir(gastosDoMesPassado: unknown[] = []) {
     const tela = TestBed.createComponent(Dashboard);
     tela.detectChanges();
     http
@@ -47,6 +47,8 @@ describe('Dashboard', () => {
       .flush({ depositos: [], totalDepositos: 100, totalGastos: 0, saldo: 100 });
     http.expectOne((req) => req.url === '/api/expenses').flush([]);
     http.expectOne('/api/monthly-goals').flush({});
+    // Mes de hoje vazio: busca o anterior como referencia (D-165).
+    http.expectOne((req) => req.url === '/api/expenses').flush(gastosDoMesPassado);
     // Cards que buscam o proprio dado: aqui sem conteudo, cada um tem o proprio teste.
     tela.detectChanges();
     responderCards();
@@ -85,6 +87,9 @@ describe('Dashboard', () => {
     expect(gastos.request.params.get('visao')).toBe('casal');
     gastos.flush([]);
     http.expectOne('/api/monthly-goals').flush({});
+    const passado = http.expectOne((req) => req.url === '/api/expenses');
+    expect(passado.request.params.get('visao')).toBe('casal');
+    passado.flush([]);
     tela.detectChanges();
     const resumo = http.expectOne((req) => req.url === '/api/reports/month');
     expect(resumo.request.params.get('visao')).toBe('casal');
@@ -181,6 +186,47 @@ describe('Dashboard', () => {
     tela.detectChanges();
 
     expect(tela.nativeElement.textContent).toContain('Nenhum banco conectado');
+  });
+
+  describe('comeco do mes (D-165)', () => {
+    const gasto = (id: string, data: string, categoria: string, valor: number) => ({
+      id,
+      data,
+      reciboId: '',
+      estabelecimento: `Loja ${id}`,
+      item: '',
+      categoria,
+      valor,
+      tipo: 'GASTO',
+      origem: 'MANUAL',
+      usuario: null,
+      registradoEm: `${data}T10:00:00`,
+    });
+
+    it('mes sem gasto mostra o anterior como referencia, com os cinco mais recentes', () => {
+      const gastos = ['01', '02', '03', '04', '05', '06'].map((d, i) =>
+        gasto(`g${i}`, `2026-10-${d}`, i % 2 ? 'Casa' : 'Mercado', 10 * (i + 1)),
+      );
+      const tela = abrir(gastos);
+      http.expectOne('/api/banking/status').flush({ habilitado: false });
+      tela.detectChanges();
+      const pagina: HTMLElement = tela.nativeElement;
+      const bloco = pagina.querySelector('.mes-passado');
+      expect(bloco).not.toBeNull();
+      const lojas = [...bloco!.querySelectorAll('.linha:not(.sem-borda) .linha-titulo')].map((e) =>
+        e.textContent?.trim(),
+      );
+      expect(lojas).toEqual(['Loja g5', 'Loja g4', 'Loja g3', 'Loja g2', 'Loja g1']);
+      expect(pagina.querySelector('#titulo-mes-passado')?.textContent).toContain('outubro');
+      expect(pagina.textContent).toContain('Ver o ano');
+    });
+
+    it('sem gasto tambem no mes anterior, fica o vazio de sempre', () => {
+      const tela = abrir([]);
+      http.expectOne('/api/banking/status').flush({ habilitado: false });
+      tela.detectChanges();
+      expect(tela.nativeElement.querySelector('.mes-passado')).toBeNull();
+    });
   });
 
   describe('ordem dos blocos', () => {
