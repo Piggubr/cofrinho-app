@@ -53,4 +53,17 @@ jobs:
             -project Piggu.xcodeproj \
             -scheme Piggu \
             -destination "platform=iOS Simulator,id=$SIMULADOR" \
+            -enableCodeCoverage YES \
+            -resultBundlePath "$RUNNER_TEMP/testes.xcresult" \
             build test
+
+      # Piso de linhas cobertas do Piggu.app (D-163). Só sobe: quem baixa a cobertura quebra o CI.
+      # Meta: 85%.
+      - name: Cobertura
+        env:
+          PISO: 7
+        run: |
+          cobertura=$(xcrun xccov view --report --only-targets --json "$RUNNER_TEMP/testes.xcresult" \
+            | jq '[.[] | select(.name == "Piggu.app")][0].lineCoverage * 100')
+          echo "Cobertura do Piggu.app: $cobertura% (piso: $PISO%)"
+          awk -v c="$cobertura" -v p="$PISO" 'BEGIN { exit !(c >= p) }'

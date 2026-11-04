@@ -1658,3 +1658,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: pedir o Face ID dentro do atalho, o que a Siri não mostra sem abrir o app.
 - Consequências: com a trava ligada, os widgets ficam sem números e a busca do iPhone não acha os gastos.
 - Onde ver: `ios-nativo/Piggu/Core/Sistema/Siri.swift`, `ios-nativo/Piggu/Core/Sistema/AtualizadorDoSistema.swift`
+
+## D-163: Piso de cobertura nos apps nativos, que só sobe até 85%
+- Data: 02/11/2026
+- Situação: Valendo
+- Contexto: só o backend tinha piso de cobertura. Medido em 02/11/2026, o Android tinha 77,9% das linhas cobertas e o iOS 7,5% com os testes de unidade (52% somando os de interface, que levam uns 26 minutos).
+- Decisão: o CI de cada app confere um piso de linhas cobertas do app inteiro, telas incluídas: Kover no Android (`koverVerify`, piso no `build.gradle.kts` da raiz) e `xccov` no iOS (piso no `ios-nativo.yml`). O piso só sobe, até chegar a 85%. No iOS, a cobertura vem dos testes de unidade (`PigguTests`), que também renderizam as telas; os testes de interface continuam fora do CI. Fica fora da conta só o que não escrevemos ou não é do app: código gerado (Hilt, Room, Compose, recursos), o perfil de inicialização e a API falsa de `:core:testing`, que os próprios testes exercitam.
+- Alternativas: rodar os testes de interface do iOS no CI, que já dariam 52%, mas somariam meia hora de macOS a cada PR.
+- Consequências: um PR que baixa a cobertura quebra o CI. Cada PR seguinte sobe o piso até onde a cobertura chegou.
+- Onde ver: `android-nativo/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `.github/workflows/ios-nativo.yml`
