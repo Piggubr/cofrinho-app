@@ -38,12 +38,20 @@ class CofreDaSessao(
         dados.edit { if (json == null) it.remove(PERFIL) else it[PERFIL] = json }
     }
 
+    /** O token do FCM que o servidor conhece, para tirar o aparelho ao sair (D-166). */
+    suspend fun tokenDoPush(): String? = dados.data.first()[TOKEN_DO_PUSH]
+
+    suspend fun guardarTokenDoPush(token: String) {
+        dados.edit { it[TOKEN_DO_PUSH] = token }
+    }
+
     suspend fun apagar() {
-        dados.edit { it.remove(REFRESH); it.remove(PERFIL) }
+        dados.edit { it.remove(REFRESH); it.remove(PERFIL); it.remove(TOKEN_DO_PUSH) }
     }
 
     private companion object {
         val REFRESH = stringPreferencesKey("refresh")
         val PERFIL = stringPreferencesKey("perfil")
+        val TOKEN_DO_PUSH = stringPreferencesKey("token_do_push")
     }
 }

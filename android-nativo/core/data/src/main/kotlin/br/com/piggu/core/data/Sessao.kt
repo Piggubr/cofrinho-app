@@ -233,9 +233,13 @@ class Sessao @Inject constructor(
      * Na trava: com uma renovação em curso, sai depois dela e manda o refresh que vale no servidor.
      * A rota de sair é aberta, então não passa pelo autenticador, que também pede a trava.
      */
-    suspend fun sair() = trava.withLock {
-        runCatching { identidade.get().sair(PedidoDeRefresh(refresh)) }
-        encerrarSemTrava()
+    suspend fun sair() {
+        // Antes da trava: a rota pede o token, e renová-lo também pede a trava. Falhar não impede de sair.
+        cofre.tokenDoPush()?.let { token -> runCatching { identidade.get().removerAparelho(token) } }
+        trava.withLock {
+            runCatching { identidade.get().sair(PedidoDeRefresh(refresh)) }
+            encerrarSemTrava()
+        }
     }
 
     /**
