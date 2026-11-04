@@ -71,13 +71,13 @@ plataforma que faltar.
 
 - Sem sessão, o app abre no login (Entrar e Criar conta na mesma tela, como no site). Os
   links do e-mail (`/confirmar-email`, `/redefinir-senha`) abrem as telas nativas pelos App
-  Links. O `frontend/public/.well-known/assetlinks.json` tem os SHA-256 das chaves de upload e
-  de debug; o da chave do Play entra depois do primeiro envio ao Play Console.
+  Links. O `frontend/public/.well-known/assetlinks.json` tem os SHA-256 das chaves de upload,
+  de debug e de assinatura do Play (04/11/2026).
 - Com os Termos novos ou o cadastro incompleto, o app só abre o aceite ou o "Sobre você"
   (`auth.guard.ts`). Um 403 `CADASTRO_PENDENTE` leva ao "Sobre você".
 - Google: o botão está ligado (`piggu.googleNoAndroid=true` em `gradle.properties`). Cada chave
   que assina o app precisa de um ID OAuth do Android no Google Cloud, senão o login falha com
-  DEVELOPER_ERROR: upload e debug já têm, o da chave do Play falta (D-104).
+  DEVELOPER_ERROR: upload e debug já têm; o da chave do Play se cria com o SHA-1 dela, em Play Console > Protected with Play > Play Store protection (D-104).
 - Termos e Aviso: `python3 -I scripts/textos-legais.py` copia o texto do site; o CI confere.
 
 ## Tema
