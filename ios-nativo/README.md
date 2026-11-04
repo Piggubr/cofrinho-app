@@ -333,7 +333,7 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 
 ## Versão e envio
 
-Versão 2.0.0 (`MARKETING_VERSION`), build 2 (`CURRENT_PROJECT_VERSION`), Bundle ID
+Versão 2.0.0 (`MARKETING_VERSION`), build 4 (`CURRENT_PROJECT_VERSION`), Bundle ID
 `br.com.piggu.app`, time `H766LA27ZJ`, assinatura automática. Entitlements: push
 (`aps-environment`, que o Xcode troca para production ao exportar), App Group
 `group.br.com.piggu.app` (o widget também), Entrar com Apple e os domínios associados de
