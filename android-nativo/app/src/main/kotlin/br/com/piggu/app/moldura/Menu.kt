@@ -10,8 +10,9 @@ enum class GrupoDoMenu(@StringRes val titulo: Int) {
     DiaADia(R.string.grupo_dia_a_dia),
     Planejar(R.string.grupo_planejar),
     Contas(R.string.grupo_contas),
-    Estilo(R.string.grupo_estilo),
     Conta(R.string.grupo_conta),
+    // Por último no Mais: fora do caminho principal (D-164).
+    Estilo(R.string.grupo_estilo),
 }
 
 /** Um item do menu, como o ItemDeMenu de shell.ts. */
@@ -38,18 +39,18 @@ val ITENS_DO_MENU: List<ItemDoMenu> = listOf(
     ItemDoMenu(Tela.ContasFixas, R.string.tela_contas_fixas, Icone.Recibo, GrupoDoMenu.Planejar),
     ItemDoMenu(Tela.ContasECartoes, R.string.tela_contas_e_cartoes, Icone.Cartao, GrupoDoMenu.Contas),
     ItemDoMenu(Tela.Calendario, R.string.tela_calendario, Icone.Calendario, GrupoDoMenu.Contas),
+    ItemDoMenu(Tela.Familia, R.string.tela_familia, Icone.Pessoas, GrupoDoMenu.Conta),
+    ItemDoMenu(Tela.Plano, R.string.tela_premium, Icone.Estrela, GrupoDoMenu.Conta, somenteTitular = true),
     ItemDoMenu(Tela.Compras, R.string.tela_compras, Icone.Carrinho, GrupoDoMenu.Estilo, modulo = "compras"),
     ItemDoMenu(Tela.Lugares, R.string.tela_lugares, Icone.Local, GrupoDoMenu.Estilo, modulo = "lugares"),
     ItemDoMenu(Tela.Filmes, R.string.tela_filmes, Icone.Filme, GrupoDoMenu.Estilo, modulo = "filmes"),
     ItemDoMenu(Tela.Feed, R.string.tela_fotos, Icone.Imagem, GrupoDoMenu.Estilo, modulo = "fotos"),
     ItemDoMenu(Tela.Premios, R.string.tela_premios, Icone.Trofeu, GrupoDoMenu.Estilo, modulo = "premios"),
     ItemDoMenu(Tela.GirlsMath, R.string.tela_girls_math, Icone.Sacola, GrupoDoMenu.Estilo, modulo = "girls-math"),
-    ItemDoMenu(Tela.Familia, R.string.tela_familia, Icone.Pessoas, GrupoDoMenu.Conta),
-    ItemDoMenu(Tela.Plano, R.string.tela_premium, Icone.Estrela, GrupoDoMenu.Conta, somenteTitular = true),
 )
 
 /** Abas do celular (atalhos() de shell.ts), com o Mais no fim. */
-val ITENS_DAS_ABAS: List<ItemDoMenu> = ITENS_DO_MENU.filter { it.grupo == GrupoDoMenu.DiaADia }
+val ITENS_DAS_ABAS: List<ItemDoMenu> = ITENS_DO_MENU.filter { it.tela in setOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Relatorios, Tela.Planejar) }
 
 /**
  * Os grupos que a pessoa vê, sem grupo vazio (gruposVisiveis de shell.ts). [modulos] nulo (conta

@@ -1667,3 +1667,19 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: rodar os testes de interface do iOS no CI, que já dariam 52%, mas somariam meia hora de macOS a cada PR.
 - Consequências: um PR que baixa a cobertura quebra o CI. Cada PR seguinte sobe o piso até onde a cobertura chegou.
 - Onde ver: `android-nativo/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `.github/workflows/ios-nativo.yml`
+
+## D-164: Painel com "Ainda dá para gastar" fixo e quatro abas no celular
+- Data: 02/11/2026
+- Situação: Valendo no Android; o iOS vem no próximo PR
+- Contexto: quem testou o app disse que não entende o Painel, não acha as coisas e não sabe por onde começar. O Painel tinha nove cartões possíveis e nenhum dizia o que fazer agora, o menu tinha 18 telas, e o tour de oito passos explicava onde ficam as coisas sem pedir nenhuma ação. Das três propostas (protótipo "Três caminhos do Piggu"), ficaram a A (um número que responde "posso gastar?") e a C (primeiros passos dentro do Painel).
+- Decisão:
+  - No topo do Painel, fixo e fora do "Personalizar o Painel", o cartão "Ainda dá para gastar": o teto do mês menos o gasto e as contas fixas de gasto ainda não pagas. O teto é o limite do mês ou, sem limite, as receitas do mês. No mês de hoje, mostra também quanto dá por dia até o fim do mês. Sem limite e sem receita, convida a definir um dos dois. O membro da família não vê o cartão, porque o resto do mês dele já vem zerado.
+  - Logo abaixo do número, o guia de primeiros passos que já existia, até a pessoa terminar ou pular. O tour não abre mais sozinho no primeiro acesso; continua no Perfil.
+  - Os outros cartões continuam trocáveis. "Resumo do mês" e "Gasto e limite do mês" nascem desligados, porque o número do topo já diz o que eles diziam.
+  - Quatro abas no celular: Painel, Lançamentos (Gastos e Receitas, com um seletor no topo), Planejar (Orçamento, Contas do mês, Relatórios e Metas do mês) e Mais. As telas de estilo de vida viram o grupo "Extras", o último do Mais.
+  - Nomes: "Cofrinhos por objetivo" vira "Objetivos do cofrinho" e "Minhas metas" vira "Metas do mês".
+- Alternativas:
+  - A opção B (três abas por intenção) muda a navegação inteira nas três plataformas; fica para depois do teste.
+  - Juntar gastos e receitas numa lista só, com filtro, exige uma tela nova; o seletor reaproveita as duas telas que existem.
+- Consequências: o padrão dos cartões no Android deixa de ser igual ao do site, que segue com o antigo até ganhar o mesmo redesenho. Quem já tinha organizado o Painel continua com a própria ordem.
+- Onde ver: `android-nativo/feature/painel/` (`CartaoAindaDaParaGastar`, `EstadoDoPainel.aindaDaParaGastar`), `android-nativo/app/src/main/kotlin/br/com/piggu/app/moldura/`

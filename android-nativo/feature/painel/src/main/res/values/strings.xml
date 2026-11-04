@@ -10,8 +10,8 @@
     <string name="bloco_avisos">Para ficar de olho</string>
     <string name="bloco_mes">Gasto e limite do mês</string>
     <string name="bloco_cofrinho">Cofrinho</string>
-    <string name="bloco_objetivos">Cofrinhos por objetivo</string>
-    <string name="bloco_metas">Minhas metas</string>
+    <string name="bloco_objetivos">Objetivos do cofrinho</string>
+    <string name="bloco_metas">Metas do mês</string>
     <string name="bloco_categorias">Por categoria</string>
     <string name="bloco_notas">Suas notas</string>
     <string name="bloco_girls_math">Girls Math</string>
@@ -42,6 +42,14 @@
     <string name="aviso_devendo">Está te devendo desde %1$s</string>
 
     <!-- Gasto e limite do mês. -->
+    <string name="gastar_titulo">Ainda dá para gastar em %1$s</string>
+    <string name="gastar_titulo_passado">Sobrou em %1$s</string>
+    <string name="gastar_por_dia">Cerca de %1$s por dia até o fim do mês</string>
+    <string name="gastar_passou">Já passou do que dava para gastar este mês.</string>
+    <string name="gastar_conta_limite">Limite de %1$s, menos %2$s já gastos e %3$s de contas a pagar</string>
+    <string name="gastar_conta_receitas">Receitas de %1$s, menos %2$s já gastos e %3$s de contas a pagar</string>
+    <string name="gastar_sem_teto">Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.</string>
+    <string name="gastar_lancar_receitas">Lançar receitas</string>
     <string name="mes_gasto">Gasto no mês</string>
     <string name="mes_limite">Limite do mês</string>
     <string name="mes_progresso">%1$d%% do limite</string>

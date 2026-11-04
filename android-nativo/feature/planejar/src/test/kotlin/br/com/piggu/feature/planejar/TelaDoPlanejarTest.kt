@@ -25,13 +25,24 @@ class TelaDoPlanejarTest {
         var voltou = false
         compose.setContent { PigguTheme { TelaDoPlanejar(voltar = { voltou = true }, abrirTela = { abertos += it }) } }
 
-        assertEquals(listOf("/orcamentos", "/contas-fixas"), ATALHOS_DO_PLANEJAR.map { it.caminho })
+        assertEquals(listOf("/orcamentos", "/contas-fixas", "/relatorios", "/metas"), ATALHOS_DO_PLANEJAR.map { it.caminho })
         compose.onNodeWithText("80% e 100%", substring = true).assertExists()
         compose.onNodeWithText("Orçamento").assertHasClickAction().performClick()
         compose.onNodeWithText("Contas do mês").performClick()
-        assertEquals(listOf("/orcamentos", "/contas-fixas"), abertos)
+        compose.onNodeWithText("Relatórios").performClick()
+        compose.onNodeWithText("Metas do mês").performClick()
+        assertEquals(listOf("/orcamentos", "/contas-fixas", "/relatorios", "/metas"), abertos)
 
         compose.onNodeWithContentDescription("Voltar").performClick()
         assertEquals(true, voltou)
+    }
+
+    @Test
+    fun `como aba, fica sem o voltar e sem o titulo proprio`() {
+        compose.setContent { PigguTheme { TelaDoPlanejar(voltar = null, abrirTela = {}) } }
+
+        compose.onNodeWithContentDescription("Voltar").assertDoesNotExist()
+        compose.onNodeWithText("Planejar").assertDoesNotExist()
+        compose.onNodeWithText("Orçamento").assertExists()
     }
 }

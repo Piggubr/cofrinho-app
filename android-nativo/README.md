@@ -15,24 +15,25 @@ plataforma que faltar.
 ./gradlew build                  # tudo que o CI roda: variantes, lint e testes
 ./gradlew verifyRoborazziDemoDebug   # confere as capturas de tela
 ./gradlew recordRoborazziDemoDebug   # grava as capturas de novo (tela mudou de propósito)
+./gradlew koverHtmlReport koverVerify   # cobertura do app inteiro e o piso do CI (D-163)
 ```
 
 ## Módulos
 
 | Módulo | O que tem |
 |---|---|
-| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra, trilho e gaveta, o Mais, o + e o tour em balões (`moldura/`), a trava do app (`Trava.kt`) |
+| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra (Painel, Lançamentos, Planejar e Mais, D-164), trilho e gaveta, o Mais, o + e o tour em balões (`moldura/`), a trava do app (`Trava.kt`) |
 | `core:model` | Os tipos do contrato da API (`models.ts` e `docs/api/*.yaml`), sem Android: dinheiro em `BigDecimal`, enum com `DESCONHECIDO` (D-101) |
 | `core:network` | Um serviço Retrofit por microserviço, `ErroDaApi` e as mensagens de erro, `User-Agent` e o aviso de atualizar (426) |
 | `core:database` | Room: as respostas da API guardadas em JSON por chave (D-103) |
-| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, tour visto, trava e esconder nos recentes) |
+| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, trava e esconder nos recentes) |
 | `core:data` | `Sessao` (login, renovação, sair), as regras da conta (`auth.guard.ts`), o cache offline-first, o monitor de rede |
 | `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
 | `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
 | `core:testing` | `ApiDaDemo`: a API falsa do modo demonstração (porte de `api-da-demo.ts`), usada também nos testes |
 | `feature:login` | A entrada: entrar (e-mail e senha, Google), criar conta, aceite, "Sobre você", CPF, confirmar e-mail, esqueci e redefinir a senha, excluir a conta |
 | `feature:legal` | Termos de Uso e Aviso de Privacidade nativos, com o texto do site (`scripts/textos-legais.py`) |
-| `feature:painel` | O Painel: resumo, meta do mês, categorias, avisos, cofrinho, objetivos, metas, Girls Math, notas e bancos, com organizar os cartões |
+| `feature:painel` | O Painel: o "Ainda dá para gastar" fixo no topo e os primeiros passos (D-164), resumo, meta do mês, categorias, avisos, cofrinho, objetivos, metas, Girls Math, notas e bancos, com organizar os cartões |
 | `feature:gastos` | A lista do mês (busca, filtros, editar, apagar com Desfazer, divisão, regras, importar e exportar) e o formulário de gasto, com a fila sem internet |
 | `feature:receitas` | Receitas do mês, "Entram todo mês", "A receber" e o formulário de receita |
 | `feature:assistente` | A busca global e o assistente de IA do topo |
@@ -43,7 +44,7 @@ plataforma que faltar.
 | `feature:contas` | Cartões e bancos: contas, cartões, a fatura, os bancos conectados e conectar banco pelo site (D-150) |
 | `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
 | `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
-| `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
+| `feature:planejar` | Planejar, aba do celular: os atalhos para Orçamento, Contas do mês, Relatórios e Metas do mês |
 | `feature:premios` | Prêmios: as Fofocoins, os prêmios e os resgates |
 | `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
 | `feature:plano` | Premium: o plano, os preços, o cancelamento e a assinatura individual pelo Google Play Billing (D-132) |

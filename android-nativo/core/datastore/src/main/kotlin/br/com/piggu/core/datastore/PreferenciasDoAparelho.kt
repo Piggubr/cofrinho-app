@@ -46,12 +46,6 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         }
     }
 
-    /** Se a pessoa já viu (ou pulou) o tour neste aparelho (Tutorial do site). */
-    fun viuOTour(pessoa: String): Flow<Boolean> = dados.data.map { it[tour(pessoa)] ?: false }
-
-    suspend fun marcarTourVisto(pessoa: String) {
-        dados.edit { it[tour(pessoa)] = true }
-    }
 
     suspend fun esquecerQueVoltouAoPadrao() {
         dados.edit { it.remove(VOLTOU) }
@@ -80,6 +74,5 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         // A mesma chave do UserDefaults do iOS.
         val TRAVAR = booleanPreferencesKey("piggu_trava_biometrica")
         val ESCONDER_NOS_RECENTES = booleanPreferencesKey("esconder_nos_recentes")
-        fun tour(pessoa: String) = booleanPreferencesKey("piggu_tutorial_$pessoa")
     }
 }

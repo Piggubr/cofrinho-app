@@ -26,7 +26,7 @@ kover {
     reports {
         // Piso de linhas cobertas do app inteiro. Só sobe: quem baixa a cobertura quebra o CI.
         // Meta: 85% (02/11/2026).
-        verify { rule { minBound(77) } }
+        verify { rule { minBound(78) } }
         filters {
             excludes {
                 // Gerado pelo compilador (Hilt, Room, Compose, recursos), não escrito por nós.

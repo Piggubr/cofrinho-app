@@ -34,6 +34,7 @@ import br.com.piggu.core.model.PedidoDePreferencias
 import br.com.piggu.core.model.PigguRole
 import br.com.piggu.core.model.ResumoDoMes
 import br.com.piggu.core.model.SituacaoDaContaFixa
+import br.com.piggu.core.model.TipoDeContaFixa
 import br.com.piggu.core.network.ErroDaApi
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.network.ServicoDeBancos
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
@@ -168,6 +170,29 @@ data class EstadoDoPainel(
     val progressoDoLimite: Int
         get() = if (limiteDoMes.signum() <= 0) 0 else minOf(100, (gastoNoMes * BigDecimal(100) / limiteDoMes).toDouble().let(Math::round).toInt())
     val estourouOLimite: Boolean get() = limiteDoMes.signum() > 0 && gastoNoMes > limiteDoMes
+
+    // Ainda dá para gastar (D-164): o teto do mês menos o gasto e as contas fixas que ainda vão sair.
+    /** Contas fixas de gasto ainda não pagas no mês; as pagas já viraram gasto. */
+    val contasAPagar: BigDecimal
+        get() = avisos.contas.filter { it.tipo != TipoDeContaFixa.RECEITA }.fold(BigDecimal.ZERO) { soma, conta -> soma + conta.valor }
+
+    /** O limite do mês ou, sem ele, as receitas do mês. */
+    val tetoEhOLimite: Boolean get() = limiteDoMes.signum() > 0
+    val tetoDoMes: BigDecimal? get() = if (tetoEhOLimite) limiteDoMes else resumo?.receitas?.takeIf { it.signum() > 0 }
+
+    /** Nulo sem limite e sem receita: o cartão convida a definir um dos dois. Negativo é o que passou. */
+    val aindaDaParaGastar: BigDecimal? get() = tetoDoMes?.let { it - gastoNoMes - contasAPagar }
+
+    /** Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído. */
+    val porDia: BigDecimal?
+        get() {
+            val resta = aindaDaParaGastar?.takeIf { it.signum() > 0 && mes == mesAtual } ?: return null
+            val dia = LocalDate.parse(hoje)
+            return resta.divide(BigDecimal(dia.lengthOfMonth() - dia.dayOfMonth + 1), 2, RoundingMode.DOWN)
+        }
+
+    /** O membro vê o resto zerado (ESCONDIDOS_DO_MEMBRO): a conta não teria sentido. */
+    val mostraAindaDaParaGastar: Boolean get() = nucleo != null && !ehMembro
 
     /** Total de cada categoria no mês, do maior para o menor, com a fatia do total. */
     val porCategoria: List<TotalDaCategoria>
