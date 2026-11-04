@@ -6,7 +6,7 @@
     <string name="grupo_dia_a_dia">Dia a dia</string>
     <string name="grupo_planejar">Planejar</string>
     <string name="grupo_contas">Cartões e datas</string>
-    <string name="grupo_estilo">Estilo de vida</string>
+    <string name="grupo_estilo">Extras</string>
     <string name="grupo_conta">Família e plano</string>
     <string name="tela_painel">Painel</string>
     <string name="tela_gastos">Gastos</string>
@@ -14,7 +14,8 @@
     <string name="tela_relatorios">Relatórios</string>
     <string name="tela_mais">Mais</string>
     <string name="tela_planejar">Planejar</string>
-    <string name="tela_metas">Minhas metas</string>
+    <string name="tela_lancamentos">Lançamentos</string>
+    <string name="tela_metas">Metas do mês</string>
     <string name="tela_orcamentos">Orçamento</string>
     <string name="tela_contas_fixas">Contas do mês</string>
     <string name="tela_contas_e_cartoes">Cartões e bancos</string>

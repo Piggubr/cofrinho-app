@@ -18,13 +18,8 @@ describe('PainelOrganizado', () => {
   it('sem nada salvo, mostra so os blocos principais e deixa o resto para ligar', () => {
     const painel = TestBed.inject(PainelOrganizado);
     expect(painel.blocos().map((b) => b.id)).toEqual(BLOCOS_DO_PAINEL.map((b) => b.id));
-    expect([...painel.posicoes().keys()]).toEqual([
-      'resumo',
-      'avisos',
-      'mes',
-      'cofrinho',
-      'objetivos',
-    ]);
+    // O resumo saiu do padrao: o "Ainda da para gastar" fixo no topo ja diz o essencial (D-164).
+    expect([...painel.posicoes().keys()]).toEqual(['avisos', 'mes', 'cofrinho', 'objetivos']);
 
     painel.alternar('notas');
     expect(painel.posicoes().has('notas')).toBe(true);
@@ -84,6 +79,6 @@ describe('PainelOrganizado', () => {
     expect(ordem[0]).toEqual({ id: 'categorias', visivel: false });
     expect(ordem.length).toBe(BLOCOS_DO_PAINEL.length);
     expect(ordem.at(-1)).toEqual({ id: 'girls-math', visivel: false });
-    expect(ordem.find((b) => b.id === 'resumo')!.visivel).toBe(true);
+    expect(ordem.find((b) => b.id === 'avisos')!.visivel).toBe(true);
   });
 });

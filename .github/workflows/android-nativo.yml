@@ -56,6 +56,9 @@ jobs:
       - name: Capturas Roborazzi
         run: ./gradlew --no-daemon verifyRoborazziDemoDebug
 
+      - name: Cobertura (piso no build.gradle.kts da raiz)
+        run: ./gradlew --no-daemon koverVerify koverLog
+
       - name: Guardar relatórios e diferenças das capturas
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -68,8 +71,12 @@ jobs:
 
   # O AAB de produção assinado com a chave de upload, guardado como artefato. Não envia ao Play
   # Console: o envio é manual, com a confirmação do Dudu. Sem os secrets, sai sem assinatura.
+  # Só à mão, na main, no ambiente assinatura-android: a chave nunca chega ao código de um PR,
+  # e o ambiente só libera os secrets para a main (D-153).
   aab:
     name: AAB de produção (Android nativo)
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: assinatura-android
     needs: build
     runs-on: ubuntu-latest
     defaults:

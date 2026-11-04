@@ -157,6 +157,62 @@ private struct LinhaDeAviso: View {
     }
 }
 
+/// Ainda dá para gastar (D-164): fixo no topo do Painel, fora do Personalizar.
+struct CartaoAindaDaParaGastar: View {
+    let mes: Date
+    /// nil sem limite e sem receita.
+    let conta: AindaDaParaGastar?
+    let irPara: (Aba) -> Void
+
+    @Environment(\.paleta) private var paleta
+
+    private var passado: Bool { Formatos.mes(mes) < Formatos.mes(Date()) }
+    private var nomeDoMes: String { Formatos.nomeDoMes(mes) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(passado ? "Sobrou em \(nomeDoMes)" : "Ainda dá para gastar em \(nomeDoMes)")
+                .font(.sora(.headline, peso: .semibold))
+                .accessibilityAddTraits(.isHeader)
+            if let conta {
+                let passou = conta.resta < 0
+                Text(Formatos.moeda(conta.resta))
+                    .font(.sora(.largeTitle, peso: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(passou ? paleta.perigo : paleta.primaria)
+                if passou {
+                    Text("Já passou do que dava para gastar este mês.").font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
+                } else if let porDia = conta.porDia {
+                    Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
+                }
+                // A conta à vista: quem não entende o número entende de onde ele veio.
+                Group {
+                    if conta.tetoEhOLimite {
+                        Text("Limite de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                    } else {
+                        Text("Receitas de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                    }
+                }
+                .font(.sora(.footnote))
+                .foregroundStyle(paleta.textoSuave)
+            } else {
+                Text("Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.")
+                    .font(.sora(.subheadline))
+                HStack {
+                    NavigationLink("Definir limite", value: TelaDoMais.orcamento)
+                    Spacer()
+                    Button("Lançar receitas") { irPara(.receitas) }
+                }
+                .font(.sora(.subheadline, peso: .medium))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(paleta.suave, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .accessibilityElement(children: .contain)
+    }
+}
+
 /// Gasto e limite do mes, com a barra do limite.
 struct CartaoDoMes: View {
     let mes: Date
@@ -666,6 +722,57 @@ struct CartaoDasCategorias: View {
             } else {
                 BarrasPorCategoria(linhas: totais.map { .init(categoria: $0.categoria, total: $0.total) })
             }
+        }
+    }
+}
+
+/// Comeco do mes (D-165): o mes de hoje ainda sem gasto mostra o anterior, apagado, para o
+/// Painel nao parecer zerado. Some no primeiro gasto do mes.
+struct CartaoDoMesPassado: View {
+    let modelo: ModeloDoPainel
+    let mes: Date
+    let aoLancar: () -> Void
+    let irPara: (Aba) -> Void
+
+    @Environment(\.paleta) private var paleta
+
+    var body: some View {
+        Cartao(verbatim: String(localized: "Como foi \(Formatos.nomeDoMes(Formatos.somarMeses(-1, a: mes)))")) {
+            Text("Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar.")
+                .font(.sora(.footnote))
+                .foregroundStyle(paleta.textoSuave)
+            VStack(alignment: .leading, spacing: 10) {
+                BarrasPorCategoria(linhas: ModeloDoPainel.porCategoria(modelo.gastosDoMesPassado)
+                    .map { .init(categoria: $0.categoria, total: $0.total) })
+                Text("Últimos gastos")
+                    .font(.sora(.subheadline, peso: .semibold))
+                    .foregroundStyle(paleta.textoSuave)
+                    .padding(.top, 6)
+                ForEach(modelo.recentesDoMesPassado) { gasto in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(gasto.estabelecimento.flatMap { $0.isEmpty ? nil : $0 } ?? gasto.item)
+                                .font(.sora(.subheadline, peso: .medium))
+                                .foregroundStyle(paleta.texto)
+                            Text("\(Formatos.dataCurta(gasto.data)) · \(gasto.categoria)")
+                                .font(.sora(.footnote))
+                                .foregroundStyle(paleta.textoSuave)
+                        }
+                        Spacer(minLength: 4)
+                        Text(Formatos.moeda(gasto.valor))
+                            .font(.sora(.subheadline, peso: .medium))
+                            .monospacedDigit()
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            .opacity(0.75)
+            HStack {
+                Button("Lançar um gasto", action: aoLancar)
+                Spacer()
+                Button("Ver o ano") { irPara(.relatorios) }
+            }
+            .font(.sora(.subheadline, peso: .medium))
         }
     }
 }

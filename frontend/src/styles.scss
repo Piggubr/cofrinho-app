@@ -1277,6 +1277,28 @@ fieldset.escolha {
     box-shadow: var(--shadow-card);
   }
 }
+/* Troca entre Gastos e Receitas, que dividem a aba Lançamentos (D-164). */
+.alternador.lancamentos {
+  display: flex;
+  margin-bottom: 1rem;
+
+  a {
+    flex: 1;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  a.ativo {
+    background: var(--surface);
+    color: var(--rose-deep);
+    font-weight: 600;
+    box-shadow: var(--shadow-card);
+  }
+}
 
 /* Em que fatura a compra cai: tem que saltar aos olhos. */
 .destaque-fechamento {

@@ -34,6 +34,7 @@ import br.com.piggu.core.model.PedidoDePreferencias
 import br.com.piggu.core.model.PigguRole
 import br.com.piggu.core.model.ResumoDoMes
 import br.com.piggu.core.model.SituacaoDaContaFixa
+import br.com.piggu.core.model.TipoDeContaFixa
 import br.com.piggu.core.network.ErroDaApi
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.network.ServicoDeBancos
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
@@ -79,6 +81,17 @@ data class AvisosDoMes(
 }
 
 data class TotalDaCategoria(val categoria: String, val total: BigDecimal, val fracao: Float)
+
+/** Total de cada categoria, do maior para o menor, com a fatia do total. */
+private fun totaisPorCategoria(gastos: List<Gasto>): List<TotalDaCategoria> {
+    val total = gastos.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
+    return gastos.groupBy { it.categoria }
+        .map { (categoria, doGrupo) ->
+            val soma = doGrupo.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
+            TotalDaCategoria(categoria, soma, if (total.signum() > 0) (soma.toDouble() / total.toDouble()).toFloat() else 0f)
+        }
+        .sortedByDescending { it.total }
+}
 
 /** Novo objetivo ([id] nulo) ou editar um. [prazo] aaaa-mm-dd. */
 data class FormularioDeObjetivo(
@@ -144,6 +157,8 @@ data class EstadoDoPainel(
     val limiteDoGratuito: Boolean = false,
     val notaNova: NotaNova? = null,
     val moedaEscolhida: String? = null,
+    /** Começo do mês (D-165): o mês de hoje ainda sem gasto mostra o anterior como referência. */
+    val gastosDoMesPassado: List<Gasto> = emptyList(),
 ) {
     private val nucleo: Nucleo? get() = (carga as? Carga.Pronto)?.valor
 
@@ -169,17 +184,37 @@ data class EstadoDoPainel(
         get() = if (limiteDoMes.signum() <= 0) 0 else minOf(100, (gastoNoMes * BigDecimal(100) / limiteDoMes).toDouble().let(Math::round).toInt())
     val estourouOLimite: Boolean get() = limiteDoMes.signum() > 0 && gastoNoMes > limiteDoMes
 
-    /** Total de cada categoria no mês, do maior para o menor, com a fatia do total. */
-    val porCategoria: List<TotalDaCategoria>
+    // Ainda dá para gastar (D-164): o teto do mês menos o gasto e as contas fixas que ainda vão sair.
+    /** Contas fixas de gasto ainda não pagas no mês; as pagas já viraram gasto. */
+    val contasAPagar: BigDecimal
+        get() = avisos.contas.filter { it.tipo != TipoDeContaFixa.RECEITA }.fold(BigDecimal.ZERO) { soma, conta -> soma + conta.valor }
+
+    /** O limite do mês ou, sem ele, as receitas do mês. */
+    val tetoEhOLimite: Boolean get() = limiteDoMes.signum() > 0
+    val tetoDoMes: BigDecimal? get() = if (tetoEhOLimite) limiteDoMes else resumo?.receitas?.takeIf { it.signum() > 0 }
+
+    /** Nulo sem limite e sem receita: o cartão convida a definir um dos dois. Negativo é o que passou. */
+    val aindaDaParaGastar: BigDecimal? get() = tetoDoMes?.let { it - gastoNoMes - contasAPagar }
+
+    /** Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído. */
+    val porDia: BigDecimal?
         get() {
-            val total = gastoNoMes
-            return nucleo?.gastos.orEmpty().groupBy { it.categoria }
-                .map { (categoria, gastos) ->
-                    val soma = gastos.fold(BigDecimal.ZERO) { s, g -> s + g.valor }
-                    TotalDaCategoria(categoria, soma, if (total.signum() > 0) (soma.toDouble() / total.toDouble()).toFloat() else 0f)
-                }
-                .sortedByDescending { it.total }
+            val resta = aindaDaParaGastar?.takeIf { it.signum() > 0 && mes == mesAtual } ?: return null
+            val dia = LocalDate.parse(hoje)
+            return resta.divide(BigDecimal(dia.lengthOfMonth() - dia.dayOfMonth + 1), 2, RoundingMode.DOWN)
         }
+
+    /** O membro vê o resto zerado (ESCONDIDOS_DO_MEMBRO): a conta não teria sentido. */
+    val mostraAindaDaParaGastar: Boolean get() = nucleo != null && !ehMembro
+
+    /** Total de cada categoria no mês, do maior para o menor, com a fatia do total. */
+    val porCategoria: List<TotalDaCategoria> get() = totaisPorCategoria(nucleo?.gastos.orEmpty())
+
+    /** Some no primeiro gasto do mês: o cartão só aparece com o mês de hoje vazio. */
+    val mostraMesPassado: Boolean get() = gastosDoMesPassado.isNotEmpty() && nucleo?.gastos?.isEmpty() == true
+    val porCategoriaDoMesPassado: List<TotalDaCategoria> get() = totaisPorCategoria(gastosDoMesPassado)
+    val recentesDoMesPassado: List<Gasto>
+        get() = gastosDoMesPassado.sortedWith(compareByDescending<Gasto> { it.data }.thenByDescending { it.registradoEm.orEmpty() }).take(5)
 
     // Primeiros passos (primeiros-passos.ts): limite e gasto contam pelo que já existe na conta.
     val temLimite: Boolean get() = nucleo?.metas?.values?.any { it.signum() > 0 } == true
@@ -323,8 +358,18 @@ class PainelViewModel @Inject constructor(
                     Nucleo(cofrinho.await(), gastos.await(), metas.await())
                 }
             }.collect { carga -> estadoAtual.update { it.copy(carga = carga) } }
+            carregarMesPassado(mes, parametro)
             estadoAtual.update { it.copy(atualizando = false) }
         }
+    }
+
+    /** Só no mês de hoje e enquanto ele não tem gasto; sem resposta, fica o Painel de sempre. */
+    private suspend fun carregarMesPassado(mes: String, visao: String?) {
+        val atual = estadoAtual.value
+        val vazio = (atual.carga as? Carga.Pronto)?.valor?.gastos?.isEmpty() == true
+        val anterior = LocalDate.now(relogio).minusMonths(1).toString().take(7)
+        val gastos = if (mes == atual.mesAtual && vazio) buscar(null) { financas.listarGastos(anterior, visao) }.orEmpty() else emptyList()
+        estadoAtual.update { it.copy(gastosDoMesPassado = gastos) }
     }
 
     private suspend fun carregarAvisos(mes: String) = coroutineScope {

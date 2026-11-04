@@ -336,6 +336,45 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         assertThat(marido.getRole()).isEqualTo(PigguRole.MEMBRO);
     }
 
+    @Test
+    @DisplayName("o titular que foi para outra familia nao age mais como titular com o token antigo (D-158)")
+    void tokenAntigoDeQuemSaiu() {
+        CurrentUser antigo = como(titular);
+        familias.convidar(como(vizinho), "titular@familia.test");
+        familias.convidar(como(vizinho), "pendente@outra.test");
+        java.util.UUID convite = familias.convitesParaMim(como(titular)).get(0).id();
+        familias.aceitarConvite(antigo, convite);
+
+        assertThatThrownBy(() -> familias.removerMembro(antigo, membro.getId()))
+                .isInstanceOf(com.piggu.common.error.ForbiddenException.class);
+        assertThatThrownBy(() -> familias.renomear(antigo, "Outra"))
+                .isInstanceOf(com.piggu.common.error.ForbiddenException.class);
+        assertThat(usuarios.findById(membro.getId()).orElseThrow().getHouseholdId())
+                .isNotEqualTo(vizinho.getHouseholdId());
+        assertThat(familias.ver(antigo).convites()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("convite vencido renovado passa pelo limite de 5 do plano familia (D-159)")
+    void conviteVencidoNoLimiteDoFamilia() {
+        Household casa = casas.findById(titular.getHouseholdId()).orElseThrow();
+        Instant agora = Instant.now();
+        casa.aplicarAssinatura("WEB", agora.plus(java.time.Duration.ofDays(30)), agora, agora,
+                com.piggu.identity.billing.TipoDePlano.FAMILIA, titular.getId());
+        casas.save(casa);
+        familias.convidar(como(titular), "c@familia.test");
+        familias.convidar(como(titular), "d@familia.test");
+        familias.convidar(como(titular), "e@familia.test");
+        entrar("c@familia.test", "C");
+        entrar("d@familia.test", "D");
+        entrar("e@familia.test", "E");
+        convites.save(new HouseholdInvite(titular.getHouseholdId(), "f@familia.test", titular.getId(),
+                agora.minusSeconds(60)));
+
+        assertThatThrownBy(() -> familias.convidar(como(titular), "f@familia.test"))
+                .isInstanceOf(BusinessException.class).extracting("codigo").isEqualTo("LIMITE_DO_FAMILIA");
+    }
+
     private UserAccount entrar(String email, String nome) {
         return Convidados.entrar(familias, convites, usuarios, email, nome);
     }

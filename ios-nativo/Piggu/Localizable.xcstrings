@@ -273,6 +273,9 @@
     "Ainda dá para gastar %@ do limite de %@." : {
 
     },
+    "Ainda dá para gastar em %@" : {
+
+    },
     "Ajustar" : {
 
     },
@@ -525,6 +528,9 @@
     "Celular" : {
 
     },
+    "Cerca de %@ por dia até o fim do mês" : {
+
+    },
     "Chiclete" : {
 
     },
@@ -546,6 +552,9 @@
     "Com a categoria em \"Automática\", o Piggu usa estas regras pelo nome do item ou do estabelecimento, e depois a categoria da última compra do mesmo produto. Também valem para as notas lidas por foto." : {
 
     },
+    "Com a trava do Piggu ligada, abra o app para ver seus gastos." : {
+
+    },
     "Com data" : {
 
     },
@@ -565,6 +574,9 @@
 
     },
     "Como administrador, você já usa tudo do Premium." : {
+
+    },
+    "Como foi %@" : {
 
     },
     "Como foi a compra" : {
@@ -772,6 +784,9 @@
 
     },
     "Defina quanto quer gastar por categoria, cadastre as contas do mês e acompanhe seus objetivos." : {
+
+    },
+    "Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar." : {
 
     },
     "Defina um limite por categoria e receba aviso em 80% e 100%. Faz parte do Piggu Premium." : {
@@ -1167,6 +1182,9 @@
     "Exportar gastos do mês (CSV)" : {
 
     },
+    "Extras" : {
+
+    },
     "Falta pouco para criar sua conta." : {
 
     },
@@ -1404,6 +1422,9 @@
     "Já no carrinho" : {
 
     },
+    "Já passou do que dava para gastar este mês." : {
+
+    },
     "Lance as **receitas do mês** para ver quanto sobrou e quanto você poupou." : {
 
     },
@@ -1414,6 +1435,9 @@
 
     },
     "Lança sozinho todo dia %lld, até você desligar em Contas do mês." : {
+
+    },
+    "Lançamentos" : {
 
     },
     "Lançamentos novos já nascem compartilhados" : {
@@ -1429,6 +1453,9 @@
 
     },
     "Lançar receita" : {
+
+    },
+    "Lançar receitas" : {
 
     },
     "Lançar sozinha no dia do vencimento" : {
@@ -1462,6 +1489,9 @@
 
     },
     "Lilás" : {
+
+    },
+    "Limite de %@, menos %@ já gastos e %@ de contas a pagar" : {
 
     },
     "Limite do mês" : {
@@ -1618,6 +1648,9 @@
 
     },
     "Nenhum gasto neste mês" : {
+
+    },
+    "Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar." : {
 
     },
     "Nenhum item guardado ainda" : {
@@ -1869,6 +1902,9 @@
     "O que você não comprou?" : {
 
     },
+    "O que você quer alcançar este mês, passo a passo." : {
+
+    },
     "O resumo do mês: quanto entrou, quanto saiu, quanto ainda dá para gastar e as contas que vencem." : {
 
     },
@@ -1882,6 +1918,9 @@
 
     },
     "Objetivo alcançado!" : {
+
+    },
+    "Objetivos do cofrinho" : {
 
     },
     "Olá, %@" : {
@@ -1942,6 +1981,9 @@
 
     },
     "Para onde foi o dinheiro" : {
+
+    },
+    "Para onde o dinheiro foi, mês a mês e por categoria." : {
 
     },
     "Para responder, o assistente envia ao Google (Gemini) só o que a pergunta pede: totais e gastos do período, sem nome nem e-mail. A conversa não fica guardada no Piggu: fica só neste aparelho por %lld dias e sai quando você sai da conta." : {
@@ -2184,6 +2226,9 @@
     "Receitas %@" : {
 
     },
+    "Receitas de %@, menos %@ já gastos e %@ de contas a pagar" : {
+
+    },
     "Receitas e gastos acumulados no mês" : {
 
     },
@@ -2409,6 +2454,9 @@
     "Sobre você" : {
 
     },
+    "Sobrou em %@" : {
+
+    },
     "Sorteando..." : {
 
     },
@@ -2608,6 +2656,9 @@
 
     },
     "Ver minha família" : {
+
+    },
+    "Ver o ano" : {
 
     },
     "Ver por semana" : {
@@ -2824,6 +2875,9 @@
 
     },
     "Última cotação conhecida" : {
+
+    },
+    "Últimos gastos" : {
 
     },
     "−%@" : {

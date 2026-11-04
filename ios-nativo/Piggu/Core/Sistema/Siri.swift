@@ -8,9 +8,15 @@ struct QuantoGasteiIntent: AppIntent {
     static let title: LocalizedStringResource = "Quanto gastei este mês"
     static let description = IntentDescription("Diz quanto você gastou no mês e quanto ainda cabe no limite.")
     static let openAppWhenRun = false
+    // Os numeros sao da pessoa: com o iPhone bloqueado, a Siri pede o desbloqueio antes (D-162).
+    static let authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        // Com a trava do Piggu ligada, so o app mostra os gastos, depois do Face ID (D-162).
+        if UserDefaults.standard.bool(forKey: TravaDoApp.chave) {
+            return .result(dialog: IntentDialog(stringLiteral: String(localized: "Com a trava do Piggu ligada, abra o app para ver seus gastos.")))
+        }
         let mes = Formatos.mes(Date())
         if let cliente = Sessao.atual?.cliente,
            let resumo = try? await cliente.resumoDoMes(mes) {

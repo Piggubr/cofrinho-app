@@ -31,6 +31,8 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Entrada e saida da conta.
@@ -120,13 +123,14 @@ public class AuthController {
     public record ConfirmarEmailRequest(@NotBlank @Size(max = 100) String token) {
     }
 
-    /** Aberto: quem clica no link pode estar sem sessao, em outro aparelho. */
+    /** Aberto, mas conta com senha so confirma com a sessao dela (D-152); sem ela, 403 ENTRE_PARA_CONFIRMAR. */
     @Operation(summary = "Confirmar o e-mail pelo link")
     @SecurityRequirements
     @PostMapping("/confirmar-email")
-    public ResponseEntity<Void> confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido) {
+    public ResponseEntity<Void> confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest pedido,
+                                               @AuthenticationPrincipal Jwt sessao) {
         // Nada do perfil volta: quem tem o link pode nao ser o dono da sessao.
-        confirmacao.confirmar(pedido.token());
+        confirmacao.confirmar(pedido.token(), sessao == null ? null : UUID.fromString(sessao.getSubject()));
         return ResponseEntity.noContent().build();
     }
 

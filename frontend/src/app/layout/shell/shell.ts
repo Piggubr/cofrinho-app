@@ -55,19 +55,24 @@ interface ItemDeMenu {
 /** SF Symbols dos atalhos na barra nativa do iOS. */
 const SIMBOLOS: Record<string, string> = {
   '/painel': 'house',
-  '/gastos': 'creditcard',
+  '/gastos': 'list.bullet.rectangle',
   '/receitas': 'arrow.down.circle',
   '/relatorios': 'chart.bar',
   '/planejar': 'target',
   '/familia': 'person.2',
 };
 
+const ABAS_COM_TELAS: Record<string, string[]> = {
+  '/gastos': ['/gastos', '/receitas'],
+  '/planejar': ['/planejar', '/relatorios'],
+};
+
 const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
   { id: 'dia-a-dia', titulo: $localize`Dia a dia` },
   { id: 'planejar', titulo: $localize`Planejar` },
   { id: 'contas', titulo: $localize`Cartões e datas` },
-  { id: 'estilo', titulo: $localize`Estilo de vida` },
   { id: 'conta', titulo: $localize`Família e plano` },
+  { id: 'estilo', titulo: $localize`Extras` },
 ];
 
 /**
@@ -75,20 +80,19 @@ const GRUPOS: { readonly id: Grupo; readonly titulo: string }[] = [
  * estao na barra de abas nao aparecem ali; tela fora da lista vai para o fim.
  */
 const ORDEM_DO_MAIS = [
-  '/planejar',
   '/contas-fixas',
   '/orcamentos',
   '/metas',
   '/contas-e-cartoes',
   '/calendario',
+  '/familia',
+  '/plano',
   '/compras',
   '/girls-math',
   '/lugares',
   '/filmes',
   '/feed',
   '/premios',
-  '/familia',
-  '/plano',
 ];
 
 export interface GrupoDeMenu {
@@ -115,7 +119,16 @@ export interface GrupoDeMenu {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BuscaGlobal, Assistente, Icone, LancamentoRapido, TutorialDePrimeiroAcesso],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    BuscaGlobal,
+    Assistente,
+    Icone,
+    LancamentoRapido,
+    TutorialDePrimeiroAcesso,
+  ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   host: {
@@ -172,9 +185,9 @@ export class Shell {
     { rota: '/painel', rotulo: $localize`Painel`, icone: 'casa', grupo: 'dia-a-dia' },
     { rota: '/gastos', rotulo: $localize`Gastos`, icone: 'carteira', grupo: 'dia-a-dia' },
     { rota: '/receitas', rotulo: $localize`Receitas`, icone: 'entrada', grupo: 'dia-a-dia' },
-    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'dia-a-dia' },
+    { rota: '/relatorios', rotulo: $localize`Relatórios`, icone: 'grafico', grupo: 'planejar' },
     { rota: '/planejar', rotulo: $localize`Planejar`, icone: 'alvo', grupo: 'planejar' },
-    { rota: '/metas', rotulo: $localize`Minhas metas`, icone: 'bandeira', grupo: 'planejar' },
+    { rota: '/metas', rotulo: $localize`Metas do mês`, icone: 'bandeira', grupo: 'planejar' },
     { rota: '/orcamentos', rotulo: $localize`Orçamento`, icone: 'pizza', grupo: 'planejar' },
     { rota: '/contas-fixas', rotulo: $localize`Contas do mês`, icone: 'recibo', grupo: 'planejar' },
     { rota: '/contas-e-cartoes', rotulo: $localize`Cartões e bancos`, icone: 'cartao', grupo: 'contas' },
@@ -251,22 +264,44 @@ export class Shell {
         this.cotacao.set(null);
         return;
       }
-      const pedido = this.finance
-        .consultarCotacao(de, preferencias.moedaConversao)
-        .subscribe({
-          next: (cotacao) => this.cotacao.set(cotacao),
-          // A cotacao e informativa: sem ela o app segue normalmente.
-          error: () => this.cotacao.set(null),
-        });
+      const pedido = this.finance.consultarCotacao(de, preferencias.moedaConversao).subscribe({
+        next: (cotacao) => this.cotacao.set(cotacao),
+        // A cotacao e informativa: sem ela o app segue normalmente.
+        error: () => this.cotacao.set(null),
+      });
       onCleanup(() => pedido.unsubscribe());
     });
   }
 
   /** Atalhos da barra de baixo no celular; o resto fica em "Mais". */
   protected atalhos(): ItemDeMenu[] {
-    const rotas = ['/painel', '/gastos', '/receitas', '/relatorios'];
-    return this.itens.filter((item) => rotas.includes(item.rota));
+    return ['/painel', '/gastos', '/planejar'].map((rota) => {
+      const item = this.itens.find((i) => i.rota === rota)!;
+      return rota === '/gastos' ? { ...item, rotulo: $localize`Lançamentos` } : item;
+    });
   }
+
+  /** Telas que cada aba acende (D-164): Gastos e Receitas em Lançamentos, Relatórios em Planejar. */
+  private telasDaAba(rota: string): string[] {
+    return ABAS_COM_TELAS[rota] ?? [rota];
+  }
+
+  /** Em que aba a tela fica; tela que nao e de nenhuma aba devolve null. */
+  private abaDaRota(url: string): string | null {
+    const rota = caminhoDe(url);
+    return (
+      this.atalhos().find((item) =>
+        this.telasDaAba(item.rota).some((tela) => rota === tela || rota.startsWith(tela + '/')),
+      )?.rota ?? null
+    );
+  }
+
+  protected abaAtiva(rota: string): boolean {
+    return !this.menuAberto() && this.abaDaRota(this.rotaAtual()) === rota;
+  }
+
+  /** Gastos e Receitas dividem a aba Lançamentos, com a troca entre as duas no topo. */
+  protected readonly emLancamentos = computed(() => this.abaDaRota(this.rotaAtual()) === '/gastos');
 
   /**
    * Os mesmos atalhos da barra HTML, com o "Mais" no fim. O "+" de lancar nao entra: o
@@ -288,7 +323,10 @@ export class Shell {
    */
   protected readonly telaInterna = computed(() => {
     const rota = caminhoDe(this.rotaAtual());
-    return !this.atalhos().some((item) => rota === item.rota || rota.startsWith(item.rota + '/'));
+    // Receitas divide a aba com Gastos; Relatorios abre por dentro do Planejar, com voltar.
+    return ![...this.atalhos().map((item) => item.rota), '/receitas'].some(
+      (tela) => rota === tela || rota.startsWith(tela + '/'),
+    );
   });
 
   protected readonly tituloDaTela = computed(() => {
@@ -296,7 +334,10 @@ export class Shell {
     if (rota.startsWith('/perfil')) {
       return $localize`Perfil`;
     }
-    return this.itens.find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rotulo ?? '';
+    return (
+      this.itens.find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rotulo ??
+      ''
+    );
   });
 
   /** Volta pelo historico; se a pessoa abriu direto nesta tela, vai para o Painel. */
@@ -313,11 +354,7 @@ export class Shell {
     if (this.menuAberto()) {
       return 'mais';
     }
-    const rota = this.rotaAtual().split(/[?#]/)[0];
-    return (
-      this.atalhos().find((item) => rota === item.rota || rota.startsWith(item.rota + '/'))?.rota ??
-      null
-    );
+    return this.abaDaRota(this.rotaAtual());
   });
 
   private ligarAbasNativas(): void {
@@ -362,7 +399,7 @@ export class Shell {
 
   /** Tela que ja tem aba embaixo: no celular ela sai da folha do "Mais". */
   protected naBarraDeAbas(rota: string): boolean {
-    return this.atalhos().some((item) => item.rota === rota);
+    return this.abaDaRota(rota) !== null;
   }
 
   protected ordemNoMais(rota: string): number {
@@ -481,7 +518,12 @@ export class Shell {
     const y = window.scrollY;
     if (y <= 8) {
       this.maisRecolhido.set(false);
-    } else if (y > this.ultimaRolagem + 4 && y > 80 && !this.lancamentoAberto() && !this.opcoesAbertas()) {
+    } else if (
+      y > this.ultimaRolagem + 4 &&
+      y > 80 &&
+      !this.lancamentoAberto() &&
+      !this.opcoesAbertas()
+    ) {
       this.maisRecolhido.set(true);
     }
     this.ultimaRolagem = y;

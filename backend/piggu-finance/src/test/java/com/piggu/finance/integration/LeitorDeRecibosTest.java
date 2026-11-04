@@ -193,6 +193,17 @@ class LeitorDeRecibosTest {
     }
 
     @Test
+    @DisplayName("o Gemini leu e nao achou itens: a leitura ja foi cobrada e conta na cota (D-156)")
+    void geminiSemItensContaNaCota() {
+        LeitorDeRecibos soGemini = new LeitorDeRecibos(ocr, gemini, memoria, consentimentos, cota, false);
+        when(gemini.habilitado()).thenReturn(true);
+        when(gemini.ler(any())).thenThrow(new GeminiReceiptReader.LeituraCobrada("A IA nao encontrou itens no recibo."));
+
+        assertThatThrownBy(() -> soGemini.ler(FOTO, GRATUITA)).isInstanceOf(BusinessException.class);
+        verify(cota, never()).devolver(any());
+    }
+
+    @Test
     @DisplayName("so JPEG, PNG ou WebP chegam ao OCR")
     void recusaOutroFormato() {
         ReceiptParseRequest tiff = new ReceiptParseRequest("SUkqAA==", "image/jpeg");

@@ -67,3 +67,27 @@
   text-align: center;
   font-size: 0.9rem;
 }
+
+/* Comeco do mes (D-165): o mes passado aparece apagado, so como referencia. */
+.mes-passado .referencia {
+  margin-top: 0.8rem;
+  opacity: 0.75;
+}
+
+.mes-passado-titulo {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+h3.mes-passado-titulo {
+  margin-top: 1rem;
+}
+
+.mes-passado-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}

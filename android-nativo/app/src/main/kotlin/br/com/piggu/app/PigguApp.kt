@@ -44,6 +44,7 @@ import br.com.piggu.core.ui.formatos.lerValor
 import br.com.piggu.app.navegacao.lerLink
 import br.com.piggu.app.moldura.gruposVisiveis
 import br.com.piggu.app.moldura.ITENS_DO_MENU
+import br.com.piggu.app.moldura.AbaDeLancamentos
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +82,7 @@ import br.com.piggu.feature.gastos.lista.TelaDeGastos
 import br.com.piggu.feature.login.AvisoDeConfirmarEmail
 import br.com.piggu.feature.painel.PainelScreen
 import br.com.piggu.feature.painel.TelaDoPainel
+import br.com.piggu.feature.planejar.TelaDoPlanejar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.merge
@@ -132,15 +134,13 @@ fun PigguApp(
                         avisos.showSnackbar(corPadrao)
                     }
                 }
-                val tourNovo by viewModel.tourNovo.collectAsStateWithLifecycle()
-                // O tour espera o desbloqueio: o diálogo dele abriria por cima da trava.
                 // Link de widget, atalho ou bloco com o app travado espera o desbloqueio (lançar seria por cima da trava).
                 val linksDepoisDaTrava = remember(links) { links.onEach { travaViewModel.estado.first { it.travado == false } } }
                 // "/plano" ou "/contas-e-cartoes" pedidos de dentro de uma tela abrem a tela nativa, como um link.
                 val caminhosDoApp = remember { MutableSharedFlow<Destino>(extraBufferCapacity = 1) }
                 val todosOsLinks = remember(linksDepoisDaTrava) { merge(linksDepoisDaTrava, caminhosDoApp) }
                 CompositionLocalProvider(LocalAbrirCaminho provides { caminho -> lerLink(caminho, ::lerValor)?.let(caminhosDoApp::tryEmit) ?: abrirNoSite(caminho) }) {
-                    AppLogado(raiz.perfil, todosOsLinks, avisos, abrirNoSite, viewModel::sair, tourNovo = tourNovo && trava.travado == false, viuOTour = viewModel::viuOTour)
+                    AppLogado(raiz.perfil, todosOsLinks, avisos, abrirNoSite, viewModel::sair)
                 }
                 if (trava.travado == true) TelaDeTrava(travaViewModel::desbloqueou)
             }
@@ -172,8 +172,6 @@ fun AppLogado(
     sair: () -> Unit,
     // Excluir a conta e reenviar a confirmação têm ViewModel do Hilt; as capturas desligam.
     acoesDaConta: Boolean = true,
-    tourNovo: Boolean = false,
-    viuOTour: () -> Unit = {},
 ) {
     val pilha = rememberNavBackStack(Tela.Painel)
     /** O gasto de um link ou da busca (id e mês aaaa-mm), que a aba Gastos abre e depois limpa. */
@@ -183,12 +181,9 @@ fun AppLogado(
     var organizarAoAbrir by remember { mutableStateOf(false) }
     /** O passo do tour aberto; nulo com ele fechado. Os balões saem da moldura (Tour.kt). */
     var passoDoTour by rememberSaveable { mutableStateOf<Int?>(null) }
-    LaunchedEffect(tourNovo) { if (tourNovo) passoDoTour = 0 }
     val tour = passoDoTour?.let { passo ->
-        TourAberto(passo, irPara = { passoDoTour = it }, fechar = {
-            passoDoTour = null
-            viuOTour()
-        })
+        // Não abre sozinho no primeiro acesso: quem guia é o Primeiros passos do Painel (D-164).
+        TourAberto(passo, irPara = { passoDoTour = it }, fechar = { passoDoTour = null })
     }
     val organizarPainel = {
         organizarAoAbrir = true
@@ -282,15 +277,19 @@ fun AppLogado(
                     }
                 }
                 entry<Tela.Gastos> {
-                    if (acoesDaConta) {
-                        TelaDeGastos(gastoParaAbrir, aoAbrirGasto = { gastoParaAbrir = null }, lancarGasto = { lancarGasto(null) })
-                    } else {
-                        AbaEmBreve(stringResource(R.string.tela_gastos), Tela.Gastos.caminho)
+                    AbaDeLancamentos(Tela.Gastos, ::abrir) {
+                        if (acoesDaConta) {
+                            TelaDeGastos(gastoParaAbrir, aoAbrirGasto = { gastoParaAbrir = null }, lancarGasto = { lancarGasto(null) })
+                        } else {
+                            AbaEmBreve(stringResource(R.string.tela_gastos), Tela.Gastos.caminho)
+                        }
                     }
                 }
                 entry<Tela.Receitas> {
-                    if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita })
-                    else AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho)
+                    AbaDeLancamentos(Tela.Receitas, ::abrir) {
+                        if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita })
+                        else AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho)
+                    }
                 }
                 entry<Tela.Relatorios> {
                     if (acoesDaConta) {
@@ -298,6 +297,9 @@ fun AppLogado(
                     } else {
                         AbaEmBreve(stringResource(R.string.tela_relatorios), Tela.Relatorios.caminho)
                     }
+                }
+                entry<Tela.Planejar> {
+                    TelaDoPlanejar(voltar = null, abrirTela = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let { abrir(it) } })
                 }
                 entry<Tela.Mais> {
                     TelaDoMais(perfil, BuildConfig.VERSION_NAME, ::abrir, sair, PaddingValues(bottom = FOLGA_DO_LANCAR))

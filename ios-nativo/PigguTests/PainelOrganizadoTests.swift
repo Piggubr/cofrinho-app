@@ -14,7 +14,8 @@ struct PainelOrganizadoTests {
     @Test func semNadaSalvoEOPadraoDoSite() {
         let padrao = PainelOrganizado.ordemValida(nil)
         #expect(padrao.map(\.id) == [.resumo, .avisos, .mes, .cofrinho, .objetivos, .metas, .categorias, .notas, .girlsMath])
-        #expect(padrao.filter(\.visivel).map(\.id) == [.resumo, .avisos, .mes, .cofrinho, .objetivos])
+        // Resumo e mes nascem desligados (D-164): o "Ainda dá para gastar" do topo ja diz isso.
+        #expect(padrao.filter(\.visivel).map(\.id) == [.avisos, .cofrinho, .objetivos])
     }
 
     @Test func juntaOSalvoPeloSiteComOsBlocosDeHoje() {
@@ -40,12 +41,12 @@ struct PainelOrganizadoTests {
 
         painel.mover([.cofrinho], antesDe: .resumo)
         painel.mover([.avisos], antesDe: nil)
-        painel.alternar(.mes)
+        painel.alternar(.objetivos)
         painel.mover(de: IndexSet(integer: 0), para: 2)
 
         let esperado: [IdDoBloco] = [.resumo, .cofrinho, .mes, .objetivos, .metas, .categorias, .notas, .girlsMath, .avisos]
         #expect(painel.blocos.map(\.id) == esperado)
-        #expect(!painel.visiveis.contains { $0.id == .mes })
+        #expect(!painel.visiveis.contains { $0.id == .objetivos })
 
         // O mesmo JSON do site, lido de novo por outra instancia.
         let salvo = try #require(ajustes.data(forKey: "piggu_painel_u1"))

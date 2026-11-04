@@ -73,8 +73,11 @@ class AcessibilidadeTest {
         compose.waitForIdle()
     }
 
-    private fun tocar(texto: String) =
+    /** Toca no primeiro dos [textos] que estiver na tela: "Lançamentos" na barra, "Gastos" na gaveta (D-164). */
+    private fun tocar(vararg textos: String) {
+        val texto = textos.firstOrNull { compose.onAllNodes(hasText(it) and hasClickAction()).fetchSemanticsNodes().isNotEmpty() } ?: textos.last()
         compose.onAllNodes(hasText(texto) and hasClickAction()).onFirst().performClick()
+    }
 
     /**
      * Um nó tocável sem rótulo (texto ou contentDescription). A área de toque não entra: o Compose
@@ -108,7 +111,7 @@ class AcessibilidadeTest {
 
     @Test
     fun gastos() {
-        tocar("Gastos")
+        tocar("Lançamentos", "Gastos")
         esperarCarregar()
         conferir("Gastos")
     }

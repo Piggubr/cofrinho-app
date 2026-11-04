@@ -48,14 +48,8 @@ struct MaisView: View {
                 }
 
                 TipView(Dicas.Planejar()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                grupo("Planejar", [.planejar, .metas, .orcamento, .contasDoMes])
+                grupo("Planejar", [.metas, .orcamento, .contasDoMes])
                 grupo("Contas", [.cartoes, .calendario])
-                Section("Estilo de vida") {
-                    ForEach([TelaDoMais.compras, .lugares, .filmes, .fotos, .premios, .girlsMath], id: \.self) { tela in
-                        if tela.modulo.map(ligado) ?? true { link(tela) }
-                    }
-                }
-                .listRowBackground(paleta.superficie)
                 Section("Conta") {
                     TipView(Dicas.Familia())
                     link(.familia)
@@ -65,6 +59,13 @@ struct MaisView: View {
                 }
                 .listRowBackground(paleta.superficie)
 
+                // Por último: fora do caminho principal (D-164).
+                Section("Extras") {
+                    ForEach([TelaDoMais.compras, .lugares, .filmes, .fotos, .premios, .girlsMath], id: \.self) { tela in
+                        if tela.modulo.map(ligado) ?? true { link(tela) }
+                    }
+                }
+                .listRowBackground(paleta.superficie)
                 Section("Termos e privacidade") {
                     NavigationLink("Termos de Uso") { TextoLegalView(documento: .termos) }
                     NavigationLink("Aviso de Privacidade") { TextoLegalView(documento: .privacidade) }

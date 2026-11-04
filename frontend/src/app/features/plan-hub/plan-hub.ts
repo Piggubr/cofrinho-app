@@ -33,5 +33,17 @@ export class PlanHub {
       descricao: $localize`Aluguel, luz, internet: o que vence todo mês, lançado no dia.`,
       icone: 'recibo',
     },
+    {
+      rota: '/relatorios',
+      titulo: $localize`Relatórios`,
+      descricao: $localize`Para onde o dinheiro foi, mês a mês e por categoria.`,
+      icone: 'grafico',
+    },
+    {
+      rota: '/metas',
+      titulo: $localize`Metas do mês`,
+      descricao: $localize`O que você quer alcançar este mês, passo a passo.`,
+      icone: 'bandeira',
+    },
   ];
 }

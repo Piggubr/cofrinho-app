@@ -25,6 +25,11 @@ struct PrincipalView: View {
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
     @SceneStorage("piggu_caminho_do_mais") private var caminhoDoMais = ""
     @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
+    /// Gastos ou Receitas, dentro da aba Lançamentos (D-164).
+    @SceneStorage("piggu_lancamentos") private var lancamentos = Aba.gastos
+    @SceneStorage("piggu_caminho_do_planejar") private var caminhoDoPlanejar = ""
+    /// Os Relatórios abrem dentro do Planejar.
+    @State private var relatoriosAbertos = false
 
     /// Ajuste do Perfil: a barra de abas encolhe ao rolar a lista. Desligado, ela fica sempre inteira.
     static let chaveEsconderAbas = "piggu_esconder_abas"
@@ -56,6 +61,10 @@ struct PrincipalView: View {
             }
             .onChange(of: rota, initial: true) { _, nova in
                 abrir(nova)
+            }
+            // A aba guardada antes do D-164 pode ser receitas ou relatorios, que não estão mais na barra.
+            .onChange(of: aba, initial: true) { _, nova in
+                if nova == .receitas || nova == .relatorios { selecionar(nova) }
             }
             // Widgets, Siri e Spotlight ao abrir e ao voltar ao app; o aparelho para os avisos.
             .task(id: fase) {
@@ -92,10 +101,9 @@ struct PrincipalView: View {
     private var abas: some View {
         if #available(iOS 18, *) {
             TabView(selection: $aba) {
-                Tab("Painel", systemImage: "chart.pie.fill", value: Aba.painel) { painel }
-                Tab("Gastos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { gastos }
-                Tab("Receitas", systemImage: "arrow.down.circle.fill", value: Aba.receitas) { receitas }
-                Tab("Relatórios", systemImage: "chart.bar.xaxis", value: Aba.relatorios) { relatorios }
+                Tab("Painel", systemImage: "house.fill", value: Aba.painel) { painel }
+                Tab("Lançamentos", systemImage: "list.bullet.rectangle.fill", value: Aba.gastos) { abaDeLancamentos }
+                Tab("Planejar", systemImage: "target", value: Aba.planejar) { planejar }
                 Tab("Mais", systemImage: "ellipsis.circle.fill", value: Aba.mais) { MaisView(caminho: .guardada($caminhoDoMais)) }
             }
             .tabViewStyle(.sidebarAdaptable)
@@ -103,17 +111,14 @@ struct PrincipalView: View {
         } else {
             TabView(selection: $aba) {
                 painel
-                    .tabItem { Label("Painel", systemImage: "chart.pie.fill") }
+                    .tabItem { Label("Painel", systemImage: "house.fill") }
                     .tag(Aba.painel)
-                gastos
-                    .tabItem { Label("Gastos", systemImage: "list.bullet.rectangle.fill") }
+                abaDeLancamentos
+                    .tabItem { Label("Lançamentos", systemImage: "list.bullet.rectangle.fill") }
                     .tag(Aba.gastos)
-                receitas
-                    .tabItem { Label("Receitas", systemImage: "arrow.down.circle.fill") }
-                    .tag(Aba.receitas)
-                relatorios
-                    .tabItem { Label("Relatórios", systemImage: "chart.bar.xaxis") }
-                    .tag(Aba.relatorios)
+                planejar
+                    .tabItem { Label("Planejar", systemImage: "target") }
+                    .tag(Aba.planejar)
                 MaisView(caminho: .guardada($caminhoDoMais))
                     .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
                     .tag(Aba.mais)
@@ -122,23 +127,50 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { aba = $0 }
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { selecionar($0) }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var gastos: some View {
-        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir) { versaoDosDados += 1 }
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var receitas: some View {
-        ReceitasView(versaoDosDados: versaoDosDados) { versaoDosDados += 1 }
+        ReceitasView(versaoDosDados: versaoDosDados, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
-    private var relatorios: some View {
-        RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar)
-            .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    /// Gastos e Receitas, cada uma com a sua tela, trocadas pelo seletor no topo (D-164).
+    private var abaDeLancamentos: some View {
+        Group { if lancamentos == .receitas { receitas } else { gastos } }
+    }
+
+    /// Planejar, com os Relatórios dentro (D-164).
+    private var planejar: some View {
+        NavigationStack(path: .guardada($caminhoDoPlanejar)) {
+            PlanejarView { relatoriosAbertos = true }
+                .topoDoPiggu()
+                .comTelasDoMais()
+                .navigationDestination(isPresented: $relatoriosAbertos) {
+                    RelatoriosView(versaoDosDados: versaoDosDados, aoLancar: lancar, comPilha: false)
+                }
+        }
+        .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+    }
+
+    /// Vai para a aba do destino; receitas e relatorios abrem dentro de Lançamentos e do Planejar.
+    private func selecionar(_ destino: Aba) {
+        switch destino {
+        case .gastos, .receitas:
+            lancamentos = destino
+            aba = .gastos
+        case .relatorios:
+            aba = .planejar
+            relatoriosAbertos = true
+        case .painel, .planejar, .mais:
+            aba = destino
+        }
     }
 
     private func lancar() {
@@ -152,14 +184,16 @@ struct PrincipalView: View {
     private func abrir(_ rota: Rota?) {
         switch rota {
         case let .aba(destino):
-            aba = destino
+            selecionar(destino)
+        case .tela(.planejar):
+            aba = .planejar
         case let .tela(tela):
             aba = .mais
             caminhoDoMais = tela.rawValue
         case let .lancarGasto(valor):
             lancamento = PedidoDeLancamento(valor: valor)
         case let .verGasto(id, mes):
-            aba = .gastos
+            selecionar(.gastos)
             gastoParaAbrir = GastoPedido(id: id, mes: mes)
         case .confirmarEmail, .redefinirSenha, .textoLegal, .esqueciSenha, .cpf, nil:
             // Os da conta abrem na RaizView.

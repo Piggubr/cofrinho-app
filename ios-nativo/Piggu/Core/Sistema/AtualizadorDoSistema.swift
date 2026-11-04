@@ -10,7 +10,13 @@ enum AtualizadorDoSistema {
     static let dominioDosGastos = "br.com.piggu.app.gastos"
 
     static func atualizar(_ sessao: Sessao) async {
-        guard sessao.usuario != nil else { return }
+        guard let dono = sessao.usuario?.id else { return }
+        // Com a trava do app ligada, os numeros e os gastos nao ficam fora dele (widget da tela
+        // bloqueada, busca do iPhone) (D-162).
+        if UserDefaults.standard.bool(forKey: TravaDoApp.chave) {
+            apagar()
+            return
+        }
         let cliente = sessao.cliente
         let mes = Formatos.mes(Date())
         async let gastos = try? cliente.listarGastos(mes: mes)
@@ -18,9 +24,15 @@ enum AtualizadorDoSistema {
         async let metas = try? cliente.listarMetasDoMes()
         guard let gastos = await gastos else { return }
         let lista = await metas ?? []
-        resumo(mes: mes, gastos: gastos, limite: (await limites)?[mes], metas: lista).gravar()
+        let limite = (await limites)?[mes]
+        // A resposta pode chegar depois de sair da conta: so grava se a mesma pessoa segue la (D-162).
+        guard !Task.isCancelled, sessao.usuario?.id == dono else { return }
+        resumo(mes: mes, gastos: gastos, limite: limite, metas: lista).gravar()
         WidgetCenter.shared.reloadAllTimelines()
         await indexar(gastos)
+        if sessao.usuario?.id != dono {
+            apagar()
+        }
     }
 
     static func resumo(mes: String, gastos: [Gasto], limite: Decimal?, metas: [MetaDoMes]) -> ResumoDoWidget {

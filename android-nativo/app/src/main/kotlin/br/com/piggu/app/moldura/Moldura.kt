@@ -264,9 +264,9 @@ fun MarcaDoApp(modifier: Modifier = Modifier, descricao: String? = null, @Drawab
 @Composable
 private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto?) {
     NavigationBar {
-        Abas.forEach { (tela, rotulo, icone) ->
+        Abas.forEach { (tela, rotulo, icone, marcadaEm) ->
             NavigationBarItem(
-                selected = abaAtual == tela,
+                selected = abaAtual in marcadaEm,
                 onClick = { abrir(tela) },
                 // O rótulo ao lado já é lido pelo TalkBack; descrever o ícone repetiria.
                 icon = { AncoraDoTour(AlvoDoTour.da(tela), tour, TooltipAnchorPosition.Above) { Icon(painterResource(icone), null) } },
@@ -289,9 +289,9 @@ private fun BarraDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto
 private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAberto?) {
     NavigationRail(Modifier.statusBarsPadding()) {
         Spacer(Modifier.height(8.dp))
-        Abas.forEach { (tela, rotulo, icone) ->
+        Abas.forEach { (tela, rotulo, icone, marcadaEm) ->
             NavigationRailItem(
-                selected = abaAtual == tela,
+                selected = abaAtual in marcadaEm,
                 onClick = { abrir(tela) },
                 icon = { AncoraDoTour(AlvoDoTour.da(tela), tour, TooltipAnchorPosition.Right) { Icon(painterResource(icone), null) } },
                 label = { Text(stringResource(rotulo)) },
@@ -301,12 +301,15 @@ private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAbert
 }
 
 /** As abas do celular, com os desenhos da barra (SIMBOLOS de shell.ts) e o Mais no fim. */
-private val Abas: List<Triple<Tela, Int, Int>> = listOf(
-    Triple(Tela.Painel, R.string.tela_painel, Icones.drawable.ic_painel),
-    Triple(Tela.Gastos, R.string.tela_gastos, Icones.drawable.ic_gastos),
-    Triple(Tela.Receitas, R.string.tela_receitas, Icones.drawable.ic_receitas),
-    Triple(Tela.Relatorios, R.string.tela_relatorios, Icones.drawable.ic_relatorios),
-    Triple(Tela.Mais, R.string.tela_mais, Icones.drawable.ic_mais),
+/** Uma aba da barra; fica marcada também nas telas de [marcadaEm] (Receitas marca Lançamentos). */
+private data class Aba(val tela: Tela, val rotulo: Int, val icone: Int, val marcadaEm: Set<Tela> = setOf(tela))
+
+/** Painel, Lançamentos (gastos e receitas), Planejar (com os relatórios) e Mais: a opção A do redesenho (D-164). */
+private val Abas: List<Aba> = listOf(
+    Aba(Tela.Painel, R.string.tela_painel, Icones.drawable.ic_painel),
+    Aba(Tela.Gastos, R.string.tela_lancamentos, Icones.drawable.ic_gastos, setOf(Tela.Gastos, Tela.Receitas)),
+    Aba(Tela.Planejar, R.string.tela_planejar, Icones.drawable.ic_alvo, setOf(Tela.Planejar, Tela.Relatorios)),
+    Aba(Tela.Mais, R.string.tela_mais, Icones.drawable.ic_mais),
 )
 
 /** Gaveta fixa da tela larga: o Perfil, os grupos do menu inteiros e o Sair, como a coluna do site. */

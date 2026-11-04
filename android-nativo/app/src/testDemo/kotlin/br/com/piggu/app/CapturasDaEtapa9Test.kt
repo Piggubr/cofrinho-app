@@ -100,13 +100,16 @@ class CapturasDaEtapa9Test(private val caso: Caso) {
         }
     }
 
-    private fun tocar(texto: String) =
+    /** Toca no primeiro dos [textos] que estiver na tela: "Lançamentos" na barra, "Gastos" na gaveta (D-164). */
+    private fun tocar(vararg textos: String) {
+        val texto = textos.firstOrNull { compose.onAllNodes(hasText(it) and hasClickAction()).fetchSemanticsNodes().isNotEmpty() } ?: textos.last()
         compose.onAllNodes(hasText(texto) and hasClickAction()).onFirst().performClick()
+    }
 
-    /** A forma da moldura pela aba Gastos: embaixo é a barra; ao lado, estreita é o trilho e larga é a gaveta. */
+    /** A forma da moldura pela aba Planejar, que tem o mesmo nome na barra, no trilho e na gaveta: embaixo é a barra; ao lado, estreita é o trilho e larga é a gaveta. */
     private fun conferirMoldura() {
         val esperada = caso.moldura ?: return
-        val aba = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and hasText("Gastos")
+        val aba = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab) and hasText("Planejar")
         val no = compose.onAllNodes(aba).onFirst().fetchSemanticsNode()
         val dp = no.layoutInfo.density.density
         val forma = when {
@@ -134,7 +137,7 @@ class CapturasDaEtapa9Test(private val caso: Caso) {
     fun gastos() {
         so("gastos")
         esperarCarregar()
-        tocar("Gastos")
+        tocar("Lançamentos", "Gastos")
         // Espera também os nomes da família, que chegam numa carga à parte.
         esperarCarregar()
         conferirMoldura()

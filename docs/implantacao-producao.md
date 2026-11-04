@@ -18,6 +18,15 @@ Com isso ligado:
 | Chave JWT | identity (`TokenConfig`) | recusa a chave de desenvolvimento (`piggu-dev-*.pem`) |
 | Chave que vazou | identity, em **qualquer** ambiente | recusa o par que esteve no Git até o commit `c5f54e1` |
 
+O `deploy/atualizar.sh` não sobe nada se o `backend/.env` não tiver exatamente
+`PIGGU_AMBIENTE=producao` (D-151). A compra pelo StoreKit do Xcode só vale com
+`APP_STORE_ACEITAR_XCODE=true`, que nunca vai no servidor.
+
+**Túnel da Cloudflare.** Com o `cloudflared` na frente do Caddy e o `web` sem porta
+pública, ponha `PIGGU_PROXIES_CONFIAVEIS=private_ranges` no `.env`. Assim o Caddy lê o IP de
+quem chamou no `CF-Connecting-IP`, e os limites por IP valem por pessoa, não para o site
+inteiro (D-161). Sem túnel, com o Caddy publicando a porta, deixe a variável de fora.
+
 ## 2. Chave JWT nova
 
 A chave privada assina todos os tokens: quem tem ela entra como qualquer pessoa. O par

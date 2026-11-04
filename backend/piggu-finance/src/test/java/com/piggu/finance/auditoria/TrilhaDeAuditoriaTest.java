@@ -123,7 +123,7 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("passado o prazo de retencao, o evento sai; pessoa excluida fica sem autor no historico")
+    @DisplayName("passado o prazo de retencao, o evento sai; o historico de quem sai vai com a pessoa (D-154)")
     void retencaoEExclusao() throws Exception {
         trilha.registrar(familia, TokensDeTeste.idDe(emailParceiro), TrilhaDeAuditoria.Acao.CRIOU, "gasto", "velho", null,
                 "de muito tempo atras");
@@ -138,7 +138,22 @@ class TrilhaDeAuditoriaTest extends PostgresIntegrationTest {
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/history").with(titular))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("orcamento e meta do mes sao so da pessoa: nem o titular que ve os menores ve o historico deles (D-154)")
+    void eventoDoQueESoDaPessoa() throws Exception {
+        String emailMenor = "dudu-" + familia + "@piggu.test";
+        trilha.registrar(familia, TokensDeTeste.idDe(emailMenor), TrilhaDeAuditoria.Acao.CRIOU, "orcamento", "o1", null,
+                "Lazer · 50");
+        trilha.registrar(familia, TokensDeTeste.idDe(emailMenor), TrilhaDeAuditoria.Acao.CRIOU, "gasto", "g1", null,
+                "Lanche");
+
+        mockMvc.perform(get("/api/history").with(TokensDeTeste.responsavelVendo(familia, emailMenor)))
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].autor").isEmpty());
+                .andExpect(jsonPath("$[0].entidade").value("gasto"));
+        mockMvc.perform(get("/api/history").with(TokensDeTeste.da(familia, emailMenor, PigguRole.MEMBRO)))
+                .andExpect(jsonPath("$.length()").value(2));
     }
 }

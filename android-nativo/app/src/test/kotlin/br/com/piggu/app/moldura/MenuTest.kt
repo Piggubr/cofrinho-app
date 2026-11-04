@@ -28,7 +28,7 @@ class MenuTest {
         val telas = telas(gruposVisiveis(ehTitular = true, modulos = listOf("filmes")))
         assertTrue(Tela.Filmes in telas)
         listOf(Tela.Compras, Tela.Lugares, Tela.Feed, Tela.Premios, Tela.GirlsMath).forEach { assertFalse(it in telas) }
-        // Sem nenhum módulo, o grupo Estilo de vida some inteiro.
+        // Sem nenhum módulo, o grupo Extras some inteiro.
         assertFalse(GrupoDoMenu.Estilo in gruposVisiveis(ehTitular = true, modulos = emptyList()).map { it.first })
     }
 
@@ -36,11 +36,17 @@ class MenuTest {
     fun `no Mais do celular as abas nao se repetem`() {
         val grupos = gruposVisiveis(ehTitular = true, modulos = null, semAsAbas = true)
         assertFalse(GrupoDoMenu.DiaADia in grupos.map { it.first })
-        assertEquals(Tela.Planejar, grupos.first().second.first().tela)
+        assertEquals(Tela.Metas, grupos.first().second.first().tela)
+        assertFalse(telas(grupos).any { it in ITENS_DAS_ABAS.map { aba -> aba.tela } })
     }
 
     @Test
-    fun `as abas do celular sao Painel, Gastos, Receitas e Relatorios`() {
-        assertEquals(listOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Relatorios), ITENS_DAS_ABAS.map { it.tela })
+    fun `as abas do celular levam o Painel, os lancamentos e o Planejar com os relatorios`() {
+        assertEquals(listOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Relatorios, Tela.Planejar), ITENS_DAS_ABAS.map { it.tela })
+    }
+
+    @Test
+    fun `os extras ficam por ultimo no Mais`() {
+        assertEquals(GrupoDoMenu.Estilo, gruposVisiveis(ehTitular = true, modulos = null, semAsAbas = true).last().first)
     }
 }

@@ -17,6 +17,8 @@ final class ModeloDoPainel {
     }
 
     var carga: Carga<Nucleo> = .carregando
+    /// Comeco do mes (D-165): o mes de hoje ainda sem gasto mostra o anterior como referencia.
+    var gastosDoMesPassado: [Gasto] = []
     var resumo: ResumoDoMes?
     var contasFixas: [ContaFixa] = []
     var orcamentos: [Orcamento] = []
@@ -69,8 +71,28 @@ final class ModeloDoPainel {
             async let metas = cliente.listarMetas()
             return try await Nucleo(cofrinho: cofrinho, gastos: gastos, metas: metas)
         }
+        await carregarMesPassado(mes: mes, visao: visao)
         await resumo.value
         await extras.value
+    }
+
+    /// So no mes de hoje e enquanto ele nao tem gasto; sem resposta, fica o Painel de sempre.
+    private func carregarMesPassado(mes: String, visao: Visao, hoje: Date = Date()) async {
+        guard mes == Formatos.mes(hoje), carga.valor?.gastos.isEmpty == true else {
+            gastosDoMesPassado = []
+            return
+        }
+        let anterior = Formatos.mes(Formatos.somarMeses(-1, a: hoje))
+        gastosDoMesPassado = (try? await cliente.listarGastos(mes: anterior, visao: visao)) ?? []
+    }
+
+    /// Os cinco mais recentes do mes passado.
+    var recentesDoMesPassado: [Gasto] { Self.recentes(gastosDoMesPassado) }
+
+    static func recentes(_ gastos: [Gasto]) -> [Gasto] {
+        Array(gastos.sorted {
+            ($0.data, $0.registradoEm ?? "") > ($1.data, $1.registradoEm ?? "")
+        }.prefix(5))
     }
 
     private func carregarExtras(mes: String) async {
@@ -147,7 +169,11 @@ final class ModeloDoPainel {
 
     /// Total de cada categoria no mes, do maior para o menor.
     func porCategoria(_ nucleo: Nucleo) -> [(categoria: String, total: Decimal)] {
-        Dictionary(grouping: nucleo.gastos, by: \.categoria)
+        Self.porCategoria(nucleo.gastos)
+    }
+
+    static func porCategoria(_ gastos: [Gasto]) -> [(categoria: String, total: Decimal)] {
+        Dictionary(grouping: gastos, by: \.categoria)
             .map { ($0.key, $0.value.reduce(0) { $0 + $1.valor }) }
             .sorted { $0.1 > $1.1 }
     }
@@ -282,5 +308,37 @@ final class ModeloDoPainel {
             erros[.resumo] = error.localizedDescription
             return false
         }
+    }
+}
+
+/// O número fixo no topo do Painel (D-164): o teto do mês menos o gasto e as contas fixas de
+/// gasto ainda não pagas. O teto é o limite do mês ou, sem ele, as receitas do mês.
+struct AindaDaParaGastar: Equatable {
+    let teto: Decimal
+    let tetoEhOLimite: Bool
+    let gasto: Decimal
+    let contasAPagar: Decimal
+    /// Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído.
+    let porDia: Decimal?
+
+    /// Negativo é o que passou.
+    var resta: Decimal { teto - gasto - contasAPagar }
+
+    /// nil sem limite e sem receita: o cartão convida a definir um dos dois.
+    static func calcular(limite: Decimal, receitas: Decimal?, gasto: Decimal, contas: [ContaFixa],
+                         mes: String, hoje: Date = Date(), calendario: Calendar = .current) -> AindaDaParaGastar? {
+        let tetoEhOLimite = limite > 0
+        guard let teto = tetoEhOLimite ? limite : receitas.flatMap({ $0 > 0 ? $0 : nil }) else { return nil }
+        // As pagas já viraram gasto; a receita fixa não é conta a pagar.
+        let contasAPagar = contas.filter { $0.situacao != .paga && $0.tipo != "RECEITA" }.reduce(0) { $0 + $1.valor }
+        let resta = teto - gasto - contasAPagar
+        var porDia: Decimal?
+        if resta > 0, mes == Formatos.mes(hoje), let dias = calendario.range(of: .day, in: .month, for: hoje)?.count {
+            var dividido = resta / Decimal(dias - calendario.component(.day, from: hoje) + 1)
+            var arredondado = Decimal()
+            NSDecimalRound(&arredondado, &dividido, 2, .down)
+            porDia = arredondado
+        }
+        return AindaDaParaGastar(teto: teto, tetoEhOLimite: tetoEhOLimite, gasto: gasto, contasAPagar: contasAPagar, porDia: porDia)
     }
 }

@@ -13,6 +13,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { AvisosDoMes } from './avisos-do-mes';
 import { ResumoDoMesCard } from './resumo-do-mes';
 import { PrimeirosPassos } from './primeiros-passos';
+import { AindaDaParaGastar } from './ainda-da-para-gastar';
 import { Objetivos } from './objetivos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
@@ -34,6 +35,21 @@ interface TotalPorCategoria {
   readonly fatia: number;
 }
 
+function totaisPorCategoria(gastos: readonly Gasto[]): TotalPorCategoria[] {
+  const total = gastos.reduce((soma, gasto) => soma + gasto.valor, 0);
+  const acumulado = new Map<string, number>();
+  for (const gasto of gastos) {
+    acumulado.set(gasto.categoria, (acumulado.get(gasto.categoria) ?? 0) + gasto.valor);
+  }
+  return [...acumulado.entries()]
+    .map(([categoria, valor]) => ({
+      categoria,
+      total: valor,
+      fatia: total > 0 ? Math.round((valor / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
+}
+
 /**
  * Painel inicial.
  *
@@ -43,7 +59,8 @@ interface TotalPorCategoria {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [CampoDeValor, 
+  imports: [
+    CampoDeValor,
     Focar,
     Icone,
     FormsModule,
@@ -53,11 +70,15 @@ interface TotalPorCategoria {
     PessoaPipe,
     ResumoDoMesCard,
     PrimeirosPassos,
+    AindaDaParaGastar,
     AvisosDoMes,
     Objetivos,
     MetasDoPainel,
     GirlsMathDoPainel,
-    NotasDoPainel, Carregando, Vazio],
+    NotasDoPainel,
+    Carregando,
+    Vazio,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -127,20 +148,28 @@ export class Dashboard {
     () => this.metaDoMes() > 0 && this.totalGastoNoMes() > this.metaDoMes(),
   );
 
-  protected readonly porCategoria = computed<TotalPorCategoria[]>(() => {
-    const total = this.totalGastoNoMes();
-    const acumulado = new Map<string, number>();
-    for (const gasto of this.gastos()) {
-      acumulado.set(gasto.categoria, (acumulado.get(gasto.categoria) ?? 0) + gasto.valor);
-    }
-    return [...acumulado.entries()]
-      .map(([categoria, valor]) => ({
-        categoria,
-        total: valor,
-        fatia: total > 0 ? Math.round((valor / total) * 100) : 0,
-      }))
-      .sort((a, b) => b.total - a.total);
+  protected readonly porCategoria = computed(() => totaisPorCategoria(this.gastos()));
+
+  /**
+   * Comeco do mes (D-165): o mes de hoje ainda sem gasto mostra o mes anterior como
+   * referencia, para o Painel nao parecer zerado. Some no primeiro gasto do mes.
+   */
+  protected readonly gastosDoMesPassado = signal<Gasto[]>([]);
+  protected readonly mesPassado = computed(() => {
+    const [ano, mes] = this.mesAtual().split('-').map(Number);
+    return mesKey(somarMeses(new Date(ano, mes - 1, 1), -1));
   });
+  protected readonly rotuloDoMesPassado = computed(() =>
+    mesPorExtenso(this.mesPassado()).toLocaleLowerCase(),
+  );
+  protected readonly porCategoriaDoMesPassado = computed(() =>
+    totaisPorCategoria(this.gastosDoMesPassado()),
+  );
+  protected readonly recentesDoMesPassado = computed(() =>
+    [...this.gastosDoMesPassado()]
+      .sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm))
+      .slice(0, 5),
+  );
 
   constructor() {
     // Lancado pelo "+" com esta tela aberta: recarrega (a primeira leitura e so a inicial).
@@ -299,6 +328,18 @@ export class Dashboard {
     });
   }
 
+  private carregarMesPassado(): void {
+    this.gastosDoMesPassado.set([]);
+    if (this.gastos().length || this.mesAtual() !== mesKey(new Date())) {
+      return;
+    }
+    // So referencia: sem ele, fica o vazio de sempre.
+    this.finance.listarGastos(this.mesPassado(), this.visao()).subscribe({
+      next: (gastos) => this.gastosDoMesPassado.set(gastos),
+      error: () => this.gastosDoMesPassado.set([]),
+    });
+  }
+
   private carregar(): void {
     this.carregando.set(true);
     this.erro.set('');
@@ -316,6 +357,7 @@ export class Dashboard {
         this.gastos.set(gastos);
         this.metas.set(metas);
         this.carregando.set(false);
+        this.carregarMesPassado();
       },
       error: (falha) => {
         this.erro.set(mensagemDeErro(falha));

@@ -36,13 +36,22 @@ test.describe('smoke', { tag: '@smoke' }, () => {
     expect(antes.emailConfirmado).toBe(false);
 
     const token = await linkDoLog('link de confirmacao', sessao.usuario.id);
-    const confirmar = await api.post('/api/auth/confirmar-email', { data: { token } });
+    // Conta com senha so confirma com a propria sessao (D-152).
+    const semSessao = await api.post('/api/auth/confirmar-email', { data: { token } });
+    expect(semSessao.status()).toBe(403);
+    const confirmar = await api.post('/api/auth/confirmar-email', {
+      data: { token },
+      headers: comToken(sessao),
+    });
     expect(confirmar.status()).toBe(204);
 
     const depois = await (await api.get('/api/auth/me', { headers: comToken(sessao) })).json();
     expect(depois.emailConfirmado).toBe(true);
     // O link vale uma vez so.
-    const deNovo = await api.post('/api/auth/confirmar-email', { data: { token } });
+    const deNovo = await api.post('/api/auth/confirmar-email', {
+      data: { token },
+      headers: comToken(sessao),
+    });
     expect(deNovo.status()).toBe(422);
   });
 

@@ -139,6 +139,16 @@
   </nav>
 
   <main class="conteudo">
+    @if (emLancamentos()) {
+      <nav class="alternador lancamentos" aria-label="Lançamentos" i18n-aria-label>
+        <a i18n routerLink="/gastos" routerLinkActive="ativo" ariaCurrentWhenActive="page"
+          >Gastos</a
+        >
+        <a i18n routerLink="/receitas" routerLinkActive="ativo" ariaCurrentWhenActive="page"
+          >Receitas</a
+        >
+      </nav>
+    }
     <router-outlet />
   </main>
 
@@ -213,8 +223,9 @@
     @for (item of atalhos(); track item.rota) {
       <a
         [routerLink]="item.rota"
-        routerLinkActive="ativo"
         class="aba"
+        [class.ativo]="abaAtiva(item.rota)"
+        [attr.aria-current]="abaAtiva(item.rota) ? 'page' : null"
         [attr.data-tour]="item.rota"
         (click)="fecharMenu()"
       >

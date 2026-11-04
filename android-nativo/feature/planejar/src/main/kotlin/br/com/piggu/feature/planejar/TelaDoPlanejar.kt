@@ -39,10 +39,13 @@ import br.com.piggu.core.ui.R as Comum
 /** Um atalho do Planejar: o caminho do site, que o `app` liga à tela. */
 data class AtalhoDoPlanejar(val caminho: String, @param:StringRes val titulo: Int, @param:StringRes val descricao: Int, val icone: Icone)
 
-/** Os atalhos de plan-hub.ts, na mesma ordem. */
+/** Os atalhos de plan-hub.ts, na mesma ordem, e os que vieram com a aba (D-164). */
 val ATALHOS_DO_PLANEJAR = listOf(
     AtalhoDoPlanejar("/orcamentos", R.string.planejar_orcamento, R.string.planejar_orcamento_descricao, Icone.Pizza),
     AtalhoDoPlanejar("/contas-fixas", R.string.planejar_contas_do_mes, R.string.planejar_contas_do_mes_descricao, Icone.Recibo),
+    // Aba do celular desde o D-164: junta o que saiu da barra.
+    AtalhoDoPlanejar("/relatorios", R.string.planejar_relatorios, R.string.planejar_relatorios_descricao, Icone.Grafico),
+    AtalhoDoPlanejar("/metas", R.string.planejar_metas, R.string.planejar_metas_descricao, Icone.Bandeira),
 )
 
 /**
@@ -52,16 +55,19 @@ val ATALHOS_DO_PLANEJAR = listOf(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelaDoPlanejar(voltar: () -> Unit, abrirTela: (caminho: String) -> Unit, modifier: Modifier = Modifier) {
+fun TelaDoPlanejar(voltar: (() -> Unit)?, abrirTela: (caminho: String) -> Unit, modifier: Modifier = Modifier) {
     Scaffold(
         modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.planejar_titulo), Modifier.semantics { heading() }) },
-                navigationIcon = {
-                    IconButton(voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
-                },
-            )
+            // Como aba (sem [voltar]), o topo é o da moldura.
+            if (voltar != null) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.planejar_titulo), Modifier.semantics { heading() }) },
+                    navigationIcon = {
+                        IconButton(voltar) { Icon(painterResource(Icone.Esquerda.desenho), stringResource(Comum.string.voltar)) }
+                    },
+                )
+            }
         },
     ) { margens ->
         Column(

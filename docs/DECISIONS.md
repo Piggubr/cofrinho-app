@@ -1550,3 +1550,152 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: pedir o Entrar com Apple de novo na hora de excluir e trocar o código ali, sem guardar token, o que não cobre quem exclui pelo site; guardar o token cifrado como o CPF, o que não vale a pena, porque o token sozinho não serve sem a chave `.p8` do Piggu.
 - Consequências: contas que entraram com a Apple antes desta mudança só ganham o token no próximo login com a Apple. Sem as três variáveis, o servidor não guarda token nem revoga, e o login segue igual. O token não vai no arquivo de "exportar meus dados", porque é uma credencial e não um dado da pessoa.
 - Onde ver: `backend/piggu-identity/.../apple/RevogacaoDaApple.java`, `.../domain/MinhaContaService.java` (`excluir`), `.../domain/AuthService.java` (`entrarComApple`), `ios-nativo/Piggu/Core/Auth/EntradaComApple.swift`
+
+## D-151: O Xcode só entra com opção ligada, e o deploy exige o modo de produção
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: a auditoria de segurança (run-1) achou que as proteções de produção dependem de `PIGGU_AMBIENTE=producao`. Com o valor faltando ou escrito diferente, o identity aceitava o verificador do Xcode da App Store, que não confere assinatura, e o webhook aberto `/api/billing/webhooks/app-store` daria ou tiraria o Premium de qualquer conta. As outras proteções (senha do banco, chave do CPF, chave do JWT, links no log) também se desligavam sem aviso.
+- Decisão: o verificador do Xcode só entra com `piggu.app-store.aceitar-xcode=true` (`APP_STORE_ACEITAR_XCODE`), desligado por padrão e nunca ligado no servidor. O `deploy/atualizar.sh` recusa subir se o `backend/.env` não tiver `PIGGU_AMBIENTE=producao`.
+- Alternativas: inverter todas as proteções para valer quando o modo não é `dev`, o que quebraria o desenvolvimento e os testes, que não definem o modo.
+- Consequências: no desenvolvimento, quem testa compra pelo StoreKit do Xcode liga a opção à mão. Um servidor sem a linha no `.env` para de receber deploy até ela entrar.
+- Onde ver: `backend/piggu-identity/.../billing/AppStoreLoja.java`, `backend/piggu-identity/src/main/resources/application.yml`, `deploy/atualizar.sh`
+
+## D-152: O link de confirmação só confirma com a sessão da própria conta
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: qualquer pessoa pode cadastrar o e-mail de outra com uma senha dela. O login com Google ou Apple e o link de nova senha devolvem a conta ao dono (`devolverAoDono`), mas o link de confirmação só marcava o e-mail como confirmado, e a senha de quem cadastrou continuava valendo (pré-tomada de conta).
+- Decisão: `POST /api/auth/confirmar-email` segue aberto, mas conta com senha só confirma quando o pedido vem com a sessão dela. Sem sessão, ou com a de outra conta, a resposta é 403 `ENTRE_PARA_CONFIRMAR`, e o link continua valendo. O site renova a sessão antes de mandar o pedido, e o iOS passa a mandar o token quando há sessão (o Android já mandava).
+- Alternativas: apagar a senha ao confirmar, o que tiraria a senha de quem se cadastrou certo e abriu o link em outro aparelho; pedir a senha na página do link, que daria mais tela nos três apps para o mesmo efeito.
+- Consequências: quem abre o link num aparelho sem sessão vê "entre no Piggu com a conta deste e-mail e abra o link de novo". Quem não sabe a senha usa "esqueci a senha" ou o Google, que já devolvem a conta ao dono.
+- Onde ver: `backend/piggu-identity/.../domain/ConfirmacaoDeEmail.java`, `.../api/AuthController.java`, `frontend/src/app/core/auth/auth.service.ts`, `ios-nativo/Piggu/Core/Auth/Sessao.swift`
+
+## D-153: A chave de upload do Android só no ambiente assinatura-android, na main
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: o job `aab` de `android-nativo.yml` rodava em todo PR que mexe no Android, com a chave de upload do Play e as senhas, executando o Gradle do próprio PR. Qualquer código de PR podia levar a chave.
+- Decisão: o job `aab` só roda à mão (`workflow_dispatch`) na `main`, no ambiente `assinatura-android`. Os quatro secrets `PIGGU_UPLOAD_*` passam a ser secrets desse ambiente, que só libera para a `main`. Os PRs seguem compilando todas as variantes no job `build`, sem chave.
+- Alternativas: deixar o `if` sem ambiente, o que não protege, porque quem pode empurrar um workflow para outra branch ainda leria um secret do repositório.
+- Consequências: o AAB para o Play Console sai de "Run workflow" na `main` (D-135). No GitHub é preciso criar o ambiente `assinatura-android` com a regra de branch `main`, mover os quatro secrets para ele e apagar os do repositório.
+- Onde ver: `.github/workflows/android-nativo.yml`
+
+## D-154: O histórico de mudanças vai com a pessoa, e o que é só dela fica só com ela
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: quando um membro saía, era removido ou excluía a conta, os eventos de auditoria dele ficavam na família sem autor, e o titular e o parceiro passavam a ver até 400 dias de gastos que nunca puderam ver. Os eventos de orçamento e de meta do mês, que são só da pessoa (`SO_DA_PESSOA`), apareciam para o titular que vê os menores.
+- Decisão: no financeiro, `eventos_de_auditoria` é tabela pessoal: vai com a pessoa quando ela muda de família e sai quando ela é excluída. No identity, os eventos da conta (`conta`) saem com a pessoa, e os da família (entrou, mudou de papel) ficam sem autor. Os eventos de `orcamento`, `meta` e `conta` só aparecem, no histórico e na exportação, para quem os fez. As migrações apagam os eventos sem autor que já existiam no financeiro e os de `conta` no identity.
+- Alternativas: manter os eventos sem autor só para quem foi excluído, como dizia o javadoc antigo, o que ainda mostraria ao titular o que ele nunca viu.
+- Consequências: o titular deixa de ver no histórico o que um membro excluído fez. A exportação do identity passa a levar o mesmo que a tela mostra.
+- Onde ver: `backend/piggu-common/.../auditoria/TrilhaDeAuditoria.java`, `.../dados/DadosDaFamilia.java`, `backend/piggu-finance/.../config/DadosDoTitularConfig.java`, `V25__historico_vai_com_a_pessoa.sql` (finance), `V38__dados_da_conta_vao_com_a_pessoa.sql` (identity)
+
+## D-155: A ordem da App Store é por conta, e o Google Play guarda o token que vale
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: a ordem dos eventos da App Store era guardada por família (`billing_event_at`). Depois de um reembolso, quem pagou podia ir para uma família nova e reenviar a transação de antes do reembolso, reativando o Premium. No Google Play, o fim de um token era tratado como "token antigo" sempre que o Premium guardado vencia depois dele, e assim a revogação do token que vale podia ser ignorada.
+- Decisão: a conta guarda a hora do último evento da App Store (`users.app_store_event_at`), e transação ou aviso mais antigo é ignorado, em qualquer família. A família guarda o `purchaseToken` do Google Play que deu o Premium (`households.play_purchase_token`). Só o fim de outro token é ignorado; sem token guardado (Premium de antes desta mudança), vale a regra antiga do vencimento.
+- Alternativas: perguntar o estado à App Store Server API a cada transação, o que exige outra chave e deixa a compra dependente da Apple estar no ar.
+- Consequências: a primeira compra do Google depois deste deploy grava o token. Uma transação da Apple restaurada com assinatura antiga não muda nada quando já chegou um aviso mais novo.
+- Onde ver: `backend/piggu-identity/.../billing/AssinaturaService.java`, `.../domain/UserAccount.java`, `.../domain/Household.java`, `V39__ordem_das_lojas.sql`
+
+## D-156: Leitura de nota que o Gemini já leu conta na cota
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: a cota grátis de leitura de nota era devolvida em qualquer falha (D-074), inclusive quando o Gemini já tinha lido a foto, e cobrado, mas não achou itens. Com o leitor próprio desligado (D-047), uma conta grátis lia sem limite mandando fotos sem nota.
+- Decisão: a falha depois da chamada paga (`LeituraCobrada`, sem itens; `RespostaCobrada`, resposta fora do formato) mantém a leitura na cota. As falhas antes da chamada (Gemini desligado, sem consentimento, sem conexão, erro da API) seguem devolvendo.
+- Alternativas: contar toda tentativa, o que puniria quem pegou a API fora do ar.
+- Consequências: no gratuito, uma foto sem nota gasta uma das leituras do mês.
+- Onde ver: `backend/piggu-finance/.../integration/LeitorDeRecibos.java`, `.../integration/GeminiReceiptReader.java`
+
+## D-157: Aviso por e-mail só para endereço confirmado
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: uma conta cadastrada por senha com o e-mail de outra pessoa podia ligar os avisos por e-mail. O lembrete diário mandava a esse endereço, pelo remetente do Piggu, o texto das contas fixas e dos a receber que a conta escreveu.
+- Decisão: ligar o aviso por e-mail exige o e-mail confirmado (`EMAIL_NAO_CONFIRMADO`), como o aparelho de push. O lembrete só sai por e-mail para conta confirmada, mesmo que o aviso tenha sido ligado antes desta regra.
+- Alternativas: só barrar na hora de ligar, o que deixaria quem já estava ligado recebendo.
+- Consequências: quem não confirmou o e-mail recebe o 403 ao ligar o aviso e vê o pedido para confirmar.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`escolherAvisos`), `.../avisos/LembretesDiarios.java`
+
+## D-158: As ações de titular conferem o papel e a família no banco
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: o `FamiliaService` decidia quem é titular pelo token, que dura até 5 minutos. Quem saía da família aceitando outro convite ainda agia como titular da família antiga (removia, convidava) e renomeava a nova, onde é só membro.
+- Decisão: `exigirTitular` exige, além do papel no token, que a conta no banco seja titular ou ADMIN e que a família dela seja a do token. Os convites pendentes da família só aparecem para quem é titular no banco.
+- Alternativas: revogar o token de acesso na hora, o que precisaria de uma lista de tokens revogados em todos os serviços.
+- Consequências: nos outros serviços, o token antigo segue valendo até vencer (5 minutos), como sempre foi.
+- Onde ver: `backend/piggu-identity/.../domain/FamiliaService.java`
+
+## D-159: Convite vencido renovado passa pelos limites
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: renovar o convite de um e-mail já convidado pulava o limite de 10 convites e o de 5 pessoas do plano família, e aceitar o convite não conferia a vaga. Convites vencidos voltavam a valer acima dos limites.
+- Decisão: renovar convite que ainda vale segue livre. O convite vencido passa pelos mesmos limites de um convite novo. Aceitar o convite confere de novo se a família, no plano família Premium, já tem 5 pessoas.
+- Alternativas: só conferir na hora de aceitar, o que deixaria a família com mais convites do que cabe.
+- Consequências: uma família cheia recebe `LIMITE_DO_FAMILIA` ao renovar convite vencido ou quando alguém tenta aceitar.
+- Onde ver: `backend/piggu-identity/.../domain/FamiliaService.java` (`convidar`, `aceitarConvite`)
+
+## D-160: Poucas tentativas de CPF que já está em outra conta
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: o 409 `CPF_EM_USO` (D-018) diz se um CPF tem conta no Piggu, e qualquer conta sem CPF, ou o cadastro aberto, podia testar CPFs vazados um atrás do outro. O e-mail já não é revelado no cadastro.
+- Decisão: a resposta continua, porque o dono do CPF precisa saber por que não entra. Mas, depois de 3 recusas em 24 horas para a mesma conta ou o mesmo IP, a próxima tentativa recebe 429 `CPF_TENTATIVAS` antes de o CPF ser procurado.
+- Alternativas: responder igual com ou sem CPF em uso, o que deixaria quem tem conta duplicada sem saber o que fazer.
+- Consequências: a contagem fica em memória, por instância, como as travas de login. Uma consulta isolada de um CPF segue possível, e isso é aceito.
+- Onde ver: `backend/piggu-identity/.../domain/TentativasDeCpf.java`, `.../domain/MinhaContaService.java` (`prenderCpf`)
+
+## D-161: Atrás do túnel da Cloudflare, o IP vem do CF-Connecting-IP, e IPv6 conta por /64
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: em produção, o tráfego chega ao Caddy pelo `cloudflared` (túnel da Cloudflare, no `docker-compose.override.yml` do servidor, com o `web` sem porta pública). O Caddy escrevia no X-Forwarded-For o IP do `cloudflared`, e todo mundo virava um IP só: o limite de 20 logins por minuto valia para o site inteiro, e 5 senhas erradas travavam a entrada por senha de uma conta para todos. E um cliente IPv6 escapava dos limites trocando o fim do endereço.
+- Decisão: o Caddy confia nos proxies de `PIGGU_PROXIES_CONFIAVEIS` (no servidor, `private_ranges`, que é de onde o `cloudflared` conecta) e, vindo deles, lê o IP de quem chamou no `CF-Connecting-IP`. O X-Forwarded-For sai com esse IP só. Sem a variável, o Caddy não confia em ninguém e usa o IP da conexão, como antes. O gateway e os serviços contam IPv6 pelo /64.
+- Alternativas: IPv6 na rede do compose, que só ajuda quando o Caddy publica porta direto, o que não é o caso em produção; confiar só no IP do `cloudflared`, que muda a cada recriação do container.
+- Consequências: o `.env` do servidor precisa de `PIGGU_PROXIES_CONFIAVEIS=private_ranges`. Ninguém chega ao Caddy sem passar pela Cloudflare, porque o `web` não publica porta, e por isso o cabeçalho não tem como ser inventado. Se um dia o Caddy voltar a publicar porta, a variável tem que sair.
+- Onde ver: `deploy/Caddyfile`, `backend/docker-compose.yml` (`web`), `backend/piggu-common/.../web/LimiteDeRequisicoes.java`, `backend/piggu-gateway/.../LimitePorIpGlobalFilter.java`
+
+## D-162: Siri, widget e busca do iPhone respeitam o bloqueio e a trava
+- Data: 01/11/2026
+- Situação: Valendo
+- Contexto: o atalho "Quanto gastei" falava o gasto e o limite do mês com o iPhone bloqueado e com a trava do Piggu ligada. E o resumo do widget e a busca do iPhone podiam ser regravados com os dados da conta depois de sair dela, quando a resposta da API chegava atrasada.
+- Decisão: o atalho pede o iPhone desbloqueado (`authenticationPolicy = .requiresAuthentication`) e, com a trava do Piggu ligada, manda abrir o app. Com a trava ligada, o app não grava o resumo do widget nem indexa os gastos na busca. A atualização só grava se a mesma pessoa continua na sessão depois das respostas.
+- Alternativas: pedir o Face ID dentro do atalho, o que a Siri não mostra sem abrir o app.
+- Consequências: com a trava ligada, os widgets ficam sem números e a busca do iPhone não acha os gastos.
+- Onde ver: `ios-nativo/Piggu/Core/Sistema/Siri.swift`, `ios-nativo/Piggu/Core/Sistema/AtualizadorDoSistema.swift`
+
+## D-163: Piso de cobertura nos apps nativos, que só sobe até 85%
+- Data: 02/11/2026
+- Situação: Valendo
+- Contexto: só o backend tinha piso de cobertura. Medido em 02/11/2026, o Android tinha 77,9% das linhas cobertas e o iOS 7,5% com os testes de unidade (52% somando os de interface, que levam uns 26 minutos).
+- Decisão: o CI de cada app confere um piso de linhas cobertas do app inteiro, telas incluídas: Kover no Android (`koverVerify`, piso no `build.gradle.kts` da raiz) e `xccov` no iOS (piso no `ios-nativo.yml`). O piso só sobe, até chegar a 85%. No iOS, a cobertura vem dos testes de unidade (`PigguTests`), que também renderizam as telas; os testes de interface continuam fora do CI. Fica fora da conta só o que não escrevemos ou não é do app: código gerado (Hilt, Room, Compose, recursos), o perfil de inicialização e a API falsa de `:core:testing`, que os próprios testes exercitam.
+- Alternativas: rodar os testes de interface do iOS no CI, que já dariam 52%, mas somariam meia hora de macOS a cada PR.
+- Consequências: um PR que baixa a cobertura quebra o CI. Cada PR seguinte sobe o piso até onde a cobertura chegou.
+- Onde ver: `android-nativo/build.gradle.kts`, `.github/workflows/android-nativo.yml`, `.github/workflows/ios-nativo.yml`
+
+## D-164: Painel com "Ainda dá para gastar" fixo e quatro abas no celular
+- Data: 02/11/2026
+- Situação: Valendo no Android, no iOS e no site (que também é o app Capacitor)
+- Contexto: quem testou o app disse que não entende o Painel, não acha as coisas e não sabe por onde começar. O Painel tinha nove cartões possíveis e nenhum dizia o que fazer agora, o menu tinha 18 telas, e o tour de oito passos explicava onde ficam as coisas sem pedir nenhuma ação. Das três propostas (protótipo "Três caminhos do Piggu"), ficaram a A (um número que responde "posso gastar?") e a C (primeiros passos dentro do Painel).
+- Decisão:
+  - No topo do Painel, fixo e fora do "Personalizar o Painel", o cartão "Ainda dá para gastar": o teto do mês menos o gasto e as contas fixas de gasto ainda não pagas. O teto é o limite do mês ou, sem limite, as receitas do mês. No mês de hoje, mostra também quanto dá por dia até o fim do mês. Passou do teto, o valor aparece negativo, em vermelho, com "Já passou do que dava para gastar este mês". Sem limite e sem receita, convida a definir um dos dois. O membro da família não vê o cartão, porque o resto do mês dele já vem zerado.
+  - Logo abaixo do número, o guia de primeiros passos que já existia, até a pessoa terminar ou pular. O tour do Android não abre mais sozinho no primeiro acesso (continua no Perfil); no iOS, sai a dica de boas-vindas do Painel.
+  - Os outros cartões continuam trocáveis. "Resumo do mês" e "Gasto e limite do mês" nascem desligados, porque o número do topo já diz o que eles diziam.
+  - Quatro abas no celular: Painel, Lançamentos (Gastos e Receitas, com um seletor no topo), Planejar (Orçamento, Contas do mês, Relatórios e Metas do mês) e Mais. As telas de estilo de vida viram o grupo "Extras", o último do Mais.
+  - Nomes: "Cofrinhos por objetivo" vira "Objetivos do cofrinho" e "Minhas metas" vira "Metas do mês".
+- Alternativas:
+  - A opção B (três abas por intenção) muda a navegação inteira nas três plataformas; fica para depois do teste.
+  - Juntar gastos e receitas numa lista só, com filtro, exige uma tela nova; o seletor reaproveita as duas telas que existem.
+- Consequências: no site, "Gasto e limite do mês" continua ligado por padrão, porque é nele que fica a troca de mês do Painel; só o "Resumo do mês" nasce desligado. No site, Relatórios abre por dentro do Planejar, com voltar, e Gastos e Receitas saem da folha do Mais, como nos apps. Quem já tinha organizado o Painel continua com a própria ordem.
+- Onde ver: `android-nativo/feature/painel/` (`CartaoAindaDaParaGastar`, `EstadoDoPainel.aindaDaParaGastar`), `android-nativo/app/src/main/kotlin/br/com/piggu/app/moldura/`, `ios-nativo/Piggu/Telas/Painel/` (`CartaoAindaDaParaGastar`, `AindaDaParaGastar`), `ios-nativo/Piggu/Telas/PrincipalView.swift`, `frontend/src/app/features/dashboard/ainda-da-para-gastar.ts`, `frontend/src/app/layout/shell/` (abas e troca de Lançamentos) e os prints em `docs/prints/painel-a-c/`
+
+## D-165: Começo do mês mostra o mês passado no Painel
+- Data: 03/11/2026
+- Situação: Valendo no Android, no iOS e no site (que também é o app Capacitor)
+- Contexto: no dia 1º o Painel fica sem nada de gasto, e quem testou o app estranhou ("sentiram falta dos dados na tela"). A sugestão veio de um usuário: mostrar os gastos mais recentes do mês anterior.
+- Decisão:
+  - No mês de hoje, enquanto ele não tem nenhum gasto, aparece o cartão "Como foi outubro de 2026" logo abaixo do "Ainda dá para gastar" e dos primeiros passos. Ele fica fora do "Personalizar o Painel", porque o "Por categoria" nasce desligado e quase ninguém veria.
+  - O cartão mostra, em tom apagado, as categorias do mês anterior e os cinco gastos mais recentes dele (por data e hora do registro), com "Lançar um gasto" e "Ver o ano" (Relatórios, onde está o "Ano de 2026", que continua Premium).
+  - O cartão some no primeiro gasto do mês. Em meses passados nada muda, e sem gasto também no mês anterior fica o Painel de sempre.
+  - O "Ainda dá para gastar" não usa o mês passado: a conta continua só com o mês de hoje.
+- Alternativas:
+  - Mostrar o mês passado até um dia fixo (o dia 5, por exemplo): mistura os dois meses quando a pessoa já lançou gastos.
+  - Usar o vazio do "Por categoria": esse cartão nasce desligado, então a maioria não veria.
+  - Um resumo do ano novo e gratuito: o "Ano de 2026" já existe em Relatórios, então o cartão só leva até lá.
+- Consequências: com o mês de hoje vazio, o Painel faz uma busca a mais (os gastos do mês anterior, na mesma visão). Se ela falhar, o cartão não aparece e nada mais muda. A API não muda.
+- Onde ver: `frontend/src/app/features/dashboard/dashboard.ts` (`gastosDoMesPassado`), `ios-nativo/Piggu/Telas/Painel/` (`CartaoDoMesPassado`, `ModeloDoPainel.gastosDoMesPassado`), `android-nativo/feature/painel/` (`CartaoDoMesPassado`, `EstadoDoPainel.mostraMesPassado`)

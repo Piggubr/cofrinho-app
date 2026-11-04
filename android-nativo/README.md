@@ -15,24 +15,25 @@ plataforma que faltar.
 ./gradlew build                  # tudo que o CI roda: variantes, lint e testes
 ./gradlew verifyRoborazziDemoDebug   # confere as capturas de tela
 ./gradlew recordRoborazziDemoDebug   # grava as capturas de novo (tela mudou de propósito)
+./gradlew koverHtmlReport koverVerify   # cobertura do app inteiro e o piso do CI (D-163)
 ```
 
 ## Módulos
 
 | Módulo | O que tem |
 |---|---|
-| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra, trilho e gaveta, o Mais, o + e o tour em balões (`moldura/`), a trava do app (`Trava.kt`) |
+| `app` | `MainActivity` (links), `PigguApp` (sessão → login, pendência ou moldura), rotas tipadas de todas as telas do site (`navegacao/`), a moldura com barra (Painel, Lançamentos, Planejar e Mais, D-164), trilho e gaveta, o Mais, o + e o tour em balões (`moldura/`), a trava do app (`Trava.kt`) |
 | `core:model` | Os tipos do contrato da API (`models.ts` e `docs/api/*.yaml`), sem Android: dinheiro em `BigDecimal`, enum com `DESCONHECIDO` (D-101) |
 | `core:network` | Um serviço Retrofit por microserviço, `ErroDaApi` e as mensagens de erro, `User-Agent` e o aviso de atualizar (426) |
 | `core:database` | Room: as respostas da API guardadas em JSON por chave (D-103) |
-| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, tour visto, trava e esconder nos recentes) |
+| `core:datastore` | O cofre da sessão (refresh cifrado pelo Android Keystore) e as preferências do aparelho (cor, modo, trava e esconder nos recentes) |
 | `core:data` | `Sessao` (login, renovação, sair), as regras da conta (`auth.guard.ts`), o cache offline-first, o monitor de rede |
 | `core:designsystem` | `PigguTheme` com as 13 cores do site, Sora e os ícones (`Icone`, Material Symbols) |
 | `core:ui` | Formatos em pt-BR, campo de valor, campo de categoria, seletor de mês, chips de visão, estados (esqueleto, vazio, erro), telas de 404 e 500, o porquinho e o Custom Tab do site |
 | `core:testing` | `ApiDaDemo`: a API falsa do modo demonstração (porte de `api-da-demo.ts`), usada também nos testes |
 | `feature:login` | A entrada: entrar (e-mail e senha, Google), criar conta, aceite, "Sobre você", CPF, confirmar e-mail, esqueci e redefinir a senha, excluir a conta |
 | `feature:legal` | Termos de Uso e Aviso de Privacidade nativos, com o texto do site (`scripts/textos-legais.py`) |
-| `feature:painel` | O Painel: resumo, meta do mês, categorias, avisos, cofrinho, objetivos, metas, Girls Math, notas e bancos, com organizar os cartões |
+| `feature:painel` | O Painel: o "Ainda dá para gastar" fixo no topo e os primeiros passos (D-164), resumo, meta do mês, categorias, avisos, cofrinho, objetivos, metas, Girls Math, notas e bancos, com organizar os cartões |
 | `feature:gastos` | A lista do mês (busca, filtros, editar, apagar com Desfazer, divisão, regras, importar e exportar) e o formulário de gasto, com a fila sem internet |
 | `feature:receitas` | Receitas do mês, "Entram todo mês", "A receber" e o formulário de receita |
 | `feature:assistente` | A busca global e o assistente de IA do topo |
@@ -43,7 +44,7 @@ plataforma que faltar.
 | `feature:contas` | Cartões e bancos: contas, cartões, a fatura, os bancos conectados e conectar banco pelo site (D-150) |
 | `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
 | `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
-| `feature:planejar` | Planejar: os atalhos para o que vem pela frente |
+| `feature:planejar` | Planejar, aba do celular: os atalhos para Orçamento, Contas do mês, Relatórios e Metas do mês |
 | `feature:premios` | Prêmios: as Fofocoins, os prêmios e os resgates |
 | `feature:familia` | Família: pessoas, convites, parceria e o histórico de mudanças |
 | `feature:plano` | Premium: o plano, os preços, o cancelamento e a assinatura individual pelo Google Play Billing (D-132) |
@@ -124,8 +125,8 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 ## Lançamento (A9)
 
 - **Versão:** 2.0.0, `versionCode` 201 (o 200 foi gasto num envio descartado), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
-- **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`); sem eles, o AAB sai sem assinatura.
-- **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` guarda o `app-producao-release.aab` como artefato. O envio ao Play Console é manual, com a confirmação do Dudu.
+- **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`), guardados no ambiente `assinatura-android`, que só libera para a `main` (D-153); sem eles, o AAB sai sem assinatura.
+- **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` só roda à mão ("Run workflow") na `main` e guarda o `app-producao-release.aab` como artefato; os PRs não usam a chave. O envio ao Play Console é manual, com a confirmação do Dudu.
 - **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).
 - **Abertura:** num emulador simples (API 26, 2 GB de RAM), com o perfil compilado como o Play compila, o primeiro quadro sai em ~250 ms e o Painel com os números em ~500 ms (mediana de 8 aberturas a frio, `am start -S -W` e o "Fully drawn" do `ReportDrawnWhen`). Sem o perfil compilado (APK instalado à mão), o Painel leva ~1,7 s.
 

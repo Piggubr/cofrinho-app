@@ -27,12 +27,12 @@ export const BLOCOS_DO_PAINEL: readonly {
   readonly nome: string;
   readonly padrao: boolean;
 }[] = [
-  { id: 'resumo', nome: $localize`Resumo do mês`, padrao: true },
+  { id: 'resumo', nome: $localize`Resumo do mês`, padrao: false },
   { id: 'avisos', nome: $localize`Para ficar de olho`, padrao: true },
   { id: 'mes', nome: $localize`Gasto e limite do mês`, padrao: true },
   { id: 'cofrinho', nome: $localize`Cofrinho`, padrao: true },
-  { id: 'objetivos', nome: $localize`Cofrinhos por objetivo`, padrao: true },
-  { id: 'metas', nome: $localize`Minhas metas`, padrao: false },
+  { id: 'objetivos', nome: $localize`Objetivos do cofrinho`, padrao: true },
+  { id: 'metas', nome: $localize`Metas do mês`, padrao: false },
   { id: 'categorias', nome: $localize`Por categoria`, padrao: false },
   { id: 'notas', nome: $localize`Suas notas`, padrao: false },
   { id: 'girls-math', nome: $localize`Girls Math`, padrao: false },

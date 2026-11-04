@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -303,6 +306,91 @@ internal fun CartaoDoMes(estado: EstadoDoPainel, abrirTela: (String) -> Unit) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button({ abrirTela("/orcamentos") }) { Text(stringResource(R.string.mes_definir_limite)) }
             OutlinedButton({ abrirTela("/gastos") }) { Text(stringResource(R.string.mes_ver_gastos)) }
+        }
+    }
+}
+
+// Ainda dá para gastar (D-164): fixo no topo, fora do Organizar.
+
+@Composable
+internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String) -> Unit, modifier: Modifier = Modifier) {
+    val resta = estado.aindaDaParaGastar
+    val passado = estado.mes < estado.mesAtual
+    Card(
+        modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer),
+    ) {
+        Column(Modifier.padding(20.dp).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                stringResource(if (passado) R.string.gastar_titulo_passado else R.string.gastar_titulo, mesPorExtenso(estado.mes).lowercase(Locale.forLanguageTag("pt-BR"))),
+                Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (resta == null) {
+                Text(stringResource(R.string.gastar_sem_teto), style = MaterialTheme.typography.bodyMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button({ abrirTela("/orcamentos") }) { Text(stringResource(R.string.mes_definir_limite)) }
+                    OutlinedButton({ abrirTela("/receitas") }) { Text(stringResource(R.string.gastar_lancar_receitas)) }
+                }
+                return@Column
+            }
+            val passou = resta.signum() < 0
+            Text(
+                formatarMoeda(resta, estado.moeda),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = if (passou) MaterialTheme.colorScheme.error else LocalContentColor.current,
+            )
+            when {
+                passou -> Text(stringResource(R.string.gastar_passou), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                estado.porDia != null -> Text(stringResource(R.string.gastar_por_dia, formatarMoeda(estado.porDia, estado.moeda)), style = MaterialTheme.typography.bodyMedium)
+            }
+            // A conta à vista: quem não entende o número entende de onde ele veio.
+            Text(
+                stringResource(
+                    if (estado.tetoEhOLimite) R.string.gastar_conta_limite else R.string.gastar_conta_receitas,
+                    formatarMoeda(estado.tetoDoMes, estado.moeda),
+                    formatarMoeda(estado.gastoNoMes, estado.moeda),
+                    formatarMoeda(estado.contasAPagar, estado.moeda),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+// Começo do mês (D-165)
+
+/** O mês de hoje ainda sem gasto mostra o anterior, apagado, para o Painel não parecer zerado. */
+@Composable
+internal fun CartaoDoMesPassado(estado: EstadoDoPainel, abrirTela: (String) -> Unit, lancarGasto: () -> Unit, modifier: Modifier = Modifier) {
+    val anterior = LocalDate.parse(estado.mesAtual + "-01").minusMonths(1).toString().take(7)
+    CartaoBase(stringResource(R.string.mes_passado_titulo, mesPorExtenso(anterior).lowercase(Locale.forLanguageTag("pt-BR"))), modifier) {
+        Text(stringResource(R.string.mes_passado_texto), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.alpha(0.75f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            estado.porCategoriaDoMesPassado.forEach { linha ->
+                Column(Modifier.semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row {
+                        Text(linha.categoria, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Text(formatarMoeda(linha.total, estado.moeda), style = MaterialTheme.typography.bodyLarge)
+                    }
+                    BarraDeProgresso(linha.fracao)
+                }
+            }
+            Text(stringResource(R.string.mes_passado_ultimos), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.titleSmall)
+            estado.recentesDoMesPassado.forEach { gasto ->
+                Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(gasto.estabelecimento?.takeIf { it.isNotBlank() } ?: gasto.item, style = MaterialTheme.typography.bodyLarge)
+                        Text("${dataCurta(gasto.data)} · ${gasto.categoria}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(formatarMoeda(gasto.valor, estado.moeda), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(lancarGasto) { Text(stringResource(R.string.lancar_um_gasto)) }
+            TextButton({ abrirTela("/relatorios") }) { Text(stringResource(R.string.mes_passado_ver_ano)) }
         }
     }
 }

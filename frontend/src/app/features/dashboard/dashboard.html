@@ -7,7 +7,54 @@
 @if (carregando()) {
   <app-carregando i18n-texto texto="Carregando seus dados…" formato="cartoes" [linhas]="4" />
 } @else {
+  <!-- Fixo no topo e fora da organizacao do Perfil (D-164). -->
+  @if (auth.usuario()?.role !== 'MEMBRO') {
+    <app-ainda-da-para-gastar
+      [mes]="mesAtual()"
+      [visao]="visao()"
+      [limite]="metaDoMes()"
+      [gasto]="totalGastoNoMes()"
+    />
+  }
   <app-primeiros-passos [temLimite]="temLimite()" [temGasto]="temGasto()" />
+
+  @if (gastosDoMesPassado().length) {
+    <section class="cartao mes-passado" aria-labelledby="titulo-mes-passado">
+      <div class="cartao-titulo">
+        <h2 i18n id="titulo-mes-passado">Como foi {{ rotuloDoMesPassado() }}</h2>
+      </div>
+      <p i18n class="linha-detalhe">
+        Nenhum gasto neste mês ainda. Enquanto isso, o mês passado para comparar.
+      </p>
+      <div class="referencia">
+        @for (item of porCategoriaDoMesPassado(); track item.categoria) {
+          <div class="categoria">
+            <div class="linha sem-borda">
+              <p class="linha-titulo">{{ item.categoria }}</p>
+              <span class="linha-valor">{{ item.total | moeda }}</span>
+            </div>
+            <div class="progresso">
+              <span [style.width.%]="item.fatia"></span>
+            </div>
+          </div>
+        }
+        <h3 i18n class="mes-passado-titulo">Últimos gastos</h3>
+        @for (gasto of recentesDoMesPassado(); track gasto.id) {
+          <div class="linha">
+            <div>
+              <p class="linha-titulo">{{ gasto.estabelecimento || gasto.item }}</p>
+              <p class="linha-detalhe">{{ gasto.data | dataBr }} · {{ gasto.categoria }}</p>
+            </div>
+            <span class="linha-valor">{{ gasto.valor | moeda }}</span>
+          </div>
+        }
+      </div>
+      <p class="mes-passado-acoes">
+        <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
+        <a i18n class="botao fantasma pequeno" routerLink="/relatorios" fragment="ano">Ver o ano</a>
+      </p>
+    </section>
+  }
 
   <!-- A ordem e o que aparece vem do Perfil (PainelOrganizado); o CSS order arruma. -->
   @if (pessoas.temCompanhia()) {
@@ -243,8 +290,8 @@
             <p i18n>
               Para mostrar seus saldos, o Piggu usa a Pluggy, empresa autorizada de Open Finance.
               Você entra no seu banco pela tela da Pluggy (sua senha nunca passa pelo Piggu) e
-              autoriza o compartilhamento das contas e saldos. Você pode desconectar quando
-              quiser, de graça. Detalhes no
+              autoriza o compartilhamento das contas e saldos. Você pode desconectar quando quiser,
+              de graça. Detalhes no
               <a routerLink="/privacidade" target="_blank">Aviso de Privacidade</a>.
             </p>
             <div class="acoes">
@@ -351,7 +398,12 @@
             </div>
           }
         } @else {
-          <app-vazio icone="recibo" i18n-titulo titulo="Nenhum gasto lançado neste mês" [compacto]="true">
+          <app-vazio
+            icone="recibo"
+            i18n-titulo
+            titulo="Nenhum gasto lançado neste mês"
+            [compacto]="true"
+          >
             <p class="vazio-acao">
               <a i18n class="botao contorno pequeno" routerLink="/gastos">Lançar um gasto</a>
             </p>
