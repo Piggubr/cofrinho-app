@@ -261,7 +261,7 @@ class PerfilViewModel internal constructor(
     /**
      * [permitido]: o Android deixou o Piggu notificar (a permissão do Android 13 ou as
      * notificações ligadas nas configurações). Sem ela, o celular fica desligado e o e-mail
-     * salva mesmo assim. O registro do token do aparelho chega na A7.
+     * salva mesmo assim. Ligado, o AparelhoDoPush registra o aparelho (D-166).
      */
     fun mudarAvisoNoCelular(ligado: Boolean, permitido: Boolean) =
         salvarAvisos(estadoAtual.value.avisos.copy(push = ligado && permitido), recusou = ligado && !permitido)

@@ -260,6 +260,21 @@
                 android:resource="@xml/shortcuts" />
         </activity-alias>
 
+        <!-- Push (D-166): o token e a notificação com o app aberto; fechado, o FCM mostra no canal dos avisos. -->
+        <service
+            android:name=".ServicoDePush"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="avisos" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_cofrinho" />
+
         <!-- O WorkManager usa a fábrica do Hilt (PigguApplication): sai o inicializador padrão. -->
         <provider
             android:name="androidx.startup.InitializationProvider"

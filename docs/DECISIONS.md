@@ -1699,3 +1699,16 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
   - Um resumo do ano novo e gratuito: o "Ano de 2026" já existe em Relatórios, então o cartão só leva até lá.
 - Consequências: com o mês de hoje vazio, o Painel faz uma busca a mais (os gastos do mês anterior, na mesma visão). Se ela falhar, o cartão não aparece e nada mais muda. A API não muda.
 - Onde ver: `frontend/src/app/features/dashboard/dashboard.ts` (`gastosDoMesPassado`), `ios-nativo/Piggu/Telas/Painel/` (`CartaoDoMesPassado`, `ModeloDoPainel.gastosDoMesPassado`), `android-nativo/feature/painel/` (`CartaoDoMesPassado`, `EstadoDoPainel.mostraMesPassado`)
+
+## D-166: Push no app Android nativo pelo Firebase Messaging, sem o google-services.json no repositório
+- Data: 04/11/2026
+- Situação: Valendo no Android
+- Contexto: o backend já manda push para o Android pelo FCM (D-139), mas o app nativo nunca registrava o aparelho; quem registrava era o app Capacitor.
+- Decisão:
+  - O app usa só o `firebase-messaging`, para pegar o token e mostrar a notificação com o app aberto. Fechado, o próprio FCM mostra no canal "Avisos do dia", com o ícone do cofrinho.
+  - Sem o plugin google-services: o build lê o `google-services.json` do caminho em `PIGGU_GOOGLE_SERVICES` e liga o Firebase com `FirebaseOptions`. O arquivo fica fora do repositório, como a chave de upload; no CI vem do secret `PIGGU_GOOGLE_SERVICES_BASE64`, no ambiente `assinatura-android`. Sem ele, e na demo, o app sai sem push.
+  - `AparelhoDoPush` registra o aparelho (`POST /api/auth/me/devices`, `ANDROID`) quando a pessoa entra ou liga o aviso no celular no Perfil, a cada abertura e quando o FCM troca o token. O token fica no `CofreDaSessao`.
+  - Ao sair, a `Sessao` tira o aparelho (`DELETE /api/auth/me/devices/{token}`) antes de encerrar, fora da trava, porque a rota pede o token e renová-lo também pede a trava. Falhar não impede de sair.
+- Alternativas: o plugin google-services com o arquivo no repositório (mais simples, mas o projeto guarda as chaves fora dele); registrar no `AppViewModel` (a classe vive só com a tela aberta, e o `onNewToken` chega sem tela).
+- Consequências: o AAB só sai com push se o secret `PIGGU_GOOGLE_SERVICES_BASE64` existir. A notificação abre o app no Painel, porque a mensagem do backend não traz uma rota (D-139).
+- Onde ver: `android-nativo/core/data/.../AparelhoDoPush.kt`, `android-nativo/app/.../PushDoFirebase.kt`, `Sessao.sair`, `.github/workflows/android-nativo.yml` (job "AAB de produção")

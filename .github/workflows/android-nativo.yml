@@ -106,6 +106,17 @@ jobs:
             echo "::warning::Sem PIGGU_UPLOAD_KEYSTORE_BASE64: o AAB sai sem assinatura."
           fi
 
+      - name: Firebase do push (dos secrets, só neste job)
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.PIGGU_GOOGLE_SERVICES_BASE64 }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_BASE64" ]; then
+            echo "$GOOGLE_SERVICES_BASE64" | base64 -d > "$RUNNER_TEMP/google-services.json"
+            echo "PIGGU_GOOGLE_SERVICES=$RUNNER_TEMP/google-services.json" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Sem PIGGU_GOOGLE_SERVICES_BASE64: o AAB sai sem push (D-166)."
+          fi
+
       - name: AAB de produção
         env:
           PIGGU_UPLOAD_KEYSTORE_SENHA: ${{ secrets.PIGGU_UPLOAD_KEYSTORE_SENHA }}

@@ -111,7 +111,7 @@ Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0
 - Mapa: sem chave do Google Maps, "Abrir no mapa" usa o app de mapas do aparelho (D-125). Para pôr
   o mapa no app: ative o Maps SDK for Android no Google Cloud, crie uma chave restrita ao pacote
   `br.com.piggu.app` (SHA-1 da chave de assinatura do Play e a de debug) e só a essa API.
-- Push pelo Firebase: espera a A1 (backend) entrar na `feature/android-nativo`.
+- Push pelo Firebase (D-166): o build lê o `google-services.json` de `PIGGU_GOOGLE_SERVICES` (no CI, o secret `PIGGU_GOOGLE_SERVICES_BASE64`); sem ele, e na demo, o app sai sem push.
 - Premium pelo Google Play (D-132): assinaturas `premium_mensal` e `premium_anual` no Play Console,
   cada uma com um plano básico (e, se quiser, uma oferta de teste grátis). A compra leva o id da
   conta Piggu em `obfuscatedAccountId` e vai a `POST /api/billing/google-play/purchases`, que faz o
