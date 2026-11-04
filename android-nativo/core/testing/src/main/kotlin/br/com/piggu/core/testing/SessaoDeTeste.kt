@@ -42,7 +42,7 @@ private object SemCache : RespostasGuardadasDao {
 fun TestScope.sessaoDeTeste(pasta: File, fixas: RespostasFixas = RespostasFixas()): Sessao = redeDeTeste(pasta, fixas).sessao
 
 /** A sessão e o Retrofit montado com ela, para os serviços das outras telas (finanças, estilo de vida...). */
-class RedeDeTeste(val sessao: Sessao, val retrofit: retrofit2.Retrofit) {
+class RedeDeTeste(val sessao: Sessao, val retrofit: retrofit2.Retrofit, val cofre: CofreDaSessao) {
     val financas get() = ModuloDaRede.financas(retrofit)
     val identidade get() = ModuloDaRede.identidade(retrofit)
     val estiloDeVida get() = ModuloDaRede.estiloDeVida(retrofit)
@@ -61,7 +61,7 @@ fun TestScope.redeDeTeste(pasta: File, fixas: RespostasFixas = RespostasFixas(),
     val cliente = ModuloDaRede.okHttp("2.0.0", AvisoDeVersao(), AutenticacaoDaSessao(sessao), linkedSetOf(fixas, demo))
     val retrofit = ModuloDaRede.retrofit(URL_DA_API, cliente, JsonDoPiggu)
     identidade = ModuloDaRede.identidade(retrofit)
-    return RedeDeTeste(sessao, retrofit)
+    return RedeDeTeste(sessao, retrofit, cofre)
 }
 
 /** O dia que os testes e as capturas fixam: 28/10/2026, 10h em São Paulo (os dados da demo contam com ele). */

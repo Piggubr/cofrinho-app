@@ -29,9 +29,24 @@ android {
             dimension = "ambiente"
             applicationIdSuffix = ".demo"
             versionNameSuffix = "-demo"
+            // A demonstração não tem servidor: sem push.
+            listOf("FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_PROJETO", "FIREBASE_REMETENTE")
+                .forEach { buildConfigField("String", it, "\"\"") }
         }
         create("producao") {
             dimension = "ambiente"
+            // O push (D-166) lê o google-services.json de PIGGU_GOOGLE_SERVICES, como a chave de upload:
+            // o arquivo nunca entra no repositório. Sem ele, o app sai sem push.
+            val firebase = System.getenv("PIGGU_GOOGLE_SERVICES")?.let(::file)?.takeIf { it.exists() }
+                ?.let { groovy.json.JsonSlurper().parse(it) as Map<*, *> }
+            val projeto = firebase?.get("project_info") as Map<*, *>?
+            val cliente = (firebase?.get("client") as List<*>?)?.firstOrNull() as Map<*, *>?
+            val appId = (cliente?.get("client_info") as Map<*, *>?)?.get("mobilesdk_app_id")
+            val chave = ((cliente?.get("api_key") as List<*>?)?.firstOrNull() as Map<*, *>?)?.get("current_key")
+            buildConfigField("String", "FIREBASE_APP_ID", "\"${appId ?: ""}\"")
+            buildConfigField("String", "FIREBASE_API_KEY", "\"${chave ?: ""}\"")
+            buildConfigField("String", "FIREBASE_PROJETO", "\"${projeto?.get("project_id") ?: ""}\"")
+            buildConfigField("String", "FIREBASE_REMETENTE", "\"${projeto?.get("project_number") ?: ""}\"")
         }
     }
 
@@ -72,6 +87,9 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.ui)
     implementation(projects.core.data)
+    // Só o token e a notificação com o app aberto; o envio é do backend pela API HTTP v1 (D-139).
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.coroutines.play.services)
     // O carregador de imagens do Coil usa o OkHttp da sessão; o SVG é o das fotos da demonstração.
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.svg)

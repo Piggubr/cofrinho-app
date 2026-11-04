@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Piggu</string>
+    <string name="canal_avisos">Avisos do dia</string>
+    <string name="canal_avisos_descricao">Fatura perto de vencer, orçamento estourando e contas do mês</string>
 
     <!-- Menu (shell.ts): grupos e telas -->
     <string name="grupo_dia_a_dia">Dia a dia</string>

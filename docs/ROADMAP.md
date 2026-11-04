@@ -23,7 +23,6 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Mandar o 2.0.0 (build 2) do iOS nativo ao TestFlight e liberar para o grupo de testes, quando o Dudu pedir.
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
-- Android: push pelo Firebase no app nativo (o item 8 da A7), com o backend da A1 já na `develop` (D-139), quando o projeto do Firebase existir.
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
 - Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104) e, depois, apagar `frontend/android` e o `android-demo.yml`.
@@ -43,6 +42,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
 - 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).
 - 30/10/2026: Android: conectar banco pela página `/conectar-banco` do site, com a volta ao app (D-150), e o `assetlinks.json` dos App Links com as chaves de upload e de debug.
