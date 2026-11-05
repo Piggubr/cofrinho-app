@@ -859,7 +859,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o próximo grande passo é ter apps nativos, mantendo o backend.
 - Decisão: SwiftUI puro, mínimo iOS 17. Liquid Glass no iOS 26 e 27, e os materiais translúcidos do sistema no 17 e 18. Só SDKs da Apple, mais o login do Google. `@Observable`, async/await e SwiftData para o cache.
 - Alternativas: continuar no Capacitor (D-053).
-- Consequências: as regras de cada etapa ficam em `ios-nativo/CLAUDE.md`, criado na etapa 0 do plano.
+- Consequências: as regras de cada etapa ficam em `ios-nativo/AGENTS.md` (antes `CLAUDE.md`), criado na etapa 0 do plano.
 - Onde ver: plano do iOS nativo (documento do projeto, fora do repositório), `ios-nativo/` quando existir
 
 ## D-056: Android reescrito em Kotlin, com Material 3
@@ -1443,10 +1443,10 @@ no fim, em vez de ganhar um motivo inventado.
 - Data: 25/10/2026
 - Situação: Valendo
 - Contexto: a memória do projeto no Claude está desligada, então o repositório é o único lugar que toda sessão nova lê.
-- Decisão: este arquivo é o registro das decisões. Quem decidir algo novo acrescenta um D-0xx no mesmo PR, e o `CLAUDE.md` da raiz manda ler este arquivo antes de mudar algo.
+- Decisão: este arquivo é o registro das decisões. Quem decidir algo novo acrescenta um D-0xx no mesmo PR, e o `AGENTS.md` da raiz (antes `CLAUDE.md`) manda ler este arquivo antes de mudar algo.
 - Alternativas: decisões espalhadas em PRs e documentos fora do repositório.
 - Consequências: decisão antiga nunca é apagada; se mudar, vira "Substituída por".
-- Onde ver: [CLAUDE.md](../CLAUDE.md)
+- Onde ver: [AGENTS.md](../AGENTS.md)
 
 ## D-089: App iOS nativo junta na `feature/ios-nativo` antes da `develop`
 - Data: 27/10/2026
@@ -1455,7 +1455,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Decisão: os PRs das etapas (`swift/etapa-N`) vão para a `feature/ios-nativo`, criada a partir da `develop`. Quando o conjunto estiver testado, um PR leva a `feature/ios-nativo` para a `develop`, pelo caminho normal da D-061.
 - Alternativas: cada etapa direto na `develop`, que levaria app pela metade para a branch que junta as features.
 - Consequências: a `feature/ios-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O CI do iOS (`ios-nativo.yml`) roda em PR para qualquer branch.
-- Onde ver: [ios-nativo/CLAUDE.md](../ios-nativo/CLAUDE.md), [branches.md](branches.md)
+- Onde ver: [ios-nativo/AGENTS.md](../ios-nativo/AGENTS.md), [branches.md](branches.md)
 
 ---
 
@@ -1466,7 +1466,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Decisão: cada etapa sai numa `android/etapa-N` a partir da `feature/android-nativo`, com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o Dudu pedir.
 - Alternativas: PR de cada etapa direto para a `develop`, como no plano original.
 - Consequências: a `feature/android-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O workflow `android-nativo.yml` roda em PR para qualquer branch.
-- Onde ver: `android-nativo/CLAUDE.md`, `docs/branches.md`
+- Onde ver: `android-nativo/AGENTS.md`, `docs/branches.md`
 
 # Perguntas para o Dudu
 
@@ -1712,3 +1712,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o plugin google-services com o arquivo no repositório (mais simples, mas o projeto guarda as chaves fora dele); registrar no `AppViewModel` (a classe vive só com a tela aberta, e o `onNewToken` chega sem tela).
 - Consequências: o AAB só sai com push se o secret `PIGGU_GOOGLE_SERVICES_BASE64` existir. A notificação abre o app no Painel, porque a mensagem do backend não traz uma rota (D-139).
 - Onde ver: `android-nativo/core/data/.../AparelhoDoPush.kt`, `android-nativo/app/.../PushDoFirebase.kt`, `Sessao.sair`, `.github/workflows/android-nativo.yml` (job "AAB de produção")
+
+## D-167: Regras para IA no AGENTS.md, lido pelo Claude e pelo Codex
+- Data: 05/11/2026
+- Situação: Valendo
+- Contexto: as regras estavam só nos arquivos `CLAUDE.md`, que o Codex não lê. O `AGENTS.md` da raiz era uma cópia fora do git.
+- Decisão: as regras ficam em `AGENTS.md` (raiz, `android-nativo/` e `ios-nativo/`). Cada `CLAUDE.md` tem só `@AGENTS.md`, que o Claude Code importa.
+- Alternativas: manter as duas cópias (uma acaba diferente da outra); links simbólicos (falham no Windows e em alguns clones).
+- Consequências: mudar uma regra é mexer só no `AGENTS.md`. As decisões antigas passam a apontar para ele.
+- Onde ver: `AGENTS.md`, `android-nativo/AGENTS.md`, `ios-nativo/AGENTS.md`
