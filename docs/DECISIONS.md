@@ -173,7 +173,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-068](#d-068-toda-decisão-nova-vira-um-d-0xx-no-mesmo-pr) | Toda decisão nova vira um D-0xx no mesmo PR | Valendo |
 | [D-137](#d-137-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
 | [D-167](#d-167-regras-para-ia-no-agentsmd-lido-pelo-claude-e-pelo-codex) | Regras para IA no `AGENTS.md`, lido pelo Claude e pelo Codex | Valendo |
-| [D-168](#d-168-o-repositório-é-a-fonte-o-notion-é-o-índice-e-o-registro-de-trabalho) | O repositório é a fonte; o Notion é o índice e o registro de trabalho | Valendo |
+| [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
 
 ---
 
@@ -1724,18 +1724,18 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: mudar uma regra é mexer só no `AGENTS.md`. As decisões antigas passam a apontar para ele.
 - Onde ver: `AGENTS.md`, `android-nativo/AGENTS.md`, `ios-nativo/AGENTS.md`
 
-## D-168: O repositório é a fonte; o Notion é o índice e o registro de trabalho
+## D-168: O repositório é a fonte; o segundo cérebro é a memória entre projetos
 - Data: 05/11/2026
 - Situação: Valendo
-- Decidido por: Dudu (Notion primeiro, sincronizado por rotina noturna; o repositório como fonte da verdade), na conversa do projeto em 05/11/2026. A reserva do número e os campos novos foram escolha do Claude, dentro da autonomia que recebeu, e valem com o merge deste PR.
+- Decidido por: Dudu, na conversa do projeto em 05/11/2026: deixou o Notion de lado e pediu que todas as sessões do Claude voltem a escrever no cofre "Segundo Cerebro". A checagem do número e os campos novos foram escolha do Claude, dentro da autonomia que recebeu, e valem com o merge deste PR.
 - Registrado por: Claude
-- Contexto: o Claude e o Codex passam a trabalhar no mesmo projeto e no mesmo Notion. O Codex lê o `AGENTS.md`, que não existia, então não via as regras do `CLAUDE.md`. Branches em paralelo já usaram o mesmo número de decisão (as `android/etapa-*` repetiram D-089, D-090, D-091 e D-099 do iOS e tiveram de renumerar).
+- Contexto: o Dudu mantém um cofre Obsidian no OneDrive como memória de longo prazo de todos os projetos. A regra de ler e registrar no cofre só estava no `~/.claude/CLAUDE.md` e no `~/.codex/AGENTS.md` de cada computador, então as sessões na nuvem não a recebiam, e de 22/10 a 05/11/2026 nada do cofrinho-app foi registrado lá. Branches em paralelo já usaram o mesmo número de decisão: as `android/etapa-*` repetiram números do iOS (commits `196c6bce` e `828c43ce`), e este PR nasceu como D-167, número que o PR #153 usou primeiro.
 - Decisão:
-  - O texto das decisões, a API, o modelo de dados e o roadmap continuam no repositório. O Notion tem a página inicial (situação, "Para revisão humana"), o índice das decisões, as tarefas, os achados e riscos e o histórico de trabalho, com links para o repositório. A chave é o número D-xxx.
-  - Quem vai escrever uma decisão reserva o número no Notion, com a branch, antes do PR.
+  - Decisões técnicas, API, modelo de dados e roadmap continuam no repositório. O cofre guarda o resumo do projeto, a linha do tempo e o que liga os projetos (padrões, preferências, aprendizados), apontando para as D-xxx em vez de copiá-las.
+  - A regra do cofre também fica no `AGENTS.md` (D-167), para valer em qualquer sessão que abra o projeto, local ou na nuvem, do Claude ou do Codex.
+  - Antes de abrir um PR com decisão nova, conferir o maior número nas branches e PRs abertos.
   - Decisões a partir desta trazem "Decidido por" e "Registrado por". As anteriores ficam como estão.
-  - As regras ficam no `AGENTS.md`, que o Claude e o Codex leem (D-167).
-- Alternativas: tudo no Notion (sai do PR, perde a revisão junto com o código); tudo no repositório (tarefas e histórico de sessão viram commits e ruído); Obsidian, que fica para depois.
-- Consequências: um PR com decisão sem reserva no Notion ainda pode colidir; a rotina noturna confere o número e a situação entre os dois e aponta a diferença no Notion, sem corrigir sozinha. Se o Notion ficar fora do ar, vale o repositório.
-- Reavaliar quando: a rotina noturna mostrar colisões frequentes, ou o Obsidian entrar.
-- Onde ver: `AGENTS.md` (seção "Notion e outros assistentes")
+- Alternativas: o Notion como registro compartilhado (montado e deixado de lado pelo Dudu em 05/11/2026); deixar a regra só no `~/.claude/CLAUDE.md` local, que não chega nas sessões na nuvem.
+- Consequências: uma sessão na nuvem só alcança o cofre com o computador do Dudu conectado e o OneDrive aberto; sem isso, avisa que não registrou. A checagem do número reduz, mas não elimina, a colisão entre PRs abertos ao mesmo tempo.
+- Reavaliar quando: o cofre sair do OneDrive, ou as colisões de número continuarem.
+- Onde ver: `AGENTS.md` (seção "Segundo cérebro e outros assistentes")

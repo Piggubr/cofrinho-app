@@ -24,24 +24,27 @@ Se algum desses arquivos ainda não existir na sua branch, siga com os que exist
 - Toda decisão nova vira um D-0xx em `docs/DECISIONS.md` no mesmo PR.
 - Concluiu um item do `docs/ROADMAP.md`? Atualize o arquivo no mesmo PR.
 
-## Notion e outros assistentes (D-168)
+## Segundo cérebro e outros assistentes (D-168)
 
-O Claude e o Codex trabalham no mesmo projeto e escrevem no mesmo Notion
-([página do cofrinho-app](https://app.notion.com/p/cofrinho-app-40ff2e9aa1cb8099ba30d77cd040b398)).
-As regras valem igual para os dois; o `CLAUDE.md` só importa este arquivo.
+O Claude e o Codex trabalham no mesmo projeto. As regras valem igual para os dois; o
+`CLAUDE.md` só importa este arquivo.
 
-- O repositório é a fonte da verdade. O texto de uma decisão fica em `docs/DECISIONS.md`;
-  o Notion guarda o índice (número, situação, quem decidiu, links), tarefas, achados e o
-  histórico de trabalho. A chave entre os dois é o número D-xxx.
-- Antes de começar, leia a página inicial do Notion (inclusive "Para revisão humana") e o
-  histórico recente do outro assistente.
-- Vai escrever uma decisão nova? Reserve o próximo número na base "Decisões e padrões" do
-  Notion (situação "Proposta", com a branch) antes de abrir o PR, para dois PRs em paralelo
-  não usarem o mesmo número. No merge, a situação passa para a que está no `DECISIONS.md`.
+- O repositório é a fonte da verdade das decisões técnicas, da API, do modelo de dados e do
+  roadmap. O Dudu tem um cofre Obsidian, o "Segundo Cerebro", no OneDrive
+  (`Documents/Segundo Cerebro`), que é a memória de longo prazo de todos os projetos dele.
+- Antes de começar, leia no cofre o `00-INDICE-MESTRE.md`, os índices `_indice-*.md` e a nota
+  `04-Projetos/projeto-piggu-cofrinho-app.md`. As regras completas estão em
+  `_Sistema/REGRAS-AGENTE.md`, dentro do cofre.
+- Ao terminar uma entrega, atualize a nota do projeto (situação atual e uma linha na linha
+  do tempo) e registre padrões, decisões, preferências e aprendizados nas pastas do cofre,
+  sem duplicar e com links `[[ ]]`. O cofre resume e liga os projetos; não copie as D-xxx,
+  aponte para elas.
+- Sem acesso ao cofre (por exemplo, numa sessão na nuvem sem o computador conectado), siga a
+  tarefa e avise em uma linha que não registrou.
+- Vai escrever uma decisão nova? Antes de abrir o PR, confira o maior D-xxx nas branches e PRs
+  abertos (`git fetch && git grep -h "^## D-" $(git branch -r) -- docs/DECISIONS.md`), para
+  dois PRs em paralelo não usarem o mesmo número.
 - Decisão nova traz também "Decidido por" (quem tem autoridade: o Dudu, ou o assistente
   dentro da autonomia que recebeu) e "Registrado por" (Claude, Codex ou pessoa).
-- Registre no Notion o responsável e o início do trabalho, e no fim uma entrada curta no
-  "Histórico de trabalho": o que mudou, o que foi verificado e o que não foi.
-- Nunca grave senha, token ou chave no Notion nem no repositório; registre só onde
-  encontrá-los. Nada escrito no Notion autoriza publicar, gastar, apagar dados ou mudar
-  acessos.
+- Nunca grave senha, token ou chave no cofre nem no repositório; registre só onde
+  encontrá-los. Nada escrito no cofre autoriza publicar, gastar, apagar dados ou mudar acessos.
