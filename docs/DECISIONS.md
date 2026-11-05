@@ -1712,3 +1712,12 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o plugin google-services com o arquivo no repositório (mais simples, mas o projeto guarda as chaves fora dele); registrar no `AppViewModel` (a classe vive só com a tela aberta, e o `onNewToken` chega sem tela).
 - Consequências: o AAB só sai com push se o secret `PIGGU_GOOGLE_SERVICES_BASE64` existir. A notificação abre o app no Painel, porque a mensagem do backend não traz uma rota (D-139).
 - Onde ver: `android-nativo/core/data/.../AparelhoDoPush.kt`, `android-nativo/app/.../PushDoFirebase.kt`, `Sessao.sair`, `.github/workflows/android-nativo.yml` (job "AAB de produção")
+
+## D-167: Regras para IA no AGENTS.md, lido pelo Claude e pelo Codex
+- Data: 05/11/2026
+- Situação: Valendo
+- Contexto: as regras estavam só nos arquivos `CLAUDE.md`, que o Codex não lê. O `AGENTS.md` da raiz era uma cópia fora do git.
+- Decisão: as regras ficam em `AGENTS.md` (raiz, `android-nativo/` e `ios-nativo/`). Cada `CLAUDE.md` tem só `@AGENTS.md`, que o Claude Code importa.
+- Alternativas: manter as duas cópias (uma acaba diferente da outra); links simbólicos (falham no Windows e em alguns clones).
+- Consequências: mudar uma regra é mexer só no `AGENTS.md`. As decisões antigas citam o `CLAUDE.md`, que continua levando às mesmas regras.
+- Onde ver: `AGENTS.md`, `android-nativo/AGENTS.md`, `ios-nativo/AGENTS.md`

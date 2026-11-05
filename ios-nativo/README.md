@@ -142,7 +142,7 @@ nessa variável: o `application.yml` a lê como um item só da lista e o login d
 
 ## Regras e CI
 
-As regras de cada etapa estão em [`CLAUDE.md`](CLAUDE.md). Todo PR que mexe em `ios-nativo/`
+As regras de cada etapa estão em [`AGENTS.md`](AGENTS.md). Todo PR que mexe em `ios-nativo/`
 compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.yml`).
 
 ## O que já tem

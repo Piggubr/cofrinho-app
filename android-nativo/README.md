@@ -2,7 +2,7 @@
 
 App Android do Piggu em Kotlin com Jetpack Compose e Material 3. Vai substituir o app
 Capacitor de `frontend/android` como versão 2.0.0 do mesmo app da loja (`br.com.piggu.app`,
-D-057). As regras de trabalho estão em [CLAUDE.md](CLAUDE.md).
+D-057). As regras de trabalho estão em [AGENTS.md](AGENTS.md).
 
 ## Rodar
 
