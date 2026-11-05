@@ -46,11 +46,23 @@ sql piggu_finance "CREATE SCHEMA legado; CREATE TABLE legado.gastos (valor numer
 docker run --rm -v "$PIGGU_BACKUP_VOLUME_FOTOS:/fotos" --entrypoint sh postgres:16-alpine \
   -c 'mkdir -p /fotos/familia-1 && echo foto > /fotos/familia-1/praia.jpg'
 
-passo "Destino fora da VPS sem senha e recusado"
-if PIGGU_BACKUP_SENHA_ARQUIVO="" PIGGU_BACKUP_DESTINO=/tmp/qualquer "$AQUI/backup.sh" 2> "$TMP/erro"; then
+# curl de mentira: anota cada ping do monitor de fora em vez de chamar a rede.
+mkdir -p "$TMP/bin"
+cat > "$TMP/bin/curl" << FIM
+#!/usr/bin/env bash
+echo "\${@: -1}" >> "$TMP/pings"
+FIM
+chmod +x "$TMP/bin/curl"
+pings() { cat "$TMP/pings" 2> /dev/null; rm -f "$TMP/pings"; }
+
+passo "Destino fora da VPS sem senha e recusado (e o monitor fica sabendo)"
+if PATH="$TMP/bin:$PATH" PIGGU_BACKUP_AVISO_URL=https://monitor.exemplo/b \
+   PIGGU_BACKUP_SENHA_ARQUIVO="" PIGGU_BACKUP_DESTINO=/tmp/qualquer "$AQUI/backup.sh" 2> "$TMP/erro"; then
   echo "o backup sem cifra deveria ter sido recusado"; exit 1
 fi
 grep -q "exige PIGGU_BACKUP_SENHA_ARQUIVO" "$TMP/erro"
+test "$(pings)" = "https://monitor.exemplo/b/start
+https://monitor.exemplo/b/1"
 
 passo "Backup cifrado, com rotacao dos diarios"
 mkdir -p "$PIGGU_BACKUP_DIR/diario"
@@ -60,7 +72,9 @@ if command -v rclone > /dev/null; then
   DESTINO_LOCAL=$TMP/fora-da-vps
   export PIGGU_BACKUP_DESTINO=$DESTINO_LOCAL
 fi
-"$AQUI/backup.sh"
+PATH="$TMP/bin:$PATH" PIGGU_BACKUP_AVISO_URL=https://monitor.exemplo/b "$AQUI/backup.sh"
+test "$(pings)" = "https://monitor.exemplo/b/start
+https://monitor.exemplo/b/0"
 HOJE=$(date +%F)
 test -f "$PIGGU_BACKUP_DIR/diario/piggu-$HOJE.tar.gpg"
 test "$(find "$PIGGU_BACKUP_DIR/diario" -name 'piggu-*' | wc -l)" -eq 7
@@ -79,7 +93,9 @@ fi
 
 passo "Restauracao testada em bancos a parte"
 sql piggu_finance "INSERT INTO registros (texto) VALUES ('depois do backup')"
-"$AQUI/testar-restauracao.sh"
+PATH="$TMP/bin:$PATH" PIGGU_RESTAURACAO_AVISO_URL=https://monitor.exemplo/r "$AQUI/testar-restauracao.sh"
+test "$(pings)" = "https://monitor.exemplo/r/start
+https://monitor.exemplo/r/0"
 test -z "$(sql postgres "SELECT datname FROM pg_database WHERE datname LIKE 'restauro_teste_%'")"
 
 passo "Restauracao por cima exige confirmacao"
@@ -106,9 +122,14 @@ familia-1"
 passo "Backup adulterado e recusado"
 cp "$PIGGU_BACKUP_DIR/diario/piggu-$HOJE.tar.gpg" "$TMP/adulterado.tar.gpg"
 printf 'x' | dd of="$TMP/adulterado.tar.gpg" bs=1 seek=200 conv=notrunc 2> /dev/null
-if "$AQUI/testar-restauracao.sh" "$TMP/adulterado.tar.gpg" > /dev/null 2>&1; then
+if PATH="$TMP/bin:$PATH" PIGGU_RESTAURACAO_AVISO_URL=https://monitor.exemplo/r \
+   "$AQUI/testar-restauracao.sh" "$TMP/adulterado.tar.gpg" > /dev/null 2>&1; then
   echo "aceitou um backup adulterado"; exit 1
 fi
+# Qualquer codigo diferente de 0 conta como falha para o monitor.
+pings > "$TMP/ultimos"
+test "$(head -n 1 "$TMP/ultimos")" = https://monitor.exemplo/r/start
+grep -qE '^https://monitor.exemplo/r/[1-9][0-9]*$' "$TMP/ultimos"
 
 echo
 echo "Backup e restauracao: tudo certo."

@@ -22,6 +22,9 @@
 #                               sem cifra e NAO sai da VPS
 #   PIGGU_BACKUP_DESTINO        remoto do rclone para a copia fora da VPS, por exemplo
 #                               b2-piggu:piggu-backups (Backblaze B2) ou r2:piggu-backups
+#   PIGGU_BACKUP_AVISO_URL      URL de ping de um monitor (healthchecks.io): avisa quando
+#                               comeca e quando termina, com o codigo de saida. Se o
+#                               backup falhar ou nem rodar, o monitor manda o alerta
 #   PIGGU_PG_CONTAINER          container do Postgres (padrao: o do docker compose)
 #   PIGGU_PG_USER               usuario do Postgres             (piggu)
 #   PIGGU_BANCOS                bancos, separados por espaco    (os seis do Piggu)
@@ -40,6 +43,17 @@ SEMANAIS=${PIGGU_BACKUP_SEMANAIS:-4}
 DIA_SEMANAL=${PIGGU_BACKUP_DIA_SEMANAL:-7}
 SENHA_ARQUIVO=${PIGGU_BACKUP_SENHA_ARQUIVO:-}
 DESTINO=${PIGGU_BACKUP_DESTINO:-}
+AVISO=${PIGGU_BACKUP_AVISO_URL:-}
+
+PARCIAL=""
+terminar() {
+  local codigo=$?
+  [ -z "$PARCIAL" ] || rm -rf "$PARCIAL"
+  avisar "$AVISO" "/$codigo"
+  exit "$codigo"
+}
+trap terminar EXIT
+avisar "$AVISO" /start
 
 if [ -n "$DESTINO" ] && [ -z "$SENHA_ARQUIVO" ]; then
   falhar "PIGGU_BACKUP_DESTINO exige PIGGU_BACKUP_SENHA_ARQUIVO: dado das familias nao sai da VPS sem cifra."
@@ -53,7 +67,6 @@ HOJE=$(date +%F)
 NOME="piggu-$HOJE"
 mkdir -p "$DIR/diario" "$DIR/semanal"
 PARCIAL=$(mktemp -d "$DIR/.parcial-XXXXXX")
-trap 'rm -rf "$PARCIAL"' EXIT
 
 # Dump e contagem na mesma foto do banco: uma sessao abre uma transacao REPEATABLE
 # READ, exporta o snapshot, conta as linhas e segura a transacao aberta enquanto o

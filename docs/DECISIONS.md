@@ -1739,3 +1739,18 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: uma sessão na nuvem só alcança o cofre com o computador do Dudu conectado e o OneDrive aberto; sem isso, avisa que não registrou. A checagem do número reduz, mas não elimina, a colisão entre PRs abertos ao mesmo tempo.
 - Reavaliar quando: o cofre sair do OneDrive, ou as colisões de número continuarem.
 - Onde ver: `AGENTS.md` (seção "Segundo cérebro e outros assistentes")
+
+## D-169: Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar
+- Data: 05/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, na conversa do projeto em 05/11/2026: perguntou se precisava de redundância no banco e pediu o aviso de falha e o backup antes do deploy. Os nomes das variáveis e os detalhes foram escolha do Claude e valem com o merge deste PR.
+- Registrado por: Claude
+- Contexto: produção é um servidor só (Oracle arm64, Postgres 16 em Docker), antes do lançamento. Já existiam o backup diário cifrado com cópia fora do servidor e o teste semanal de restauração (seção 6 da `docs/implantacao-producao.md`), mas nada avisava quando o cron falhava, e o deploy rodava migrações sem guardar o banco antes, embora o rollback não as desfaça.
+- Decisão:
+  - Não ter réplica do Postgres agora. Ela protege a disponibilidade, não os dados: um DELETE errado ou uma migração ruim chegam na réplica na hora. Contra perda, valem o backup fora do servidor e a restauração testada.
+  - `backup.sh` e `testar-restauracao.sh` avisam um monitor de fora (healthchecks.io) pela URL em `PIGGU_BACKUP_AVISO_URL` e `PIGGU_RESTAURACAO_AVISO_URL`: `/start` ao começar e o código de saída ao terminar. O monitor alerta na falha e quando o aviso não chega.
+  - `deploy/atualizar.sh` roda o `backup.sh` antes de publicar um commit que traz migração e desiste do deploy se o backup falhar. Esse backup fica só no servidor.
+- Alternativas: réplica em streaming numa segunda VM (custo e manutenção, e não protege contra erro humano); WAL contínuo para o bucket (pgBackRest ou wal-g), que dá volta a qualquer minuto, deixado para depois do lançamento; `curl` no fim da linha do cron, que não avisa o início e se perde quando o crontab muda.
+- Consequências: no pior caso perde-se até um dia de dados (o intervalo entre backups) e o tempo de subir uma VM nova e restaurar. Cada deploy com migração leva o tempo de um backup a mais.
+- Reavaliar quando: o app tiver usuários pagantes ou quando um dia de dados perdido deixar de ser aceitável (aí, WAL contínuo); réplica só se ficar fora do ar por horas passar a ser um problema.
+- Onde ver: `docs/implantacao-producao.md` (seção 6), `backend/scripts/comum-backup.sh` (`avisar`), `deploy/atualizar.sh` (`backup_antes_de_migrar`)
