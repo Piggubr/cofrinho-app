@@ -16,6 +16,7 @@ struct OrcamentoView: View {
     @State private var limiteDaCategoria = ""
     @State private var salvando = false
     @State private var erro: String?
+    @State private var editandoLimite: LimiteEmEdicao?
 
     private let mesAtual = Formatos.mes(Date())
     private var ehPremium: Bool { sessao.usuario?.plano == .premium }
@@ -44,6 +45,9 @@ struct OrcamentoView: View {
         .navigationTitle("Orçamento")
         .refreshable { await carregar() }
         .task(id: rede.conectado) { await carregar() }
+        .sheet(item: $editandoLimite) { edicao in
+            EditarLimiteView(edicao: edicao) { valor in try await salvar(valor, em: edicao.alvo) }
+        }
     }
 
     // MARK: - Limite do mes (goals)
@@ -97,8 +101,8 @@ struct OrcamentoView: View {
             }
             ForEach(metas.sorted { $0.key > $1.key }, id: \.key) { mes, valor in
                 Button {
-                    mesDoLimite = mes
-                    limite = Formatos.valorParaDigitar(valor)
+                    editandoLimite = LimiteEmEdicao(alvo: .mes(mes), titulo: Formatos.inicialMaiuscula(Formatos.nomeDoMes(chave: mes)),
+                                                    rotulo: "Total no mês", valor: valor)
                 } label: {
                     LabeledContent(Formatos.nomeDoMes(chave: mes)) {
                         Text(Formatos.moeda(valor)).monospacedDigit()
@@ -125,10 +129,7 @@ struct OrcamentoView: View {
                         Text(orcamento.categoria)
                         Spacer()
                         if ehPremium {
-                            Button {
-                                categoria = orcamento.categoria
-                                limiteDaCategoria = Formatos.valorParaDigitar(orcamento.limite)
-                            } label: { Image(systemName: "pencil") }
+                            Button { editar(orcamento) } label: { Image(systemName: "pencil") }
                                 .buttonStyle(.borderless)
                                 .accessibilityLabel("Mudar")
                         }
@@ -141,6 +142,9 @@ struct OrcamentoView: View {
                         .accessibilityLabel(orcamento.categoria)
                         .accessibilityValue(Formatos.porcentagem(orcamento.percentual))
                 }
+                // A linha toda abre a edicao, nao so a canetinha.
+                .contentShape(Rectangle())
+                .onTapGesture { if ehPremium { editar(orcamento) } }
                 .swipeActions {
                     Button(role: .destructive) { Task { await excluir(orcamento) } } label: {
                         Label("Apagar", systemImage: "trash")
@@ -181,7 +185,24 @@ struct OrcamentoView: View {
         .listRowBackground(paleta.superficie)
     }
 
+    private func editar(_ orcamento: Orcamento) {
+        editandoLimite = LimiteEmEdicao(alvo: .categoria(orcamento.categoria), titulo: orcamento.categoria,
+                                        rotulo: "Limite no mês", valor: orcamento.limite)
+    }
+
     // MARK: - API
+
+    /// O que a folha de editar guardou; erro volta para ela mostrar.
+    private func salvar(_ valor: Decimal, em alvo: LimiteEmEdicao.Alvo) async throws {
+        switch alvo {
+        case let .categoria(nome):
+            try await sessao.cliente.definirOrcamento(categoria: nome, limite: valor)
+            orcamentos = (try? await sessao.cliente.orcamentos(mesAtual)) ?? orcamentos
+        case let .mes(mes):
+            carga = .pronto(try await sessao.cliente.definirMeta(mes: mes, limite: valor))
+            if mes == mesDoLimite { limite = Formatos.valorParaDigitar(valor) }
+        }
+    }
 
     private func carregar() async {
         let cliente = sessao.cliente
@@ -235,6 +256,78 @@ struct OrcamentoView: View {
         do {
             try await sessao.cliente.excluirOrcamento(orcamento.id)
             orcamentos.removeAll { $0.id == orcamento.id }
+        } catch {
+            erro = error.localizedDescription
+        }
+    }
+}
+
+/// O limite que a folha esta mudando: o de uma categoria ou o total de um mes.
+struct LimiteEmEdicao: Identifiable {
+    enum Alvo { case categoria(String), mes(String) }
+    let alvo: Alvo
+    let titulo: String
+    let rotulo: LocalizedStringKey
+    let valor: Decimal
+    var id: String { titulo }
+}
+
+/// Folha para mudar um limite que ja existe, aberta pela canetinha ou tocando na linha.
+private struct EditarLimiteView: View {
+    let edicao: LimiteEmEdicao
+    let salvar: (Decimal) async throws -> Void
+
+    @Environment(\.dismiss) private var fechar
+    @Environment(\.paleta) private var paleta
+    @State private var texto: String
+    @State private var salvando = false
+    @State private var erro: String?
+
+    init(edicao: LimiteEmEdicao, salvar: @escaping (Decimal) async throws -> Void) {
+        self.edicao = edicao
+        self.salvar = salvar
+        _texto = State(initialValue: Formatos.valorParaDigitar(edicao.valor))
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let erro {
+                    Faixa(texto: erro, tipo: .erro).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                }
+                LabeledContent(edicao.rotulo) {
+                    CampoDeValor(rotulo: edicao.rotulo, texto: $texto).multilineTextAlignment(.trailing)
+                }
+                .listRowBackground(paleta.superficie)
+            }
+            .scrollContentBackground(.hidden)
+            .background(paleta.fundo)
+            .navigationTitle(edicao.titulo)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { fechar() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(salvando ? "Guardando..." : "Salvar") { Task { await guardar() } }
+                        .disabled(salvando)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func guardar() async {
+        guard let valor = Formatos.lerValor(texto), valor > 0 else {
+            erro = String(localized: "Digite um valor válido para o limite.")
+            return
+        }
+        salvando = true
+        erro = nil
+        defer { salvando = false }
+        do {
+            try await salvar(valor)
+            fechar()
         } catch {
             erro = error.localizedDescription
         }

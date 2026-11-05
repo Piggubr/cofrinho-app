@@ -20,6 +20,9 @@ struct PrincipalView: View {
     @State private var aviso: String?
     /// Gasto achado no Spotlight, para a aba Gastos abrir.
     @State private var gastoParaAbrir: GastoPedido?
+    /// Mes do Painel, para Gastos ou Receitas abrirem nele (um para cada: na troca, a tela que sai ainda veria o pedido da outra).
+    @State private var mesDosGastos: Date?
+    @State private var mesDasReceitas: Date?
     @Environment(\.scenePhase) private var fase
     @Environment(\.accessibilityReduceMotion) private var reduzirMovimento
     /// A pilha do Mais, para os links abrirem orcamento, contas do mes, cartoes e calendario.
@@ -127,17 +130,21 @@ struct PrincipalView: View {
     }
 
     private var painel: some View {
-        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { selecionar($0) }
+        PainelView(versaoDosDados: versaoDosDados, aoLancar: lancar, aoMudar: { versaoDosDados += 1 }) { destino, mes in
+            if destino == .gastos { mesDosGastos = mes }
+            if destino == .receitas { mesDasReceitas = mes }
+            selecionar(destino)
+        }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var gastos: some View {
-        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir, lancamentos: $lancamentos) { versaoDosDados += 1 }
+        GastosView(versaoDosDados: versaoDosDados, aoLancar: lancar, abrirGasto: $gastoParaAbrir, abrirNoMes: $mesDosGastos, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
     private var receitas: some View {
-        ReceitasView(versaoDosDados: versaoDosDados, lancamentos: $lancamentos) { versaoDosDados += 1 }
+        ReceitasView(versaoDosDados: versaoDosDados, abrirNoMes: $mesDasReceitas, lancamentos: $lancamentos) { versaoDosDados += 1 }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
     }
 
