@@ -172,6 +172,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-067](#d-067-bug-corrigido-vira-teste-de-regressão-com-data) | Bug corrigido vira teste de regressão com data | Valendo |
 | [D-068](#d-068-toda-decisão-nova-vira-um-d-0xx-no-mesmo-pr) | Toda decisão nova vira um D-0xx no mesmo PR | Valendo |
 | [D-137](#d-137-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
+| [D-167](#d-167-o-repositório-é-a-fonte-o-notion-é-o-índice-e-o-registro-de-trabalho) | O repositório é a fonte; o Notion é o índice e o registro de trabalho | Valendo |
 
 ---
 
@@ -1712,3 +1713,19 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o plugin google-services com o arquivo no repositório (mais simples, mas o projeto guarda as chaves fora dele); registrar no `AppViewModel` (a classe vive só com a tela aberta, e o `onNewToken` chega sem tela).
 - Consequências: o AAB só sai com push se o secret `PIGGU_GOOGLE_SERVICES_BASE64` existir. A notificação abre o app no Painel, porque a mensagem do backend não traz uma rota (D-139).
 - Onde ver: `android-nativo/core/data/.../AparelhoDoPush.kt`, `android-nativo/app/.../PushDoFirebase.kt`, `Sessao.sair`, `.github/workflows/android-nativo.yml` (job "AAB de produção")
+
+## D-167: O repositório é a fonte; o Notion é o índice e o registro de trabalho
+- Data: 05/11/2026
+- Situação: Valendo
+- Decidido por: Dudu (Notion primeiro, sincronizado por rotina noturna; o repositório como fonte da verdade), na conversa do projeto em 05/11/2026. A reserva do número e os campos novos foram escolha do Claude, dentro da autonomia que recebeu, e valem com o merge deste PR.
+- Registrado por: Claude
+- Contexto: o Claude e o Codex passam a trabalhar no mesmo projeto e no mesmo Notion. O Codex lê o `AGENTS.md`, que não existia, então não via as regras do `CLAUDE.md`. Branches em paralelo já usaram o mesmo número de decisão (as `android/etapa-*` repetiram D-089, D-090, D-091 e D-099 do iOS e tiveram de renumerar).
+- Decisão:
+  - O texto das decisões, a API, o modelo de dados e o roadmap continuam no repositório. O Notion tem a página inicial (situação, "Para revisão humana"), o índice das decisões, as tarefas, os achados e riscos e o histórico de trabalho, com links para o repositório. A chave é o número D-xxx.
+  - Quem vai escrever uma decisão reserva o número no Notion, com a branch, antes do PR.
+  - Decisões a partir desta trazem "Decidido por" e "Registrado por". As anteriores ficam como estão.
+  - O `AGENTS.md` aponta para o `CLAUDE.md`, para as regras não divergirem entre os assistentes.
+- Alternativas: tudo no Notion (sai do PR, perde a revisão junto com o código); tudo no repositório (tarefas e histórico de sessão viram commits e ruído); Obsidian, que fica para depois.
+- Consequências: um PR com decisão sem reserva no Notion ainda pode colidir; a rotina noturna confere o número e a situação entre os dois e aponta a diferença no Notion, sem corrigir sozinha. Se o Notion ficar fora do ar, vale o repositório.
+- Reavaliar quando: a rotina noturna mostrar colisões frequentes, ou o Obsidian entrar.
+- Onde ver: `CLAUDE.md` (seção "Notion e outros assistentes"), `AGENTS.md`
