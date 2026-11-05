@@ -198,15 +198,21 @@ struct CartaoAindaDaParaGastar: View {
                     Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
                 }
                 // A conta à vista: quem não entende o número entende de onde ele veio.
+                // "Receitas de" e "já gastos" sao links: abrem Receitas e Gastos no mes do Painel.
                 Group {
                     if conta.tetoEhOLimite {
-                        Text("Limite de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                        Text("Limite de \(Formatos.moeda(conta.teto)), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
                     } else {
-                        Text("Receitas de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                        Text("[Receitas de \(Formatos.moeda(conta.teto))](piggu://receitas), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
                     }
                 }
                 .font(.sora(.footnote))
                 .foregroundStyle(paleta.textoSuave)
+                .tint(paleta.primaria)
+                .environment(\.openURL, OpenURLAction { url in
+                    irPara(url.host() == "receitas" ? .receitas : .gastos)
+                    return .handled
+                })
             } else {
                 Text("Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.")
                     .font(.sora(.subheadline))

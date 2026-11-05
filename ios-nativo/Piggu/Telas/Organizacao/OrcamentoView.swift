@@ -101,7 +101,7 @@ struct OrcamentoView: View {
             }
             ForEach(metas.sorted { $0.key > $1.key }, id: \.key) { mes, valor in
                 Button {
-                    editandoLimite = LimiteEmEdicao(alvo: .mes(mes), titulo: Formatos.inicialMaiuscula(Formatos.nomeDoMes(chave: mes)),
+                    editandoLimite = LimiteEmEdicao(alvo: .mes(mes), titulo: Formatos.nomeCurtoDoMes(chave: mes),
                                                     rotulo: "Total no mês", valor: valor)
                 } label: {
                     LabeledContent(Formatos.nomeDoMes(chave: mes)) {
