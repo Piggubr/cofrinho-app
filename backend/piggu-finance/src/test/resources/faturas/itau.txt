@@ -1,0 +1,12 @@
+Itaú Unibanco
+Titular: João Exemplo
+Vencimento: 15/03/2027
+Total da fatura R$ 502,35
+Saldo anterior 900,00
+01/02 Pagamento recebido -900,00
+10/02 Farmacia Saude 87,30
+12/02 Posto Estrela 180,00
+15/02 Livraria Letra 02/03 99,90
+20/02 ANUIDADE DIVERSAS 04/12 45,00
+22/02 Restaurante Mar 120,15
+25/02 Devolucao Posto Estrela -30,00

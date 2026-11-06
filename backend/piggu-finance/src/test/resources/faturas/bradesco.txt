@@ -1,0 +1,11 @@
+Bradesco
+Titular: Carlos Modelo
+Data de vencimento 20/04/2027
+Valor total R$ 270,40
+Saldo anterior 300,00
+01/04 Pagto efetuado -300,00
+02/04 Padaria Trigo 18,40
+05/04 Mercado Bom Preco 142,20
+09/04 Seguro Cartao 12,90
+11/04 Eletro Casa 01/12 89,90
+14/04 Juros rotativo 7,00
