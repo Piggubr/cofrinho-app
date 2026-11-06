@@ -172,6 +172,10 @@ public class Expense {
         return accountId;
     }
 
+    public String getExternalId() {
+        return externalId;
+    }
+
     public Short getInstallmentNumber() {
         return installmentNumber;
     }
