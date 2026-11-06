@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FinanceService } from '../../core/api/finance.service';
@@ -7,7 +7,10 @@ import { codigoDoErro, pedeConsentimento, VERSAO_DO_AVISO } from '../../core/pri
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
-import { TAMANHO_MAXIMO_DE_IMAGEM, lerImagemComoBase64 } from '../../core/ui/arquivo';
+import { lerImagemComoBase64 } from '../../core/ui/arquivo';
+
+/** Cinco megabytes: vira ate 6,99 milhoes de caracteres em base64, dentro dos 7 milhoes do servidor. */
+const TAMANHO_MAXIMO_DO_PDF = 5 * 1024 * 1024;
 
 type Linha = LinhaDaConferencia & { marcada: boolean };
 
@@ -26,7 +29,7 @@ type Linha = LinhaDaConferencia & { marcada: boolean };
       <p i18n class="linha-detalhe">
         Escolha o PDF da fatura do cartão. O Piggu mostra o que já está lançado e o que falta.
       </p>
-      @if (!cartao()) {
+      @if (!cartao() && cartoes().length) {
         <div class="campo">
           <label i18n for="cartao-da-fatura">Cartão da fatura</label>
           <select
@@ -34,7 +37,7 @@ type Linha = LinhaDaConferencia & { marcada: boolean };
             [ngModel]="cartaoEscolhido()"
             (ngModelChange)="cartaoEscolhido.set($event)"
           >
-            <option i18n value="">Escolha o cartão</option>
+            <option i18n value="">Sem cartão</option>
             @for (c of cartoes(); track c.id) {
               <option [value]="c.id">{{ c.nome }}</option>
             }
@@ -129,7 +132,7 @@ type Linha = LinhaDaConferencia & { marcada: boolean };
                       <span>
                         <span class="linha-titulo">{{ l.descricao }}</span>
                         <span class="linha-detalhe">
-                          {{ l.data | dataBr }} · {{ l.categoria }}
+                          {{ l.data | dataBr }}
                           @if (l.parcelaTotal) {
                             <ng-container i18n>· parcela {{ l.parcelaNumero }}/{{ l.parcelaTotal }}</ng-container>
                           }
@@ -141,7 +144,18 @@ type Linha = LinhaDaConferencia & { marcada: boolean };
                         </span>
                       </span>
                     </label>
-                    <span class="linha-valor">{{ l.valor | moeda }}</span>
+                    <div class="linha-acoes">
+                      <select
+                        [attr.aria-label]="l.descricao"
+                        [ngModel]="l.categoria"
+                        (ngModelChange)="mudarCategoria(l.idExterno, $event)"
+                      >
+                        @for (categoria of opcoes(l.categoria); track categoria) {
+                          <option [value]="categoria">{{ categoria }}</option>
+                        }
+                      </select>
+                      <span class="linha-valor">{{ l.valor | moeda }}</span>
+                    </div>
                   </div>
                 }
               }
@@ -191,6 +205,8 @@ export class ConferirFatura {
 
   /** Cartao da fatura aberta (Contas); sem ele, a pessoa escolhe um dos `cartoes` (Gastos). */
   readonly cartao = input<ContaOuCartao | null>(null);
+  /** Categorias para trocar a sugerida; sem elas, busca quando a leitura traz linhas. */
+  readonly categorias = input<string[]>([]);
   readonly cartoes = input<ContaOuCartao[]>([]);
   /** Mes (AAAA-MM) da fatura aberta, o que "Marcar fatura como paga" quita. */
   readonly mes = input<string | null>(null);
@@ -211,6 +227,25 @@ export class ConferirFatura {
   protected readonly linhas = signal<Linha[]>([]);
   /** O PDF fica em memoria para a senha e a autorizacao reenviarem sem escolher de novo. */
   private pdfBase64 = '';
+  private readonly categoriasBuscadas = signal<string[]>([]);
+
+  constructor() {
+    // Outra fatura (ou outro mes): o que foi lido era da anterior e nao pode ser importado nem quitar a nova.
+    effect(() => {
+      this.cartao();
+      this.mes();
+      untracked(() => this.limpar());
+    });
+  }
+
+  protected opcoes(atual: string): string[] {
+    const lista = this.categorias().length ? this.categorias() : this.categoriasBuscadas();
+    return lista.includes(atual) ? lista : [atual, ...lista];
+  }
+
+  protected mudarCategoria(idExterno: string, categoria: string): void {
+    this.linhas.update((lista) => lista.map((l) => (l.idExterno === idExterno ? { ...l, categoria } : l)));
+  }
 
   protected readonly marcadas = computed(() => this.linhas().filter((l) => l.marcada));
   protected readonly jaLancadas = computed(() => this.linhas().filter((l) => l.situacao === 'JA_LANCADA'));
@@ -235,7 +270,7 @@ export class ConferirFatura {
     if (!arquivo) {
       return;
     }
-    if (arquivo.size > TAMANHO_MAXIMO_DE_IMAGEM) {
+    if (arquivo.size > TAMANHO_MAXIMO_DO_PDF) {
       this.erro.set($localize`PDF grande demais (máximo 5 MB).`);
       return;
     }
@@ -262,6 +297,12 @@ export class ConferirFatura {
           this.conferencia.set(c);
           this.convite.set(c.linhas === null);
           this.linhas.set((c.linhas ?? []).map((l) => ({ ...l, marcada: l.situacao === 'FALTA' && l.tipo === 'COMPRA' })));
+          if (c.linhas?.length && !this.categorias().length && !this.categoriasBuscadas().length) {
+            this.finance.listarCategorias().subscribe({
+              next: ({ categorias }) => this.categoriasBuscadas.set(categorias),
+              error: () => undefined,
+            });
+          }
           setTimeout(() => this.alvo()?.nativeElement.focus());
         },
         error: (falha) => {
@@ -301,6 +342,7 @@ export class ConferirFatura {
   }
 
   protected adicionar(): void {
+    this.erro.set('');
     this.ocupado.set(true);
     this.finance
       .importarExtrato(

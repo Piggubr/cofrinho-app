@@ -237,9 +237,11 @@
   (importado)="carregarGastos()"
 />
 
-@if (cartoes().length) {
-  <app-conferir-fatura [cartoes]="cartoes()" (importado)="carregarGastos()" />
-}
+<app-conferir-fatura
+  [cartoes]="cartoes()"
+  [categorias]="categorias()"
+  (importado)="carregarGastos()"
+/>
 
 <section class="cartao" aria-labelledby="titulo-regras">
   <div class="cartao-titulo">

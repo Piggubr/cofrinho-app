@@ -2675,13 +2675,6 @@
           <context context-type="linenumber">126,127</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1754484331196202249" datatype="html">
-        <source>Escolha o cartão</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">133,134</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="5443587233575259249" datatype="html">
         <source> Vai para a fatura de <x id="INTERPOLATION" equiv-text="{{ rotuloDe(f.mes) }}"/>, que vence em <x id="INTERPOLATION_1" equiv-text="{{ f.vencimento | dataBr }}"/>. </source>
         <context-group purpose="location">
@@ -7846,6 +7839,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
           <context context-type="linenumber">113,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3165622653864961422" datatype="html">
+        <source>Sem cartão</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">40,41</context>
         </context-group>
       </trans-unit>
     </body>

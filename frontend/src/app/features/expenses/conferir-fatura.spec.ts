@@ -60,6 +60,7 @@ describe('ConferirFatura', () => {
     tela = TestBed.createComponent(ConferirFatura);
     tela.componentRef.setInput('cartao', CARTAO);
     tela.componentRef.setInput('mes', '2026-11');
+    tela.componentRef.setInput('categorias', ['Mercado', 'Lazer']);
     tela.detectChanges();
   });
 
@@ -125,6 +126,30 @@ describe('ConferirFatura', () => {
     const pagar = http.expectOne((r) => r.url === '/api/accounts/c1/statement/paid');
     expect(pagar.request.params.get('mes')).toBe('2026-11');
     pagar.flush(null);
+  });
+
+  it('troca a categoria da linha e adiciona com ela', async () => {
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush(resposta([linha({ idExterno: 'f1' })]));
+    tela.detectChanges();
+    const seletor = tela.nativeElement.querySelector('.linha select') as HTMLSelectElement;
+    seletor.value = 'Lazer';
+    seletor.dispatchEvent(new Event('change'));
+    botao('Adicionar 1')!.click();
+    const importar = http.expectOne('/api/expenses/import');
+    expect(importar.request.body.linhas[0].categoria).toBe('Lazer');
+    importar.flush({ importados: 1, pulados: 0 });
+  });
+
+  it('trocar o mes limpa a leitura anterior', async () => {
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush(resposta([linha({ idExterno: 'f1' })]));
+    tela.detectChanges();
+    expect(texto()).toContain('41 já lançadas');
+    tela.componentRef.setInput('mes', '2026-12');
+    tela.detectChanges();
+    expect(texto()).not.toContain('41 já lançadas');
+    expect(botao('Adicionar 1')).toBeUndefined();
   });
 
   it('sem cartao aberto nao oferece marcar como paga', async () => {
