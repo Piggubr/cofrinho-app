@@ -764,4 +764,42 @@ export interface LinhaDoExtrato {
   idExterno: string;
   categoria: string;
   jaImportada: boolean;
+  /** So na importacao da fatura do cartao: parcela atual e total (os dois juntos). */
+  parcelaNumero?: number | null;
+  parcelaTotal?: number | null;
+}
+
+/** Linha da fatura do banco comparada com os gastos ja lancados (so no Premium). */
+export interface LinhaDaConferencia {
+  data: string;
+  descricao: string;
+  valor: number;
+  tipo: 'COMPRA' | 'TARIFA';
+  parcelaNumero: number | null;
+  parcelaTotal: number | null;
+  situacao: 'JA_LANCADA' | 'CONFIRA' | 'FALTA';
+  gastoId: string | null;
+  gastoDescricao: string | null;
+  gastoData: string | null;
+  categoria: string;
+  idExterno: string;
+}
+
+/** Resposta de conferir a fatura do cartao; `linhas` vem nula no plano gratuito. */
+export interface ConferenciaDaFatura {
+  banco: string | null;
+  vencimento: string | null;
+  total: number | null;
+  somaLida: number;
+  origem: 'PROPRIA' | 'GEMINI';
+  aviso: string | null;
+  contagem: {
+    compras: number;
+    tarifas: number;
+    ignoradas: number;
+    jaLancadas: number;
+    confira: number;
+    faltam: number;
+  };
+  linhas: LinhaDaConferencia[] | null;
 }

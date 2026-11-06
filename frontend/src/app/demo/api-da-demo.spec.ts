@@ -27,6 +27,16 @@ describe('API da demonstracao', () => {
     expect((await get<{ nome: string }>('/api/family')).nome).toBe('Família Demo');
   });
 
+  it('conferir a fatura responde os quatro grupos de exemplo', async () => {
+    const r = await post<{ linhas: { tipo: string; situacao: string }[]; contagem: { faltam: number } }>(
+      '/api/expenses/import/card-statement',
+      { pdfBase64: 'x', contaId: 'c1' },
+    );
+    expect(r.contagem.faltam).toBe(3);
+    const grupos = new Set(r.linhas.map((x) => `${x.tipo}/${x.situacao}`));
+    expect(grupos).toEqual(new Set(['COMPRA/FALTA', 'COMPRA/CONFIRA', 'TARIFA/FALTA', 'COMPRA/JA_LANCADA']));
+  });
+
   it('entrar com a Apple tambem entra como a titular', async () => {
     const tokens = await post<ParDeTokens>('/api/auth/apple', { idToken: 'x', nonce: 'y' });
     expect(tokens.usuario.role).toBe('TITULAR');

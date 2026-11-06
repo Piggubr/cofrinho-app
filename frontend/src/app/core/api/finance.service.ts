@@ -5,6 +5,7 @@ import {
   AReceber,
   AcertoDeDivisao,
   Cofrinho,
+  ConferenciaDaFatura,
   ConferenciaDePreco,
   ContaFixa,
   ContaOuCartao,
@@ -267,6 +268,22 @@ export class FinanceService extends ApiBase {
     return this.http.post<{ importados: number; pulados: number }>(this.url('/expenses/import'), {
       linhas,
       contaId,
+    });
+  }
+
+  /** Le o PDF da fatura do cartao e diz o que ja foi lancado e o que falta. */
+  conferirFatura(
+    pdfBase64: string,
+    senha: string | null,
+    contaId: string | null,
+    versaoDoAviso?: string,
+  ): Observable<ConferenciaDaFatura> {
+    return this.http.post<ConferenciaDaFatura>(this.url('/expenses/import/card-statement'), {
+      pdfBase64,
+      senha,
+      contaId,
+      autorizoIa: versaoDoAviso ? true : undefined,
+      versaoDoAviso,
     });
   }
 

@@ -9,12 +9,13 @@ import { mesPorExtenso } from '../../core/ui/datas';
 import { fechamentoPadrao } from '../../core/ui/fatura';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
+import { ConferirFatura } from '../expenses/conferir-fatura';
 import { Icone } from '../../core/ui/icone';
 
 /** Contas e cartoes: no cartao, a fatura entre os fechamentos e o vencimento. */
 @Component({
   selector: 'app-accounts',
-  imports: [Icone, FormsModule, MoedaPipe, DataBrPipe],
+  imports: [ConferirFatura, Icone, FormsModule, MoedaPipe, DataBrPipe],
   templateUrl: './accounts.html',
 })
 export class Accounts {

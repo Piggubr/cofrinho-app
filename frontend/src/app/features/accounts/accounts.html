@@ -166,6 +166,11 @@
       <p i18n class="vazio">Nenhum gasto nesta fatura.</p>
     }
   </section>
+  <app-conferir-fatura
+    [cartao]="a.cartao"
+    [mes]="a.fatura.mes"
+    (importado)="verFatura(a.cartao, a.fatura.mes)"
+  />
 }
 
 <section class="cartao" aria-labelledby="titulo-nova-conta">
