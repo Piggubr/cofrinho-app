@@ -172,6 +172,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-067](#d-067-bug-corrigido-vira-teste-de-regressão-com-data) | Bug corrigido vira teste de regressão com data | Valendo |
 | [D-068](#d-068-toda-decisão-nova-vira-um-d-0xx-no-mesmo-pr) | Toda decisão nova vira um D-0xx no mesmo PR | Valendo |
 | [D-137](#d-137-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
+| [D-167](#d-167-regras-para-ia-no-agentsmd-lido-pelo-claude-e-pelo-codex) | Regras para IA no `AGENTS.md`, lido pelo Claude e pelo Codex | Valendo |
+| [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
+| [D-169](#d-169-sem-réplica-do-banco-por-enquanto-aviso-de-falha-no-backup-e-backup-antes-de-migrar) | Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar |
+| [D-170](#d-170-painéis-de-funil-receita-retenção-e-plataformas-só-com-contagens) | Painéis de funil, receita, retenção e plataformas, só com contagens |
 
 ---
 
@@ -859,7 +863,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Contexto: o próximo grande passo é ter apps nativos, mantendo o backend.
 - Decisão: SwiftUI puro, mínimo iOS 17. Liquid Glass no iOS 26 e 27, e os materiais translúcidos do sistema no 17 e 18. Só SDKs da Apple, mais o login do Google. `@Observable`, async/await e SwiftData para o cache.
 - Alternativas: continuar no Capacitor (D-053).
-- Consequências: as regras de cada etapa ficam em `ios-nativo/CLAUDE.md`, criado na etapa 0 do plano.
+- Consequências: as regras de cada etapa ficam em `ios-nativo/AGENTS.md` (antes `CLAUDE.md`), criado na etapa 0 do plano.
 - Onde ver: plano do iOS nativo (documento do projeto, fora do repositório), `ios-nativo/` quando existir
 
 ## D-056: Android reescrito em Kotlin, com Material 3
@@ -1443,10 +1447,10 @@ no fim, em vez de ganhar um motivo inventado.
 - Data: 25/10/2026
 - Situação: Valendo
 - Contexto: a memória do projeto no Claude está desligada, então o repositório é o único lugar que toda sessão nova lê.
-- Decisão: este arquivo é o registro das decisões. Quem decidir algo novo acrescenta um D-0xx no mesmo PR, e o `CLAUDE.md` da raiz manda ler este arquivo antes de mudar algo.
+- Decisão: este arquivo é o registro das decisões. Quem decidir algo novo acrescenta um D-0xx no mesmo PR, e o `AGENTS.md` da raiz (antes `CLAUDE.md`) manda ler este arquivo antes de mudar algo.
 - Alternativas: decisões espalhadas em PRs e documentos fora do repositório.
 - Consequências: decisão antiga nunca é apagada; se mudar, vira "Substituída por".
-- Onde ver: [CLAUDE.md](../CLAUDE.md)
+- Onde ver: [AGENTS.md](../AGENTS.md)
 
 ## D-089: App iOS nativo junta na `feature/ios-nativo` antes da `develop`
 - Data: 27/10/2026
@@ -1455,7 +1459,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Decisão: os PRs das etapas (`swift/etapa-N`) vão para a `feature/ios-nativo`, criada a partir da `develop`. Quando o conjunto estiver testado, um PR leva a `feature/ios-nativo` para a `develop`, pelo caminho normal da D-061.
 - Alternativas: cada etapa direto na `develop`, que levaria app pela metade para a branch que junta as features.
 - Consequências: a `feature/ios-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O CI do iOS (`ios-nativo.yml`) roda em PR para qualquer branch.
-- Onde ver: [ios-nativo/CLAUDE.md](../ios-nativo/CLAUDE.md), [branches.md](branches.md)
+- Onde ver: [ios-nativo/AGENTS.md](../ios-nativo/AGENTS.md), [branches.md](branches.md)
 
 ---
 
@@ -1466,7 +1470,7 @@ no fim, em vez de ganhar um motivo inventado.
 - Decisão: cada etapa sai numa `android/etapa-N` a partir da `feature/android-nativo`, com PR para ela. A `feature/android-nativo` vai para a `develop` por PR quando o Dudu pedir.
 - Alternativas: PR de cada etapa direto para a `develop`, como no plano original.
 - Consequências: a `feature/android-nativo` precisa receber a `develop` de tempos em tempos para não divergir. O workflow `android-nativo.yml` roda em PR para qualquer branch.
-- Onde ver: `android-nativo/CLAUDE.md`, `docs/branches.md`
+- Onde ver: `android-nativo/AGENTS.md`, `docs/branches.md`
 
 # Perguntas para o Dudu
 
@@ -1712,3 +1716,60 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o plugin google-services com o arquivo no repositório (mais simples, mas o projeto guarda as chaves fora dele); registrar no `AppViewModel` (a classe vive só com a tela aberta, e o `onNewToken` chega sem tela).
 - Consequências: o AAB só sai com push se o secret `PIGGU_GOOGLE_SERVICES_BASE64` existir. A notificação abre o app no Painel, porque a mensagem do backend não traz uma rota (D-139).
 - Onde ver: `android-nativo/core/data/.../AparelhoDoPush.kt`, `android-nativo/app/.../PushDoFirebase.kt`, `Sessao.sair`, `.github/workflows/android-nativo.yml` (job "AAB de produção")
+
+## D-167: Regras para IA no AGENTS.md, lido pelo Claude e pelo Codex
+- Data: 05/11/2026
+- Situação: Valendo
+- Contexto: as regras estavam só nos arquivos `CLAUDE.md`, que o Codex não lê. O `AGENTS.md` da raiz era uma cópia fora do git.
+- Decisão: as regras ficam em `AGENTS.md` (raiz, `android-nativo/` e `ios-nativo/`). Cada `CLAUDE.md` tem só `@AGENTS.md`, que o Claude Code importa.
+- Alternativas: manter as duas cópias (uma acaba diferente da outra); links simbólicos (falham no Windows e em alguns clones).
+- Consequências: mudar uma regra é mexer só no `AGENTS.md`. As decisões antigas passam a apontar para ele.
+- Onde ver: `AGENTS.md`, `android-nativo/AGENTS.md`, `ios-nativo/AGENTS.md`
+
+## D-168: O repositório é a fonte; o segundo cérebro é a memória entre projetos
+- Data: 05/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, na conversa do projeto em 05/11/2026: deixou o Notion de lado e pediu que todas as sessões do Claude voltem a escrever no cofre "Segundo Cerebro". A checagem do número e os campos novos foram escolha do Claude, dentro da autonomia que recebeu, e valem com o merge deste PR.
+- Registrado por: Claude
+- Contexto: o Dudu mantém um cofre Obsidian no OneDrive como memória de longo prazo de todos os projetos. A regra de ler e registrar no cofre só estava no `~/.claude/CLAUDE.md` e no `~/.codex/AGENTS.md` de cada computador, então as sessões na nuvem não a recebiam, e de 22/10 a 05/11/2026 nada do cofrinho-app foi registrado lá. Branches em paralelo já usaram o mesmo número de decisão: as `android/etapa-*` repetiram números do iOS (commits `196c6bce` e `828c43ce`), e este PR nasceu como D-167, número que o PR #153 usou primeiro.
+- Decisão:
+  - Decisões técnicas, API, modelo de dados e roadmap continuam no repositório. O cofre guarda o resumo do projeto, a linha do tempo e o que liga os projetos (padrões, preferências, aprendizados), apontando para as D-xxx em vez de copiá-las.
+  - A regra do cofre também fica no `AGENTS.md` (D-167), para valer em qualquer sessão que abra o projeto, local ou na nuvem, do Claude ou do Codex.
+  - Antes de abrir um PR com decisão nova, conferir o maior número nas branches e PRs abertos.
+  - Decisões a partir desta trazem "Decidido por" e "Registrado por". As anteriores ficam como estão.
+- Alternativas: o Notion como registro compartilhado (montado e deixado de lado pelo Dudu em 05/11/2026); deixar a regra só no `~/.claude/CLAUDE.md` local, que não chega nas sessões na nuvem.
+- Consequências: uma sessão na nuvem só alcança o cofre com o computador do Dudu conectado e o OneDrive aberto; sem isso, avisa que não registrou. A checagem do número reduz, mas não elimina, a colisão entre PRs abertos ao mesmo tempo.
+- Reavaliar quando: o cofre sair do OneDrive, ou as colisões de número continuarem.
+- Onde ver: `AGENTS.md` (seção "Segundo cérebro e outros assistentes")
+
+## D-169: Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar
+- Data: 05/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, na conversa do projeto em 05/11/2026: perguntou se precisava de redundância no banco e pediu o aviso de falha e o backup antes do deploy. Os nomes das variáveis e os detalhes foram escolha do Claude e valem com o merge deste PR.
+- Registrado por: Claude
+- Contexto: produção é um servidor só (Oracle arm64, Postgres 16 em Docker), antes do lançamento. Já existiam o backup diário cifrado com cópia fora do servidor e o teste semanal de restauração (seção 6 da `docs/implantacao-producao.md`), mas nada avisava quando o cron falhava, e o deploy rodava migrações sem guardar o banco antes, embora o rollback não as desfaça.
+- Decisão:
+  - Não ter réplica do Postgres agora. Ela protege a disponibilidade, não os dados: um DELETE errado ou uma migração ruim chegam na réplica na hora. Contra perda, valem o backup fora do servidor e a restauração testada.
+  - `backup.sh` e `testar-restauracao.sh` avisam um monitor de fora (healthchecks.io) pela URL em `PIGGU_BACKUP_AVISO_URL` e `PIGGU_RESTAURACAO_AVISO_URL`: `/start` ao começar e o código de saída ao terminar. O monitor alerta na falha e quando o aviso não chega.
+  - `deploy/atualizar.sh` roda o `backup.sh` antes de publicar um commit que traz migração e desiste do deploy se o backup falhar. Esse backup fica só no servidor.
+- Alternativas: réplica em streaming numa segunda VM (custo e manutenção, e não protege contra erro humano); WAL contínuo para o bucket (pgBackRest ou wal-g), que dá volta a qualquer minuto, deixado para depois do lançamento; `curl` no fim da linha do cron, que não avisa o início e se perde quando o crontab muda.
+- Consequências: no pior caso perde-se até um dia de dados (o intervalo entre backups) e o tempo de subir uma VM nova e restaurar. Cada deploy com migração leva o tempo de um backup a mais.
+- Reavaliar quando: o app tiver usuários pagantes ou quando um dia de dados perdido deixar de ser aceitável (aí, WAL contínuo); réplica só se ficar fora do ar por horas passar a ser um problema.
+- Onde ver: `docs/implantacao-producao.md` (seção 6), `backend/scripts/comum-backup.sh` (`avisar`), `deploy/atualizar.sh` (`backup_antes_de_migrar`)
+
+## D-170: Painéis de funil, receita, retenção e plataformas, só com contagens
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, na conversa de 06/11/2026: escolheu os painéis "Funil e receita", "Retenção por semana" e "Aparelhos e plataformas" (o de Open Finance ficou para depois). Como montar cada um foi escolha do Claude, dentro da autonomia que recebeu.
+- Registrado por: Claude
+- Contexto: o Grafana (D-036) mostrava saúde, erros e uso, mas não respondia às perguntas do dia a dia do negócio: quantos viram pagantes, quanto entra por mês, se as famílias continuam lançando e em qual app vale investir.
+- Decisão:
+  - Views novas no schema `analitico`, com o mesmo combinado do V32/V18: só contagens, sem e-mail, nome, documento, id ou valor em dinheiro. No identity (V40): `funil`, `conversao_por_mes`, `assinaturas_encerradas_por_dia`, `pagantes_por_plano`, `sessoes_por_plataforma`, `versoes_do_app` e `aparelhos_com_push`. No finance (V26): `familias_ativas_por_semana` e `retencao_por_semana`.
+  - A receita estimada é calculada no painel, com o preço de tabela de `docs/planos-premium.md`. O banco não guarda preço, e a view continua só com contagens.
+  - A família não guarda o período do plano, então ele é deduzido do vencimento: mais de 45 dias à frente conta como anual.
+  - Família ativa é a que lançou um gasto ou uma receita na semana. Gasto que entrou sozinho (Open Finance, conta fixa) não conta.
+  - A plataforma vem do User-Agent da sessão aberta e sai só como rótulo. A versão só passa se for número; qualquer outro texto vira "outra".
+- Alternativas: guardar o preço numa tabela do banco (mais uma fonte de verdade para manter); medir a retenção por pessoa (o identity e o finance são bancos separados, sem junção).
+- Consequências: mudou o preço de um plano? Atualize as consultas do painel "Funil e receita". A receita é bruta, antes da taxa da loja e dos impostos. Família excluída sai do funil e das encerradas.
+- Reavaliar quando: a família passar a guardar o período do plano, ou o preço mudar com frequência.
+- Onde ver: [observabilidade](observabilidade.md#painéis), `backend/observabilidade/grafana/paineis/`

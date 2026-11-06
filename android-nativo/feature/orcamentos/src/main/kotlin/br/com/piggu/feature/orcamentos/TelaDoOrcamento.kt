@@ -1,5 +1,6 @@
 package br.com.piggu.feature.orcamentos
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -67,6 +70,9 @@ data class EventosDoOrcamento(
     val mudarLimite: (BigDecimal?) -> Unit = {},
     val salvarLimite: () -> Unit = {},
     val editarMeta: (String) -> Unit = {},
+    val mudarValorDaEdicao: (BigDecimal?) -> Unit = {},
+    val salvarEdicao: () -> Unit = {},
+    val cancelarEdicao: () -> Unit = {},
     val mudarCategoria: (String) -> Unit = {},
     val mudarLimiteDaCategoria: (BigDecimal?) -> Unit = {},
     val salvarCategoria: () -> Unit = {},
@@ -93,6 +99,9 @@ fun TelaDoOrcamento(voltar: () -> Unit, abrirPremium: () -> Unit, modifier: Modi
             mudarLimite = viewModel::mudarLimite,
             salvarLimite = viewModel::salvarLimite,
             editarMeta = viewModel::editarMeta,
+            mudarValorDaEdicao = viewModel::mudarValorDaEdicao,
+            salvarEdicao = viewModel::salvarEdicao,
+            cancelarEdicao = viewModel::cancelarEdicao,
             mudarCategoria = viewModel::mudarCategoria,
             mudarLimiteDaCategoria = viewModel::mudarLimiteDaCategoria,
             salvarCategoria = viewModel::salvarCategoria,
@@ -150,6 +159,38 @@ fun TelaDoOrcamento(estado: EstadoDoOrcamento, eventos: EventosDoOrcamento, modi
             }
         }
     }
+    estado.editando?.let { EditarLimite(it, estado, eventos) }
+}
+
+/** A janela do lápis: muda o limite de uma categoria ou o total de um mês, sem descer até o formulário. */
+@Composable
+private fun EditarLimite(edicao: LimiteEmEdicao, estado: EstadoDoOrcamento, eventos: EventosDoOrcamento) {
+    AlertDialog(
+        onDismissRequest = eventos.cancelarEdicao,
+        confirmButton = {
+            TextButton(eventos.salvarEdicao, enabled = !estado.salvando) {
+                Text(stringResource(if (estado.salvando) R.string.orcamento_guardando else R.string.orcamento_salvar))
+            }
+        },
+        dismissButton = { TextButton(eventos.cancelarEdicao) { Text(stringResource(Comum.string.cancelar)) } },
+        title = { Text(edicao.categoria ?: mesPorExtenso(edicao.mes.orEmpty())) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CampoDeValor(
+                    edicao.valor,
+                    eventos.mudarValorDaEdicao,
+                    estado.moeda,
+                    Modifier.fillMaxWidth(),
+                    rotulo = if (edicao.categoria != null) {
+                        stringResource(R.string.orcamento_limite_no_mes)
+                    } else {
+                        stringResource(R.string.orcamento_total_no_mes, simboloDaMoeda(estado.moeda))
+                    },
+                )
+                estado.erro?.let { Detalhe(it.texto(LocalContext.current), MaterialTheme.colorScheme.error) }
+            }
+        },
+    )
 }
 
 private fun falhaDe(erro: ErroDaApi): FalhaAoCarregar = when {
@@ -226,7 +267,7 @@ private fun OutrosMeses(estado: EstadoDoOrcamento, eventos: EventosDoOrcamento) 
         }
         estado.outrosMeses.forEach { (mes, limite) ->
             val nome = mesPorExtenso(mes)
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable { eventos.editarMeta(mes) }, verticalAlignment = Alignment.CenterVertically) {
                 Text(nome, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                 Text(formatarMoeda(limite, estado.moeda), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
                 IconButton({ eventos.editarMeta(mes) }) {
@@ -260,7 +301,10 @@ private fun LinhaDoOrcamento(orcamento: Orcamento, estado: EstadoDoOrcamento, ev
         else -> MaterialTheme.colorScheme.primary to null
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // Com Premium, a linha toda abre a janela, não só o lápis.
+        Column(
+            Modifier.weight(1f).clickable(enabled = estado.premium) { eventos.editarOrcamento(orcamento) }.semantics(mergeDescendants = true) {},
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(orcamento.categoria, style = MaterialTheme.typography.bodyLarge)
             Detalhe(
                 stringResource(

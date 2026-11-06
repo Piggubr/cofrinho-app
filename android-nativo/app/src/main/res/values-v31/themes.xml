@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+: sem isto o sistema improvisa a abertura só com o porquinho, sem o degradê do ícone. -->
+    <style name="Theme.Piggu" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fundo</item>
+        <item name="android:windowSplashScreenBackground">@color/fundo</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/icone_da_abertura</item>
+    </style>
+</resources>

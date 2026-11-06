@@ -124,6 +124,7 @@ class AindaDaParaGastarTest {
         compose.setContent { PigguTheme { CartaoAindaDaParaGastar(estado(), { abertos += it }) } }
         compose.onNodeWithText("Definir limite").performClick()
         compose.onNodeWithText("Lançar receitas").performClick()
-        assertEquals(listOf("/orcamentos", "/receitas"), abertos)
+        // As receitas abrem no mês do Painel.
+        assertEquals(listOf("/orcamentos", "/receitas?mes=${estado().mes}"), abertos)
     }
 }

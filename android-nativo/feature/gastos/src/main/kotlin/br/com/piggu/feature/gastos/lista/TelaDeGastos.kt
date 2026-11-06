@@ -63,12 +63,15 @@ private val FOLGA_DO_LANCAR = 88.dp
  * @param gastoParaAbrir id e mês (aaaa-mm, nulo é o atual) do link `piggu://gastos?id=...&mes=...`.
  * @param aoAbrirGasto o pedido foi entregue à tela: quem chamou pode esquecê-lo.
  * @param lancarGasto o formulário de lançar (o + da moldura).
+ * @param mesParaAbrir mês (aaaa-mm) pedido pelo Painel; [aoAbrirMes] avisa que foi entregue.
  */
 @Composable
 fun TelaDeGastos(
     gastoParaAbrir: Pair<String, String?>?,
     aoAbrirGasto: () -> Unit,
     lancarGasto: () -> Unit,
+    mesParaAbrir: String? = null,
+    aoAbrirMes: () -> Unit = {},
     viewModel: GastosViewModel = hiltViewModel(),
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -79,6 +82,12 @@ fun TelaDeGastos(
         gastoParaAbrir?.let { (id, mes) ->
             viewModel.abrir(id, mes)
             aoAbrirGasto()
+        }
+    }
+    LaunchedEffect(mesParaAbrir) {
+        mesParaAbrir?.let {
+            viewModel.mudarMes(it)
+            aoAbrirMes()
         }
     }
     val escolher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

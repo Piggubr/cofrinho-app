@@ -1,0 +1,258 @@
+{
+  "uid": "piggu-plataformas",
+  "title": "Piggu - Aparelhos e plataformas",
+  "tags": [
+    "piggu"
+  ],
+  "timezone": "America/Sao_Paulo",
+  "editable": false,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "refresh": "5m",
+  "templating": {
+    "list": []
+  },
+  "schemaVersion": 41,
+  "panels": [
+    {
+      "type": "row",
+      "title": "Onde as pessoas usam o Piggu",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Pessoas por plataforma",
+      "description": "Pessoas com sessão aberta (login nos últimos 30 dias, sem sair). Quem usa em dois lugares conta nos dois.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT plataforma AS \"Plataforma\", pessoas AS \"Pessoas\" FROM analitico.sessoes_por_plataforma ORDER BY 2 DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Aparelhos que recebem push",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT CASE plataforma WHEN 'IOS' THEN 'iPhone' WHEN 'ANDROID' THEN 'Android' ELSE plataforma END AS \"Plataforma\", aparelhos AS \"Aparelhos\" FROM analitico.aparelhos_com_push ORDER BY 2 DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
+      "type": "row",
+      "title": "Detalhes",
+      "collapsed": false,
+      "panels": [],
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Sessões abertas por plataforma",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT plataforma AS \"Plataforma\", pessoas AS \"Pessoas\", sessoes AS \"Sessões\" FROM analitico.sessoes_por_plataforma ORDER BY 2 DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Versões dos apps nativos",
+      "description": "Pela sessão aberta. No Android vem a versão (2.0.0); no iOS, o número do build (5). Ajuda a ver quem ainda não atualizou.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT plataforma AS \"Plataforma\", versao AS \"Versão (iOS: build)\", pessoas AS \"Pessoas\" FROM analitico.versoes_do_app ORDER BY 1, string_to_array(nullif(versao, 'outra'), '.')::int[] DESC NULLS LAST",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": []
+      },
+      "transformations": [],
+      "id": 6,
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ]
+}

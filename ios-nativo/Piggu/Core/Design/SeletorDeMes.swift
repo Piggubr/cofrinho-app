@@ -69,17 +69,20 @@ struct SeletorDeMes: View {
 }
 
 extension View {
-    /// O seletor de mes (e o que vier `abaixo`, como os filtros dos Gastos) flutuando no topo
-    /// da lista. Ao puxar para recarregar, ele desce junto com a lista.
-    func comSeletorDeMes(_ mes: Binding<Date>, @ViewBuilder abaixo: () -> some View = { EmptyView() }) -> some View {
-        modifier(ComSeletorDeMes(mes: mes, abaixo: abaixo()))
+    /// O seletor de mes (com a troca Gastos | Receitas acima, quando houver, e o que vier `abaixo`,
+    /// como os filtros dos Gastos) fixo no topo da lista. Ao puxar para recarregar, desce junto.
+    func comSeletorDeMes(_ mes: Binding<Date>, troca: Binding<Aba>? = nil,
+                         @ViewBuilder abaixo: () -> some View = { EmptyView() }) -> some View {
+        modifier(ComSeletorDeMes(mes: mes, troca: troca, abaixo: abaixo()))
     }
 }
 
 private struct ComSeletorDeMes<Abaixo: View>: ViewModifier {
     @Binding var mes: Date
+    let troca: Binding<Aba>?
     let abaixo: Abaixo
 
+    @Environment(\.paleta) private var paleta
     /// Quanto a lista passou do topo ao puxar.
     @State private var puxado: CGFloat = 0
 
@@ -88,9 +91,13 @@ private struct ComSeletorDeMes<Abaixo: View>: ViewModifier {
             .acompanharPuxada($puxado)
             .safeAreaInset(edge: .top) {
                 VStack(spacing: 4) {
+                    if let troca { TrocaDeLancamentos(aba: troca) }
                     SeletorDeMes(mes: $mes)
                     abaixo
                 }
+                // Fundo cheio so atras da troca, do mes e dos filtros (sem subir para o titulo grande).
+                .background(paleta.fundo, ignoresSafeAreaEdges: [])
+                // A troca desce junto com o titulo grande ao puxar, em vez de ficar por cima dele.
                 .offset(y: puxado)
             }
     }

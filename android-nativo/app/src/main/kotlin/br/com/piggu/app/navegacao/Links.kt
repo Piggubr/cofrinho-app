@@ -13,6 +13,9 @@ sealed interface Destino {
 
     /** piggu://gastos?id=...&mes=aaaa-mm; sem o mês, o atual (D-097 do iOS). */
     data class VerGasto(val id: String, val mes: String?) : Destino
+
+    /** /gastos?mes=aaaa-mm ou /receitas?mes=aaaa-mm: a tela já no mês (o do Painel). */
+    data class VerMes(val tela: Tela, val mes: String) : Destino
 }
 
 private val DOMINIOS = setOf("piggu.com.br", "www.piggu.com.br")
@@ -49,6 +52,8 @@ fun lerLink(link: String, lerValor: (String) -> BigDecimal?): Destino? {
         primeiro == "gastos" && !consulta["id"].isNullOrBlank() ->
             Destino.VerGasto(consulta.getValue("id"), consulta["mes"]?.takeIf { MES.matches(it) })
         primeiro == "gastos" && consulta["rapido"] == "1" -> Destino.LancarGasto(valor())
+        (primeiro == "gastos" || primeiro == "receitas") && MES.matches(consulta["mes"].orEmpty()) ->
+            Destino.VerMes(if (primeiro == "gastos") Tela.Gastos else Tela.Receitas, consulta.getValue("mes"))
         primeiro == "confirmar-email" -> Destino.Abrir(Tela.ConfirmarEmail(consulta["token"].orEmpty()))
         primeiro == "redefinir-senha" -> Destino.Abrir(Tela.RedefinirSenha(consulta["token"].orEmpty()))
         else -> Destino.Abrir(TELAS_POR_CAMINHO[primeiro] ?: Tela.NaoEncontrada)

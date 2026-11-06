@@ -176,6 +176,9 @@ fun AppLogado(
     val pilha = rememberNavBackStack(Tela.Painel)
     /** O gasto de um link ou da busca (id e mês aaaa-mm), que a aba Gastos abre e depois limpa. */
     var gastoParaAbrir by remember { mutableStateOf<Pair<String, String?>?>(null) }
+    /** O mês (aaaa-mm) do Painel, para Gastos ou Receitas abrirem nele; cada um com o seu. */
+    var mesDosGastos by remember { mutableStateOf<String?>(null) }
+    var mesDasReceitas by remember { mutableStateOf<String?>(null) }
     val escopoDosAvisos = rememberCoroutineScope()
     /** "Organizar o Painel" do Perfil: a aba Painel abre com a folha de organizar. */
     var organizarAoAbrir by remember { mutableStateOf(false) }
@@ -209,6 +212,11 @@ fun AppLogado(
         }
     }
 
+    fun verMes(destino: Destino.VerMes) {
+        if (destino.tela == Tela.Gastos) mesDosGastos = destino.mes else mesDasReceitas = destino.mes
+        pilha.irPara(destino.tela)
+    }
+
     LaunchedEffect(links) {
         links.collect { destino ->
             when (destino) {
@@ -222,6 +230,7 @@ fun AppLogado(
                     gastoParaAbrir = destino.id to destino.mes
                     pilha.irPara(Tela.Gastos)
                 }
+                is Destino.VerMes -> verMes(destino)
             }
         }
     }
@@ -267,7 +276,13 @@ fun AppLogado(
                 entry<Tela.Painel> {
                     if (acoesDaConta) {
                         TelaDoPainel(
-                            abrirTela = { caminho -> (lerLink(caminho, ::lerValor) as? Destino.Abrir)?.tela?.let(::abrir) },
+                            abrirTela = { caminho ->
+                                when (val destino = lerLink(caminho, ::lerValor)) {
+                                    is Destino.Abrir -> abrir(destino.tela)
+                                    is Destino.VerMes -> verMes(destino)
+                                    else -> Unit
+                                }
+                            },
                             lancarGasto = { lancarGasto(null) },
                             organizarAoAbrir = organizarAoAbrir,
                             aoAbrirOrganizar = { organizarAoAbrir = false },
@@ -279,7 +294,13 @@ fun AppLogado(
                 entry<Tela.Gastos> {
                     AbaDeLancamentos(Tela.Gastos, ::abrir) {
                         if (acoesDaConta) {
-                            TelaDeGastos(gastoParaAbrir, aoAbrirGasto = { gastoParaAbrir = null }, lancarGasto = { lancarGasto(null) })
+                            TelaDeGastos(
+                                gastoParaAbrir,
+                                aoAbrirGasto = { gastoParaAbrir = null },
+                                lancarGasto = { lancarGasto(null) },
+                                mesParaAbrir = mesDosGastos,
+                                aoAbrirMes = { mesDosGastos = null },
+                            )
                         } else {
                             AbaEmBreve(stringResource(R.string.tela_gastos), Tela.Gastos.caminho)
                         }
@@ -287,7 +308,7 @@ fun AppLogado(
                 }
                 entry<Tela.Receitas> {
                     AbaDeLancamentos(Tela.Receitas, ::abrir) {
-                        if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita })
+                        if (acoesDaConta) TelaDeReceitas(lancarReceita = { lancando = Lancamento.Receita }, mesParaAbrir = mesDasReceitas, aoAbrirMes = { mesDasReceitas = null })
                         else AbaEmBreve(stringResource(R.string.tela_receitas), Tela.Receitas.caminho)
                     }
                 }

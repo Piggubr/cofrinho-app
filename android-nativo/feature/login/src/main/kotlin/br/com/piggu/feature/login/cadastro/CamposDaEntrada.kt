@@ -58,8 +58,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.piggu.core.designsystem.R as Icones
 import br.com.piggu.core.network.MensagemDeErro
-import br.com.piggu.core.ui.HumorDoPorquinho
-import br.com.piggu.core.ui.Porquinho
 import br.com.piggu.core.ui.R as Comum
 import br.com.piggu.core.ui.formatos.EXEMPLO_DO_CELULAR
 import br.com.piggu.core.ui.formatos.EXEMPLO_DO_CPF
@@ -67,6 +65,7 @@ import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.ddiDoPais
 import br.com.piggu.core.ui.formatos.nomeDoPais
 import br.com.piggu.core.ui.formatos.paises
+import br.com.piggu.feature.login.LogoDoPiggu
 import br.com.piggu.feature.login.R
 import java.time.Instant
 import java.time.LocalDate
@@ -88,7 +87,7 @@ internal fun MolduraDaEntrada(titulo: String, subtitulo: String, conteudo: @Comp
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Porquinho(HumorDoPorquinho.Feliz, largura = 120.dp)
+            LogoDoPiggu()
             Text(
                 titulo,
                 Modifier.semantics { heading() },

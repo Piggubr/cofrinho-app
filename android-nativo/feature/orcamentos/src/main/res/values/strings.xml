@@ -16,6 +16,7 @@
     <string name="orcamento_limite_invalido">Digite um valor válido para o limite.</string>
     <string name="orcamento_outros_meses">Limites dos outros meses</string>
     <string name="orcamento_nenhum_limite">Nenhum limite cadastrado</string>
+    <string name="orcamento_salvar">Salvar</string>
     <string name="orcamento_editar_mes">Editar o limite de %1$s</string>
 
     <!-- Por categoria (budgets) -->

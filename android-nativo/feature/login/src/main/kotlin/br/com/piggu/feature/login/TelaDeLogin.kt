@@ -58,8 +58,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import br.com.piggu.core.ui.HumorDoPorquinho
-import br.com.piggu.core.ui.Porquinho
 import kotlinx.coroutines.launch
 import br.com.piggu.core.designsystem.R as Icones
 
@@ -144,7 +142,7 @@ fun TelaDeLogin(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Porquinho(HumorDoPorquinho.Feliz, largura = 120.dp)
+            LogoDoPiggu()
             Text(
                 stringResource(R.string.login_titulo),
                 Modifier.semantics { heading() },

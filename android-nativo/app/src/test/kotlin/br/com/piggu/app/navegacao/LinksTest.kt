@@ -30,6 +30,14 @@ class LinksTest {
     }
 
     @Test
+    fun `gastos e receitas de um mes, e o mes invalido abre a tela no atual`() {
+        assertEquals(Destino.VerMes(Tela.Gastos, "2026-10"), ler("/gastos?mes=2026-10"))
+        assertEquals(Destino.VerMes(Tela.Receitas, "2026-09"), ler("/receitas?mes=2026-09"))
+        assertEquals(Destino.Abrir(Tela.Receitas), ler("/receitas?mes=2026-13"))
+        assertEquals(Destino.Abrir(Tela.Gastos), ler("/gastos"))
+    }
+
+    @Test
     fun `rotas do site pelo esquema do app, pelo dominio e pelo caminho interno`() {
         assertEquals(Destino.Abrir(Tela.Orcamentos), ler("piggu://orcamentos"))
         assertEquals(Destino.Abrir(Tela.Receitas), ler("https://piggu.com.br/receitas"))

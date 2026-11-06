@@ -21,9 +21,15 @@
 # nao voltam: o Flyway da versao anterior ignora as migracoes novas e sobe, desde que a
 # versao nova so tenha acrescentado coisas ao banco (docs/implantacao-producao.md, secao 8).
 #
+# Backup antes de migrar: se o commit novo traz migracao de banco, o script roda o
+# backend/scripts/backup.sh antes de publicar e, se o backup falhar, nao publica. Fica so no
+# servidor (nao vai para o bucket), cifrado quando a senha do backup e legivel aqui.
+#
 # Variaveis (opcionais):
 #   PIGGU_RAMO      branch de producao (main)
 #   PIGGU_REGISTRO  onde ficam as imagens (ghcr.io/piggubr/cofrinho-app)
+#   PIGGU_BACKUP_ANTES_DO_DEPLOY  pasta do backup antes de migrar ($HOME/piggu-backups/antes-do-deploy)
+#   PIGGU_BACKUP_SENHA_ARQUIVO    senha do backup (/etc/piggu/backup.senha, se der para ler)
 #
 # Com PIGGU_OBSERVABILIDADE=true no backend/.env, sobe tambem o monitoramento (perfil
 # observabilidade: Grafana, Prometheus, Loki) e o reinicia quando a configuracao dele muda.
@@ -82,6 +88,11 @@ main() {
   local antes
   antes=$(git rev-parse HEAD)
 
+  if ! backup_antes_de_migrar "$antes" "$sha"; then
+    echo "O backup antes das migracoes falhou; nada foi feito." >&2
+    exit 1
+  fi
+
   if publicar "$sha" "$token" "$digests"; then
     limpar_imagens "$sha" "$antes"
     echo "==> Piggu em ${sha:0:7}"
@@ -100,6 +111,29 @@ main() {
     echo "==> Nem ${antes:0:7} ficou saudavel. Veja: docker compose logs --tail 50 <servico>" >&2
   fi
   exit 1
+}
+
+# As migracoes nao voltam no rollback (secao 8 da docs/implantacao-producao.md): se o
+# commit novo traz alguma, guarda o banco do jeito que esta antes de publicar.
+backup_antes_de_migrar() {
+  local de=$1 para=$2
+  if [[ $de == "$para" ]] \
+    || git diff --quiet "$de" "$para" -- ':(glob)backend/*/src/main/resources/db/migration/**'; then
+    return 0
+  fi
+  if [[ -z $(cd backend && docker compose ps -q postgres 2> /dev/null) ]]; then
+    echo "==> Ha migracoes novas, mas o Postgres nao esta no ar: sem backup antes (primeira subida?)"
+    return 0
+  fi
+  echo "==> Ha migracoes novas: backup antes de publicar"
+  local senha=${PIGGU_BACKUP_SENHA_ARQUIVO:-/etc/piggu/backup.senha}
+  [[ -r $senha ]] || senha=""
+  # So no servidor, sem semanal e sem avisar o monitor do backup da noite. Dois deploys no
+  # mesmo dia: o segundo substitui o primeiro (o estado logo antes do ultimo deploy).
+  PIGGU_BACKUP_DIR=${PIGGU_BACKUP_ANTES_DO_DEPLOY:-$HOME/piggu-backups/antes-do-deploy} \
+    PIGGU_BACKUP_SENHA_ARQUIVO=$senha PIGGU_BACKUP_DESTINO="" PIGGU_BACKUP_AVISO_URL="" \
+    PIGGU_BACKUP_DIA_SEMANAL=0 PIGGU_BACKUP_DIARIOS=5 \
+    backend/scripts/backup.sh
 }
 
 # Poe o servidor no commit $1 e espera os servicos do app ficarem saudaveis.

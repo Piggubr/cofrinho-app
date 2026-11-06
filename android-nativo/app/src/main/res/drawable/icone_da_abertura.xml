@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O ícone padrão (degradê + porquinho) na tela de abertura do Android 12+; o sistema recorta em círculo. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@mipmap/ic_launcher_background" />
+    <item android:drawable="@mipmap/ic_launcher_foreground" />
+</layer-list>
