@@ -20,7 +20,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
-- iOS nativo: liberar o 2.0.0 (build 4), enviado em 04/11, para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 5 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
+- iOS nativo: liberar o 2.0.0 (build 5), enviado em 06/11 a partir do PR #156, para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 6 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
 - iOS nativo: foto do recibo no +, num PR à parte (D-098).
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
