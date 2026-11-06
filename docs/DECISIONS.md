@@ -1785,7 +1785,7 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
   - `PIGGU_LEITOR_PROPRIO` passa a valer `true` por padrão: o leitor próprio tenta primeiro e o Gemini fica de reserva. `false` manda toda foto direto ao Gemini.
   - No gratuito, a leitura pelo OCR próprio vai até 10 por mês por família; a reserva pelo Gemini é só do Premium, como em [planos Premium](planos-premium.md#divisão).
   - O aviso de privacidade volta ao texto da D-046 (site, iOS e Android): primeiro o servidor, e a foto só vai à IA do Google se o leitor não der e a pessoa autorizar. `Consentimentos.VERSAO_DO_AVISO` não sobe, porque o consentimento do envio ao Google continua o mesmo.
-  - Em produção o `.env` só liga depois do teste com cerca de 10 fotos reais.
+  - O merge só acontece depois do teste com cerca de 10 fotos reais, porque é o merge que liga o leitor em produção.
 - Alternativas: manter a D-047 (toda foto no Gemini, custo por foto); leitor próprio de graça com a reserva pelo Gemini também no gratuito (o custo da IA volta a crescer com o uso).
-- Consequências: a maioria das fotos não sai do servidor e não custa nada. Foto torta, cupom sem total ou layout estranho passam a pedir a autorização do envio ao Google no Premium.
+- Consequências: a maioria das fotos não sai do servidor e não custa nada. Foto torta, cupom sem total ou layout estranho passam a pedir a autorização do envio ao Google no Premium. Com o merge, o leitor liga em produção, a não ser que o .env de lá tenha PIGGU_LEITOR_PROPRIO=false.
 - Onde ver: [planos Premium](planos-premium.md#divisão), `LeitorDeRecibos`, `application.yml` (`leitor-proprio`)
