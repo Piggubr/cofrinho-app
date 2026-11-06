@@ -49,12 +49,46 @@ class MetricasDeUsoTest extends PostgresIntegrationTest {
     @DisplayName("as views do painel analitico (V32) rodam e so devolvem contagens")
     void viewsDoPainel() {
         for (String view : new String[] {"contas_novas_por_dia", "testes_gratis_por_dia", "assinaturas_por_dia",
-                "resumo", "premium_por_origem", "familias_por_tamanho"}) {
+                "resumo", "premium_por_origem", "familias_por_tamanho", "funil", "conversao_por_mes",
+                "assinaturas_encerradas_por_dia", "pagantes_por_plano", "sessoes_por_plataforma", "versoes_do_app",
+                "aparelhos_com_push"}) {
             banco.queryForList("SELECT * FROM analitico." + view);
         }
         assertThat(banco.queryForList("""
                 SELECT column_name FROM information_schema.columns
                 WHERE table_schema = 'analitico' AND (column_name LIKE '%email%' OR column_name LIKE '%id')""")).isEmpty();
+    }
+
+    @Autowired
+    private com.piggu.identity.domain.FamiliaService familias;
+
+    @Test
+    @DisplayName("as sessoes viram plataforma e versao pelo User-Agent, sem deixar texto livre passar (V40)")
+    void plataformasPeloUserAgent() {
+        var conta = familias.criarConta("plataformas@piggu.test", "Plataformas", com.piggu.common.dados.Consentimentos.VERSAO_DO_AVISO);
+        String[] agentes = {
+                "Piggu-Android/2.0.0",
+                "Piggu/5 CFNetwork/1568.100.1 Darwin/25.0.0",
+                "Mozilla/5.0 (Linux; Android 15; Pixel 8; wv) AppleWebKit/537.36 Chrome/131.0 Mobile Safari/537.36",
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Version/18.1 Mobile/15E148 Safari/604.1",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.1 Safari/605.1.15",
+                "Piggu-Android/<script>"};
+        for (String agente : agentes) {
+            banco.update("INSERT INTO refresh_sessions (user_id, token_hash, user_agent, expires_at) VALUES (?, md5(random()::text), ?, now() + interval '1 day')",
+                    conta.getId(), agente);
+        }
+        try {
+            assertThat(banco.queryForList("SELECT plataforma FROM analitico.sessoes_por_plataforma", String.class))
+                    .contains("App Android (nativo)", "App iOS (nativo)", "App Android (Capacitor)", "App iOS (Capacitor)",
+                            "Site no celular", "Site no computador");
+            assertThat(banco.queryForList("SELECT plataforma || ' ' || versao FROM analitico.versoes_do_app", String.class))
+                    .contains("Android 2.0.0", "iOS 5", "Android outra")
+                    .noneMatch(v -> v.contains("<"));
+        } finally {
+            banco.update("DELETE FROM refresh_sessions WHERE user_id = ?", conta.getId());
+            banco.update("DELETE FROM users WHERE id = ?", conta.getId());
+        }
     }
 
     @Test
