@@ -80,7 +80,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-043](#d-043-cobrar-pelo-open-finance-sim-pela-desconexão-nunca) | Cobrar pelo Open Finance sim, pela desconexão nunca | Valendo |
 | [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Substituída por D-146 (o teste) |
 | [D-045](#d-045-open-finance-desligado-por-enquanto) | Open Finance desligado por enquanto | Valendo |
-| [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
+| [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 (retomada na D-171) |
 | [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Substituída por D-171 |
 | [D-048](#d-048-preço-do-premium-no-iphone) | Preço do Premium no iPhone | Em aberto |
 | [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
@@ -723,7 +723,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-046: Leitor próprio de nota primeiro, Gemini de reserva
 - Data: 01/10/2026 (branch `feature/leitor-nota-ocr`)
-- Situação: Substituída por D-047
+- Situação: Substituída por D-047 (retomada na D-171)
 - Contexto: cada leitura pelo Gemini custa, e a foto sai do servidor.
 - Decisão: o leitor próprio (Tesseract) lia primeiro, grátis até 10 por mês por família; o Gemini ficava de reserva no Premium.
 - Alternativas: só o Gemini.

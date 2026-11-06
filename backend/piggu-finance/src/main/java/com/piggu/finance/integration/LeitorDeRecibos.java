@@ -108,9 +108,11 @@ public class LeitorDeRecibos {
         boolean temItens = propria.isPresent() && !propria.get().itens().isEmpty();
         if (gemini.habilitado() && !usuario.isPremium()) {
             if (temItens) {
+                log.info("Recibo parcial pelo OCR (gratuito): {} itens", propria.get().itens().size());
                 return resposta(propria.get(), aviso(propria.get())
                         + " Com o Premium, a IA do Google tenta ler o que faltou.");
             }
+            log.info("Recibo nao lido pelo OCR (gratuito), sem Gemini");
             throw new BusinessException("Não consegui ler esta foto sozinho. A leitura pela IA faz parte do "
                     + "Piggu Premium; ou tente uma foto mais reta e com boa luz.",
                     HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
