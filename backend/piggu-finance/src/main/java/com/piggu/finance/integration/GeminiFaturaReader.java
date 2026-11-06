@@ -90,7 +90,7 @@ public class GeminiFaturaReader {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
                         log.error("Falha Gemini na fatura ({})", res.getStatusCode());
-                        throw GeminiReceiptReader.traduzirErro(res.getStatusCode().value(), "fatura");
+                        throw GeminiReceiptReader.traduzirErro(res.getStatusCode().value(), "a fatura");
                     })
                     .body(JsonNode.class);
             return extrairTexto(resposta);

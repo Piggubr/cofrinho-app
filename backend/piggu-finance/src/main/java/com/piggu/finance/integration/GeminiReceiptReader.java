@@ -101,7 +101,7 @@ public class GeminiReceiptReader {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
                         log.error("Falha Gemini ({})", res.getStatusCode());
-                        throw traduzirErro(res.getStatusCode().value(), "recibo");
+                        throw traduzirErro(res.getStatusCode().value(), "o recibo");
                     })
                     .body(JsonNode.class);
 
@@ -231,7 +231,7 @@ public class GeminiReceiptReader {
             case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuracao.");
             case 404 -> new UpstreamException("O modelo do Gemini nao esta disponivel para esta chave.");
             case 429 -> new UpstreamException("A cota do Gemini acabou por enquanto. Tente mais tarde.");
-            default -> new UpstreamException("O Gemini nao conseguiu ler o " + documento + " agora (erro " + codigo + ").");
+            default -> new UpstreamException("O Gemini nao conseguiu ler " + documento + " agora (erro " + codigo + ").");
         };
     }
 
