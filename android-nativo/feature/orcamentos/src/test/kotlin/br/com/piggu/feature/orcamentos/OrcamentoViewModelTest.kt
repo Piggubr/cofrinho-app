@@ -116,7 +116,8 @@ class OrcamentoViewModelTest {
         val depois = vm.estado.esperar { it.outrosMeses.firstOrNull()?.first == "2026-12" && !it.salvando }
         assertEquals(listOf("""PUT /api/monthly-goals {"mes":"2026-12","limite":5000}"""), pedidos("PUT /api/monthly-goals"))
         assertNull(depois.erro)
-        assertEquals(1, lancamentos.versao.value) // o Painel também fica sabendo
+        // O Painel também fica sabendo. O aviso sai logo depois do "salvando" virar falso, noutra thread.
+        lancamentos.versao.esperar { it == 1 }
 
         // O lápis de um mês abre a janela com o valor dele e guarda só aquele mês.
         vm.editarMeta("2026-09")
