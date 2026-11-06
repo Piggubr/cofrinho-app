@@ -303,6 +303,28 @@ actor TransporteDeDemonstracao: Transporte {
                 ["data": hoje, "descricao": "DEBITO AUT ENEL", "valor": 189.32, "idExterno": "demo:3",
                  "categoria": "Casa", "jaImportada": true],
             ])
+        case ("POST", "/expenses/import/card-statement"):
+            // Exemplo ficticio Premium com os quatro grupos.
+            let hoje = Formatos.dia(Date())
+            func linha(_ id: String, _ descricao: String, _ valor: Double, _ tipo: String, _ situacao: String,
+                       categoria: String, parcela: (Int, Int)? = nil, gasto: String? = nil) -> [String: Any] {
+                ["data": hoje, "descricao": descricao, "valor": valor, "tipo": tipo, "situacao": situacao,
+                 "parcelaNumero": parcela?.0 ?? NSNull(), "parcelaTotal": parcela?.1 ?? NSNull(),
+                 "gastoId": gasto == nil ? NSNull() : "demo-gasto", "gastoDescricao": gasto ?? NSNull(),
+                 "gastoData": gasto == nil ? NSNull() : hoje, "categoria": categoria, "idExterno": "fatura:\(id)"]
+            }
+            return responder(url, 200, [
+                "banco": "nubank", "vencimento": hoje, "total": 612.4, "somaLida": 612.4, "origem": "PROPRIA",
+                "aviso": NSNull(),
+                "contagem": ["compras": 4, "tarifas": 1, "ignoradas": 0, "jaLancadas": 1, "confira": 1, "faltam": 2],
+                "linhas": [
+                    linha("a1", "MERCADO EXEMPLO", 230.9, "COMPRA", "FALTA", categoria: "Mercado"),
+                    linha("a2", "LOJA DE ROUPAS", 99.9, "COMPRA", "FALTA", categoria: "Roupas", parcela: (2, 3)),
+                    linha("a3", "POSTO EXEMPLO", 150, "COMPRA", "CONFIRA", categoria: "Transporte", gasto: "Combustível"),
+                    linha("a4", "ANUIDADE CARTAO", 32.5, "TARIFA", "FALTA", categoria: "Outros"),
+                    linha("a5", "PADARIA EXEMPLO", 99.1, "COMPRA", "JA_LANCADA", categoria: "Alimentação", gasto: "Padaria"),
+                ],
+            ])
         case ("POST", "/expenses/import"):
             let linhas = corpo["linhas"] as? [[String: Any]] ?? []
             gastos += linhas.map {
