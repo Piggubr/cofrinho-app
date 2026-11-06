@@ -125,7 +125,11 @@ class OrcamentoViewModelTest {
         assertEquals(0, vm.estado.value.editando!!.valor!!.compareTo(BigDecimal(4500)))
         vm.mudarValorDaEdicao(BigDecimal("4000"))
         vm.salvarEdicao()
-        val editado = vm.estado.esperar { it.editando == null && !it.salvando }
+        // Uma recarga que saiu antes do PUT pode chegar depois e mostrar o valor velho por um
+        // instante; a recarga do aviso seguinte traz o novo. Espera o valor final, não o primeiro.
+        val editado = vm.estado.esperar { e ->
+            e.editando == null && !e.salvando && e.outrosMeses.firstOrNull { it.first == "2026-09" }?.second?.compareTo(BigDecimal(4000)) == 0
+        }
         assertEquals("""PUT /api/monthly-goals {"mes":"2026-09","limite":4000}""", pedidos("PUT /api/monthly-goals").last())
         assertEquals(0, editado.outrosMeses.first { it.first == "2026-09" }.second.compareTo(BigDecimal(4000)))
     }
