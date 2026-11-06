@@ -9,10 +9,10 @@ import java.io.IOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.junit.jupiter.api.Test;
 
 class TextoDoPdfTest {
@@ -52,7 +52,10 @@ class TextoDoPdfTest {
     void comSenhaSemSenhaPede() throws IOException {
         byte[] cifrado = pdf(TEXTO, "1234");
         assertThatThrownBy(() -> TextoDoPdf.extrair(cifrado, null))
-                .isInstanceOfSatisfying(BusinessException.class, e -> assertThat(e.getCodigo()).isEqualTo("PDF_COM_SENHA"));
+                .isInstanceOfSatisfying(BusinessException.class, e -> {
+                    assertThat(e.getCodigo()).isEqualTo("PDF_COM_SENHA");
+                    assertThat(e.getMessage()).isEqualTo("Este PDF tem senha. Digite a senha da fatura.");
+                });
     }
 
     @Test
@@ -64,7 +67,10 @@ class TextoDoPdfTest {
     void senhaErrada() throws IOException {
         byte[] cifrado = pdf(TEXTO, "1234");
         assertThatThrownBy(() -> TextoDoPdf.extrair(cifrado, "0000"))
-                .isInstanceOfSatisfying(BusinessException.class, e -> assertThat(e.getCodigo()).isEqualTo("PDF_COM_SENHA"));
+                .isInstanceOfSatisfying(BusinessException.class, e -> {
+                    assertThat(e.getCodigo()).isEqualTo("PDF_COM_SENHA");
+                    assertThat(e.getMessage()).isEqualTo("A senha do PDF não confere.");
+                });
     }
 
     @Test
@@ -79,5 +85,26 @@ class TextoDoPdfTest {
     @Test
     void soImagemDaVazio() throws IOException {
         assertThat(TextoDoPdf.extrair(pdf(null, null), null).trim()).isEmpty();
+    }
+
+    @Test
+    void ignoraPaginasAlemDoLimite() throws IOException {
+        byte[] pdf;
+        try (PDDocument doc = new PDDocument(); ByteArrayOutputStream saida = new ByteArrayOutputStream()) {
+            for (int i = 1; i <= 45; i++) {
+                PDPage pagina = new PDPage();
+                doc.addPage(pagina);
+                try (PDPageContentStream c = new PDPageContentStream(doc, pagina)) {
+                    c.beginText();
+                    c.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                    c.newLineAtOffset(50, 700);
+                    c.showText(i == 45 ? "MARCADOR45" : "pagina " + i);
+                    c.endText();
+                }
+            }
+            doc.save(saida);
+            pdf = saida.toByteArray();
+        }
+        assertThat(TextoDoPdf.extrair(pdf, null)).contains("pagina 40").doesNotContain("MARCADOR45");
     }
 }

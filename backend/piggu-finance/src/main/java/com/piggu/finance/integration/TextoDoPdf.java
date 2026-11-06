@@ -18,6 +18,9 @@ public final class TextoDoPdf {
 
     public static final String CODIGO_SENHA = "PDF_COM_SENHA";
 
+    // shortcut: le so as 40 primeiras paginas (fatura real tem poucas); subir se aparecer fatura maior.
+    static final int MAX_PAGINAS = 40;
+
     private TextoDoPdf() {
     }
 
@@ -27,6 +30,7 @@ public final class TextoDoPdf {
                 IOUtils.createTempFileOnlyStreamCache())) {
             PDFTextStripper leitor = new PDFTextStripper();
             leitor.setSortByPosition(true);
+            leitor.setEndPage(MAX_PAGINAS);
             return leitor.getText(doc);
         } catch (InvalidPasswordException e) {
             throw new BusinessException(senha == null || senha.isEmpty()
