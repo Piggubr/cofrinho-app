@@ -813,6 +813,32 @@ paths:
       summary: Importar os gastos escolhidos
       tags:
       - Gastos
+  /api/expenses/import/card-statement:
+    post:
+      operationId: expenseConferirFatura
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConferirFaturaRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConferenciaDaFaturaResponse"
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Conferir a fatura do cartão (PDF) com os gastos lançados
+      tags:
+      - Gastos
   /api/expenses/import/preview:
     post:
       operationId: expensePrevia
@@ -1934,6 +1960,28 @@ components:
           type: boolean
       required:
       - compartilhado
+    ConferenciaDaFaturaResponse:
+      type: object
+      properties:
+        aviso:
+          type: string
+        banco:
+          type: string
+        contagem:
+          $ref: "#/components/schemas/Contagem"
+        linhas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Linha"
+        origem:
+          type: string
+        somaLida:
+          type: number
+        total:
+          type: number
+        vencimento:
+          type: string
+          format: date
     ConferenciaDePreco:
       type: object
       properties:
@@ -1946,6 +1994,28 @@ components:
           type: number
         percentual:
           type: number
+    ConferirFaturaRequest:
+      type: object
+      properties:
+        autorizoIa:
+          type: boolean
+        contaId:
+          type: string
+          format: uuid
+        pdfBase64:
+          type: string
+          maxLength: 7000000
+          minLength: 0
+        senha:
+          type: string
+          maxLength: 100
+          minLength: 0
+        versaoDoAviso:
+          type: string
+          maxLength: 20
+          minLength: 0
+      required:
+      - pdfBase64
     Conta:
       type: object
       properties:
@@ -1972,6 +2042,27 @@ components:
           type: string
           format: uuid
         vencimento:
+          type: integer
+          format: int32
+    Contagem:
+      type: object
+      properties:
+        compras:
+          type: integer
+          format: int32
+        confira:
+          type: integer
+          format: int32
+        faltam:
+          type: integer
+          format: int32
+        ignoradas:
+          type: integer
+          format: int32
+        jaLancadas:
+          type: integer
+          format: int32
+        tarifas:
           type: integer
           format: int32
     CurrencyResponse:
@@ -2268,6 +2359,38 @@ components:
           type: string
         valor:
           type: number
+    Linha:
+      type: object
+      properties:
+        categoria:
+          type: string
+        data:
+          type: string
+          format: date
+        descricao:
+          type: string
+        gastoData:
+          type: string
+          format: date
+        gastoDescricao:
+          type: string
+        gastoId:
+          type: string
+          format: uuid
+        idExterno:
+          type: string
+        parcelaNumero:
+          type: integer
+          format: int32
+        parcelaTotal:
+          type: integer
+          format: int32
+        situacao:
+          type: string
+        tipo:
+          type: string
+        valor:
+          type: number
     LinhaDaPrevia:
       type: object
       properties:
@@ -2302,6 +2425,16 @@ components:
           type: string
           maxLength: 120
           minLength: 0
+        parcelaNumero:
+          type: integer
+          format: int32
+          maximum: 48
+          minimum: 1
+        parcelaTotal:
+          type: integer
+          format: int32
+          maximum: 48
+          minimum: 1
         valor:
           type: number
           maximum: 1000000

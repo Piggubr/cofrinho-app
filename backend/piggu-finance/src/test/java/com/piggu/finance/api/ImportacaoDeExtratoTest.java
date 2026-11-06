@@ -82,6 +82,36 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("parcela 3/5 importada grava ela e as seguintes (3/5, 4/5, 5/5) no mesmo lote; conta como uma linha")
+    void importarParcelaGravaAsSeguintes() throws Exception {
+        String cartao = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Inter\",\"tipo\":\"CARTAO\",\"fechamento\":1,\"vencimento\":10}").path("id").asString();
+        String corpo = "{\"contaId\":\"" + cartao + "\",\"linhas\":[{\"data\":\"2026-09-05\",\"descricao\":\"Loja Parc\","
+                + "\"valor\":100,\"idExterno\":\"fatura:abc\",\"parcelaNumero\":3,\"parcelaTotal\":5}]}";
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(jsonPath("$.importados").value(1));
+
+        JsonNode gastos = json.readTree(mockMvc.perform(get("/api/expenses").with(casas.casaA))
+                .andReturn().getResponse().getContentAsString());
+        assertThat(gastos.size()).isEqualTo(3);
+        assertThat(gastos.findValuesAsString("parcela")).containsExactlyInAnyOrder("3", "4", "5");
+        assertThat(gastos.findValuesAsString("parcelas")).containsOnly("5");
+        assertThat(gastos.findValuesAsString("data")).containsExactlyInAnyOrder("2026-11-05", "2026-12-05", "2027-01-05");
+        assertThat(gastos.findValuesAsString("reciboId")).hasSize(3).containsOnly(gastos.get(0).path("reciboId").asString());
+
+        // De novo: a linha ja entrou pelo idExterno, nada duplica.
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(jsonPath("$.importados").value(0));
+        // So numero ou parcela maior que o total: pedido invalido.
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo.replace(",\"parcelaTotal\":5", "")))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo.replace("\"parcelaTotal\":5", "\"parcelaTotal\":49")))
+                .andExpect(status().isBadRequest());
+    }
+
     private JsonNode previaDeLinhas(String corpo) throws Exception {
         return json.readTree(mockMvc.perform(post("/api/expenses/import/preview-lines").with(casas.casaA)
                         .contentType(MediaType.APPLICATION_JSON).content(corpo))

@@ -3,9 +3,12 @@ package com.piggu.finance.api;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
+import com.piggu.finance.api.dto.ConferenciaDaFaturaResponse;
+import com.piggu.finance.api.dto.ConferirFaturaRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
 import com.piggu.finance.api.dto.SaveExpensesRequest;
 import com.piggu.finance.api.dto.UpdateExpenseRequest;
+import com.piggu.finance.domain.ConferenciaDaFaturaService;
 import com.piggu.finance.domain.ContasFixasService;
 import com.piggu.finance.domain.DivisaoDeGastos;
 import com.piggu.finance.domain.ExpenseService;
@@ -15,6 +18,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -56,11 +61,14 @@ public class ExpenseController {
     private final ExpenseService servico;
     private final DivisaoDeGastos divisao;
     private final ContasFixasService contasFixas;
+    private final ConferenciaDaFaturaService conferencia;
 
-    public ExpenseController(ExpenseService servico, DivisaoDeGastos divisao, ContasFixasService contasFixas) {
+    public ExpenseController(ExpenseService servico, DivisaoDeGastos divisao, ContasFixasService contasFixas,
+                             ConferenciaDaFaturaService conferencia) {
         this.servico = servico;
         this.divisao = divisao;
         this.contasFixas = contasFixas;
+        this.conferencia = conferencia;
     }
 
     public record ExtratoRequest(
@@ -73,7 +81,9 @@ public class ExpenseController {
             @NotBlank @Size(max = 200) String descricao,
             @NotNull @DecimalMin("0") @DecimalMax("1000000") BigDecimal valor,
             @NotBlank @Size(max = 120) String idExterno,
-            @Size(max = 50) String categoria) {
+            @Size(max = 50) String categoria,
+            @Min(1) @Max(48) Integer parcelaNumero,
+            @Min(1) @Max(48) Integer parcelaTotal) {
     }
 
     public record ImportRequest(
@@ -115,9 +125,21 @@ public class ExpenseController {
     @PostMapping("/import")
     public Map<String, Integer> importar(@Valid @RequestBody ImportRequest pedido, @AuthUser CurrentUser usuario) {
         int novas = servico.importar(pedido.linhas().stream()
-                .map(l -> new ExpenseService.LinhaImportada(l.data(), l.descricao(), l.valor(), l.idExterno(), l.categoria()))
+                .map(l -> new ExpenseService.LinhaImportada(l.data(), l.descricao(), l.valor(), l.idExterno(), l.categoria(),
+                        l.parcelaNumero(), l.parcelaTotal()))
                 .toList(), pedido.contaId(), usuario.id());
         return Map.of("importados", novas, "pulados", pedido.linhas().size() - novas);
+    }
+
+    /**
+     * Confere o PDF da fatura do cartao com os gastos lancados, sem gravar. No gratuito volta so a
+     * contagem; as linhas (para adicionar o que falta pelo /import) sao do Premium.
+     */
+    @Operation(summary = "Conferir a fatura do cartão (PDF) com os gastos lançados")
+    @PostMapping("/import/card-statement")
+    public ConferenciaDaFaturaResponse conferirFatura(@Valid @RequestBody ConferirFaturaRequest pedido,
+                                                      @AuthUser CurrentUser usuario) {
+        return conferencia.conferir(pedido, usuario);
     }
 
     /** Gastos em CSV; sem mes, todos. */

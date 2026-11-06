@@ -167,7 +167,8 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `EMAIL_NAO_CONFIRMADO` | 403 | Pedir para confirmar o e-mail |
 | `PLANO_PREMIUM` | 422 | Mostrar a oferta do Premium |
 | `TERMOS_NECESSARIOS`, `AVISO_DESATUALIZADO` | 422, 409 | Mostrar os termos novos e aceitar (`PUT /api/me/termos`) |
-| `CONSENTIMENTO_NECESSARIO` | 422 | Pedir a autorização (recibos e assistente usam o Gemini) |
+| `CONSENTIMENTO_NECESSARIO` | 422 | Pedir a autorização (recibos, fatura do cartão e assistente usam o Gemini) |
+| `PDF_COM_SENHA` | 422 | Fatura em PDF com senha faltando ou errada: pedir a senha e mandar de novo em `senha` |
 | `CPF_NECESSARIO`, `CPF_EM_USO`, `PAIS_INVALIDO`, `TELEFONE_INVALIDO`, `IDADE_MINIMA` | 422, 409 | Cadastro e dados da conta |
 | `SENHA_FRACA`, `SENHA_ATUAL_ERRADA`, `SENHA_TRAVADA` | 422, 429 | Senha |
 | `LINK_INVALIDO`, `LINK_RECENTE` | 422, 429 | Links por e-mail (confirmar e-mail, redefinir senha) |
@@ -202,6 +203,13 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
   vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com o mesmo id: na
   mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos da primeira
   vez. Sem o campo, cada envio lança.
+- **Conferir a fatura do cartão**: `POST /api/expenses/import/card-statement` recebe o PDF em
+  base64 (`pdfBase64`, até 5 MB), `senha` e `contaId` (o cartão) opcionais, e `autorizoIa` com
+  `versaoDoAviso` quando a leitura própria não fecha e o texto vai ao Gemini (finalidade
+  `GEMINI_FATURA`). Nada é gravado. A resposta traz sempre a `contagem`; as `linhas` só vêm no
+  Premium (no gratuito, `null`). Para adicionar o que falta, mande as linhas ao
+  `POST /api/expenses/import`, que aceita `parcelaNumero` e `parcelaTotal` (1 a 48, juntos):
+  a parcela `n/m` grava ela e as seguintes até `m`, e `importados` conta as linhas.
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por
