@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,8 +77,21 @@ data class EventosDeReceitas(
  * (a mesma folha do + do app); a lista recarrega sozinha quando a receita é lançada.
  */
 @Composable
-fun TelaDeReceitas(lancarReceita: () -> Unit, modifier: Modifier = Modifier, viewModel: ReceitasViewModel = hiltViewModel()) {
+fun TelaDeReceitas(
+    lancarReceita: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** Mês (aaaa-mm) pedido pelo Painel; [aoAbrirMes] avisa que foi entregue. */
+    mesParaAbrir: String? = null,
+    aoAbrirMes: () -> Unit = {},
+    viewModel: ReceitasViewModel = hiltViewModel(),
+) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    LaunchedEffect(mesParaAbrir) {
+        mesParaAbrir?.let {
+            viewModel.mudarMes(it)
+            aoAbrirMes()
+        }
+    }
     TelaDeReceitas(
         estado,
         EventosDeReceitas(

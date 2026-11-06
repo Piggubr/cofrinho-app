@@ -52,6 +52,9 @@ data class DadosDoOrcamento(
     val orcamentos: List<Orcamento> = emptyList(),
 )
 
+/** O limite que a janela muda: o de uma [categoria] ou, sem ela, o total do [mes] (aaaa-mm). */
+data class LimiteEmEdicao(val valor: BigDecimal?, val categoria: String? = null, val mes: String? = null)
+
 data class EstadoDoOrcamento(
     /** aaaa-mm. */
     val mesAtual: String,
@@ -70,6 +73,8 @@ data class EstadoDoOrcamento(
     val limiteDaCategoria: BigDecimal? = null,
     val salvando: Boolean = false,
     val erro: MensagemDeErro? = null,
+    /** A janela aberta pelo lápis para mudar um limite que já existe. */
+    val editando: LimiteEmEdicao? = null,
 ) {
     private val pronto: DadosDoOrcamento get() = (dados as? Carga.Pronto)?.valor ?: DadosDoOrcamento()
 
@@ -155,8 +160,8 @@ class OrcamentoViewModel internal constructor(
     fun mudarMesDoLimite(mes: String) = estadoAtual.update { it.copy(mesDoLimite = mes, limite = metas()[mes]) }
     fun mudarLimite(valor: BigDecimal?) = estadoAtual.update { it.copy(limite = valor) }
 
-    /** O lápis de um mês da lista leva o mês e o valor ao formulário. */
-    fun editarMeta(mes: String) = mudarMesDoLimite(mes)
+    /** O lápis (ou a linha) de um mês da lista abre a janela com o valor dele. */
+    fun editarMeta(mes: String) = estadoAtual.update { it.copy(editando = LimiteEmEdicao(metas()[mes], mes = mes), erro = null) }
 
     fun salvarLimite() {
         val e = estadoAtual.value
@@ -177,8 +182,34 @@ class OrcamentoViewModel internal constructor(
     fun mudarLimiteDaCategoria(valor: BigDecimal?) = estadoAtual.update { it.copy(limiteDaCategoria = valor) }
 
     /** Mudar um limite que já existe é do Premium: o lápis só aparece para quem tem. */
-    fun editarOrcamento(orcamento: Orcamento) =
-        estadoAtual.update { it.copy(categoria = orcamento.categoria, limiteDaCategoria = orcamento.limite) }
+    fun editarOrcamento(orcamento: Orcamento) {
+        if (!estadoAtual.value.premium) return
+        estadoAtual.update { it.copy(editando = LimiteEmEdicao(orcamento.limite, categoria = orcamento.categoria), erro = null) }
+    }
+
+    fun mudarValorDaEdicao(valor: BigDecimal?) = estadoAtual.update { it.copy(editando = it.editando?.copy(valor = valor)) }
+    fun cancelarEdicao() = estadoAtual.update { it.copy(editando = null, erro = null) }
+
+    /** Guarda o limite da janela; ela só fecha quando o backend aceita (o erro aparece nela). */
+    fun salvarEdicao() {
+        val e = estadoAtual.value
+        val edicao = e.editando ?: return
+        if (e.salvando) return
+        val valor = edicao.valor
+        if (valor == null || valor.signum() <= 0) return recusar(R.string.orcamento_limite_invalido)
+        executar {
+            if (edicao.categoria != null) {
+                financas.definirOrcamento(PedidoDeOrcamento(edicao.categoria, valor))
+            } else if (edicao.mes != null) {
+                val metas = financas.definirMeta(PedidoDeMeta(edicao.mes, valor))
+                estadoAtual.update { atual ->
+                    val dados = atual.dados
+                    if (dados is Carga.Pronto) atual.copy(dados = Carga.Pronto(dados.valor.copy(metas = metas), dados.guardadaEm)) else atual
+                }
+            }
+            estadoAtual.update { it.copy(editando = null) }
+        }
+    }
 
     suspend fun criarCategoria(nome: String): Result<List<String>> =
         try {

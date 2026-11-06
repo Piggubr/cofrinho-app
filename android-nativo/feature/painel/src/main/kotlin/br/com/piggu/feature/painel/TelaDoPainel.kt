@@ -251,7 +251,7 @@ private fun Cartao(
     perguntar: (Pergunta) -> Unit,
 ) {
     when (bloco) {
-    IdDoBloco.Resumo -> estado.resumo?.let { CartaoDoResumo(it, estado.moeda, abrirTela) }
+    IdDoBloco.Resumo -> estado.resumo?.let { CartaoDoResumo(it, estado.moeda, estado.mes, abrirTela) }
     IdDoBloco.Avisos -> CartaoDeAvisos(estado.avisos, estado.moeda, abrirTela)
     IdDoBloco.Mes -> CartaoDoMes(estado, abrirTela)
     IdDoBloco.Cofrinho -> CartaoDoCofrinho(estado, eventos, perguntar)
