@@ -28,6 +28,8 @@ O controlador é o Piggu. Para qualquer assunto de privacidade, inclusive falar 
 
 |Foto da nota fiscal | Ler os itens automaticamente. Com a sua autorização, a foto vai para a IA do Google, que devolve os itens; você confere antes de gravar | Consentimento (art. 7º, I) para o envio ao Google
 
+|Fatura do cartão em PDF | Conferir as compras da fatura com os gastos já lançados. O PDF é lido no nosso servidor e descartado; só no Premium, se o nosso leitor não conseguir e com a sua autorização, o texto da fatura (não o PDF) vai para a IA do Google | Consentimento (art. 7º, I) para o envio ao Google
+
 |Perguntas ao assistente (Premium) e os totais e gastos que cada pergunta pede | Responder sobre o seu dinheiro. Vai para a IA do Google só o necessário para a pergunta, sem nome nem e-mail; a conversa não fica guardada no Piggu, só a contagem de perguntas do mês. Ela fica só no seu aparelho por 30 dias e sai quando você sai da conta | Consentimento (art. 7º, I), pedido no primeiro uso
 
 |Contas e saldos bancários (Open Finance) | Mostrar seus saldos no painel, se você conectar um banco | Consentimento (art. 7º, I), pedido a cada banco conectado
@@ -44,7 +46,7 @@ Não vendemos dados, não usamos para publicidade e não mostramos anúncios.
 
 |Google (login) | Confirmação da sua conta Google | Sempre que você entra
 
-|Google (Gemini, IA) | A foto da nota fiscal; no assistente, a pergunta e os totais e gastos que ela pede | Quando você lê uma nota pela foto ou pergunta ao assistente, sempre depois de autorizar
+|Google (Gemini, IA) | A foto da nota fiscal; o texto da fatura do cartão; no assistente, a pergunta e os totais e gastos que ela pede | Quando você lê uma nota pela foto ou pergunta ao assistente, sempre depois de autorizar
 
 |Google (Drive), se usado como armazenamento | As fotos que você envia | Ao enviar uma foto
 

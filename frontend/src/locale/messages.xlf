@@ -7848,6 +7848,27 @@
           <context context-type="linenumber">40,41</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="4135228322847499669" datatype="html">
+        <source>Fatura do cartão em PDF</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">62,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5407029497297065481" datatype="html">
+        <source>Conferir as compras da fatura com os gastos já lançados. O PDF é lido no nosso servidor e descartado; só no Premium, se o nosso leitor não conseguir e com a sua autorização, o texto da fatura (não o PDF) vai para a IA do Google</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">63,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6845904146825677811" datatype="html">
+        <source>A foto da nota fiscal; o texto da fatura do cartão; no assistente, a pergunta e os totais e gastos que ela pede</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>
