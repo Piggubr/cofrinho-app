@@ -84,6 +84,67 @@ class LeitorDeCupomTest {
         assertThat(leitura.fecha()).isTrue();
     }
 
+    @Test
+    @DisplayName("NFC-e com linha de desconto solta: abate do item anterior e fecha pelo valor a pagar")
+    void nfceComDescontoFechaPeloAPagar() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("nfce-desconto-ocr.txt"), HOJE);
+
+        assertThat(leitura.itens()).extracting(LeitorDeCupom.Item::valor).containsExactly(
+                new BigDecimal("12.90"), new BigDecimal("5.50"), new BigDecimal("22.00"));
+        assertThat(leitura.total()).isEqualByComparingTo("40.40");
+        assertThat(leitura.fecha()).isTrue();
+    }
+
+    @Test
+    @DisplayName("item pesado em kg: o valor do item e o total da linha, nao o peso nem o preco por kg")
+    void itemPesadoEmKg() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("nfce-kg-ocr.txt"), HOJE);
+
+        assertThat(leitura.itens()).extracting(LeitorDeCupom.Item::valor).containsExactly(
+                new BigDecimal("8.63"), new BigDecimal("18.19"));
+        assertThat(leitura.fecha()).isTrue();
+    }
+
+    @Test
+    @DisplayName("posto: litros e preco por litro nao viram valor, so o total da linha")
+    void postoNaoLeLitrosComoValor() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("posto-ocr.txt"), HOJE);
+
+        assertThat(leitura.itens()).singleElement()
+                .satisfies(item -> assertThat(item.valor()).isEqualByComparingTo("236.32"));
+        assertThat(leitura.fecha()).isTrue();
+    }
+
+    @Test
+    @DisplayName("farmacia: desconto de convenio abate do item anterior e a conta fecha")
+    void farmaciaComDescontoDeConvenio() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("farmacia-ocr.txt"), HOJE);
+
+        assertThat(leitura.itens()).extracting(LeitorDeCupom.Item::valor).containsExactly(
+                new BigDecimal("34.90"), new BigDecimal("13.16"));
+        assertThat(leitura.total()).isEqualByComparingTo("48.06");
+        assertThat(leitura.fecha()).isTrue();
+    }
+
+    @Test
+    @DisplayName("CF-e SAT: le os tres itens e a chave de acesso de 44 digitos nao vira item")
+    void cfeSat() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("cfe-sat-ocr.txt"), HOJE);
+
+        assertThat(leitura.itens()).hasSize(3);
+        assertThat(leitura.total()).isEqualByComparingTo("29.47");
+        assertThat(leitura.fecha()).isTrue();
+    }
+
+    @Test
+    @DisplayName("ruido de OCR: valor com letra no lugar do zero e total quebrado em duas linhas nao fecham")
+    void ruidoDeOcrNaoFecha() {
+        LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("ruido-ocr.txt"), HOJE);
+
+        assertThat(leitura.total()).isEqualByComparingTo("31.47");
+        assertThat(leitura.fecha()).isFalse();
+    }
+
     private static String recibo(String nome) {
         try (InputStream entrada = LeitorDeCupomTest.class.getResourceAsStream("/recibos/" + nome)) {
             return new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
