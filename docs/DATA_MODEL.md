@@ -297,7 +297,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 | `eventos_de_auditoria` | `id` (bigint), `acao`, `entidade`, `entidade_id`, `antes`, `depois` (texto(300)), `criado_em`, `autor_id` | Quem mudou o quê na família (entrou, saiu, mudou de papel). Resumo curto, nunca o registro inteiro. Sai depois de 400 dias |
 
 O schema `analitico` tem só views com contagens para o painel do Grafana (contas novas por dia,
-famílias por tamanho, Premium por origem). Nenhuma traz e-mail, nome, documento ou valor.
+famílias por tamanho, Premium por origem, funil, pagantes por plano e sessões por plataforma, D-170). Nenhuma traz e-mail, nome, documento ou valor.
 
 ---
 

@@ -174,6 +174,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-137](#d-137-etapas-do-android-juntam-em-featureandroid-nativo) | Etapas do Android juntam em `feature/android-nativo` | Valendo |
 | [D-167](#d-167-regras-para-ia-no-agentsmd-lido-pelo-claude-e-pelo-codex) | Regras para IA no `AGENTS.md`, lido pelo Claude e pelo Codex | Valendo |
 | [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
+| [D-169](#d-169-sem-réplica-do-banco-por-enquanto-aviso-de-falha-no-backup-e-backup-antes-de-migrar) | Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar |
+| [D-170](#d-170-painéis-de-funil-receita-retenção-e-plataformas-só-com-contagens) | Painéis de funil, receita, retenção e plataformas, só com contagens |
 
 ---
 
@@ -1754,3 +1756,20 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: no pior caso perde-se até um dia de dados (o intervalo entre backups) e o tempo de subir uma VM nova e restaurar. Cada deploy com migração leva o tempo de um backup a mais.
 - Reavaliar quando: o app tiver usuários pagantes ou quando um dia de dados perdido deixar de ser aceitável (aí, WAL contínuo); réplica só se ficar fora do ar por horas passar a ser um problema.
 - Onde ver: `docs/implantacao-producao.md` (seção 6), `backend/scripts/comum-backup.sh` (`avisar`), `deploy/atualizar.sh` (`backup_antes_de_migrar`)
+
+## D-170: Painéis de funil, receita, retenção e plataformas, só com contagens
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, na conversa de 06/11/2026: escolheu os painéis "Funil e receita", "Retenção por semana" e "Aparelhos e plataformas" (o de Open Finance ficou para depois). Como montar cada um foi escolha do Claude, dentro da autonomia que recebeu.
+- Registrado por: Claude
+- Contexto: o Grafana (D-036) mostrava saúde, erros e uso, mas não respondia às perguntas do dia a dia do negócio: quantos viram pagantes, quanto entra por mês, se as famílias continuam lançando e em qual app vale investir.
+- Decisão:
+  - Views novas no schema `analitico`, com o mesmo combinado do V32/V18: só contagens, sem e-mail, nome, documento, id ou valor em dinheiro. No identity (V40): `funil`, `conversao_por_mes`, `assinaturas_encerradas_por_dia`, `pagantes_por_plano`, `sessoes_por_plataforma`, `versoes_do_app` e `aparelhos_com_push`. No finance (V26): `familias_ativas_por_semana` e `retencao_por_semana`.
+  - A receita estimada é calculada no painel, com o preço de tabela de `docs/planos-premium.md`. O banco não guarda preço, e a view continua só com contagens.
+  - A família não guarda o período do plano, então ele é deduzido do vencimento: mais de 45 dias à frente conta como anual.
+  - Família ativa é a que lançou um gasto ou uma receita na semana. Gasto que entrou sozinho (Open Finance, conta fixa) não conta.
+  - A plataforma vem do User-Agent da sessão aberta e sai só como rótulo. A versão só passa se for número; qualquer outro texto vira "outra".
+- Alternativas: guardar o preço numa tabela do banco (mais uma fonte de verdade para manter); medir a retenção por pessoa (o identity e o finance são bancos separados, sem junção).
+- Consequências: mudou o preço de um plano? Atualize as consultas do painel "Funil e receita". A receita é bruta, antes da taxa da loja e dos impostos. Família excluída sai do funil e das encerradas.
+- Reavaliar quando: a família passar a guardar o período do plano, ou o preço mudar com frequência.
+- Onde ver: [observabilidade](observabilidade.md#painéis), `backend/observabilidade/grafana/paineis/`

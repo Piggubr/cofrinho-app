@@ -86,7 +86,8 @@ class MigrationsTest extends PostgresIntegrationTest {
                 INSERT INTO expenses (id, household_id, expense_date, receipt_id, item, category, amount, source, created_at)
                 VALUES (gen_random_uuid(), gen_random_uuid(), current_date, gen_random_uuid(), 'Pao', 'Mercado', 9.90,
                         'digitado por alguem', now())""");
-        for (String view : List.of("lancamentos_por_dia", "gastos_por_origem", "recursos_por_mes", "familias_por_recurso")) {
+        for (String view : List.of("lancamentos_por_dia", "gastos_por_origem", "recursos_por_mes", "familias_por_recurso",
+                "familias_ativas_por_semana", "retencao_por_semana")) {
             jdbc.queryForList("SELECT * FROM analitico." + view);
         }
 
