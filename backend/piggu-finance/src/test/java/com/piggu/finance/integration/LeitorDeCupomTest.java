@@ -131,7 +131,8 @@ class LeitorDeCupomTest {
     void cfeSat() {
         LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("cfe-sat-ocr.txt"), HOJE);
 
-        assertThat(leitura.itens()).hasSize(3);
+        assertThat(leitura.itens()).extracting(LeitorDeCupom.Item::valor).containsExactly(
+                new BigDecimal("9.99"), new BigDecimal("12.49"), new BigDecimal("6.99"));
         assertThat(leitura.total()).isEqualByComparingTo("29.47");
         assertThat(leitura.fecha()).isTrue();
     }
@@ -141,6 +142,8 @@ class LeitorDeCupomTest {
     void ruidoDeOcrNaoFecha() {
         LeitorDeCupom.Leitura leitura = LeitorDeCupom.ler(recibo("ruido-ocr.txt"), HOJE);
 
+        // O 1O,99 sumiu e o total 1O,98 da linha de 2 UN virou 5,49: a soma nao chega a 31,47.
+        assertThat(leitura.itens()).hasSize(3);
         assertThat(leitura.total()).isEqualByComparingTo("31.47");
         assertThat(leitura.fecha()).isFalse();
     }
