@@ -82,12 +82,42 @@ class ConciliacaoDaFaturaTest {
     }
 
     @Test
-    void parcelaForaDoPeriodoFalta() {
+    void parcelaForaDoPeriodoConfira() {
         Expense g = gasto("2026-12-20", "Geladeira", "100.00", CARTAO);
         g.parcela(3, 10);
         Resultado r = rodar(List.of(linha("2026-08-20", "GELADEIRA", "100.00", 3, 10, null)), g).get(0);
+        assertThat(r.situacao()).isEqualTo(Situacao.CONFIRA);
+        assertThat(r.gasto()).isSameAs(g);
+    }
+
+    @Test
+    void parcelaSemGastoDaMesmaParcelaFalta() {
+        Expense g = gasto("2026-10-20", "Geladeira", "100.00", CARTAO);
+        g.parcela(4, 10);
+        Resultado r = rodar(List.of(linha("2026-08-20", "GELADEIRA", "100.00", 3, 10, null)), g).get(0);
         assertThat(r.situacao()).isEqualTo(Situacao.FALTA);
         assertThat(r.gasto()).isNull();
+    }
+
+    @Test
+    void confiraDeDezDiasNaoConsomeOGasto() {
+        Expense ea = gasto("2026-10-15", "Mercado", "50.00", CARTAO);
+        Expense eb = gasto("2026-10-05", "Mercado", "50.00", CARTAO);
+        List<Resultado> r = rodar(List.of(linha("2026-10-10", "Mercado", "50.00"),
+                linha("2026-10-20", "Mercado", "50.00")), ea, eb);
+        assertThat(r).extracting(Resultado::situacao).containsExactly(Situacao.CONFIRA, Situacao.CONFIRA);
+    }
+
+    @Test
+    void confiraDeEmpateApontaParaGastoAindaLivre() {
+        Expense ea = gasto("2026-10-09", "Padaria", "20.00", CARTAO);
+        Expense eb = gasto("2026-10-11", "Padaria", "20.00", CARTAO);
+        List<Resultado> r = rodar(List.of(linha("2026-10-10", "Padaria", "20.00"),
+                linha("2026-10-08", "Padaria", "20.00")), ea, eb);
+        assertThat(r.get(1).situacao()).isEqualTo(Situacao.JA_LANCADA);
+        assertThat(r.get(1).gasto()).isSameAs(ea);
+        assertThat(r.get(0).situacao()).isEqualTo(Situacao.CONFIRA);
+        assertThat(r.get(0).gasto()).isSameAs(eb);
     }
 
     @Test

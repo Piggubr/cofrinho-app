@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -50,28 +51,41 @@ public final class ConciliacaoDaFatura {
             }
         }
 
+        // opcoes[i]: gastos empatados no melhor criterio de um CONFIRA, para reapontar no fim
+        List<List<Expense>> opcoes = new ArrayList<>();
+        for (int i = 0; i < alvo.size(); i++) {
+            opcoes.add(List.of());
+        }
+
         // 2) parcelas n/m, valor com ate 1 centavo de diferenca, data no periodo da fatura (+-3 dias)
         for (int i = 0; i < alvo.size(); i++) {
             Linha l = alvo.get(i);
             if (saida[i] != null || l.parcelaNumero() == null || l.parcelaTotal() == null) {
                 continue;
             }
-            List<Expense> ok = livres.stream()
+            List<Expense> mesmaParcela = livres.stream()
                     .filter(e -> e.getInstallmentNumber() != null && e.getInstallmentCount() != null
                             && e.getInstallmentNumber().intValue() == l.parcelaNumero()
                             && e.getInstallmentCount().intValue() == l.parcelaTotal()
-                            && e.getAmount() != null
-                            && e.getAmount().subtract(l.valor()).abs().compareTo(CENTAVO) <= 0
-                            && e.getExpenseDate() != null
-                            && !e.getExpenseDate().isBefore(inicioDoPeriodo.minusDays(3))
+                            && e.getAmount() != null && e.getExpenseDate() != null
+                            && e.getAmount().subtract(l.valor()).abs().compareTo(CENTAVO) <= 0)
+                    .toList();
+            List<Expense> noPeriodo = mesmaParcela.stream()
+                    .filter(e -> !e.getExpenseDate().isBefore(inicioDoPeriodo.minusDays(3))
                             && !e.getExpenseDate().isAfter(fimDoPeriodo.plusDays(3)))
                     .toList();
-            Expense[] melhor = melhores(l, ok, contaId);
-            if (melhor.length == 1) {
-                saida[i] = new Resultado(l, Situacao.JA_LANCADA, melhor[0]);
-                livres.remove(melhor[0]);
-            } else if (melhor.length > 1) {
-                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor[0]);
+            List<Expense> melhor = melhores(l, noPeriodo, contaId);
+            if (melhor.size() == 1) {
+                saida[i] = new Resultado(l, Situacao.JA_LANCADA, melhor.get(0));
+                livres.remove(melhor.get(0));
+            } else if (melhor.size() > 1) {
+                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
+                opcoes.set(i, melhor);
+            } else if (!mesmaParcela.isEmpty()) {
+                // mesma parcela fora do periodo: pode ser o mesmo gasto com a data errada
+                melhor = melhores(l, mesmaParcela, contaId);
+                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
+                opcoes.set(i, melhor);
             }
         }
 
@@ -81,27 +95,40 @@ public final class ConciliacaoDaFatura {
             if (saida[i] != null) {
                 continue;
             }
-            Expense[] melhor = melhores(l, exatosAte(l, livres, 3, 0), contaId);
-            if (melhor.length == 1) {
-                saida[i] = new Resultado(l, Situacao.JA_LANCADA, melhor[0]);
-                livres.remove(melhor[0]);
-            } else if (melhor.length > 1) {
-                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor[0]);
+            List<Expense> melhor = melhores(l, exatosAte(l, livres, 3, 0), contaId);
+            if (melhor.size() == 1) {
+                saida[i] = new Resultado(l, Situacao.JA_LANCADA, melhor.get(0));
+                livres.remove(melhor.get(0));
+            } else if (melhor.size() > 1) {
+                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
+                opcoes.set(i, melhor);
             }
         }
 
-        // 4) valor exato de 4 a 10 dias: CONFIRA (consome o gasto); o resto falta
+        // 4) valor exato de 4 a 10 dias: CONFIRA que so aponta, sem consumir; o resto falta
         for (int i = 0; i < alvo.size(); i++) {
             Linha l = alvo.get(i);
             if (saida[i] != null) {
                 continue;
             }
-            Expense[] melhor = melhores(l, exatosAte(l, livres, 10, 4), contaId);
-            if (melhor.length > 0) {
-                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor[0]);
-                livres.remove(melhor[0]);
-            } else {
+            List<Expense> melhor = melhores(l, exatosAte(l, livres, 10, 4), contaId);
+            if (melhor.isEmpty()) {
                 saida[i] = new Resultado(l, Situacao.FALTA, null);
+            } else {
+                saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
+                opcoes.set(i, melhor);
+            }
+        }
+
+        // CONFIRA cujo gasto foi usado por outra linha passa a apontar para um empatado ainda livre
+        for (int i = 0; i < saida.length; i++) {
+            if (saida[i].situacao() == Situacao.CONFIRA && !livres.contains(saida[i].gasto())) {
+                for (Expense e : opcoes.get(i)) {
+                    if (livres.contains(e)) {
+                        saida[i] = new Resultado(saida[i].linha(), Situacao.CONFIRA, e);
+                        break;
+                    }
+                }
             }
         }
         return List.of(saida);
@@ -120,14 +147,13 @@ public final class ConciliacaoDaFatura {
     }
 
     /** Candidatos empatados no melhor criterio: mesma conta, menos dias, descricao mais parecida. */
-    private static Expense[] melhores(Linha l, List<Expense> ok, UUID contaId) {
-        Expense[] melhor = new Expense[0];
+    private static List<Expense> melhores(Linha l, List<Expense> ok, UUID contaId) {
         long[] chave = null;
         List<Expense> topo = new ArrayList<>();
         for (Expense e : ok) {
             long[] c = {contaId != null && contaId.equals(e.getAccountId()) ? 1 : 0, -dias(l, e),
                     parecidos(l.descricao(), e.getItem())};
-            int cmp = chave == null ? 1 : java.util.Arrays.compare(c, chave);
+            int cmp = chave == null ? 1 : Arrays.compare(c, chave);
             if (cmp > 0) {
                 chave = c;
                 topo.clear();
@@ -136,7 +162,7 @@ public final class ConciliacaoDaFatura {
                 topo.add(e);
             }
         }
-        return topo.toArray(melhor);
+        return topo;
     }
 
     private static long parecidos(String a, String b) {
