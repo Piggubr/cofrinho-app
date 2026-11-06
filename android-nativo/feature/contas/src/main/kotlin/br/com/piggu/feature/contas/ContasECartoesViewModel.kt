@@ -11,13 +11,18 @@ import br.com.piggu.core.data.ResultadoDoBanco
 import br.com.piggu.core.data.RetornoDoBanco
 import br.com.piggu.core.data.Sessao
 import br.com.piggu.core.data.VERSAO_DOS_TERMOS
+import br.com.piggu.core.model.ConferenciaDaFatura
 import br.com.piggu.core.model.ContaBancaria
 import br.com.piggu.core.model.ConnectToken
 import br.com.piggu.core.model.ContaOuCartao
 import br.com.piggu.core.model.FaturaComGastos
+import br.com.piggu.core.model.LinhaDaConferencia
+import br.com.piggu.core.model.LinhaParaImportar
 import br.com.piggu.core.model.MembroDaFamilia
 import br.com.piggu.core.model.NovaConta
 import br.com.piggu.core.model.PedidoDeConexao
+import br.com.piggu.core.model.PedidoDeConferencia
+import br.com.piggu.core.model.PedidoDeImportacao
 import br.com.piggu.core.model.PedidoDeItem
 import br.com.piggu.core.model.PedidoDeCompartilhar
 import br.com.piggu.core.model.TipoDeConta
@@ -28,7 +33,9 @@ import br.com.piggu.core.network.ServicoDeFinancas
 import br.com.piggu.core.network.mensagemDeErro
 import br.com.piggu.core.ui.formatos.fechamentoPadrao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +46,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
+import java.io.InputStream
 import java.time.Clock
+import java.util.Base64
 import java.net.URLEncoder
 import java.time.YearMonth
 import javax.inject.Inject
@@ -53,8 +62,52 @@ sealed interface Confirmacao {
     data class Desconectar(val conexaoId: String, val instituicao: String) : Confirmacao
 }
 
-/** A fatura aberta: um cartão por vez, andando de mês em mês. */
-data class FaturaNaTela(val cartao: ContaOuCartao, val mes: String, val carga: Carga<FaturaComGastos> = Carga.Carregando)
+/**
+ * A fatura aberta: um cartão por vez, andando de mês em mês. A [conferencia] nasce junto com ela:
+ * trocar de mês cria outra fatura, e o que foi lido do PDF do mês anterior some.
+ */
+data class FaturaNaTela(
+    val cartao: ContaOuCartao,
+    val mes: String,
+    val carga: Carga<FaturaComGastos> = Carga.Carregando,
+    val conferencia: ConferenciaNaTela? = null,
+)
+
+/**
+ * "Conferir com a fatura do banco" (conferir-fatura.ts): o PDF lido pelo servidor, o que já foi
+ * lançado e o que falta. Nada grava antes do "Adicionar". O PDF fica na memória ([pdf]) para a
+ * senha e a autorização reenviarem sem escolher de novo.
+ */
+data class ConferenciaNaTela(
+    val categorias: List<String> = emptyList(),
+    val pdf: String = "",
+    val senha: String = "",
+    val precisaSenha: Boolean = false,
+    /** O aviso do Gemini, quando o servidor pede autorização antes de ler (consentimento). */
+    val pedidoDeIa: MensagemDeErro? = null,
+    val lendo: Boolean = false,
+    val convite: Boolean = false,
+    val erro: MensagemDeErro? = null,
+    val leitura: ConferenciaDaFatura? = null,
+    val linhas: List<LinhaDaConferencia> = emptyList(),
+    val marcadas: Set<String> = emptySet(),
+    val adicionando: Boolean = false,
+    val adicionadas: Int? = null,
+    val jaEstavam: Int = 0,
+    val quitando: Boolean = false,
+    val paga: Boolean = false,
+) {
+    val faltam get() = linhas.filter { !it.ehTarifa && it.situacao == LinhaDaConferencia.SITUACAO_FALTA }
+    val confira get() = linhas.filter { !it.ehTarifa && it.situacao == LinhaDaConferencia.SITUACAO_CONFIRA }
+    val tarifas get() = linhas.filter { it.ehTarifa && it.situacao != LinhaDaConferencia.SITUACAO_JA_LANCADA }
+    val jaLancadas get() = linhas.filter { it.situacao == LinhaDaConferencia.SITUACAO_JA_LANCADA }
+
+    /** "Marcar fatura como paga": depois de adicionar, ou quando a leitura não tem nada a adicionar. */
+    val ofereceQuitar get() = !paga && (adicionadas != null || leitura?.contagem?.faltam == 0)
+}
+
+/** 5 MB viram até 6,99 milhões de caracteres em base64, dentro dos 7 milhões do servidor. */
+internal const val TAMANHO_MAXIMO_DO_PDF = 5 * 1024 * 1024
 
 data class EstadoDasContasECartoes(
     val contas: Carga<List<ContaOuCartao>> = Carga.Carregando,
@@ -277,6 +330,156 @@ class ContasECartoesViewModel internal constructor(
         }
     }
 
+    // Conferir com a fatura do banco
+
+    fun conferirComOBanco() {
+        val aberta = estadoAtual.value.fatura ?: return
+        estadoAtual.update { it.copy(fatura = aberta.copy(conferencia = ConferenciaNaTela())) }
+        viewModelScope.launch {
+            // As mesmas categorias da importação do extrato.
+            listas.categorias().collect { carga ->
+                (carga as? Carga.Pronto)?.valor?.categorias?.let { lista -> mexerNaConferencia(aberta) { it.copy(categorias = lista) } }
+            }
+        }
+    }
+
+    fun fecharConferencia() = estadoAtual.update { e -> e.fatura?.let { e.copy(fatura = it.copy(conferencia = null)) } ?: e }
+
+    /** Lê o PDF fora da thread principal: confere o tamanho antes de montar o base64 e enviar. */
+    fun lerPdf(abrir: () -> InputStream?) {
+        val aberta = estadoAtual.value.fatura ?: return
+        mexerNaConferencia(aberta) { limpa(it).copy(lendo = true) }
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) {
+                try {
+                    abrir()?.use { it.readNBytes(TAMANHO_MAXIMO_DO_PDF + 1) }
+                } catch (_: java.io.IOException) {
+                    null
+                }
+            }
+            when {
+                bytes == null -> mexerNaConferencia(aberta) { it.copy(lendo = false, erro = MensagemDeErro.DoApp(R.string.conferir_nao_abriu)) }
+                bytes.size > TAMANHO_MAXIMO_DO_PDF -> mexerNaConferencia(aberta) { it.copy(lendo = false, erro = MensagemDeErro.DoApp(R.string.conferir_grande_demais)) }
+                else -> {
+                    val base64 = withContext(Dispatchers.Default) { Base64.getEncoder().encodeToString(bytes) }
+                    mexerNaConferencia(aberta) { it.copy(pdf = base64) }
+                    enviarPdf(aberta, autorizando = false)
+                }
+            }
+        }
+    }
+
+    fun mudarSenha(senha: String) = estadoAtual.value.fatura?.let { f -> mexerNaConferencia(f) { it.copy(senha = senha.take(100)) } } ?: Unit
+
+    fun tentarComSenha() = reenviar(autorizando = false)
+    fun autorizarIa() = reenviar(autorizando = true)
+
+    /** "Agora não": o PDF não vai à IA e sai da memória. */
+    fun recusarIa() = estadoAtual.value.fatura?.let { f -> mexerNaConferencia(f) { limpa(it) } } ?: Unit
+
+    private fun reenviar(autorizando: Boolean) {
+        val aberta = estadoAtual.value.fatura ?: return
+        val c = aberta.conferencia ?: return
+        if (c.lendo || c.pdf.isEmpty()) return
+        mexerNaConferencia(aberta) { it.copy(lendo = true) }
+        viewModelScope.launch { enviarPdf(aberta, autorizando) }
+    }
+
+    private suspend fun enviarPdf(aberta: FaturaNaTela, autorizando: Boolean) {
+        val c = estadoAtual.value.fatura?.conferencia ?: return
+        mexerNaConferencia(aberta) { it.copy(lendo = true, erro = null, convite = false, pedidoDeIa = null) }
+        try {
+            val lida = financas.conferirFatura(
+                PedidoDeConferencia(
+                    pdfBase64 = c.pdf,
+                    senha = c.senha.ifEmpty { null },
+                    contaId = aberta.cartao.id,
+                    autorizoIa = true.takeIf { autorizando },
+                    versaoDoAviso = VERSAO_DOS_TERMOS.takeIf { autorizando },
+                ),
+            )
+            val linhas = lida.linhas.orEmpty()
+            mexerNaConferencia(aberta) {
+                it.copy(
+                    lendo = false, precisaSenha = false, leitura = lida, convite = lida.linhas == null, linhas = linhas,
+                    marcadas = linhas.filter { l -> !l.ehTarifa && l.situacaoFalta }.map { l -> l.idExterno }.toSet(),
+                )
+            }
+        } catch (falha: ErroDaApi) {
+            val codigo = (falha as? ErroDaApi.DoServidor)?.codigo
+            val mensagem = mensagemDeErro(falha)
+            mexerNaConferencia(aberta) {
+                when (codigo) {
+                    "PDF_COM_SENHA" -> it.copy(lendo = false, precisaSenha = true, erro = mensagem)
+                    "CONSENTIMENTO_NECESSARIO", "AVISO_DESATUALIZADO" -> it.copy(lendo = false, pedidoDeIa = mensagem)
+                    CODIGO_PREMIUM -> it.copy(lendo = false, convite = true, erro = mensagem)
+                    else -> it.copy(lendo = false, erro = mensagem)
+                }
+            }
+        }
+    }
+
+    fun alternarLinha(idExterno: String) = estadoAtual.value.fatura?.let { f ->
+        mexerNaConferencia(f) { it.copy(marcadas = if (idExterno in it.marcadas) it.marcadas - idExterno else it.marcadas + idExterno) }
+    } ?: Unit
+
+    fun mudarCategoria(idExterno: String, categoria: String) = estadoAtual.value.fatura?.let { f ->
+        mexerNaConferencia(f) { c -> c.copy(linhas = c.linhas.map { if (it.idExterno == idExterno) it.copy(categoria = categoria) else it }) }
+    } ?: Unit
+
+    /** A importação de sempre (POST /expenses/import): só as marcadas, com a parcela e a categoria escolhida. */
+    fun adicionarDaConferencia() {
+        val aberta = estadoAtual.value.fatura ?: return
+        val c = aberta.conferencia ?: return
+        if (c.adicionando || c.marcadas.isEmpty()) return
+        mexerNaConferencia(aberta) { it.copy(adicionando = true, erro = null) }
+        viewModelScope.launch {
+            try {
+                val linhas = c.linhas.filter { it.idExterno in c.marcadas }.map {
+                    LinhaParaImportar(it.data, it.descricao, it.valor, it.idExterno, it.categoria, it.parcelaNumero, it.parcelaTotal)
+                }
+                val feito = financas.importarExtrato(PedidoDeImportacao(linhas, aberta.cartao.id))
+                mexerNaConferencia(aberta) {
+                    it.copy(adicionando = false, leitura = null, linhas = emptyList(), marcadas = emptySet(), pdf = "", adicionadas = feito.importados, jaEstavam = feito.pulados)
+                }
+                lancamentos.avisar()
+            } catch (falha: ErroDaApi) {
+                mexerNaConferencia(aberta) { it.copy(adicionando = false, erro = mensagemDeErro(falha)) }
+            }
+        }
+    }
+
+    /** "Marcar fatura como paga" depois da conferência (D-085): só tira a fatura do "a pagar". */
+    fun quitarPelaConferencia() {
+        val aberta = estadoAtual.value.fatura ?: return
+        val c = aberta.conferencia ?: return
+        if (c.quitando || c.paga) return
+        mexerNaConferencia(aberta) { it.copy(quitando = true, erro = null) }
+        viewModelScope.launch {
+            try {
+                financas.pagarFatura(aberta.cartao.id, aberta.mes)
+                mexerNaConferencia(aberta) { it.copy(quitando = false, paga = true) }
+                lancamentos.avisar()
+            } catch (falha: ErroDaApi) {
+                mexerNaConferencia(aberta) { it.copy(quitando = false, erro = mensagemDeErro(falha)) }
+            }
+        }
+    }
+
+    private fun limpa(c: ConferenciaNaTela) = ConferenciaNaTela(categorias = c.categorias)
+
+    /** Só vale se a pessoa ainda está na mesma fatura: trocar de mês no meio da leitura não mistura. */
+    private fun mexerNaConferencia(aberta: FaturaNaTela, mudar: (ConferenciaNaTela) -> ConferenciaNaTela) =
+        estadoAtual.update { e ->
+            val atual = e.fatura
+            val c = atual?.conferencia
+            if (atual != null && c != null && atual.cartao.id == aberta.cartao.id && atual.mes == aberta.mes) {
+                e.copy(fatura = atual.copy(conferencia = mudar(c)))
+            } else {
+                e
+            }
+        }
+
     private fun andarNaFatura(passo: Long) {
         val aberta = estadoAtual.value.fatura ?: return
         abrirFatura(aberta.cartao, YearMonth.parse(aberta.mes).plusMonths(passo).toString())
@@ -372,6 +575,11 @@ class ContasECartoesViewModel internal constructor(
             }
         }
         estadoAtual.value.fatura?.let { launch { buscarFatura(it.cartao, it.mes) } }
+    }
+
+    private companion object {
+        /** Plano.CODIGO_PREMIUM do backend: o recurso é do Premium. */
+        const val CODIGO_PREMIUM = "PLANO_PREMIUM"
     }
 
     private fun soODia(texto: String) = texto.filter(Char::isDigit).take(2)

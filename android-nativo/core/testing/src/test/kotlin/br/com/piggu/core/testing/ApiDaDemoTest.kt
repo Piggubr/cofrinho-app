@@ -234,6 +234,23 @@ class ApiDaDemoTest {
     }
 
     @Test
+    fun `conferir a fatura devolve os quatro grupos e o que foi adicionado vira ja lancado`() {
+        val corpo = """{"pdfBase64":"JVBERi0=","contaId":null}"""
+        val lida = post("/api/expenses/import/card-statement", corpo).corpo
+        assertEquals("PROPRIA", lida["origem"].texto)
+        val linhas = lida["linhas"].jsonArray
+        val grupos = linhas.groupBy { "${it["tipo"].texto}/${it["situacao"].texto}" }.mapValues { it.value.size }
+        assertEquals(setOf("COMPRA/FALTA", "COMPRA/CONFIRA", "TARIFA/FALTA", "COMPRA/JA_LANCADA"), grupos.keys)
+        assertEquals(grupos.getValue("COMPRA/FALTA") + 1, lida["contagem"]["faltam"].texto.toInt())
+        assertNotNull(linhas.first { it["situacao"].texto == "CONFIRA" }["gastoDescricao"])
+        assertTrue(linhas.any { it["parcelaTotal"] !is JsonNull })
+
+        val faltam = linhas.filter { it["situacao"].texto == "FALTA" }
+        assertEquals(faltam.size.toString(), post("/api/expenses/import", """{"linhas":[${faltam.joinToString(",")}]}""").corpo["importados"].texto)
+        assertEquals("0", post("/api/expenses/import/card-statement", corpo).corpo["contagem"]["faltam"].texto)
+    }
+
+    @Test
     fun `foto do mural vem da memoria`() {
         val assetId = get("/api/feed").jsonArray.first()["assetId"].texto
         val pedido = Request.Builder().url("https://demo.piggu.invalid/api/assets/$assetId/content").build()

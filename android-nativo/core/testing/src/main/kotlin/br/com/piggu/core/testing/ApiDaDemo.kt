@@ -526,6 +526,52 @@ class ApiDaDemo(
         }
     }
 
+    /** Uma fatura de exemplo (a titular é Premium): o PDF enviado não é lido, sempre sai a mesma. */
+    private fun conferirFatura(): Registro {
+        class Exemplo(val atras: Long, val descricao: String, val valor: String, val categoria: String, val tarifa: Boolean = false,
+                      val parcela: Pair<Int, Int>? = null, val parecido: String? = null, val sempreLancada: Boolean = false)
+        val exemplos = listOf(
+            Exemplo(2, "Cinema Centro", "48.00", "Lazer", sempreLancada = true),
+            Exemplo(3, "Uber *Trip", "27.50", "Transporte", parecido = "Uber Centro"),
+            Exemplo(4, "Padaria Pão Quente", "18.90", "Mercado"),
+            Exemplo(5, "Mercado Bom Preço", "142.37", "Mercado"),
+            Exemplo(8, "Magazine Luiza", "99.90", "Compras", parcela = 2 to 3),
+            Exemplo(9, "Anuidade Diamante", "39.90", "Outros", tarifa = true),
+        )
+        val linhas = exemplos.map { e ->
+            val data = hoje().minusDays(e.atras).toString()
+            val idExterno = "fatura:" + java.security.MessageDigest.getInstance("MD5").digest("${e.descricao}|$data".toByteArray())
+                .joinToString("") { "%02x".format(it) }
+            val achado = estado.gastos.firstOrNull { it.texto("idExterno") == idExterno }
+            val situacao = when {
+                e.sempreLancada || achado != null -> "JA_LANCADA"
+                e.parecido != null -> "CONFIRA"
+                else -> "FALTA"
+            }
+            registro(
+                "data" to data, "descricao" to e.descricao, "valor" to BigDecimal(e.valor), "tipo" to if (e.tarifa) "TARIFA" else "COMPRA",
+                "parcelaNumero" to e.parcela?.first, "parcelaTotal" to e.parcela?.second, "situacao" to situacao,
+                "gastoId" to if (situacao == "FALTA") null else achado?.texto("id"),
+                "gastoDescricao" to if (situacao == "CONFIRA") e.parecido else null,
+                "gastoData" to if (situacao == "CONFIRA") hoje().minusDays(e.atras + 1).toString() else null,
+                "categoria" to e.categoria, "idExterno" to idExterno,
+            )
+        }
+        fun contar(tarifa: Boolean, situacao: String? = null) =
+            linhas.count { (it.texto("tipo") == "TARIFA") == tarifa && (situacao == null || it.texto("situacao") == situacao) }
+        val soma = somar(linhas.map { BigDecimal(it.texto("valor")!!) })
+        return registro(
+            "banco" to "nubank", "vencimento" to hoje().plusDays(10).toString(), "total" to soma, "somaLida" to soma, "origem" to "PROPRIA", "aviso" to null,
+            "contagem" to registro(
+                "compras" to contar(false), "tarifas" to contar(true), "ignoradas" to 0,
+                "jaLancadas" to linhas.count { it.texto("situacao") == "JA_LANCADA" },
+                "confira" to linhas.count { it.texto("situacao") == "CONFIRA" },
+                "faltam" to linhas.count { it.texto("situacao") == "FALTA" },
+            ),
+            "linhas" to linhas,
+        )
+    }
+
     private class Lida(val iso: String, val descricao: String, val valor: BigDecimal?, val indice: Int)
 
     private fun linha(data: String?, descricao: String?, valor: BigDecimal, idExterno: String?) = registro(
@@ -769,6 +815,7 @@ class ApiDaDemo(
         rota("POST", "/expenses/import/preview-lines") { p ->
             p.corpo.objetos("linhas").map { linha(it.texto("data"), it.texto("descricao"), it.dinheiro("valor"), it.texto("idExterno")) }
         }
+        rota("POST", "/expenses/import/card-statement") { conferirFatura() }
         rota("POST", "/expenses/import") { p ->
             val linhas = p.corpo.objetos("linhas")
             var importados = 0

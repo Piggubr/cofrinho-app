@@ -56,4 +56,36 @@
     <string name="cartoes_bancos_conectar">Conectar banco</string>
     <string name="cartoes_bancos_atualizar">Atualizar saldos</string>
     <string name="cartoes_bancos_aguarde">Aguarde…</string>
+
+    <!-- Conferir com a fatura do banco (frontend/src/app/features/expenses/conferir-fatura.ts) -->
+    <string name="conferir_abrir">Conferir com a fatura do banco</string>
+    <string name="conferir_titulo">Conferir fatura</string>
+    <string name="conferir_fechar">Fechar a conferência da fatura</string>
+    <string name="conferir_explicacao">Escolha o PDF da fatura do cartão. O Piggu mostra o que já está lançado e o que falta.</string>
+    <string name="conferir_escolher">Escolher PDF da fatura</string>
+    <string name="conferir_lendo">Lendo a fatura…</string>
+    <string name="conferir_senha">Senha do PDF</string>
+    <string name="conferir_tentar_de_novo">Tentar de novo</string>
+    <string name="conferir_autorizar">Autorizar e continuar</string>
+    <string name="conferir_cancelar">Agora não</string>
+    <string name="conferir_nao_abriu">Não consegui abrir esse PDF.</string>
+    <string name="conferir_grande_demais">PDF grande demais (máximo 5 MB).</string>
+    <string name="conferir_convite">A conferência linha a linha faz parte do Piggu Premium.</string>
+    <string name="conferir_conhecer_premium">Conhecer o Piggu Premium</string>
+    <string name="conferir_contagem">%1$d já lançadas, faltam %2$d</string>
+    <string name="conferir_para_conferir">Para conferir: %1$d</string>
+    <string name="conferir_grupo_faltam">Faltam (%1$d)</string>
+    <string name="conferir_grupo_confira">Confira (%1$d)</string>
+    <string name="conferir_grupo_tarifas">Tarifas (%1$d)</string>
+    <string name="conferir_grupo_ja_lancadas">Já lançadas (%1$d)</string>
+    <string name="conferir_mostrar_ja_lancadas">Mostrar as já lançadas</string>
+    <string name="conferir_esconder_ja_lancadas">Esconder as já lançadas</string>
+    <string name="conferir_parecido">parecido com %1$s (%2$s)</string>
+    <string name="conferir_marcar">Marcar %1$s, %2$s</string>
+    <string name="conferir_categoria">Categoria de %1$s: %2$s</string>
+    <string name="conferir_adicionar">Adicionar %1$d</string>
+    <string name="conferir_adicionadas">Adicionadas: %1$d.</string>
+    <string name="conferir_adicionadas_puladas">Adicionadas: %1$d. Já estavam no Piggu: %2$d.</string>
+    <string name="conferir_marcar_paga">Marcar fatura como paga</string>
+    <string name="conferir_paga">Fatura marcada como paga.</string>
 </resources>

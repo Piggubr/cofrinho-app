@@ -2,6 +2,7 @@ package br.com.piggu.feature.contas
 
 import androidx.lifecycle.ViewModelStore
 import br.com.piggu.core.data.Carga
+import br.com.piggu.core.data.VERSAO_DOS_TERMOS
 import br.com.piggu.core.model.ContaOuCartao
 import br.com.piggu.core.model.TipoDeConta
 import br.com.piggu.core.network.ErroDaApi
@@ -13,6 +14,7 @@ import br.com.piggu.core.testing.esperar
 import br.com.piggu.core.ui.FalhaAoCarregar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -26,6 +28,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayInputStream
 import java.io.IOException
 
 private val EstadoDasContasECartoes.lista: List<ContaOuCartao>? get() = (contas as? Carga.Pronto)?.valor
@@ -345,5 +348,154 @@ class ContasECartoesViewModelTest {
         falhar = false
         contas.tentarDeNovo()
         assertEquals(2, contas.estado.esperar { it.lista != null }.lista!!.size)
+    }
+
+    // Conferir a fatura do cartão (conferir-fatura.ts)
+
+    private val pdf = { ByteArrayInputStream("%PDF-1.4".toByteArray()) as java.io.InputStream? }
+
+    private suspend fun TestScope.abrirConferencia(montagem: Montagem): ContasECartoesViewModel {
+        val contas = montagem.contas()
+        val nubank = contas.estado.esperar { it.lista != null }.lista!!.first { it.nome == "Nubank" }
+        contas.verFatura(nubank)
+        contas.estado.esperar { it.faturaPronta != null }
+        contas.conferirComOBanco()
+        contas.estado.esperar { it.fatura?.conferencia?.categorias?.isNotEmpty() == true }
+        return contas
+    }
+
+    private val EstadoDasContasECartoes.conf get() = fatura!!.conferencia!!
+
+    @Test
+    fun `premium ve os grupos, so as que faltam nascem marcadas e o pedido leva o cartao`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.leitura != null }.conf
+        assertEquals(listOf("Padaria Pão Quente", "Mercado Bom Preço", "Magazine Luiza"), c.faltam.map { it.descricao })
+        assertEquals(listOf("Uber *Trip"), c.confira.map { it.descricao })
+        assertEquals(listOf("Anuidade Diamante"), c.tarifas.map { it.descricao })
+        assertEquals(listOf("Cinema Centro"), c.jaLancadas.map { it.descricao })
+        assertEquals(c.faltam.map { it.idExterno }.toSet(), c.marcadas)
+        assertTrue(montagem.pedidos("POST /api/expenses/import/card-statement").single().contains(""""contaId":"conta-nubank""""))
+    }
+
+    @Test
+    fun `adicionar manda so as marcadas com a parcela e a categoria escolhida, depois oferece marcar como paga`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.leitura != null }.conf
+        val padaria = c.faltam.first { it.descricao.startsWith("Padaria") }
+        contas.alternarLinha(padaria.idExterno)
+        contas.alternarLinha(c.confira.single().idExterno)
+        contas.mudarCategoria(c.faltam.first { it.descricao.startsWith("Mercado") }.idExterno, "Casa")
+
+        contas.adicionarDaConferencia()
+        val feita = contas.estado.esperar { it.conf.adicionadas != null }.conf
+        assertEquals(3, feita.adicionadas)
+        val pedido = montagem.pedidos("POST /api/expenses/import {").single()
+        assertTrue(pedido, !pedido.contains("Padaria") && pedido.contains("Uber *Trip") && pedido.contains(""""categoria":"Casa""") )
+        assertTrue(pedido, pedido.contains(""""parcelaNumero":2,"parcelaTotal":3""") && pedido.contains(""""contaId":"conta-nubank""""))
+        assertTrue(feita.ofereceQuitar)
+
+        contas.quitarPelaConferencia()
+        assertTrue(contas.estado.esperar { it.conf.paga }.conf.paga)
+        assertEquals(listOf("PUT /api/accounts/conta-nubank/statement/paid"), montagem.pedidos("PUT /api/accounts"))
+    }
+
+    @Test
+    fun `sem nada a adicionar com cartao ainda oferece marcar como paga`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.leitura != null }.conf
+        contas.alternarLinha(c.tarifas.single().idExterno) // a tarifa também conta em "faltam"
+        contas.adicionarDaConferencia() // grava as 4; a de Confira, desmarcada, fica de fora
+        contas.estado.esperar { it.conf.adicionadas != null }
+        contas.lerPdf(pdf)
+        val outra = contas.estado.esperar { it.conf.leitura?.contagem?.faltam == 0 }.conf
+        assertTrue(outra.marcadas.isEmpty() && outra.ofereceQuitar)
+    }
+
+    @Test
+    fun `plano gratuito so ve a contagem e o convite ao Premium`() = runTest {
+        val montagem = montar(
+            pasta.root, loja,
+            RespostasFixas(
+                "POST /api/expenses/import/card-statement" to RespostaFixa(
+                    200,
+                    """{"somaLida":10,"origem":"PROPRIA","contagem":{"compras":3,"tarifas":0,"ignoradas":0,"jaLancadas":2,"confira":0,"faltam":1},"linhas":null}""",
+                ),
+            ),
+        )
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.leitura != null }.conf
+        assertTrue(c.convite && c.linhas.isEmpty() && c.marcadas.isEmpty())
+        assertEquals(1, c.leitura!!.contagem.faltam)
+    }
+
+    @Test
+    fun `plano premium recusado pelo servidor mostra o convite`() = runTest {
+        val montagem = montar(
+            pasta.root, loja,
+            RespostasFixas("POST /api/expenses/import/card-statement" to RespostasFixas.erro(422, "PLANO_PREMIUM", "Faz parte do Premium.")),
+        )
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.convite }.conf
+        assertEquals(MensagemDeErro.DoServidor("Faz parte do Premium."), c.erro)
+    }
+
+    @Test
+    fun `PDF com senha pede a senha e tenta de novo com ela`() = runTest {
+        val montagem = montar(
+            pasta.root, loja,
+            RespostasFixas("POST /api/expenses/import/card-statement" to RespostasFixas.erro(422, "PDF_COM_SENHA", "Este PDF tem senha.")),
+        )
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        assertTrue(contas.estado.esperar { it.conf.precisaSenha }.conf.precisaSenha)
+        contas.mudarSenha("1234")
+        contas.tentarComSenha()
+        contas.estado.esperar { montagem.pedidos("POST /api/expenses/import/card-statement").size == 2 }
+        assertTrue(montagem.pedidos("POST /api/expenses/import/card-statement").last().contains(""""senha":"1234""""))
+    }
+
+    @Test
+    fun `sem consentimento pede autorizacao e reenvia com o aceite`() = runTest {
+        val montagem = montar(
+            pasta.root, loja,
+            RespostasFixas("POST /api/expenses/import/card-statement" to RespostasFixas.erro(422, "CONSENTIMENTO_NECESSARIO", "Autorize o envio.")),
+        )
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        assertEquals(MensagemDeErro.DoServidor("Autorize o envio."), contas.estado.esperar { it.conf.pedidoDeIa != null }.conf.pedidoDeIa)
+        contas.autorizarIa()
+        contas.estado.esperar { montagem.pedidos("POST /api/expenses/import/card-statement").size == 2 }
+        assertTrue(montagem.pedidos("POST /api/expenses/import/card-statement").last().contains(""""autorizoIa":true,"versaoDoAviso":"$VERSAO_DOS_TERMOS""""))
+        contas.recusarIa()
+        assertNull(contas.estado.value.conf.pedidoDeIa)
+    }
+
+    @Test
+    fun `PDF acima de 5 MB nao vai ao servidor`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf { ByteArrayInputStream(ByteArray(5 * 1024 * 1024 + 1)) }
+        val c = contas.estado.esperar { it.conf.erro != null }.conf
+        assertEquals(MensagemDeErro.DoApp(R.string.conferir_grande_demais), c.erro)
+        assertTrue(montagem.pedidos("POST /api/expenses/import/card-statement").isEmpty())
+    }
+
+    @Test
+    fun `mudar de mes limpa a leitura`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        contas.estado.esperar { it.conf.leitura != null }
+        contas.faturaAnterior()
+        assertNull(contas.estado.value.fatura!!.conferencia)
     }
 }

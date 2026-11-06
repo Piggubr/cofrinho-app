@@ -4,6 +4,7 @@ import br.com.piggu.core.model.AReceber
 import br.com.piggu.core.model.AcertoDeDivisao
 import br.com.piggu.core.model.Categorias
 import br.com.piggu.core.model.Cofrinho
+import br.com.piggu.core.model.ConferenciaDaFatura
 import br.com.piggu.core.model.ConferenciaDePreco
 import br.com.piggu.core.model.ContaFixa
 import br.com.piggu.core.model.ContaOuCartao
@@ -29,6 +30,7 @@ import br.com.piggu.core.model.Orcamento
 import br.com.piggu.core.model.PedidoAoAssistente
 import br.com.piggu.core.model.PedidoDeAutorizacao
 import br.com.piggu.core.model.PedidoDeCompartilhar
+import br.com.piggu.core.model.PedidoDeConferencia
 import br.com.piggu.core.model.PedidoDeExtrato
 import br.com.piggu.core.model.PedidoDeImportacao
 import br.com.piggu.core.model.PedidoDeLeitura
@@ -91,6 +93,10 @@ interface ServicoDeFinancas {
     /** A mesma prévia para linhas já separadas, como os gastos lidos do banco conectado. */
     @POST("expenses/import/preview-lines")
     suspend fun previaDeLinhas(@Body pedido: PedidoDeLinhas): List<LinhaDoExtrato>
+
+    /** Lê o PDF da fatura e diz o que já foi lançado e o que falta; nada é gravado. */
+    @POST("expenses/import/card-statement")
+    suspend fun conferirFatura(@Body pedido: PedidoDeConferencia): ConferenciaDaFatura
 
     @POST("expenses/import")
     suspend fun importarExtrato(@Body pedido: PedidoDeImportacao): ResultadoDaImportacao

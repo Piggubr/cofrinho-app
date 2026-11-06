@@ -523,6 +523,9 @@ data class LinhaParaImportar(
     val valor: Decimal,
     val idExterno: String,
     val categoria: String? = null,
+    /** Só as compras parceladas da fatura; null em tudo o mais (o servidor exige os dois juntos). */
+    val parcelaNumero: Int? = null,
+    val parcelaTotal: Int? = null,
 )
 
 /** ExtratoRequest: o OFX ou CSV como texto. */
@@ -539,3 +542,64 @@ data class PedidoDeImportacao(val linhas: List<LinhaParaImportar>, val contaId: 
 
 @Serializable
 data class ResultadoDaImportacao(val importados: Int, val pulados: Int)
+
+/** ConferirFaturaRequest: o PDF da fatura em base64; a senha e o aceite da IA só quando pedidos. */
+@Serializable
+data class PedidoDeConferencia(
+    val pdfBase64: String,
+    val senha: String? = null,
+    val contaId: String? = null,
+    val autorizoIa: Boolean? = null,
+    val versaoDoAviso: String? = null,
+)
+
+/** Contagem: jaLancadas + confira + faltam == compras + tarifas. */
+@Serializable
+data class ContagemDaFatura(
+    val compras: Int,
+    val tarifas: Int,
+    val ignoradas: Int,
+    val jaLancadas: Int,
+    val confira: Int,
+    val faltam: Int,
+)
+
+/** Linha: uma compra ou tarifa lida da fatura e o que o Piggu tem dela. */
+@Serializable
+data class LinhaDaConferencia(
+    val data: String,
+    val descricao: String,
+    val valor: Decimal,
+    val tipo: String,
+    val parcelaNumero: Int? = null,
+    val parcelaTotal: Int? = null,
+    val situacao: String,
+    val gastoId: String? = null,
+    val gastoDescricao: String? = null,
+    val gastoData: String? = null,
+    val categoria: String,
+    val idExterno: String,
+) {
+    val ehTarifa: Boolean get() = tipo == TIPO_TARIFA
+    val situacaoFalta: Boolean get() = situacao == SITUACAO_FALTA
+
+    companion object {
+        const val TIPO_TARIFA = "TARIFA"
+        const val SITUACAO_FALTA = "FALTA"
+        const val SITUACAO_CONFIRA = "CONFIRA"
+        const val SITUACAO_JA_LANCADA = "JA_LANCADA"
+    }
+}
+
+/** ConferenciaDaFaturaResponse: [linhas] é nulo no plano gratuito (só as contagens). */
+@Serializable
+data class ConferenciaDaFatura(
+    val banco: String? = null,
+    val vencimento: String? = null,
+    val total: Decimal? = null,
+    val somaLida: Decimal,
+    val origem: String,
+    val aviso: String? = null,
+    val contagem: ContagemDaFatura,
+    val linhas: List<LinhaDaConferencia>? = null,
+)
