@@ -146,6 +146,11 @@ enum Formatos {
         data(deDia: chave + "-01").map { inicialMaiuscula(nomeDoMes($0)) } ?? chave
     }
 
+    /// "Nov. de 2026", para titulos onde o nome inteiro nao cabe.
+    static func nomeCurtoDoMes(chave: String) -> String {
+        data(deDia: chave + "-01").map { inicialMaiuscula($0.formatted(.dateTime.month(.abbreviated).year().locale(localidade))) } ?? chave
+    }
+
     static func somarMeses(_ meses: Int, a data: Date) -> Date {
         calendario.date(byAdding: .month, value: meses, to: data) ?? data
     }

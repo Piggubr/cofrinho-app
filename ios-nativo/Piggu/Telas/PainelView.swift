@@ -10,7 +10,8 @@ struct PainelView: View {
     let aoLancar: () -> Void
     /// Importou o extrato pelo guia: as outras abas recarregam.
     let aoMudar: () -> Void
-    let irPara: (Aba) -> Void
+    /// Abre outra aba; Gastos e Receitas abrem no mes que o Painel mostra.
+    let irPara: (Aba, Date) -> Void
 
     @Environment(Sessao.self) private var sessao
     @Environment(MonitorDeRede.self) private var rede
@@ -21,6 +22,8 @@ struct PainelView: View {
     @State private var painel: PainelOrganizado?
     @State private var organizando = false
     @SceneStorage("piggu_caminho_do_painel") private var caminho = ""
+
+    private func ir(_ aba: Aba) { irPara(aba, mes) }
 
     var body: some View {
         NavigationStack(path: .guardada($caminho)) {
@@ -81,12 +84,12 @@ struct PainelView: View {
                     if sessao.usuario?.role != .membro {
                         CartaoAindaDaParaGastar(mes: mes, conta: AindaDaParaGastar.calcular(
                             limite: nucleo.metas[Formatos.mes(mes)] ?? 0, receitas: modelo.resumo?.receitas,
-                            gasto: modelo.gastoNoMes(nucleo), contas: modelo.contasFixas, mes: Formatos.mes(mes)), irPara: irPara)
+                            gasto: modelo.gastoNoMes(nucleo), contas: modelo.contasFixas, mes: Formatos.mes(mes)), irPara: ir)
                     }
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
                                     temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
                     if !modelo.gastosDoMesPassado.isEmpty {
-                        CartaoDoMesPassado(modelo: modelo, mes: mes, aoLancar: aoLancar, irPara: irPara)
+                        CartaoDoMesPassado(modelo: modelo, mes: mes, aoLancar: aoLancar, irPara: ir)
                     }
                     if modelo.temCompanhia {
                         Picker("O que ver", selection: $visao) {
@@ -135,12 +138,12 @@ struct PainelView: View {
         switch id {
         case .resumo:
             if let resumo = modelo.resumo {
-                CartaoDoResumo(resumo: resumo) { irPara(.receitas) }
+                CartaoDoResumo(resumo: resumo, aoAbrir: ir)
             }
         case .avisos:
-            CartaoDeAvisos(modelo: modelo, irPara: irPara)
+            CartaoDeAvisos(modelo: modelo, irPara: ir)
         case .mes:
-            CartaoDoMes(mes: mes, gasto: modelo.gastoNoMes(nucleo), limite: nucleo.metas[chaveDoMes] ?? 0, irPara: irPara)
+            CartaoDoMes(mes: mes, gasto: modelo.gastoNoMes(nucleo), limite: nucleo.metas[chaveDoMes] ?? 0, irPara: ir)
         case .cofrinho:
             CartaoDoCofrinho(modelo: modelo, cofrinho: nucleo.cofrinho, mes: chaveDoMes, visao: visao)
         case .objetivos:

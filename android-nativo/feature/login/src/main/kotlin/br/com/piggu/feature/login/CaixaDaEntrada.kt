@@ -1,5 +1,6 @@
 package br.com.piggu.feature.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,12 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.piggu.core.designsystem.R as Icones
 import br.com.piggu.core.ui.HumorDoPorquinho
 import br.com.piggu.core.ui.Porquinho
 
@@ -60,6 +66,16 @@ fun CaixaDaEntrada(
             }
         }
     }
+}
+
+/** O logo do Piggu no topo do login e do cadastro, como no site e no iOS (TelaDeEntrada). */
+@Composable
+internal fun LogoDoPiggu(modifier: Modifier = Modifier) {
+    Image(
+        painterResource(Icones.drawable.logo_do_piggu),
+        contentDescription = null,
+        modifier = modifier.size(72.dp).clip(RoundedCornerShape(18.dp)),
+    )
 }
 
 /** Erro da tela, lido na hora pelo TalkBack. */

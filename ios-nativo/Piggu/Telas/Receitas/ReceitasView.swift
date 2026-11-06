@@ -4,6 +4,8 @@ import SwiftUI
 /// Tambem as que entram todo mes e o dinheiro a receber, que so vira receita no "Recebi".
 struct ReceitasView: View {
     let versaoDosDados: Int
+    /// Mes pedido pelo Painel; volta a nil depois de aplicado.
+    @Binding var abrirNoMes: Date?
     /// Lancou, recebeu ou apagou: as outras abas recarregam.
     /// A troca entre Gastos e Receitas, quando a tela esta na aba Lançamentos.
     var lancamentos: Binding<Aba>? = nil
@@ -65,11 +67,13 @@ struct ReceitasView: View {
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
-            .comSeletorDeMes($mes)
-            .comTrocaDeLancamentos(lancamentos)
+            .comSeletorDeMes($mes, troca: lancamentos)
             .navigationTitle("Receitas")
             .topoDoPiggu()
             .refreshable { await carregar() }
+            .onChange(of: abrirNoMes, initial: true) { _, novo in
+                if let novo { mes = novo; abrirNoMes = nil }
+            }
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
             .sheet(isPresented: $lancando) {
                 NovaReceitaView { mensagem, data in

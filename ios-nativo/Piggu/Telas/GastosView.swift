@@ -9,6 +9,8 @@ struct GastosView: View {
     let aoLancar: () -> Void
     /// Gasto achado no Spotlight: a tela volta ao mes atual e abre a edicao dele.
     @Binding var abrirGasto: GastoPedido?
+    /// Mes pedido pelo Painel; volta a nil depois de aplicado.
+    @Binding var abrirNoMes: Date?
     /// Editou ou apagou: as outras abas recarregam.
     /// A troca entre Gastos e Receitas, quando a tela esta na aba Lançamentos.
     var lancamentos: Binding<Aba>? = nil
@@ -60,8 +62,7 @@ struct GastosView: View {
             }
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
-            .comSeletorDeMes($mes) { filtros }
-            .comTrocaDeLancamentos(lancamentos)
+            .comSeletorDeMes($mes, troca: lancamentos) { filtros }
             .navigationTitle("Gastos")
             .topoDoPiggu()
             .searchable(text: $busca, prompt: Text("Buscar gastos"))
@@ -69,6 +70,9 @@ struct GastosView: View {
             .task(id: "\(Formatos.mes(mes))#\(versaoDosDados)#\(rede.conectado)") { await carregar() }
             .task(id: busca) { await buscarEmOutrosMeses() }
             .onChange(of: abrirGasto, initial: true) { _, _ in mostrarGastoPedido() }
+            .onChange(of: abrirNoMes, initial: true) { _, novo in
+                if let novo { mes = novo; abrirNoMes = nil }
+            }
             .onChange(of: carga.valor) { _, _ in mostrarGastoPedido() }
             .sheet(item: $editando) { gasto in
                 EditarGastoView(gasto: gasto, categorias: $categorias,

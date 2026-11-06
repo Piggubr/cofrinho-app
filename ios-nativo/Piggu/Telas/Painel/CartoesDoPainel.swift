@@ -7,7 +7,8 @@ import SwiftUI
 /// Sobra do mes: receitas - gastos, e quanto disso foi poupado (resumo-do-mes.ts).
 struct CartaoDoResumo: View {
     let resumo: ResumoDoMes
-    var aoVerReceitas: (() -> Void)?
+    /// No Painel, Receitas e Gastos abrem a tela deles.
+    var aoAbrir: ((Aba) -> Void)?
 
     @Environment(\.paleta) private var paleta
 
@@ -32,12 +33,12 @@ struct CartaoDoResumo: View {
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             LadoALado(espaco: 10) {
-                parcela("Receitas", resumo.receitas, icone: "chart.line.uptrend.xyaxis")
-                parcela("Gastos", resumo.gastos, icone: "wallet.pass")
+                parcela("Receitas", resumo.receitas, icone: "chart.line.uptrend.xyaxis", abre: .receitas)
+                parcela("Gastos", resumo.gastos, icone: "wallet.pass", abre: .gastos)
             }
             if resumo.receitas == 0 {
                 Button {
-                    aoVerReceitas?()
+                    aoAbrir?(.receitas)
                 } label: {
                     Text("Lance as **receitas do mês** para ver quanto sobrou e quanto você poupou.")
                         .font(.sora(.footnote))
@@ -52,10 +53,21 @@ struct CartaoDoResumo: View {
         .background(
             LinearGradient(colors: [paleta.primaria, paleta.serieGasto], startPoint: .topLeading, endPoint: .bottomTrailing),
             in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: aoAbrir == nil ? .combine : .contain)
     }
 
-    private func parcela(_ rotulo: LocalizedStringKey, _ valor: Decimal, icone: String) -> some View {
+    @ViewBuilder
+    private func parcela(_ rotulo: LocalizedStringKey, _ valor: Decimal, icone: String, abre aba: Aba) -> some View {
+        if let aoAbrir {
+            Button { aoAbrir(aba) } label: { conteudoDaParcela(rotulo, valor, icone: icone) }
+                .buttonStyle(.plain)
+                .accessibilityHint("Toque para ver a lista")
+        } else {
+            conteudoDaParcela(rotulo, valor, icone: icone)
+        }
+    }
+
+    private func conteudoDaParcela(_ rotulo: LocalizedStringKey, _ valor: Decimal, icone: String) -> some View {
         LadoALado(espaco: 8) {
             Image(systemName: icone)
                 .font(.footnote.weight(.semibold))
@@ -186,15 +198,21 @@ struct CartaoAindaDaParaGastar: View {
                     Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
                 }
                 // A conta à vista: quem não entende o número entende de onde ele veio.
+                // "Receitas de" e "já gastos" sao links: abrem Receitas e Gastos no mes do Painel.
                 Group {
                     if conta.tetoEhOLimite {
-                        Text("Limite de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                        Text("Limite de \(Formatos.moeda(conta.teto)), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
                     } else {
-                        Text("Receitas de \(Formatos.moeda(conta.teto)), menos \(Formatos.moeda(conta.gasto)) já gastos e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+                        Text("[Receitas de \(Formatos.moeda(conta.teto))](piggu://receitas), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
                     }
                 }
                 .font(.sora(.footnote))
                 .foregroundStyle(paleta.textoSuave)
+                .tint(paleta.primaria)
+                .environment(\.openURL, OpenURLAction { url in
+                    irPara(url.host() == "receitas" ? .receitas : .gastos)
+                    return .handled
+                })
             } else {
                 Text("Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.")
                     .font(.sora(.subheadline))

@@ -118,9 +118,15 @@ class OrcamentoViewModelTest {
         assertNull(depois.erro)
         assertEquals(1, lancamentos.versao.value) // o Painel também fica sabendo
 
+        // O lápis de um mês abre a janela com o valor dele e guarda só aquele mês.
         vm.editarMeta("2026-09")
-        assertEquals("2026-09", vm.estado.value.mesDoLimite)
-        assertEquals(0, vm.estado.value.limite!!.compareTo(BigDecimal(4500)))
+        assertEquals("2026-09", vm.estado.value.editando!!.mes)
+        assertEquals(0, vm.estado.value.editando!!.valor!!.compareTo(BigDecimal(4500)))
+        vm.mudarValorDaEdicao(BigDecimal("4000"))
+        vm.salvarEdicao()
+        val editado = vm.estado.esperar { it.editando == null && !it.salvando }
+        assertEquals("""PUT /api/monthly-goals {"mes":"2026-09","limite":4000}""", pedidos("PUT /api/monthly-goals").last())
+        assertEquals(0, editado.outrosMeses.first { it.first == "2026-09" }.second.compareTo(BigDecimal(4000)))
     }
 
     @Test
@@ -164,14 +170,17 @@ class OrcamentoViewModelTest {
         val alvo = inicio.orcamentos.first { it.gasto.signum() > 0 }
 
         // No limite exato: 100%, estourou.
+        // O lápis abre a janela; o formulário de criar fica como estava.
         vm.editarOrcamento(alvo)
-        assertEquals(alvo.categoria, vm.estado.value.categoria)
-        vm.mudarLimiteDaCategoria(alvo.gasto)
-        vm.salvarCategoria()
-        val cheio = vm.estado.esperar { e -> e.orcamentos.any { it.id == alvo.id && it.limite.compareTo(alvo.gasto) == 0 } }
+        assertEquals(alvo.categoria, vm.estado.value.editando!!.categoria)
+        assertEquals("", vm.estado.value.categoria)
+        vm.mudarValorDaEdicao(null)
+        vm.salvarEdicao()
+        assertEquals(MensagemDeErro.DoApp(R.string.orcamento_limite_invalido), vm.estado.value.erro)
+        vm.mudarValorDaEdicao(alvo.gasto)
+        vm.salvarEdicao()
+        val cheio = vm.estado.esperar { e -> e.editando == null && e.orcamentos.any { it.id == alvo.id && it.limite.compareTo(alvo.gasto) == 0 } }
         assertEquals(AlertaDoOrcamento.ESTOUROU, cheio.orcamentos.first { it.id == alvo.id }.alerta)
-        assertEquals("", cheio.categoria)
-        assertNull(cheio.limiteDaCategoria)
 
         // Gasto em 85% do limite: atenção.
         val limite = alvo.gasto.multiply(BigDecimal(100)).divide(BigDecimal(85), 2, java.math.RoundingMode.HALF_UP)

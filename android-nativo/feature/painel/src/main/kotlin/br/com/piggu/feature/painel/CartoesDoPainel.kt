@@ -1,5 +1,6 @@
 package br.com.piggu.feature.painel
 
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -153,7 +154,7 @@ private fun BotaoApagar(aoApagar: () -> Unit) {
 // Resumo do mês (resumo-do-mes.ts)
 
 @Composable
-internal fun CartaoDoResumo(resumo: ResumoDoMes, moeda: String?, abrirTela: (String) -> Unit) {
+internal fun CartaoDoResumo(resumo: ResumoDoMes, moeda: String?, mes: String, abrirTela: (String) -> Unit) {
     val cores = MaterialTheme.colorScheme
     val texto = cores.onPrimary
     Column(
@@ -185,21 +186,28 @@ internal fun CartaoDoResumo(resumo: ResumoDoMes, moeda: String?, abrirTela: (Str
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 maxItemsInEachRow = if (ladoALado) 2 else 1,
             ) {
-                Parcela(stringResource(R.string.resumo_receitas), formatarMoeda(resumo.receitas, moeda), Icone.Entrada, texto, Modifier.weight(1f))
-                Parcela(stringResource(R.string.resumo_gastos), formatarMoeda(resumo.gastos, moeda), Icone.Carteira, texto, Modifier.weight(1f))
+                // Tocar em Receitas ou Gastos abre a tela no mês do Painel.
+                Parcela(stringResource(R.string.resumo_receitas), formatarMoeda(resumo.receitas, moeda), Icone.Entrada, texto, Modifier.weight(1f)) {
+                    abrirTela("/receitas?mes=$mes")
+                }
+                Parcela(stringResource(R.string.resumo_gastos), formatarMoeda(resumo.gastos, moeda), Icone.Carteira, texto, Modifier.weight(1f)) {
+                    abrirTela("/gastos?mes=$mes")
+                }
             }
         }
         if (resumo.receitas.signum() == 0) {
-            TextButton({ abrirTela("/receitas") }) { Text(stringResource(R.string.resumo_dica), color = texto) }
+            TextButton({ abrirTela("/receitas?mes=$mes") }) { Text(stringResource(R.string.resumo_dica), color = texto) }
         }
     }
 }
 
 @Composable
-private fun Parcela(rotulo: String, valor: String, icone: Icone, cor: Color, modifier: Modifier) {
+private fun Parcela(rotulo: String, valor: String, icone: Icone, cor: Color, modifier: Modifier, abrir: () -> Unit) {
     Row(
         modifier
-            .background(cor.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = abrir)
+            .background(cor.copy(alpha = 0.12f))
             .padding(10.dp)
             .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
@@ -305,7 +313,7 @@ internal fun CartaoDoMes(estado: EstadoDoPainel, abrirTela: (String) -> Unit) {
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button({ abrirTela("/orcamentos") }) { Text(stringResource(R.string.mes_definir_limite)) }
-            OutlinedButton({ abrirTela("/gastos") }) { Text(stringResource(R.string.mes_ver_gastos)) }
+            OutlinedButton({ abrirTela("/gastos?mes=${estado.mes}") }) { Text(stringResource(R.string.mes_ver_gastos)) }
         }
     }
 }
@@ -330,7 +338,7 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
                 Text(stringResource(R.string.gastar_sem_teto), style = MaterialTheme.typography.bodyMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button({ abrirTela("/orcamentos") }) { Text(stringResource(R.string.mes_definir_limite)) }
-                    OutlinedButton({ abrirTela("/receitas") }) { Text(stringResource(R.string.gastar_lancar_receitas)) }
+                    OutlinedButton({ abrirTela("/receitas?mes=${estado.mes}") }) { Text(stringResource(R.string.gastar_lancar_receitas)) }
                 }
                 return@Column
             }
@@ -355,6 +363,11 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
+            // As parcelas da conta abrem as telas delas, no mês do Painel.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton({ abrirTela("/receitas?mes=${estado.mes}") }) { Text(stringResource(R.string.gastar_ver_receitas)) }
+                TextButton({ abrirTela("/gastos?mes=${estado.mes}") }) { Text(stringResource(R.string.mes_ver_gastos)) }
+            }
         }
     }
 }

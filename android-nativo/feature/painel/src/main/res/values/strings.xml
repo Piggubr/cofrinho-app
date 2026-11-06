@@ -47,6 +47,7 @@
     <string name="gastar_por_dia">Cerca de %1$s por dia até o fim do mês</string>
     <string name="gastar_passou">Já passou do que dava para gastar este mês.</string>
     <string name="gastar_conta_limite">Limite de %1$s, menos %2$s já gastos e %3$s de contas a pagar</string>
+    <string name="gastar_ver_receitas">Ver receitas</string>
     <string name="gastar_conta_receitas">Receitas de %1$s, menos %2$s já gastos e %3$s de contas a pagar</string>
     <string name="gastar_sem_teto">Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.</string>
     <string name="gastar_lancar_receitas">Lançar receitas</string>
