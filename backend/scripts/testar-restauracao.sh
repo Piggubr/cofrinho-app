@@ -8,6 +8,8 @@
 #   testar-restauracao.sh [ARQUIVO]   (padrao: o diario mais recente em PIGGU_BACKUP_DIR)
 #
 # Saida 0 = backup bom. Qualquer outra = investigue antes de precisar dele.
+# Com PIGGU_RESTAURACAO_AVISO_URL (ping do healthchecks.io), o monitor fica sabendo do
+# resultado, e alerta tambem se o teste deixar de rodar (veja avisar no comum-backup.sh).
 set -euo pipefail
 umask 077
 
@@ -16,19 +18,29 @@ AQUI=$(cd "$(dirname "$0")" && pwd)
 source "$AQUI/comum-backup.sh"
 
 DIR=${PIGGU_BACKUP_DIR:-/var/backups/piggu}
+AVISO=${PIGGU_RESTAURACAO_AVISO_URL:-}
+PREFIXO=restauro_teste_
+CONTAINER=""
+PASTA=""
+limpar() {
+  local codigo=$?
+  if [ -n "$CONTAINER" ]; then
+    for banco in $BANCOS; do
+      docker exec -e PGOPTIONS="-c client_min_messages=warning" "$CONTAINER" dropdb -U "$PG_USER" --if-exists --force "$PREFIXO$banco" || true
+    done
+  fi
+  [ -z "$PASTA" ] || rm -rf "$PASTA"
+  avisar "$AVISO" "/$codigo"
+  exit "$codigo"
+}
+trap limpar EXIT
+avisar "$AVISO" /start
+
 ARQUIVO=${1:-$(find "$DIR/diario" -maxdepth 1 -type f -name 'piggu-*.tar*' 2>/dev/null | sort | tail -n 1)}
 [ -n "$ARQUIVO" ] || falhar "Nenhum backup em $DIR/diario."
-PREFIXO=restauro_teste_
 
 CONTAINER=$(container_do_postgres)
 PASTA=$(mktemp -d)
-limpar() {
-  for banco in $BANCOS; do
-    docker exec -e PGOPTIONS="-c client_min_messages=warning" "$CONTAINER" dropdb -U "$PG_USER" --if-exists --force "$PREFIXO$banco" || true
-  done
-  rm -rf "$PASTA"
-}
-trap limpar EXIT
 
 abrir_backup "$ARQUIVO" "$PASTA"
 "$AQUI/restaurar.sh" "$ARQUIVO" --prefixo "$PREFIXO" > /dev/null
