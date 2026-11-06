@@ -186,14 +186,33 @@ senha e nunca usa `rclone sync`: se o disco da VPS voltar vazio, a cópia de for
 ```cron
 PIGGU_BACKUP_SENHA_ARQUIVO=/etc/piggu/backup.senha
 PIGGU_BACKUP_DESTINO=b2-piggu:piggu-backups
+PIGGU_BACKUP_AVISO_URL=https://hc-ping.com/<uuid-do-backup>
+PIGGU_RESTAURACAO_AVISO_URL=https://hc-ping.com/<uuid-da-restauracao>
 # Todo dia às 3h15, e o teste de restauração todo domingo às 3h45.
 15 3 * * *  /opt/piggu/backend/scripts/backup.sh >> /var/log/piggu-backup.log 2>&1
 45 3 * * 0  /opt/piggu/backend/scripts/testar-restauracao.sh >> /var/log/piggu-backup.log 2>&1
 ```
 
 As demais opções (pasta, quantos guardar, dia do semanal) estão no cabeçalho do
-`backup.sh`. Vale ligar um aviso para quando o cron falhar, por exemplo um
-[healthchecks.io](https://healthchecks.io) chamado no fim do comando com `&& curl -fsS ...`.
+`backup.sh`.
+
+**Aviso quando falhar.** Backup que para de rodar em silêncio só é descoberto no dia em
+que se precisa dele. Crie no [healthchecks.io](https://healthchecks.io) (plano grátis) dois
+checks: "Piggu backup" com período de 1 dia e tolerância de 2 horas, e "Piggu restauração"
+com período de 7 dias e tolerância de 2 horas, e ligue o aviso por e-mail ou Telegram.
+Cada script chama `<url>/start` ao começar e `<url>/<código de saída>` ao terminar: o
+healthchecks.io alerta quando o código não é 0 e também quando o ping não chega (cron
+parado, servidor fora do ar). A URL de ping é segredo (quem a tiver pode marcar o check
+como bom): ela fica só no crontab e não aparece no log. Sem a variável, nada é chamado.
+
+**Antes de cada deploy com migração.** O `deploy/atualizar.sh` confere se o commit novo
+traz arquivo novo ou mudado em `backend/*/src/main/resources/db/migration/` e, se trouxer,
+roda o `backup.sh` antes de publicar; se o backup falhar, o deploy para sem mexer em nada.
+Esse backup fica só no servidor, em `~/piggu-backups/antes-do-deploy` do usuário do deploy
+(os 5 últimos; mude com `PIGGU_BACKUP_ANTES_DO_DEPLOY`), e é a volta rápida quando uma
+migração estraga dados, já que o rollback não desfaz migração (seção 8). Ele sai cifrado
+quando o usuário do deploy consegue ler `/etc/piggu/backup.senha`; com a senha só do root,
+sai sem cifra, com permissão só do dono, e nunca vai para o bucket.
 
 **Restaurar de verdade:**
 
@@ -344,8 +363,8 @@ o script trocaria o servidor para ele.
 `feature/nova-arquitetura`. O caminho é PR da feature para a `develop`, depois PR da
 `develop` para a `main` (o job "Origem do PR para a main" só aceita a `develop` ou
 `hotfix/...`). No merge, o CI roda e o job publica sozinho; acompanhe em *Actions*. As
-migrações de banco rodam na subida dos serviços: faça um backup antes desse primeiro
-merge (seção 6).
+migrações de banco rodam na subida dos serviços: o `atualizar.sh` faz um backup antes
+quando o commit traz migração (seção 6), mas faça um à mão antes desse primeiro merge.
 
 Publicar de novo o mesmo commit (por exemplo, depois de mudar o `.env`): no Actions, abra
 a última execução do CI na branch e use *Re-run all jobs*. Para publicar à mão, no

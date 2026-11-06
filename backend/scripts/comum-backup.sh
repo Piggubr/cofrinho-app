@@ -18,6 +18,17 @@ falhar() {
   exit 1
 }
 
+# Avisa um monitor de fora (healthchecks.io ou outro do mesmo jeito) pela URL de ping:
+# "<url>/start" ao comecar e "<url>/<codigo de saida>" ao terminar (0 = deu certo).
+# Sem URL nao faz nada. Nunca derruba o script, e nao escreve a URL no log: ela e o segredo.
+avisar() {
+  local url=$1 sufixo=$2
+  [ -n "$url" ] || return 0
+  curl -fsS -m 10 --retry 3 -o /dev/null "$url$sufixo" 2> /dev/null \
+    || echo "$(date '+%F %T') aviso: o monitor de fora nao respondeu ($sufixo)" >&2
+  return 0
+}
+
 container_do_postgres() {
   if [ -n "${PIGGU_PG_CONTAINER:-}" ]; then
     echo "$PIGGU_PG_CONTAINER"
