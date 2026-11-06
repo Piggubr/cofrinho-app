@@ -290,6 +290,51 @@ class ConferenciaDaFaturaTest extends PostgresIntegrationTest {
         }
     }
 
+    @Test
+    @DisplayName("sem cartao: parcela lancada a mao (10x desde marco) casa pela data esperada da 9/10")
+    void semCartaoParcelaComCompraAVista() throws Exception {
+        parcelado(casas.casaA, "2026-03-15", 500);
+
+        JsonNode r = ler(conferir(casas.casaA, List.of("Vencimento 10/12/2026", "Total desta fatura R$ 80,00",
+                "01/11 PADARIA 30,00", "15/03 LOJA 09/10 50,00"), Map.of()));
+
+        assertThat(r.path("linhas").get(1).path("situacao").asString()).isEqualTo("JA_LANCADA");
+        assertThat(r.path("linhas").get(1).path("gastoData").asString()).isEqualTo("2026-11-15");
+    }
+
+    @Test
+    @DisplayName("sem cartao e so parcelas (compras de marco e junho): as duas ja lancadas")
+    void semCartaoSoParcelas() throws Exception {
+        parcelado(casas.casaA, "2026-03-15", 500);
+        parcelado(casas.casaA, "2026-06-20", 400);
+
+        JsonNode r = ler(conferir(casas.casaA, List.of("Vencimento 10/12/2026", "Total desta fatura R$ 90,00",
+                "15/03 LOJA A 09/10 50,00", "20/06 LOJA B 06/10 40,00"), Map.of()));
+
+        assertThat(r.path("contagem").path("jaLancadas").asInt()).isEqualTo(2);
+        assertThat(r.path("contagem").path("faltam").asInt()).isZero();
+        // a 9/10 e a 6/10, nunca a 1/10 do mesmo valor na data original da compra
+        assertThat(r.path("linhas").findValuesAsString("gastoData")).containsExactly("2026-11-15", "2026-11-20");
+    }
+
+    @Test
+    @DisplayName("Gemini tambem nao fechou: fica a leitura mais perto do total (aqui a propria)")
+    void geminiQueTambemNaoFechaFicaAMaisPerto() throws Exception {
+        when(gemini.ler(anyString())).thenReturn(new Leitura("inter", LocalDate.of(2026, 12, 10),
+                new BigDecimal("999.00"), List.of(linha("2026-11-05", "PADARIA SOL", "30.00", null, null))));
+
+        JsonNode r = ler(conferir(casas.casaA, NAO_FECHA, autorizado()));
+
+        assertThat(r.path("origem").asString()).isEqualTo("PROPRIA");
+        assertThat(r.path("linhas").size()).isEqualTo(2);
+        assertThat(r.path("aviso").asString()).isNotBlank();
+    }
+
+    private void parcelado(RequestPostProcessor quem, String data, int valor) throws Exception {
+        casas.criar("/api/expenses", quem, "{\"data\":\"" + data + "\",\"parcelas\":10,"
+                + "\"itens\":[{\"item\":\"Loja\",\"categoria\":\"Outros\",\"valor\":" + valor + "}]}");
+    }
+
     private static RequestPostProcessor gratuita() {
         UUID familia = UUID.randomUUID();
         return TokensDeTeste.gratuitaDa(familia, "gratuita-" + familia + "@piggu.test", PigguRole.TITULAR);

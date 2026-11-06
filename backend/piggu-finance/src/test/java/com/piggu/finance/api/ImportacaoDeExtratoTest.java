@@ -112,6 +112,33 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("apagou so a 3/5 e importou a linha de novo: volta a 3/5, a 4/5 e a 5/5 nao duplicam")
+    void reimportarParcelaNaoDuplicaAsSeguintes() throws Exception {
+        String corpo = "{\"linhas\":[{\"data\":\"2026-09-05\",\"descricao\":\"Loja Parc\","
+                + "\"valor\":100,\"idExterno\":\"fatura:def\",\"parcelaNumero\":3,\"parcelaTotal\":5}]}";
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(jsonPath("$.importados").value(1));
+        JsonNode gastos = gastos();
+        String terceira = null;
+        for (JsonNode g : gastos) {
+            if (g.path("parcela").asInt() == 3) {
+                terceira = g.path("id").asString();
+            }
+        }
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/expenses/" + terceira)
+                .with(casas.casaA)).andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/expenses/import").with(casas.casaA).contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(jsonPath("$.importados").value(1));
+        assertThat(gastos().findValuesAsString("parcela")).containsExactlyInAnyOrder("3", "4", "5");
+    }
+
+    private JsonNode gastos() throws Exception {
+        return json.readTree(mockMvc.perform(get("/api/expenses").with(casas.casaA))
+                .andReturn().getResponse().getContentAsString());
+    }
+
     private JsonNode previaDeLinhas(String corpo) throws Exception {
         return json.readTree(mockMvc.perform(post("/api/expenses/import/preview-lines").with(casas.casaA)
                         .contentType(MediaType.APPLICATION_JSON).content(corpo))

@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Gastos: o centro do Piggu.
@@ -212,8 +213,6 @@ public class ExpenseService {
         PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
                 .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
         boolean compartilhado = conta != null && conta.isShared();
-        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
-                linhas.stream().map(LinhaImportada::idExterno).toList()));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         for (LinhaImportada l : linhas) {
             if ((l.parcelaNumero() == null) != (l.parcelaTotal() == null)
@@ -225,6 +224,12 @@ public class ExpenseService {
                 throw new BusinessException("Identificador da linha grande demais.", HttpStatus.BAD_REQUEST);
             }
         }
+        // Ids das linhas e das parcelas seguintes ("id:n"): a parcela que ja existe nao duplica.
+        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(linhas.stream()
+                .flatMap(l -> l.parcelaNumero() == null ? Stream.of(l.idExterno())
+                        : Stream.concat(Stream.of(l.idExterno()), IntStream.rangeClosed(l.parcelaNumero() + 1,
+                                l.parcelaTotal()).mapToObj(p -> l.idExterno() + ":" + p)))
+                .toList()));
         UUID lote = UUID.randomUUID();
         List<LinhaImportada> novas = linhas.stream().filter(l -> jaImportadas.add(l.idExterno())).toList();
         List<Expense> gastos = novas.stream().flatMap(l -> {
@@ -235,7 +240,8 @@ public class ExpenseService {
             // Parcela n/m da fatura: grava ela e as seguintes ate m, uma por fatura, no mesmo lote.
             int n = l.parcelaNumero() == null ? 1 : l.parcelaNumero();
             int m = l.parcelaTotal() == null ? 1 : l.parcelaTotal();
-            return IntStream.rangeClosed(0, m - n).mapToObj(k -> {
+            return IntStream.rangeClosed(0, m - n)
+                    .filter(k -> k == 0 || !jaImportadas.contains(l.idExterno() + ":" + (n + k))).mapToObj(k -> {
                 Expense gasto = new Expense(dataDaParcela(l.data(), n - 1 + k, conta), lote, "",
                         Texto.limitar(l.descricao(), 200), categoria, l.valor(), TIPO_PADRAO, ORIGEM_EXTRATO,
                         usuarioId);

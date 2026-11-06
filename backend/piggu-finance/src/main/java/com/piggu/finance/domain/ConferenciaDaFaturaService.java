@@ -92,8 +92,12 @@ public class ConferenciaDaFaturaService {
                 consentimentos.exigir(usuario, FINALIDADE, AVISO_DO_CONSENTIMENTO,
                         pedido.autorizoIa(), pedido.versaoDoAviso());
                 try {
-                    leitura = validada(gemini.ler(texto));
-                    origem = "GEMINI";
+                    Leitura pelaIa = validada(gemini.ler(texto));
+                    // Nenhuma fechou: fica a mais perto do total; empate, a com mais linhas.
+                    if (pelaIa.fecha() || !maisPerto(leitura, pelaIa)) {
+                        leitura = pelaIa;
+                        origem = "GEMINI";
+                    }
                     aviso = leitura.fecha() ? null : NAO_FECHOU;
                 } catch (BusinessException erro) {
                     if (!temLinhas) {
@@ -117,9 +121,9 @@ public class ConferenciaDaFaturaService {
     private ConferenciaDaFaturaResponse resposta(Leitura leitura, String origem, String aviso,
                                                  PaymentAccount cartao, boolean premium) {
         LocalDate[] periodo = periodo(leitura, cartao);
-        List<Linha> avista = aVista(leitura.linhas());
-        LocalDate de = minimo(periodo[0], avista);
-        LocalDate ate = maximo(periodo[1], avista);
+        List<Linha> compras = compras(leitura.linhas());
+        LocalDate de = minimo(periodo[0], compras);
+        LocalDate ate = maximo(periodo[1], compras);
         List<Expense> candidatos = periodo[0] == null ? List.of()
                 : gastos.findByExpenseDateBetweenOrderByExpenseDateDescCreatedAtDesc(
                         de.minusDays(FOLGA_EM_DIAS), ate.plusDays(FOLGA_EM_DIAS));
@@ -154,7 +158,8 @@ public class ConferenciaDaFaturaService {
 
     /**
      * Com cartao, o periodo de compras da fatura que vence na data lida; sem cartao (ou sem
-     * vencimento), da menor a maior data das compras a vista (sem nenhuma, de todas as linhas).
+     * vencimento), da menor a maior data das compras (sem nenhuma, de todas as linhas), a da
+     * parcela sendo a data em que o app a lanca (ver {@link #dataEsperada}).
      */
     private static LocalDate[] periodo(Leitura leitura, PaymentAccount cartao) {
         if (cartao != null && leitura.vencimento() != null && cartao.getClosingDay() != null
@@ -167,21 +172,39 @@ public class ConferenciaDaFaturaService {
             }
             return new LocalDate[] {p.inicio(), p.ultimaCompra()};
         }
-        List<Linha> base = aVista(leitura.linhas()).isEmpty() ? leitura.linhas() : aVista(leitura.linhas());
+        List<Linha> base = compras(leitura.linhas()).isEmpty() ? leitura.linhas() : compras(leitura.linhas());
         return new LocalDate[] {minimo(null, base), maximo(null, base)};
     }
 
-    private static List<Linha> aVista(List<Linha> linhas) {
-        return linhas.stream().filter(l -> l.tipo() == TipoDaLinha.COMPRA && l.parcelaNumero() == null).toList();
+    private static List<Linha> compras(List<Linha> linhas) {
+        return linhas.stream().filter(l -> l.tipo() == TipoDaLinha.COMPRA).toList();
+    }
+
+    /**
+     * A parcela n/m vem na fatura com a data da compra; o app grava a parcela n uns n-1 meses
+     * depois, e e perto dessa data que ela esta entre os gastos.
+     */
+    private static LocalDate dataEsperada(Linha l) {
+        return l.parcelaNumero() == null ? l.data() : l.data().plusMonths(l.parcelaNumero() - 1L);
+    }
+
+    /** A propria fica se esta mais perto do total que a da IA (empate: a com mais linhas). */
+    private static boolean maisPerto(Leitura propria, Leitura pelaIa) {
+        int cmp = Comparator.nullsLast(Comparator.<BigDecimal>naturalOrder()).compare(folga(propria), folga(pelaIa));
+        return cmp < 0 || cmp == 0 && propria.linhas().size() > pelaIa.linhas().size();
+    }
+
+    private static BigDecimal folga(Leitura l) {
+        return l.total() == null ? null : l.soma().subtract(l.total()).abs();
     }
 
     private static LocalDate minimo(LocalDate inicial, List<Linha> linhas) {
-        return linhas.stream().map(Linha::data).filter(d -> inicial == null || d.isBefore(inicial))
+        return linhas.stream().map(ConferenciaDaFaturaService::dataEsperada).filter(d -> inicial == null || d.isBefore(inicial))
                 .min(Comparator.naturalOrder()).orElse(inicial);
     }
 
     private static LocalDate maximo(LocalDate inicial, List<Linha> linhas) {
-        return linhas.stream().map(Linha::data).filter(d -> inicial == null || d.isAfter(inicial))
+        return linhas.stream().map(ConferenciaDaFaturaService::dataEsperada).filter(d -> inicial == null || d.isAfter(inicial))
                 .max(Comparator.naturalOrder()).orElse(inicial);
     }
 
