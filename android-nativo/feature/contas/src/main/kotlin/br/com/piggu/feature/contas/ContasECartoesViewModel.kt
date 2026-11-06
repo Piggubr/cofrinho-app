@@ -352,7 +352,17 @@ class ContasECartoesViewModel internal constructor(
         viewModelScope.launch {
             val bytes = withContext(Dispatchers.IO) {
                 try {
-                    abrir()?.use { it.readNBytes(TAMANHO_MAXIMO_DO_PDF + 1) }
+                    abrir()?.use { entrada ->
+                        // readNBytes só existe a partir da API 33; o mínimo aqui é 26
+                        val buffer = ByteArray(TAMANHO_MAXIMO_DO_PDF + 1)
+                        var lidos = 0
+                        while (lidos < buffer.size) {
+                            val n = entrada.read(buffer, lidos, buffer.size - lidos)
+                            if (n < 0) break
+                            lidos += n
+                        }
+                        buffer.copyOf(lidos)
+                    }
                 } catch (_: java.io.IOException) {
                     null
                 }
