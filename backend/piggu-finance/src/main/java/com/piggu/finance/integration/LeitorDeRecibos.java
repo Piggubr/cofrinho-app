@@ -35,10 +35,9 @@ import java.util.regex.Pattern;
  * diferentes do total impresso). Assim a maioria das fotos nao sai do servidor e nao
  * custa nada; o Gemini fica para foto torta, cupom sem total ou layout estranho.</p>
  *
- * <p>Com {@code piggu.leitura-de-nota.leitor-proprio=false} (padrao desde 11/10/2026, ate
- * o leitor proprio ser testado com cupons reais) toda foto vai direto para o Gemini,
- * dentro da mesma cota: 10 por mes no gratuito, sem limite no Premium. Para voltar,
- * {@code PIGGU_LEITOR_PROPRIO=true}.</p>
+ * <p>Esse e o padrao (D-171). Com {@code piggu.leitura-de-nota.leitor-proprio=false}
+ * ({@code PIGGU_LEITOR_PROPRIO=false}) toda foto vai direto para o Gemini, dentro da
+ * mesma cota: 10 por mes no gratuito, sem limite no Premium.</p>
  */
 @Service
 public class LeitorDeRecibos {
@@ -64,7 +63,7 @@ public class LeitorDeRecibos {
     @Autowired
     public LeitorDeRecibos(TesseractOcr ocr, GeminiReceiptReader gemini, ProductMemoryRepository memoria,
                            Consentimentos consentimentos, CotaDeLeituras cota,
-                           @Value("${piggu.leitura-de-nota.leitor-proprio:false}") boolean leitorProprio) {
+                           @Value("${piggu.leitura-de-nota.leitor-proprio:true}") boolean leitorProprio) {
         this.leitorProprio = leitorProprio;
         this.ocr = ocr;
         this.gemini = gemini;
