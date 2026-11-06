@@ -104,11 +104,25 @@ enquanto continuar.
 | Muitos erros no app | mais de 20 erros de JavaScript em 30 minutos |
 | Muitas recusas pelo limite | mais de 100 respostas 429 em 10 minutos |
 
+## Painéis
+
+| Painel | Para quê |
+|---|---|
+| Saúde e performance | Serviços no ar, tempo de resposta, erros 5xx, CPU, memória e disco |
+| Erros e logs | Erros do servidor e do app e busca nos logs |
+| Uso do app | Contas, famílias ativas, Premium, lançamentos e recursos usados |
+| Funil e receita | Conta → teste grátis → pagante, conversão por mês, assinaturas encerradas e receita mensal estimada (D-170) |
+| Retenção | Famílias ativas por semana e quantas % voltam a lançar 1, 2, 4 e 8 semanas depois (D-170) |
+| Aparelhos e plataformas | Pessoas por plataforma (apps nativos, Capacitor, site), versões dos apps e aparelhos com push (D-170) |
+
+A receita do "Funil e receita" usa o preço de tabela escrito na consulta do painel. Mudou o
+preço em `docs/planos-premium.md`? Mude também no JSON.
+
 ## Painel analítico
 
 O painel "Uso do app" lê o Postgres com o usuário `piggu_analitico`, criado pelo
 `db/init/01-criar-bancos.sh`. Ele só entra no `piggu_identity` e no `piggu_finance`, e lá
-só lê o schema `analitico`: views que devolvem contagens (migrations V32 do identity e V18
+só lê o schema `analitico`: views que devolvem contagens (migrations V32 e V40 do identity, V18 e V26
 do financeiro). Nenhuma view traz e-mail, nome, documento, valor em dinheiro, descrição ou
 id de pessoa ou família; o `MigrationsTest` e o `MetricasDeUsoTest` quebram se uma coluna
 assim aparecer. O usuário é somente leitura e cada consulta tem prazo de 15 s.

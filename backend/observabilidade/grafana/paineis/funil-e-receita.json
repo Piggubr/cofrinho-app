@@ -1,0 +1,783 @@
+{
+  "uid": "piggu-funil",
+  "title": "Piggu - Funil e receita",
+  "tags": [
+    "piggu"
+  ],
+  "timezone": "America/Sao_Paulo",
+  "editable": false,
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "refresh": "5m",
+  "templating": {
+    "list": []
+  },
+  "schemaVersion": 41,
+  "panels": [
+    {
+      "type": "row",
+      "title": "Agora",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Contas",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT contas FROM analitico.funil",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias que já lançaram algo",
+      "description": "Famílias com ao menos um gasto ou receita lançado por alguém (Open Finance e conta fixa não contam).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-finance"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-finance"
+          },
+          "rawSql": "SELECT coalesce(sum(familias), 0) FROM analitico.retencao_por_semana",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias que fizeram teste grátis",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias_com_teste FROM analitico.funil",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Famílias pagando agora",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias_pagando FROM analitico.funil",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Conversão do teste em pagante",
+      "description": "Famílias que já pagaram alguma vez ÷ famílias que fizeram o teste grátis.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT familias_que_ja_pagaram::float / nullif(familias_com_teste, 0) FROM analitico.funil",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Receita mensal estimada",
+      "description": "Estimativa: famílias pagando agora × preço de tabela (docs/planos-premium.md), com o anual dividido por 12. Valor bruto, antes da taxa da loja e dos impostos. O período (mensal ou anual) é deduzido do vencimento. Mudou o preço? Atualize a consulta deste painel.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT coalesce(sum(p.familias * CASE p.periodo WHEN 'ANUAL' THEN v.anual / 12 ELSE v.mensal END), 0) FROM analitico.pagantes_por_plano p JOIN (VALUES ('WEB','INDIVIDUAL',19.90,199.00), ('WEB','CASAL',29.90,299.00), ('WEB','FAMILIA',39.99,399.90),\n  ('APP_STORE','INDIVIDUAL',22.89,228.85), ('APP_STORE','CASAL',34.39,343.85), ('APP_STORE','FAMILIA',45.99,459.89),\n  ('PLAY_STORE','INDIVIDUAL',22.89,228.85), ('PLAY_STORE','CASAL',34.39,343.85), ('PLAY_STORE','FAMILIA',45.99,459.89)) v(loja, plano, mensal, anual) USING (loja, plano)",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyBRL",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "Funil",
+      "collapsed": false,
+      "panels": [],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Funil de agora",
+      "description": "As duas primeiras barras contam pessoas; as outras, famílias. \"Saíram\" = pagaram e o Premium venceu (cancelou ou não renovou).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT contas AS \"Contas\", contas_confirmadas AS \"Confirmaram o e-mail\", familias AS \"Famílias\",\n  familias_com_teste AS \"Famílias com teste grátis\", familias_que_ja_pagaram AS \"Famílias que já pagaram\",\n  familias_pagando AS \"Famílias pagando agora\", familias_que_sairam AS \"Famílias que saíram\" FROM analitico.funil",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "namePlacement": "left",
+        "sizing": "auto",
+        "minVizHeight": 16,
+        "maxVizHeight": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "continuous-BlPu"
+          }
+        },
+        "overrides": []
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 10,
+        "h": 9
+      }
+    },
+    {
+      "type": "table",
+      "title": "Conversão por mês de cadastro",
+      "description": "Das contas criadas em cada mês, quantas % deram cada passo até hoje.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT to_char(mes, 'MM/YYYY') AS \"Mês\", contas AS \"Contas novas\",\n  round(100.0 * confirmaram / contas) AS \"Confirmaram (%)\", round(100.0 * fizeram_teste / contas) AS \"Fizeram teste (%)\",\n  round(100.0 * em_familia_pagante / contas) AS \"Em família pagante (%)\"\nFROM analitico.conversao_por_mes WHERE mes >= date_trunc('month', $__timeFrom()::date) ORDER BY mes DESC",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Confirmaram (%)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fizeram teste (%)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Em família pagante (%)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [],
+      "id": 10,
+      "gridPos": {
+        "x": 10,
+        "y": 6,
+        "w": 14,
+        "h": 9
+      }
+    },
+    {
+      "type": "row",
+      "title": "Assinaturas",
+      "collapsed": false,
+      "panels": [],
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Assinaturas novas e encerradas por dia",
+      "description": "Novas: começo da assinatura atual (inclui teste grátis). Encerradas: assinatura paga que venceu sem renovar.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, assinaturas AS \"novas\" FROM analitico.assinaturas_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT dia::timestamp AS time, familias AS \"encerradas\" FROM analitico.assinaturas_encerradas_por_dia WHERE dia BETWEEN $__timeFrom()::date AND $__timeTo()::date ORDER BY 1",
+          "format": "time_series",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 80,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none"
+            },
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": []
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 14,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Pagantes e receita por plano",
+      "description": "Estimativa: famílias pagando agora × preço de tabela (docs/planos-premium.md), com o anual dividido por 12. Valor bruto, antes da taxa da loja e dos impostos. O período (mensal ou anual) é deduzido do vencimento. Mudou o preço? Atualize a consulta deste painel.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "analitico-identity"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "analitico-identity"
+          },
+          "rawSql": "SELECT CASE p.loja WHEN 'WEB' THEN 'Site' WHEN 'APP_STORE' THEN 'App Store' WHEN 'PLAY_STORE' THEN 'Google Play' ELSE p.loja END AS \"Loja\",\n  initcap(p.plano) AS \"Plano\", initcap(p.periodo) AS \"Período\", p.familias AS \"Famílias\", round(p.familias * CASE p.periodo WHEN 'ANUAL' THEN v.anual / 12 ELSE v.mensal END, 2) AS \"Receita mensal (R$)\"\nFROM analitico.pagantes_por_plano p LEFT JOIN (VALUES ('WEB','INDIVIDUAL',19.90,199.00), ('WEB','CASAL',29.90,299.00), ('WEB','FAMILIA',39.99,399.90),\n  ('APP_STORE','INDIVIDUAL',22.89,228.85), ('APP_STORE','CASAL',34.39,343.85), ('APP_STORE','FAMILIA',45.99,459.89),\n  ('PLAY_STORE','INDIVIDUAL',22.89,228.85), ('PLAY_STORE','CASAL',34.39,343.85), ('PLAY_STORE','FAMILIA',45.99,459.89)) v(loja, plano, mensal, anual) USING (loja, plano) ORDER BY 5 DESC NULLS LAST",
+          "format": "table",
+          "editorMode": "code",
+          "rawQuery": true
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "minWidth": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Receita mensal (R$)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyBRL"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "transformations": [],
+      "id": 13,
+      "gridPos": {
+        "x": 14,
+        "y": 16,
+        "w": 10,
+        "h": 8
+      }
+    }
+  ]
+}
