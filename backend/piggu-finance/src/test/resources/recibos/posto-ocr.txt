@@ -1,0 +1,21 @@
+POSTO ESTRELA DO SUL LTDA
+
+CNPJ: 55.666.777/0001-88 IE: 556667778
+
+RODOVIA BR 277 KM 12 - CURITIBA PR
+
+DANFE NFC-e - Documento Auxiliar
+
+Codigo Descricao Qtde UN V1 Unit V1 Total
+
+001 GASOLINA COMUM 40,123 L X 5,89 236,32
+
+TOTAL R$ 236,32
+
+FORMA PAGAMENTO VALOR PAGO
+
+Cartao de Credito 236,32
+
+Tributos Totais Incidentes R$ 71,40
+
+Emissao: 04/10/2026 18:40:05

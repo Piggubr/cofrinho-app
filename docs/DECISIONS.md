@@ -80,8 +80,8 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-043](#d-043-cobrar-pelo-open-finance-sim-pela-desconexão-nunca) | Cobrar pelo Open Finance sim, pela desconexão nunca | Valendo |
 | [D-044](#d-044-sete-dias-de-teste-e-sete-de-arrependimento) | Sete dias de teste e sete de arrependimento | Substituída por D-146 (o teste) |
 | [D-045](#d-045-open-finance-desligado-por-enquanto) | Open Finance desligado por enquanto | Valendo |
-| [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 |
-| [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Valendo |
+| [D-046](#d-046-leitor-próprio-de-nota-primeiro-gemini-de-reserva) | Leitor próprio de nota primeiro, Gemini de reserva | Substituída por D-047 (retomada na D-171) |
+| [D-047](#d-047-nota-fiscal-direto-no-gemini) | Nota fiscal direto no Gemini | Substituída por D-171 |
 | [D-048](#d-048-preço-do-premium-no-iphone) | Preço do Premium no iPhone | Em aberto |
 | [D-078](#d-078-quem-paga-o-premium-não-muda-de-família-com-ele-valendo) | Quem paga o Premium não muda de família com ele valendo | Valendo |
 | [D-079](#d-079-cartão-recusado-dá-7-dias-de-premium) | Cartão recusado dá 7 dias de Premium | Valendo |
@@ -176,6 +176,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
 | [D-169](#d-169-sem-réplica-do-banco-por-enquanto-aviso-de-falha-no-backup-e-backup-antes-de-migrar) | Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar |
 | [D-170](#d-170-painéis-de-funil-receita-retenção-e-plataformas-só-com-contagens) | Painéis de funil, receita, retenção e plataformas, só com contagens |
+| [D-171](#d-171-leitor-próprio-de-nota-ligado-por-padrão) | Leitor próprio de nota ligado por padrão | Valendo |
 
 ---
 
@@ -722,7 +723,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-046: Leitor próprio de nota primeiro, Gemini de reserva
 - Data: 01/10/2026 (branch `feature/leitor-nota-ocr`)
-- Situação: Substituída por D-047
+- Situação: Substituída por D-047 (retomada na D-171)
 - Contexto: cada leitura pelo Gemini custa, e a foto sai do servidor.
 - Decisão: o leitor próprio (Tesseract) lia primeiro, grátis até 10 por mês por família; o Gemini ficava de reserva no Premium.
 - Alternativas: só o Gemini.
@@ -731,7 +732,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-047: Nota fiscal direto no Gemini
 - Data: 11/10/2026 ([PR #11](https://github.com/Piggubr/cofrinho-app/pull/11))
-- Situação: Valendo (com lembrete de reverter)
+- Situação: Substituída por D-171
 - Contexto: custo (resposta do Dudu em 26/10/2026). O Gemini foi a primeira opção de IA considerada, sem comparação com outros provedores.
 - Decisão: `PIGGU_LEITOR_PROPRIO=false` por padrão: toda foto vai ao Gemini, com o mesmo consentimento, 10 por mês por família no grátis e sem limite no Premium.
 - Alternativas: o leitor próprio de D-046.
@@ -1773,3 +1774,18 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: mudou o preço de um plano? Atualize as consultas do painel "Funil e receita". A receita é bruta, antes da taxa da loja e dos impostos. Família excluída sai do funil e das encerradas.
 - Reavaliar quando: a família passar a guardar o período do plano, ou o preço mudar com frequência.
 - Onde ver: [observabilidade](observabilidade.md#painéis), `backend/observabilidade/grafana/paineis/`
+
+## D-171: Leitor próprio de nota ligado por padrão
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Dudu (06/11/2026)
+- Registrado por: Claude
+- Contexto: cada leitura pelo Gemini custa (D-047), e a foto sai do servidor. O leitor próprio (Tesseract com regras) foi reforçado com testes de cupons reais e agora vale tentar primeiro.
+- Decisão:
+  - `PIGGU_LEITOR_PROPRIO` passa a valer `true` por padrão: o leitor próprio tenta primeiro e o Gemini fica de reserva. `false` manda toda foto direto ao Gemini.
+  - No gratuito, a leitura pelo OCR próprio vai até 10 por mês por família; a reserva pelo Gemini é só do Premium, como em [planos Premium](planos-premium.md#divisão).
+  - O aviso de privacidade volta ao texto da D-046 (site, iOS e Android): primeiro o servidor, e a foto só vai à IA do Google se o leitor não der e a pessoa autorizar. `Consentimentos.VERSAO_DO_AVISO` não sobe, porque o consentimento do envio ao Google continua o mesmo.
+  - O merge só acontece depois do teste com cerca de 10 fotos reais, porque é o merge que liga o leitor em produção.
+- Alternativas: manter a D-047 (toda foto no Gemini, custo por foto); leitor próprio de graça com a reserva pelo Gemini também no gratuito (o custo da IA volta a crescer com o uso).
+- Consequências: a maioria das fotos não sai do servidor e não custa nada. Foto torta, cupom sem total ou layout estranho passam a pedir a autorização do envio ao Google no Premium. Com o merge, o leitor liga em produção, a não ser que o .env de lá tenha PIGGU_LEITOR_PROPRIO=false.
+- Onde ver: [planos Premium](planos-premium.md#divisão), `LeitorDeRecibos`, `application.yml` (`leitor-proprio`)

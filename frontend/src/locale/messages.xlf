@@ -4470,8 +4470,8 @@
           <context context-type="linenumber">57,58</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="339570712460363079" datatype="html">
-        <source>Ler os itens automaticamente. Com a sua autorização, a foto vai para a IA do Google, que devolve os itens; você confere antes de gravar</source>
+      <trans-unit id="2838744540582862841" datatype="html">
+        <source>Ler os itens automaticamente. Primeiro tentamos no nosso servidor; só se não der, e com sua autorização, a foto vai para a IA do Google</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
           <context context-type="linenumber">58,59</context>
@@ -4631,8 +4631,8 @@
           <context context-type="linenumber">94</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3696111654911296921" datatype="html">
-        <source>Quando você lê uma nota pela foto ou pergunta ao assistente, sempre depois de autorizar</source>
+      <trans-unit id="524531169681161718" datatype="html">
+        <source>Só quando nosso leitor não consegue e você autoriza, ou quando você pergunta ao assistente depois de autorizar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
           <context context-type="linenumber">94</context>
