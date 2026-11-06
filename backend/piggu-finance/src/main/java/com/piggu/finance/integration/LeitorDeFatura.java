@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,7 +67,7 @@ public final class LeitorDeFatura {
     private static final Pattern VENCIMENTO = Pattern.compile("vencimento[^\\d\\n]{0,20}(\\d{2})/(\\d{2})/(\\d{4})");
     private static final Pattern TOTAL = Pattern.compile("^(?:total\\s+(?:desta|da)\\s+fatura|valor\\s+total)\\b.*");
 
-    private static final Pattern TARIFA = palavras("iof", "anuidade", "juros", "multa", "encargo", "tarifa", "seguro");
+    private static final Pattern TARIFA = Pattern.compile("^(?:iof|anuidade|juros|multa|encargo|tarifa|seguro)\\b");
     private static final Pattern IGNORADA = palavras("pagamento", "pagto", "credito", "estorno", "saldo anterior", "devolucao");
     private static final Pattern NAO_E_CREDITO = palavras("pagamento", "pagto", "saldo anterior");
 
@@ -81,11 +82,12 @@ public final class LeitorDeFatura {
             return new Leitura("desconhecido", null, null, List.of());
         }
         List<String> linhasDoTexto = texto.lines().map(l -> Texto.espacoUnico(l.replace("R$", " "))).toList();
-        LocalDate vencimento = vencimento(Texto.semAcento(texto).toLowerCase());
+        LocalDate vencimento = vencimento(Texto.semAcento(texto).toLowerCase(Locale.ROOT));
         BigDecimal total = null;
         List<Linha> linhas = new ArrayList<>();
         for (String l : linhasDoTexto) {
-            if (total == null && TOTAL.matcher(Texto.semAcento(l).toLowerCase()).matches()) {
+            String minusculo = Texto.semAcento(l).toLowerCase(Locale.ROOT);
+            if (total == null && TOTAL.matcher(minusculo).matches() && !minusculo.contains("anterior")) {
                 total = valorNoFim(l);
             }
             Linha linha = vencimento == null ? null : linha(l, vencimento);
@@ -93,7 +95,7 @@ public final class LeitorDeFatura {
                 linhas.add(linha);
             }
         }
-        return new Leitura(banco(Texto.semAcento(texto).toLowerCase()), vencimento, total, comIdsGerados(linhas));
+        return new Leitura(banco(Texto.semAcento(texto).toLowerCase(Locale.ROOT)), vencimento, total, comIdsGerados(linhas));
     }
 
     /** Preenche o idExterno das linhas sem ele; a mesma compra repetida ganha ocorrencia 1, 2, ... */
@@ -119,7 +121,7 @@ public final class LeitorDeFatura {
     }
 
     private static String base(LocalDate data, String descricao, BigDecimal valor, Integer n, Integer m) {
-        return data + "|" + descricao.toLowerCase() + "|" + valor.stripTrailingZeros().toPlainString()
+        return data + "|" + descricao.toLowerCase(Locale.ROOT) + "|" + valor.stripTrailingZeros().toPlainString()
                 + "|" + (n == null ? "" : n + "/" + m);
     }
 
@@ -130,7 +132,7 @@ public final class LeitorDeFatura {
         }
         String resto = d.group(3);
         BigDecimal bruto = valorNoFim(resto);
-        if (bruto == null) {
+        if (bruto == null || resto.indexOf(' ') < 0) {
             return null;
         }
         String descricao = resto.substring(0, resto.lastIndexOf(' ')).trim();
@@ -152,7 +154,10 @@ public final class LeitorDeFatura {
         } catch (DateTimeException invalida) {
             return null;
         }
-        String chave = Texto.semAcento(descricao).toLowerCase();
+        if (data.isAfter(vencimento)) {
+            data = data.minusYears(1);
+        }
+        String chave = Texto.semAcento(descricao).toLowerCase(Locale.ROOT);
         TipoDaLinha tipo = bruto.signum() < 0 || IGNORADA.matcher(chave).find() ? TipoDaLinha.IGNORADA
                 : TARIFA.matcher(chave).find() ? TipoDaLinha.TARIFA : TipoDaLinha.COMPRA;
         return new Linha(data, Texto.limitar(descricao, 200), bruto.abs(), tipo, n, m, null);
@@ -160,7 +165,7 @@ public final class LeitorDeFatura {
 
     /** Estorno ou credito (nao pagamento nem saldo anterior): abate da soma. */
     private static boolean ehCredito(Linha l) {
-        return !NAO_E_CREDITO.matcher(Texto.semAcento(l.descricao()).toLowerCase()).find();
+        return !NAO_E_CREDITO.matcher(Texto.semAcento(l.descricao()).toLowerCase(Locale.ROOT)).find();
     }
 
     /** Ultimo token da linha como dinheiro ("1.234,56", "-40,00"), ou nulo. */

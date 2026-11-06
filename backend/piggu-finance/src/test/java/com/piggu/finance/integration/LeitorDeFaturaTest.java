@@ -145,6 +145,40 @@ class LeitorDeFaturaTest {
         assertThat(a.get(0).idExterno()).isEqualTo(b.get(0).idExterno());
     }
 
+    @Test
+    @DisplayName("Linha so com data e valor nao estoura: e descartada")
+    void linhaSoComValorNaoEstoura() {
+        Leitura l = LeitorDeFatura.ler("Vencimento 10/01/2027\n15/01 100,00\n02/01 LOJA A 60,00");
+
+        assertThat(l.linhas()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Mesmo mes do vencimento mas dia depois dele e do ano anterior")
+    void diaDepoisDoVencimentoEDoAnoAnterior() {
+        Linha l = LeitorDeFatura.ler("Vencimento 10/01/2027\n15/01 LOJA A 10,00").linhas().get(0);
+
+        assertThat(l.data()).isEqualTo(LocalDate.of(2026, 1, 15));
+    }
+
+    @Test
+    @DisplayName("'Total da fatura anterior' nao e o total")
+    void totalDaFaturaAnteriorNaoServe() {
+        Leitura l = LeitorDeFatura.ler("Vencimento 10/01/2027\nTotal da fatura anterior R$ 500,00\n02/01 LOJA A 60,00");
+
+        assertThat(l.total()).isNull();
+        assertThat(l.fecha()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Palavra de tarifa so conta no comeco da descricao")
+    void tarifaSoNoComeco() {
+        var linhas = LeitorDeFatura.ler("Vencimento 10/01/2027\n02/01 PORTO SEGURO AUTO 80,00\n03/01 SEGURO CARTAO 12,00\n04/01 JUROS ROTATIVO 5,00").linhas();
+
+        assertThat(linhas).extracting(Linha::tipo)
+                .containsExactly(TipoDaLinha.COMPRA, TipoDaLinha.TARIFA, TipoDaLinha.TARIFA);
+    }
+
     private static void confere(String arquivo, String banco, LocalDate vencimento, String total,
                                 int compras, int tarifas, int ignoradas) {
         Leitura l = LeitorDeFatura.ler(texto(arquivo));
