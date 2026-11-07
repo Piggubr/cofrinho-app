@@ -176,6 +176,13 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
 | [D-169](#d-169-sem-réplica-do-banco-por-enquanto-aviso-de-falha-no-backup-e-backup-antes-de-migrar) | Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar |
 | [D-170](#d-170-painéis-de-funil-receita-retenção-e-plataformas-só-com-contagens) | Painéis de funil, receita, retenção e plataformas, só com contagens |
+| [D-173](#d-173-a-família-guarda-a-assinatura-da-stripe-que-deu-o-premium) | A família guarda a assinatura da Stripe que deu o Premium | Valendo |
+| [D-174](#d-174-o-cadastro-confere-o-cpf-antes-de-olhar-o-e-mail) | O cadastro confere o CPF antes de olhar o e-mail | Valendo |
+| [D-175](#d-175-lançar-de-novo-sem-mudar-nada-repete-o-id-do-envio) | Lançar de novo sem mudar nada repete o id do envio | Valendo |
+| [D-176](#d-176-o-widget-do-android-também-respeita-a-trava) | O widget do Android também respeita a trava | Valendo |
+| [D-177](#d-177-a-mesma-linha-de-extrato-vale-uma-vez-por-cartão) | A mesma linha de extrato vale uma vez por cartão | Valendo |
+| [D-178](#d-178-data-do-ofx-com-fuso-vira-o-dia-de-brasília-sem-fuso-fica-o-dia-escrito) | Data do OFX com fuso vira o dia de Brasília; sem fuso fica o dia escrito | Valendo |
+| [D-179](#d-179-todos-os-serviços-com-healthcheck-e-o-deploy-atualiza-o-banking-com-o-open-finance-ligado) | Todos os serviços com healthcheck, e o deploy atualiza o banking com o Open Finance ligado | Valendo |
 
 ---
 
@@ -1773,3 +1780,80 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: mudou o preço de um plano? Atualize as consultas do painel "Funil e receita". A receita é bruta, antes da taxa da loja e dos impostos. Família excluída sai do funil e das encerradas.
 - Reavaliar quando: a família passar a guardar o período do plano, ou o preço mudar com frequência.
 - Onde ver: [observabilidade](observabilidade.md#painéis), `backend/observabilidade/grafana/paineis/`
+
+## D-173: A família guarda a assinatura da Stripe que deu o Premium
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: o `customer.subscription.deleted` (ou um aviso sem pagamento) de qualquer assinatura do cliente zerava o Premium da família, mesmo quando a assinatura que pagava era outra (uma antiga que encerrou depois, por exemplo).
+- Decisão: a família guarda o id da assinatura da Stripe que deu o Premium (`households.stripe_subscription_id`, V41), gravado quando um aviso pago é aplicado. O fim (aviso sem pagamento) de outra assinatura é ignorado; o da guardada derruba. Sem id guardado (Premium de antes desta mudança), vale a regra de antes. É o mesmo desenho do token do Google Play (D-155).
+- Alternativas: perguntar à Stripe a assinatura viva a cada aviso, o que deixa o webhook dependente da Stripe estar no ar.
+- Consequências: o primeiro aviso pago depois do deploy grava o id. Um aviso pago de outra assinatura do mesmo cliente passa a ser a assinatura guardada.
+- Onde ver: `backend/piggu-identity/.../billing/AssinaturaService.java` (`aplicarWebhook`), `.../domain/Household.java`, `V41__assinatura_da_stripe.sql`
+
+## D-174: O cadastro confere o CPF antes de olhar o e-mail
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: no cadastro por senha, o e-mail que já tem conta respondia 202 antes de o CPF ser conferido, e o e-mail novo com CPF de outra conta respondia 409 (ou 429). Quem tinha um CPF em uso descobria se um e-mail tinha conta no Piggu.
+- Decisão: o CPF em uso é conferido primeiro, com o mesmo limite da D-160 (sem conta ainda, conta só pelo IP). E-mail novo ou e-mail que já tem conta recebem a mesma recusa `CPF_EM_USO`; só depois o e-mail repetido responde como cadastro novo.
+- Alternativas: responder 202 a tudo e avisar por e-mail, o que deixaria o dono do CPF sem saber por que não entra (o motivo da D-160).
+- Consequências: quem se cadastra de novo com o próprio e-mail e o próprio CPF recebe `CPF_EM_USO` em vez do 202 e do aviso por e-mail. Complementa D-160.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`cadastrar`), `.../domain/MinhaContaService.java` (`exigirCpfLivre`)
+
+## D-175: Lançar de novo sem mudar nada repete o id do envio
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: pela D-073 cada toque em "Lançar" gerava um `idDoEnvio` novo. Depois de um 5xx ou do tempo esgotado, o servidor podia ter gravado, e o segundo toque lançava o gasto de novo.
+- Decisão: no iOS e no Android, o formulário guarda o último pedido enviado. Tocar "Lançar" de novo com o mesmo pedido repete o `idDoEnvio`, e o servidor devolve os gastos da primeira vez. Se algum campo mudou, o envio é outro e ganha id novo. Depois de lançar, o próximo pedido igual também é outro gasto.
+- Alternativas: manter o id até fechar o formulário, o que juntaria um gasto editado depois do erro com o primeiro.
+- Consequências: se o primeiro envio gravou e a pessoa mudou o valor antes de tocar de novo, entram os dois. O site segue com um id por toque. Complementa D-073.
+- Onde ver: `ios-nativo/Piggu/Core/API/Modelos.swift` (`comIdDoEnvio`), `ios-nativo/Piggu/Telas/LancarGastoView.swift`, `android-nativo/feature/gastos/.../formulario/FormularioDeGastoViewModel.kt`
+
+## D-176: O widget do Android também respeita a trava
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: a D-162 tirou os números dos widgets do iPhone com a trava ligada, mas o widget do Android seguia gravando o gasto e o limite do mês.
+- Decisão: com a trava do Piggu ligada, o Android apaga o resumo do widget e não grava outro até a trava ser desligada, como no iOS.
+- Alternativas: esconder só os valores no desenho do widget, o que deixaria os números guardados no aparelho.
+- Consequências: com a trava ligada, os widgets do Android ficam sem números. Estende D-162 ao Android.
+- Onde ver: `android-nativo/widget/.../AtualizadorDoWidget.kt`
+
+## D-177: A mesma linha de extrato vale uma vez por cartão
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: a importação de extrato pulava a linha cujo id externo (FITID, coluna id ou hash da linha) já existia na família da pessoa, em qualquer conta. Dois cartões com a mesma linha (mesmo FITID ou a mesma compra no mesmo dia) ficavam com um gasto só.
+- Decisão: a conta entra na chave: o índice único passa a ser família, pessoa, conta e id externo (V27), e importar pula só o que já entrou na mesma conta (ou sem conta, quando não há conta). O id externo continua no mesmo formato, então o que já foi importado antes desta mudança segue sendo pulado no mesmo cartão.
+- Alternativas: pôr a conta dentro do id externo (`ofx:<conta>:<FITID>`), que faria a prévia deixar de marcar o que já entrou e obrigaria a conferir os dois formatos.
+- Consequências: a prévia (que não sabe a conta) marca como "já importada" a linha que entrou em qualquer cartão. Gasto importado e depois movido para outro cartão pode entrar de novo se o mesmo extrato for importado no cartão de antes.
+- Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`importar`), `V27__importacao_por_conta.sql`
+
+## D-178: Data do OFX com fuso vira o dia de Brasília; sem fuso fica o dia escrito
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: o OFX traz a data como `AAAAMMDDHHMMSS[-3:BRT]`. O leitor usava só os oito primeiros dígitos, ignorando o fuso (uma compra às 23h de Brasília escrita em GMT caía no dia seguinte), e uma data curta ou vazia dava 500.
+- Decisão: com o fuso escrito, a hora é convertida para Brasília e o dia sai de lá. Sem fuso, fica o dia escrito, embora a especificação do OFX diga que sem fuso é GMT: banco brasileiro que omite o fuso grava a hora local, e converter jogaria toda compra da meia-noite para o dia anterior. Data que não dá para ler vira 400.
+- Alternativas: seguir a especificação também sem fuso, o que mudaria o dia de quase todas as compras dos bancos que gravam `000000` sem fuso.
+- Consequências: extrato sem FITID com fuso fora de Brasília pode gerar um hash diferente do de uma importação antiga (a data entra no hash) e repetir a linha uma vez.
+- Onde ver: `backend/piggu-finance/.../domain/LeitorDeExtrato.java` (`diaDoOfx`)
+
+## D-179: Todos os serviços com healthcheck, e o deploy atualiza o banking com o Open Finance ligado
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: correções da auditoria do repositório que o Dudu pediu em 06/11/2026.
+- Registrado por: Claude
+- Contexto: só o Postgres e o identity tinham `healthcheck` no Compose, e o `esperar_saude` do `deploy/atualizar.sh` aprovava os outros só por estarem no ar, mesmo sem responder. E o banking (perfil `open-finance`) nunca era atualizado pelo deploy.
+- Decisão: finance, rewards, lifestyle, media, banking e gateway ganham o mesmo healthcheck do identity (`wget` no `/actuator/health`). Com `PIGGU_OPEN_FINANCE=true` no `backend/.env`, o deploy sobe também o perfil `open-finance` e compila a imagem do banking no próprio servidor, porque o CI não a publica.
+- Alternativas: publicar a imagem do banking no CI, que custa um build a mais em todo merge enquanto o Open Finance está desligado.
+- Consequências: com o Open Finance ligado, cada deploy leva o tempo de compilar o banking no servidor. Se o CI passar a publicar a imagem dele, ela entra em `SERVICOS_DO_APP` e o build no servidor sai.
+- Onde ver: `backend/docker-compose.yml`, `deploy/atualizar.sh` (`publicar`, `esperar_saude`)
