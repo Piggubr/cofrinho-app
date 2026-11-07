@@ -64,7 +64,7 @@
     <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
     <!-- Guava 33.7.2+: GHSA-xxph-c9ww-hj94 (revisao de 27/10/2026). Vem pelo
          google-auth-library do media; tirar quando ele trouxer esta versao ou maior. -->
-    <guava.version>33.7.2-jre</guava.version>
+    <guava.version>33.8.0-jre</guava.version>
     <!-- Piso padrao de cobertura; cada modulo sobe o seu. -->
     <cobertura.linhas>0.00</cobertura.linhas>
     <cobertura.ramos>0.00</cobertura.ramos>
