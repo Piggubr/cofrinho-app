@@ -43,7 +43,7 @@
          para todos os modulos; 1.43 e aceita por Docker 20.10 em diante. -->
     <docker.api.version>1.43</docker.api.version>
     <jacoco.version>0.8.13</jacoco.version>
-    <checkstyle.version>14.3.0</checkstyle.version>
+    <checkstyle.version>14.4.0</checkstyle.version>
     <!-- Gera o contrato da API (docs/api) a partir dos controllers. A linha 3.0 e a do
          Spring Boot 4.0 (a 3.1 em diante ja e compilada contra o Boot 4.1). So liga no
          perfil dev e nos testes: em producao /v3/api-docs e o Swagger UI ficam desligados. -->
