@@ -4,6 +4,18 @@ import Testing
 
 /// JSON no formato que o backend devolve (records do Spring serializados pelo Jackson).
 struct ModelosTests {
+    @Test func mesmoPedidoRepeteOIdDoEnvioECampoMudadoGeraOutro() {
+        let pedido = NovoLancamento(data: "2026-11-06", origem: "Manual",
+                                    itens: [ItemDeGasto(item: "Pão", categoria: nil, valor: 7)])
+        let primeiro = pedido.comIdDoEnvio(repetindo: nil)
+        #expect(primeiro.idDoEnvio != nil)
+        #expect(pedido.comIdDoEnvio(repetindo: primeiro).idDoEnvio == primeiro.idDoEnvio)
+
+        let outroValor = NovoLancamento(data: "2026-11-06", origem: "Manual",
+                                        itens: [ItemDeGasto(item: "Pão", categoria: nil, valor: 8)])
+        #expect(outroValor.comIdDoEnvio(repetindo: primeiro).idDoEnvio != primeiro.idDoEnvio)
+    }
+
     private let decodificador = JSONDecoder()
 
     @Test func decodificaParDeTokensComPerfilCompleto() throws {

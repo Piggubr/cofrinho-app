@@ -57,6 +57,28 @@ struct FilaDeGastosTests {
         #expect(fila.pendentes == 0)
     }
 
+    @Test func cartaoApagadoNoSiteSaiDaFilaComoRecusado() async {
+        let transporte = TransporteRoteirizado([
+            (404, #"{"erro":"Conta ou cartao nao encontrado.","codigo":"NotFoundException"}"#), (201, "[]"),
+        ])
+        let fila = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: transporte), soNaMemoria: true)
+        fila.usuario = "u1"
+        fila.guardar(pedido("NoCartaoApagado"), agora: Date(timeIntervalSince1970: 1))
+        fila.guardar(pedido("Certo"), agora: Date(timeIntervalSince1970: 2))
+
+        #expect(await fila.enviar() == 1)
+        #expect(fila.recusados == 1)
+        #expect(fila.pendentes == 0)
+
+        // 404 sem o codigo (proxy, rota que nao existe) segue parando a fila.
+        let proxy = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: TransporteRoteirizado([(404, "")])),
+                                 soNaMemoria: true)
+        proxy.usuario = "u1"
+        proxy.guardar(pedido("Pão"))
+        #expect(await proxy.enviar() == 0)
+        #expect(proxy.pendentes == 1)
+    }
+
     @Test func semRedeOuServidorForaGuardaTudo() async {
         let semRede = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: TransporteSemRede()), soNaMemoria: true)
         semRede.usuario = "u1"

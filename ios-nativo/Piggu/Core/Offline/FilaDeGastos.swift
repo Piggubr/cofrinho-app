@@ -74,7 +74,9 @@ final class FilaDeGastos {
             do {
                 _ = try await cliente.lancarGastos(pedido)
                 enviados += 1
-            } catch ErroDaAPI.servidor(status: 400, _, _), ErroDaAPI.servidor(status: 422, _, _) {
+            } catch ErroDaAPI.servidor(status: 400, _, _), ErroDaAPI.servidor(status: 422, _, _),
+                    ErroDaAPI.servidor(status: 404, _, codigo: "NotFoundException") {
+                // 404 do Piggu: o cartao ou a conta foi apagado e o gasto nunca vai passar (D-147).
                 recusados += 1
             } catch {
                 break
