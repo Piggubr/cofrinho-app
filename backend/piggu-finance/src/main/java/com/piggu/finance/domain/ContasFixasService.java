@@ -177,6 +177,10 @@ public class ContasFixasService {
      */
     @Transactional
     public ExpenseResponse pagar(UUID id, YearMonth mes, UUID autor) {
+        // last_paid_month marca o mes e os anteriores: pagar dezembro em novembro daria novembro por pago sem gasto.
+        if (mes.isAfter(YearMonth.now(Meses.BRASILIA))) {
+            throw new BusinessException("Esse mês ainda não chegou.");
+        }
         RecurringBill conta = buscar(id);
         // Conferir e lancar separados deixava dois toques ao mesmo tempo lancarem duas vezes:
         // o UPDATE condicional trava a linha e so um passa.

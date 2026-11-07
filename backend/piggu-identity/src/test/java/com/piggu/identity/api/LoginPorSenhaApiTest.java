@@ -46,7 +46,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("cadastro responde 202 sem sessao (igual para e-mail repetido); a entrada devolve o refresh so no cookie")
+    @DisplayName("cadastro responde 202 sem sessao (igual para e-mail repetido com CPF livre); a entrada devolve o refresh so no cookie")
     void cadastroEEntrada() throws Exception {
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
@@ -68,7 +68,7 @@ class LoginPorSenhaApiTest extends PostgresIntegrationTest {
 
         mockMvc.perform(post("/api/auth/cadastro").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Api\",\"email\":\"api@exemplo.test\",\"senha\":\"cofrinho123\","
-                                + "\"pais\":\"BR\",\"documento\":\"111.444.777-35\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\",\"nascimento\":\"1990-05-20\"}"))
+                                + "\"pais\":\"BR\",\"documento\":\"529.982.247-25\",\"telefone\":\"11999998888\",\"versaoDosTermos\":\"" + Consentimentos.VERSAO_DO_AVISO + "\",\"nascimento\":\"1990-05-20\"}"))
                 .andExpect(status().isAccepted());
         assertThat(usuarios.count()).isEqualTo(1);
     }

@@ -11,7 +11,7 @@ class RetornoDoBancoTest {
     @Test
     fun `le o item, o erro ou o fechou`() {
         assertEquals(ResultadoDoBanco.Conectado("item 1"), lerVoltaDoBanco("piggu://banco-conectado?item=item%201"))
-        assertEquals(ResultadoDoBanco.Falhou("Senha errada."), lerVoltaDoBanco("piggu://banco-conectado?erro=Senha%20errada."))
+        assertEquals(ResultadoDoBanco.Falhou, lerVoltaDoBanco("piggu://banco-conectado?erro=Senha%20errada."))
         assertEquals(ResultadoDoBanco.Fechou, lerVoltaDoBanco("piggu://banco-conectado?fechou=1"))
         assertEquals(ResultadoDoBanco.Fechou, lerVoltaDoBanco("piggu://banco-conectado?item="))
     }

@@ -43,8 +43,12 @@ public class AssetService {
         this.limiteDaFamiliaMb = limiteDaFamiliaMb;
     }
 
-    /** @param mimeType o que o cliente diz; so informativo, o tipo gravado sai dos bytes */
-    @Transactional
+    /**
+     * Sem transacao em volta (D-074): o Drive e chamado de fora. Se o registro nao grava, o
+     * arquivo sai, para nao ficar ocupando a cota sem dono.
+     *
+     * @param mimeType o que o cliente diz; so informativo, o tipo gravado sai dos bytes
+     */
     public Asset guardar(String imageBase64, String mimeType, String contexto, String pasta, UUID usuarioId) {
         byte[] conteudo = decodificar(imageBase64);
 
@@ -65,7 +69,16 @@ public class AssetService {
         String nome = UUID.randomUUID() + extensao(tipo);
 
         String idNoProvedor = armazenamento.guardar(nome, tipo, conteudo, pasta);
-        return repositorio.save(new Asset(idNoProvedor, tipo, conteudo.length, rotulo, usuarioId));
+        try {
+            return repositorio.save(new Asset(idNoProvedor, tipo, conteudo.length, rotulo, usuarioId));
+        } catch (RuntimeException erro) {
+            try {
+                armazenamento.apagar(idNoProvedor);
+            } catch (RuntimeException naoApagou) {
+                erro.addSuppressed(naoApagou);
+            }
+            throw erro;
+        }
     }
 
     /** @param quem quem pede; foto privada de outra pessoa responde como inexistente */

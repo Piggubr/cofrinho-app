@@ -2143,6 +2143,9 @@ components:
     ExtratoRequest:
       type: object
       properties:
+        contaId:
+          type: string
+          format: uuid
         conteudo:
           type: string
           maxLength: 2000000
@@ -2314,6 +2317,9 @@ components:
     LinhasRequest:
       type: object
       properties:
+        contaId:
+          type: string
+          format: uuid
         linhas:
           type: array
           items:

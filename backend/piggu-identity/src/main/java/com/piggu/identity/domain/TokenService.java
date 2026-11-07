@@ -69,8 +69,11 @@ public class TokenService {
         return gerar(conta, familia, Duration.ofMinutes(5), EscopoDeExclusao.MUDAR, destino);
     }
 
-    /** Token de cinco minutos para o lembrete diario ler os avisos da pessoa no financeiro. */
-    public String gerarTokenDoLembrete(UserAccount conta, Household familia) {
+    /**
+     * Token de cinco minutos para o identity ler os dados da pessoa nos outros servicos (o
+     * lembrete diario e a exportacao). Sem a claim {@code cadastro}: vale com o cadastro pela metade.
+     */
+    public String gerarTokenInterno(UserAccount conta, Household familia) {
         return gerar(conta, familia, Duration.ofMinutes(5), null);
     }
 
@@ -151,7 +154,8 @@ public class TokenService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    public String hash(String token) {
+    /** SHA-256 em hexa: o que se grava no lugar de um token, e o nonce do Entrar com Apple. */
+    public static String hash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));

@@ -171,6 +171,44 @@ struct ClienteDaAPITests {
         #expect(cofre.ler() == "r1")
     }
 
+    @Test func servidorForaNaRenovacaoNaoEncerraASessao() async throws {
+        let cofre = CofreDeTeste("r1")
+        let transporte = TransporteRoteirizado([(401, ""), (503, "")])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte, cofre: cofre)
+        let perdeu = Sinal()
+        await cliente.configurar(aoRenovar: { _ in }, aoPerderSessao: { await perdeu.marcar() })
+
+        await #expect(throws: ErroDaAPI.servidor(status: 503, mensagem: nil)) { _ = try await cliente.listarCategorias() }
+        #expect(await !perdeu.marcado)
+        #expect(cofre.ler() == "r1")
+    }
+
+    @Test func refreshRecusadoCom403TambemEncerraASessao() async throws {
+        let cofre = CofreDeTeste("r1")
+        let transporte = TransporteRoteirizado([(401, ""), (403, #"{"erro":"Esta conta foi desativada."}"#)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte, cofre: cofre)
+        let perdeu = Sinal()
+        await cliente.configurar(aoRenovar: { _ in }, aoPerderSessao: { await perdeu.marcar() })
+
+        await #expect(throws: ErroDaAPI.sessaoEncerrada) { _ = try await cliente.listarCategorias() }
+        #expect(await perdeu.marcado)
+        #expect(cofre.ler() == nil)
+    }
+
+    @Test func sairDuranteARenovacaoNaoTrazASessaoDeVolta() async throws {
+        let cofre = CofreDeTeste("r1")
+        let transporte = SaiNoMeioDaRenovacao()
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte, cofre: cofre)
+        await transporte.ligar(cliente)
+        let renovou = Sinal()
+        await cliente.configurar(aoRenovar: { _ in await renovou.marcar() }, aoPerderSessao: {})
+
+        await #expect(throws: ErroDaAPI.sessaoEncerrada) { try await cliente.renovar() }
+        #expect(await !cliente.temToken)
+        #expect(cofre.ler() == nil)
+        #expect(await !renovou.marcado)
+    }
+
     @Test func sairMandaORefreshNoCorpoEEsqueceTudo() async throws {
         let cofre = CofreDeTeste("r1")
         let transporte = TransporteRoteirizado([(204, "")])
@@ -200,6 +238,21 @@ private actor SemRedeDepoisDe: Transporte {
         guard restantes > 0 else { throw URLError(.notConnectedToInternet) }
         restantes -= 1
         return try await transporte.enviar(pedido)
+    }
+}
+
+/// Responde o refresh com tokens novos, mas a pessoa sai antes de a resposta chegar ao cliente.
+private actor SaiNoMeioDaRenovacao: Transporte {
+    private var cliente: ClienteDaAPI?
+
+    func ligar(_ cliente: ClienteDaAPI) {
+        self.cliente = cliente
+    }
+
+    func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        await cliente?.esquecerTokens()
+        let resposta = HTTPURLResponse(url: pedido.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+        return (Data(tokens(access: "a2", refresh: "r2").utf8), resposta)
     }
 }
 

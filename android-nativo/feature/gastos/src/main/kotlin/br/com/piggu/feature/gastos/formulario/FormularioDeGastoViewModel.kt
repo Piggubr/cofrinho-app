@@ -183,6 +183,9 @@ class FormularioDeGastoViewModel @Inject constructor(
     // A última conta usada vira a padrão do próximo lançamento, neste aparelho (piggu_conta_padrao do site).
     private val preferencias = contexto.getSharedPreferences("piggu_formulario_de_gasto", Context.MODE_PRIVATE)
     private var proximaChave = 1
+
+    /** O último pedido enviado: tocar "Lançar" de novo sem mudar nada repete o idDoEnvio. */
+    private var ultimoEnvio: NovoLancamento? = null
     private var buscaDaCotacao: Job? = null
 
     init {
@@ -356,9 +359,8 @@ class FormularioDeGastoViewModel @Inject constructor(
             dividirCom = atual.dividirCom.ifEmpty { null },
             recorrente = true.takeIf { atual.modo == ModoDaCompra.RECORRENTE },
             compartilhado = atual.compartilhadoEfetivo,
-            // Sem resposta o servidor pode ter gravado: a fila reenvia com o mesmo id.
-            idDoEnvio = UUID.randomUUID().toString(),
-        )
+        ).comIdDoEnvio(ultimoEnvio)
+        ultimoEnvio = pedido
         estadoAtual.update { it.copy(salvando = true, erro = null) }
         viewModelScope.launch {
             if (atual.semInternet) return@launch guardarNaFila(pedido)
@@ -400,6 +402,8 @@ class FormularioDeGastoViewModel @Inject constructor(
 
     /** Fica a data, a moeda, a conta e a categoria do primeiro item, para o próximo. */
     private fun limpar(aviso: AvisoDoLancamento) {
+        // Lançou (ou guardou na fila): um gasto igual depois é outro gasto.
+        ultimoEnvio = null
         val atual = estadoAtual.value
         preferencias.edit { if (atual.contaId.isEmpty()) remove(CONTA_PADRAO) else putString(CONTA_PADRAO, atual.contaId) }
         estadoAtual.update {
@@ -540,3 +544,10 @@ internal fun faturaDaCompra(fechamento: Int, vencimento: Int, compra: LocalDate)
     val doVencimento = if (vencimento > fechamento) daFatura else daFatura.plusMonths(1)
     return daFatura.toString() to doVencimento.atDay(minOf(vencimento, doVencimento.lengthOfMonth())).toString()
 }
+
+/**
+ * Sem resposta (5xx, tempo esgotado) o servidor pode ter gravado: o mesmo pedido de novo leva o
+ * mesmo id e não duplica. Mudou algum campo, é outro envio, com id novo.
+ */
+internal fun NovoLancamento.comIdDoEnvio(anterior: NovoLancamento?): NovoLancamento =
+    copy(idDoEnvio = anterior?.takeIf { it.copy(idDoEnvio = null) == this }?.idDoEnvio ?: UUID.randomUUID().toString())

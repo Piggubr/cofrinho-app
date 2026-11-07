@@ -231,6 +231,7 @@ erDiagram
 | `plan_kind` | texto(20) | sim (padrão `INDIVIDUAL`) | `INDIVIDUAL`, `CASAL` ou `FAMILIA` |
 | `subscriber_id` | uuid | não | Conta que assinou (`users.id`) |
 | `billing_event_at` | timestamptz | não | Momento do último aviso do provedor aplicado; aviso mais velho que este é ignorado |
+| `stripe_subscription_id` | texto(255) | não | Assinatura da Stripe que deu o Premium (V41); o fim de outra assinatura do cliente é ignorado |
 
 ### `users` — conta de uma pessoa
 
@@ -346,7 +347,7 @@ Cada item de um lançamento é uma linha. Um gasto parcelado é uma linha por pa
 | `account_id` | uuid | não | Conta ou cartão que pagou (`payment_accounts`); vira nulo se a conta for apagada |
 | `installment_number`, `installment_count` | smallint | não | Parcela N de M (2 a 48); os dois nulos à vista |
 | `original_currency`, `original_amount` | texto(3), numeric(12,2) | não | Moeda e valor da compra feita em outra moeda; os dois juntos ou nenhum |
-| `external_id` | texto(120) | não | Id do lançamento no extrato importado; único por família e pessoa, evita importar duas vezes |
+| `external_id` | texto(120) | não | Id do lançamento no extrato importado; único por família, pessoa e conta (V27), evita importar duas vezes no mesmo cartão |
 
 ### `expense_shares` — parte de cada pessoa num gasto dividido
 

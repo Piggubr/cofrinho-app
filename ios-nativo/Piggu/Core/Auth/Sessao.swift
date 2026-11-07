@@ -63,7 +63,7 @@ final class Sessao {
         do {
             let tokens = try await cliente.renovar()
             entrou(tokens.usuario)
-        } catch ErroDaAPI.servidor(status: 401, _, _) {
+        } catch let ErroDaAPI.servidor(status, _, _) where status == 401 || status == 403 {
             saiu()
         } catch ErroDaAPI.semConexao where guardado == nil {
             estado = .deslogado

@@ -34,6 +34,9 @@
 # Com PIGGU_OBSERVABILIDADE=true no backend/.env, sobe tambem o monitoramento (perfil
 # observabilidade: Grafana, Prometheus, Loki) e o reinicia quando a configuracao dele muda.
 # Um problema no monitoramento nunca reprova o deploy: so os servicos do app contam.
+#
+# Com PIGGU_OPEN_FINANCE=true no backend/.env, atualiza tambem o banking (perfil open-finance).
+# O CI nao publica a imagem dele: ela e compilada aqui.
 set -euo pipefail
 
 RAMO=${PIGGU_RAMO:-main}
@@ -143,10 +146,14 @@ publicar() {
   de=$(git rev-parse HEAD)
   git checkout --quiet -B "$RAMO" "$alvo" || return 1
 
-  local perfis=(--profile producao) monitoramento=false
+  local perfis=(--profile producao) monitoramento=false banking=false
   if grep -qE '^PIGGU_OBSERVABILIDADE=(true|sim|1)[[:space:]]*$' backend/.env 2> /dev/null; then
     perfis+=(--profile observabilidade)
     monitoramento=true
+  fi
+  if grep -qE '^PIGGU_OPEN_FINANCE=(true|sim|1)[[:space:]]*$' backend/.env 2> /dev/null; then
+    perfis+=(--profile open-finance)
+    banking=true
   fi
   # O docker-compose.yml monta o nome de cada imagem com estas duas.
   export PIGGU_IMAGENS=$REGISTRO PIGGU_VERSAO=$alvo
@@ -156,6 +163,10 @@ publicar() {
     echo "==> Sem as imagens conferidas; compilando aqui"
     (cd frontend && npm ci --no-audit --no-fund --loglevel=error && npm run build) || return 1
     (cd backend && docker compose "${perfis[@]}" build "${SERVICOS_DO_APP[@]}") || return 1
+  fi
+  if $banking; then
+    echo "==> Compilando o banking aqui (o CI nao publica a imagem dele)"
+    (cd backend && docker compose "${perfis[@]}" build banking) || return 1
   fi
 
   echo "==> Subindo os servicos"
@@ -235,8 +246,9 @@ esperar_saude() {
   echo "==> Esperando os servicos ficarem saudaveis"
   local estado
   for _ in $(seq 1 60); do
-    # So os servicos do app; o monitoramento (perfil observabilidade) fica de fora.
-    estado=$(cd backend && docker compose --profile producao ps --format '{{.Service}} {{.State}} {{.Health}}') || true
+    # So os servicos do app (com o banking, se estiver no ar); o monitoramento fica de fora.
+    estado=$(cd backend && docker compose --profile producao --profile open-finance ps \
+      --format '{{.Service}} {{.State}} {{.Health}}') || true
     estado=$(grep -vE "^($MONITORAMENTO) " <<< "$estado" || true)
     if [[ -n $estado ]] && ! grep -qE ' (created|restarting|exited|dead)| (starting|unhealthy)$' <<< "$estado"; then
       echo "$estado"

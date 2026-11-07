@@ -2,6 +2,7 @@ package com.piggu.finance.api.dto;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,7 @@ public record UpdateExpenseRequest(
         @NotNull(message = "Digite o valor.")
         @DecimalMin(value = "0", message = "O valor nao pode ser negativo.")
         @DecimalMax(value = "1000000", message = "O valor e alto demais.")
+        @Digits(integer = 7, fraction = 2, message = "O valor tem centavos demais.")
         BigDecimal valor,
 
         Boolean compartilhado
