@@ -141,8 +141,10 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
             assertThatThrownBy(() -> auth.cadastrar("Outra", email, SENHA, "BR", CPF, CELULAR,
                     Consentimentos.VERSAO_DO_AVISO, ADULTO))
                     .as(email)
-                    .isInstanceOfSatisfying(BusinessException.class,
-                            erro -> assertThat(erro.getCodigo()).isEqualTo("CPF_EM_USO"));
+                    .isInstanceOfSatisfying(BusinessException.class, erro -> {
+                        assertThat(erro.getCodigo()).isEqualTo("CPF_EM_USO");
+                        assertThat(erro.getMessage()).contains("Se ela é sua, entre ou recupere a senha");
+                    });
         }
         assertThat(usuarios.count()).isEqualTo(1);
     }
@@ -483,7 +485,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> auth.cadastrar("Outra", "outra@exemplo.test", SENHA, "BR", "52998224725",
                 CELULAR, Consentimentos.VERSAO_DO_AVISO, ADULTO))
-                .isInstanceOf(BusinessException.class).hasMessageContaining("já está em outra conta");
+                .isInstanceOf(BusinessException.class).hasMessageContaining("Esse CPF já tem uma conta no Piggu");
         assertThat(usuarios.findByEmail("outra@exemplo.test")).isEmpty();
     }
 
