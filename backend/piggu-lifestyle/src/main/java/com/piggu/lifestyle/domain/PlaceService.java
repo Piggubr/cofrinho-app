@@ -40,7 +40,7 @@ public class PlaceService {
         return repositorio.findAllByOrderByVisitDateDesc().stream().map(PlaceResponse::de).toList();
     }
 
-    @Transactional
+    /** Sem transacao em volta do envio da foto ao media (D-074); o save grava na dele. */
     public PlaceResponse criar(PlaceRequest pedido, UUID usuarioId) {
         Place lugar = new Place(
                 Texto.limitar(pedido.nome(), 120),
@@ -61,7 +61,7 @@ public class PlaceService {
         return PlaceResponse.de(repositorio.save(lugar));
     }
 
-    @Transactional
+    /** Como {@link #criar}: o media e chamado fora de transacao. */
     public PlaceResponse atualizar(UUID id, PlaceRequest pedido, CurrentUser usuario) {
         Place lugar = buscar(id);
 
@@ -80,14 +80,17 @@ public class PlaceService {
                 pedido.valor() == null ? BigDecimal.ZERO : pedido.valor()
         );
 
-        if (temFoto(pedido)) {
-            UUID anterior = lugar.getPhotoAssetId();
+        UUID anterior = lugar.getPhotoAssetId();
+        boolean trocouFoto = temFoto(pedido);
+        if (trocouFoto) {
             lugar.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
-            // A foto antiga so sai depois que a nova entrou, para nao ficar sem nenhuma.
+        }
+        Place salvo = repositorio.save(lugar);
+        // A foto antiga so sai depois que o lugar gravou com a nova: se gravar falha, ele fica com a antiga.
+        if (trocouFoto) {
             media.apagar(anterior);
         }
-
-        return PlaceResponse.de(repositorio.save(lugar));
+        return PlaceResponse.de(salvo);
     }
 
     @Transactional

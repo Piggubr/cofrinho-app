@@ -44,7 +44,7 @@ class PlaceServiceTest extends PostgresIntegrationTest {
     @Autowired
     private PlaceService lugares;
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     private PlaceRepository repositorio;
 
     @MockitoBean
@@ -108,6 +108,20 @@ class PlaceServiceTest extends PostgresIntegrationTest {
         InOrder ordem = inOrder(media);
         ordem.verify(media).enviar("Yg==", "image/png", "LUGAR");
         ordem.verify(media).apagar(antiga);
+    }
+
+    @Test
+    @DisplayName("se o lugar nao grava com a foto nova, a antiga fica")
+    void fotoAntigaFicaSeNaoGravar() {
+        UUID antiga = UUID.randomUUID();
+        when(media.enviar(any(), any(), eq("LUGAR"))).thenReturn(antiga, UUID.randomUUID());
+        PlaceResponse lugar = lugares.criar(pedido("Praia", null, null, List.of(), "YQ=="), TITULAR);
+        org.mockito.Mockito.doThrow(new IllegalStateException("banco fora")).when(repositorio).save(any());
+
+        assertThatThrownBy(() -> lugares.atualizar(lugar.id(), pedido("Praia", null, null, List.of(), "Yg=="),
+                dono(TITULAR))).isInstanceOf(IllegalStateException.class);
+
+        verify(media, never()).apagar(antiga);
     }
 
     @Test
