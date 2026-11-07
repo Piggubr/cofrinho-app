@@ -65,7 +65,8 @@ public class ExpenseController {
 
     public record ExtratoRequest(
             @NotBlank(message = "O arquivo esta vazio.")
-            @Size(max = 2_000_000, message = "Arquivo grande demais (maximo 2 MB).") String conteudo) {
+            @Size(max = 2_000_000, message = "Arquivo grande demais (maximo 2 MB).") String conteudo,
+            UUID contaId) {
     }
 
     public record LinhaRequest(
@@ -93,12 +94,13 @@ public class ExpenseController {
     @Operation(summary = "Prévia da importação de extrato (OFX ou CSV)")
     @PostMapping("/import/preview")
     public List<ExpenseService.LinhaDaPrevia> previa(@Valid @RequestBody ExtratoRequest pedido) {
-        return servico.previaDoExtrato(pedido.conteudo());
+        return servico.previaDoExtrato(pedido.conteudo(), pedido.contaId());
     }
 
     public record LinhasRequest(
             @NotEmpty(message = "Nenhum lancamento para revisar.")
-            @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas) {
+            @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas,
+            UUID contaId) {
     }
 
     /** Previa de linhas ja separadas (gastos lidos do banco conectado), sem gravar. */
@@ -107,7 +109,7 @@ public class ExpenseController {
     public List<ExpenseService.LinhaDaPrevia> previaDeLinhas(@Valid @RequestBody LinhasRequest pedido) {
         return servico.previa(pedido.linhas().stream()
                 .map(l -> new LeitorDeExtrato.Linha(l.data(), l.descricao(), l.valor(), l.idExterno()))
-                .toList());
+                .toList(), pedido.contaId());
     }
 
     /** Grava as linhas escolhidas; as ja importadas sao puladas pelo id externo. */

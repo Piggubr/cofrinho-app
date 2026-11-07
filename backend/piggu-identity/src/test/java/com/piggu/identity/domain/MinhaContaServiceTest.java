@@ -338,7 +338,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     void reaceiteDosTermos() {
         titular.aceitarTermos("2026-09");
         usuarios.save(titular);
-        assertThat(contas.exportar(como(titular), "token")).extractingByKey("conta")
+        assertThat(contas.exportar(como(titular))).extractingByKey("conta")
                 .extracting("termosAceitos").isEqualTo("2026-09");
 
         assertThatThrownBy(() -> contas.aceitarTermos(titular.getId(), "2026-09"))
@@ -360,7 +360,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
         assertThat(salvo.temCpf()).isTrue();
         assertThat(salvo.getCpfCifrado()).doesNotContain("52998224725");
-        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("cpf")
+        assertThat(contas.exportar(como(salvo))).extractingByKey("cpf")
                 .asString().contains("529.982.247-25");
     }
 
@@ -392,7 +392,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
 
         UserAccount salvo = usuarios.findById(titular.getId()).orElseThrow();
         assertThat(contas.informarPais(titular.getId(), "ES", null).cpfInformado()).isTrue();
-        assertThat(contas.exportar(como(salvo), "token")).extractingByKey("documento")
+        assertThat(contas.exportar(como(salvo))).extractingByKey("documento")
                 .asString().contains("12345678Z", "ES_DNI");
     }
 
@@ -439,11 +439,26 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
         aparelhos.registrar(titular.getId(), token, "IOS");
         avisosEnviados.marcar(titular.getId(), java.util.List.of("fatura:2026-10"));
 
-        java.util.Map<String, Object> arquivo = contas.exportar(como(titular), "token");
+        java.util.Map<String, Object> arquivo = contas.exportar(como(titular));
 
         assertThat(arquivo.get("aparelhosQueRecebemAvisos")).asString().contains("IOS", "...ababab")
                 .doesNotContain(token);
         assertThat(arquivo.get("avisosEnviados")).asString().contains("fatura:2026-10");
+    }
+
+    @Test
+    @DisplayName("cadastro pela metade exporta: os servicos recebem um token sem cadastro=false")
+    void exportaComCadastroIncompleto() {
+        assertThat(titular.cadastroIncompleto()).isTrue();
+
+        contas.exportar(como(titular));
+
+        ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
+        verify(cascata).exportar(token.capture());
+        Jwt jwt = decoder.decode(token.getValue());
+        assertThat(jwt.getSubject()).isEqualTo(titular.getId().toString());
+        assertThat(jwt.hasClaim(com.piggu.common.security.CurrentUserArgumentResolver.JwtClaims.CLAIM_CADASTRO))
+                .isFalse();
     }
 
     private static CurrentUser como(UserAccount conta) {

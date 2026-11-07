@@ -113,6 +113,24 @@ class FeedServiceTest extends PostgresIntegrationTest {
         assertThatThrownBy(() -> feed.legendar(foto.id(), "x", outra)).isInstanceOf(ForbiddenException.class);
     }
 
+    @Test
+    @DisplayName("registro do feed que nao grava leva a foto junto")
+    void fotoSaiSeOFeedNaoGrava() {
+        FeedPhotoRepository semBanco = org.mockito.Mockito.mock(FeedPhotoRepository.class);
+        AssetService fotos = org.mockito.Mockito.mock(AssetService.class);
+        Asset asset = new Asset("arquivo-1", "image/png", 5, "FEED", TITULAR.id());
+        org.mockito.BDDMockito.given(fotos.guardar(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .willReturn(asset);
+        org.mockito.BDDMockito.given(semBanco.save(org.mockito.ArgumentMatchers.any()))
+                .willThrow(new IllegalStateException("banco fora"));
+
+        assertThatThrownBy(() -> new FeedService(semBanco, fotos).publicar(
+                new FeedPhotoRequest("2026-09", "aGVsbG8=", "image/png"), TITULAR.id()))
+                .isInstanceOf(IllegalStateException.class);
+        org.mockito.Mockito.verify(fotos).apagarInterno(asset);
+    }
+
     private FeedPhotoResponse publicar(String mesKey) {
         return feed.publicar(new FeedPhotoRequest(
                 mesKey, Base64.getEncoder().encodeToString(new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 1}), "image/png"), TITULAR.id());

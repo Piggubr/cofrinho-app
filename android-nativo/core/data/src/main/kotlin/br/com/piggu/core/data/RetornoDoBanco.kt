@@ -12,7 +12,8 @@ import javax.inject.Singleton
 sealed interface ResultadoDoBanco {
     data class Conectado(val item: String) : ResultadoDoBanco
     data object Fechou : ResultadoDoBanco
-    data class Falhou(val mensagem: String) : ResultadoDoBanco
+    /** O `?erro=` vem num link que qualquer app ou página pode abrir: o texto dele não chega à tela. */
+    data object Falhou : ResultadoDoBanco
 }
 
 /**
@@ -50,7 +51,7 @@ fun lerVoltaDoBanco(link: String): ResultadoDoBanco? {
     val erro = consulta["erro"]
     return when {
         !item.isNullOrBlank() -> ResultadoDoBanco.Conectado(item)
-        erro != null -> ResultadoDoBanco.Falhou(erro)
+        erro != null -> ResultadoDoBanco.Falhou
         else -> ResultadoDoBanco.Fechou
     }
 }

@@ -527,11 +527,11 @@ data class LinhaParaImportar(
 
 /** ExtratoRequest: o OFX ou CSV como texto. */
 @Serializable
-data class PedidoDeExtrato(val conteudo: String)
+data class PedidoDeExtrato(val conteudo: String, val contaId: String? = null)
 
 /** LinhasRequest. */
 @Serializable
-data class PedidoDeLinhas(val linhas: List<LinhaParaImportar>)
+data class PedidoDeLinhas(val linhas: List<LinhaParaImportar>, val contaId: String? = null)
 
 /** ImportRequest. */
 @Serializable

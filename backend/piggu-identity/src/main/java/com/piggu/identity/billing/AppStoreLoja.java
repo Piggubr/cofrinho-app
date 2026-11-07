@@ -118,7 +118,7 @@ public class AppStoreLoja {
                 momento == null ? Instant.now() : Instant.ofEpochMilli(momento),
                 instante(compra.getOriginalPurchaseDate()),
                 compra.getOfferDiscountType() == OfferDiscountType.FREE_TRIAL,
-                TipoDePlano.doProduto(compra.getProductId()), null, null, null);
+                TipoDePlano.doProduto(compra.getProductId()), null, null, null, null);
     }
 
     private interface Conferencia<T> {

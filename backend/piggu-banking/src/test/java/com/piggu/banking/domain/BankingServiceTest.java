@@ -126,6 +126,38 @@ class BankingServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("item que a Pluggy ja apagou sai na sincronizacao e nao derruba os outros bancos")
+    void sincronizaComItemApagado() {
+        item("item-m", titular, "Nubank");
+        when(pluggy.listarContas("item-m")).thenReturn(List.of(conta("cm", "Morta", "1.00")));
+        servico.registrar("item-m", titular);
+        item("item-v", titular, "Inter");
+        when(pluggy.listarContas("item-v")).thenReturn(List.of(conta("cv", "Viva", "2.00")));
+        servico.registrar("item-v", titular);
+
+        when(pluggy.buscarItem("item-m")).thenThrow(new NotFoundException("sumiu"));
+        List<BankAccountResponse> contas = servico.sincronizarTudo(titular);
+
+        assertThat(contas).extracting(BankAccountResponse::nome).containsExactly("Viva");
+        assertThat(conexoes.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("gastos do banco: conta que a Pluggy ja nao tem fica de fora e as outras seguem")
+    void gastosComContaApagada() {
+        item("item-x", titular, "Nubank");
+        when(pluggy.listarContas("item-x")).thenReturn(List.of(conta("cx1", "Morta", "1"), conta("cx2", "Viva", "1")));
+        servico.registrar("item-x", titular);
+        LocalDate desde = LocalDate.now().minusDays(10);
+        when(pluggy.listarTransacoes("cx1", desde)).thenThrow(new NotFoundException("sumiu"));
+        when(pluggy.listarTransacoes("cx2", desde)).thenReturn(List.of(
+                transacao("v", desde.plusDays(1), "Padaria", "5", true, true)));
+
+        assertThat(servico.gastosDesde(desde, titular)).extracting(BankingService.GastoDoBanco::idExterno)
+                .containsExactly("pluggy:v");
+    }
+
+    @Test
     @DisplayName("cada usuario ve so as contas dos proprios bancos")
     void listaSoDoUsuario() {
         item("item-5", titular, "Nubank");

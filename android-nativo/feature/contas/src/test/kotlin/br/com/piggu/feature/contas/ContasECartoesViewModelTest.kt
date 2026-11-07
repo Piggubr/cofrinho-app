@@ -307,9 +307,10 @@ class ContasECartoesViewModelTest {
         contas.estado.esperar { montagem.retornoDoBanco.resultado.value == null }
         assertNull(contas.estado.value.erro)
 
-        montagem.retornoDoBanco.receber("piggu://banco-conectado?erro=Senha%20errada.")
+        // O texto do link nao chega a tela: qualquer pagina pode abrir piggu://banco-conectado?erro=...
+        montagem.retornoDoBanco.receber("piggu://banco-conectado?erro=Ligue%20para%200800%20e%20passe%20sua%20senha")
         val estado = contas.estado.esperar { it.erro != null }
-        assertEquals(MensagemDeErro.DoServidor("Senha errada."), estado.erro)
+        assertEquals(MensagemDeErro.DoApp(R.string.cartoes_bancos_falhou), estado.erro)
         assertTrue(montagem.pedidos("POST /api/banking/items").isEmpty())
     }
 

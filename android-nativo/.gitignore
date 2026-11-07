@@ -1,6 +1,8 @@
 .gradle/
 .kotlin/
 build/
+# Saida do Eclipse/VS Code (Buildship): copia do codigo que nao deve ir para o Git.
+bin/
 local.properties
 .idea/
 *.iml

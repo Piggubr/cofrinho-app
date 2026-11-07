@@ -354,7 +354,7 @@ class FormularioDeGastoViewModelTest {
     }
 
     @Test
-    fun `erro do servidor aparece e cada toque em Lancar leva um idDoEnvio novo`() = runTest {
+    fun `erro do servidor aparece e tocar Lancar de novo repete o idDoEnvio ate mudar um campo`() = runTest {
         val fixas = RespostasFixas("POST /api/expenses" to RespostasFixas.erro(500, "ERRO", "O servidor tropeçou."))
         val viewModel = abrir(fixas)
         viewModel.preencher("Pão", "7")
@@ -363,9 +363,14 @@ class FormularioDeGastoViewModelTest {
             viewModel.estado.esperar { !it.salvando && it.erro != null }
         }
         assertEquals(MensagemDeErro.DoServidor("O servidor tropeçou."), viewModel.estado.value.erro)
+        viewModel.preencher("Pão", "8")
+        viewModel.lancar()
+        viewModel.estado.esperar { !it.salvando && it.erro != null }
         val ids = fixas.lancados().map { it.idDoEnvio }
-        assertEquals(2, ids.size)
-        assertNotEquals(ids[0], ids[1])
+        assertEquals(3, ids.size)
+        // O 500 pode ter gravado: o mesmo pedido de novo não duplica. Com outro valor, é outro envio.
+        assertEquals(ids[0], ids[1])
+        assertNotEquals(ids[1], ids[2])
         assertTrue(fila.aguardando.value.isEmpty())
     }
 

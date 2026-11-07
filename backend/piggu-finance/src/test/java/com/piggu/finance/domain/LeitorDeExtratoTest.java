@@ -36,6 +36,21 @@ class LeitorDeExtratoTest {
     }
 
     @Test
+    @DisplayName("OFX: data com fuso vira o dia de Brasilia; sem fuso fica o dia escrito; data ruim e 400")
+    void dataDoOfx() {
+        assertThat(LeitorDeExtrato.diaDoOfx("20260910020000[0:GMT]")).isEqualTo(LocalDate.of(2026, 9, 9));
+        assertThat(LeitorDeExtrato.diaDoOfx("20260910020000.000[-3:BRT]")).isEqualTo(LocalDate.of(2026, 9, 10));
+        assertThat(LeitorDeExtrato.diaDoOfx("20260910230000[-3:BRT]")).isEqualTo(LocalDate.of(2026, 9, 10));
+        assertThat(LeitorDeExtrato.diaDoOfx("20260910")).isEqualTo(LocalDate.of(2026, 9, 10));
+        assertThat(LeitorDeExtrato.diaDoOfx("20260910000000")).isEqualTo(LocalDate.of(2026, 9, 10));
+        for (String ruim : new String[] {"", "2026", "20261340", "abc"}) {
+            assertThatThrownBy(() -> LeitorDeExtrato.diaDoOfx(ruim)).as(ruim).isInstanceOf(BusinessException.class);
+        }
+        String semData = OFX.replace("<DTPOSTED>20260910120000[-3:BRT]", "<DTPOSTED>");
+        assertThatThrownBy(() -> LeitorDeExtrato.ler(semData)).isInstanceOf(BusinessException.class);
+    }
+
+    @Test
     @DisplayName("CSV brasileiro com sinal: so negativos; duas compras iguais no dia ganham ids diferentes")
     void csvComSinal() {
         String csv = "Data;Histórico;Valor\n10/09/2026;Mercado;-1.234,56\n10/09/2026;Café;-5,00\n"
