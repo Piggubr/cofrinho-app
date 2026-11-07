@@ -54,6 +54,7 @@
     <string name="cartoes_bancos_desconectar">Desconectar</string>
     <string name="cartoes_bancos_desconectar_pergunta">Desconectar %1$s? O Piggu para de ler este banco e apaga os saldos guardados.</string>
     <string name="cartoes_bancos_conectar">Conectar banco</string>
+    <string name="cartoes_bancos_falhou">Não deu para conectar o banco. Tente de novo.</string>
     <string name="cartoes_bancos_atualizar">Atualizar saldos</string>
     <string name="cartoes_bancos_aguarde">Aguarde…</string>
 </resources>

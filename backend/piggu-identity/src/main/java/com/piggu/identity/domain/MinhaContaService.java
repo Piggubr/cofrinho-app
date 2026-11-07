@@ -51,8 +51,7 @@ public class MinhaContaService {
     private final AvisosEnviados avisosEnviados;
     private final TestesGratis testes;
     private final RevogacaoDaApple apple;
-
-
+    private final TokenService tokens;
     private final TentativasDeCpf tentativasDeCpf;
 
     public MinhaContaService(UserAccountRepository usuarios,
@@ -67,7 +66,9 @@ public class MinhaContaService {
                              AvisosEnviados avisosEnviados,
                              TestesGratis testes,
                              RevogacaoDaApple apple,
+                             TokenService tokens,
                              TentativasDeCpf tentativasDeCpf) {
+        this.tokens = tokens;
         this.tentativasDeCpf = tentativasDeCpf;
         this.testes = testes;
         this.apple = apple;
@@ -88,7 +89,7 @@ public class MinhaContaService {
      * cada servico tem. O titular leva a familia inteira; o membro, o que ele lancou.
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> exportar(CurrentUser usuario, String token) {
+    public Map<String, Object> exportar(CurrentUser usuario) {
         UserAccount conta = conta(usuario.id());
         Map<String, Object> arquivo = new LinkedHashMap<>();
         arquivo.put("geradoEm", Instant.now());
@@ -122,7 +123,8 @@ public class MinhaContaService {
         // O mesmo historico que a tela mostra a quem pede (D-154).
         arquivo.put("historicoDaFamilia", trilha.recentes(usuario.familia(), null, Integer.MAX_VALUE,
                 usuario.visiveis(), usuario.isResponsavel()));
-        Map<String, JsonNode> servicos = cascata.exportar(token);
+        // Token interno, sem a claim cadastro=false: exportar vale com o cadastro pela metade.
+        Map<String, JsonNode> servicos = cascata.exportar(tokens.gerarTokenInterno(conta, familia.daConta(conta)));
         arquivo.put("dados", servicos);
         log.info("Dados exportados: conta={} servicos={}", conta.getId(), servicos.keySet());
         return arquivo;
@@ -156,22 +158,31 @@ public class MinhaContaService {
      */
     @Transactional
     public void prenderCpf(UserAccount conta, Cpf cpf) {
-        tentativasDeCpf.exigirTentativa(conta.getId());
-        String indice = cofre.indice(cpf);
-        boolean deOutraConta = usuarios.findByCpfIndice(indice).stream()
-                .anyMatch(outra -> !outra.getId().equals(conta.getId()));
-        if (deOutraConta) {
-            tentativasDeCpf.recusado(conta.getId());
-            log.warn("CPF de outra conta recusado: conta={}", conta.getId());
-            throw new BusinessException(
-                    "Esse CPF já está em outra conta do Piggu. Se não foi você, fale com a gente pelo canal de privacidade.",
-                    HttpStatus.CONFLICT, "CPF_EM_USO");
-        }
+        String indice = exigirCpfLivre(conta.getId(), cpf);
         conta.informarCpf(cofre.cifrar(cpf), indice);
         usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
                 conta.getId(), null, "CPF informado");
         log.info("CPF informado: conta={}", conta.getId());
+    }
+
+    /**
+     * Recusa (409 {@code CPF_EM_USO}, com o limite da D-160) o CPF que ja esta em outra conta e
+     * devolve o indice dele. {@code conta} nula: o cadastro, que confere antes de ter conta.
+     */
+    public String exigirCpfLivre(UUID conta, Cpf cpf) {
+        tentativasDeCpf.exigirTentativa(conta);
+        String indice = cofre.indice(cpf);
+        boolean deOutraConta = usuarios.findByCpfIndice(indice).stream()
+                .anyMatch(outra -> !outra.getId().equals(conta));
+        if (deOutraConta) {
+            tentativasDeCpf.recusado(conta);
+            log.warn("CPF de outra conta recusado: conta={}", conta);
+            throw new BusinessException(
+                    "Esse CPF já está em outra conta do Piggu. Se não foi você, fale com a gente pelo canal de privacidade.",
+                    HttpStatus.CONFLICT, "CPF_EM_USO");
+        }
+        return indice;
     }
 
     /**

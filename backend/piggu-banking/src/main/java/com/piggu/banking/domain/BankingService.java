@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -44,9 +45,12 @@ public class BankingService {
     private final PluggyProperties propriedades;
     private final BankConnectionRepository conexoes;
     private final BankAccountRepository contas;
+    private final TransactionTemplate transacao;
 
     public BankingService(PluggyClient pluggy, PluggyProperties propriedades,
-                          BankConnectionRepository conexoes, BankAccountRepository contas) {
+                          BankConnectionRepository conexoes, BankAccountRepository contas,
+                          TransactionTemplate transacao) {
+        this.transacao = transacao;
         this.pluggy = pluggy;
         this.propriedades = propriedades;
         this.conexoes = conexoes;
@@ -61,17 +65,17 @@ public class BankingService {
         return new ConnectTokenResponse(pluggy.criarConnectToken(usuario.id().toString()), propriedades.sandbox());
     }
 
-    @Transactional
+    /** Sem transacao em volta das chamadas a Pluggy (D-074): so a gravacao no fim e uma. */
     public List<BankAccountResponse> registrar(String itemId, CurrentUser usuario) {
         PluggyClient.Item item = pluggy.buscarItem(itemId);
         if (!usuario.id().toString().equals(item.clientUserId())) {
             log.warn("Registro de item Pluggy de outra conta recusado: item={}", item.id());
             throw new ForbiddenException("Esta conexao bancaria nao foi feita pela sua conta.");
         }
+        List<PluggyClient.Conta> remotas = pluggy.listarContas(item.id());
 
-        BankConnection conexao = conexoes.findByPluggyItemId(item.id())
-                .orElseGet(() -> conexoes.save(new BankConnection(item.id(), usuario.id())));
-        sincronizar(conexao, item);
+        transacao.executeWithoutResult(status -> sincronizar(conexoes.findByPluggyItemId(item.id())
+                .orElseGet(() -> conexoes.save(new BankConnection(item.id(), usuario.id()))), item, remotas));
         return listar(usuario);
     }
 
@@ -126,7 +130,15 @@ public class BankingService {
         List<BankAccount> doUsuario = contas.listarDoUsuario(usuario.id());
         for (BankAccount conta : doUsuario) {
             String nome = conta.getConnection().getInstitution() + " · " + conta.getName();
-            for (PluggyClient.Transacao t : pluggy.listarTransacoes(conta.getPluggyAccountId(), desde)) {
+            List<PluggyClient.Transacao> transacoes;
+            try {
+                transacoes = pluggy.listarTransacoes(conta.getPluggyAccountId(), desde);
+            } catch (NotFoundException sumiu) {
+                // Conta que a Pluggy ja nao tem nao derruba as outras; a sincronizacao a tira daqui.
+                log.info("Conta ja nao existe na Pluggy: conta={}", conta.getId());
+                continue;
+            }
+            for (PluggyClient.Transacao t : transacoes) {
                 if (t.debito() && t.confirmada() && t.valor().signum() > 0) {
                     gastos.add(new GastoDoBanco(t.data(), Texto.limitar(t.descricao(), 200), t.valor(),
                             "pluggy:" + t.id(), nome, t.moeda()));
@@ -143,21 +155,33 @@ public class BankingService {
 
     // ponytail: le o que a Pluggy ja tem (ela atualiza sozinha todo dia). Forcar ida ao
     // banco agora exige PATCH /items/{id} e esperar o webhook; fazer quando pedirem.
-    @Transactional
+    // Cada conexao le a Pluggy fora de transacao (D-074) e grava na propria. Item que a Pluggy ja
+    // nao conhece (404) sai daqui, como no desconectar, e nao derruba os outros bancos.
     public List<BankAccountResponse> sincronizarTudo(CurrentUser usuario) {
         for (BankConnection conexao : conexoes.findByUserId(usuario.id())) {
-            sincronizar(conexao, pluggy.buscarItem(conexao.getPluggyItemId()));
+            PluggyClient.Item item;
+            List<PluggyClient.Conta> remotas;
+            try {
+                item = pluggy.buscarItem(conexao.getPluggyItemId());
+                remotas = pluggy.listarContas(item.id());
+            } catch (NotFoundException jaApagado) {
+                transacao.executeWithoutResult(status -> conexoes.findById(conexao.getId()).ifPresent(conexoes::delete));
+                log.info("Item ja nao existia na Pluggy; conexao apagada: conexao={}", conexao.getId());
+                continue;
+            }
+            transacao.executeWithoutResult(status -> conexoes.findById(conexao.getId())
+                    .ifPresent(atual -> sincronizar(atual, item, remotas)));
         }
         return listar(usuario);
     }
 
-    private void sincronizar(BankConnection conexao, PluggyClient.Item item) {
+    private void sincronizar(BankConnection conexao, PluggyClient.Item item, List<PluggyClient.Conta> remotas) {
         conexao.sincronizado(item.instituicao(), item.status());
 
         Map<String, BankAccount> existentes = new HashMap<>();
         contas.findByConnection(conexao).forEach(conta -> existentes.put(conta.getPluggyAccountId(), conta));
 
-        for (PluggyClient.Conta remota : pluggy.listarContas(item.id())) {
+        for (PluggyClient.Conta remota : remotas) {
             BankAccount conta = existentes.remove(remota.id());
             if (conta == null) {
                 conta = new BankAccount(conexao, remota.id());

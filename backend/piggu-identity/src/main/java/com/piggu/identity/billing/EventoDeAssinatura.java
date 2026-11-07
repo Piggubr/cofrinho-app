@@ -17,10 +17,11 @@ import java.util.UUID;
  *                          teste), para o prazo de arrependimento; nulo enquanto nada foi cobrado
  * @param campanha          campanha de teste gratis usada no checkout; nulo sem campanha
  * @param testeAcabaEm      o provedor avisou que o teste acaba nesta data (hora de mandar o e-mail); nulo nos outros avisos
+ * @param assinaturaNoProvedor id da assinatura na Stripe; nulo nas lojas
  */
 public record EventoDeAssinatura(UUID usuarioId, String clienteNoProvedor, Instant premiumAte, Instant momento,
                                  Instant inicio, boolean emTeste, TipoDePlano tipo, Instant primeiraCobranca,
-                                 String campanha, Instant testeAcabaEm) {
+                                 String campanha, Instant testeAcabaEm, String assinaturaNoProvedor) {
 
     public EventoDeAssinatura {
         tipo = tipo == null ? TipoDePlano.INDIVIDUAL : tipo;

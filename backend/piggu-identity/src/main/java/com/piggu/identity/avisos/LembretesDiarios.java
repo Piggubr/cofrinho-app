@@ -117,6 +117,6 @@ public class LembretesDiarios {
     }
 
     private List<Aviso> buscar(UserAccount conta) {
-        return financeiro.deHoje(tokens.gerarTokenDoLembrete(conta, familias.daConta(conta)));
+        return financeiro.deHoje(tokens.gerarTokenInterno(conta, familias.daConta(conta)));
     }
 }

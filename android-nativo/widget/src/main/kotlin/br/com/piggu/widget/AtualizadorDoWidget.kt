@@ -36,7 +36,7 @@ import javax.inject.Singleton
 
 /**
  * Grava o resumo dos widgets (AtualizadorDoSistema.swift do iOS): ao abrir o app, ao voltar para
- * a frente e depois de lançar um gasto ([Lancamentos]); ao sair da conta, apaga. O app chama
+ * a frente e depois de lançar um gasto ([Lancamentos]); ao sair da conta ou com a trava ligada, apaga. O app chama
  * [vigiar] uma vez, no `PigguApplication.onCreate`.
  */
 @Singleton
@@ -54,10 +54,11 @@ class AtualizadorDoWidget @Inject constructor(
     /** @param voltas emite a cada vez que o app vem para a frente; os testes passam um fluxo fixo. */
     fun vigiar(voltas: Flow<Unit> = voltasParaAFrente()) {
         escopo.launch {
-            combine(sessao.estado, lancamentos.versao, voltas) { estado, _, _ -> estado }
-                .collectLatest { estado ->
+            combine(sessao.estado, lancamentos.versao, voltas, preferencias.travar) { estado, _, _, travar -> estado to travar }
+                .collectLatest { (estado, travar) ->
                     when {
-                        estado is EstadoDaSessao.Deslogado -> {
+                        // Com a trava do Piggu ligada, o widget fica sem números, como no iOS (D-162).
+                        estado is EstadoDaSessao.Deslogado || travar -> {
                             guarda.apagar()
                             redesenhar()
                         }

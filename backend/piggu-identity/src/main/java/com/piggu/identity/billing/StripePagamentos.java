@@ -261,7 +261,8 @@ public class StripePagamentos {
                         assinaturaStripe.path("items").path("data").path(0).path("price").path("id").asString("")),
                 primeiraCobranca == 0 ? null : Instant.ofEpochSecond(primeiraCobranca),
                 assinaturaStripe.path("metadata").path("campanha").asString(null),
-                tipo.endsWith(".trial_will_end") && trialEnd != 0 ? Instant.ofEpochSecond(trialEnd) : null));
+                tipo.endsWith(".trial_will_end") && trialEnd != 0 ? Instant.ofEpochSecond(trialEnd) : null,
+                assinaturaStripe.path("id").asString(null)));
     }
 
     private static Instant premiumAte(JsonNode assinatura) {

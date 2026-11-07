@@ -47,7 +47,10 @@ public class TentativasDeCpf {
         this.relogio = relogio;
     }
 
-    /** Antes de procurar o CPF: quem ja levou {@link #MAXIMO} recusas na janela para aqui. */
+    /**
+     * Antes de procurar o CPF: quem ja levou {@link #MAXIMO} recusas na janela para aqui.
+     * {@code conta} nula (o cadastro) conta so pelo IP.
+     */
     public void exigirTentativa(UUID conta) {
         Instant agora = relogio.instant();
         for (String chave : chaves(conta)) {
@@ -79,7 +82,10 @@ public class TentativasDeCpf {
     }
 
     private List<String> chaves(UUID conta) {
-        List<String> chaves = new ArrayList<>(List.of("conta:" + conta));
+        List<String> chaves = new ArrayList<>();
+        if (conta != null) {
+            chaves.add("conta:" + conta);
+        }
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes atributos) {
             HttpServletRequest pedido = atributos.getRequest();
             chaves.add("ip:" + LimiteDeRequisicoes.ipDeOrigem(pedido, limites));

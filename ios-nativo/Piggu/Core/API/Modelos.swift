@@ -152,6 +152,19 @@ struct NovoLancamento: Codable, Equatable, Sendable {
     var idDoEnvio: String?
 }
 
+extension NovoLancamento {
+    /// O mesmo pedido de novo (o toque depois de um 5xx ou do tempo esgotado) leva o mesmo id, e o
+    /// servidor nao duplica; mudou algum campo, e outro envio, com id novo.
+    func comIdDoEnvio(repetindo anterior: NovoLancamento?) -> NovoLancamento {
+        var semId = anterior
+        semId?.idDoEnvio = nil
+        var pedido = self
+        pedido.idDoEnvio = semId == self ? anterior?.idDoEnvio : nil
+        pedido.idDoEnvio = pedido.idDoEnvio ?? UUID().uuidString.lowercased()
+        return pedido
+    }
+}
+
 /// Linha da previa do extrato (POST /expenses/import/preview); a mesma vai de volta no import.
 struct LinhaDoExtrato: Codable, Identifiable, Equatable, Sendable {
     /// aaaa-mm-dd
