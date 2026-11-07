@@ -62,6 +62,21 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("a mesma linha em dois cartoes entra nos dois; no mesmo cartao, so uma vez")
+    void mesmaLinhaEmDoisCartoes() throws Exception {
+        String nubank = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Nubank\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        String inter = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Inter\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        JsonNode previa = previa(casas.casaA);
+
+        importar(casas.casaA, previa, nubank).andExpect(jsonPath("$.importados").value(2));
+        importar(casas.casaA, previa, nubank).andExpect(jsonPath("$.importados").value(0));
+        importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(2));
+        importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(0));
+    }
+
+    @Test
     @DisplayName("gastos do banco conectado: previa por linhas, com regra, e o que ja entrou fica marcado")
     void previaDeLinhasDoBanco() throws Exception {
         String linhas = """
@@ -100,5 +115,12 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
             org.springframework.test.web.servlet.request.RequestPostProcessor quem, JsonNode previa) throws Exception {
         return mockMvc.perform(post("/api/expenses/import").with(quem).contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("linhas", previa))));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions importar(
+            org.springframework.test.web.servlet.request.RequestPostProcessor quem, JsonNode previa, String conta)
+            throws Exception {
+        return mockMvc.perform(post("/api/expenses/import").with(quem).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("linhas", previa, "contaId", conta))));
     }
 }

@@ -114,6 +114,23 @@ class RecorrenciaEAReceberTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("valor com mais de dois centavos ou pequeno demais para as parcelas e recusado")
+    void valorEParcelasMinimas() throws Exception {
+        for (String corpo : new String[] {
+                "{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Fone\",\"valor\":10.005}]}",
+                "{\"data\":\"2026-09-10\",\"parcelas\":3,\"itens\":[{\"item\":\"Bala\",\"valor\":0.02}]}"}) {
+            mockMvc.perform(post("/api/expenses").with(casas.casaA)
+                            .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(corpo))
+                    .andExpect(status().is4xxClientError());
+        }
+        mockMvc.perform(get("/api/expenses").with(casas.casaA)).andExpect(jsonPath("$", hasSize(0)));
+        casas.criar("/api/expenses", casas.casaA,
+                "{\"data\":\"2026-09-10\",\"parcelas\":3,\"itens\":[{\"item\":\"Bala\",\"valor\":0.03}]}");
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-13").with(casas.casaA))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("quem deve so vira receita no Recebi, com a data de hoje, uma vez so")
     void aReceber() throws Exception {
         String id = casas.criar("/api/incomes/receivables", casas.casaA,
