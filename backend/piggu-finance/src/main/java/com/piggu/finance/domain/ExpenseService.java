@@ -184,7 +184,13 @@ public class ExpenseService {
     /** Le o extrato e mostra o que entraria, sem gravar nada. */
     @Transactional(readOnly = true)
     public List<LinhaDaPrevia> previaDoExtrato(String conteudo) {
-        return previa(LeitorDeExtrato.ler(conteudo));
+        return previaDoExtrato(conteudo, null);
+    }
+
+    /** @param contaId com ela, "ja importada" e so o que entrou nesta conta; sem ela, em qualquer conta */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previaDoExtrato(String conteudo, UUID contaId) {
+        return previa(LeitorDeExtrato.ler(conteudo), contaId);
     }
 
     /**
@@ -193,8 +199,15 @@ public class ExpenseService {
      */
     @Transactional(readOnly = true)
     public List<LinhaDaPrevia> previa(List<LeitorDeExtrato.Linha> linhas) {
-        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
-                linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList()));
+        return previa(linhas, null);
+    }
+
+    /** @param contaId com ela, "ja importada" e so o que entrou nesta conta (D-177) */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previa(List<LeitorDeExtrato.Linha> linhas, UUID contaId) {
+        List<String> ids = linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList();
+        Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportados(ids)
+                : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         return linhas.stream().map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
                 categoriaDe(new ExpenseItemRequest(l.descricao(), null, l.valor(), null), "", ORIGEM_EXTRATO,
@@ -384,6 +397,10 @@ public class ExpenseService {
             throw new BusinessException("O valor é pequeno demais para " + parcelas + " parcelas.");
         }
         BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
+        if (parcelas > 1 && item.valorOriginal() != null
+                && item.valorOriginal().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN).signum() == 0) {
+            throw new BusinessException("O valor original é pequeno demais para " + parcelas + " parcelas.");
+        }
         return IntStream.range(0, parcelas).mapToObj(i -> {
             Expense gasto = new Expense(
                     dataDaParcela(data, i, conta),

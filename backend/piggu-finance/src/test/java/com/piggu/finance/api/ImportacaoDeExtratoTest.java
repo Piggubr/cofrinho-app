@@ -74,6 +74,19 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
         importar(casas.casaA, previa, nubank).andExpect(jsonPath("$.importados").value(0));
         importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(2));
         importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(0));
+        // A previa com a conta so marca o que entrou nela.
+        assertThat(previa(casas.casaA, nubank).get(0).path("jaImportada").asBoolean()).isTrue();
+        String c6 = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"C6\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        assertThat(previa(casas.casaA, c6).get(0).path("jaImportada").asBoolean()).isFalse();
+
+        // Apagar os cartoes deixa as linhas sem conta: as dos dois nao podem colidir.
+        importar(casas.casaA, previa).andExpect(jsonPath("$.importados").value(2));
+        for (String cartao : new String[] {nubank, inter}) {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .delete("/api/accounts/" + cartao).with(casas.casaA)).andExpect(status().isNoContent());
+        }
+        importar(casas.casaA, previa).andExpect(jsonPath("$.importados").value(0));
     }
 
     @Test
@@ -105,8 +118,18 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
     }
 
     private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem) throws Exception {
+        return previa(quem, Map.of("conteudo", CSV));
+    }
+
+    private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem, String conta)
+            throws Exception {
+        return previa(quem, Map.of("conteudo", CSV, "contaId", conta));
+    }
+
+    private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem, Map<String, String> corpo)
+            throws Exception {
         return json.readTree(mockMvc.perform(post("/api/expenses/import/preview").with(quem)
-                        .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("conteudo", CSV))))
+                        .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(corpo)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
     }

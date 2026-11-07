@@ -118,7 +118,9 @@ class RecorrenciaEAReceberTest extends PostgresIntegrationTest {
     void valorEParcelasMinimas() throws Exception {
         for (String corpo : new String[] {
                 "{\"data\":\"2026-09-10\",\"itens\":[{\"item\":\"Fone\",\"valor\":10.005}]}",
-                "{\"data\":\"2026-09-10\",\"parcelas\":3,\"itens\":[{\"item\":\"Bala\",\"valor\":0.02}]}"}) {
+                "{\"data\":\"2026-09-10\",\"parcelas\":3,\"itens\":[{\"item\":\"Bala\",\"valor\":0.02}]}",
+                "{\"data\":\"2026-09-10\",\"parcelas\":3,\"itens\":[{\"item\":\"Bala\",\"valor\":0.12,"
+                        + "\"moedaOriginal\":\"USD\",\"valorOriginal\":0.02}]}"}) {
             mockMvc.perform(post("/api/expenses").with(casas.casaA)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(corpo))
                     .andExpect(status().is4xxClientError());
