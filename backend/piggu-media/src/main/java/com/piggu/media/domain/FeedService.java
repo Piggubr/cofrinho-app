@@ -43,7 +43,7 @@ public class FeedService {
         return fotos.stream().map(FeedPhotoResponse::de).toList();
     }
 
-    @Transactional
+    /** Sem transacao em volta do envio ao Drive (D-074). Se o registro do feed nao grava, a foto sai. */
     public FeedPhotoResponse publicar(FeedPhotoRequest pedido, UUID usuarioId) {
         Asset asset = assets.guardar(
                 pedido.imageBase64(),
@@ -52,8 +52,16 @@ public class FeedService {
                 nomeDaPasta(pedido.mesKey()),
                 usuarioId
         );
-        FeedPhoto foto = new FeedPhoto(pedido.mesKey(), asset.getId(), usuarioId);
-        return FeedPhotoResponse.de(repositorio.save(foto));
+        try {
+            return FeedPhotoResponse.de(repositorio.save(new FeedPhoto(pedido.mesKey(), asset.getId(), usuarioId)));
+        } catch (RuntimeException erro) {
+            try {
+                assets.apagarInterno(asset);
+            } catch (RuntimeException naoApagou) {
+                erro.addSuppressed(naoApagou);
+            }
+            throw erro;
+        }
     }
 
     @Transactional

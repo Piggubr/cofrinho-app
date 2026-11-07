@@ -55,7 +55,19 @@ public class GirlsMathService {
             item.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
         }
 
-        return GirlsMathResponse.de(repositorio.save(item));
+        try {
+            return GirlsMathResponse.de(repositorio.save(item));
+        } catch (RuntimeException erro) {
+            // Item que nao grava leva a foto nova junto: senao ela fica no media sem dono.
+            if (item.getPhotoAssetId() != null) {
+                try {
+                    media.apagar(item.getPhotoAssetId());
+                } catch (RuntimeException naoApagou) {
+                    erro.addSuppressed(naoApagou);
+                }
+            }
+            throw erro;
+        }
     }
 
     @Transactional

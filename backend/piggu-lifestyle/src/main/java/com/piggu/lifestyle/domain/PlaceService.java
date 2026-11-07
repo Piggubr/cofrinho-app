@@ -58,7 +58,7 @@ public class PlaceService {
             lugar.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
         }
 
-        return PlaceResponse.de(repositorio.save(lugar));
+        return PlaceResponse.de(salvarOuApagarFoto(lugar, temFoto(pedido)));
     }
 
     /** Como {@link #criar}: o media e chamado fora de transacao. */
@@ -85,7 +85,7 @@ public class PlaceService {
         if (trocouFoto) {
             lugar.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
         }
-        Place salvo = repositorio.save(lugar);
+        Place salvo = salvarOuApagarFoto(lugar, trocouFoto);
         // A foto antiga so sai depois que o lugar gravou com a nova: se gravar falha, ele fica com a antiga.
         if (trocouFoto) {
             media.apagar(anterior);
@@ -103,6 +103,26 @@ public class PlaceService {
 
         media.apagar(lugar.getPhotoAssetId());
         repositorio.delete(lugar);
+    }
+
+    /** Lugar que nao grava leva a foto nova que acabou de subir: senao ela fica no media sem dono. */
+    private Place salvarOuApagarFoto(Place lugar, boolean fotoNova) {
+        try {
+            return repositorio.save(lugar);
+        } catch (RuntimeException erro) {
+            if (fotoNova) {
+                apagarSemPerderOErro(lugar.getPhotoAssetId(), erro);
+            }
+            throw erro;
+        }
+    }
+
+    private void apagarSemPerderOErro(UUID foto, RuntimeException erro) {
+        try {
+            media.apagar(foto);
+        } catch (RuntimeException naoApagou) {
+            erro.addSuppressed(naoApagou);
+        }
     }
 
     private Place buscar(UUID id) {

@@ -118,10 +118,26 @@ class PlaceServiceTest extends PostgresIntegrationTest {
         PlaceResponse lugar = lugares.criar(pedido("Praia", null, null, List.of(), "YQ=="), TITULAR);
         org.mockito.Mockito.doThrow(new IllegalStateException("banco fora")).when(repositorio).save(any());
 
+        UUID nova = UUID.randomUUID();
+        when(media.enviar(any(), any(), eq("LUGAR"))).thenReturn(nova);
+
         assertThatThrownBy(() -> lugares.atualizar(lugar.id(), pedido("Praia", null, null, List.of(), "Yg=="),
                 dono(TITULAR))).isInstanceOf(IllegalStateException.class);
 
         verify(media, never()).apagar(antiga);
+        verify(media).apagar(nova);
+    }
+
+    @Test
+    @DisplayName("lugar novo que nao grava leva a foto que acabou de subir")
+    void fotoNovaSaiSeNaoGravar() {
+        UUID foto = UUID.randomUUID();
+        when(media.enviar(any(), any(), eq("LUGAR"))).thenReturn(foto);
+        org.mockito.Mockito.doThrow(new IllegalStateException("banco fora")).when(repositorio).save(any());
+
+        assertThatThrownBy(() -> lugares.criar(pedido("Praia", null, null, List.of(), "YQ=="), TITULAR))
+                .isInstanceOf(IllegalStateException.class);
+        verify(media).apagar(foto);
     }
 
     @Test
