@@ -67,7 +67,8 @@ public class LoginPeloNavegador {
         google.verificar(idToken, desafio);
 
         long agora = relogio.millis();
-        pendentes.values().removeIf(pendente -> pendente.venceu(agora));
+        // Um codigo por desafio: repetir o mesmo POST nao enche a lista e trava o login de todos.
+        pendentes.values().removeIf(pendente -> pendente.venceu(agora) || pendente.desafio().equals(desafio));
         if (pendentes.size() >= MAXIMO_GUARDADO) {
             throw new UnauthorizedException("Muitos logins ao mesmo tempo. Tente de novo em instantes.");
         }

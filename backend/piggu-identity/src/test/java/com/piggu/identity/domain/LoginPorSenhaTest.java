@@ -70,6 +70,17 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     @Autowired
     private org.springframework.transaction.support.TransactionTemplate transacao;
 
+    @Autowired
+    private TentativasDeCpf tentativasDeCpf;
+
+    /** As recusas de CPF contam pelo IP do pedido de teste, o mesmo em todos os testes do contexto. */
+    @BeforeEach
+    @org.junit.jupiter.api.AfterEach
+    void esquecerRecusasDeCpf() {
+        ((java.util.Map<?, ?>) org.springframework.test.util.ReflectionTestUtils.getField(tentativasDeCpf, "recusas"))
+                .clear();
+    }
+
     @BeforeEach
     void limpar() {
         sessoes.deleteAll();
@@ -119,6 +130,21 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
 
         assertThat(usuarios.count()).isEqualTo(1);
         assertThat(usuarios.findByEmail(EMAIL).orElseThrow().temSenha()).isFalse();
+    }
+
+    @Test
+    @DisplayName("CPF em uso da a mesma recusa com e-mail que ja tem conta ou e-mail novo")
+    void cpfEmUsoNaoRevelaEmail() {
+        cadastrar(EMAIL);
+
+        for (String email : new String[] {EMAIL, "nova@exemplo.test"}) {
+            assertThatThrownBy(() -> auth.cadastrar("Outra", email, SENHA, "BR", CPF, CELULAR,
+                    Consentimentos.VERSAO_DO_AVISO, ADULTO))
+                    .as(email)
+                    .isInstanceOfSatisfying(BusinessException.class,
+                            erro -> assertThat(erro.getCodigo()).isEqualTo("CPF_EM_USO"));
+        }
+        assertThat(usuarios.count()).isEqualTo(1);
     }
 
     @Test

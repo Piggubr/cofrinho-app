@@ -216,6 +216,9 @@ public class AuthService {
             throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
         }
         Cpf cpf = minhaConta.conferirCpf(documento);
+        // CPF em uso barra antes de olhar o e-mail: senao o 409 so viria para e-mail sem conta,
+        // e o cadastro diria quais e-mails usam o Piggu.
+        minhaConta.exigirCpfLivre(null, cpf);
 
         // E-mail que ja tem conta responde igual a um cadastro novo, para o cadastro nao
         // dizer a ninguem quais e-mails usam o Piggu: o dono recebe um aviso no e-mail.

@@ -31,9 +31,6 @@ public class RefreshSession {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
-    @Column(name = "revoked_at")
-    private Instant revokedAt;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -62,11 +59,7 @@ public class RefreshSession {
     }
 
     public boolean estaValida() {
-        return revokedAt == null && expiresAt.isAfter(Instant.now());
-    }
-
-    public void revogar() {
-        this.revokedAt = Instant.now();
+        return expiresAt.isAfter(Instant.now());
     }
 
     public UUID getId() {
