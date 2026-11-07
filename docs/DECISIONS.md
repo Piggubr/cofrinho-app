@@ -1788,7 +1788,7 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
   - O período do cartão sai do mês do vencimento (volta um mês quando o vencimento é antes do fechamento).
   - Ao adicionar uma parcela n/m, o app grava de n até m, como nos parcelados lançados à mão. Importar de novo a mesma fatura não duplica.
   - Plano gratuito vê só as contagens (já lançadas, faltando, para conferir), barrado no servidor, sem Gemini e sem gastar cota. O Premium vê e adiciona as linhas.
-  - O consentimento usa a finalidade `GEMINI_FATURA` com a versão atual do aviso: `Consentimentos.VERSAO_DO_AVISO` não sobe. O aviso de privacidade ganha a linha "Fatura do cartão em PDF" nas três plataformas.
+  - O consentimento usa a finalidade `GEMINI_FATURA` com a versão atual do aviso: `Consentimentos.VERSAO_DO_AVISO` não sobe. O aviso de privacidade ganha a linha "Fatura do cartão em PDF" nas três plataformas. A autorização se retira como a do recibo (`DELETE /api/expenses/import/card-statement/consent`), na linha "Fatura do cartão" das "Autorizações da IA" do perfil.
   - No Android a entrada fica só na fatura do cartão, porque o módulo de gastos não depende do de contas.
 - Alternativas: mandar o PDF direto ao Gemini (expõe o documento inteiro e custa por leitura); ler só com regras, sem reserva (faturas de layout estranho ficariam sem leitura); liberar a leitura completa no gratuito (o custo da IA cresce com o uso).
 - Consequências: a maioria das faturas é lida no servidor e não sai dele. Fatura que não fecha pede a autorização do envio do texto ao Google, só no Premium. O merge espera o teste com faturas reais (Nubank, Itaú, Inter e outras), porque os leitores por regra dependem do layout de cada banco.

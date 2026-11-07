@@ -483,6 +483,10 @@ extension ClienteDaAPI {
         try await delete("/receipts/consent")
     }
 
+    func retirarAutorizacaoDaLeituraDeFatura() async throws {
+        try await delete("/expenses/import/card-statement/consent")
+    }
+
     func retirarAutorizacaoDoAssistente() async throws {
         try await delete("/assistant/consent")
     }

@@ -378,6 +378,11 @@ export class FinanceService extends ApiBase {
     return this.http.delete<void>(this.url('/receipts/consent'));
   }
 
+  /** Retira a autorizacao de enviar o texto da fatura do cartao ao Gemini (LGPD art. 8, par. 5). */
+  retirarAutorizacaoDaLeituraDeFatura(): Observable<void> {
+    return this.http.delete<void>(this.url('/expenses/import/card-statement/consent'));
+  }
+
   /** @param versaoDoAviso so quando a pessoa autorizou, agora, o envio da foto a IA */
   lerRecibo(imageBase64: string, mimeType: string, versaoDoAviso?: string): Observable<ReciboLido> {
     return this.http.post<ReciboLido>(this.url('/receipts/parse'), {

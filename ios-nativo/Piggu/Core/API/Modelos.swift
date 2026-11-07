@@ -939,3 +939,23 @@ struct ConferenciaDaFatura: Codable, Equatable, Sendable {
     /// Nulo no plano gratuito: so as contagens.
     let linhas: [LinhaDaConferencia]?
 }
+
+extension ConferenciaDaFatura {
+    /// Linha com tipo ou situacao que este app nao conhece (API mais nova) sai, sem derrubar a resposta.
+    private struct LinhaSeDer: Decodable {
+        let linha: LinhaDaConferencia?
+        init(from decoder: Decoder) throws { linha = try? LinhaDaConferencia(from: decoder) }
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(banco: try c.decodeIfPresent(String.self, forKey: .banco),
+                  vencimento: try c.decodeIfPresent(String.self, forKey: .vencimento),
+                  total: try c.decodeIfPresent(Decimal.self, forKey: .total),
+                  somaLida: try c.decode(Decimal.self, forKey: .somaLida),
+                  origem: try c.decode(String.self, forKey: .origem),
+                  aviso: try c.decodeIfPresent(String.self, forKey: .aviso),
+                  contagem: try c.decode(Contagem.self, forKey: .contagem),
+                  linhas: try c.decodeIfPresent([LinhaSeDer].self, forKey: .linhas)?.compactMap(\.linha))
+    }
+}

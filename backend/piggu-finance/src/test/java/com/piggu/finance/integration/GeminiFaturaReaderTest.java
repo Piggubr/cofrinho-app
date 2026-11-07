@@ -86,4 +86,13 @@ class GeminiFaturaReaderTest {
                 .hasMessageContaining("fatura")
                 .hasMessageNotContaining("recibo");
     }
+
+    @Test
+    @DisplayName("400 na fatura nao fala em imagem; no recibo continua igual")
+    void erro400SemImagemNaFatura() {
+        assertThat(GeminiReceiptReader.traduzirErro(400, "a fatura").getMessage())
+                .doesNotContain("imagem").contains("a fatura");
+        assertThat(GeminiReceiptReader.traduzirErro(400, "o recibo").getMessage())
+                .isEqualTo("O Gemini recusou o formato da imagem ou do pedido.");
+    }
 }

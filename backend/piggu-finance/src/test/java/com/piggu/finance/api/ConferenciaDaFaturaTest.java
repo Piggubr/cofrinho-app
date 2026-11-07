@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -157,6 +158,18 @@ class ConferenciaDaFaturaTest extends PostgresIntegrationTest {
         assertThat(r.path("contagem").path("compras").asInt()).isEqualTo(2);
         assertThat(r.path("linhas").isNull() || r.path("linhas").isMissingNode()).isTrue();
         assertThat(corpo).doesNotContain("PADARIA", "MERCADO");
+        verify(gemini, never()).ler(anyString());
+    }
+
+    @Test
+    @DisplayName("PDF sem texto (digitalizado): a mesma mensagem para gratuito e Premium, sem falar em Premium")
+    void pdfSemTextoMesmaMensagem() throws Exception {
+        String msg = "Não consegui ler esta fatura. Envie o PDF original do banco, não uma foto ou digitalização.";
+        conferir(gratuita(), List.of(), Map.of()).andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.codigo").value(not("PLANO_PREMIUM")))
+                .andExpect(jsonPath("$.erro").value(msg));
+        conferir(casas.casaA, List.of(), Map.of()).andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.erro").value(msg));
         verify(gemini, never()).ler(anyString());
     }
 

@@ -90,4 +90,39 @@ struct ConferirFaturaTests {
         let g = ConferirFaturaView.grupos(try #require(c.linhas))
         #expect(!g.faltam.isEmpty && !g.confira.isEmpty && !g.tarifas.isEmpty && !g.jaLancadas.isEmpty)
     }
+
+    @Test func linhaComTipoOuSituacaoDesconhecidaSaiSemDerrubarAResposta() throws {
+        let c = try decodificar("""
+        {"banco":null,"vencimento":null,"total":null,"somaLida":10,"origem":"PROPRIA","aviso":null,
+         "contagem":{"compras":3,"tarifas":0,"ignoradas":0,"jaLancadas":0,"confira":0,"faltam":3},
+         "linhas":[\(Self.linha("a", situacao: "FALTA")),\(Self.linha("b", situacao: "NOVA")),
+                   \(Self.linha("c", tipo: "ESTORNO", situacao: "FALTA"))]}
+        """)
+        #expect(c.linhas?.map(\.idExterno) == ["fatura:a"])
+    }
+
+    @Test func quitaDepoisDeImportarOuSemNadaMarcado() {
+        #expect(ConferirFaturaView.ofereceQuitar(cartao: true, mes: "2026-11", vencimento: "2026-11-10",
+                                                 importou: true, leu: false, marcadas: 0))
+        #expect(ConferirFaturaView.ofereceQuitar(cartao: true, mes: "2026-11", vencimento: nil,
+                                                 importou: false, leu: true, marcadas: 0))
+        #expect(!ConferirFaturaView.ofereceQuitar(cartao: true, mes: "2026-11", vencimento: "2026-11-10",
+                                                  importou: false, leu: true, marcadas: 2))
+        #expect(!ConferirFaturaView.ofereceQuitar(cartao: false, mes: "2026-11", vencimento: nil,
+                                                  importou: true, leu: true, marcadas: 0))
+    }
+
+    @Test func faturaDeOutroMesNaoQuitaEAvisa() {
+        #expect(!ConferirFaturaView.ofereceQuitar(cartao: true, mes: "2026-11", vencimento: "2026-12-10",
+                                                  importou: true, leu: true, marcadas: 0))
+        #expect(ConferirFaturaView.venceEm("2026-12-10", mes: "2026-11") == "12/2026")
+        #expect(ConferirFaturaView.venceEm("2026-11-10", mes: "2026-11") == nil)
+        #expect(ConferirFaturaView.venceEm(nil, mes: "2026-11") == nil)
+    }
+
+    @Test func aDemonstracaoRetiraAAutorizacaoDaFatura() async throws {
+        let cliente = ClienteDaAPI(urlBase: URL(string: "https://piggu.com.br/api")!,
+                                   transporte: TransporteDeDemonstracao(logado: true), cofre: nil)
+        try await cliente.retirarAutorizacaoDaLeituraDeFatura()
+    }
 }

@@ -33,6 +33,8 @@ struct ConferirFaturaView: View {
     @State private var resultado: String?
     @State private var paga = false
     @State private var conferencia: ConferenciaDaFatura?
+    /// Vencimento lido no PDF; fica depois de importar, quando a conferencia some.
+    @State private var vencimento: String?
     @State private var linhas: [LinhaDaConferencia] = []
     @State private var marcadas: Set<String> = []
 
@@ -116,14 +118,20 @@ struct ConferirFaturaView: View {
         }
         if let resultado {
             Faixa(texto: resultado, tipo: .sucesso).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            if let cartao, let mes, !paga {
-                Button("Marcar fatura como paga") { Task { await pagar(cartao, mes) } }
-                    .disabled(ocupado).listRowBackground(paleta.superficie)
-            }
-            if paga {
-                Faixa(texto: String(localized: "Fatura marcada como paga."), tipo: .sucesso)
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            }
+        }
+        if cartao != nil, let outro = Self.venceEm(vencimento, mes: mes) {
+            Text("Esta fatura vence em \(outro), não é a do mês aberto.")
+                .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave).listRowBackground(paleta.superficie)
+        }
+        if let cartao, let mes, !paga,
+           Self.ofereceQuitar(cartao: true, mes: mes, vencimento: vencimento, importou: resultado != nil,
+                              leu: conferencia != nil, marcadas: marcadas.count) {
+            Button("Marcar fatura como paga") { Task { await pagar(cartao, mes) } }
+                .disabled(ocupado).listRowBackground(paleta.superficie)
+        }
+        if paga {
+            Faixa(texto: String(localized: "Fatura marcada como paga."), tipo: .sucesso)
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
     }
 
@@ -233,6 +241,19 @@ struct ConferirFaturaView: View {
         Set(linhas.filter { $0.tipo == .compra && $0.situacao == .falta }.map(\.idExterno))
     }
 
+    /// mm/aaaa do vencimento lido quando ele cai em outro mes que o aberto; nil quando bate ou nao veio.
+    static func venceEm(_ vencimento: String?, mes: String?) -> String? {
+        guard let vencimento, let mes, vencimento.count >= 7, !vencimento.hasPrefix(mes) else { return nil }
+        return "\(vencimento.dropFirst(5).prefix(2))/\(vencimento.prefix(4))"
+    }
+
+    /// Com o cartao aberto, quita depois de importar ou quando nada esta marcado; nunca a fatura de outro mes.
+    static func ofereceQuitar(cartao: Bool, mes: String?, vencimento: String?, importou: Bool, leu: Bool,
+                              marcadas: Int) -> Bool {
+        guard cartao, mes != nil, venceEm(vencimento, mes: mes) == nil else { return false }
+        return importou || (leu && marcadas == 0)
+    }
+
     static func pedidoDeImportacao(_ linhas: [LinhaDaConferencia], marcadas: Set<String>,
                                    contaId: String?) -> PedidoDeImportacao {
         PedidoDeImportacao(
@@ -254,6 +275,7 @@ struct ConferirFaturaView: View {
         resultado = nil
         paga = false
         conferencia = nil
+        vencimento = nil
         linhas = []
         marcadas = []
     }
@@ -293,6 +315,7 @@ struct ConferirFaturaView: View {
             let c = try await sessao.cliente.conferirFatura(pedido)
             precisaSenha = false
             conferencia = c
+            vencimento = c.vencimento
             convite = c.linhas == nil
             linhas = c.linhas ?? []
             marcadas = Self.marcadasIniciais(linhas)

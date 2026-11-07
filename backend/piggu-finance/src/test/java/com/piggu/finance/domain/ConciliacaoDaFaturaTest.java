@@ -100,6 +100,24 @@ class ConciliacaoDaFaturaTest {
     }
 
     @Test
+    void parcelaManualComSobraNaUltimaConfira() {
+        // R$ 100,00 em 7x lancado no app: 14,28 x 6 e 14,32; o banco poe a sobra na primeira
+        Expense g = gasto("2026-10-10", "Loja", "14.28", CARTAO);
+        g.parcela(1, 7);
+        Resultado r = rodar(List.of(linha("2026-10-10", "LOJA", "14.32", 1, 7, null)), g).get(0);
+        assertThat(r.situacao()).isEqualTo(Situacao.CONFIRA);
+        assertThat(r.gasto()).isSameAs(g);
+    }
+
+    @Test
+    void mesmaParcelaComValorBemDiferenteFalta() {
+        Expense g = gasto("2026-10-10", "Loja", "50.00", CARTAO);
+        g.parcela(1, 7);
+        Resultado r = rodar(List.of(linha("2026-10-10", "LOJA", "14.32", 1, 7, null)), g).get(0);
+        assertThat(r.situacao()).isEqualTo(Situacao.FALTA);
+    }
+
+    @Test
     void confiraDeDezDiasNaoConsomeOGasto() {
         Expense ea = gasto("2026-10-15", "Mercado", "50.00", CARTAO);
         Expense eb = gasto("2026-10-05", "Mercado", "50.00", CARTAO);

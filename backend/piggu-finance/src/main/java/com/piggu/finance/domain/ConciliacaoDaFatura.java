@@ -57,7 +57,8 @@ public final class ConciliacaoDaFatura {
             opcoes.add(List.of());
         }
 
-        // 2) parcelas n/m, valor com ate 1 centavo de diferenca, data no periodo da fatura (+-3 dias)
+        // 2) parcelas n/m, valor com ate 1 centavo de diferenca, data no periodo da fatura (+-3 dias).
+        // Ate m centavos (a sobra que o app poe na ultima parcela lancada a mao): CONFIRA, nunca FALTA.
         for (int i = 0; i < alvo.size(); i++) {
             Linha l = alvo.get(i);
             if (saida[i] != null || l.parcelaNumero() == null || l.parcelaTotal() == null) {
@@ -68,10 +69,11 @@ public final class ConciliacaoDaFatura {
                             && e.getInstallmentNumber().intValue() == l.parcelaNumero()
                             && e.getInstallmentCount().intValue() == l.parcelaTotal()
                             && e.getAmount() != null && e.getExpenseDate() != null
-                            && e.getAmount().subtract(l.valor()).abs().compareTo(CENTAVO) <= 0)
+                            && diferenca(e, l).compareTo(CENTAVO.multiply(BigDecimal.valueOf(l.parcelaTotal()))) <= 0)
                     .toList();
             List<Expense> noPeriodo = mesmaParcela.stream()
-                    .filter(e -> !e.getExpenseDate().isBefore(inicioDoPeriodo.minusDays(3))
+                    .filter(e -> diferenca(e, l).compareTo(CENTAVO) <= 0
+                            && !e.getExpenseDate().isBefore(inicioDoPeriodo.minusDays(3))
                             && !e.getExpenseDate().isAfter(fimDoPeriodo.plusDays(3)))
                     .toList();
             List<Expense> melhor = melhores(l, noPeriodo, contaId);
@@ -82,7 +84,7 @@ public final class ConciliacaoDaFatura {
                 saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
                 opcoes.set(i, melhor);
             } else if (!mesmaParcela.isEmpty()) {
-                // mesma parcela fora do periodo: pode ser o mesmo gasto com a data errada
+                // mesma parcela fora do periodo ou com a sobra dos centavos: pode ser o mesmo gasto
                 melhor = melhores(l, mesmaParcela, contaId);
                 saida[i] = new Resultado(l, Situacao.CONFIRA, melhor.get(0));
                 opcoes.set(i, melhor);
@@ -132,6 +134,10 @@ public final class ConciliacaoDaFatura {
             }
         }
         return List.of(saida);
+    }
+
+    private static BigDecimal diferenca(Expense e, Linha l) {
+        return e.getAmount().subtract(l.valor()).abs();
     }
 
     private static List<Expense> exatosAte(Linha l, List<Expense> livres, int max, int min) {

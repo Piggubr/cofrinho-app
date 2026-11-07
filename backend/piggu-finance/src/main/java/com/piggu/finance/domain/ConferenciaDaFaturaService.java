@@ -41,6 +41,8 @@ public class ConferenciaDaFaturaService {
     static final String SEM_LEITURA = "Não consegui ler esta fatura sozinho. A leitura pela IA faz parte do Piggu Premium.";
     static final String AVISO_DO_CONSENTIMENTO = "Para ler esta fatura, o Piggu envia o texto dela (não o PDF) para a "
             + "IA do Google (Gemini). Autorize o envio para continuar.";
+    private static final String SEM_TEXTO = "Não consegui ler esta fatura. Envie o PDF original do banco, "
+            + "não uma foto ou digitalização.";
     private static final String PARCIAL_GRATUITO = "Não consegui ler esta fatura inteira sozinho; a contagem pode "
             + "estar incompleta. A leitura pela IA faz parte do Piggu Premium.";
     private static final String NAO_FECHOU = "A soma das linhas lidas não bate com o total da fatura. "
@@ -78,6 +80,10 @@ public class ConferenciaDaFaturaService {
                 .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
         String texto = TextoDoPdf.extrair(pdf(pedido.pdfBase64()), pedido.senha());
 
+        if (texto.isBlank()) {
+            // PDF so com imagem: nem o Premium le (o Gemini recebe so o texto).
+            throw new BusinessException(SEM_TEXTO);
+        }
         Leitura leitura = validada(LeitorDeFatura.ler(texto));
         String origem = "PROPRIA";
         String aviso = null;
@@ -88,7 +94,7 @@ public class ConferenciaDaFaturaService {
                     throw new BusinessException(SEM_LEITURA, HttpStatus.UNPROCESSABLE_CONTENT, Plano.CODIGO_PREMIUM);
                 }
                 aviso = PARCIAL_GRATUITO;
-            } else if (gemini.habilitado() && !texto.isBlank()) {
+            } else if (gemini.habilitado()) {
                 consentimentos.exigir(usuario, FINALIDADE, AVISO_DO_CONSENTIMENTO,
                         pedido.autorizoIa(), pedido.versaoDoAviso());
                 try {
@@ -109,13 +115,17 @@ public class ConferenciaDaFaturaService {
             } else if (temLinhas) {
                 aviso = NAO_FECHOU;
             } else {
-                throw new BusinessException("Não consegui ler esta fatura. Envie o PDF original do banco, "
-                        + "não uma foto ou digitalização.");
+                throw new BusinessException(SEM_TEXTO);
             }
         }
         log.info("Fatura conferida: banco={} linhas={} origem={} fecha={}",
                 leitura.banco(), leitura.linhas().size(), origem, leitura.fecha());
         return resposta(leitura, origem, aviso, cartao, usuario.isPremium());
+    }
+
+    /** Retira a autorizacao de enviar o texto da fatura ao Gemini; a proxima leitura pergunta de novo. */
+    public void retirarConsentimento(CurrentUser usuario) {
+        consentimentos.retirar(usuario, FINALIDADE);
     }
 
     private ConferenciaDaFaturaResponse resposta(Leitura leitura, String origem, String aviso,

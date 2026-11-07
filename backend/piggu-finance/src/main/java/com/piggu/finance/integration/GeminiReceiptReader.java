@@ -227,7 +227,9 @@ public class GeminiReceiptReader {
     /** Mesmas mensagens por codigo que o Apps Script ja devolvia. */
     static RuntimeException traduzirErro(int codigo, String documento) {
         return switch (codigo) {
-            case 400 -> new BusinessException("O Gemini recusou o formato da imagem ou do pedido.");
+            case 400 -> new BusinessException("o recibo".equals(documento)
+                    ? "O Gemini recusou o formato da imagem ou do pedido."
+                    : "O Gemini recusou o pedido para ler " + documento + ".");
             case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuracao.");
             case 404 -> new UpstreamException("O modelo do Gemini nao esta disponivel para esta chave.");
             case 429 -> new UpstreamException("A cota do Gemini acabou por enquanto. Tente mais tarde.");

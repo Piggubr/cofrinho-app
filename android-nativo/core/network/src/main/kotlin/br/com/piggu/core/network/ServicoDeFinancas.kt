@@ -283,6 +283,10 @@ interface ServicoDeFinancas {
     @DELETE("receipts/consent")
     suspend fun retirarAutorizacaoDaLeituraDeNota()
 
+    /** Retira a autorização de enviar o texto da fatura do cartão ao Gemini (LGPD art. 8, par. 5). */
+    @DELETE("expenses/import/card-statement/consent")
+    suspend fun retirarAutorizacaoDaLeituraDeFatura()
+
     /** Lê a nota pela foto. Nada é gravado: a pessoa confere antes de lançar. */
     @POST("receipts/parse")
     suspend fun lerRecibo(@Body pedido: PedidoDeLeitura): ReciboLido

@@ -1,6 +1,15 @@
 {
   "sourceLanguage" : "pt-BR",
   "strings" : {
+    "Retirar autorização da fatura do cartão" : {
+
+    },
+    "Pronto. A fatura do cartão só vai ao Google se você autorizar de novo." : {
+
+    },
+    "Esta fatura vence em %@, não é a do mês aberto." : {
+
+    },
     "PDF grande demais (máximo 5 MB)." : {
 
     },
@@ -2748,7 +2757,7 @@
     "Vinho" : {
 
     },
-    "Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar." : {
+    "Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar." : {
 
     },
     "Você concluiu todas as metas do mês." : {

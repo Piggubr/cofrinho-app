@@ -107,4 +107,31 @@ class TextoDoPdfTest {
         }
         assertThat(TextoDoPdf.extrair(pdf, null)).contains("pagina 40").doesNotContain("MARCADOR45");
     }
+
+    @Test
+    void textoGrandeDemaisRecusa() throws IOException {
+        byte[] pdf;
+        String linha = "A".repeat(260);
+        try (PDDocument doc = new PDDocument(); ByteArrayOutputStream saida = new ByteArrayOutputStream()) {
+            for (int p = 0; p < 20; p++) {
+                PDPage pagina = new PDPage();
+                doc.addPage(pagina);
+                try (PDPageContentStream c = new PDPageContentStream(doc, pagina)) {
+                    c.beginText();
+                    c.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 2);
+                    c.newLineAtOffset(10, 780);
+                    for (int l = 0; l < 100; l++) {
+                        c.showText(linha);
+                        c.newLineAtOffset(0, -3);
+                    }
+                    c.endText();
+                }
+            }
+            doc.save(saida);
+            pdf = saida.toByteArray();
+        }
+        assertThatThrownBy(() -> TextoDoPdf.extrair(pdf, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        e -> assertThat(e.getMessage()).isEqualTo("Este PDF é grande demais para ler."));
+    }
 }

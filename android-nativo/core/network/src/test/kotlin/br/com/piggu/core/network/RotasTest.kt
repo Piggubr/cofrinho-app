@@ -133,6 +133,7 @@ class RotasTest {
         ) {
             financas.conferirFatura(PedidoDeConferencia("JVBERg==", contaId = "c1", autorizoIa = true, versaoDoAviso = "2026-10-16"))
         },
+        Caso("DELETE", "/api/expenses/import/card-statement/consent") { financas.retirarAutorizacaoDaLeituraDeFatura() },
         Caso("GET", "/api/products/price-check", mapOf("item" to "Pão", "valor" to "5.50")) {
             financas.conferirPreco("Pão", BigDecimal("5.50").toPlainString())
         },

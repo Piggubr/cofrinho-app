@@ -352,6 +352,8 @@ class PerfilViewModel internal constructor(
 
     fun retirarAutorizacaoDaNota() = executar(R.string.perfil_ia_nota_retirada) { financas.retirarAutorizacaoDaLeituraDeNota() }
 
+    fun retirarAutorizacaoDaFatura() = executar(R.string.perfil_ia_fatura_retirada) { financas.retirarAutorizacaoDaLeituraDeFatura() }
+
     fun retirarAutorizacaoDoAssistente() = executar(R.string.perfil_ia_assistente_retirada) { financas.retirarAutorizacaoDoAssistente() }
 
     // Senha de acesso.

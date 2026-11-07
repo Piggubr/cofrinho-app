@@ -41,6 +41,19 @@ describe('AutorizacoesDeIa', () => {
     expect(tela.nativeElement.textContent).toContain('só vai ao Google se você autorizar de novo');
   });
 
+  it('retira a da fatura do cartao e confirma', () => {
+    const tela = TestBed.createComponent(AutorizacoesDeIa);
+    tela.detectChanges();
+
+    clicar(tela, 'fatura do cartão');
+    const pedido = http.expectOne('/api/expenses/import/card-statement/consent');
+    expect(pedido.request.method).toBe('DELETE');
+    pedido.flush(null, { status: 204, statusText: 'No Content' });
+    tela.detectChanges();
+
+    expect(tela.nativeElement.textContent).toContain('A fatura do cartão só vai ao Google se você autorizar de novo.');
+  });
+
   it('retira a do assistente e mostra o erro se o servidor recusar', () => {
     const tela = TestBed.createComponent(AutorizacoesDeIa);
     tela.detectChanges();

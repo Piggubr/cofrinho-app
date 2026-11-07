@@ -251,6 +251,11 @@ class ApiDaDemoTest {
     }
 
     @Test
+    fun `retirar a autorizacao da fatura responde 204`() {
+        assertEquals(204, chamar("DELETE", "/api/expenses/import/card-statement/consent").status)
+    }
+
+    @Test
     fun `foto do mural vem da memoria`() {
         val assetId = get("/api/feed").jsonArray.first()["assetId"].texto
         val pedido = Request.Builder().url("https://demo.piggu.invalid/api/assets/$assetId/content").build()

@@ -142,6 +142,14 @@ public class ExpenseController {
         return conferencia.conferir(pedido, usuario);
     }
 
+    /** Retira a autorizacao de enviar o texto da fatura ao Gemini; a proxima leitura pergunta de novo. */
+    @Operation(summary = "Retirar a autorização de enviar a fatura ao Gemini")
+    @DeleteMapping("/import/card-statement/consent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retirarConsentimentoDaFatura(@AuthUser CurrentUser usuario) {
+        conferencia.retirarConsentimento(usuario);
+    }
+
     /** Gastos em CSV; sem mes, todos. */
     @Operation(summary = "Exportar gastos em CSV")
     @GetMapping(value = "/export", produces = "text/csv")

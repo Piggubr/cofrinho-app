@@ -96,14 +96,21 @@ data class ConferenciaNaTela(
     val jaEstavam: Int = 0,
     val quitando: Boolean = false,
     val paga: Boolean = false,
+    /** Vencimento lido no PDF (aaaa-mm-dd); fica depois de adicionar, quando a [leitura] some. */
+    val vencimento: String? = null,
 ) {
     val faltam get() = linhas.filter { !it.ehTarifa && it.situacao == LinhaDaConferencia.SITUACAO_FALTA }
     val confira get() = linhas.filter { !it.ehTarifa && it.situacao == LinhaDaConferencia.SITUACAO_CONFIRA }
     val tarifas get() = linhas.filter { it.ehTarifa && it.situacao != LinhaDaConferencia.SITUACAO_JA_LANCADA }
     val jaLancadas get() = linhas.filter { it.situacao == LinhaDaConferencia.SITUACAO_JA_LANCADA }
 
-    /** "Marcar fatura como paga": depois de adicionar, ou quando a leitura não tem nada a adicionar. */
-    val ofereceQuitar get() = !paga && (adicionadas != null || leitura?.contagem?.faltam == 0)
+    /** mm/aaaa do vencimento lido quando ele cai em outro mês que o [mes] aberto; nulo quando bate ou não veio. */
+    fun venceEm(mes: String): String? =
+        vencimento?.takeIf { it.length >= 7 && !it.startsWith(mes) }?.let { "${it.substring(5, 7)}/${it.take(4)}" }
+
+    /** "Marcar fatura como paga": depois de adicionar, ou quando nada está marcado; nunca a fatura de outro mês. */
+    fun ofereceQuitar(mes: String) =
+        !paga && venceEm(mes) == null && (adicionadas != null || (leitura != null && marcadas.isEmpty()))
 }
 
 /** 5 MB viram até 6,99 milhões de caracteres em base64, dentro dos 7 milhões do servidor. */
@@ -411,7 +418,7 @@ class ContasECartoesViewModel internal constructor(
             val linhas = lida.linhas.orEmpty()
             mexerNaConferencia(aberta) {
                 it.copy(
-                    lendo = false, precisaSenha = false, leitura = lida, convite = lida.linhas == null, linhas = linhas,
+                    lendo = false, precisaSenha = false, leitura = lida, vencimento = lida.vencimento, convite = lida.linhas == null, linhas = linhas,
                     marcadas = linhas.filter { l -> !l.ehTarifa && l.situacaoFalta }.map { l -> l.idExterno }.toSet(),
                 )
             }

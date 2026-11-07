@@ -366,6 +366,9 @@ class ContasECartoesViewModelTest {
 
     private val EstadoDasContasECartoes.conf get() = fatura!!.conferencia!!
 
+    /** O mes do vencimento lido: a fatura certa para quitar. */
+    private val ConferenciaNaTela.mesDoPdf get() = vencimento!!.take(7)
+
     @Test
     fun `premium ve os grupos, so as que faltam nascem marcadas e o pedido leva o cartao`() = runTest {
         val montagem = montar(pasta.root, loja)
@@ -397,7 +400,7 @@ class ContasECartoesViewModelTest {
         val pedido = montagem.pedidos("POST /api/expenses/import {").single()
         assertTrue(pedido, !pedido.contains("Padaria") && pedido.contains("Uber *Trip") && pedido.contains(""""categoria":"Casa""") )
         assertTrue(pedido, pedido.contains(""""parcelaNumero":2,"parcelaTotal":3""") && pedido.contains(""""contaId":"conta-nubank""""))
-        assertTrue(feita.ofereceQuitar)
+        assertTrue(feita.ofereceQuitar(feita.mesDoPdf))
 
         contas.quitarPelaConferencia()
         assertTrue(contas.estado.esperar { it.conf.paga }.conf.paga)
@@ -415,7 +418,29 @@ class ContasECartoesViewModelTest {
         contas.estado.esperar { it.conf.adicionadas != null }
         contas.lerPdf(pdf)
         val outra = contas.estado.esperar { it.conf.leitura?.contagem?.faltam == 0 }.conf
-        assertTrue(outra.marcadas.isEmpty() && outra.ofereceQuitar)
+        assertTrue(outra.marcadas.isEmpty() && outra.ofereceQuitar(outra.mesDoPdf))
+    }
+
+    @Test
+    fun `desmarcar tudo oferece marcar como paga mesmo com linhas que faltam`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val contas = abrirConferencia(montagem)
+        contas.lerPdf(pdf)
+        val c = contas.estado.esperar { it.conf.leitura != null }.conf
+        assertFalse(c.ofereceQuitar(c.mesDoPdf))
+        c.marcadas.forEach { contas.alternarLinha(it) }
+        val nada = contas.estado.esperar { it.conf.marcadas.isEmpty() }.conf
+        assertTrue(nada.leitura!!.contagem.faltam > 0 && nada.ofereceQuitar(nada.mesDoPdf))
+    }
+
+    @Test
+    fun `fatura que vence em outro mes nao quita o mes aberto e avisa`() {
+        val c = ConferenciaNaTela(vencimento = "2026-12-10", adicionadas = 1)
+        assertEquals("12/2026", c.venceEm("2026-11"))
+        assertFalse(c.ofereceQuitar("2026-11"))
+        assertEquals(null, c.venceEm("2026-12"))
+        assertTrue(c.ofereceQuitar("2026-12"))
+        assertTrue(ConferenciaNaTela(adicionadas = 1).ofereceQuitar("2026-11"))
     }
 
     @Test

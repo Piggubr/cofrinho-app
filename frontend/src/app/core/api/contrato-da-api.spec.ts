@@ -271,6 +271,12 @@ const CASOS: Caso[] = [
     '/receipts/consent',
   ],
   [
+    'retirar a autorizacao da leitura de fatura',
+    (s) => s.finance.retirarAutorizacaoDaLeituraDeFatura(),
+    'DELETE',
+    '/expenses/import/card-statement/consent',
+  ],
+  [
     'autorizar o assistente',
     (s) => s.finance.autorizarAssistente('2026-10-16'),
     'POST',

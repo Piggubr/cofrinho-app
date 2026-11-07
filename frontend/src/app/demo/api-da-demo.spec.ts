@@ -37,6 +37,10 @@ describe('API da demonstracao', () => {
     expect(grupos).toEqual(new Set(['COMPRA/FALTA', 'COMPRA/CONFIRA', 'TARIFA/FALTA', 'COMPRA/JA_LANCADA']));
   });
 
+  it('retirar a autorizacao da fatura responde sem erro', async () => {
+    await firstValueFrom(http.delete('/api/expenses/import/card-statement/consent'));
+  });
+
   it('entrar com a Apple tambem entra como a titular', async () => {
     const tokens = await post<ParDeTokens>('/api/auth/apple', { idToken: 'x', nonce: 'y' });
     expect(tokens.usuario.role).toBe('TITULAR');

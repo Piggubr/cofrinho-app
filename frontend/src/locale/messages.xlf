@@ -7869,6 +7869,34 @@
           <context context-type="linenumber">99</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="8014227268519795610" datatype="html">
+        <source>Esta fatura vence em <x id="INTERPOLATION" equiv-text="{{ venceEm() }}"/>, não é a do mês aberto.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">103,105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3935997021338549812" datatype="html">
+        <source> Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">21,22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3917687161653368344" datatype="html">
+        <source> Retirar autorização da fatura do cartão </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="575583328864823385" datatype="html">
+        <source>Pronto. A fatura do cartão só vai ao Google se você autorizar de novo.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">79</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

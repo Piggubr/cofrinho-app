@@ -98,16 +98,19 @@ type Linha = LinhaDaConferencia & { marcada: boolean };
       }
       @if (feito()) {
         <p class="aviso sucesso" role="status">{{ feito() }}</p>
-        @if (cartao() && mes() && !paga()) {
-          <div class="acoes">
-            <button i18n type="button" class="botao secundario" (click)="pagar()" [disabled]="ocupado()">
-              Marcar fatura como paga
-            </button>
-          </div>
-        }
-        @if (paga()) {
-          <p i18n class="aviso sucesso" role="status">Fatura marcada como paga.</p>
-        }
+      }
+      @if (cartao() && venceEm()) {
+        <p i18n class="linha-detalhe">Esta fatura vence em {{ venceEm() }}, não é a do mês aberto.</p>
+      }
+      @if (ofereceQuitar()) {
+        <div class="acoes">
+          <button i18n type="button" class="botao secundario" (click)="pagar()" [disabled]="ocupado()">
+            Marcar fatura como paga
+          </button>
+        </div>
+      }
+      @if (paga()) {
+        <p i18n class="aviso sucesso" role="status">Fatura marcada como paga.</p>
       }
 
       <div #resultado tabindex="-1" class="resultado">
@@ -225,6 +228,8 @@ export class ConferirFatura {
   protected readonly ocupado = signal(false);
   protected readonly conferencia = signal<ConferenciaDaFatura | null>(null);
   protected readonly linhas = signal<Linha[]>([]);
+  /** Vencimento lido no PDF; fica depois de importar, quando a conferencia some. */
+  private readonly vencimento = signal<string | null>(null);
   /** O PDF fica em memoria para a senha e a autorizacao reenviarem sem escolher de novo. */
   private pdfBase64 = '';
   private readonly categoriasBuscadas = signal<string[]>([]);
@@ -234,6 +239,7 @@ export class ConferirFatura {
     effect(() => {
       this.cartao();
       this.mes();
+      this.cartaoEscolhido();
       untracked(() => this.limpar());
     });
   }
@@ -257,6 +263,22 @@ export class ConferirFatura {
       { chave: 'tarifas', titulo: $localize`Tarifas`, linhas: lista.filter((l) => l.tipo === 'TARIFA' && l.situacao !== 'JA_LANCADA') },
     ];
   });
+
+  /** MM/AAAA do vencimento lido quando ele e de outro mes que o aberto; vazio quando bate ou nao veio. */
+  protected readonly venceEm = computed(() => {
+    const v = this.vencimento();
+    const mes = this.mes();
+    return v && mes && v.slice(0, 7) !== mes ? `${v.slice(5, 7)}/${v.slice(0, 4)}` : '';
+  });
+  /** Com o cartao aberto, quita depois de importar ou quando nao ha nada marcado para adicionar. */
+  protected readonly ofereceQuitar = computed(
+    () =>
+      !!this.cartao() &&
+      !!this.mes() &&
+      !this.paga() &&
+      !this.venceEm() &&
+      (!!this.feito() || (!!this.conferencia() && !this.marcadas().length)),
+  );
 
   private contaId(): string | null {
     return this.cartao()?.id ?? (this.cartaoEscolhido() || null);
@@ -295,6 +317,7 @@ export class ConferirFatura {
           this.ocupado.set(false);
           this.precisaSenha.set(false);
           this.conferencia.set(c);
+          this.vencimento.set(c.vencimento);
           this.convite.set(c.linhas === null);
           this.linhas.set((c.linhas ?? []).map((l) => ({ ...l, marcada: l.situacao === 'FALTA' && l.tipo === 'COMPRA' })));
           if (c.linhas?.length && !this.categorias().length && !this.categoriasBuscadas().length) {
@@ -334,6 +357,7 @@ export class ConferirFatura {
     this.feito.set('');
     this.paga.set(false);
     this.conferencia.set(null);
+    this.vencimento.set(null);
     this.linhas.set([]);
   }
 

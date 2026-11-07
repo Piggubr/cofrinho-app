@@ -816,6 +816,7 @@ class ApiDaDemo(
             p.corpo.objetos("linhas").map { linha(it.texto("data"), it.texto("descricao"), it.dinheiro("valor"), it.texto("idExterno")) }
         }
         rota("POST", "/expenses/import/card-statement") { conferirFatura() }
+        rota("DELETE", "/expenses/import/card-statement/consent") { }
         rota("POST", "/expenses/import") { p ->
             val linhas = p.corpo.objetos("linhas")
             var importados = 0

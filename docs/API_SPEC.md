@@ -209,7 +209,8 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
   `GEMINI_FATURA`). Nada é gravado. A resposta traz sempre a `contagem`; as `linhas` só vêm no
   Premium (no gratuito, `null`). Para adicionar o que falta, mande as linhas ao
   `POST /api/expenses/import`, que aceita `parcelaNumero` e `parcelaTotal` (1 a 48, juntos):
-  a parcela `n/m` grava ela e as seguintes até `m`, e `importados` conta as linhas.
+  a parcela `n/m` grava ela e as seguintes até `m`, e `importados` conta as linhas. A autorização
+  se retira com `DELETE /api/expenses/import/card-statement/consent` (`204`), como a do recibo.
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por

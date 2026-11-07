@@ -168,6 +168,47 @@ describe('ConferirFatura', () => {
     expect(botao('Marcar fatura como paga')).toBeUndefined();
   });
 
+  it('sem nada marcado para adicionar oferece marcar como paga sem importar', async () => {
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush(resposta([linha({ idExterno: 'f1', situacao: 'JA_LANCADA' })]));
+    tela.detectChanges();
+    expect(botao('Marcar fatura como paga')).toBeDefined();
+  });
+
+  it('com linha marcada so oferece marcar como paga depois de importar', async () => {
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush(resposta([linha({ idExterno: 'f1' })]));
+    tela.detectChanges();
+    expect(botao('Marcar fatura como paga')).toBeUndefined();
+  });
+
+  it('fatura que vence em outro mes nao quita o mes aberto e avisa', async () => {
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush({ ...resposta([]), vencimento: '2026-12-10' });
+    tela.detectChanges();
+    expect(botao('Marcar fatura como paga')).toBeUndefined();
+    expect(texto()).toContain('Esta fatura vence em 12/2026, não é a do mês aberto.');
+  });
+
+  it('trocar o cartao escolhido em Gastos limpa a leitura', async () => {
+    tela.componentRef.setInput('cartao', null);
+    tela.componentRef.setInput('cartoes', [CARTAO, { id: 'c2', nome: 'Inter', tipo: 'CARTAO' } as ContaOuCartao]);
+    tela.detectChanges();
+    const seletor = tela.nativeElement.querySelector('select') as HTMLSelectElement;
+    seletor.value = 'c1';
+    seletor.dispatchEvent(new Event('change'));
+    await escolher(pdf());
+    http.expectOne(URL_CONFERIR).flush(resposta([linha({ idExterno: 'f1' })]));
+    tela.detectChanges();
+    expect(botao('Adicionar 1')).toBeDefined();
+    const deNovo = tela.nativeElement.querySelector('select') as HTMLSelectElement;
+    deNovo.value = 'c2';
+    deNovo.dispatchEvent(new Event('change'));
+    tela.detectChanges();
+    expect(texto()).not.toContain('41 já lançadas');
+    expect(botao('Adicionar 1')).toBeUndefined();
+  });
+
   it('PDF com senha pede a senha e tenta de novo', async () => {
     await escolher(pdf());
     http

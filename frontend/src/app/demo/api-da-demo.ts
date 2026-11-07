@@ -684,6 +684,7 @@ const ROTAS: Rota[] = [
   ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
   ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
     (c['linhas'] as LinhaDoExtrato[]).map((l) => linha(l.data, l.descricao, l.valor, l.idExterno))],
+  ['DELETE', /^\/expenses\/import\/card-statement\/consent$/, () => null],
   // Conferir a fatura: o PDF nao e lido; a resposta de exemplo mostra os quatro grupos (Premium).
   ['POST', /^\/expenses\/import\/card-statement$/, () => {
     const mes = hojeIso().slice(0, 7);

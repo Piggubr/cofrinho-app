@@ -131,7 +131,15 @@ internal fun ConferirFatura(aberta: FaturaNaTela, c: ConferenciaNaTela, moeda: S
                     )
                 }
             }
-            if (c.ofereceQuitar) {
+            c.venceEm(aberta.mes)?.let { outro ->
+                item {
+                    Text(
+                        stringResource(R.string.conferir_vence_em_outro_mes, outro),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (c.ofereceQuitar(aberta.mes)) {
                 item {
                     Button(eventos.quitarPelaConferencia, Modifier.heightIn(min = 48.dp), enabled = !c.quitando) { Text(stringResource(R.string.conferir_marcar_paga)) }
                 }

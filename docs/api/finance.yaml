@@ -839,6 +839,22 @@ paths:
       summary: Conferir a fatura do cartão (PDF) com os gastos lançados
       tags:
       - Gastos
+  /api/expenses/import/card-statement/consent:
+    delete:
+      operationId: expenseRetirarConsentimentoDaFatura
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Retirar a autorização de enviar a fatura ao Gemini
+      tags:
+      - Gastos
   /api/expenses/import/preview:
     post:
       operationId: expensePrevia

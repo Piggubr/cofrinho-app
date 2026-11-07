@@ -88,4 +88,5 @@
     <string name="conferir_adicionadas_puladas">Adicionadas: %1$d. Já estavam no Piggu: %2$d.</string>
     <string name="conferir_marcar_paga">Marcar fatura como paga</string>
     <string name="conferir_paga">Fatura marcada como paga.</string>
+    <string name="conferir_vence_em_outro_mes">Esta fatura vence em %1$s, não é a do mês aberto.</string>
 </resources>
