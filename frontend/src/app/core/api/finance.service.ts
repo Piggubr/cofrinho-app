@@ -5,6 +5,7 @@ import {
   AReceber,
   AcertoDeDivisao,
   Cofrinho,
+  ConferenciaDaFatura,
   ConferenciaDePreco,
   ContaFixa,
   ContaOuCartao,
@@ -270,6 +271,22 @@ export class FinanceService extends ApiBase {
     });
   }
 
+  /** Le o PDF da fatura do cartao e diz o que ja foi lancado e o que falta. */
+  conferirFatura(
+    pdfBase64: string,
+    senha: string | null,
+    contaId: string | null,
+    versaoDoAviso?: string,
+  ): Observable<ConferenciaDaFatura> {
+    return this.http.post<ConferenciaDaFatura>(this.url('/expenses/import/card-statement'), {
+      pdfBase64,
+      senha,
+      contaId,
+      autorizoIa: versaoDoAviso ? true : undefined,
+      versaoDoAviso,
+    });
+  }
+
   exportarGastos(mes: string): Observable<Blob> {
     return this.http.get(this.url('/expenses/export'), { params: { mes }, responseType: 'blob' });
   }
@@ -359,6 +376,11 @@ export class FinanceService extends ApiBase {
   /** Retira a autorizacao de enviar a foto da nota ao Gemini (LGPD art. 8, par. 5). */
   retirarAutorizacaoDaLeituraDeNota(): Observable<void> {
     return this.http.delete<void>(this.url('/receipts/consent'));
+  }
+
+  /** Retira a autorizacao de enviar o texto da fatura do cartao ao Gemini (LGPD art. 8, par. 5). */
+  retirarAutorizacaoDaLeituraDeFatura(): Observable<void> {
+    return this.http.delete<void>(this.url('/expenses/import/card-statement/consent'));
   }
 
   /** @param versaoDoAviso so quando a pessoa autorizou, agora, o envio da foto a IA */

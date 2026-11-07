@@ -96,6 +96,19 @@ data class EventosDasContasECartoes(
     val pedirParaDesconectar: (conexaoId: String, instituicao: String) -> Unit = { _, _ -> },
     val confirmar: () -> Unit = {},
     val desistir: () -> Unit = {},
+    // Conferir com a fatura do banco.
+    val conferirComOBanco: () -> Unit = {},
+    val fecharConferencia: () -> Unit = {},
+    val lerPdf: (abrir: () -> java.io.InputStream?) -> Unit = {},
+    val mudarSenha: (String) -> Unit = {},
+    val tentarComSenha: () -> Unit = {},
+    val autorizarIa: () -> Unit = {},
+    val recusarIa: () -> Unit = {},
+    val alternarLinha: (idExterno: String) -> Unit = {},
+    val mudarCategoria: (idExterno: String, categoria: String) -> Unit = { _, _ -> },
+    val adicionarDaConferencia: () -> Unit = {},
+    val quitarPelaConferencia: () -> Unit = {},
+    val abrirPremium: () -> Unit = {},
 )
 
 /**
@@ -107,6 +120,7 @@ data class EventosDasContasECartoes(
 fun TelaDasContasECartoes(
     voltar: () -> Unit,
     modifier: Modifier = Modifier,
+    abrirPremium: () -> Unit = {},
     viewModel: ContasECartoesViewModel = hiltViewModel(),
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -135,6 +149,18 @@ fun TelaDasContasECartoes(
             pedirParaDesconectar = viewModel::pedirParaDesconectar,
             confirmar = viewModel::confirmar,
             desistir = viewModel::desistir,
+            conferirComOBanco = viewModel::conferirComOBanco,
+            fecharConferencia = viewModel::fecharConferencia,
+            lerPdf = viewModel::lerPdf,
+            mudarSenha = viewModel::mudarSenha,
+            tentarComSenha = viewModel::tentarComSenha,
+            autorizarIa = viewModel::autorizarIa,
+            recusarIa = viewModel::recusarIa,
+            alternarLinha = viewModel::alternarLinha,
+            mudarCategoria = viewModel::mudarCategoria,
+            adicionarDaConferencia = viewModel::adicionarDaConferencia,
+            quitarPelaConferencia = viewModel::quitarPelaConferencia,
+            abrirPremium = abrirPremium,
         ),
         modifier,
     )
@@ -171,6 +197,7 @@ fun TelaDasContasECartoes(estado: EstadoDasContasECartoes, eventos: EventosDasCo
         }
     }
     estado.fatura?.let { FaturaDoCartao(it, estado, eventos) }
+    estado.fatura?.conferencia?.let { ConferirFatura(estado.fatura, it, estado.moeda, eventos) }
     estado.confirmacao?.let { Confirmar(it, eventos) }
 }
 
@@ -415,6 +442,9 @@ private fun FaturaDoCartao(aberta: FaturaNaTela, estado: EstadoDasContasECartoes
                                 Button(eventos.alternarPagamento, enabled = !estado.pagando) { Text(stringResource(R.string.fatura_marcar_paga)) }
                             }
                         }
+                    }
+                    item {
+                        OutlinedButton(eventos.conferirComOBanco, Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.conferir_abrir)) }
                     }
                     if (carga.valor.gastos.isEmpty()) item { Detalhe(stringResource(R.string.fatura_vazia)) }
                     carga.valor.gastos.forEach { gasto ->

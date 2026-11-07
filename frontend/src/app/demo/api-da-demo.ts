@@ -684,6 +684,31 @@ const ROTAS: Rota[] = [
   ['POST', /^\/expenses\/import\/preview$/, (_p, _x, c) => previaDoExtrato(String(c['conteudo'] ?? ''))],
   ['POST', /^\/expenses\/import\/preview-lines$/, (_p, _x, c) =>
     (c['linhas'] as LinhaDoExtrato[]).map((l) => linha(l.data, l.descricao, l.valor, l.idExterno))],
+  ['DELETE', /^\/expenses\/import\/card-statement\/consent$/, () => null],
+  // Conferir a fatura: o PDF nao e lido; a resposta de exemplo mostra os quatro grupos (Premium).
+  ['POST', /^\/expenses\/import\/card-statement$/, () => {
+    const mes = hojeIso().slice(0, 7);
+    const l = (dia: number, descricao: string, valor: number, extra: Corpo = {}) => ({
+      data: diaNoMes(mes, dia), descricao, valor, tipo: 'COMPRA', parcelaNumero: null, parcelaTotal: null,
+      situacao: 'FALTA', gastoId: null, gastoDescricao: null, gastoData: null, categoria: 'Outros',
+      idExterno: `fatura:demo${dia}${descricao.length}`, ...extra,
+    });
+    const linhas = [
+      l(3, 'Padaria Estrela', 18.9, { categoria: 'Mercado' }),
+      l(5, 'Loja de Eletronicos 2/5', 119.8, { parcelaNumero: 2, parcelaTotal: 5, categoria: 'Compras' }),
+      l(8, 'Posto Boa Viagem', 150, { situacao: 'CONFIRA', gastoDescricao: 'Posto', gastoData: diaNoMes(mes, 9), categoria: 'Transporte' }),
+      l(10, 'Anuidade do cartao', 39.9, { tipo: 'TARIFA' }),
+      l(2, 'Mercado Bom Preco', 212.35, { situacao: 'JA_LANCADA', gastoDescricao: 'Mercado', gastoData: diaNoMes(mes, 2), categoria: 'Mercado' }),
+      l(4, 'Cinema Central', 48, { situacao: 'JA_LANCADA', gastoDescricao: 'Cinema', gastoData: diaNoMes(mes, 4), categoria: 'Lazer' }),
+    ];
+    const conta = (situacao: string) => linhas.filter((x) => x.situacao === situacao).length;
+    const total = Math.round(linhas.reduce((soma, x) => soma + x.valor, 0) * 100) / 100;
+    return {
+      banco: 'desconhecido', vencimento: diaNoMes(mes, 28), total, somaLida: total, origem: 'PROPRIA', aviso: null,
+      contagem: { compras: 5, tarifas: 1, ignoradas: 0, jaLancadas: conta('JA_LANCADA'), confira: conta('CONFIRA'), faltam: conta('FALTA') },
+      linhas,
+    };
+  }],
   ['POST', /^\/expenses\/import$/, (_p, _x, c) => {
     const linhas = (c['linhas'] ?? []) as Corpo[];
     let importados = 0;

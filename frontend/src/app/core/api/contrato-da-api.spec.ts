@@ -91,6 +91,22 @@ const CASOS: Caso[] = [
     { linhas: [LINHA], contaId: 'c1' },
   ],
   [
+    'conferir a fatura',
+    (s) => s.finance.conferirFatura('JVBER', null, 'c1'),
+    'POST',
+    '/expenses/import/card-statement',
+    {},
+    { pdfBase64: 'JVBER', senha: null, contaId: 'c1' },
+  ],
+  [
+    'conferir a fatura com autorizacao',
+    (s) => s.finance.conferirFatura('JVBER', 'abc', 'c1', '2026-10-16'),
+    'POST',
+    '/expenses/import/card-statement',
+    {},
+    { pdfBase64: 'JVBER', senha: 'abc', contaId: 'c1', autorizoIa: true, versaoDoAviso: '2026-10-16' },
+  ],
+  [
     'acerto da divisao',
     (s) => s.finance.acertoDoMes('2026-10'),
     'GET',
@@ -253,6 +269,12 @@ const CASOS: Caso[] = [
     (s) => s.finance.retirarAutorizacaoDaLeituraDeNota(),
     'DELETE',
     '/receipts/consent',
+  ],
+  [
+    'retirar a autorizacao da leitura de fatura',
+    (s) => s.finance.retirarAutorizacaoDaLeituraDeFatura(),
+    'DELETE',
+    '/expenses/import/card-statement/consent',
   ],
   [
     'autorizar o assistente',

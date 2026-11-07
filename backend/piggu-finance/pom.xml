@@ -82,6 +82,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-aspectj</artifactId>
     </dependency>
+    <!-- Texto das faturas em PDF (PDF e entrada nao confiavel: ver TextoDoPdf). -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.8</version>
+    </dependency>
     <!-- Contrato da API (docs/api); desligado fora do perfil dev e dos testes. -->
     <dependency>
       <groupId>org.springdoc</groupId>

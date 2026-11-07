@@ -596,7 +596,7 @@ struct DadosDaDemonstracao {
                           ["codigo": "ARS", "nome": "Peso argentino"]])
         case ("GET", "me/export"):
             return (200, Data(#"{"conta":{"nome":"Pessoa de Demonstração"},"gastos":[]}"#.utf8))
-        case ("DELETE", "receipts/consent"):
+        case ("DELETE", "receipts/consent"), ("DELETE", "expenses/import/card-statement/consent"):
             return (204, nil)
         case ("DELETE", "assistant/consent"):
             assistenteAutorizado = false

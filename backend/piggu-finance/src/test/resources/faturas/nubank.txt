@@ -1,0 +1,12 @@
+Nubank
+Olá, Maria Teste
+Vencimento 10/01/2027
+Total desta fatura R$ 418,70
+Saldo anterior 500,00
+05/12 Pagamento recebido -500,00
+28/12 Padaria Sol 32,50
+29/12 Mercado Bom Preco 210,40
+02/01 Uber *Viagem 25,90
+03/01 Loja Azul 03/10 150,00
+05/01 Estorno Loja Verde -40,00
+05/01 Streaming Filmes 39,90

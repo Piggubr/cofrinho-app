@@ -104,8 +104,10 @@
     <string name="perfil_esconder_nos_recentes">Esconder nos apps recentes</string>
     <string name="perfil_esconder_nos_recentes_explicacao">Os valores somem da tela de apps recentes. Com isso, também não dá para tirar print nem gravar a tela do Piggu. Vale para este aparelho.</string>
     <string name="perfil_ia_titulo">Autorizações da IA</string>
-    <string name="perfil_ia_explicacao">Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.</string>
+    <string name="perfil_ia_explicacao">Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.</string>
     <string name="perfil_ia_retirar_nota">Retirar autorização da foto da nota</string>
+    <string name="perfil_ia_retirar_fatura">Retirar autorização da fatura do cartão</string>
+    <string name="perfil_ia_fatura_retirada">Pronto. A fatura do cartão só vai ao Google se você autorizar de novo.</string>
     <string name="perfil_ia_retirar_assistente">Retirar autorização do assistente</string>
     <string name="perfil_ia_nota_retirada">Pronto. A foto da nota só vai ao Google se você autorizar de novo.</string>
     <string name="perfil_ia_assistente_retirada">Pronto. O assistente só envia dados ao Google se você autorizar de novo.</string>

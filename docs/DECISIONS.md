@@ -176,6 +176,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-168](#d-168-o-repositório-é-a-fonte-o-segundo-cérebro-é-a-memória-entre-projetos) | O repositório é a fonte; o segundo cérebro é a memória entre projetos | Valendo |
 | [D-169](#d-169-sem-réplica-do-banco-por-enquanto-aviso-de-falha-no-backup-e-backup-antes-de-migrar) | Sem réplica do banco por enquanto; aviso de falha no backup e backup antes de migrar |
 | [D-170](#d-170-painéis-de-funil-receita-retenção-e-plataformas-só-com-contagens) | Painéis de funil, receita, retenção e plataformas, só com contagens |
+| [D-172](#d-172-conferir-a-fatura-do-cartão-em-pdf) | Conferir a fatura do cartão em PDF | Valendo |
 
 ---
 
@@ -1773,3 +1774,23 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: mudou o preço de um plano? Atualize as consultas do painel "Funil e receita". A receita é bruta, antes da taxa da loja e dos impostos. Família excluída sai do funil e das encerradas.
 - Reavaliar quando: a família passar a guardar o período do plano, ou o preço mudar com frequência.
 - Onde ver: [observabilidade](observabilidade.md#painéis), `backend/observabilidade/grafana/paineis/`
+
+## D-172: Conferir a fatura do cartão em PDF
+- Data: 06/11/2026
+- Situação: Valendo
+- Decidido por: Dudu (06/11/2026)
+- Registrado por: Claude
+- Contexto: quem usa cartão quer saber se lançou tudo o que está na fatura. Digitar de novo é trabalho, e mandar o PDF inteiro para uma IA expõe dados demais e custa por leitura.
+- Decisão:
+  - Leitura híbrida: o servidor extrai o texto do PDF (PDFBox) e lê com regras. O Gemini só entra no Premium, quando as regras não fecham a soma, com a autorização do usuário (finalidade `GEMINI_FATURA`) e recebendo só o texto extraído, nunca o PDF. O PDF vai até 40 páginas e 5 MB, não é gravado nem entra em log. PDF escaneado (sem texto) dá erro em vez de ir ao Gemini, porque não há texto para mandar.
+  - Conciliação com os gastos já lançados: mesma data com tolerância de 3 dias conta como já lançado; de 4 a 10 dias, ou empate entre candidatos, vai para "Confira", que não consome o gasto. Parcela casa pelo mesmo n/m e valor com tolerância de R$ 0,01; a data esperada é a da compra mais (n-1) meses, dentro do período do cartão com 3 dias de folga. Parcela com o mesmo n/m fora dessa janela também vai para "Confira".
+  - Linhas de tarifa são reconhecidas só pelas palavras no começo da descrição (a descrição "PORTO SEGURO AUTO" continua compra). Estorno, crédito e devolução abatem da soma; pagamento e saldo anterior não entram.
+  - O período do cartão sai do mês do vencimento (volta um mês quando o vencimento é antes do fechamento).
+  - Ao adicionar uma parcela n/m, o app grava de n até m, como nos parcelados lançados à mão. Importar de novo a mesma fatura não duplica.
+  - Plano gratuito vê só as contagens (já lançadas, faltando, para conferir), barrado no servidor, sem Gemini e sem gastar cota. O Premium vê e adiciona as linhas.
+  - O consentimento usa a finalidade `GEMINI_FATURA` com a versão atual do aviso: `Consentimentos.VERSAO_DO_AVISO` não sobe. O aviso de privacidade ganha a linha "Fatura do cartão em PDF" nas três plataformas. A autorização se retira como a do recibo (`DELETE /api/expenses/import/card-statement/consent`), na linha "Fatura do cartão" das "Autorizações da IA" do perfil.
+  - No Android a entrada fica só na fatura do cartão, porque o módulo de gastos não depende do de contas.
+- Alternativas: mandar o PDF direto ao Gemini (expõe o documento inteiro e custa por leitura); ler só com regras, sem reserva (faturas de layout estranho ficariam sem leitura); liberar a leitura completa no gratuito (o custo da IA cresce com o uso).
+- Consequências: a maioria das faturas é lida no servidor e não sai dele. Fatura que não fecha pede a autorização do envio do texto ao Google, só no Premium. O merge espera o teste com faturas reais (Nubank, Itaú, Inter e outras), porque os leitores por regra dependem do layout de cada banco.
+- Reavaliar quando: algum banco mudar o layout da fatura, ou o teste com faturas reais mostrar muita linha indo para o Gemini.
+- Onde ver: `docs/superpowers/specs/2026-11-06-leitor-de-fatura-design.md`, [planos Premium](planos-premium.md#divisão), `docs/api/`

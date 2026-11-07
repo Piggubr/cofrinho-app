@@ -39,6 +39,11 @@ extension ClienteDaAPI {
         try await post("/expenses/import", corpo: PedidoDeImportacao(linhas: linhas, contaId: contaId))
     }
 
+    /// Le o PDF da fatura e diz o que ja foi lancado e o que falta; nada e gravado.
+    func conferirFatura(_ pedido: PedidoDeConferencia) async throws -> ConferenciaDaFatura {
+        try await post("/expenses/import/card-statement", corpo: pedido)
+    }
+
     func acertoDoMes(_ mes: String) async throws -> [AcertoDeDivisao] {
         try await get("/expenses/splits", query: ["mes": mes])
     }
@@ -476,6 +481,10 @@ extension ClienteDaAPI {
 
     func retirarAutorizacaoDaLeituraDeNota() async throws {
         try await delete("/receipts/consent")
+    }
+
+    func retirarAutorizacaoDaLeituraDeFatura() async throws {
+        try await delete("/expenses/import/card-statement/consent")
     }
 
     func retirarAutorizacaoDoAssistente() async throws {
