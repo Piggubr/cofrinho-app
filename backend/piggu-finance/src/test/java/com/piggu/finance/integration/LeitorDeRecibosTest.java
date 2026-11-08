@@ -141,6 +141,7 @@ class LeitorDeRecibosTest {
         assertThatThrownBy(() -> leitor.ler(FOTO, GRATUITA))
                 .isInstanceOfSatisfying(BusinessException.class,
                         erro -> assertThat(erro.getCodigo()).isEqualTo(Plano.CODIGO_PREMIUM));
+        verify(cota).devolver(GRATUITA);
     }
 
     @Test

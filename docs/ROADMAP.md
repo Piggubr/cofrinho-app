@@ -29,7 +29,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
 - Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104) e, depois, apagar `frontend/android` e o `android-demo.yml`.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
-- Religar o Open Finance e o leitor próprio de nota, desligados antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
+- Religar o Open Finance, desligado antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
 - Um mês depois do 2.0.0 estar na loja sem problemas: apagar `frontend/ios` e os workflows `ios-demo.yml` e `ios-producao.yml`.
 
 ## Ideias (sem compromisso)
@@ -44,6 +44,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 06/11/2026: leitor próprio de nota (Tesseract) ligado por padrão, com o Gemini de reserva só no Premium, e aviso de privacidade de volta ao texto da D-046 (D-171). O merge liga o leitor em produção, então só depois do teste com cerca de 10 fotos reais.
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
 - 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).

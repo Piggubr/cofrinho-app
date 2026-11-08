@@ -162,8 +162,8 @@ services:
       JWKS_URI: http://identity:8081/.well-known/jwks.json
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       PIGGU_ASSISTENTE_PERGUNTAS_POR_MES: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:-150}
-      # false (padrao): recibo lido so pelo Gemini. true volta o leitor proprio (Tesseract) primeiro.
-      PIGGU_LEITOR_PROPRIO: ${PIGGU_LEITOR_PROPRIO:-false}
+      # true (padrao, D-171): o leitor proprio (Tesseract) tenta primeiro. false manda tudo direto ao Gemini.
+      PIGGU_LEITOR_PROPRIO: ${PIGGU_LEITOR_PROPRIO:-true}
     depends_on:
       postgres:
         condition: service_healthy
