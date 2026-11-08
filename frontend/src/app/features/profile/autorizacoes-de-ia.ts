@@ -18,8 +18,8 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
       <p class="aviso erro" role="alert">{{ erro() }}</p>
     }
     <p i18n class="linha-detalhe">
-      Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta
-      ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.
+      Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma
+      fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.
     </p>
     <div class="acoes">
       <button
@@ -30,6 +30,15 @@ import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
         (click)="retirar('nota')"
       >
         Retirar autorização da foto da nota
+      </button>
+      <button
+        i18n
+        type="button"
+        class="botao contorno"
+        [disabled]="retirando()"
+        (click)="retirar('fatura')"
+      >
+        Retirar autorização da fatura do cartão
       </button>
       <button
         i18n
@@ -50,11 +59,13 @@ export class AutorizacoesDeIa {
   protected readonly aviso = signal('');
   protected readonly erro = signal('');
 
-  protected retirar(qual: 'nota' | 'assistente'): void {
+  protected retirar(qual: 'nota' | 'fatura' | 'assistente'): void {
     const pedido: Observable<void> =
       qual === 'nota'
         ? this.finance.retirarAutorizacaoDaLeituraDeNota()
-        : this.finance.retirarAutorizacaoDoAssistente();
+        : qual === 'fatura'
+          ? this.finance.retirarAutorizacaoDaLeituraDeFatura()
+          : this.finance.retirarAutorizacaoDoAssistente();
     this.retirando.set(true);
     this.aviso.set('');
     this.erro.set('');
@@ -64,7 +75,9 @@ export class AutorizacoesDeIa {
         this.aviso.set(
           qual === 'nota'
             ? $localize`Pronto. A foto da nota só vai ao Google se você autorizar de novo.`
-            : $localize`Pronto. O assistente só envia dados ao Google se você autorizar de novo.`,
+            : qual === 'fatura'
+              ? $localize`Pronto. A fatura do cartão só vai ao Google se você autorizar de novo.`
+              : $localize`Pronto. O assistente só envia dados ao Google se você autorizar de novo.`,
         );
       },
       error: (falha) => {

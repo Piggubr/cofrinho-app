@@ -17,6 +17,7 @@ import br.com.piggu.core.model.PedidoDeCompartilhamento
 import br.com.piggu.core.model.PedidoDeConexao
 import br.com.piggu.core.model.PedidoDeImportacao
 import br.com.piggu.core.model.PedidoDeLeitura
+import br.com.piggu.core.model.PedidoDeConferencia
 import br.com.piggu.core.model.PedidoDeLogin
 import br.com.piggu.core.model.PedidoDeModulos
 import br.com.piggu.core.model.PedidoDePapel
@@ -126,6 +127,13 @@ class RotasTest {
                 PedidoDeImportacao(listOf(LinhaParaImportar("2026-10-01", "Pão", BigDecimal("5"), "x1", "Mercado")), "c1"),
             )
         },
+        Caso(
+            "POST", "/api/expenses/import/card-statement",
+            corpo = """{"pdfBase64":"JVBERg==","contaId":"c1","autorizoIa":true,"versaoDoAviso":"2026-10-16"}""",
+        ) {
+            financas.conferirFatura(PedidoDeConferencia("JVBERg==", contaId = "c1", autorizoIa = true, versaoDoAviso = "2026-10-16"))
+        },
+        Caso("DELETE", "/api/expenses/import/card-statement/consent") { financas.retirarAutorizacaoDaLeituraDeFatura() },
         Caso("GET", "/api/products/price-check", mapOf("item" to "Pão", "valor" to "5.50")) {
             financas.conferirPreco("Pão", BigDecimal("5.50").toPlainString())
         },

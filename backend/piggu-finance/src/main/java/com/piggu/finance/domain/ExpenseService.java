@@ -15,6 +15,7 @@ import com.piggu.finance.api.dto.UpdateExpenseRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Gastos: o centro do Piggu.
@@ -226,37 +228,64 @@ public class ExpenseService {
         PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
                 .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
         boolean compartilhado = conta != null && conta.isShared();
-        List<String> ids = linhas.stream().map(LinhaImportada::idExterno).toList();
+        List<CategoryRule> regrasDaFamilia = regras.carregar();
+        for (LinhaImportada l : linhas) {
+            if ((l.parcelaNumero() == null) != (l.parcelaTotal() == null)
+                    || l.parcelaNumero() != null && l.parcelaNumero() > l.parcelaTotal()) {
+                throw new BusinessException("Informe a parcela e o total de parcelas juntos.", HttpStatus.BAD_REQUEST);
+            }
+            // As parcelas seguintes ganham ":n" no id externo, que cabe em 120.
+            if (l.parcelaNumero() != null && l.idExterno().length() > 116) {
+                throw new BusinessException("Identificador da linha grande demais.", HttpStatus.BAD_REQUEST);
+            }
+        }
+        // Ids das linhas e das parcelas seguintes ("id:n"): a parcela que ja existe nao duplica.
+        List<String> ids = linhas.stream()
+                .flatMap(l -> l.parcelaNumero() == null ? Stream.of(l.idExterno())
+                        : Stream.concat(Stream.of(l.idExterno()), IntStream.rangeClosed(l.parcelaNumero() + 1,
+                                l.parcelaTotal()).mapToObj(p -> l.idExterno() + ":" + p)))
+                .toList();
+        // Por conta, como na previa: o mesmo id em outro cartao e outro gasto.
         Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportadosSemConta(ids)
                 : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
-        List<CategoryRule> regrasDaFamilia = regras.carregar();
         UUID lote = UUID.randomUUID();
-        List<Expense> novos = linhas.stream()
-                .filter(l -> jaImportadas.add(l.idExterno()))
-                .map(l -> {
-                    ExpenseItemRequest item = new ExpenseItemRequest(l.descricao(), l.categoria(), l.valor(), null);
-                    // A categoria escolhida na previa vale como escolha manual.
-                    String origem = Texto.vazio(l.categoria()) ? ORIGEM_EXTRATO : ORIGEM_PADRAO;
-                    Expense gasto = new Expense(l.data(), lote, "", Texto.limitar(l.descricao(), 200),
-                            categoriaDe(item, "", origem, regrasDaFamilia), l.valor(), TIPO_PADRAO, ORIGEM_EXTRATO,
-                            usuarioId);
-                    gasto.importadoDe(l.idExterno());
-                    gasto.pagarCom(contaId);
-                    gasto.compartilhar(compartilhado);
-                    return gasto;
-                })
-                .toList();
-        memoriaDeProdutos.registrar(repositorio.saveAll(novos));
-        if (!novos.isEmpty()) {
+        List<LinhaImportada> novas = linhas.stream().filter(l -> jaImportadas.add(l.idExterno())).toList();
+        List<Expense> gastos = novas.stream().flatMap(l -> {
+            ExpenseItemRequest item = new ExpenseItemRequest(l.descricao(), l.categoria(), l.valor(), null);
+            // A categoria escolhida na previa vale como escolha manual.
+            String origem = Texto.vazio(l.categoria()) ? ORIGEM_EXTRATO : ORIGEM_PADRAO;
+            String categoria = categoriaDe(item, "", origem, regrasDaFamilia);
+            // Parcela n/m da fatura: grava ela e as seguintes ate m, uma por fatura, no mesmo lote.
+            int n = l.parcelaNumero() == null ? 1 : l.parcelaNumero();
+            int m = l.parcelaTotal() == null ? 1 : l.parcelaTotal();
+            return IntStream.rangeClosed(0, m - n)
+                    .filter(k -> k == 0 || !jaImportadas.contains(l.idExterno() + ":" + (n + k))).mapToObj(k -> {
+                Expense gasto = new Expense(dataDaParcela(l.data(), n - 1 + k, conta), lote, "",
+                        Texto.limitar(l.descricao(), 200), categoria, l.valor(), TIPO_PADRAO, ORIGEM_EXTRATO,
+                        usuarioId);
+                if (l.parcelaNumero() != null) {
+                    gasto.parcela(n + k, m);
+                }
+                gasto.importadoDe(k == 0 ? l.idExterno() : l.idExterno() + ":" + (n + k));
+                gasto.pagarCom(contaId);
+                gasto.compartilhar(compartilhado);
+                return gasto;
+            });
+        }).toList();
+        List<Expense> salvos = repositorio.saveAll(gastos);
+        // Como no lancamento manual: parcela nao entra na memoria de precos.
+        memoriaDeProdutos.registrar(salvos.stream().filter(g -> g.getInstallmentCount() == null).toList());
+        if (!gastos.isEmpty()) {
             trilha.registrar(TrilhaDeAuditoria.Acao.IMPORTOU, "gasto", lote, null,
-                    novos.size() + " gastos do extrato");
+                    gastos.size() + " gastos do extrato");
         }
-        log.info("Extrato importado: linhas={} novas={}", linhas.size(), novos.size());
-        return novos.size();
+        log.info("Extrato importado: linhas={} novas={} gastos={}", linhas.size(), novas.size(), gastos.size());
+        return novas.size();
     }
 
+    /** @param parcelaNumero com {@code parcelaTotal}, grava esta parcela e as seguintes; nulos, a vista */
     public record LinhaImportada(LocalDate data, String descricao, BigDecimal valor, String idExterno,
-                                 String categoria) {
+                                 String categoria, Integer parcelaNumero, Integer parcelaTotal) {
     }
 
     /** Gastos em CSV (separador ;), do mes ou de tudo; abre no Excel e no Google Planilhas. */

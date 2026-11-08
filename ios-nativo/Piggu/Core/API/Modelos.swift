@@ -174,6 +174,9 @@ struct LinhaDoExtrato: Codable, Identifiable, Equatable, Sendable {
     let idExterno: String
     var categoria: String
     let jaImportada: Bool
+    /// So a conferencia da fatura manda a parcela; sem ela o campo nem vai no JSON.
+    var parcelaNumero: Int?
+    var parcelaTotal: Int?
 
     var id: String { idExterno }
 }
@@ -896,4 +899,76 @@ struct RespostaDoAssistente: Codable, Equatable, Sendable {
     /// Rota que o assistente sugere abrir (gastos, orcamentos...); nula quando nenhuma.
     let tela: String?
     let restantes: Int
+}
+
+// MARK: - Conferir a fatura do cartao (POST /expenses/import/card-statement)
+
+struct PedidoDeConferencia: Encodable, Sendable {
+    let pdfBase64: String
+    let senha: String?
+    let contaId: String?
+    var autorizoIa: Bool?
+    var versaoDoAviso: String?
+}
+
+struct LinhaDaConferencia: Codable, Identifiable, Equatable, Sendable {
+    enum Tipo: String, Codable, Sendable { case compra = "COMPRA", tarifa = "TARIFA" }
+    enum Situacao: String, Codable, Sendable { case jaLancada = "JA_LANCADA", confira = "CONFIRA", falta = "FALTA" }
+
+    /// aaaa-mm-dd
+    let data: String
+    let descricao: String
+    let valor: Decimal
+    let tipo: Tipo
+    let parcelaNumero: Int?
+    let parcelaTotal: Int?
+    let situacao: Situacao
+    let gastoId: String?
+    let gastoDescricao: String?
+    let gastoData: String?
+    var categoria: String
+    let idExterno: String
+
+    var id: String { idExterno }
+}
+
+struct ConferenciaDaFatura: Codable, Equatable, Sendable {
+    struct Contagem: Codable, Equatable, Sendable {
+        let compras: Int
+        let tarifas: Int
+        let ignoradas: Int
+        let jaLancadas: Int
+        let confira: Int
+        let faltam: Int
+    }
+
+    let banco: String?
+    let vencimento: String?
+    let total: Decimal?
+    let somaLida: Decimal
+    let origem: String
+    let aviso: String?
+    let contagem: Contagem
+    /// Nulo no plano gratuito: so as contagens.
+    let linhas: [LinhaDaConferencia]?
+}
+
+extension ConferenciaDaFatura {
+    /// Linha com tipo ou situacao que este app nao conhece (API mais nova) sai, sem derrubar a resposta.
+    private struct LinhaSeDer: Decodable {
+        let linha: LinhaDaConferencia?
+        init(from decoder: Decoder) throws { linha = try? LinhaDaConferencia(from: decoder) }
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(banco: try c.decodeIfPresent(String.self, forKey: .banco),
+                  vencimento: try c.decodeIfPresent(String.self, forKey: .vencimento),
+                  total: try c.decodeIfPresent(Decimal.self, forKey: .total),
+                  somaLida: try c.decode(Decimal.self, forKey: .somaLida),
+                  origem: try c.decode(String.self, forKey: .origem),
+                  aviso: try c.decodeIfPresent(String.self, forKey: .aviso),
+                  contagem: try c.decode(Contagem.self, forKey: .contagem),
+                  linhas: try c.decodeIfPresent([LinhaSeDer].self, forKey: .linhas)?.compactMap(\.linha))
+    }
 }

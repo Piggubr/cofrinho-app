@@ -4,6 +4,7 @@ import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.Plano;
 import com.piggu.common.security.PigguRole;
+import com.piggu.finance.domain.ConferenciaDaFaturaService;
 import com.piggu.finance.integration.LeitorDeRecibos;
 import com.piggu.testing.PostgresIntegrationTest;
 import com.piggu.testing.TokensDeTeste;
@@ -59,6 +60,22 @@ class ConsentimentoRetiradoTest extends PostgresIntegrationTest {
         mockMvc.perform(delete("/api/receipts/consent").with(TokensDeTeste.membro())).andExpect(status().isNoContent());
     }
 
+    @Test
+    @DisplayName("retirar a da fatura do cartao nao mexe na da nota")
+    void retiraADaFatura() throws Exception {
+        UUID familia = UUID.randomUUID();
+        String email = "fatura-" + familia + "@piggu.test";
+        CurrentUser quem = pessoa(familia, email);
+        autorizar(quem);
+        consentimentos.exigir(quem, ConferenciaDaFaturaService.FINALIDADE, "teste", true, Consentimentos.VERSAO_DO_AVISO);
+
+        mockMvc.perform(delete("/api/expenses/import/card-statement/consent")
+                        .with(TokensDeTeste.da(familia, email, PigguRole.PARCEIRO)))
+                .andExpect(status().isNoContent());
+
+        assertThat(consentimentos.jaAutorizou(quem, ConferenciaDaFaturaService.FINALIDADE)).isFalse();
+        assertThat(consentimentos.jaAutorizou(quem, LeitorDeRecibos.FINALIDADE)).isTrue();
+    }
 
     private static CurrentUser pessoa(UUID familia, String email) {
         return new CurrentUser(TokensDeTeste.idDe(email), email, PigguRole.PARCEIRO, Plano.PREMIUM, familia);

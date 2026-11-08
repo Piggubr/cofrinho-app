@@ -2675,13 +2675,6 @@
           <context context-type="linenumber">126,127</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1754484331196202249" datatype="html">
-        <source>Escolha o cartão</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/expenses/expenses.html</context>
-          <context context-type="linenumber">133,134</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="5443587233575259249" datatype="html">
         <source> Vai para a fatura de <x id="INTERPOLATION" equiv-text="{{ rotuloDe(f.mes) }}"/>, que vence em <x id="INTERPOLATION_1" equiv-text="{{ f.vencimento | dataBr }}"/>. </source>
         <context-group purpose="location">
@@ -7685,6 +7678,223 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/layout/shell/tutorial.ts</context>
           <context context-type="linenumber">104</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2735589439690551113" datatype="html">
+        <source>Conferir com a fatura do banco</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">24,25</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3258142152087002240" datatype="html">
+        <source> Escolha o PDF da fatura do cartão. O Piggu mostra o que já está lançado e o que falta. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">27,28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2676751713688874482" datatype="html">
+        <source>Cartão da fatura</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">31,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="659588466258577454" datatype="html">
+        <source> Escolher PDF da fatura <x id="TAG_INPUT" ctype="x-input" equiv-text="&lt;input type=&quot;file&quot; accept=&quot;.pdf,application/pdf&quot; (change)=&quot;escolher($event)&quot; hidden /&gt;"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">46,48</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3140900547899454471" datatype="html">
+        <source>Senha do PDF</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">53,54</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1474560118212990783" datatype="html">
+        <source> Tentar de novo </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3233995105883134881" datatype="html">
+        <source> Autorizar e continuar </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">79</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1281096690407975873" datatype="html">
+        <source>Lendo a fatura...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">85,86</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2242674016766705111" datatype="html">
+        <source>A conferência linha a linha faz parte do Piggu Premium.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">92</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="821544261797882921" datatype="html">
+        <source> Marcar fatura como paga </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">101</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6689001485132878512" datatype="html">
+        <source>Fatura marcada como paga.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">106,107</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4724366891384506498" datatype="html">
+        <source>Para conferir: <x id="INTERPOLATION" equiv-text="{{ c.contagem.confira }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">116,118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8499696549187606491" datatype="html">
+        <source> · parecido com <x id="INTERPOLATION" equiv-text="{{ l.gastoDescricao }}"/> (<x id="INTERPOLATION_1" equiv-text="{{ l.gastoData | dataBr }}"/>) </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">138,139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6367603638935541308" datatype="html">
+        <source>Já lançadas (<x id="INTERPOLATION" equiv-text="{{ jaLancadas().length }}"/>)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">151,152</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3630689013750501353" datatype="html">
+        <source>Adicionar <x id="INTERPOLATION" equiv-text="{{ marcadas().length }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">166,167</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8168246680489570206" datatype="html">
+        <source>Faltam</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">220</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1390442244805092300" datatype="html">
+        <source>Confira</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">221</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8495263310678970689" datatype="html">
+        <source>Tarifas</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">222</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4250515999047158360" datatype="html">
+        <source>PDF grande demais (máximo 5 MB).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8719895899861475974" datatype="html">
+        <source>Não consegui abrir esse PDF.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1187528989139379874" datatype="html">
+        <source>Adicionados: <x id="PH" equiv-text="importados"/>. Já estavam no Piggu: <x id="PH_1" equiv-text="pulados"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">319</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1758173494219053248" datatype="html">
+        <source>Adicionados: <x id="PH" equiv-text="importados"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">320</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6300029023082084426" datatype="html">
+        <source> <x id="INTERPOLATION" equiv-text="{{ c.contagem.jaLancadas }}"/> já lançadas, faltam <x id="INTERPOLATION_1" equiv-text="{{ c.contagem.faltam }}"/> </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">113,115</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3165622653864961422" datatype="html">
+        <source>Sem cartão</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">40,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4135228322847499669" datatype="html">
+        <source>Fatura do cartão em PDF</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">62,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5407029497297065481" datatype="html">
+        <source>Conferir as compras da fatura com os gastos já lançados. O PDF é lido no nosso servidor e descartado; só no Premium, se o nosso leitor não conseguir e com a sua autorização, o texto da fatura (não o PDF) vai para a IA do Google</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">63,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6845904146825677811" datatype="html">
+        <source>A foto da nota fiscal; o texto da fatura do cartão; no assistente, a pergunta e os totais e gastos que ela pede</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/legal/privacidade.html</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8014227268519795610" datatype="html">
+        <source>Esta fatura vence em <x id="INTERPOLATION" equiv-text="{{ venceEm() }}"/>, não é a do mês aberto.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/expenses/conferir-fatura.ts</context>
+          <context context-type="linenumber">103,105</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3935997021338549812" datatype="html">
+        <source> Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">21,22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3917687161653368344" datatype="html">
+        <source> Retirar autorização da fatura do cartão </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="575583328864823385" datatype="html">
+        <source>Pronto. A fatura do cartão só vai ao Google se você autorizar de novo.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/profile/autorizacoes-de-ia.ts</context>
+          <context context-type="linenumber">79</context>
         </context-group>
       </trans-unit>
     </body>

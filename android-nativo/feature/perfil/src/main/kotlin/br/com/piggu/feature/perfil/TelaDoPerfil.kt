@@ -145,6 +145,7 @@ data class EventosDoPerfil(
     val mudarTravar: (Boolean) -> Unit = {},
     val mudarEsconderNosRecentes: (Boolean) -> Unit = {},
     val retirarAutorizacaoDaNota: () -> Unit = {},
+    val retirarAutorizacaoDaFatura: () -> Unit = {},
     val retirarAutorizacaoDoAssistente: () -> Unit = {},
     val informarDocumento: () -> Unit = {},
     val mudarSenhaAtual: (String) -> Unit = {},
@@ -255,6 +256,7 @@ fun TelaDoPerfil(
             },
             mudarEsconderNosRecentes = viewModel::mudarEsconderNosRecentes,
             retirarAutorizacaoDaNota = viewModel::retirarAutorizacaoDaNota,
+            retirarAutorizacaoDaFatura = viewModel::retirarAutorizacaoDaFatura,
             retirarAutorizacaoDoAssistente = viewModel::retirarAutorizacaoDoAssistente,
             informarDocumento = { abrirNoApp(contexto, "piggu://cpf") },
             mudarSenhaAtual = viewModel::mudarSenhaAtual,
@@ -336,6 +338,7 @@ fun TelaDoPerfil(
                 Seguranca(estado, eventos, travaDisponivel)
                 Cartao(stringResource(R.string.perfil_ia_titulo), stringResource(R.string.perfil_ia_explicacao)) {
                     OutlinedButton(eventos.retirarAutorizacaoDaNota, enabled = !estado.ocupado) { Text(stringResource(R.string.perfil_ia_retirar_nota)) }
+                    OutlinedButton(eventos.retirarAutorizacaoDaFatura, enabled = !estado.ocupado) { Text(stringResource(R.string.perfil_ia_retirar_fatura)) }
                     OutlinedButton(eventos.retirarAutorizacaoDoAssistente, enabled = !estado.ocupado) { Text(stringResource(R.string.perfil_ia_retirar_assistente)) }
                 }
                 Senha(usuario, estado.senha, eventos, avisoDoEmail)

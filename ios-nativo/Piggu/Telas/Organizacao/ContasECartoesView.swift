@@ -165,6 +165,7 @@ private struct FaturaView: View {
     @Environment(\.paleta) private var paleta
     @State private var carga: Carga<FaturaComGastos> = .carregando
     @State private var ocupado = false
+    @State private var conferindo = false
     @State private var erro: String?
 
     var body: some View {
@@ -201,6 +202,9 @@ private struct FaturaView: View {
                 .padding(.vertical, 6)
             }
             .task(id: mes) { await carregar() }
+            .sheet(isPresented: $conferindo) {
+                ConferirFaturaView(cartao: cartao, mes: mes) { Task { await carregar() }; aoMudar() }
+            }
         }
     }
 
@@ -223,6 +227,12 @@ private struct FaturaView: View {
                     Button("Marcar como paga") { Task { await alternar(fatura) } }
                         .botaoPrincipal().disabled(ocupado)
                 }
+            }
+        }
+        .listRowBackground(paleta.superficie)
+        Section {
+            Button { conferindo = true } label: {
+                Label("Conferir com a fatura do banco", systemImage: "checklist")
             }
         }
         .listRowBackground(paleta.superficie)

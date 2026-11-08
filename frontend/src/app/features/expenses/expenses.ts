@@ -30,6 +30,7 @@ import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { ConferirFatura } from './conferir-fatura';
 import { ImportarExtrato } from './importar-extrato';
 import { Icone } from '../../core/ui/icone';
 import { FilaDeGastos } from '../../core/offline/fila-de-gastos';
@@ -52,6 +53,7 @@ import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
     MoedaPipe,
     DataBrPipe,
     ImportarExtrato,
+    ConferirFatura,
     Carregando,
     Vazio,
     FormularioDeGasto,
@@ -85,6 +87,7 @@ export class Expenses {
   protected readonly categoriaEditada = signal('');
   protected readonly regras = signal<RegraDeCategoria[]>([]);
   protected readonly contas = signal<ContaOuCartao[]>([]);
+  protected readonly cartoes = computed(() => this.contas().filter((c) => c.tipo === 'CARTAO'));
   protected readonly membros = signal<MembroDaFamilia[]>([]);
   protected readonly compartilhadoEditado = signal(false);
   protected readonly transferencias = signal<TransferenciaDoAcerto[]>([]);

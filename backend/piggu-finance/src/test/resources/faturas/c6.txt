@@ -1,0 +1,9 @@
+C6 Bank
+Titular: Paula Imaginária
+Vencimento 10/01/2027
+Total da fatura R$ 365,50
+30/12 Pet Shop Amigo 95,00
+31/12 Cafe Aroma 14,50
+04/01 Tech Store 06/10 250,00
+06/01 Devolucao Pet Shop -15,00
+08/01 Padaria Sol 21,00

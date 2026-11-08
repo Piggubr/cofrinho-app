@@ -103,7 +103,7 @@ fun TelaCheia(
         Tela.ContasFixas -> TelaDasContasDoMes(voltar = voltar)
         Tela.Orcamentos -> TelaDoOrcamento(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         Tela.Calendario -> TelaDoCalendario(voltar = voltar)
-        Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar)
+        Tela.ContasECartoes -> TelaDasContasECartoes(voltar = voltar, abrirPremium = { abrir(Tela.Plano) })
         // Metas e conta (A6).
         Tela.Metas -> TelaDasMinhasMetas(voltar = voltar)
         Tela.GirlsMath -> TelaDoGirlsMath(voltar = voltar)

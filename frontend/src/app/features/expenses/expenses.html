@@ -237,6 +237,12 @@
   (importado)="carregarGastos()"
 />
 
+<app-conferir-fatura
+  [cartoes]="cartoes()"
+  [categorias]="categorias()"
+  (importado)="carregarGastos()"
+/>
+
 <section class="cartao" aria-labelledby="titulo-regras">
   <div class="cartao-titulo">
     <h2 i18n id="titulo-regras">Regras de categoria</h2>

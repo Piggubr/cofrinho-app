@@ -1,0 +1,10 @@
+Banco Inter
+Cliente: Ana Fictícia
+Vencimento 05/02/2027
+Total desta fatura R$ 1.194,88
+03/01 Mercado Central 456,78
+07/01 HOTEL MIAMI US 520,00
+07/01 IOF COMPRA INTERNACIONAL 18,20
+12/01 Cinema Estrela 56,00
+15/01 Joia Brilho 05/06 199,90
+20/01 Estorno Cinema Estrela -56,00

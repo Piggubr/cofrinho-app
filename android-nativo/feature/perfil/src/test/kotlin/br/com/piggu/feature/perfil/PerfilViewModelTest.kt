@@ -406,6 +406,7 @@ class PerfilViewModelTest {
     fun `retirar as autorizacoes da IA chama as rotas de consentimento`() = runTest {
         entrar(
             "DELETE /api/receipts/consent" to RespostaFixa(204),
+            "DELETE /api/expenses/import/card-statement/consent" to RespostaFixa(204),
             "DELETE /api/assistant/consent" to RespostasFixas.erro(503, "INDISPONIVEL", "Tente de novo em instantes."),
         )
         val perfil = perfil()
@@ -413,10 +414,16 @@ class PerfilViewModelTest {
         perfil.retirarAutorizacaoDaNota()
         perfil.estado.esperar { it.aviso == R.string.perfil_ia_nota_retirada }
         perfil.mensagemVista()
+        perfil.retirarAutorizacaoDaFatura()
+        perfil.estado.esperar { it.aviso == R.string.perfil_ia_fatura_retirada }
+        perfil.mensagemVista()
         perfil.retirarAutorizacaoDoAssistente()
         val falhou = perfil.estado.esperar { it.erro != null }
         assertEquals(MensagemDeErro.DoServidor("Tente de novo em instantes."), falhou.erro)
-        assertEquals(listOf("DELETE /api/receipts/consent", "DELETE /api/assistant/consent"), pedidos("DELETE /api/"))
+        assertEquals(
+            listOf("DELETE /api/receipts/consent", "DELETE /api/expenses/import/card-statement/consent", "DELETE /api/assistant/consent"),
+            pedidos("DELETE /api/"),
+        )
     }
 
     @Test

@@ -342,6 +342,10 @@ struct PerfilView: View {
                 Task { await executar(String(localized: "Pronto. A foto da nota só vai ao Google se você autorizar de novo.")) {
                     try await $0.retirarAutorizacaoDaLeituraDeNota() } }
             }
+            Button("Retirar autorização da fatura do cartão") {
+                Task { await executar(String(localized: "Pronto. A fatura do cartão só vai ao Google se você autorizar de novo.")) {
+                    try await $0.retirarAutorizacaoDaLeituraDeFatura() } }
+            }
             Button("Retirar autorização do assistente") {
                 Task { await executar(String(localized: "Pronto. O assistente só envia dados ao Google se você autorizar de novo.")) {
                     try await $0.retirarAutorizacaoDoAssistente() } }
@@ -349,7 +353,7 @@ struct PerfilView: View {
         } header: {
             Text("Autorizações da IA")
         } footer: {
-            Text("Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.")
+            Text("Você autoriza o envio ao Google (Gemini) na primeira vez que lê uma nota pela foto, confere uma fatura do cartão ou pergunta ao assistente. Pode retirar quando quiser; o Piggu volta a perguntar antes de enviar.")
         }
         .listRowBackground(paleta.superficie)
     }

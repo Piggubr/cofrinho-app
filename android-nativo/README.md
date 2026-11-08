@@ -41,7 +41,7 @@ plataforma que faltar.
 | `feature:orcamentos` | Orçamento: o limite do mês e os limites por categoria (Premium) |
 | `feature:calendario` | Calendário: a grade do mês, as notas e o gráfico acumulado |
 | `feature:relatorios` | Relatórios: o mês por categoria, o ano (Premium) e o CSV do mês |
-| `feature:contas` | Cartões e bancos: contas, cartões, a fatura, os bancos conectados e conectar banco pelo site (D-150) |
+| `feature:contas` | Cartões e bancos: contas, cartões, a fatura (com "Conferir com a fatura do banco", que lê o PDF), os bancos conectados e conectar banco pelo site (D-150) |
 | `feature:metas` | Minhas metas do mês, com alvo, progresso e o +1 |
 | `feature:girlsmath` | Girls Math: o que a pessoa não comprou, com foto, e quanto ficou no bolso |
 | `feature:planejar` | Planejar, aba do celular: os atalhos para Orçamento, Contas do mês, Relatórios e Metas do mês |

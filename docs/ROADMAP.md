@@ -44,6 +44,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 06/11/2026: conferir a fatura do cartão em PDF, no site, no iOS e no Android: o app mostra o que já foi lançado, o que falta e o que conferir, e adiciona as compras que faltam, com as parcelas; no gratuito só as contagens (D-172). Merge depois do teste com faturas reais.
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
 - 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).
