@@ -25,18 +25,21 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
   rastreamento (ATT) no iOS e sem `NSUserTrackingUsageDescription`.
 - Android: remover a permissão `com.google.android.gms.permission.AD_ID` no manifesto
   (`tools:node="remove"`). Nenhum dado do Piggu (gasto, categoria, valor, e-mail) vai para o SDK.
-- Classificação máxima do conteúdo: **PG** (`MAX_AD_CONTENT_RATING_PG` / `.parentalGuidance`),
-  porque menores podem usar o app com autorização do responsável (termos).
+- **Menores de 18 não veem anúncio** (ECA Digital, Lei 15.211/2025). Classificação máxima **PG**
+  (`MAX_AD_CONTENT_RATING_PG` / `.parentalGuidance`) como segunda proteção.
 - Formato: só **banner adaptativo ancorado**. Nada de tela cheia, vídeo com recompensa ou app open.
 - Onde aparece: abas **Painel** e **Lançamentos**, acima da barra de abas (ou no pé do conteúdo
   quando o menu é lateral). Nunca em login, termos, "Sobre você", Premium/Plano, bancos/Open
   Finance, lançar gasto, assistente, telas legais e demonstração.
-- Regra: mostra se há usuário logado, o plano é `GRATUITO`, não é ADMIN e não é demonstração.
-  Plano `DESCONHECIDO` ou sessão ainda abrindo: **não** mostra.
+- Regra: mostra se há usuário logado, o plano é `GRATUITO`, não é ADMIN, não é demonstração e
+  a pessoa tem **18 anos ou mais** pelo `nascimento` (data ISO), contados no dia de hoje em
+  `America/Sao_Paulo`. Plano `DESCONHECIDO`, sessão abrindo, `nascimento` nulo ou ilegível: **não** mostra.
 - Banner sem anúncio carregado (sem internet, sem preenchimento) ocupa **altura zero**.
 - Ids: build de debug e a variante/modo demo usam os ids de teste do Google; release usa os
   ids reais, lidos de configuração (não são segredo, mas não ficam espalhados no código).
-- Distribuição só no Brasil: sem formulário de consentimento UMP.
+- Distribuição só no Brasil (Europa fora dos planos, decisão do Dudu em 08/11): sem formulário de
+  consentimento UMP. Brasileiro abrindo o app na Europa recebe anúncio limitado ou nenhum, e o
+  banner fica com altura zero.
   `shortcut: sem UMP, adicionar se o app for distribuído no Espaço Econômico Europeu ou no Reino Unido`.
 - "Sem anúncios nos apps" entra na lista de benefícios do Premium. A lista vem do backend
   (`PlanoResponse.ITENS_PREMIUM`), então site e apps mostram sem mudar tela (feito no PR 1).
@@ -66,7 +69,8 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
    (a regra é derivada do estado da sessão, não lida uma vez). Teste na Tarefa 2 e na 4.
 2. Sem internet ou sem anúncio disponível: nenhum espaço em branco nem pulo de layout
    (altura zero até `onAdLoaded`). Verificação manual nas Tarefas 3 e 5.
-3. Sessão abrindo, plano `DESCONHECIDO` ou usuário nulo: sem anúncio. Teste nas Tarefas 2 e 4.
+3. Sessão abrindo, plano `DESCONHECIDO`, usuário nulo, menor de 18 ou nascimento ausente: sem
+   anúncio; o aniversário de 18 anos vale no fuso de Brasília. Teste nas Tarefas 2 e 4.
 4. Fonte grande, tablet, iPad, paisagem e menu lateral: a largura do banner vem do espaço
    disponível, não da tela. Verificação manual com prints.
 5. Sair e entrar com outra conta (uma Premium, outra gratuita): o banner segue a conta nova.
@@ -120,7 +124,7 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
 - Modificar: `PerfilDaMoldura` (em `app/.../moldura/`) e `app/src/main/kotlin/br/com/piggu/app/AppViewModel.kt`
 
 **Interfaces:**
-- Produz: `fun Usuario?.deveMostrarAnuncios(demo: Boolean): Boolean` em `core:data`
+- Produz: `fun Usuario?.deveMostrarAnuncios(demo: Boolean, hoje: LocalDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"))): Boolean` em `core:data`
 - Produz: `PerfilDaMoldura.mostraAnuncios: Boolean`, calculado no `AppViewModel` a partir de `sessao.estado`
 
 - [ ] **Passo 1: testes que falham**
@@ -132,12 +136,20 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
 @Test fun demoNaoVe() = assertFalse(usuario(plano = GRATUITO, role = MEMBRO).deveMostrarAnuncios(demo = true))
 @Test fun planoDesconhecidoNaoVe() = assertFalse(usuario(plano = DESCONHECIDO, role = MEMBRO).deveMostrarAnuncios(demo = false))
 @Test fun semUsuarioNaoVe() = assertFalse((null as Usuario?).deveMostrarAnuncios(demo = false))
+// hoje = 2026-11-08 nos testes de idade
+@Test fun fez18HojeVe() = assertTrue(usuario(plano = GRATUITO, role = TITULAR, nascimento = "2008-11-08").deveMostrarAnuncios(false, hoje))
+@Test fun faz18AmanhaNaoVe() = assertFalse(usuario(plano = GRATUITO, role = MEMBRO, nascimento = "2008-11-09").deveMostrarAnuncios(false, hoje))
+@Test fun semNascimentoNaoVe() = assertFalse(usuario(plano = GRATUITO, role = TITULAR, nascimento = null).deveMostrarAnuncios(false, hoje))
+@Test fun nascimentoIlegivelNaoVe() = assertFalse(usuario(plano = GRATUITO, role = TITULAR, nascimento = "xx").deveMostrarAnuncios(false, hoje))
 ```
+
+Os testes que não falam de idade usam um adulto (`nascimento = "1990-01-01"`).
 
 (`usuario(...)` é um construtor de teste; reutilize o que `SessaoTest` já usa.)
 
 - [ ] **Passo 2:** `./gradlew :core:data:testDebugUnitTest` → falha (função não existe).
-- [ ] **Passo 3:** implementar: `this != null && !demo && !ehPremium && plano == Plano.GRATUITO`.
+- [ ] **Passo 3:** implementar: `this != null && !demo && !ehPremium && plano == Plano.GRATUITO && maiorDeIdade(hoje)`,
+  com `nascimento` lido por `LocalDate.parse` (falha de leitura conta como menor).
 - [ ] **Passo 4:** rodar de novo → passa.
 - [ ] **Passo 5:** em `AppViewModel`, preencher `mostraAnuncios` no `PerfilDaMoldura` com
   `usuario.deveMostrarAnuncios(demo = BuildConfig.FLAVOR == "demo")` (ou a flag de demo que
@@ -185,13 +197,13 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
 - Testar: `ios-nativo/PigguTests/AnunciosTests.swift` (Swift Testing)
 
 **Interfaces:**
-- Produz: `func deveMostrarAnuncios(_ usuario: Usuario?, demo: Bool) -> Bool`
+- Produz: `func deveMostrarAnuncios(_ usuario: Usuario?, demo: Bool, hoje: Date = .now) -> Bool` (idade pelo `Calendar` gregoriano no fuso `America/Sao_Paulo`)
 
-- [ ] **Passo 1:** testes que falham com os casos da Tarefa 2 (gratuito vê; premium, admin, demo e nil não
-  veem; o `Plano` do iOS em `Core/API/Modelos.swift` não tem caso desconhecido), mais: um `Sessao` de teste trocando o
+- [ ] **Passo 1:** testes que falham com os casos da Tarefa 2 (gratuito adulto vê; premium, admin, demo, nil,
+  quem faz 18 amanhã, sem nascimento e nascimento ilegível não veem; quem faz 18 hoje vê; o `Plano` do iOS em `Core/API/Modelos.swift` não tem caso desconhecido), mais: um `Sessao` de teste trocando o
   `usuario` de gratuito para premium faz a leitura computada `deveMostrarAnuncios(sessao.usuario, demo:)` mudar.
 - [ ] **Passo 2:** `xcodebuild test -scheme Piggu -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:PigguTests/AnunciosTests` → falha.
-- [ ] **Passo 3:** implementar: `guard let usuario, !demo else { return false }; return usuario.role != .admin && usuario.plano == .gratuito`
+- [ ] **Passo 3:** implementar: `guard let usuario, !demo else { return false }; return usuario.role != .admin && usuario.plano == .gratuito && maiorDeIdade(usuario.nascimento, hoje)`
   Trocar o `ehPremium` duplicado de `AssistenteView.swift:42` por uma propriedade única em `Usuario` se ficar natural.
 - [ ] **Passo 4:** rodar → passa. Commit.
 
@@ -236,7 +248,8 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
   máxima PG; desligar anúncios personalizados no app (além do `npa=1`).
 - [ ] `app-ads.txt` em `https://piggu.com.br/app-ads.txt` com a linha que a AdMob mostrar
   (o site é o do desenvolvedor nas lojas). Colocar em `frontend/public/app-ads.txt`.
-- [ ] Google Play Console: "Contém anúncios" = sim; Segurança dos dados: dados do aparelho e
+- [ ] Disponibilidade só no Brasil no Google Play e na App Store.
+- [ ] Google Play Console: "Contém anúncios" = sim; público-alvo 13+ com anúncios só para adultos; Segurança dos dados: dados do aparelho e
   IP coletados pelo SDK para publicidade, não personalizados, não vendidos.
 - [ ] App Store Connect: Privacidade do app: dados de uso e diagnóstico para "Publicidade de
   terceiros", **não** vinculados à identidade e **sem** rastreamento.

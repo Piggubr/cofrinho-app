@@ -38,7 +38,7 @@ O controlador é o Piggu. Para qualquer assunto de privacidade, inclusive falar 
 
 Não vendemos dados e não usamos seus dados para publicidade.
 
-No plano gratuito dos apps para iPhone e Android aparece um anúncio do Google AdMob, sempre não personalizado: ele não usa o seu histórico nem o que você guarda no Piggu, e nenhum lançamento, valor, nome ou e-mail é enviado para anúncios. O Premium não tem anúncios, e o site não mostra anúncios em nenhum plano.
+No plano gratuito dos apps para iPhone e Android aparece um anúncio do Google AdMob, sempre não personalizado: ele não usa o seu histórico nem o que você guarda no Piggu, e nenhum lançamento, valor, nome ou e-mail é enviado para anúncios. Quem tem menos de 18 anos não vê anúncios. O Premium não tem anúncios, e o site não mostra anúncios em nenhum plano.
 
 ## Com quem compartilhamos (operadores)
 
@@ -56,7 +56,7 @@ No plano gratuito dos apps para iPhone e Android aparece um anúncio do Google A
 
 |Resend (e-mail) | Seu e-mail, o link de confirmação do e-mail e o texto dos avisos do dia | Ao criar conta com e-mail e senha (ou pedir outro link) e, se você ligar, nos avisos por e-mail
 
-|Google (AdMob, anúncios) | Dados técnicos do aparelho (modelo, sistema, idioma) e o endereço IP, para mostrar e contar o anúncio. Nunca seus lançamentos, valores, nome ou e-mail | Só no plano gratuito dos apps para iPhone e Android
+|Google (AdMob, anúncios) | Dados técnicos do aparelho (modelo, sistema, idioma) e o endereço IP, para mostrar e contar o anúncio. Nunca seus lançamentos, valores, nome ou e-mail | Só no plano gratuito dos apps para iPhone e Android, para maiores de 18 anos
 
 |Apple (notificações) | O texto dos avisos do dia, para o seu iPhone | Só se você ligar a notificação no iPhone
 
