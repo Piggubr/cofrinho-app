@@ -41,7 +41,7 @@ public class GirlsMathService {
                 .toList();
     }
 
-    @Transactional
+    /** Sem transacao em volta do envio da foto ao media (D-074); o save grava na dele. */
     public GirlsMathResponse criar(GirlsMathRequest pedido, CurrentUser usuario) {
         GirlsMathItem item = new GirlsMathItem(
                 Texto.limitar(pedido.produto(), 120),
@@ -52,11 +52,22 @@ public class GirlsMathService {
         );
 
         if (temFoto(pedido)) {
-            item.trocarFoto(
-media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
+            item.trocarFoto(media.enviar(pedido.imageBase64(), pedido.mimeType(), CONTEXTO_FOTO));
         }
 
-        return GirlsMathResponse.de(repositorio.save(item));
+        try {
+            return GirlsMathResponse.de(repositorio.save(item));
+        } catch (RuntimeException erro) {
+            // Item que nao grava leva a foto nova junto: senao ela fica no media sem dono.
+            if (item.getPhotoAssetId() != null) {
+                try {
+                    media.apagar(item.getPhotoAssetId());
+                } catch (RuntimeException naoApagou) {
+                    erro.addSuppressed(naoApagou);
+                }
+            }
+            throw erro;
+        }
     }
 
     @Transactional

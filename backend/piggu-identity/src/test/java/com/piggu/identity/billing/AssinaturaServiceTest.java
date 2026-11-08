@@ -279,6 +279,21 @@ class AssinaturaServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("o fim de outra assinatura da Stripe nao derruba a que deu o Premium; o fim dela derruba")
+    void fimDeOutraAssinatura() {
+        Instant agora = Instant.now();
+        Instant fim = agora.plus(Duration.ofDays(30));
+        receber(evento("customer.subscription.created", "active", fim, agora.minusSeconds(60)));
+
+        receber(evento("customer.subscription.deleted", "canceled", fim, agora.minusSeconds(30))
+                .replace("\"sub_1\"", "\"sub_antiga\""));
+        assertThat(planoDe(conta)).isEqualTo(Plano.PREMIUM);
+
+        receber(evento("customer.subscription.deleted", "canceled", fim, agora));
+        assertThat(planoDe(conta)).isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
     @DisplayName("aviso com assinatura errada ou velha e recusado sem mexer no plano")
     void assinaturaInvalida() {
         String corpo = evento("customer.subscription.created", "active", Instant.now().plusSeconds(3600), Instant.now());

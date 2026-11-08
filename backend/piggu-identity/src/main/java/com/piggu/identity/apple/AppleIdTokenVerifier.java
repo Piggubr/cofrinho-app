@@ -4,6 +4,7 @@ import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.UnauthorizedException;
 import com.piggu.common.web.Texto;
 import com.piggu.identity.config.AppleProperties;
+import com.piggu.identity.domain.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -12,10 +13,6 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.List;
 
 /**
@@ -72,7 +69,7 @@ public class AppleIdTokenVerifier {
         if (audiencia == null || audiencia.stream().noneMatch(propriedades.clientIds()::contains)) {
             throw new UnauthorizedException(RECUSADO);
         }
-        if (!sha256(nonce).equals(token.getClaimAsString("nonce"))) {
+        if (!TokenService.hash(nonce).equals(token.getClaimAsString("nonce"))) {
             throw new UnauthorizedException(RECUSADO);
         }
         // A Apple manda email_verified ora como texto ("true"), ora como booleano.
@@ -85,14 +82,5 @@ public class AppleIdTokenVerifier {
         }
         String clienteId = audiencia.stream().filter(propriedades.clientIds()::contains).findFirst().orElseThrow();
         return new AppleProfile(token.getSubject(), email, clienteId);
-    }
-
-    static String sha256(String texto) {
-        try {
-            byte[] hash = MessageDigest.getInstance("SHA-256").digest(texto.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException impossivel) {
-            throw new IllegalStateException(impossivel);
-        }
     }
 }

@@ -157,10 +157,22 @@ public class AssinaturaService {
                         avisarFimDoTeste(conta, evento.testeAcabaEm());
                     }
                     Household familia = familias.daContaTravada(conta);
+                    boolean pago = evento.premiumAte() != null && evento.premiumAte().isAfter(Instant.now());
+                    // O fim de outra assinatura do cliente (uma antiga) nao derruba a que vale, como o
+                    // token do Google Play (D-155). Sem id guardado (Premium de antes), vale como antes.
+                    if (!pago && "WEB".equals(familia.getPlanSource()) && familia.getStripeSubscriptionId() != null
+                            && !familia.getStripeSubscriptionId().equals(evento.assinaturaNoProvedor())) {
+                        log.info("Fim de outra assinatura da Stripe ignorado: conta={} familia={}",
+                                conta.getId(), familia.getId());
+                        return;
+                    }
                     boolean aplicado = familia.aplicarAssinatura("WEB", evento.premiumAte(), evento.momento(),
                             evento.inicio(), evento.tipo(), conta.getId());
                     if (aplicado) {
                         familia.registrarPrimeiraCobranca(evento.primeiraCobranca());
+                        if (pago) {
+                            familia.lembrarAssinaturaDaStripe(evento.assinaturaNoProvedor());
+                        }
                     }
                     log.info("Assinatura web: conta={} familia={} plano={} aplicado={}",
                             conta.getId(), familia.getId(), familia.planoVigente(), aplicado);

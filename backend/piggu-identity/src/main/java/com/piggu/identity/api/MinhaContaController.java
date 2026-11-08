@@ -12,8 +12,6 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -39,11 +37,11 @@ public class MinhaContaController {
 
     @Operation(summary = "Baixar uma cópia de todos os meus dados (LGPD)")
     @GetMapping("/export")
-    public ResponseEntity<Map<String, Object>> exportar(@AuthUser CurrentUser usuario, @AuthenticationPrincipal Jwt token) {
+    public ResponseEntity<Map<String, Object>> exportar(@AuthUser CurrentUser usuario) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment().filename("piggu-meus-dados.json").build().toString())
-                .body(servico.exportar(usuario, token.getTokenValue()));
+                .body(servico.exportar(usuario));
     }
 
     public record CpfRequest(@NotBlank(message = "Informe o CPF.") @Size(max = 20) String cpf) {

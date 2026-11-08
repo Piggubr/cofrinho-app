@@ -214,7 +214,7 @@ class ContasECartoesViewModel internal constructor(
                 retorno.usar()
                 when (resultado) {
                     is ResultadoDoBanco.Conectado -> agirNosBancos { bancos.registrarItem(PedidoDeItem(resultado.item)) }
-                    is ResultadoDoBanco.Falhou -> estadoAtual.update { it.copy(erro = MensagemDeErro.DoServidor(resultado.mensagem)) }
+                    ResultadoDoBanco.Falhou -> estadoAtual.update { it.copy(erro = MensagemDeErro.DoApp(R.string.cartoes_bancos_falhou)) }
                     ResultadoDoBanco.Fechou -> Unit
                 }
             }

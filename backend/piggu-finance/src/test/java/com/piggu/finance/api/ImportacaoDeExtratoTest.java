@@ -62,6 +62,34 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("a mesma linha em dois cartoes entra nos dois; no mesmo cartao, so uma vez")
+    void mesmaLinhaEmDoisCartoes() throws Exception {
+        String nubank = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Nubank\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        String inter = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"Inter\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        JsonNode previa = previa(casas.casaA);
+
+        importar(casas.casaA, previa, nubank).andExpect(jsonPath("$.importados").value(2));
+        importar(casas.casaA, previa, nubank).andExpect(jsonPath("$.importados").value(0));
+        importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(2));
+        importar(casas.casaA, previa, inter).andExpect(jsonPath("$.importados").value(0));
+        // A previa com a conta so marca o que entrou nela.
+        assertThat(previa(casas.casaA, nubank).get(0).path("jaImportada").asBoolean()).isTrue();
+        String c6 = casas.criar("/api/accounts", casas.casaA,
+                "{\"nome\":\"C6\",\"tipo\":\"CARTAO\",\"fechamento\":5,\"vencimento\":12}").path("id").asString();
+        assertThat(previa(casas.casaA, c6).get(0).path("jaImportada").asBoolean()).isFalse();
+
+        // Apagar os cartoes deixa as linhas sem conta: as dos dois nao podem colidir.
+        importar(casas.casaA, previa).andExpect(jsonPath("$.importados").value(2));
+        for (String cartao : new String[] {nubank, inter}) {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                    .delete("/api/accounts/" + cartao).with(casas.casaA)).andExpect(status().isNoContent());
+        }
+        importar(casas.casaA, previa).andExpect(jsonPath("$.importados").value(0));
+    }
+
+    @Test
     @DisplayName("gastos do banco conectado: previa por linhas, com regra, e o que ja entrou fica marcado")
     void previaDeLinhasDoBanco() throws Exception {
         String linhas = """
@@ -147,8 +175,18 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
     }
 
     private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem) throws Exception {
+        return previa(quem, Map.of("conteudo", CSV));
+    }
+
+    private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem, String conta)
+            throws Exception {
+        return previa(quem, Map.of("conteudo", CSV, "contaId", conta));
+    }
+
+    private JsonNode previa(org.springframework.test.web.servlet.request.RequestPostProcessor quem, Map<String, String> corpo)
+            throws Exception {
         return json.readTree(mockMvc.perform(post("/api/expenses/import/preview").with(quem)
-                        .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of("conteudo", CSV))))
+                        .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(corpo)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
     }
@@ -157,5 +195,12 @@ class ImportacaoDeExtratoTest extends PostgresIntegrationTest {
             org.springframework.test.web.servlet.request.RequestPostProcessor quem, JsonNode previa) throws Exception {
         return mockMvc.perform(post("/api/expenses/import").with(quem).contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("linhas", previa))));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions importar(
+            org.springframework.test.web.servlet.request.RequestPostProcessor quem, JsonNode previa, String conta)
+            throws Exception {
+        return mockMvc.perform(post("/api/expenses/import").with(quem).contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(Map.of("linhas", previa, "contaId", conta))));
     }
 }

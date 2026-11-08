@@ -80,7 +80,7 @@ class AppleIdTokenVerifierTest {
         assertThatThrownBy(() -> verificador.verificar(token, "outro")).isInstanceOf(UnauthorizedException.class);
         assertThatThrownBy(() -> verificador.verificar(token, " ")).isInstanceOf(UnauthorizedException.class);
         // Quem copiou o hash do token nao passa: o servidor faz o hash de novo.
-        assertThatThrownBy(() -> verificador.verificar(token, AppleIdTokenVerifier.sha256(NONCE)))
+        assertThatThrownBy(() -> verificador.verificar(token, com.piggu.identity.domain.TokenService.hash(NONCE)))
                 .isInstanceOf(UnauthorizedException.class);
         assertThatThrownBy(() -> verificador.verificar(token(c -> c.claim("nonce", null)), NONCE))
                 .isInstanceOf(UnauthorizedException.class);
@@ -148,7 +148,7 @@ class AppleIdTokenVerifierTest {
                 .subject("001234.apple")
                 .issueTime(new Date())
                 .expirationTime(Date.from(Instant.now().plusSeconds(600)))
-                .claim("nonce", AppleIdTokenVerifier.sha256(NONCE))
+                .claim("nonce", com.piggu.identity.domain.TokenService.hash(NONCE))
                 .claim("email", " Ana@PrivateRelay.AppleId.com ")
                 .claim("email_verified", "true")
                 .claim("is_private_email", "true");

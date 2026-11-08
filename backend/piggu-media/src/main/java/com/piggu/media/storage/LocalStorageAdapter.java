@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.UUID;
 
 /**
  * Guarda os arquivos em uma pasta do proprio servidor.
@@ -35,10 +34,10 @@ public class LocalStorageAdapter implements StoragePort {
     @Override
     public String guardar(String nome, String contentType, byte[] conteudo, String pasta) {
         try {
-            Path destino = diretorio(pasta);
-            String identificador = (pasta == null || pasta.isBlank() ? "" : pasta + "/")
-                    + UUID.randomUUID() + extensao(contentType);
-            Files.write(raiz.resolve(identificador), conteudo);
+            diretorio(pasta);
+            // O nome ja vem unico e com a extensao certa (AssetService).
+            String identificador = (pasta == null || pasta.isBlank() ? "" : pasta + "/") + nome;
+            Files.write(resolverSeguro(identificador), conteudo);
             return identificador;
         } catch (IOException erro) {
             log.error("Falha ao gravar arquivo local", erro);
@@ -69,10 +68,8 @@ public class LocalStorageAdapter implements StoragePort {
         }
     }
 
-    private Path diretorio(String pasta) throws IOException {
-        Path destino = pasta == null || pasta.isBlank() ? raiz : raiz.resolve(pasta);
-        Files.createDirectories(destino);
-        return destino;
+    private void diretorio(String pasta) throws IOException {
+        Files.createDirectories(pasta == null || pasta.isBlank() ? raiz : raiz.resolve(pasta));
     }
 
     /**
@@ -87,13 +84,5 @@ public class LocalStorageAdapter implements StoragePort {
             throw new IOException("Caminho de arquivo invalido: " + identificador);
         }
         return alvo;
-    }
-
-    private String extensao(String contentType) {
-        return switch (contentType == null ? "" : contentType) {
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            default -> ".jpg";
-        };
     }
 }

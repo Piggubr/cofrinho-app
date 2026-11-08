@@ -61,6 +61,26 @@ class AtualizadorDoWidgetTest {
     }
 
     @Test
+    fun `com a trava ligada o resumo sai e nao volta ate desligar`() = runTest {
+        val rede = redeDeTeste(pasta.root)
+        val guarda = GuardaDoResumo(PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { pasta.root.resolve("w.preferences_pb") }))
+        val preferencias = PreferenciasDoAparelho(PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { pasta.root.resolve("a.preferences_pb") }))
+        AtualizadorDoWidget(
+            ApplicationProvider.getApplicationContext(), rede.sessao, rede.financas, rede.estiloDeVida,
+            preferencias, Lancamentos(), guarda, DIA_DAS_CAPTURAS, backgroundScope,
+        ).vigiar(voltas = flowOf(Unit))
+        val resumo = guarda.resumo.stateIn(backgroundScope, SharingStarted.Eagerly, null)
+
+        rede.entrar()
+        resumo.esperar { it != null }
+        preferencias.mudarTravar(true)
+        assertNull(resumo.esperar { it == null })
+
+        preferencias.mudarTravar(false)
+        resumo.esperar { it != null }
+    }
+
+    @Test
     fun `o resumo pega a primeira meta aberta, ou a ultima, e ignora limite zero`() {
         fun meta(titulo: String, concluida: Boolean) = MetaDoMes("id-$titulo", titulo, 2, if (concluida) 2 else 1, "2026-10", concluida)
         val todasAcabaram = resumoDoMes("2026-10", BigDecimal.TEN, BigDecimal.ZERO, listOf(meta("a", true), meta("b", true)), "BRL", null, 0)

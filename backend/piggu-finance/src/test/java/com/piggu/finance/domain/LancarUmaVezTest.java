@@ -55,6 +55,19 @@ class LancarUmaVezTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("mes futuro nao paga: senao o mes atual ficaria pago sem gasto")
+    void mesFuturo() {
+        UUID id = FamiliaAtual.como(familia, () -> contas.criar("Luz", "Outros", BigDecimal.TEN, 5, false, dona,
+                false).getId());
+        YearMonth proximo = YearMonth.now(com.piggu.common.web.Meses.BRASILIA).plusMonths(1);
+
+        assertThatThrownBy(() -> FamiliaAtual.como(familia, () -> contas.pagar(id, proximo, dona)))
+                .isInstanceOf(BusinessException.class);
+        assertThat(jdbc.queryForObject("SELECT last_paid_month FROM recurring_bills WHERE id = ?", String.class, id))
+                .isNull();
+    }
+
+    @Test
     @DisplayName("editar a conta lida antes de alguem pagar nao desfaz o pago (senao ela seria lancada de novo)")
     void editarNaoDesfazOPago() {
         UUID id = FamiliaAtual.como(familia, () -> contas.criar("Luz", "Outros", BigDecimal.TEN, 5, false, dona,

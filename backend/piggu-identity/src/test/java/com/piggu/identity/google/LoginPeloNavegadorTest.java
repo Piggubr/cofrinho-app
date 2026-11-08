@@ -85,6 +85,19 @@ class LoginPeloNavegadorTest {
         assertThatThrownBy(() -> navegador.guardar("falso", DESAFIO)).isInstanceOf(UnauthorizedException.class);
     }
 
+    @Test
+    @DisplayName("o mesmo desafio repetido guarda um codigo so: o anterior deixa de valer e a lista nao enche")
+    void umCodigoPorDesafio() {
+        String primeiro = navegador.guardar("id-token", DESAFIO);
+        for (int i = 0; i < 1_500; i++) {
+            navegador.guardar("id-token", DESAFIO);
+        }
+        String ultimo = navegador.guardar("id-token", DESAFIO);
+
+        assertThatThrownBy(() -> navegador.trocar(primeiro, VERIFICADOR)).isInstanceOf(UnauthorizedException.class);
+        assertThat(navegador.trocar(ultimo, VERIFICADOR)).isEqualTo("id-token");
+    }
+
     private static final class RelogioDeTeste extends Clock {
         private Instant agora = Instant.parse("2026-10-24T12:00:00Z");
 

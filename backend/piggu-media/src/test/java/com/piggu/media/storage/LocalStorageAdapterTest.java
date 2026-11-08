@@ -36,12 +36,12 @@ class LocalStorageAdapterTest {
     }
 
     @Test
-    @DisplayName("sem pasta fica na raiz; tipo desconhecido vira .jpg")
+    @DisplayName("sem pasta fica na raiz, com o nome que veio")
     void semPasta() {
         LocalStorageAdapter local = new LocalStorageAdapter(raiz);
 
-        assertThat(local.guardar("x", "image/webp", PNG, null)).doesNotContain("/").endsWith(".webp");
-        assertThat(local.guardar("x", null, PNG, " ")).doesNotContain("/").endsWith(".jpg");
+        assertThat(local.guardar("a.webp", "image/webp", PNG, null)).isEqualTo("a.webp");
+        assertThat(local.guardar("b.jpg", null, PNG, " ")).isEqualTo("b.jpg");
     }
 
     @Test

@@ -184,6 +184,8 @@ public class FamiliaService {
             throw new BusinessException("Essa pessoa ja faz parte da familia.", HttpStatus.CONFLICT, "JA_E_DA_FAMILIA");
         }
 
+        // Trava a casa antes de contar: dois convites ao mesmo tempo nao passam do limite.
+        familias.travar(usuario.familia());
         Instant agora = Instant.now();
         Instant vence = agora.plus(VALIDADE_DO_CONVITE);
         Optional<HouseholdInvite> existente = convites.findByHouseholdIdAndEmail(usuario.familia(), email);
@@ -270,6 +272,8 @@ public class FamiliaService {
         }
 
         // A vaga se confere de novo na entrada: o convite nao e passe para alem das 5 pessoas (D-159).
+        // Com a casa travada, dois aceites ao mesmo tempo nao entram ambos na ultima vaga.
+        familias.travar(convite.getHouseholdId());
         if (familiaCheia(convite.getHouseholdId(), usuarios.findByHouseholdIdOrderByCreatedAtAsc(convite.getHouseholdId()).size())) {
             throw limiteDoFamilia();
         }

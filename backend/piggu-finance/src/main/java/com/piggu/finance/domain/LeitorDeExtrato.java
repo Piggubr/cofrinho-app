@@ -1,13 +1,17 @@
 package com.piggu.finance.domain;
 
 import com.piggu.common.error.BusinessException;
+import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -38,6 +42,9 @@ public final class LeitorDeExtrato {
             Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATA_OFX = DateTimeFormatter.ofPattern("yyyyMMdd");
+    /** AAAAMMDD[HHMM[SS[.XXX]]][[-3:BRT]]: a hora e o fuso sao opcionais. */
+    private static final Pattern DATA_HORA_OFX = Pattern.compile(
+            "(\\d{8})(?:(\\d{2})(\\d{2})(\\d{2})?(?:\\.\\d+)?)?\\s*(?:\\[([+-]?\\d{1,2}(?:\\.\\d+)?)(?::[^\\]]*)?\\])?.*");
 
     private LeitorDeExtrato() {
     }
@@ -72,13 +79,39 @@ public final class LeitorDeExtrato {
             String data = campo(bloco, "DTPOSTED");
             String descricao = campo(bloco, "MEMO").isEmpty() ? campo(bloco, "NAME") : campo(bloco, "MEMO");
             String id = campo(bloco, "FITID");
-            LocalDate dia = LocalDate.parse(data.substring(0, 8), DATA_OFX);
+            LocalDate dia = diaDoOfx(data);
             linhas.add(new Linha(dia, limpar(descricao), valor.negate(), id.isEmpty() ? null : "ofx:" + id));
         }
         if (linhas.isEmpty() && !TRANSACAO_OFX.matcher(conteudo).find()) {
             throw new BusinessException("Nao achei lancamentos nesse OFX.");
         }
         return comIdsGerados(linhas);
+    }
+
+    /**
+     * O dia da transacao em Brasilia. Com fuso ({@code [0:GMT]}, {@code [-3:BRT]}), a hora e
+     * convertida: 01h GMT ainda e o dia anterior aqui. Sem fuso fica o dia escrito: banco
+     * brasileiro que omite o fuso grava a hora local, e converter de GMT jogaria a meia-noite
+     * para o dia anterior.
+     */
+    static LocalDate diaDoOfx(String texto) {
+        Matcher partes = DATA_HORA_OFX.matcher(texto);
+        try {
+            if (!partes.matches()) {
+                throw new DateTimeException(texto);
+            }
+            LocalDate dia = LocalDate.parse(partes.group(1), DATA_OFX);
+            if (partes.group(2) == null || partes.group(5) == null) {
+                return dia;
+            }
+            LocalDateTime hora = dia.atTime(Integer.parseInt(partes.group(2)), Integer.parseInt(partes.group(3)),
+                    partes.group(4) == null ? 0 : Integer.parseInt(partes.group(4)));
+            ZoneOffset fuso = ZoneOffset.ofTotalSeconds(
+                    (int) Math.round(Double.parseDouble(partes.group(5)) * 3600));
+            return hora.atOffset(fuso).atZoneSameInstant(Meses.BRASILIA).toLocalDate();
+        } catch (DateTimeException | NumberFormatException invalida) {
+            throw new BusinessException("Data que nao da para ler no OFX: " + Texto.limitar(texto, 30));
+        }
     }
 
     /** CSV com cabecalho: data, descricao e valor (e id, se houver). Separador ; ou ,. */

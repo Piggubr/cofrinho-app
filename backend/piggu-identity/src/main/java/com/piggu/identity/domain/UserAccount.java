@@ -524,10 +524,6 @@ public class UserAccount {
         return permissions;
     }
 
-    public void setPermissions(Map<String, Object> permissions) {
-        this.permissions = permissions == null ? new HashMap<>() : permissions;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
