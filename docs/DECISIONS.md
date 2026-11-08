@@ -94,11 +94,11 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-050](#d-050-só-o-login-conhece-os-tokens-uma-renovação-por-vez) | Só o login conhece os tokens; uma renovação por vez | Valendo |
 | [D-051](#d-051-textos-em-português-do-brasil-prontos-para-tradução) | Textos em português do Brasil, prontos para tradução | Valendo |
 | [D-052](#d-052-lista-de-compras-risca-antes-da-resposta) | Lista de compras risca antes da resposta | Valendo |
-| [D-053](#d-053-apps-em-capacitor-abrindo-o-site-no-ar) | Apps em Capacitor abrindo o site no ar | Valendo |
-| [D-054](#d-054-barra-de-abas-nativa-com-liquid-glass-no-capacitor) | Barra de abas nativa com Liquid Glass no Capacitor | Valendo |
+| [D-053](#d-053-apps-em-capacitor-abrindo-o-site-no-ar) | Apps em Capacitor abrindo o site no ar | Substituída por D-181 |
+| [D-054](#d-054-barra-de-abas-nativa-com-liquid-glass-no-capacitor) | Barra de abas nativa com Liquid Glass no Capacitor | Substituída por D-181 |
 | [D-055](#d-055-ios-reescrito-em-swiftui) | iOS reescrito em SwiftUI | Valendo |
 | [D-056](#d-056-android-reescrito-em-kotlin-com-material-3) | Android reescrito em Kotlin, com Material 3 | Valendo |
-| [D-057](#d-057-nativo-entra-como-versão-200-no-mesmo-app-das-lojas) | Nativo entra como versão 2.0.0 no mesmo app das lojas | Valendo |
+| [D-057](#d-057-nativo-entra-como-versão-200-no-mesmo-app-das-lojas) | Nativo entra como versão 2.0.0 no mesmo app das lojas | Substituída em parte por D-181 |
 | [D-058](#d-058-tokens-no-app-nativo) | Tokens no app nativo | Valendo |
 | [D-059](#d-059-a-api-só-acrescenta-campos) | A API só acrescenta campos | Valendo |
 | [D-060](#d-060-features-novas-no-site-durante-a-migração) | Features novas no site durante a migração | Em aberto |
@@ -183,6 +183,9 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-177](#d-177-a-mesma-linha-de-extrato-vale-uma-vez-por-cartão) | A mesma linha de extrato vale uma vez por cartão | Valendo |
 | [D-178](#d-178-data-do-ofx-com-fuso-vira-o-dia-de-brasília-sem-fuso-fica-o-dia-escrito) | Data do OFX com fuso vira o dia de Brasília; sem fuso fica o dia escrito | Valendo |
 | [D-179](#d-179-todos-os-serviços-com-healthcheck-e-o-deploy-atualiza-o-banking-com-o-open-finance-ligado) | Todos os serviços com healthcheck, e o deploy atualiza o banking com o Open Finance ligado | Valendo |
+| [D-181](#d-181-o-app-capacitor-sai-do-repositório-o-site-mantém-a-ponte-para-quem-ainda-tem-ele-instalado) | O app Capacitor sai do repositório; o site mantém a ponte para quem ainda tem ele instalado | Valendo |
+| [D-182](#d-182-rotas-de-admin-pedem-o-código-do-app-autenticador) | Rotas de ADMIN pedem o código do app autenticador | Valendo |
+| [D-183](#d-183-a-tertiary-do-chiclete-no-android-sai-da-paleta-rosa) | A tertiary do Chiclete no Android sai da paleta rosa | Valendo |
 
 ---
 
@@ -848,21 +851,21 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-053: Apps em Capacitor abrindo o site no ar
 - Data: 17/10/2026 ([PR #39](https://github.com/Piggubr/cofrinho-app/pull/39))
-- Situação: Valendo (o iOS sai conforme D-057)
+- Situação: Substituída por D-181
 - Contexto: ter app nas lojas sem manter outro código.
 - Decisão: o app de produção (Capacitor 8, `appId br.com.piggu.app`) abre `https://piggu.com.br` dentro do WebView (`server.url`) e acompanha cada deploy sem binário novo. A demo empacota o site com dados de exemplo.
 - Alternativas: empacotar o site dentro do app, o que pediria um binário novo a cada mudança.
 - Consequências: o que só o navegador do sistema faz (login do Google) precisa de caminho próprio (D-027).
-- Onde ver: `frontend/capacitor.config.ts`, [app iOS de demonstração](app-ios-demo.md)
+- Onde ver: o histórico do Git antes de D-181 (`frontend/capacitor.config.ts`, `docs/app-ios-demo.md`)
 
 ## D-054: Barra de abas nativa com Liquid Glass no Capacitor
 - Data: 10/10/2026 ([PR #5](https://github.com/Piggubr/cofrinho-app/pull/5))
-- Situação: Valendo (até o app SwiftUI, D-055)
+- Situação: Substituída por D-181
 - Contexto: o Liquid Glass do iOS 26 não existe em HTML.
 - Decisão: no iOS, a barra de baixo é um `UITabBar` nativo (plugin `AbasNativasPlugin`), e o resto continua sendo o Angular no WebView. No iOS 26 ela ganha o Liquid Glass sozinha.
 - Alternativas: só o vidro em CSS, que continua no navegador.
 - Consequências: o Swift foi escrito sem Xcode; altura e espaçamento precisam ser conferidos no aparelho.
-- Onde ver: [LIQUID-GLASS-NATIVO.md](../frontend/ios/LIQUID-GLASS-NATIVO.md)
+- Onde ver: o histórico do Git antes de D-181 (`frontend/ios/LIQUID-GLASS-NATIVO.md`)
 
 ## D-055: iOS reescrito em SwiftUI
 - Data: 25/10/2026
@@ -884,7 +887,7 @@ no fim, em vez de ganhar um motivo inventado.
 
 ## D-057: Nativo entra como versão 2.0.0 no mesmo app das lojas
 - Data: 25/10/2026
-- Situação: Valendo
+- Situação: Substituída em parte por D-181 (o Capacitor saiu antes do prazo)
 - Contexto: quem já instalou o app não deveria ter que baixar outro.
 - Decisão: o nativo é a versão 2.0.0 do mesmo app, com o mesmo Bundle ID `br.com.piggu.app`. O Capacitor sai do iOS um mês depois de o 2.0.0 estar na loja sem problemas. O Capacitor do Android fica até o Kotlin ficar pronto.
 - Alternativas: um app novo nas lojas.
@@ -1857,3 +1860,36 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: publicar a imagem do banking no CI, que custa um build a mais em todo merge enquanto o Open Finance está desligado.
 - Consequências: com o Open Finance ligado, cada deploy leva o tempo de compilar o banking no servidor. Se o CI passar a publicar a imagem dele, ela entra em `SERVICOS_DO_APP` e o build no servidor sai.
 - Onde ver: `backend/docker-compose.yml`, `deploy/atualizar.sh` (`publicar`, `esperar_saude`)
+
+## D-181: O app Capacitor sai do repositório; o site mantém a ponte para quem ainda tem ele instalado
+- Data: 08/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 08/11/2026 ("limpa as pastas do app antigo, já que não usamos mais ele")
+- Registrado por: Claude
+- Contexto: o iOS e o Android nativos (2.0.0) substituem o app Capacitor (D-057), que previa apagar o iOS um mês depois de o 2.0.0 estar na loja. O Dudu pediu para limpar antes.
+- Decisão: saem `frontend/ios`, `frontend/android`, `frontend/capacitor.config.ts`, a arte de origem do Capacitor (`frontend/resources/icon-only.png` e `splash.png`), os workflows `ios-demo.yml`, `ios-producao.yml` e `android-demo.yml`, `docs/app-ios-demo.md` e os pacotes `@capacitor/android`, `@capacitor/ios` e `@capacitor/cli`. O `gerar-icones.mjs` passa a gerar só os ícones do site. Ficam `@capacitor/core`, `@capacitor/push-notifications` e o `core/nativo` do site: o app instalado abre o piggu.com.br no WebView (D-053), e sem essa ponte quem ainda não atualizou perde o push, as abas nativas e o ícone.
+- Alternativas: esperar o prazo da D-057; apagar também a ponte do site, o que quebraria o app instalado de quem não atualizou.
+- Consequências: não dá mais para gerar um binário novo do app Capacitor sem voltar a pasta do histórico do Git. A ponte do site sai quando o 2.0.0 estiver nas duas lojas e o painel de plataformas não mostrar mais acesso pelo app Capacitor.
+- Onde ver: `frontend/src/app/core/nativo/`, `frontend/package.json`
+
+## D-182: Rotas de ADMIN pedem o código do app autenticador
+- Data: 08/11/2026
+- Situação: Valendo
+- Decidido por: Claude, dentro da autonomia que recebeu: o Dudu pediu em 08/11/2026 para fechar os itens da conferência de segurança e LGPD, entre eles "ADMIN sem MFA".
+- Registrado por: Claude
+- Contexto: o ADMIN entra só com senha, Google ou Apple. As duas rotas que só ele usa (`GET /api/users` e `PATCH /api/users/{id}`) devolvem o e-mail de todas as contas e desativam qualquer uma. Nenhum app nem o site chamam essas rotas; o operador usa pelo terminal.
+- Decisão: cada chamada a `/api/users` leva no cabeçalho `X-Codigo-Admin` o código de 6 dígitos (TOTP, RFC 6238, SHA-1, 30 s) do segredo base32 em `PIGGU_ADMIN_TOTP`. Vale o passo anterior e o seguinte, o mesmo passo não vale duas vezes, e 5 erros seguidos bloqueiam por 15 minutos. Sem o segredo, as rotas recusam sempre. Código errado ou ausente dá 403 com `codigo: CODIGO_DO_ADMIN`. O resto do que o ADMIN faz (as rotas de titular da própria família) não muda.
+- Alternativas: verificação em duas etapas no login do ADMIN, com cadastro do autenticador e uma etapa nova no site, no iOS e no Android, para proteger as mesmas duas rotas; um segredo por conta no banco, que só faz diferença com mais de um operador.
+- Consequências: o segredo é um só para todos os ADMIN; com mais de um operador, vira um por conta. Se um dia o site ganhar uma tela de administração, o `X-Codigo-Admin` entra no `allowedHeaders` do CORS do gateway.
+- Onde ver: `backend/piggu-identity/.../domain/CodigoDoAdmin.java`, `UserController.java`
+
+## D-183: A tertiary do Chiclete no Android sai da paleta rosa
+- Data: 08/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 08/11/2026
+- Registrado por: Claude
+- Contexto: o esquema Vibrant (D-102) gira o tom da cor terciária, e no Chiclete ela saía um terracota (`#8B4E3A`) que não existe no site. Ela aparece nas estrelas das avaliações e nos avisos em `tertiaryContainer`.
+- Decisão: no Chiclete, a paleta terciária sai do `--destaque-3` do site (`#a1005a`): `tertiary` `#B31A67` no claro e `#FFB0CA` no escuro. As outras 12 cores continuam com a terciária do Vibrant.
+- Alternativas: usar o mesmo croma do Vibrant com o tom rosa, que deixava um rosa acinzentado.
+- Consequências: no Chiclete, as estrelas e os avisos terciários ficam rosa-escuro, perto da cor principal.
+- Onde ver: `android-nativo/core/designsystem/gerar-cores.mjs` (`terciaria`), `Cores.kt`

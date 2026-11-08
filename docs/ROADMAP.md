@@ -27,10 +27,10 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
 - Android: o próximo AAB é o `versionCode` 203 (2.0.0, PR #156). Depois do merge na `main`, rodar à mão o job "AAB de produção" do `android-nativo.yml` e enviar o `app-producao-release.aab` ao Play Console, com o Dudu. O secret `PIGGU_GOOGLE_SERVICES_BASE64` existe no repositório desde 04/11, então este AAB já sai com push (D-166).
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
-- Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104) e, depois, apagar `frontend/android` e o `android-demo.yml`.
+- Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104).
+- Antes de cobrar o Premium: identificar o fornecedor nos Termos e no Aviso de Privacidade (nome, CPF ou CNPJ e endereço, Decreto 7.962/2013, art. 2º) e nomear o provedor de hospedagem na tabela de operadores. Depende do Dudu decidir se abre CNPJ.
 - Stripe de verdade: conta, produto com os dois preços, webhook e Portal do Cliente ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
 - Religar o Open Finance e o leitor próprio de nota, desligados antes da 1.0.0 ([planos Premium](planos-premium.md#desligado-por-enquanto-lembrar-de-reverter)).
-- Um mês depois do 2.0.0 estar na loja sem problemas: apagar `frontend/ios` e os workflows `ios-demo.yml` e `ios-producao.yml`.
 
 ## Ideias (sem compromisso)
 

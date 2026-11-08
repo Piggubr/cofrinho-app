@@ -100,6 +100,8 @@ Se encontrar uma falha de segurança, conte para nós pelo contato abaixo em vez
 
 O nome, a marca, o porquinho, as ilustrações, os textos e o código do Piggu são nossos ou de quem nos licenciou. Você pode usar o app, mas não copiar nem reutilizar esses elementos sem autorização.
 
+O Piggu também usa componentes de código aberto, como a fonte Sora (SIL Open Font License), cada um sob a própria licença. A lista com o texto de cada licença está em [piggu.com.br/3rdpartylicenses.txt](https://piggu.com.br/3rdpartylicenses.txt).
+
 ## 12. Encerramento da conta
 
 - Você pode excluir sua conta a qualquer momento, no Perfil. Antes, cancele o Premium, se tiver, e baixe uma cópia dos seus dados, se quiser guardá-la.

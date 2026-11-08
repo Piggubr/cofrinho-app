@@ -120,6 +120,7 @@ Em produção o banco não fica publicado: tire a linha `ports` do serviço `pos
 | `DOMINIO`, `EMAIL_DO_CERTIFICADO` | domínio do site e e-mail de aviso do Let's Encrypt (serviço `web`) |
 | `SITE_URL` | endereço do site com `https://` (volta da Stripe) |
 | `PIGGU_ADMIN_EMAILS` | e-mails de quem opera a instalação (viram ADMIN ao entrar) |
+| `PIGGU_ADMIN_TOTP` | segredo base32 do app autenticador; `/api/users` pede o código no cabeçalho `X-Codigo-Admin` e, sem o segredo, recusa sempre (D-182) |
 | `PIGGU_LIMITE_PROXIESNAFRENTE` | `2` com o Caddy na frente do gateway (limite de chamadas por IP lê o IP certo) |
 | `CORS_ORIGINS` | só o domínio do site, com `https://` |
 | `GOOGLE_CLIENT_ID` | login Google (identificador público, não é segredo). O ID do site e, separados por vírgula, os IDs OAuth dos apps nativos (iOS, Android) |

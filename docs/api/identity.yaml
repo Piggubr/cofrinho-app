@@ -1327,6 +1327,12 @@ paths:
   /api/users:
     get:
       operationId: userListar
+      parameters:
+      - in: header
+        name: X-Codigo-Admin
+        required: false
+        schema:
+          type: string
       responses:
         "200":
           content:
@@ -1356,6 +1362,11 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: header
+        name: X-Codigo-Admin
+        required: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:

@@ -11,8 +11,8 @@ Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
 |---|---|
 | [`backend/`](backend/) | Sete microserviços em Java 21 com Spring Boot 4.0 e PostgreSQL |
 | [`frontend/`](frontend/) | Aplicação Angular 22 com componentes standalone e signals |
-| [`frontend/ios/`](frontend/ios/) | App iOS (Capacitor), com a barra de abas nativa no estilo Liquid Glass ([detalhes](frontend/ios/LIQUID-GLASS-NATIVO.md)) |
-| [`frontend/android/`](frontend/android/) | App Android (Capacitor); o APK da demo sai do workflow `android-demo` |
+| [`ios-nativo/`](ios-nativo/) | App iOS nativo, em Swift e SwiftUI |
+| [`android-nativo/`](android-nativo/) | App Android nativo, em Kotlin e Jetpack Compose |
 | [`docs/API_SPEC.md`](docs/API_SPEC.md) e [`docs/api/`](docs/api/) | Contrato da API para os apps nativos (iOS e Android): endereços, login, erros, convenções e o OpenAPI de cada serviço, gerado do código |
 | [`deploy/`](deploy/) e [`docs/`](docs/) | Caddy com HTTPS, guia de produção, plano de incidente, LGPD e planos Premium |
 | [`backend/observabilidade/`](backend/observabilidade/) | Grafana, Prometheus e Loki no próprio servidor: performance, logs, erros, alertas e painel de uso ([como funciona](docs/observabilidade.md)) |
@@ -59,8 +59,7 @@ Por que as coisas são como são: [docs/DECISIONS.md](docs/DECISIONS.md).
 - **Visual:** paleta Rosé suave com modo escuro, vidro no celular e busca global
   (Ctrl+K). Telas próprias para página não encontrada (404), erro (500) e sem internet,
   listas vazias que dizem o que fazer e carregamento com aviso de conexão lenta. Há um modo demo, sem backend, para mostrar o app
-  ([app iOS de demonstração](docs/app-ios-demo.md); no Android, o APK do workflow
-  `android-demo`).
+  (`npm run start:demo` no `frontend/`).
 
 O que está sendo feito agora, o que vem depois e o que é só ideia: [docs/ROADMAP.md](docs/ROADMAP.md).
 

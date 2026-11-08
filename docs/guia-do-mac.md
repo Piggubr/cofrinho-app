@@ -8,14 +8,13 @@ O que cada parte serve:
 | Parte | Para quê | Obrigatório? |
 | --- | --- | --- |
 | 1. Terminal | Rodar os comandos deste guia | Sim |
-| 2. Xcode | App nativo (Swift) e app Capacitor no iPhone | Sim |
+| 2. Xcode | App nativo (Swift) no iPhone | Sim |
 | 3. Homebrew | Instalar o resto com um comando cada | Sim |
 | 4. Git e GitHub | Baixar e enviar código | Sim |
-| 5. Node 24 e npm | Site (Angular) e app Capacitor | Sim, para o Capacitor e o site |
+| 5. Node 24 e npm | Site (Angular) | Só se for mexer no site |
 | 6. Java 21 e Maven | Backend rodando no Mac | Só se for mexer no backend |
 | 7. Docker | Banco e serviços do backend no Mac | Só se for mexer no backend |
 | 8. App nativo | Piggu em SwiftUI (`ios-nativo/`) | — |
-| 9. App Capacitor | Piggu atual (`frontend/ios`) | — |
 
 ---
 
@@ -238,9 +237,8 @@ open ios-nativo/Piggu.xcodeproj
    **Piggu** → aba **Signing & Capabilities**.
 2. **Automatically manage signing** ligado; em **Team**, escolha a sua equipe paga (não a
    *Personal Team*). O Xcode cria os certificados e registra o Bundle ID sozinho.
-3. Atenção: o app nativo usa o mesmo Bundle ID do app Capacitor (`br.com.piggu.app`). No
-   iPhone, **um substitui o outro**. Se quiser os dois juntos para comparar, troque, só no seu
-   Mac, o Bundle Identifier do nativo para algo como `br.com.piggu.app.nativo`.
+3. Atenção: o app nativo usa o mesmo Bundle ID do app da loja (`br.com.piggu.app`). No
+   iPhone, **um substitui o outro**.
 
 ### No iPhone
 
@@ -254,34 +252,6 @@ open ios-nativo/Piggu.xcodeproj
 5. Depois da primeira vez, dá para rodar sem cabo: Xcode → **Window → Devices and Simulators**
    → seu iPhone → **Connect via network**.
 
-## 9. App Capacitor (o Piggu atual) no iPhone
-
-Precisa do passo 5 (Node e `npm ci`).
-
-**Demo** (dados de exemplo, sem conta):
-
-```bash
-cd ~/Documents/Piggu/cofrinho-app/frontend
-npm run build:demo
-npx cap sync ios
-npx cap open ios
-```
-
-**Produção** (abre o piggu.com.br dentro do app, com a sua conta):
-
-```bash
-cd ~/Documents/Piggu/cofrinho-app/frontend
-PIGGU_SITE=https://piggu.com.br npm run build
-PIGGU_SITE=https://piggu.com.br npx cap sync ios
-npx cap open ios
-```
-
-No Xcode que abrir, faça como no passo 8: alvo **App** → **Signing & Capabilities** → **Team**
-→ escolha o iPhone → **⌘R**.
-
-O Xcode grava o Team no `frontend/ios/App/App.xcodeproj/project.pbxproj`. Isso aparece no
-`git status` como mudança. Só faça commit disso se for intencional.
-
 ## Problemas comuns
 
 | Mensagem | O que fazer |
@@ -290,7 +260,7 @@ O Xcode grava o Team no `frontend/ios/App/App.xcodeproj/project.pbxproj`. Isso a
 | `xcode-select: error: tool 'xcodebuild' requires Xcode` | Passo 2, comando `sudo xcode-select -s ...`. |
 | `Unable to locate a Java Runtime` | Passo 6, comando `sudo ln -sfn ...`. |
 | Xcode: "Signing for "Piggu" requires a development team" | Passo 8, Assinatura: escolha o Team. |
-| Xcode: "Failed to register bundle identifier" | O Bundle ID já está em outra conta. Use a mesma conta do app Capacitor, ou troque o Bundle ID só no seu Mac. |
+| Xcode: "Failed to register bundle identifier" | O Bundle ID já está em outra conta. Use a mesma conta do app da loja, ou troque o Bundle ID só no seu Mac. |
 | Xcode: "Developer Mode disabled" | Passo 8, No iPhone, item 2. |
 | iPhone não aparece no Xcode | Troque o cabo/porta, desbloqueie o iPhone, toque em Confiar. Veja em Window → Devices and Simulators. |
 | iPhone: "Desenvolvedor não confiável" | Ajustes → Geral → VPN e Gerenciamento de Dispositivo → toque na sua conta → Confiar. |

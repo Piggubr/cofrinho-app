@@ -44,6 +44,8 @@ Não vendemos dados, não usamos para publicidade e não mostramos anúncios.
 
 |Google (login) | Confirmação da sua conta Google | Sempre que você entra
 
+|Apple (login) | Confirmação da sua conta Apple e o e-mail que a Apple informar | Se você entra com a Apple
+
 |Google (Gemini, IA) | A foto da nota fiscal; no assistente, a pergunta e os totais e gastos que ela pede | Quando você lê uma nota pela foto ou pergunta ao assistente, sempre depois de autorizar
 
 |Google (Drive), se usado como armazenamento | As fotos que você envia | Ao enviar uma foto
@@ -52,17 +54,23 @@ Não vendemos dados, não usamos para publicidade e não mostramos anúncios.
 
 |Stripe (pagamentos) | E-mail e dados do pagamento (o cartão fica só na Stripe) | Ao assinar o Premium pelo site
 
+|Apple (App Store) e Google (Google Play) | A assinatura comprada no app (o pagamento fica só com a loja) | Ao assinar o Premium pelo app
+
 |Resend (e-mail) | Seu e-mail, o link de confirmação do e-mail e o texto dos avisos do dia | Ao criar conta com e-mail e senha (ou pedir outro link) e, se você ligar, nos avisos por e-mail
 
 |Apple (notificações) | O texto dos avisos do dia, para o seu iPhone | Só se você ligar a notificação no iPhone
 
-|Provedor de hospedagem | Os dados guardados nos nossos servidores | Sempre (infraestrutura)
+|Google (Firebase, notificações) | O texto dos avisos do dia, para o seu Android | Só se você ligar a notificação no Android
+
+|Cloudflare (rede) | O endereço IP e os pedidos entre o seu aparelho e o Piggu, que passam cifrados pela rede dela | Sempre (infraestrutura)
+
+|Provedores de hospedagem e da cópia de segurança | Os dados guardados nos nossos servidores e a cópia de segurança, que sai cifrada | Sempre (infraestrutura)
 
 |TMDB e Open Food Facts | Só o termo que você pesquisa (nome de filme, código de barras) | Ao pesquisar
 
 |Frankfurter (cotação) | Nenhum dado pessoal | Ao mostrar a cotação
 
-Google, Stripe, Resend e Apple podem tratar dados fora do Brasil. Isso acontece com as garantias que a LGPD exige (art. 33), como cláusulas contratuais e o consentimento específico que pedimos antes de enviar a foto à IA.
+Google, Apple, Stripe, Resend e Cloudflare podem tratar dados fora do Brasil. Isso acontece com as garantias que a LGPD exige (art. 33), como cláusulas contratuais e o consentimento específico que pedimos antes de enviar a foto à IA.
 
 ## Por quanto tempo guardamos
 

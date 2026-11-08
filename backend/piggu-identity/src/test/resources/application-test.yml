@@ -28,6 +28,7 @@ piggu:
     escrita: 100000
     envio: 100000
   admin-emails: operador@exemplo.test, Outra.Operadora@Exemplo.test
+  admin-totp: GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ
   google:
     client-ids:
       - client-de-teste.apps.googleusercontent.com

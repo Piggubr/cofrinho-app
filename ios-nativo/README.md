@@ -1,7 +1,7 @@
 # Piggu para iOS (nativo, SwiftUI)
 
-Versão nativa do Piggu, em Swift e SwiftUI, ao lado do app Capacitor (`frontend/ios`), que
-continua como está. iOS 17 ou mais novo, iPhone e iPad, Bundle ID `br.com.piggu.app`.
+Versão nativa do Piggu, em Swift e SwiftUI. Substitui o app Capacitor, que saiu do repositório
+(D-181). iOS 17 ou mais novo, iPhone e iPad, Bundle ID `br.com.piggu.app`.
 
 ## Como abrir
 

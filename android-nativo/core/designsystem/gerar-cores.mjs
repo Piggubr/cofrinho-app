@@ -4,13 +4,14 @@
 //   d=$(mktemp -d) && npm i --prefix "$d" @material/material-color-utilities@0.3.0 &&
 //   cp gerar-cores.mjs "$d" && ln -s "$PWD/src" "$d/src" && node "$d/gerar-cores.mjs"
 import { writeFileSync } from 'node:fs';
-import { argbFromHex, Hct, MaterialDynamicColors as C, SchemeNeutral, SchemeVibrant } from '@material/material-color-utilities';
+import { argbFromHex, Hct, MaterialDynamicColors as C, SchemeNeutral, SchemeVibrant, TonalPalette } from '@material/material-color-utilities';
 
 // primaria e primaria-contraste de cada tema do site, no claro e no escuro, na ordem do
 // TEMAS de frontend/src/app/core/ui/tema.ts. `texto` troca só a primary do Android quando a do
-// site não dá 4,5:1 sobre o fundo e os cartões (ContrasteTest); o resto sai da cor do site.
+// site não dá 4,5:1 sobre o fundo e os cartões (ContrasteTest); `terciaria` dá o tom da tertiary
+// (o Vibrant gira o tom e, no Chiclete, dava um terracota fora da paleta); o resto sai da cor do site.
 const variantes = {
-  Chiclete: { claro: ['#d1006b', '#ffffff'], escuro: ['#ff5cae', '#1f0012'], texto: { claro: '#c60065', escuro: '#ff64b2' } },
+  Chiclete: { claro: ['#d1006b', '#ffffff'], escuro: ['#ff5cae', '#1f0012'], texto: { claro: '#c60065', escuro: '#ff64b2' }, terciaria: '#a1005a' },
   Rosa: { claro: ['#8e2f58', '#ffffff'], escuro: ['#e58fb2', '#2a0f1d'] },
   Menta: { claro: ['#1f6b5a', '#ffffff'], escuro: ['#8fd6bd', '#0d2a22'] },
   Azul: { claro: ['#22608f', '#ffffff'], escuro: ['#96c4e8', '#0b2033'] },
@@ -39,8 +40,11 @@ const papeis = [
 
 const hex = (argb) => `0x${(argb >>> 0).toString(16).toUpperCase().padStart(8, '0')}`;
 
-function esquema(nome, [primaria, contraste], escuro, Esquema = SchemeVibrant, texto) {
+function esquema(nome, [primaria, contraste], escuro, Esquema = SchemeVibrant, texto, terciaria) {
   const s = new Esquema(Hct.fromInt(argbFromHex(primaria)), escuro, 0);
+  if (terciaria) {
+    s.tertiaryPalette = TonalPalette.fromInt(argbFromHex(terciaria));
+  }
   // A primária e o texto sobre ela ficam iguais aos do site; o resto sai do algoritmo.
   const fixas = { primary: argbFromHex(texto ?? primaria), onPrimary: argbFromHex(contraste) };
   const linhas = papeis.map((p) => `    ${p} = Color(${hex(fixas[p] ?? C[p].getArgb(s))}),`);
@@ -56,6 +60,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 `;
 for (const [nome, v] of Object.entries(variantes)) {
-  kt += `\n${esquema(`${nome}Claro`, v.claro, false, v.Esquema, v.texto?.claro)}\n${esquema(`${nome}Escuro`, v.escuro, true, v.Esquema, v.texto?.escuro)}`;
+  kt += `\n${esquema(`${nome}Claro`, v.claro, false, v.Esquema, v.texto?.claro, v.terciaria)}\n${esquema(`${nome}Escuro`, v.escuro, true, v.Esquema, v.texto?.escuro, v.terciaria)}`;
 }
 writeFileSync(new URL('./src/main/kotlin/br/com/piggu/core/designsystem/Cores.kt', import.meta.url), kt);

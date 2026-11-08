@@ -1,9 +1,6 @@
-// Gera os icones do app (padrao, o classico e os do Premium), cada um no claro e no escuro,
-// a partir dos vetores em resources/icones e dos desenhos deste arquivo. Desenha no Chromium do Playwright, que ja e dependencia
-// dos testes, e grava:
-//   - iOS: um conjunto por icone em Assets.xcassets (AppIcon e AppIcon-<id>), com a versao
-//     escura que o iOS 18 usa no modo escuro;
-//   - Android: ic_launcher_<id> em cada mipmap (fundo e porquinho separados, icone adaptavel);
+// Gera os icones do site (padrao, o classico e os do Premium) a partir dos vetores em
+// resources/icones e dos desenhos deste arquivo. Desenha no Chromium do Playwright, que ja e
+// dependencia dos testes, e grava:
 //   - previas de 128 px em public/icones-do-app para o Perfil;
 //   - os icones do site (favicon, apple-touch-icon e os do manifest) com o padrao.
 //
@@ -305,8 +302,8 @@ async function main() {
     if (redondo || cantos) {
       await aba.addStyleTag({ content: `svg{border-radius:${redondo ? '50%' : '22%'}}` });
     }
-    // O icone do iOS nao pode ter transparencia; o do Android (frente e redondo) precisa.
-    const opaco = modo !== 'frente' && !redondo && !cantos && !destino?.includes('/res/');
+    // Fora o favicon (cantos) e o redondo, o icone e opaco.
+    const opaco = !redondo && !cantos;
     const png = await aba.screenshot({ omitBackground: !opaco });
     if (destino) {
       mkdirSync(dirname(destino), { recursive: true });
@@ -315,83 +312,14 @@ async function main() {
     return png;
   }
 
-  const ios = join(raiz, 'ios/App/App/Assets.xcassets');
-  const res = join(raiz, 'android/app/src/main/res');
-  const densidades = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
   const cores = [];
 
   for (const [id, icone] of Object.entries(ICONES)) {
-    // iOS: um tamanho so (1024) com a variacao escura.
-    const conjunto = join(ios, id === 'padrao' ? 'AppIcon.appiconset' : `AppIcon-${id}.appiconset`);
-    await desenhar(icone, 'claro', 'inteiro', 1024, join(conjunto, 'icone.png'));
-    await desenhar(icone, 'escuro', 'inteiro', 1024, join(conjunto, 'icone-escuro.png'));
-    writeFileSync(
-      join(conjunto, 'Contents.json'),
-      JSON.stringify(
-        {
-          images: [
-            { filename: 'icone.png', idiom: 'universal', platform: 'ios', size: '1024x1024' },
-            {
-              appearances: [{ appearance: 'luminosity', value: 'dark' }],
-              filename: 'icone-escuro.png',
-              idiom: 'universal',
-              platform: 'ios',
-              size: '1024x1024',
-            },
-          ],
-          info: { author: 'xcode', version: 1 },
-        },
-        null,
-        2,
-      ) + '\n',
-    );
-
-    // Android: o padrao continua ic_launcher; os outros ganham sufixo.
-    const nome = id === 'padrao' ? 'ic_launcher' : `ic_launcher_${id}`;
-    for (const [pasta, fator] of Object.entries(densidades)) {
-      const dir = join(res, `mipmap-${pasta}`);
-      await desenhar(icone, 'claro', 'inteiro', Math.round(48 * fator), join(dir, `${nome}.png`));
-      await desenhar(
-        icone,
-        'claro',
-        'inteiro',
-        Math.round(48 * fator),
-        join(dir, `${nome}_round.png`),
-        {
-          redondo: true,
-        },
-      );
-      await desenhar(
-        icone,
-        'claro',
-        'fundo',
-        Math.round(108 * fator),
-        join(dir, `${nome}_background.png`),
-      );
-      await desenhar(
-        icone,
-        'claro',
-        'frente',
-        Math.round(108 * fator),
-        join(dir, `${nome}_foreground.png`),
-      );
-    }
-    const adaptavel =
-      '<?xml version="1.0" encoding="utf-8"?>\n' +
-      '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n' +
-      `    <background android:drawable="@mipmap/${nome}_background"/>\n` +
-      `    <foreground android:drawable="@mipmap/${nome}_foreground"/>\n` +
-      '</adaptive-icon>\n';
-    writeFileSync(join(res, 'mipmap-anydpi-v26', `${nome}.xml`), adaptavel);
-    writeFileSync(join(res, 'mipmap-anydpi-v26', `${nome}_round.xml`), adaptavel);
     cores.push(id);
 
     // Previa do Perfil.
     await desenhar(icone, 'claro', 'inteiro', 128, join(raiz, 'public/icones-do-app', `${id}.png`));
   }
-
-  // Arte de origem do Capacitor (capacitor-assets) acompanha o novo padrao.
-  await desenhar(ICONES.padrao, 'claro', 'inteiro', 1024, join(raiz, 'resources/icon-only.png'));
 
   // Site: favicon com cantos arredondados; os outros quadrados, que o sistema recorta.
   const site = join(raiz, 'public/icons');
