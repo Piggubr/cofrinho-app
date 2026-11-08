@@ -49,6 +49,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     @Query("SELECT e.externalId FROM Expense e WHERE e.externalId IN :ids")
     List<String> idsExternosJaImportados(@Param("ids") Collection<String> ids);
 
+    /** Os ja importados nesta conta: o mesmo id em outro cartao e outro gasto. */
+    @Query("SELECT e.externalId FROM Expense e WHERE e.externalId IN :ids AND e.accountId = :conta")
+    List<String> idsExternosJaImportadosNaConta(@Param("ids") Collection<String> ids, @Param("conta") UUID conta);
+
+    @Query("SELECT e.externalId FROM Expense e WHERE e.externalId IN :ids AND e.accountId IS NULL")
+    List<String> idsExternosJaImportadosSemConta(@Param("ids") Collection<String> ids);
+
     List<Expense> findByAccountIdAndExpenseDateBetweenOrderByExpenseDateAscCreatedAtAsc(
             UUID accountId, LocalDate inicio, LocalDate fim);
 

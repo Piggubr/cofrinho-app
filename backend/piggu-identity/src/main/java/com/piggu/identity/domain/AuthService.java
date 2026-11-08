@@ -216,6 +216,18 @@ public class AuthService {
             throw new BusinessException("Informe seu CPF.", HttpStatus.UNPROCESSABLE_CONTENT, "CPF_NECESSARIO");
         }
         Cpf cpf = minhaConta.conferirCpf(documento);
+        // CPF em uso barra antes de olhar o e-mail: senao o 409 so viria para e-mail sem conta,
+        // e o cadastro diria quais e-mails usam o Piggu.
+        try {
+            minhaConta.exigirCpfLivre(null, cpf);
+        } catch (BusinessException emUso) {
+            if (!"CPF_EM_USO".equals(emUso.getCodigo())) {
+                throw emUso;
+            }
+            // Serve ao dono que se cadastra de novo e a quem digitou o CPF de outra pessoa.
+            throw new BusinessException("Esse CPF já tem uma conta no Piggu. Se ela é sua, entre ou recupere a senha;"
+                    + " se não foi você, fale com a gente pelo canal de privacidade.", HttpStatus.CONFLICT, "CPF_EM_USO");
+        }
 
         // E-mail que ja tem conta responde igual a um cadastro novo, para o cadastro nao
         // dizer a ninguem quais e-mails usam o Piggu: o dono recebe um aviso no e-mail.

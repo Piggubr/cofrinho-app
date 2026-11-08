@@ -43,6 +43,10 @@ public class Household {
     @Column(name = "play_purchase_token", length = 4000)
     private String playPurchaseToken;
 
+    /** Assinatura da Stripe que deu o Premium; o fim de outra nao o derruba. */
+    @Column(name = "stripe_subscription_id")
+    private String stripeSubscriptionId;
+
     @Column(name = "premium_since")
     private Instant premiumSince;
 
@@ -197,6 +201,14 @@ public class Household {
 
     public void lembrarTokenDoPlay(String token) {
         this.playPurchaseToken = token;
+    }
+
+    public String getStripeSubscriptionId() {
+        return stripeSubscriptionId;
+    }
+
+    public void lembrarAssinaturaDaStripe(String id) {
+        this.stripeSubscriptionId = id;
     }
 
     public Instant getPremiumSince() {

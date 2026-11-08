@@ -6,6 +6,7 @@ import com.piggu.common.error.ForbiddenException;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.security.FamiliaAtual;
+import com.piggu.common.web.Meses;
 import com.piggu.common.web.Texto;
 import com.piggu.finance.api.dto.ExpenseItemRequest;
 import com.piggu.finance.api.dto.ExpenseResponse;
@@ -85,7 +86,7 @@ public class ExpenseService {
 
     @Transactional(readOnly = true)
     public List<ExpenseResponse> listarDoMes(String mes) {
-        YearMonth referencia = YearMonth.parse(mes);
+        YearMonth referencia = Meses.ouAtual(mes);
         return repositorio.findByExpenseDateBetweenOrderByExpenseDateDescCreatedAtDesc(
                         referencia.atDay(1), referencia.atEndOfMonth()).stream()
                 .map(ExpenseResponse::de)
@@ -183,7 +184,13 @@ public class ExpenseService {
     /** Le o extrato e mostra o que entraria, sem gravar nada. */
     @Transactional(readOnly = true)
     public List<LinhaDaPrevia> previaDoExtrato(String conteudo) {
-        return previa(LeitorDeExtrato.ler(conteudo));
+        return previaDoExtrato(conteudo, null);
+    }
+
+    /** @param contaId com ela, "ja importada" e so o que entrou nesta conta; sem ela, em qualquer conta */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previaDoExtrato(String conteudo, UUID contaId) {
+        return previa(LeitorDeExtrato.ler(conteudo), contaId);
     }
 
     /**
@@ -192,8 +199,15 @@ public class ExpenseService {
      */
     @Transactional(readOnly = true)
     public List<LinhaDaPrevia> previa(List<LeitorDeExtrato.Linha> linhas) {
-        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
-                linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList()));
+        return previa(linhas, null);
+    }
+
+    /** @param contaId com ela, "ja importada" e so o que entrou nesta conta (D-177) */
+    @Transactional(readOnly = true)
+    public List<LinhaDaPrevia> previa(List<LeitorDeExtrato.Linha> linhas, UUID contaId) {
+        List<String> ids = linhas.stream().map(LeitorDeExtrato.Linha::idExterno).toList();
+        Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportados(ids)
+                : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         return linhas.stream().map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
                 categoriaDe(new ExpenseItemRequest(l.descricao(), null, l.valor(), null), "", ORIGEM_EXTRATO,
@@ -202,7 +216,8 @@ public class ExpenseService {
     }
 
     /**
-     * Grava as linhas escolhidas na previa. As ja importadas (pelo id externo) sao puladas.
+     * Grava as linhas escolhidas na previa. As ja importadas na mesma conta (pelo id externo)
+     * sao puladas; a mesma linha em outro cartao entra.
      *
      * @return quantas entraram
      */
@@ -211,8 +226,9 @@ public class ExpenseService {
         PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
                 .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
         boolean compartilhado = conta != null && conta.isShared();
-        Set<String> jaImportadas = new HashSet<>(repositorio.idsExternosJaImportados(
-                linhas.stream().map(LinhaImportada::idExterno).toList()));
+        List<String> ids = linhas.stream().map(LinhaImportada::idExterno).toList();
+        Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportadosSemConta(ids)
+                : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         UUID lote = UUID.randomUUID();
         List<Expense> novos = linhas.stream()
@@ -249,7 +265,7 @@ public class ExpenseService {
         List<Expense> gastos = Texto.vazio(mes)
                 ? repositorio.findAllByOrderByExpenseDateDescCreatedAtDesc()
                 : repositorio.findByExpenseDateBetweenOrderByExpenseDateDescCreatedAtDesc(
-                        YearMonth.parse(mes).atDay(1), YearMonth.parse(mes).atEndOfMonth());
+                        Meses.ouAtual(mes).atDay(1), Meses.ouAtual(mes).atEndOfMonth());
         StringBuilder csv = new StringBuilder("data;item;categoria;valor;estabelecimento;origem\n");
         for (Expense g : gastos) {
             csv.append(g.getExpenseDate()).append(';')
@@ -377,7 +393,14 @@ public class ExpenseService {
         }
         String categoria = categoriaDe(item, estabelecimento, origem, regrasDaFamilia);
         BigDecimal parcela = item.valor().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN);
+        if (parcelas > 1 && parcela.signum() == 0) {
+            throw new BusinessException("O valor é pequeno demais para " + parcelas + " parcelas.");
+        }
         BigDecimal ultima = item.valor().subtract(parcela.multiply(BigDecimal.valueOf(parcelas - 1L)));
+        if (parcelas > 1 && item.valorOriginal() != null
+                && item.valorOriginal().divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN).signum() == 0) {
+            throw new BusinessException("O valor original é pequeno demais para " + parcelas + " parcelas.");
+        }
         return IntStream.range(0, parcelas).mapToObj(i -> {
             Expense gasto = new Expense(
                     dataDaParcela(data, i, conta),

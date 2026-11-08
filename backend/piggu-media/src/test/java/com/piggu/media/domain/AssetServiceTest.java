@@ -185,6 +185,23 @@ class AssetServiceTest extends PostgresIntegrationTest {
                 "FEED", null, TITULAR.id())).hasMessageContaining("limite de 1 GB");
     }
 
+    @Test
+    @DisplayName("registro que nao grava leva o arquivo junto: nada fica no armazenamento sem dono")
+    void arquivoSaiSeORegistroFalha() {
+        AssetRepository semBanco = org.mockito.Mockito.mock(AssetRepository.class);
+        StoragePort disco = org.mockito.Mockito.mock(StoragePort.class);
+        org.mockito.BDDMockito.given(disco.guardar(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any())).willReturn("arquivo-1");
+        org.mockito.BDDMockito.given(semBanco.save(org.mockito.ArgumentMatchers.any()))
+                .willThrow(new IllegalStateException("banco fora"));
+        AssetService servico = new AssetService(semBanco, disco, 1024);
+
+        assertThatThrownBy(() -> servico.guardar(Base64.getEncoder().encodeToString(png(1)), "image/png", "FEED",
+                null, TITULAR.id())).isInstanceOf(IllegalStateException.class);
+        org.mockito.Mockito.verify(disco).apagar("arquivo-1");
+    }
+
     private Asset guardar(byte[] conteudo, String tipo) {
         return assets.guardar(
                 Base64.getEncoder().encodeToString(conteudo), tipo, "FEED", null, TITULAR.id());

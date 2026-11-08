@@ -42,6 +42,8 @@ struct LancarGastoView: View {
     @State private var maisOpcoes = false
     @State private var lendoNota = false
     @State private var salvando = false
+    /// O ultimo pedido enviado: tocar "Lançar" de novo sem mudar nada repete o idDoEnvio.
+    @State private var ultimoEnvio: NovoLancamento?
     @State private var erro: String?
     @State private var faltou: String?
     @FocusState private var focado: Campo?
@@ -412,7 +414,8 @@ struct LancarGastoView: View {
             dividirCom: dividirCom.isEmpty ? nil : dividirCom,
             recorrente: modo == .recorrente ? true : nil,
             compartilhado: compartilhadoEfetivo,
-            idDoEnvio: UUID().uuidString.lowercased())
+            idDoEnvio: nil).comIdDoEnvio(repetindo: ultimoEnvio)
+        ultimoEnvio = pedido
         do {
             let salvos = try await sessao.cliente.lancarGastos(pedido)
             lembrarConta()

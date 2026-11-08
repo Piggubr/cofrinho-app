@@ -169,6 +169,12 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   rewards:
     logging: *logs
@@ -192,6 +198,12 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   lifestyle:
     logging: *logs
@@ -217,6 +229,12 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   media:
     logging: *logs
@@ -246,6 +264,12 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # Opcional: so sobe com  docker compose --profile open-finance up
   # Sem ele o gateway continua no ar e o painel apenas esconde o card de bancos.
@@ -277,6 +301,12 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   gateway:
     logging: *logs
@@ -309,6 +339,12 @@ services:
       - rewards
       - lifestyle
       - media
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # Porta publica em producao: front + /api para o gateway, HTTPS e cabecalhos de seguranca.
   # Construa o front antes:  cd frontend && npm ci && npm run build

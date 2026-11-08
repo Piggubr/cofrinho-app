@@ -41,7 +41,7 @@ class GirlsMathServiceTest extends PostgresIntegrationTest {
     @Autowired
     private GirlsMathService girlsMath;
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     private GirlsMathItemRepository repositorio;
 
     @MockitoBean
@@ -63,6 +63,18 @@ class GirlsMathServiceTest extends PostgresIntegrationTest {
         assertThat(item.valor()).isEqualByComparingTo("349.90");
         assertThat(item.temFoto()).isFalse();
         verify(media, never()).enviar(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("item que nao grava leva a foto que acabou de subir")
+    void fotoSaiSeNaoGravar() {
+        UUID foto = UUID.randomUUID();
+        when(media.enviar(any(), any(), any())).thenReturn(foto);
+        org.mockito.Mockito.doThrow(new IllegalStateException("banco fora")).when(repositorio).save(any());
+
+        assertThatThrownBy(() -> girlsMath.criar(pedido("Tenis", null, "Shopping", "aGVsbG8="), ANA))
+                .isInstanceOf(IllegalStateException.class);
+        verify(media).apagar(foto);
     }
 
     @Test

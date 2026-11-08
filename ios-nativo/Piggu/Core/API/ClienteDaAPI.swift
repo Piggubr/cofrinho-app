@@ -108,6 +108,8 @@ actor ClienteDaAPI {
     private var refresh: String?
     private var lembrarRefresh = false
     private var renovacaoEmCurso: Task<ParDeTokens, Error>?
+    /// Sobe a cada saida: renovacao que termina depois de sair e descartada (o actor e reentrante).
+    private var geracao = 0
     private var aoRenovar: (@Sendable (Usuario) async -> Void)?
     private var aoPerderSessao: (@Sendable () async -> Void)?
 
@@ -146,12 +148,17 @@ actor ClienteDaAPI {
     /// Avisa o servidor (que encerra a sessao e apaga o cookie) e esquece os tokens. Falhar
     /// aqui nao pode impedir a pessoa de sair deste aparelho.
     func sair() async {
-        let corpo = (try? codificador.encode(PedidoDeRefresh(refreshToken: refresh))) ?? Data("{}".utf8)
+        // A renovacao em curso termina descartada, e o logout leva o refresh que ela trouxe.
+        geracao += 1
+        let renovado = try? await renovacaoEmCurso?.value
+        let corpo = (try? codificador.encode(PedidoDeRefresh(refreshToken: renovado?.refreshToken ?? refresh)))
+            ?? Data("{}".utf8)
         _ = try? await executar(metodo: "POST", caminho: "/auth/logout", query: [:], corpo: corpo, aberta: true)
         esquecerTokens()
     }
 
     func esquecerTokens() {
+        geracao += 1
         accessToken = nil
         refresh = nil
         cofre?.apagar()
@@ -262,15 +269,18 @@ actor ClienteDaAPI {
         let tarefa = Task { try await self.pedirRenovacao() }
         renovacaoEmCurso = tarefa
         defer { renovacaoEmCurso = nil }
+        let geracaoDoPedido = geracao
 
         let tokens: ParDeTokens
         do {
             tokens = try await tarefa.value
-        } catch ErroDaAPI.servidor(status: 401, _, _) {
-            // Refresh recusado (vencido ou revogado): nao serve mais.
+        } catch let ErroDaAPI.servidor(status, _, _) where status == 401 || status == 403 {
+            // Refresh recusado (vencido, revogado ou conta desativada): nao serve mais.
             esquecerTokens()
-            throw ErroDaAPI.servidor(status: 401, mensagem: nil)
+            throw ErroDaAPI.servidor(status: status, mensagem: nil)
         }
+        // Saiu enquanto a renovacao ia e voltava: a sessao nao volta.
+        guard geracao == geracaoDoPedido else { throw ErroDaAPI.sessaoEncerrada }
         accessToken = tokens.accessToken
         guardarRefresh(tokens.refreshToken)
         await aoRenovar?(tokens.usuario)
@@ -309,10 +319,9 @@ actor ClienteDaAPI {
         let tokens: ParDeTokens
         do {
             tokens = try await renovar()
-        } catch ErroDaAPI.semConexao {
-            // Sem rede a sessao continua: o refresh ainda vale para quando ela voltar.
-            throw ErroDaAPI.semConexao
-        } catch {
+        } catch let ErroDaAPI.servidor(status, _, _) where status == 401 || status == 403 {
+            // So o refresh recusado encerra a sessao (D-075). Sem rede, servidor fora ou 429 so
+            // repassam o erro: o refresh ainda vale para a proxima vez.
             accessToken = nil
             await aoPerderSessao?()
             throw ErroDaAPI.sessaoEncerrada
