@@ -289,7 +289,7 @@ class ContasECartoesViewModelTest {
         contas.estado.esperar { aberto != null && !it.mexendoNosBancos }
         // O token vai no fragmento, que não sai do aparelho.
         assertEquals("/conectar-banco#token=tk%2B1&sandbox=1", aberto)
-        assertTrue(montagem.pedidos("POST /api/banking/connect-token").single().endsWith("""{"versaoDoAviso":"2026-10-16","autorizo":true}"""))
+        assertTrue(montagem.pedidos("POST /api/banking/connect-token").single().endsWith("""{"versaoDoAviso":"2026-11-08","autorizo":true}"""))
 
         assertTrue(montagem.retornoDoBanco.receber("piggu://banco-conectado?item=item-1"))
         val estado = contas.estado.esperar { it.bancos.any { b -> b.conexaoId == "conexao-nova" } && !it.mexendoNosBancos }

@@ -464,7 +464,7 @@ class ApiDaDemo(
         "gratuito" to listOf("Gastos, receitas e contas fixas", "Relatório do mês", "10 leituras de nota por mês"),
         "premium" to listOf(
             "Open Finance", "Notas sem limite", "Orçamento por categoria", "Relatório anual", "Mural de fotos",
-            "Vários cofrinhos por objetivo", "Assistente de IA",
+            "Vários cofrinhos por objetivo", "Assistente de IA", "Sem anúncios nos apps",
         ),
         "planoFamilia" to !assinadoNoGooglePlay,
         "voceAssinou" to true,
