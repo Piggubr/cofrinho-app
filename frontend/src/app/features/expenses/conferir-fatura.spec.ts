@@ -76,7 +76,11 @@ describe('ConferirFatura', () => {
     const campo = tela.nativeElement.querySelector('input[type="file"]') as HTMLInputElement;
     Object.defineProperty(campo, 'files', { value: [arquivo], configurable: true });
     campo.dispatchEvent(new Event('change'));
-    await new Promise((pronto) => setTimeout(pronto, 20));
+    // O FileReader é assíncrono e no CI demora mais que um tempo fixo: espera o envio ou o erro.
+    const componente = tela.componentInstance;
+    for (let i = 0; i < 200 && !componente['ocupado']() && !componente['erro'](); i++) {
+      await new Promise((pronto) => setTimeout(pronto, 10));
+    }
   }
   const pdf = () => new File(['%PDF-1.4 fatura'], 'fatura.pdf', { type: 'application/pdf' });
 
