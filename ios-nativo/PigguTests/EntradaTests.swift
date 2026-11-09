@@ -298,7 +298,7 @@ struct RegrasDaContaTests {
     }
 
     @Test func pendenciasDoPerfil() throws {
-        let json = #"{"id":"u1","email":"a@b.co","nome":"Ana","primeiroNome":"Ana","apelido":"Ana","foto":null,"role":"TITULAR","ativo":true,"plano":"GRATUITO","premiumAte":null,"familia":"f1","nascimento":"1990-01-01","termosAceitos":"2026-10-16"}"#
+        let json = #"{"id":"u1","email":"a@b.co","nome":"Ana","primeiroNome":"Ana","apelido":"Ana","foto":null,"role":"TITULAR","ativo":true,"plano":"GRATUITO","premiumAte":null,"familia":"f1","nascimento":"1990-01-01","termosAceitos":"2026-11-08"}"#
         let usuario = try JSONDecoder().decode(Usuario.self, from: Data(json.utf8))
         #expect(!usuario.termosPendentes)
         #expect(!usuario.sobreVocePendente)

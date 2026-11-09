@@ -2,7 +2,7 @@
 
 # Aviso de Privacidade do Piggu
 
-Versão 2026-10-16
+Versão 2026-11-08
 
 Este aviso explica quais dados pessoais o Piggu usa, para quê, com quem compartilha e como você exerce seus direitos pela Lei Geral de Proteção de Dados (Lei 13.709/2018). Se você mora na União Europeia, também valem os direitos do Regulamento Geral de Proteção de Dados (GDPR), exercidos pelo mesmo contato no fim deste aviso.
 
@@ -36,7 +36,9 @@ O controlador é o Piggu. Para qualquer assunto de privacidade, inclusive falar 
 
 |Endereço IP, navegador e registros técnicos | Segurança, prevenção de abuso e correção de falhas | Legítimo interesse (art. 7º, IX) e Marco Civil da Internet
 
-Não vendemos dados, não usamos para publicidade e não mostramos anúncios.
+Não vendemos dados e não usamos seus dados para publicidade.
+
+No plano gratuito dos apps para iPhone e Android aparece um anúncio do Google AdMob, sempre não personalizado: ele não usa o seu histórico nem o que você guarda no Piggu, e nenhum lançamento, valor, nome ou e-mail é enviado para anúncios. Quem tem menos de 18 anos não vê anúncios. O Premium não tem anúncios, e o site não mostra anúncios em nenhum plano.
 
 ## Com quem compartilhamos (operadores)
 
@@ -53,6 +55,8 @@ Não vendemos dados, não usamos para publicidade e não mostramos anúncios.
 |Stripe (pagamentos) | E-mail e dados do pagamento (o cartão fica só na Stripe) | Ao assinar o Premium pelo site
 
 |Resend (e-mail) | Seu e-mail, o link de confirmação do e-mail e o texto dos avisos do dia | Ao criar conta com e-mail e senha (ou pedir outro link) e, se você ligar, nos avisos por e-mail
+
+|Google (AdMob, anúncios) | Dados técnicos do aparelho (modelo, sistema, idioma) e o endereço IP, para mostrar e contar o anúncio. Nunca seus lançamentos, valores, nome ou e-mail | Só no plano gratuito dos apps para iPhone e Android, para maiores de 18 anos
 
 |Apple (notificações) | O texto dos avisos do dia, para o seu iPhone | Só se você ligar a notificação no iPhone
 
@@ -94,7 +98,9 @@ Na família, cada pessoa vê só o que lançou e os gastos divididos com ela. O 
 
 ## Cookies e o que fica no seu aparelho
 
-Usamos um único cookie, essencial, que mantém você conectado. Ele não depende de autorização porque sem ele não dá para entrar. Não usamos cookies de publicidade nem de terceiros, e a fonte do site é servida pelo próprio Piggu.
+Usamos um único cookie, essencial, que mantém você conectado. Ele não depende de autorização porque sem ele não dá para entrar. No site não usamos cookies de publicidade nem de terceiros, e a fonte do site é servida pelo próprio Piggu.
+
+Nos apps, no plano gratuito, o Google AdMob guarda no aparelho o necessário para não repetir demais o mesmo anúncio e para evitar fraude. Não usamos o identificador de publicidade do aparelho nem pedimos para rastrear você.
 
 O navegador também guarda, só no seu aparelho, as suas preferências (cor do tema e cartões do painel), os gastos lançados sem sinal até eles chegarem ao Piggu e a sua escolha sobre cookies.
 

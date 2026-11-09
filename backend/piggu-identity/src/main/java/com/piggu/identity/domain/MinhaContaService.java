@@ -258,11 +258,11 @@ public class MinhaContaService {
 
     /**
      * Aceite de uma versao nova dos Termos e do Aviso por quem ja tem conta. So vale a
-     * versao vigente: um front antigo nao colhe aceite sobre um texto que saiu do ar.
+     * versao vigente (ou a anterior, na transicao da D-180): um front antigo nao colhe aceite sobre um texto que saiu do ar.
      */
     @Transactional
     public UserResponse aceitarTermos(UUID contaId, String versao) {
-        if (!Consentimentos.VERSAO_DO_AVISO.equals(versao)) {
+        if (!Consentimentos.versaoAceita(versao)) {
             throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
                     HttpStatus.UNPROCESSABLE_CONTENT, Consentimentos.CODIGO_AVISO_MUDOU);
         }

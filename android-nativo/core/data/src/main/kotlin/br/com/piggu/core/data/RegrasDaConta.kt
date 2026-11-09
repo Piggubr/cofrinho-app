@@ -6,7 +6,7 @@ import br.com.piggu.core.model.Plano
 import br.com.piggu.core.model.Usuario
 
 /** A versão dos Termos e do Aviso em vigor (VERSAO_DO_AVISO de aviso.ts e do backend). */
-const val VERSAO_DOS_TERMOS = "2026-10-16"
+const val VERSAO_DOS_TERMOS = "2026-11-08"
 
 // As regras de auth.service.ts e auth.guard.ts. Conveniência de navegação: quem decide é o backend.
 

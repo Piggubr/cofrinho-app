@@ -6,7 +6,7 @@ import Foundation
 enum Conta {
     /// Versao vigente dos Termos e do Aviso de Privacidade. Igual a VERSAO_DO_AVISO do site e a
     /// Consentimentos.VERSAO_DO_AVISO do backend: mudou o texto, muda nos tres.
-    static let versaoDosTermos = "2026-10-16"
+    static let versaoDosTermos = "2026-11-08"
     /// Canal do encarregado (LGPD art. 41).
     static let contatoDePrivacidade = "privacidade@piggu.com.br"
     static let minimoDaSenha = 8
