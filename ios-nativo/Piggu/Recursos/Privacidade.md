@@ -106,7 +106,7 @@ O navegador também guarda, só no seu aparelho, as suas preferências (cor do t
 
 Medição de uso e desempenho do site só liga se você aceitar no aviso de cookies. Hoje não usamos nenhuma ferramenta desse tipo; se passarmos a usar, ela aparece na lista de quem recebe dados acima e só funciona com a sua permissão.
 
-## } Segurança
+## Segurança
 
 Conexão sempre por HTTPS, acesso separado por família, senhas de banco que nunca passam pelo Piggu e registros sem dados pessoais. Se algo der errado, avisamos você e a ANPD como a lei pede.
 
