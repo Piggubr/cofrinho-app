@@ -17,6 +17,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 LEGAL = RAIZ / "frontend/src/app/features/legal"
 AVISO = RAIZ / "frontend/src/app/core/privacidade/aviso.ts"
 DESTINO = RAIZ / "ios-nativo/Piggu/Recursos"
+BLOCOS = ("h1", "h2", "p", "li", "td", "th")
 
 
 class Conversor(HTMLParser):
@@ -37,6 +38,9 @@ class Conversor(HTMLParser):
         if self.pular or tag == "button":
             self.pular += 1
             return
+        if tag in BLOCOS:
+            # Descarta o que sobrou entre os blocos, como o "}" que fecha o @if do Angular.
+            self.texto = []
         if tag == "a":
             destino = attrs.get("routerlink") or attrs.get("[href]") or ""
             if destino == "/entrar":
@@ -55,8 +59,6 @@ class Conversor(HTMLParser):
             self.tabela = []
         elif tag == "tr":
             self.linha = []
-        elif tag in ("td", "th"):
-            self.texto = []
 
     def handle_endtag(self, tag):
         if self.pular:
