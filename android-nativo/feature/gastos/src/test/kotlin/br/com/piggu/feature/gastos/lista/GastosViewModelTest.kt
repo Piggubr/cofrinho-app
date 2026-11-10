@@ -140,6 +140,22 @@ class GastosViewModelTest {
         // Gasto da Ana sem mais ninguém na casa? A demo tem o Beto: o compartilhado vai.
         assertTrue(fixas.pedidos.any { it.startsWith("PUT /api/expenses/${uber.id} {\"item\":\"Uber Centro\",\"categoria\":\"Lazer\",\"valor\":30") })
         viewModel.estado.esperar { e -> e.gastos?.any { it.id == uber.id && it.categoria == "Lazer" } == true }
+        // A data não mudou: fica fora do pedido.
+        assertFalse(fixas.pedidos.last { it.startsWith("PUT ") }.contains("\"data\""))
+    }
+
+    @Test
+    fun `editar a data manda o dia novo`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = tela(fixas)
+        val uber = viewModel.gasto("Uber Centro")
+
+        viewModel.abrirEdicao(uber)
+        val outroDia = java.time.LocalDate.parse(uber.data).minusDays(3)
+        viewModel.mudarData(outroDia)
+        viewModel.salvarEdicao()
+        viewModel.estado.esperar { it.edicao == null }
+        assertTrue(fixas.pedidos.any { it.startsWith("PUT /api/expenses/${uber.id}") && it.contains("\"data\":\"$outroDia\"") })
     }
 
     @Test

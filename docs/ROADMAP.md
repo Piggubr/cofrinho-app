@@ -22,12 +22,12 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
-- iOS nativo: liberar o 2.0.0 (build 5), enviado em 06/11 a partir do PR #156, para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 6 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
+- iOS nativo: liberar o 2.0.0 (build 6), enviado em 10/11 com a data na edição do gasto (D-184), para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 7 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
 - iOS nativo: foto do recibo no +, num PR à parte (D-098).
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
-- Android: o próximo AAB é o `versionCode` 203 (2.0.0, PR #156). Depois do merge na `main`, rodar à mão o job "AAB de produção" do `android-nativo.yml` e enviar o `app-producao-release.aab` ao Play Console, com o Dudu. O secret `PIGGU_GOOGLE_SERVICES_BASE64` existe no repositório desde 04/11, então este AAB já sai com push (D-166).
+- Android: o próximo AAB é o `versionCode` 204 (2.0.0, data na edição do gasto, D-184). Depois do merge na `main`, rodar à mão o job "AAB de produção" do `android-nativo.yml` e enviar o `app-producao-release.aab` ao Play Console, com o Dudu. O secret `PIGGU_GOOGLE_SERVICES_BASE64` existe no repositório desde 04/11, então este AAB já sai com push (D-166).
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
 - Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104).
 - Antes de cobrar o Premium: identificar o fornecedor nos Termos e no Aviso de Privacidade (nome, CPF ou CNPJ e endereço, Decreto 7.962/2013, art. 2º) e nomear o provedor de hospedagem na tabela de operadores. Depende do Dudu decidir se abre CNPJ.
