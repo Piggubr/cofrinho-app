@@ -475,7 +475,7 @@ private fun MaisOpcoes(estado: EstadoDoFormulario, viewModel: FormularioDeGastoV
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CampoDeData(data: LocalDate, aoEscolher: (LocalDate) -> Unit) {
+internal fun CampoDeData(data: LocalDate, aoEscolher: (LocalDate) -> Unit) {
     var aberto by rememberSaveable { mutableStateOf(false) }
     val rotulo = stringResource(R.string.formulario_escolher_data)
     Row(verticalAlignment = Alignment.CenterVertically) {

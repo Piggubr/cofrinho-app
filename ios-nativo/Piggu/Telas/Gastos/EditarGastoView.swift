@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Editar um gasto: item, categoria, valor e, para quem lancou, se e compartilhado.
+/// Editar um gasto: item, categoria, valor, data e, para quem lancou, se e compartilhado.
 struct EditarGastoView: View {
     let gasto: Gasto
     @Binding var categorias: [String]
@@ -15,6 +15,7 @@ struct EditarGastoView: View {
     @State private var categoria = ""
     @State private var valor = ""
     @State private var compartilhado = false
+    @State private var data = Date()
     @State private var salvando = false
     @State private var erro: String?
 
@@ -28,6 +29,7 @@ struct EditarGastoView: View {
                     LabeledContent("Valor (\(Formatos.simboloDaMoeda))") {
                         CampoDeValor(rotulo: "Valor", texto: $valor).multilineTextAlignment(.trailing)
                     }
+                    DatePicker("Data", selection: $data, displayedComponents: .date)
                     if podeCompartilhar {
                         Toggle("Compartilhado", isOn: $compartilhado)
                     }
@@ -53,12 +55,14 @@ struct EditarGastoView: View {
                 categoria = gasto.categoria
                 valor = Formatos.valorParaDigitar(gasto.valor)
                 compartilhado = gasto.compartilhado ?? false
+                data = Formatos.data(deDia: gasto.data) ?? Date()
             }
         }
     }
 
     private func salvar() async {
         let item = item.trimmingCharacters(in: .whitespaces)
+        let dia = Formatos.dia(data)
         guard !item.isEmpty, let valor = Formatos.lerValor(valor), valor >= 0 else {
             erro = String(localized: "Confira o nome e o valor do gasto.")
             return
@@ -67,7 +71,8 @@ struct EditarGastoView: View {
         defer { salvando = false }
         do {
             let salvo = try await sessao.cliente.editarGasto(gasto.id, EdicaoDeGasto(
-                item: item, categoria: categoria, valor: valor, compartilhado: podeCompartilhar ? compartilhado : nil))
+                item: item, categoria: categoria, valor: valor, compartilhado: podeCompartilhar ? compartilhado : nil,
+                data: dia == gasto.data ? nil : dia))
             aoSalvar(salvo)
             fechar()
         } catch {

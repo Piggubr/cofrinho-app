@@ -101,13 +101,15 @@ data class NovoLancamento(
     val idDoEnvio: String? = null,
 )
 
-/** UpdateExpenseRequest. `compartilhado` nulo fica como está (só quem lançou muda). */
+/** UpdateExpenseRequest. `compartilhado` nulo fica como está (só quem lançou muda); `data` nula mantém a data. */
 @Serializable
 data class EdicaoDeGasto(
     val item: String,
     val categoria: String? = null,
     val valor: Decimal,
     val compartilhado: Boolean? = null,
+    /** aaaa-mm-dd */
+    val data: String? = null,
 )
 
 /** ReceiptParseResponse: nada é gravado, a pessoa confere antes de lançar. */

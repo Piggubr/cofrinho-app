@@ -42,6 +42,8 @@ data class EdicaoDoGasto(
     val compartilhado: Boolean,
     /** Só quem lançou muda o compartilhado, e só com mais gente na casa. */
     val podeCompartilhar: Boolean,
+    /** aaaa-mm-dd */
+    val data: String = gasto.data,
     val salvando: Boolean = false,
     val erro: MensagemDeErro? = null,
 )

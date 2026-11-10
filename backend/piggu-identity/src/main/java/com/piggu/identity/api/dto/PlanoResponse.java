@@ -91,7 +91,8 @@ public record PlanoResponse(
             "Leitura de nota fiscal pela foto sem limite",
             "Mural de fotos",
             "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês",
-            "Assistente de IA que responde sobre os seus gastos"
+            "Assistente de IA que responde sobre os seus gastos",
+            "Sem anúncios nos apps"
     );
 
     /** @param openFinance falso esconde o Open Finance da lista (recurso desligado por enquanto) */

@@ -311,6 +311,9 @@ public class ExpenseService {
                 categorias.normalizar(pedido.categoria()),
                 pedido.valor()
         );
+        if (pedido.data() != null) {
+            gasto.mudarData(pedido.data());
+        }
         if (valorMudou) {
             divisao.redividir(gasto);
         }

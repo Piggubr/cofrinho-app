@@ -365,6 +365,6 @@ internal class EstadoDaDemo(hoje: LocalDate, fuso: ZoneId, private val novoId: (
 
     companion object {
         /** Versão vigente dos Termos e do Aviso (Consentimentos.VERSAO_DO_AVISO no backend). */
-        const val VERSAO_DOS_TERMOS = "2026-10-16"
+        const val VERSAO_DOS_TERMOS = "2026-11-08"
     }
 }

@@ -9,7 +9,7 @@ Regras que valem para todas as etapas do plano do iOS nativo (D-055). As regras 
   PR para a `feature/ios-nativo` (D-089). Se o PR da etapa anterior ainda não tiver sido mergeado,
   crie a partir da branch dela e diga isso no PR. A `feature/ios-nativo` vai para a `develop` quando
   o conjunto estiver testado.
-- Não mexer em `frontend/ios` nem no backend, a não ser que a etapa peça.
+- Não mexer no backend, a não ser que a etapa peça.
 - Nunca enviar nada para a App Store ou o TestFlight sem o Dudu pedir na conversa.
 
 ## Antes de escrever uma tela

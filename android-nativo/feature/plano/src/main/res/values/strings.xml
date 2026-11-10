@@ -57,5 +57,5 @@
         <item quantity="other">A família pode ter até %1$d pessoas, contando você</item>
     </plurals>
     <string name="plano_familia_item_3">Você e seu parceiro podem ver tudo um do outro; os demais veem só o próprio</string>
-    <string name="plano_letras_miudas">Cancele quando quiser, sem multa. Se o Premium acabar, nada do que você guardou some: tudo continua visível.</string>
+    <string name="plano_letras_miudas">A assinatura renova sozinha a cada mês ou a cada ano, pelo preço mostrado, até você cancelar. Cancele quando quiser, sem multa. Se o Premium acabar, nada do que você guardou some: tudo continua visível.</string>
 </resources>

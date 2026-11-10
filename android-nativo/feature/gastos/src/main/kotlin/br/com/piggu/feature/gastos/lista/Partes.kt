@@ -67,6 +67,7 @@ import br.com.piggu.core.ui.SeletorDeMes
 import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.formatarMoeda
 import br.com.piggu.feature.gastos.R
+import br.com.piggu.feature.gastos.formulario.CampoDeData
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -433,6 +434,7 @@ internal fun EditarGasto(
             )
             CampoDeCategoria(categorias, edicao.categoria, acoes::mudarCategoria, criarCategoria, acoes::categoriasCriadas, Modifier.fillMaxWidth(), automatica = false)
             CampoDeValor(edicao.valor, acoes::mudarValor, moeda ?: "BRL", Modifier.fillMaxWidth())
+            CampoDeData(java.time.LocalDate.parse(edicao.data), acoes::mudarData)
             if (edicao.podeCompartilhar) {
                 Row(
                     Modifier.fillMaxWidth().toggleable(edicao.compartilhado, role = Role.Switch, onValueChange = acoes::mudarCompartilhado),

@@ -8,11 +8,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
- * Edicao de um gasto: nome, categoria e valor, como no Apps Script, e se ele e compartilhado.
+ * Edicao de um gasto: nome, categoria e valor, como no Apps Script, se ele e compartilhado e a data.
  *
  * @param compartilhado nulo mantem como esta; so quem lancou muda
+ * @param data          nulo mantem a data do gasto
  */
 public record UpdateExpenseRequest(
         @NotBlank(message = "Digite o nome do item.")
@@ -28,10 +30,12 @@ public record UpdateExpenseRequest(
         @Digits(integer = 7, fraction = 2, message = "O valor tem centavos demais.")
         BigDecimal valor,
 
-        Boolean compartilhado
+        Boolean compartilhado,
+
+        LocalDate data
 ) {
 
     public UpdateExpenseRequest(String item, String categoria, BigDecimal valor) {
-        this(item, categoria, valor, null);
+        this(item, categoria, valor, null, null);
     }
 }

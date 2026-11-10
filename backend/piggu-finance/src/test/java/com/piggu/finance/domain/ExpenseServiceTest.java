@@ -105,6 +105,19 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("edicao com data move o gasto para o outro mes")
+    void edicaoMudaAData() {
+        ExpenseResponse original = lancar(LocalDate.of(2026, 9, 10));
+
+        ExpenseResponse editado = gastos.atualizar(original.id(), new UpdateExpenseRequest(
+                original.item(), original.categoria(), original.valor(), null, LocalDate.of(2026, 10, 2)), DONO);
+
+        assertThat(editado.data()).isEqualTo(LocalDate.of(2026, 10, 2));
+        assertThat(gastos.listarDoMes("2026-09")).isEmpty();
+        assertThat(gastos.listarDoMes("2026-10")).extracting(ExpenseResponse::id).containsExactly(original.id());
+    }
+
+    @Test
     @DisplayName("filtro por mes respeita a virada do mes")
     void filtraPorMes() {
         lancar(LocalDate.of(2026, 8, 31));
@@ -147,8 +160,8 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
         gastos.excluirSeExistir(UUID.randomUUID());
     }
 
-    private void lancar(LocalDate data) {
-        gastos.salvar(new SaveExpensesRequest(data, "Loja", null, "Manual",
-                List.of(new ExpenseItemRequest("Item " + data, "Lazer", BigDecimal.ONE, null))), PESSOA);
+    private ExpenseResponse lancar(LocalDate data) {
+        return gastos.salvar(new SaveExpensesRequest(data, "Loja", null, "Manual",
+                List.of(new ExpenseItemRequest("Item " + data, "Lazer", BigDecimal.ONE, null))), PESSOA).get(0);
     }
 }

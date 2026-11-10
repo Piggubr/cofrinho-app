@@ -97,7 +97,7 @@ public class FamiliaService {
             throw new BusinessException("Para criar sua conta, leia e aceite os Termos de Uso e o Aviso de Privacidade.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "TERMOS_NECESSARIOS");
         }
-        if (!Consentimentos.VERSAO_DO_AVISO.equals(versaoDosTermos)) {
+        if (!Consentimentos.versaoAceita(versaoDosTermos)) {
             throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
                     HttpStatus.CONFLICT, Consentimentos.CODIGO_AVISO_MUDOU);
         }
