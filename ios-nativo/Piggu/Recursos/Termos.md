@@ -2,7 +2,7 @@
 
 # Termos de Uso do Piggu
 
-Versão 2026-10-16
+Versão 2026-11-08
 
 Estes termos explicam como funciona o Piggu, o que você pode esperar de nós e o que esperamos de você. Ao criar sua conta, você declara que leu e aceita estes termos e o [Aviso de Privacidade](piggu://privacidade). Se não concordar, não crie a conta.
 
@@ -49,6 +49,8 @@ Estes termos explicam como funciona o Piggu, o que você pode esperar de nós e 
 - Assinou pelo site: até 7 dias depois da primeira cobrança, você pode cancelar e receber o reembolso integral (direito de arrependimento, art. 49 do Código de Defesa do Consumidor). Durante o teste grátis nada é cobrado, e cancelar não custa nada.
 
 - Assinou pelo app, na App Store ou no Google Play: a cobrança, a renovação, o cancelamento e o reembolso são feitos pela loja, pelas regras dela. Você gerencia a assinatura nos ajustes da sua conta Apple ou Google.
+
+- No plano gratuito, os apps para iPhone e Android mostram anúncios de terceiros (hoje, do Google AdMob), sempre não personalizados e só para maiores de 18 anos. O Premium não tem anúncios, e o site não mostra anúncios. O que é anunciado é de responsabilidade do anunciante; bloqueamos empréstimos, apostas e criptomoedas, e se você vir um anúncio inadequado, avise-nos pelo contato no fim destes termos.
 
 - Se o Premium acabar, nada do que você guardou é apagado: tudo continua visível, e só os recursos do Premium deixam de funcionar. Ver, exportar e apagar seus dados, e desconectar bancos, são sempre gratuitos.
 

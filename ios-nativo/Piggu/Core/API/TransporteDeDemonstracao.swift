@@ -368,7 +368,7 @@ actor TransporteDeDemonstracao: Transporte {
             "premium": ["Tudo do gratuito", "Orçamento por categoria, com alerta em 80% e 100%",
                         "Relatório do ano com gráficos", "Leitura de nota fiscal pela foto sem limite",
                         "Mural de fotos", "Vários cofrinhos por objetivo, cada um com prazo e quanto guardar por mês",
-                        "Assistente de IA que responde sobre os seus gastos"],
+                        "Assistente de IA que responde sobre os seus gastos", "Sem anúncios nos apps"],
             "planoFamilia": false,
             "planoCasal": false,
             "voceAssinou": premium && titular,
