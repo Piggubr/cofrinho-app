@@ -1906,7 +1906,7 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: no Chiclete, as estrelas e os avisos terciários ficam rosa-escuro, perto da cor principal.
 - Onde ver: `android-nativo/core/designsystem/gerar-cores.mjs` (`terciaria`), `Cores.kt`
 
-## D-184: A edição do gasto muda também a data
+## D-185: A edição do gasto muda também a data
 - Data: 10/11/2026
 - Situação: Valendo
 - Decidido por: Dudu, em 10/11/2026 ("no editar não tem como editar a data")
