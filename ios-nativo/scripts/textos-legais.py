@@ -47,7 +47,9 @@ class Conversor(HTMLParser):
                 # "← Voltar": no app e o botao de voltar da navegacao.
                 self.pular += 1
                 return
-            if "mailto" in destino:
+            if attrs.get("href", "").startswith("https://"):
+                destino = attrs["href"]
+            elif "mailto" in destino:
                 destino = "mailto:" + self.valores["contato"]
             else:
                 destino = "piggu:/" + destino

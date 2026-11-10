@@ -70,6 +70,9 @@ piggu:
   # Quem opera a instalacao: ao entrar, essas contas viram ADMIN. Lista separada por
   # virgula, so por variavel de ambiente; nenhum e-mail fica no repositorio.
   admin-emails: ${PIGGU_ADMIN_EMAILS:}
+  # Segredo base32 do app autenticador que as rotas de ADMIN (/api/users) pedem no cabecalho
+  # X-Codigo-Admin (D-182). Sem ele, essas rotas recusam sempre.
+  admin-totp: ${PIGGU_ADMIN_TOTP:}
 
   dados:
     # Servicos que guardam dado de pessoas: exportar e apagar a conta passa por todos.

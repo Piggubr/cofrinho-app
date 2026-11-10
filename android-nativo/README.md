@@ -1,7 +1,7 @@
 # Piggu Android nativo
 
-App Android do Piggu em Kotlin com Jetpack Compose e Material 3. Vai substituir o app
-Capacitor de `frontend/android` como versão 2.0.0 do mesmo app da loja (`br.com.piggu.app`,
+App Android do Piggu em Kotlin com Jetpack Compose e Material 3. Substitui o app
+Capacitor, que saiu do repositório (D-181), como versão 2.0.0 do mesmo app da loja (`br.com.piggu.app`,
 D-057). As regras de trabalho estão em [AGENTS.md](AGENTS.md).
 
 ## Rodar

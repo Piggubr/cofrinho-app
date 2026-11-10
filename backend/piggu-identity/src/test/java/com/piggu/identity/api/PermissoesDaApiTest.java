@@ -1,5 +1,6 @@
 package com.piggu.identity.api;
 
+import com.piggu.identity.domain.CodigoDoAdmin;
 import com.piggu.testing.PostgresIntegrationTest;
 import com.piggu.testing.TokensDeTeste;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.Instant;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,12 +37,17 @@ class PermissoesDaApiTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("so o admin lista contas da instalacao")
+    @DisplayName("so o admin lista contas da instalacao, e com o codigo do autenticador")
     void soAdminAdministra() throws Exception {
         mockMvc.perform(get("/api/users").with(TokensDeTeste.titular())).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/users").with(TokensDeTeste.membro()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/users").with(TokensDeTeste.admin())).andExpect(status().isOk());
+        mockMvc.perform(get("/api/users").with(TokensDeTeste.admin())).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/users").with(TokensDeTeste.admin()).header(CodigoDoAdmin.CABECALHO, "12345"))
+                .andExpect(status().isForbidden());
+        String codigo = CodigoDoAdmin.gerar("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", Instant.now());
+        mockMvc.perform(get("/api/users").with(TokensDeTeste.admin()).header(CodigoDoAdmin.CABECALHO, codigo))
+                .andExpect(status().isOk());
     }
 
     @Test

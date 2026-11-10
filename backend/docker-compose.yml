@@ -91,6 +91,7 @@ services:
       APPLE_CHAVE: ${APPLE_CHAVE:-}
       JWT_ISSUER: ${JWT_ISSUER:-https://piggu.app}
       PIGGU_ADMIN_EMAILS: ${PIGGU_ADMIN_EMAILS:-}
+      PIGGU_ADMIN_TOTP: ${PIGGU_ADMIN_TOTP:-}
       # Cifra do CPF (32 bytes base64). Vazia so em desenvolvimento; em producao o identity recusa subir.
       PIGGU_CPF_CHAVE: ${PIGGU_CPF_CHAVE:-}
       # Sem chave o identity recusa subir. O padrao aponta para o par gerado por
