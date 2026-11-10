@@ -189,12 +189,14 @@ struct ResultadoDaImportacao: Codable, Equatable, Sendable {
     let pulados: Int
 }
 
-/// Corpo de PUT /expenses/{id}. `compartilhado` ausente fica como esta (so quem lancou muda).
+/// Corpo de PUT /expenses/{id}. `compartilhado` ausente fica como esta (so quem lancou muda);
+/// `data` (aaaa-mm-dd) ausente mantem a data.
 struct EdicaoDeGasto: Codable, Sendable {
     let item: String
     let categoria: String
     let valor: Decimal
     var compartilhado: Bool?
+    var data: String?
 }
 
 /// Na resposta todos os campos sao opcionais (docs/api/identity.yaml); no PUT vao moeda,

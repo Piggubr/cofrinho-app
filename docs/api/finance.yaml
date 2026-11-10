@@ -2770,6 +2770,9 @@ components:
           minLength: 0
         compartilhado:
           type: boolean
+        data:
+          type: string
+          format: date
         item:
           type: string
           maxLength: 200

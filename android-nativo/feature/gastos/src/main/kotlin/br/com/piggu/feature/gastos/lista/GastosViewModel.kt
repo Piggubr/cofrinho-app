@@ -69,6 +69,7 @@ interface AcoesDosGastos {
     fun mudarCategoria(categoria: String) {}
     fun mudarValor(valor: java.math.BigDecimal?) {}
     fun mudarCompartilhado(compartilhado: Boolean) {}
+    fun mudarData(data: java.time.LocalDate) {}
     fun salvarEdicao() {}
     fun fecharEdicao() {}
 
@@ -221,7 +222,7 @@ class GastosViewModel internal constructor(
     override fun limparFiltros() =
         estadoAtual.update { it.copy(busca = "", filtroDeCategoria = null, filtroDePagamento = FiltroDePagamento.Todas) }
 
-    // Editar (item, categoria, valor e, de quem lançou, o compartilhado)
+    // Editar (item, categoria, valor, data e, de quem lançou, o compartilhado)
 
     override fun abrirEdicao(gasto: Gasto) = estadoAtual.update {
         it.copy(
@@ -239,6 +240,7 @@ class GastosViewModel internal constructor(
     override fun mudarCategoria(categoria: String) = editar { it.copy(categoria = categoria) }
     override fun mudarValor(valor: java.math.BigDecimal?) = editar { it.copy(valor = valor) }
     override fun mudarCompartilhado(compartilhado: Boolean) = editar { it.copy(compartilhado = compartilhado) }
+    override fun mudarData(data: java.time.LocalDate) = editar { it.copy(data = data.toString()) }
     override fun fecharEdicao() = estadoAtual.update { it.copy(edicao = null) }
 
     override fun salvarEdicao() {
@@ -255,7 +257,10 @@ class GastosViewModel internal constructor(
             try {
                 val salvo = financas.editarGasto(
                     edicao.gasto.id,
-                    EdicaoDeGasto(item, edicao.categoria, valor, edicao.compartilhado.takeIf { edicao.podeCompartilhar }),
+                    EdicaoDeGasto(
+                        item, edicao.categoria, valor, edicao.compartilhado.takeIf { edicao.podeCompartilhar },
+                        data = edicao.data.takeIf { it != edicao.gasto.data },
+                    ),
                 )
                 estadoAtual.update {
                     it.copy(

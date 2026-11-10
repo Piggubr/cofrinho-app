@@ -1905,3 +1905,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: usar o mesmo croma do Vibrant com o tom rosa, que deixava um rosa acinzentado.
 - Consequências: no Chiclete, as estrelas e os avisos terciários ficam rosa-escuro, perto da cor principal.
 - Onde ver: `android-nativo/core/designsystem/gerar-cores.mjs` (`terciaria`), `Cores.kt`
+
+## D-185: A edição do gasto muda também a data
+- Data: 10/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 10/11/2026 ("no editar não tem como editar a data")
+- Registrado por: Claude
+- Contexto: o `PUT /api/expenses/{id}` só mudava item, categoria, valor e o compartilhado. Gasto lançado no dia errado precisava ser apagado e lançado de novo.
+- Decisão: o `UpdateExpenseRequest` ganha `data` (aaaa-mm-dd), opcional: nula mantém a data. O iOS e o Android mostram a data na edição e só mandam o campo quando ela mudou. Na parcela, muda só aquela parcela.
+- Alternativas: mudar a data de todas as parcelas juntas, que mexe em meses que a pessoa não está vendo.
+- Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
+- Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)

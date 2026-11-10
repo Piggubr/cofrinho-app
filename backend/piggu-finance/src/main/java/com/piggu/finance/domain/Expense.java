@@ -142,6 +142,10 @@ public class Expense {
         this.amount = amount;
     }
 
+    public void mudarData(LocalDate expenseDate) {
+        this.expenseDate = expenseDate;
+    }
+
     public void pagarCom(UUID accountId) {
         this.accountId = accountId;
     }
