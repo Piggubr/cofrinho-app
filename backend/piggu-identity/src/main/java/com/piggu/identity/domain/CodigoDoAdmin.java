@@ -78,7 +78,7 @@ public class CodigoDoAdmin {
 
     static String gerar(byte[] chave, long passo) {
         try {
-            Mac mac = Mac.getInstance("HmacSHA1");
+            Mac mac = Mac.getInstance("HmacSHA1"); // NOSONAR: TOTP (RFC 6238); HMAC nao depende de colisao
             mac.init(new SecretKeySpec(chave, "HmacSHA1"));
             byte[] h = mac.doFinal(ByteBuffer.allocate(8).putLong(passo).array());
             int i = h[h.length - 1] & 0x0f;
