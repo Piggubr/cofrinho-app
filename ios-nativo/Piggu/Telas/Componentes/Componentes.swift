@@ -204,7 +204,7 @@ struct VazioDoCartao: View {
                     .multilineTextAlignment(.center)
             }
             Button(acao, action: executar)
-                .buttonStyle(.bordered)
+                .buttonStyle(.pilula)
                 .controlSize(.small)
         }
         .frame(maxWidth: .infinity)
@@ -280,6 +280,8 @@ enum PessoasDaFamilia {
 
     static func nome(_ id: String?, em membros: [MembroDaFamilia]) -> String {
         if id == sistema { return "Piggu" }
+        // A familia tem ao menos a propria pessoa: lista vazia e lista que ainda nao chegou (BUG-002).
+        if membros.isEmpty { return "…" }
         return membros.first { $0.id == id }?.nome ?? String(localized: "Ex-membro")
     }
 }

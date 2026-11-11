@@ -16,6 +16,7 @@ struct PainelView: View {
     @Environment(Sessao.self) private var sessao
     @Environment(MonitorDeRede.self) private var rede
     @Environment(\.paleta) private var paleta
+    @Environment(\.horizontalSizeClass) private var largura
     @State private var mes = Date()
     @State private var visao: Visao = .tudo
     @State private var modelo: ModeloDoPainel?
@@ -38,14 +39,9 @@ struct PainelView: View {
             .comSeletorDeMes($mes)
             .navigationTitle(saudacao)
             .topoDoPiggu {
-                if let cotacao = modelo?.cotacao {
-                    Text(Formatos.cotacao(cotacao))
-                        .font(.sora(.caption, peso: .medium))
-                        .monospacedDigit()
-                        .fixedSize()
-                        .accessibilityHint(cotacao.desatualizada == true
-                                           ? "Última cotação conhecida" : "Referência de bancos centrais")
-                }
+                // Na janela larga as abas ficam no topo e cobriam a cotacao (BUG-025): ela desce
+                // para o conteudo.
+                if largura != .regular { textoDaCotacao }
             }
             .comTelasDoMais()
             .sheet(isPresented: $organizando) {
@@ -58,6 +54,18 @@ struct PainelView: View {
                 }
                 await modelo?.carregar(mes: Formatos.mes(mes), visao: visao)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var textoDaCotacao: some View {
+        if let cotacao = modelo?.cotacao {
+            Text(Formatos.cotacao(cotacao))
+                .font(.sora(.caption, peso: .medium))
+                .monospacedDigit()
+                .fixedSize()
+                .accessibilityHint(cotacao.desatualizada == true
+                                   ? "Última cotação conhecida" : "Referência de bancos centrais")
         }
     }
 
@@ -80,11 +88,19 @@ struct PainelView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(paleta.alertaSuave, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    if largura == .regular {
+                        textoDaCotacao.foregroundStyle(paleta.textoSuave).frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    if let usuario = sessao.usuario { AvisosDaConta(usuario: usuario) }
                     // Fixo no topo, e logo abaixo os primeiros passos até terminar ou pular (D-164).
                     if sessao.usuario?.role != .membro {
-                        CartaoAindaDaParaGastar(mes: mes, conta: AindaDaParaGastar.calcular(
-                            limite: nucleo.metas[Formatos.mes(mes)] ?? 0, receitas: modelo.resumo?.receitas,
-                            gasto: modelo.gastoNoMes(nucleo), contas: modelo.contasFixas, mes: Formatos.mes(mes)), irPara: ir)
+                        CartaoAindaDaParaGastar(
+                            mes: mes, estado: modelo.aindaDa(nucleo, mes: Formatos.mes(mes)),
+                            pendentes: sessao.fila.valorNaFila(mes: Formatos.mes(mes)),
+                            tentarDeNovo: { Task { await modelo.carregar(mes: Formatos.mes(mes), visao: visao) } },
+                            irPara: ir)
+                    } else {
+                        CartaoSemAindaDaDoMembro()
                     }
                     PrimeirosPassos(modelo: modelo, temLimite: modelo.temLimite(nucleo),
                                     temGasto: modelo.temGasto(nucleo), aoLancar: aoLancar, aoImportar: aoMudar)
@@ -95,7 +111,7 @@ struct PainelView: View {
                         Picker("O que ver", selection: $visao) {
                             ForEach(Visao.allCases, id: \.self) { Text($0.nome).tag($0) }
                         }
-                        .pickerStyle(.segmented)
+                        .seletorSegmentado()
                     }
                     blocos(modelo, painel, nucleo)
                     Button("Personalizar o Painel") { organizando = true }

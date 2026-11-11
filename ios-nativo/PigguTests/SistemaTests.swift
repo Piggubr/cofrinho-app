@@ -47,7 +47,10 @@ struct SistemaTests {
                      MetaDoMes(id: "b", titulo: "Caminhar", alvo: 10, atual: 6, concluida: false)]
         let resumo = AtualizadorDoSistema.resumo(mes: "2026-10", gastos: [gasto, gasto], limite: 100, metas: metas)
         #expect(resumo.gasto == 60)
-        #expect(resumo.restante == 40)
+        // Sem as contas do mes, nada de "Ainda da" inflado (BUG-002).
+        #expect(resumo.aindaDa == nil)
+        let comContas = AtualizadorDoSistema.resumo(mes: "2026-10", gastos: [gasto, gasto], limite: 100, metas: metas, contas: [])
+        #expect(comContas.aindaDa?.resta == 40)
         #expect(resumo.fracaoDoLimite == 0.6)
         #expect(resumo.meta?.titulo == "Caminhar")
         #expect(resumo.metasConcluidas == 1)
@@ -68,11 +71,15 @@ struct SistemaTests {
         Formatos.codigoDaMoeda = "BRL"
         // O formatador poe um espaco inquebravel depois do "R$": o esperado usa o mesmo.
         let r = { (valor: Decimal) in Formatos.moeda(valor) }
-        #expect(QuantoGasteiIntent.fala(gasto: Decimal(string: "1039.39")!, limite: 2500, mes: "2026-10")
-            == "Em outubro de 2026 você gastou \(r(Decimal(string: "1039.39")!)). Ainda dá para gastar \(r(Decimal(string: "1460.61")!)) do limite de \(r(2500)).")
-        #expect(QuantoGasteiIntent.fala(gasto: 300, limite: 200, mes: "2026-10")
-            == "Em outubro de 2026 você gastou \(r(300)). Passou \(r(100)) do limite de \(r(200)).")
-        #expect(QuantoGasteiIntent.fala(gasto: 300, limite: nil, mes: "2026-10") == "Em outubro de 2026 você gastou \(r(300)).")
+        // A mesma conta do Painel: limite menos gasto e contas a pagar (D-195).
+        let comSaldo = AindaDaParaGastar.calcular(limite: 2500, receitas: nil, gasto: Decimal(string: "1039.39")!,
+                                                  contasAPagar: 640, mes: "2026-10")
+        #expect(QuantoGasteiIntent.fala(gasto: Decimal(string: "1039.39")!, conta: comSaldo, mes: "2026-10")
+            == "Em outubro de 2026 você gastou \(r(Decimal(string: "1039.39")!)). Ainda dá para gastar \(r(Decimal(string: "820.61")!)), contando as contas a pagar.")
+        let passou = AindaDaParaGastar.calcular(limite: 200, receitas: nil, gasto: 300, contasAPagar: 0, mes: "2026-10")
+        #expect(QuantoGasteiIntent.fala(gasto: 300, conta: passou, mes: "2026-10")
+            == "Em outubro de 2026 você gastou \(r(300)). Já passou \(r(100)) do que dava para gastar, contando as contas a pagar.")
+        #expect(QuantoGasteiIntent.fala(gasto: 300, conta: nil, mes: "2026-10") == "Em outubro de 2026 você gastou \(r(300)).")
     }
 
     @MainActor

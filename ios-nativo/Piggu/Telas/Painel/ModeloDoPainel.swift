@@ -30,6 +30,11 @@ final class ModeloDoPainel {
     var metasDoMes: [MetaDoMes]?
     var girlsMath: [ItemDoGirlsMath]?
     var membros: [MembroDaFamilia] = []
+    /// O mes (aaaa-mm) cujas contas fixas e membros ja chegaram: antes disso o "Ainda da" fica
+    /// carregando, nunca com "R$ 0,00 de contas a pagar" (BUG-002).
+    private(set) var mesDasContas: String?
+    private(set) var erroDasContas: ErroDaAPI?
+    private(set) var erroDoResumo: ErroDaAPI?
     let openFinance: OpenFinance
     var cotacao: Cotacao?
     /// Erro de uma acao (depositar, apagar...), por cartao.
@@ -60,6 +65,7 @@ final class ModeloDoPainel {
         let resumo = Task {
             await sessao.cache.carregar("resumo/\(mes)\(sufixo)", mostrar: { carga in
                 if let valor = carga.valor { self.resumo = valor }
+                if case let .falhou(erro) = carga { self.erroDoResumo = erro } else { self.erroDoResumo = nil }
             }) { try await cliente.resumoDoMes(mes, visao: visao) }
         }
         await sessao.cache.carregar("painel/\(mes)\(sufixo)", mostrar: { nova in
@@ -97,16 +103,27 @@ final class ModeloDoPainel {
 
     private func carregarExtras(mes: String) async {
         let cliente = cliente
-        async let contasFixas = try? cliente.contasFixas(mes)
+        async let contasFixas = cliente.contasFixas(mes)
         async let orcamentos = try? cliente.orcamentos(mes)
         async let cartoes = try? cliente.contas()
         async let aReceber = try? cliente.aReceber()
         async let membros = try? cliente.verFamilia().membros
-        self.contasFixas = await contasFixas ?? []
+        var erroDasContas: ErroDaAPI?
+        do {
+            self.contasFixas = try await contasFixas
+        } catch {
+            erroDasContas = error as? ErroDaAPI ?? .respostaInvalida
+        }
         self.orcamentos = await orcamentos ?? []
         self.cartoes = await cartoes ?? []
         self.aReceber = await aReceber ?? []
-        self.membros = await membros ?? []
+        // Sem a lista, os nomes ficam em "…" (PessoasDaFamilia), nunca "Ex-membro".
+        if let membros = await membros { self.membros = membros }
+        // Trocou de mes no meio: a resposta e do mes anterior e nao vale.
+        if !Task.isCancelled {
+            self.erroDasContas = erroDasContas
+            mesDasContas = mes
+        }
         async let objetivos: Void = recarregarObjetivos()
         async let notas: Void = carregarNotas()
         async let metas: Void = carregarMetasDoMes()
@@ -163,6 +180,31 @@ final class ModeloDoPainel {
         nucleo.gastos.reduce(0) { $0 + $1.valor }
     }
 
+    /// O que o cartao fixo do topo mostra (D-164, BUG-002).
+    enum EstadoDoAindaDa: Equatable {
+        case carregando
+        case falhou(ErroDaAPI)
+        /// nil sem limite e sem receita.
+        case pronto(AindaDaParaGastar?)
+    }
+
+    /// Espera as contas fixas, os membros e, sem limite, as receitas do mes; o gasto inclui o que
+    /// esta na fila do aparelho (BUG-010).
+    func aindaDa(_ nucleo: Nucleo, mes: String) -> EstadoDoAindaDa {
+        guard mesDasContas == mes else { return .carregando }
+        if let erroDasContas { return .falhou(erroDasContas) }
+        let limite = nucleo.metas[mes] ?? 0
+        var receitas = resumo?.mes == mes ? resumo?.receitas : nil
+        if limite <= 0, receitas == nil {
+            if let erroDoResumo { return .falhou(erroDoResumo) }
+            return .carregando
+        }
+        if limite > 0 { receitas = nil }
+        return .pronto(AindaDaParaGastar.calcular(
+            limite: limite, receitas: receitas, gasto: gastoNoMes(nucleo) + sessao.fila.valorNaFila(mes: mes),
+            contas: contasFixas, mes: mes))
+    }
+
     /// Para o guia de primeiro uso: algum limite em qualquer mes, algum gasto ja lancado.
     func temLimite(_ nucleo: Nucleo) -> Bool { nucleo.metas.values.contains { $0 > 0 } }
     func temGasto(_ nucleo: Nucleo) -> Bool { !nucleo.gastos.isEmpty || nucleo.cofrinho.totalGastos > 0 }
@@ -200,8 +242,8 @@ final class ModeloDoPainel {
 
     func depositar(_ valor: Decimal, objetivo: String? = nil, mes: String, visao: Visao) async -> Bool {
         let bloco: IdDoBloco = objetivo == nil ? .cofrinho : .objetivos
-        guard valor > 0 else {
-            erros[bloco] = String(localized: "Digite um valor de depósito válido.")
+        if let problema = Limites.problema(valor, maximo: Limites.receita) {
+            erros[bloco] = problema
             return false
         }
         erros[bloco] = nil
@@ -311,34 +353,15 @@ final class ModeloDoPainel {
     }
 }
 
-/// O número fixo no topo do Painel (D-164): o teto do mês menos o gasto e as contas fixas de
-/// gasto ainda não pagas. O teto é o limite do mês ou, sem ele, as receitas do mês.
-struct AindaDaParaGastar: Equatable {
-    let teto: Decimal
-    let tetoEhOLimite: Bool
-    let gasto: Decimal
-    let contasAPagar: Decimal
-    /// Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído.
-    let porDia: Decimal?
+extension AindaDaParaGastar {
+    /// As pagas já viraram gasto; a receita fixa não é conta a pagar.
+    static func contasAPagar(_ contas: [ContaFixa]) -> Decimal {
+        contas.filter { $0.situacao != .paga && $0.tipo != "RECEITA" }.reduce(0) { $0 + $1.valor }
+    }
 
-    /// Negativo é o que passou.
-    var resta: Decimal { teto - gasto - contasAPagar }
-
-    /// nil sem limite e sem receita: o cartão convida a definir um dos dois.
     static func calcular(limite: Decimal, receitas: Decimal?, gasto: Decimal, contas: [ContaFixa],
                          mes: String, hoje: Date = Date(), calendario: Calendar = .current) -> AindaDaParaGastar? {
-        let tetoEhOLimite = limite > 0
-        guard let teto = tetoEhOLimite ? limite : receitas.flatMap({ $0 > 0 ? $0 : nil }) else { return nil }
-        // As pagas já viraram gasto; a receita fixa não é conta a pagar.
-        let contasAPagar = contas.filter { $0.situacao != .paga && $0.tipo != "RECEITA" }.reduce(0) { $0 + $1.valor }
-        let resta = teto - gasto - contasAPagar
-        var porDia: Decimal?
-        if resta > 0, mes == Formatos.mes(hoje), let dias = calendario.range(of: .day, in: .month, for: hoje)?.count {
-            var dividido = resta / Decimal(dias - calendario.component(.day, from: hoje) + 1)
-            var arredondado = Decimal()
-            NSDecimalRound(&arredondado, &dividido, 2, .down)
-            porDia = arredondado
-        }
-        return AindaDaParaGastar(teto: teto, tetoEhOLimite: tetoEhOLimite, gasto: gasto, contasAPagar: contasAPagar, porDia: porDia)
+        calcular(limite: limite, receitas: receitas, gasto: gasto, contasAPagar: contasAPagar(contas),
+                        mes: mes, hoje: hoje, calendario: calendario)
     }
 }

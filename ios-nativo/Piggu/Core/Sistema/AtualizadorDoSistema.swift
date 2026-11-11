@@ -22,12 +22,16 @@ enum AtualizadorDoSistema {
         async let gastos = try? cliente.listarGastos(mes: mes)
         async let limites = try? cliente.listarMetas()
         async let metas = try? cliente.listarMetasDoMes()
+        async let doMes = try? cliente.resumoDoMes(mes)
+        async let contas = try? cliente.contasFixas(mes)
         guard let gastos = await gastos else { return }
         let lista = await metas ?? []
         let limite = (await limites)?[mes]
+        let receitas = await doMes?.receitas
+        let contasDoMes = await contas
         // A resposta pode chegar depois de sair da conta: so grava se a mesma pessoa segue la (D-162).
         guard !Task.isCancelled, sessao.usuario?.id == dono else { return }
-        resumo(mes: mes, gastos: gastos, limite: limite, metas: lista).gravar()
+        resumo(mes: mes, gastos: gastos, limite: limite, metas: lista, receitas: receitas, contas: contasDoMes).gravar()
         WidgetCenter.shared.reloadAllTimelines()
         await indexar(gastos)
         if sessao.usuario?.id != dono {
@@ -35,14 +39,18 @@ enum AtualizadorDoSistema {
         }
     }
 
-    static func resumo(mes: String, gastos: [Gasto], limite: Decimal?, metas: [MetaDoMes]) -> ResumoDoWidget {
+    /// `contas` nil (nao chegaram): o widget nao mostra o "Ainda da", em vez de um numero inflado.
+    static func resumo(mes: String, gastos: [Gasto], limite: Decimal?, metas: [MetaDoMes],
+                       receitas: Decimal? = nil, contas: [ContaFixa]? = nil) -> ResumoDoWidget {
         let meta = metas.first { !$0.concluida } ?? metas.last
+        let contasAPagar = contas.map(AindaDaParaGastar.contasAPagar)
         return ResumoDoWidget(
             mes: mes, gasto: gastos.reduce(0) { $0 + $1.valor }, limite: (limite ?? 0) > 0 ? limite : nil,
             moeda: Formatos.codigoDaMoeda,
             meta: meta.map { ResumoDoWidget.Meta(titulo: $0.titulo, atual: $0.atual, alvo: $0.alvo) },
             metasConcluidas: metas.filter(\.concluida).count, metasTotal: metas.count,
-            tema: UserDefaults.standard.string(forKey: Tema.chave) ?? Tema.chiclete.rawValue, atualizadoEm: Date())
+            tema: UserDefaults.standard.string(forKey: Tema.chave) ?? Tema.chiclete.rawValue, atualizadoEm: Date(),
+            receitas: receitas, contasAPagar: contasAPagar)
     }
 
     /// Os gastos do mes atual na busca do iPhone; tocar abre o gasto no app.

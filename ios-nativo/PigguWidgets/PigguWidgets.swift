@@ -123,16 +123,29 @@ private struct VistaDoGasto: View {
 
     @ViewBuilder
     private func limite(_ resumo: ResumoDoWidget, _ paleta: Paleta) -> some View {
-        if let fracao = resumo.fracaoDoLimite, let limite = resumo.limite, let restante = resumo.restante {
+        if let fracao = resumo.fracaoDoLimite {
             VStack(alignment: .leading, spacing: 4) {
                 ProgressView(value: min(fracao, 1)).tint(fracao > 1 ? paleta.perigo : paleta.primaria)
-                Text(restante >= 0 ? "Resta \(resumo.moeda(restante)) de \(resumo.moeda(limite))"
-                                   : "Passou \(resumo.moeda(-restante)) do limite")
-                    .font(.caption2).foregroundStyle(fracao > 1 ? paleta.perigo : paleta.textoSuave)
-                    .lineLimit(2).minimumScaleFactor(0.8)
+                aindaDa(resumo, paleta)
             }
+        } else if resumo.aindaDa != nil {
+            aindaDa(resumo, paleta)
         } else {
             Text("Sem limite para este mês").font(.caption2).foregroundStyle(paleta.textoSuave)
+        }
+    }
+
+    /// O mesmo numero do Painel (D-195): teto menos gastos e contas a pagar.
+    @ViewBuilder
+    private func aindaDa(_ resumo: ResumoDoWidget, _ paleta: Paleta) -> some View {
+        if let conta = resumo.aindaDa {
+            Text(conta.resta >= 0 ? "Ainda dá \(resumo.moeda(conta.resta))"
+                                  : "Passou \(resumo.moeda(-conta.resta))")
+                .font(.caption2).foregroundStyle(conta.resta < 0 ? paleta.perigo : paleta.textoSuave)
+                .lineLimit(2).minimumScaleFactor(0.8)
+        } else {
+            Text("Abra o Piggu para ver quanto ainda dá").font(.caption2).foregroundStyle(paleta.textoSuave)
+                .lineLimit(2).minimumScaleFactor(0.8)
         }
     }
 
