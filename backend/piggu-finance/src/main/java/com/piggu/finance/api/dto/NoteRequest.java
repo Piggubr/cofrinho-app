@@ -1,5 +1,6 @@
 package com.piggu.finance.api.dto;
 
+import com.piggu.common.web.Valores;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -24,8 +25,8 @@ public record NoteRequest(
 
         LocalDate data,
 
-        @DecimalMin(value = "0", message = "O valor do evento e invalido.")
-        @DecimalMax(value = "1000000", message = "O valor do evento e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         BigDecimal valor,
 
         @Size(max = 50)

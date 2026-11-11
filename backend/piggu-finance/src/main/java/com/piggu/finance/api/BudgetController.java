@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.Valores;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
@@ -41,8 +42,8 @@ public class BudgetController {
     public record BudgetRequest(
             @NotBlank(message = "Escolha a categoria.") @Size(max = 50) String categoria,
             @NotNull(message = "Digite o limite.")
-            @DecimalMin(value = "0.01", message = "Digite um limite valido.")
-            @DecimalMax(value = "1000000", message = "O limite e alto demais.") BigDecimal limite) {
+            @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+            @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO) BigDecimal limite) {
     }
 
     /** Cada categoria com orcamento no mes: limite, gasto, percentual e alerta (80% e 100%). */

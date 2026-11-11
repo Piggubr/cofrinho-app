@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.Valores;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
@@ -72,7 +73,8 @@ public class ExpenseController {
     public record LinhaRequest(
             @NotNull LocalDate data,
             @NotBlank @Size(max = 200) String descricao,
-            @NotNull @DecimalMin("0") @DecimalMax("1000000") BigDecimal valor,
+            // Zero passa aqui e sai da previa e da importacao (ExpenseService): nao derruba o extrato.
+            @NotNull @DecimalMin("0") @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO) BigDecimal valor,
             @NotBlank @Size(max = 120) String idExterno,
             @Size(max = 50) String categoria) {
     }

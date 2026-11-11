@@ -1,5 +1,7 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.DataDeLancamento;
+import com.piggu.common.web.Valores;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
@@ -50,18 +52,20 @@ public class IncomeController {
     }
 
     public record IncomeRequest(
-            @NotNull(message = "Escolha a data da receita.") LocalDate data,
+            @NotNull(message = "Escolha a data da receita.") @DataDeLancamento LocalDate data,
             @NotBlank(message = "Digite a descricao.") @Size(max = 200, message = "A descricao e longa demais.") String descricao,
             @Size(max = 50) String categoria,
             @NotNull(message = "Digite o valor.")
-            @DecimalMin(value = "0.01", message = "Digite um valor valido.")
-            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal valor,
+            @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+            @DecimalMax(value = Valores.MAXIMO_DE_ENTRADA, message = Valores.ACIMA_DO_MAXIMO_DE_ENTRADA) BigDecimal valor,
             Boolean recorrente,
             Boolean compartilhado,
             @Min(value = 1, message = "O dia vai de 1 a 31.") @Max(value = 31, message = "O dia vai de 1 a 31.")
             Integer segundoDia,
-            @DecimalMin(value = "0.01", message = "Digite um valor valido.")
-            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal segundoValor) {
+            @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+            @DecimalMax(value = Valores.MAXIMO_DE_ENTRADA, message = Valores.ACIMA_DO_MAXIMO_DE_ENTRADA) BigDecimal segundoValor,
+            // Id que o app gera por envio: o mesmo de novo na familia devolve a primeira receita (D-192).
+            UUID idDoEnvio) {
     }
 
     public record IncomeResponse(UUID id, LocalDate data, String descricao, String categoria, BigDecimal valor,
@@ -89,17 +93,21 @@ public class IncomeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IncomeResponse criar(@Valid @RequestBody IncomeRequest pedido, @AuthUser CurrentUser usuario) {
+        return IncomeResponse.de(servico.umaVezSo(pedido.idDoEnvio(), usuario.id(), () -> lancar(pedido, usuario)));
+    }
+
+    private Income lancar(IncomeRequest pedido, CurrentUser usuario) {
         boolean compartilhado = Boolean.TRUE.equals(pedido.compartilhado());
         if (Boolean.TRUE.equals(pedido.recorrente())) {
-            return IncomeResponse.de(recorrentes.lancarReceitaRecorrente(pedido.data(), pedido.descricao(),
+            return recorrentes.lancarReceitaRecorrente(pedido.data(), pedido.descricao(),
                     pedido.categoria(), pedido.valor(), usuario.id(), compartilhado, pedido.segundoDia(),
-                    pedido.segundoValor()));
+                    pedido.segundoValor());
         }
         if (pedido.segundoDia() != null || pedido.segundoValor() != null) {
             throw new BusinessException("Duas parcelas so na receita que entra todo mes.");
         }
-        return IncomeResponse.de(servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
-                usuario.id(), compartilhado));
+        return servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
+                usuario.id(), compartilhado);
     }
 
     @Operation(summary = "Alterar receita")

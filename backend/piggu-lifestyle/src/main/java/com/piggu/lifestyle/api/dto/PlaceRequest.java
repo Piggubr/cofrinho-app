@@ -1,5 +1,6 @@
 package com.piggu.lifestyle.api.dto;
 
+import com.piggu.common.web.Valores;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -44,8 +45,8 @@ public record PlaceRequest(
         @Size(max = 20, message = "Marcacoes demais.")
         List<@Size(max = 40) String> marcacoes,
 
-        @DecimalMin(value = "0", message = "Digite um valor valido.")
-        @DecimalMax(value = "1000000", message = "O valor e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         BigDecimal valor,
 
         @Size(max = 7_000_000, message = "A foto e grande demais. O limite e de 5 MB.")

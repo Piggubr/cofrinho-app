@@ -57,6 +57,7 @@ public class ExpenseService {
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
     private final TrilhaDeAuditoria trilha;
+    private final PessoasDaFamilia pessoas;
     private final JdbcTemplate jdbc;
 
     public ExpenseService(ExpenseRepository repositorio,
@@ -66,7 +67,8 @@ public class ExpenseService {
                           PaymentAccountRepository contas,
                           DivisaoDeGastos divisao,
                           TrilhaDeAuditoria trilha,
-                          JdbcTemplate jdbc) {
+                          JdbcTemplate jdbc,
+                          PessoasDaFamilia pessoas) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
@@ -75,6 +77,7 @@ public class ExpenseService {
         this.divisao = divisao;
         this.trilha = trilha;
         this.jdbc = jdbc;
+        this.pessoas = pessoas;
     }
 
     @Transactional(readOnly = true)
@@ -125,8 +128,9 @@ public class ExpenseService {
 
         List<Expense> salvos = repositorio.saveAll(gastos);
         if (pedido.dividirCom() != null) {
-            divisao.dividir(salvos, pedido.dividirCom().stream()
-                    .filter(Objects::nonNull).distinct().toList());
+            List<UUID> comQuem = pedido.dividirCom().stream().filter(Objects::nonNull).distinct().toList();
+            pessoas.exigirDaFamilia(comQuem);
+            divisao.dividir(salvos, comQuem);
         }
         // ponytail: parcela nao entra na memoria de precos (o valor seria o da parcela, nao o do produto).
         if (parcelas == 1) {
@@ -209,7 +213,8 @@ public class ExpenseService {
         Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportados(ids)
                 : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
-        return linhas.stream().map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
+        // Linha de valor zero (tarifa estornada, ajuste) nao e gasto: sai da previa sem derrubar o extrato.
+        return linhas.stream().filter(l -> l.valor().signum() > 0).map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
                 categoriaDe(new ExpenseItemRequest(l.descricao(), null, l.valor(), null), "", ORIGEM_EXTRATO,
                         regrasDaFamilia),
                 jaImportadas.contains(l.idExterno()))).toList();
@@ -232,7 +237,7 @@ public class ExpenseService {
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         UUID lote = UUID.randomUUID();
         List<Expense> novos = linhas.stream()
-                .filter(l -> jaImportadas.add(l.idExterno()))
+                .filter(l -> l.valor().signum() > 0 && jaImportadas.add(l.idExterno()))
                 .map(l -> {
                     ExpenseItemRequest item = new ExpenseItemRequest(l.descricao(), l.categoria(), l.valor(), null);
                     // A categoria escolhida na previa vale como escolha manual.

@@ -1,5 +1,6 @@
 package com.piggu.finance.api.dto;
 
+import com.piggu.common.web.DataDeLancamento;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,7 +29,8 @@ import java.util.UUID;
  *                  devolve os gastos da primeira vez; nulo lanca sempre
  */
 public record SaveExpensesRequest(
-        @NotNull(message = "A data do gasto e invalida.")
+        @NotNull(message = "Escolha a data do gasto.")
+        @DataDeLancamento
         LocalDate data,
 
         @Size(max = 200)

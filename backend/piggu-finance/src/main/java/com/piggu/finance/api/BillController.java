@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.Valores;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
@@ -51,8 +52,8 @@ public class BillController {
             @NotBlank(message = "Digite a descricao.") @Size(max = 200, message = "A descricao e longa demais.") String descricao,
             @Size(max = 50) String categoria,
             @NotNull(message = "Digite o valor.")
-            @DecimalMin(value = "0.01", message = "Digite um valor valido.")
-            @DecimalMax(value = "1000000", message = "O valor e alto demais.") BigDecimal valor,
+            @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+            @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO) BigDecimal valor,
             @NotNull(message = "Escolha o dia do vencimento.")
             @Min(value = 1, message = "O dia vai de 1 a 31.") @Max(value = 31, message = "O dia vai de 1 a 31.") Integer dia,
             Boolean automatico,

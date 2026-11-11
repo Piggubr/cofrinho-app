@@ -1,5 +1,6 @@
 package com.piggu.lifestyle.api.dto;
 
+import com.piggu.common.web.Valores;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -26,8 +27,8 @@ public record GirlsMathRequest(
         String loja,
 
         @NotNull(message = "Digite o valor.")
-        @DecimalMin(value = "0.01", message = "Digite um valor valido.")
-        @DecimalMax(value = "1000000", message = "O valor e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         BigDecimal valor,
 
         LocalDate data,

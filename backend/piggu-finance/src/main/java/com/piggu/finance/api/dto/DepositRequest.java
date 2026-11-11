@@ -1,5 +1,7 @@
 package com.piggu.finance.api.dto;
 
+import com.piggu.common.web.DataDeLancamento;
+import com.piggu.common.web.Valores;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -14,11 +16,12 @@ import java.util.UUID;
  * @param objetivo  cofrinho por objetivo que recebe o deposito; ausente e o cofrinho geral
  */
 public record DepositRequest(
+        @DataDeLancamento
         LocalDate data,
 
         @NotNull(message = "Digite um valor de deposito valido.")
-        @DecimalMin(value = "0.01", message = "Digite um valor de deposito valido.")
-        @DecimalMax(value = "10000000", message = "O valor do deposito e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO_DE_ENTRADA, message = Valores.ACIMA_DO_MAXIMO_DE_ENTRADA)
         BigDecimal valor,
 
         UUID objetivo
