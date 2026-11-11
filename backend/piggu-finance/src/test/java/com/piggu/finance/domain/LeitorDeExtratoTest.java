@@ -110,4 +110,20 @@ class LeitorDeExtratoTest {
         assertThat(ExpenseService.celulaCsv("=HYPERLINK(\"x\")")).isEqualTo("\"'=HYPERLINK(\"\"x\"\")\"");
         assertThat(ExpenseService.celulaCsv("Pão")).isEqualTo("\"Pão\"");
     }
+
+    @Test
+    @DisplayName("arquivo vazio, extrato grande demais e OFX sem lancamento sao recusados com texto acentuado")
+    void arquivosRecusados() {
+        assertThatThrownBy(() -> LeitorDeExtrato.ler("  ")).isInstanceOf(BusinessException.class)
+                .hasMessage("O arquivo está vazio.");
+        StringBuilder grande = new StringBuilder("data;descricao;valor\n");
+        for (int i = 0; i <= LeitorDeExtrato.MAXIMO_DE_LINHAS; i++) {
+            grande.append("10/09/2026;Item ").append(i).append(";-1,00\n");
+        }
+        assertThatThrownBy(() -> LeitorDeExtrato.ler(grande.toString())).isInstanceOf(BusinessException.class)
+                .hasMessage("Extrato grande demais: no máximo " + LeitorDeExtrato.MAXIMO_DE_LINHAS + " lançamentos por vez.");
+        assertThatThrownBy(() -> LeitorDeExtrato.ler("OFXHEADER:100\n<OFX><BANKMSGSRSV1></BANKMSGSRSV1></OFX>"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Não achei lançamentos nesse OFX.");
+    }
 }

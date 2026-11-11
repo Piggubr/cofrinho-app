@@ -382,4 +382,13 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     private static CurrentUser como(UserAccount conta) {
         return new CurrentUser(conta.getId(), conta.getEmail(), conta.getRole(), null, conta.getHouseholdId());
     }
+
+    @Test
+    @DisplayName("convite sem e-mail de verdade e titular tirando a si mesmo sao recusados")
+    void pedidosInvalidos() {
+        assertThatThrownBy(() -> familias.convidar(como(titular), "sem-arroba"))
+                .isInstanceOf(BusinessException.class).hasMessage("Digite um e-mail válido.");
+        assertThatThrownBy(() -> familias.removerMembro(como(titular), titular.getId()))
+                .isInstanceOf(BusinessException.class).hasMessage("Para sair da família, use a opção Sair.");
+    }
 }

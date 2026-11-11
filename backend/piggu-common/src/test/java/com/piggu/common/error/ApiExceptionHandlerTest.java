@@ -49,6 +49,18 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("conteudo que nao e JSON responde 415 com texto proprio, e JSON quebrado responde 400")
+    void protocoloComTextoProprio() throws Exception {
+        mockMvc.perform(post("/teste/validado").contentType(MediaType.TEXT_PLAIN).content("oi"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.codigo").value("PEDIDO_INVALIDO"))
+                .andExpect(jsonPath("$.erro").value("Formato de conteúdo não suportado."));
+        mockMvc.perform(post("/teste/validado").contentType(MediaType.APPLICATION_JSON).content("{quebrado"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Não entendi os dados enviados."));
+    }
+
+    @Test
     @DisplayName("metodo nao suportado responde 405, nao 500")
     void metodoNaoSuportadoDevolve405() throws Exception {
         mockMvc.perform(patch("/teste/somente-get"))

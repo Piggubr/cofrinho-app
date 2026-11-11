@@ -14,7 +14,10 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -170,5 +173,43 @@ class RegrasDaAuditoriaTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.projecaoDeGastos").doesNotExist())
                 .andExpect(jsonPath("$.gastosAteMesmoDiaAnterior").doesNotExist())
                 .andExpect(jsonPath("$.variacaoAteMesmoDia").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("importacao: linha zero escolhida nao grava e conta como pulada")
+    void linhaZeroNaoGrava() throws Exception {
+        enviar("POST", "/api/expenses/import", casas.casaA, "{\"linhas\":["
+                + "{\"data\":\"2026-06-10\",\"descricao\":\"Tarifa\",\"valor\":0,\"idExterno\":\"z1\"},"
+                + "{\"data\":\"2026-06-10\",\"descricao\":\"Padaria\",\"valor\":12,\"idExterno\":\"z2\"}]}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.importados").value(1))
+                .andExpect(jsonPath("$.pulados").value(1));
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-06").with(casas.casaA))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].item").value("Padaria"));
+    }
+
+    @Test
+    @DisplayName("projecao no mes corrente: o fixo conta uma vez, o variavel vai pelo ritmo e compara ate o mesmo dia (D-190)")
+    void projecaoNoMesCorrente() throws Exception {
+        LocalDate hoje = LocalDate.now(Meses.BRASILIA);
+        YearMonth mes = YearMonth.from(hoje);
+        YearMonth anterior = mes.minusMonths(1);
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"" + mes.atDay(1)
+                + "\",\"itens\":[{\"item\":\"Aluguel\",\"valor\":2000,\"tipo\":\"Fixo\"}]}");
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"" + hoje
+                + "\",\"itens\":[{\"item\":\"Mercado\",\"valor\":300}]}");
+        // Do mes anterior, no dia 1: sempre entra na comparacao ate o mesmo dia de hoje.
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"" + anterior.atDay(1)
+                + "\",\"itens\":[{\"item\":\"Feira\",\"valor\":100}]}");
+
+        BigDecimal projecao = new BigDecimal("300").multiply(BigDecimal.valueOf(mes.lengthOfMonth()))
+                .divide(BigDecimal.valueOf(hoje.getDayOfMonth()), 2, RoundingMode.HALF_UP).add(new BigDecimal("2000"));
+        mockMvc.perform(get("/api/reports/month").with(casas.casaA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gastosFixos").value(2000.0))
+                .andExpect(jsonPath("$.projecaoDeGastos").value(projecao.doubleValue()))
+                .andExpect(jsonPath("$.gastosAteMesmoDiaAnterior").value(100.0))
+                .andExpect(jsonPath("$.variacaoAteMesmoDia").value(2200.0));
     }
 }
