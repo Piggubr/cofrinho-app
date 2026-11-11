@@ -59,6 +59,9 @@ public class AuthService {
     static final Duration TRAVA_DA_SENHA = Duration.ofMinutes(15);
     private static final int ORIGENS_ANTES_DE_LIMPAR = 50_000;
 
+    /** Duas abas renovando juntas: o refresh trocado que volta dentro disto nao derruba a sessao (D-193). */
+    static final Duration TOLERANCIA_DE_REUSO = Duration.ofSeconds(30);
+
     private static final String SENHA_ERRADA = "E-mail ou senha incorretos. Se voce criou a conta pelo Google, "
             + "entre pelo Google. Muitas tentativas seguidas bloqueiam a senha por 15 minutos.";
 
@@ -369,8 +372,15 @@ public class AuthService {
     /** Renova o acesso e rotaciona a sessao longa: o refresh usado e' descartado. */
     @Transactional
     public TokenResponse renovar(String refreshToken, String userAgent) {
-        RefreshSession sessao = sessoes.findByTokenHash(tokens.hash(refreshToken))
-                .orElseThrow(() -> new UnauthorizedException("Sua sessao venceu. Entre novamente."));
+        String hash = tokens.hash(refreshToken);
+        RefreshSession sessao = sessoes.findByTokenHash(hash).orElseThrow(() -> {
+            // Refresh ja trocado voltando depois da tolerancia de duas abas: copiado (D-193).
+            sessoes.sessaoDoRotacionado(hash, Instant.now().minus(TOLERANCIA_DE_REUSO)).ifPresent(id -> {
+                log.warn("Refresh reaproveitado: sessao {} encerrada", id);
+                revogador.revogar(id);
+            });
+            return new UnauthorizedException("Sua sessao venceu. Entre novamente.");
+        });
 
         if (!sessao.estaValida()) {
             // Revogacao em transacao propria: a excecao abaixo desfaz esta transacao,
@@ -395,6 +405,7 @@ public class AuthService {
                 Texto.limitar(userAgent, 300), tokens.expiracaoDaSessao()) == 0) {
             throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
         }
+        sessoes.guardarRotacionado(sessao.getTokenHash(), sessao.getId());
         // Quem so renova tambem esta usando: sem isto a retencao apagaria conta ativa.
         conta.registrarAcesso();
         usuarios.save(conta);
