@@ -61,6 +61,8 @@ for banco_tabela in piggu_finance:expenses piggu_rewards:prizes piggu_lifestyle:
 done
 [ "$(sql piggu_identity "SELECT premium_until > now() + interval '29 days' FROM households WHERE id = 'f0000000-0000-0000-0000-000000000001'")" = t ] \
   || falhar "Premium nao foi ligado"
+[ "$(sql piggu_identity "SELECT subscriber_id = '10000000-0000-0000-0000-000000000001' AND plan_kind = 'INDIVIDUAL' FROM households WHERE id = 'f0000000-0000-0000-0000-000000000001'")" = t ] \
+  || falhar "Premium sem assinante: o plano individual nao cobre ninguem"
 [ "$(sql piggu_identity "SELECT premium_until IS NULL FROM households WHERE id = 'f0000000-0000-0000-0000-000000000002'")" = t ] \
   || falhar "Premium foi ligado na outra familia"
 [ "$(sql piggu_identity "SELECT lifestyle_modules IS NULL FROM users WHERE email = 'pessoa1@exemplo.test'")" = t ] \
