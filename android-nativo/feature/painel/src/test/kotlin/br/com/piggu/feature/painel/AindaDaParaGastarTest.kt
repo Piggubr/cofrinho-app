@@ -1,5 +1,9 @@
 package br.com.piggu.feature.painel
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import br.com.piggu.core.network.MensagemDeErro
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -51,8 +55,9 @@ class AindaDaParaGastarTest {
         carga = Carga.Pronto(
             Nucleo(Cofrinho(totalDepositos = BigDecimal.ZERO, totalGastos = BigDecimal.ZERO, saldo = BigDecimal.ZERO), gastos, limite?.let { mapOf(mes to BigDecimal(it)) }.orEmpty()),
         ),
-        avisos = AvisosDoMes(contas = contas),
+        contasDoMes = contas,
         resumo = resumo,
+        resumoRespondeu = true,
     )
 
     @Test
@@ -108,6 +113,7 @@ class AindaDaParaGastarTest {
         compose.onNodeWithText("1.053,00", substring = true).assertExists()
         compose.onNodeWithText("por dia", substring = true).assertExists()
         compose.onNodeWithText("4.500,00", substring = true).assertExists()
+        compose.onNodeWithText("Limite do mês menos o que já foi gasto e as contas a pagar").assertExists()
     }
 
     @Test
@@ -116,6 +122,39 @@ class AindaDaParaGastarTest {
         compose.onNodeWithText("Sobrou em", substring = true).assertExists()
         compose.onNodeWithText("Já passou do que dava para gastar este mês.").assertExists()
         compose.onNodeWithText("-R$", substring = true).assertExists()
+    }
+
+    @Test
+    fun `enquanto as contas carregam nao ha numero, e o erro nao vira zero de contas`() {
+        val carregando = estado(limite = "4500", gastos = listOf(gasto("1000"))).copy(contasDoMes = null)
+        assertTrue(carregando.contaCarregando)
+        assertNull(carregando.aindaDaParaGastar)
+        val comErro = carregando.copy(erroDasContas = MensagemDeErro.DoApp(R.string.gastar_carregando))
+        assertFalse(comErro.contaCarregando)
+        assertNull(comErro.aindaDaParaGastar)
+        // Sem limite, o resumo (as receitas) também precisa ter chegado.
+        assertTrue(estado(contas = emptyList()).copy(resumoRespondeu = false).contaCarregando)
+    }
+
+    @Test
+    fun `os gastos da fila sem internet entram no gasto e no ainda da`() {
+        val e = estado(limite = "4500", gastos = listOf(gasto("1000"))).copy(aguardandoNoMes = BigDecimal("500"))
+        assertEquals(BigDecimal("1500"), e.gastoNoMes)
+        assertEquals(BigDecimal("3000"), e.aindaDaParaGastar)
+    }
+
+    @Test
+    fun `o cartao carregando, com erro e o tentar de novo`() {
+        var tentou = 0
+        val comErro = estado(limite = "4500").copy(contasDoMes = null, erroDasContas = MensagemDeErro.DoServidor("Fora do ar."))
+        var atual by mutableStateOf(estado(limite = "4500").copy(contasDoMes = null))
+        compose.setContent { PigguTheme { CartaoAindaDaParaGastar(atual, {}, tentarDeNovo = { tentou++ }) } }
+        compose.onNodeWithText("Somando as contas do mês…").assertExists()
+        compose.onNodeWithText("de contas a pagar", substring = true).assertDoesNotExist()
+        atual = comErro
+        compose.onNodeWithText("Fora do ar.", substring = true).assertExists()
+        compose.onNodeWithText("Tentar de novo").performClick()
+        assertEquals(1, tentou)
     }
 
     @Test

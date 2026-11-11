@@ -1,5 +1,8 @@
 package br.com.piggu.feature.relatorios
 
+import java.time.format.TextStyle
+import java.time.YearMonth
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Canvas
@@ -159,7 +162,7 @@ fun TelaDeRelatorios(estado: EstadoDeRelatorios, eventos: EventosDeRelatorios, m
         estado.guardadoEm?.let { AvisoDeGuardado(it, estado.conectado) }
         LazyColumn(
             Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = FOLGA_DO_LANCAR),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item(key = "mes") {
@@ -225,13 +228,13 @@ private fun corDoGasto(): Color = MaterialTheme.colorScheme.primary
 
 /** "▲ 12,5% a mais", como o number: '1.0-1' do site. */
 @Composable
-private fun textoDaVariacao(variacao: BigDecimal): String {
+private fun textoDaVariacao(variacao: BigDecimal, mesAnterior: String? = null): String {
     val numero = NumberFormat.getNumberInstance(Locale.forLanguageTag("pt-BR")).apply { maximumFractionDigits = 1 }
     return when (variacao.signum()) {
         1 -> stringResource(R.string.relatorios_a_mais, numero.format(variacao))
         -1 -> stringResource(R.string.relatorios_a_menos, numero.format(variacao.negate()))
         else -> stringResource(R.string.relatorios_igual)
-    }
+    }.let { texto -> mesAnterior?.let { stringResource(R.string.relatorios_contra_o_mesmo_dia, texto, it) } ?: texto }
 }
 
 @Composable
@@ -247,12 +250,30 @@ private fun CartaoDoMes(resumo: ResumoDoMes, estado: EstadoDeRelatorios, eventos
     val moeda = estado.moeda
     Cartao {
         Numero(stringResource(R.string.relatorios_gastos), formatarMoeda(resumo.gastos, moeda))
-        Numero(
-            stringResource(R.string.relatorios_mes_anterior),
-            formatarMoeda(resumo.gastosMesAnterior, moeda),
-            resumo.variacao?.let { textoDaVariacao(it) },
-        )
-        resumo.projecaoDeGastos?.let { Numero(stringResource(R.string.relatorios_projecao), formatarMoeda(it, moeda)) }
+        val ateMesmoDia = resumo.gastosAteMesmoDiaAnterior
+        if (ateMesmoDia != null) {
+            // Mês corrente (D-190): compara com o mês anterior até o mesmo dia, não com ele inteiro.
+            val anterior = YearMonth.parse(resumo.mes).minusMonths(1).month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("pt-BR"))
+            Numero(
+                stringResource(R.string.relatorios_ate_o_mesmo_dia, anterior),
+                formatarMoeda(ateMesmoDia, moeda),
+                resumo.variacaoAteMesmoDia?.let { textoDaVariacao(it, anterior) },
+            )
+        } else {
+            // Mês fechado, ou backend sem os campos novos: contra o mês anterior inteiro.
+            Numero(
+                stringResource(R.string.relatorios_mes_anterior),
+                formatarMoeda(resumo.gastosMesAnterior, moeda),
+                resumo.variacao?.let { textoDaVariacao(it) },
+            )
+        }
+        resumo.projecaoDeGastos?.let {
+            Numero(
+                stringResource(R.string.relatorios_projecao),
+                formatarMoeda(it, moeda),
+                stringResource(R.string.relatorios_projecao_explica).takeIf { resumo.gastosFixos != null },
+            )
+        }
         if (resumo.porCategoria.isEmpty()) {
             Vazio(
                 Icone.Grafico,

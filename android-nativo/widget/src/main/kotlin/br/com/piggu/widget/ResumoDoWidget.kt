@@ -40,6 +40,8 @@ data class ResumoDoWidget(
     /** A cor do Piggu que vale (VarianteDeCor.id); nula com as Cores do celular. */
     val cor: String? = null,
     val atualizadoEm: Long,
+    /** O "Ainda dá para gastar" do Painel, com a mesma conta (calcularContaDoMes, BUG-002); nulo sem teto. */
+    val aindaDa: Decimal? = null,
 ) {
     @Serializable
     data class Meta(val titulo: String, val atual: Int, val alvo: Int)
@@ -49,7 +51,8 @@ data class ResumoDoWidget(
         get() = limite?.takeIf { it.signum() > 0 }
             ?.let { gasto.multiply(BigDecimal(100)).divide(it, 0, RoundingMode.HALF_UP).toInt() }
 
-    val restante: BigDecimal? get() = limite?.subtract(gasto)
+    /** O "Ainda dá" do Painel; o resumo gravado por uma versão antiga cai no limite menos o gasto. */
+    val restante: BigDecimal? get() = aindaDa ?: limite?.subtract(gasto)
 }
 
 /** O resumo num DataStore só dele, que o widget lê fora do app (o app pode estar fechado). */

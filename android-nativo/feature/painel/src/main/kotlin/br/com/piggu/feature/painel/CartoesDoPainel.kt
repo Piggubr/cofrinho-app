@@ -1,5 +1,9 @@
 package br.com.piggu.feature.painel
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import br.com.piggu.core.ui.R as Comum
+import androidx.compose.material3.LinearProgressIndicator
+import br.com.piggu.core.ui.ValorQueCabe
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -140,7 +144,7 @@ private fun Detalhe(texto: String, modifier: Modifier = Modifier, cor: Color = M
 private fun Numero(rotulo: String, valor: String, modifier: Modifier = Modifier) {
     Column(modifier.semantics(mergeDescendants = true) {}) {
         Detalhe(rotulo)
-        Text(valor, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+        ValorQueCabe(valor, estilo = MaterialTheme.typography.titleLarge, cor = MaterialTheme.colorScheme.primary, peso = FontWeight.SemiBold)
     }
 }
 
@@ -165,7 +169,11 @@ internal fun CartaoDoResumo(resumo: ResumoDoMes, moeda: String?, mes: String, ab
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.resumo_titulo), Modifier.weight(1f).semantics { heading() }, color = texto, style = MaterialTheme.typography.titleSmall)
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.resumo_titulo), Modifier.semantics { heading() }, color = texto, style = MaterialTheme.typography.titleSmall)
+                // Não é o "Ainda dá": aqui não entram o limite nem as contas a pagar (BUG-002).
+                Text(stringResource(R.string.resumo_explica), color = texto, style = MaterialTheme.typography.bodySmall)
+            }
             resumo.taxaDePoupanca?.let { taxa ->
                 Surface(shape = CircleShape, color = texto.copy(alpha = 0.18f)) {
                     Text(
@@ -321,7 +329,7 @@ internal fun CartaoDoMes(estado: EstadoDoPainel, abrirTela: (String) -> Unit) {
 // Ainda dá para gastar (D-164): fixo no topo, fora do Organizar.
 
 @Composable
-internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String) -> Unit, modifier: Modifier = Modifier) {
+internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String) -> Unit, modifier: Modifier = Modifier, tentarDeNovo: () -> Unit = {}) {
     val resta = estado.aindaDaParaGastar
     val passado = estado.mes < estado.mesAtual
     Card(
@@ -334,6 +342,17 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
                 Modifier.semantics { heading() },
                 style = MaterialTheme.typography.titleMedium,
             )
+            // Sem as contas do mês o número sairia inflado: espera, ou mostra o erro (BUG-002).
+            estado.erroDaConta?.let { erro ->
+                Text(stringResource(R.string.gastar_erro, erro.texto(LocalContext.current)), style = MaterialTheme.typography.bodyMedium)
+                OutlinedButton(tentarDeNovo) { Text(stringResource(Comum.string.tentar_de_novo)) }
+                return@Column
+            }
+            if (estado.contaCarregando) {
+                Text(stringResource(R.string.gastar_carregando), Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.bodyMedium)
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+                return@Column
+            }
             if (resta == null) {
                 Text(stringResource(R.string.gastar_sem_teto), style = MaterialTheme.typography.bodyMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -343,11 +362,16 @@ internal fun CartaoAindaDaParaGastar(estado: EstadoDoPainel, abrirTela: (String)
                 return@Column
             }
             val passou = resta.signum() < 0
-            Text(
+            ValorQueCabe(
                 formatarMoeda(resta, estado.moeda),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = if (passou) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                estilo = MaterialTheme.typography.displaySmall,
+                peso = FontWeight.Bold,
+                cor = if (passou) MaterialTheme.colorScheme.error else LocalContentColor.current,
+            )
+            // De onde vem o número, em uma linha (o contrato do BUG-002).
+            Text(
+                stringResource(if (estado.tetoEhOLimite) R.string.gastar_de_onde_limite else R.string.gastar_de_onde_receitas),
+                style = MaterialTheme.typography.bodySmall,
             )
             when {
                 passou -> Text(stringResource(R.string.gastar_passou), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
@@ -431,6 +455,9 @@ internal fun CartaoDasCategorias(estado: EstadoDoPainel, lancarGasto: () -> Unit
 
 // Cofrinho
 
+/** Quantos depósitos o cartão mostra antes do "Ver todos". */
+private const val DEPOSITOS_NO_PAINEL = 3
+
 @Composable
 internal fun CartaoDoCofrinho(estado: EstadoDoPainel, eventos: EventosDoPainel, perguntar: (Pergunta) -> Unit) {
     val cofrinho = (estado.carga as? Carga.Pronto)?.valor?.cofrinho ?: return
@@ -438,7 +465,8 @@ internal fun CartaoDoCofrinho(estado: EstadoDoPainel, eventos: EventosDoPainel, 
     val salvando = Acao.Deposito in estado.ocupado
     val perguntaApagar = stringResource(R.string.cofrinho_apagar_pergunta)
     val apagar = stringResource(R.string.apagar)
-    CartaoBase(stringResource(R.string.bloco_cofrinho), extra = { Etiqueta(formatarMoeda(cofrinho.saldo, estado.moeda)) }) {
+    var todos by rememberSaveable { mutableStateOf(false) }
+    CartaoBase(stringResource(R.string.bloco_cofrinho), extra = { Etiqueta(stringResource(R.string.cofrinho_saldo, formatarMoeda(cofrinho.saldo, estado.moeda))) }) {
         Row {
             Numero(stringResource(R.string.cofrinho_depositado), formatarMoeda(cofrinho.totalDepositos, estado.moeda), Modifier.weight(1f))
             Numero(stringResource(R.string.cofrinho_gasto), formatarMoeda(cofrinho.totalGastos, estado.moeda), Modifier.weight(1f))
@@ -459,13 +487,20 @@ internal fun CartaoDoCofrinho(estado: EstadoDoPainel, eventos: EventosDoPainel, 
         if (cofrinho.depositos.isEmpty()) {
             Vazio(Icone.Cofrinho, stringResource(R.string.cofrinho_vazio), compacto = true, acao = stringResource(R.string.cofrinho_primeiro) to { foco.requestFocus() })
         }
-        cofrinho.depositos.forEach { deposito ->
+        // Os 3 mais recentes; o resto abre no "Ver todos", para o cartão não virar uma lista comprida.
+        val recentes = cofrinho.depositos.sortedByDescending { it.data }
+        (if (todos) recentes else recentes.take(DEPOSITOS_NO_PAINEL)).forEach { deposito ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                     Text(formatarMoeda(deposito.valor, estado.moeda), style = MaterialTheme.typography.bodyLarge)
                     Detalhe(stringResource(R.string.data_e_pessoa, dataCurta(deposito.data), estado.nome(deposito.usuario) ?: stringResource(R.string.ex_membro)))
                 }
                 BotaoApagar { perguntar(Pergunta(perguntaApagar, apagar) { eventos.excluirDeposito(deposito.id) }) }
+            }
+        }
+        if (recentes.size > DEPOSITOS_NO_PAINEL) {
+            TextButton({ todos = !todos }) {
+                Text(if (todos) stringResource(R.string.cofrinho_ver_menos) else stringResource(R.string.cofrinho_ver_todos, recentes.size))
             }
         }
     }

@@ -185,7 +185,10 @@ class PainelViewModelTest {
         val cofrinho = (antes.carga as Carga.Pronto).valor.cofrinho
 
         painel.viewModel.depositar()
-        assertEquals(MensagemDeErro.DoApp(R.string.deposito_invalido), painel.estado.erros[IdDoBloco.Cofrinho])
+        assertEquals(MensagemDeErro.DoApp(br.com.piggu.core.ui.R.string.valor_minimo), painel.estado.erros[IdDoBloco.Cofrinho])
+        painel.viewModel.mudarDeposito(BigDecimal("10000000.01"))
+        painel.viewModel.depositar()
+        assertEquals(MensagemDeErro.DoApp(br.com.piggu.core.ui.R.string.valor_maximo_receita), painel.estado.erros[IdDoBloco.Cofrinho])
 
         painel.viewModel.mudarDeposito(BigDecimal("25.00"))
         painel.viewModel.depositar()

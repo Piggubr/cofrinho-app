@@ -10,8 +10,9 @@
     <string name="widget_entre_no_piggu">Entre no Piggu para ver seus números aqui.</string>
     <string name="widget_abra_o_piggu">Abra o Piggu para atualizar o mês.</string>
     <string name="widget_sem_limite">Sem limite para este mês</string>
-    <string name="widget_resta_do_limite">Resta %1$s de %2$s</string>
-    <string name="widget_passou_do_limite">Passou %1$s do limite</string>
+    <string name="widget_resta_do_limite">Ainda dá %1$s · limite %2$s</string>
+    <string name="widget_passou_do_limite">Passou %1$s do que dava</string>
+    <string name="widget_ainda_da">Ainda dá %1$s</string>
     <string name="widget_porcentagem_e_hora">%1$d%% do limite · atualizado às %2$s</string>
     <string name="widget_sem_meta">Crie uma meta no Piggu para acompanhar aqui.</string>
     <string name="widget_progresso_da_meta">%1$d de %2$d · %3$d de %4$d concluídas</string>
