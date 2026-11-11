@@ -238,6 +238,9 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
     @Test
     fun cartoesEBancos() {
         abrirDoMais("Cartões e bancos")
+        // Os bancos conectados chegam numa chamada à parte e ficam acima do formulário: espera por eles.
+        compose.waitUntil(15_000) { compose.onAllNodes(hasText("Desconectar")).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitForIdle()
         capturar("cartoes-e-bancos", 5)
     }
 
@@ -310,7 +313,7 @@ class CapturasDoDiaADiaTest(private val aparelho: String, private val tema: Stri
 
     @Test
     fun fotos() {
-        abrirDoMais("Fotos")
+        abrirDoMais("Fotos do mês")
         esperarImagens()
         capturar("fotos", 7)
     }
