@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -387,11 +388,17 @@ public class AuthService {
             throw new ForbiddenException("Esta conta foi desativada.");
         }
 
-        sessoes.delete(sessao);
+        // Mesma sessao com refresh novo: o id fica, e o aparelho de push preso a ele tambem (D-188).
+        limparSessoesVencidas();
+        String refresh = tokens.gerarRefreshToken();
+        if (sessoes.rotacionar(sessao.getId(), sessao.getTokenHash(), tokens.hash(refresh),
+                Texto.limitar(userAgent, 300), tokens.expiracaoDaSessao()) == 0) {
+            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
+        }
         // Quem so renova tambem esta usando: sem isto a retencao apagaria conta ativa.
         conta.registrarAcesso();
         usuarios.save(conta);
-        return emitirPar(conta, userAgent, sessao.isRemember());
+        return par(conta, sessao.getId(), refresh, sessao.isRemember());
     }
 
     @Transactional
@@ -514,17 +521,20 @@ public class AuthService {
         limparSessoesVencidas();
 
         String refresh = tokens.gerarRefreshToken();
-        sessoes.save(new RefreshSession(
+        RefreshSession sessao = sessoes.save(new RefreshSession(
                 conta.getId(),
                 tokens.hash(refresh),
                 Texto.limitar(userAgent, 300),
                 tokens.expiracaoDaSessao(),
                 lembrar
         ));
+        return par(conta, sessao.getId(), refresh, lembrar);
+    }
 
+    private TokenResponse par(UserAccount conta, UUID sessao, String refresh, boolean lembrar) {
         Household familia = familias.daConta(conta);
         return new TokenResponse(
-                tokens.gerarAccessToken(conta, familia),
+                tokens.gerarAccessToken(conta, familia, sessao),
                 refresh,
                 tokens.segundosDeAcesso(),
                 UserResponse.de(conta, familia),

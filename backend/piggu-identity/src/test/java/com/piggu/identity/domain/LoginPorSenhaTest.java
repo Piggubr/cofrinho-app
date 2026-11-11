@@ -335,7 +335,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         comparsa = usuarios.save(comparsa);
         armada.mostrarTudoPara(comparsa.getId());
         usuarios.save(armada);
-        aparelhos.registrar(armada.getId(), "ab".repeat(32), "IOS");
+        aparelhos.registrar(armada.getId(), "ab".repeat(32), "IOS", null);
 
         responderGoogleCom(EMAIL);
         TokenResponse dono = auth.entrarComGoogle("token", null, null);
