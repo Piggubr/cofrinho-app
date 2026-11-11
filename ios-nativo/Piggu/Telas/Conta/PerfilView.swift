@@ -260,6 +260,8 @@ struct PerfilView: View {
             .pickerStyle(.segmented)
             Toggle("Fundo preto no modo escuro", isOn: $fundoPreto)
                 .disabled(modo == .claro)
+                // O widget so muda quando o app grava o resumo de novo.
+                .onChange(of: fundoPreto) { Task { await AtualizadorDoSistema.atualizar(sessao) } }
             if #available(iOS 26, *) {
                 Toggle("Esconder a barra de abas ao rolar", isOn: $esconderAbas)
             }

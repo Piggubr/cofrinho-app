@@ -147,11 +147,18 @@ extension Paleta {
     /// estao: ja sobressaem mais no preto, e nenhuma cor perde contraste num fundo mais escuro.
     var comFundoPreto: Paleta {
         var paleta = self
-        let original = UIColor(fundo)
-        paleta.fundo = Color(uiColor: UIColor { tracos in
+        paleta.fundo = fundo.pretaNoEscuro
+        return paleta
+    }
+}
+
+extension Color {
+    /// #000 no escuro; no claro, a propria cor (D-186).
+    var pretaNoEscuro: Color {
+        let original = UIColor(self)
+        return Color(uiColor: UIColor { tracos in
             tracos.userInterfaceStyle == .dark ? .black : original.resolvedColor(with: tracos)
         })
-        return paleta
     }
 }
 
