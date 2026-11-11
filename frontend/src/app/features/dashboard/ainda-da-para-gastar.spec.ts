@@ -57,6 +57,14 @@ describe('Ainda da para gastar', () => {
     expect(calcularContaDoMes('2026-10', 100, 0, 10, [], HOJE)!.porDia).toBeNull();
   });
 
+  it('por dia arredonda para baixo em centavos, sem perder centavo no ponto flutuante', () => {
+    // 59,46 em 3 dias da 19,82 exato; em ponto flutuante 19,82 * 100 da 1981,99...
+    const ultimos3 = new Date(2026, 10, 28);
+    expect(calcularContaDoMes('2026-11', 59.46, 0, 0, [], ultimos3)!.porDia).toBe(19.82);
+    // 59,48 / 3 = 19,8266...: para baixo, 19,82 (de proposito, BUG-036).
+    expect(calcularContaDoMes('2026-11', 59.48, 0, 0, [], ultimos3)!.porDia).toBe(19.82);
+  });
+
   describe('cartao', () => {
     let http: HttpTestingController;
 
@@ -93,6 +101,31 @@ describe('Ainda da para gastar', () => {
       expect(texto).toMatch(/-\D*70,00/);
       expect(texto).toContain('Já passou do que dava para gastar este mês.');
       expect(texto).toContain('de contas a pagar');
+    });
+
+    it('enquanto carrega nao mostra numero; se as contas falham, erro e tentar de novo', () => {
+      const tela = TestBed.createComponent(AindaDaParaGastar);
+      tela.componentRef.setInput('mes', '2020-01');
+      tela.componentRef.setInput('limite', 1000);
+      tela.componentRef.setInput('gasto', 100);
+      tela.detectChanges();
+      const pagina: HTMLElement = tela.nativeElement;
+      expect(pagina.textContent).not.toContain('contas a pagar');
+      expect(pagina.querySelector('app-carregando')).not.toBeNull();
+
+      http.expectOne((r) => r.url.endsWith('/reports/month')).flush({ receitas: 0 });
+      http.expectOne((r) => r.url.endsWith('/bills')).flush('fora', { status: 503, statusText: 'x' });
+      tela.detectChanges();
+      expect(pagina.textContent).toContain('Não consegui carregar as contas do mês');
+      expect(pagina.textContent).not.toContain('R$');
+
+      [...pagina.querySelectorAll('button')].find((b) => b.textContent!.includes('Tentar de novo'))!.click();
+      tela.detectChanges();
+      http.expectOne((r) => r.url.endsWith('/reports/month')).flush({ receitas: 0 });
+      http.expectOne((r) => r.url.endsWith('/bills')).flush([conta(20)]);
+      tela.detectChanges();
+      expect(pagina.textContent).toContain('Limite do mês menos o que já foi gasto e as contas a pagar');
+      expect(pagina.textContent).toContain('de contas a pagar');
     });
 
     it('sem teto, leva ao limite e as receitas', () => {
