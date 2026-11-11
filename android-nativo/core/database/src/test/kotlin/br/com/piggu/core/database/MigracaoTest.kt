@@ -26,4 +26,18 @@ class MigracaoTest {
             banco.query("SELECT COUNT(*) FROM gastos_aguardando").use { assertEquals(1, it.apply { moveToFirst() }.getInt(0)) }
         }
     }
+
+    @Test
+    fun `da versao 2 para a 3 mantem os gastos da fila, ainda esperando`() {
+        ajudante.createDatabase("migracao3.db", 2).use { banco ->
+            banco.execSQL("INSERT INTO gastos_aguardando (usuario, idDoEnvio, json, guardadoEm) VALUES ('u-ana', 'id-1', '{}', 1)")
+        }
+        ajudante.runMigrationsAndValidate("migracao3.db", 3, true).use { banco ->
+            banco.query("SELECT idDoEnvio, recusadoPor FROM gastos_aguardando").use {
+                it.moveToFirst()
+                assertEquals("id-1", it.getString(0))
+                assertEquals(true, it.isNull(1))
+            }
+        }
+    }
 }
