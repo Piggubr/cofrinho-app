@@ -1,11 +1,13 @@
 package com.piggu.media.api.dto;
 
+import com.piggu.common.web.Meses;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record FeedPhotoRequest(
-        @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "Mes invalido.")
+        @NotBlank(message = "Informe o mês da foto.")
+        @Pattern(regexp = Meses.FORMATO, message = Meses.INVALIDO)
         String mesKey,
 
         @NotBlank(message = "A foto nao chegou.")
