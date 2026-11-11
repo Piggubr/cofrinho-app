@@ -115,7 +115,8 @@ describe('Goals', () => {
     tela.detectChanges();
 
     expect(pagina.textContent).toContain('20% usado');
-    expect(pagina.querySelectorAll('.linha').length).toBe(1);
+    // O mes atual fica so no topo; "Limites dos outros meses" nao repete ele (BUG-024).
+    expect(pagina.querySelectorAll('.linha').length).toBe(0);
   });
 
   it('erro do backend ao salvar aparece e libera o botao', async () => {

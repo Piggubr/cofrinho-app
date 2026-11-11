@@ -928,6 +928,8 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.5;
+  /* Palavra que nao cabe (e-mail, link) quebra em vez de alargar a pagina (BUG-004). */
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
 }
@@ -1091,10 +1093,11 @@ select {
   background-position: right 0.75rem center;
 }
 
+/* 24px: o alvo de toque minimo (WCAG 2.5.8); com 18px a caixa era dificil de acertar. */
 input[type='checkbox'],
 input[type='radio'] {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 24px;
+  height: 24px;
   min-height: 0;
   padding: 0;
   margin: 0;
@@ -1208,6 +1211,14 @@ label:has(> input[type='radio']) {
 .linha-de-campos + .campo,
 .campo + .linha-de-campos {
   margin-top: 0.85rem;
+}
+
+/* Campo cujo conteudo nao cabe em meia linha no celular ("novembro de 2026", "Cartão de
+ * crédito"): ocupa a linha inteira em vez de cortar o texto (BUG-025). */
+@media (max-width: 640px) {
+  .linha-de-campos > .campo-largo {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Dentro da grade o espaco vem do gap, nao da margem entre campos. */
@@ -1491,6 +1502,21 @@ button {
   margin: 0;
   font-size: 0.78rem;
   color: var(--muted);
+}
+
+/* Link sozinho numa linha pequena ("Ver minha família", "Personalizar o Painel"): a area de
+ * toque chega a 24px de altura sem mudar o texto. */
+.linha-detalhe > a:only-child,
+.personalizar > a {
+  display: inline-block;
+  padding-block: 4px;
+}
+
+/* E-mails e nomes longos quebram em qualquer ponto: sem isso o Perfil passava de 390px. */
+.linha-detalhe,
+.linha-titulo,
+.caixa > span {
+  overflow-wrap: anywhere;
 }
 
 .linha-valor {
