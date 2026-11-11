@@ -627,8 +627,14 @@ export interface ResumoDoMes {
   gastosMesAnterior: number;
   /** Gastos contra o mes anterior, em porcentagem; nula se o anterior nao teve gasto. */
   variacao: number | null;
-  /** So no mes corrente: o ritmo de gasto ate hoje levado ao fim do mes. */
+  /** So no mes corrente: os gastos fixos uma vez e os variaveis pelo ritmo ate hoje (D-190). */
   projecaoDeGastos: number | null;
+  /** Soma dos gastos tipo Fixo no mes. Ausente no backend antigo (D-190). */
+  gastosFixos?: number;
+  /** Mes anterior do dia 1 ate o mesmo dia de hoje; nulo fora do mes corrente. */
+  gastosAteMesmoDiaAnterior?: number | null;
+  /** Gastos ate hoje contra gastosAteMesmoDiaAnterior, em %; nulo fora do mes corrente ou com anterior zero. */
+  variacaoAteMesmoDia?: number | null;
   porCategoria: { categoria: string; total: number; anterior: number }[];
 }
 

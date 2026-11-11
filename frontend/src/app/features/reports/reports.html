@@ -33,25 +33,35 @@
         <p i18n class="linha-detalhe">Gastos</p>
         <p class="numero">{{ r.gastos | moeda }}</p>
       </div>
-      <div>
-        <p i18n class="linha-detalhe">Mês anterior</p>
-        <p class="numero">{{ r.gastosMesAnterior | moeda }}</p>
-        @if (r.variacao !== null) {
-          <p class="linha-detalhe variacao">
-            @if (r.variacao > 0) {
-              <span i18n>▲ {{ r.variacao | number: '1.0-1' }}% a mais</span>
-            } @else if (r.variacao < 0) {
-              <span i18n>▼ {{ -r.variacao | number: '1.0-1' }}% a menos</span>
-            } @else {
-              <span i18n>igual</span>
-            }
-          </p>
-        }
-      </div>
+      @if (comparacao(); as c) {
+        <div>
+          <p class="linha-detalhe">{{ c.rotulo }}</p>
+          <p class="numero">{{ c.valor | moeda }}</p>
+          @if (c.variacao !== null) {
+            <p class="linha-detalhe variacao">
+              @if (c.variacao > 0) {
+                <span i18n>▲ {{ c.variacao | number: '1.0-1' }}% a mais</span>
+              } @else if (c.variacao < 0) {
+                <span i18n>▼ {{ -c.variacao | number: '1.0-1' }}% a menos</span>
+              } @else {
+                <span i18n>igual</span>
+              }
+              @if (c.contra) {
+                {{ c.contra }}
+              }
+            </p>
+          }
+        </div>
+      }
       @if (r.projecaoDeGastos !== null) {
         <div>
           <p i18n class="linha-detalhe">Projeção do mês</p>
           <p class="numero">{{ r.projecaoDeGastos | moeda }}</p>
+          @if (r.gastosFixos !== undefined) {
+            <p i18n class="linha-detalhe">
+              Os gastos fixos entram uma vez; os outros seguem o ritmo do mês.
+            </p>
+          }
         </div>
       }
     </div>
