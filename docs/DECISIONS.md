@@ -1916,3 +1916,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: mudar a data de todas as parcelas juntas, que mexe em meses que a pessoa não está vendo.
 - Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)
+
+## D-186: Fundo preto opcional no modo escuro
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 ("achei excelente, pode seguir com isso")
+- Registrado por: Claude
+- Contexto: no escuro, o fundo das telas é um cinza bem escuro puxado para a cor do tema (`#14060D` no Chiclete). Parte das pessoas prefere o preto puro, que economiza bateria em telas OLED e é o fundo escuro do próprio iOS.
+- Decisão: Perfil > Aparência ganha "Fundo preto no modo escuro", desligado por padrão e guardado no aparelho (`piggu_fundo_preto`). Ligado, só o fundo das telas vira `#000` no escuro (no Android, também o `surface`). Cartões, campos, bordas e barras ficam como estão, com a cor do tema, porque já sobressaem no preto. Nenhuma cor perde contraste num fundo mais escuro, então o `ContrasteTest` e os ajustes da D-134 continuam valendo. No site, a barra do navegador também fica preta.
+- Alternativas: trocar o fundo escuro de todos para preto (perde o tom do tema e pode deixar um rastro ao rolar em OLED); preto com os cartões um degrau mais claros (não precisou).
+- Consequências: com o modo Claro a opção fica desligada. Os widgets ainda seguem o fundo escuro antigo.
+- Onde ver: `ios-nativo/Compartilhado/Tema.swift` (`comFundoPreto`), `frontend/src/app/core/ui/tema.ts` e o fim do `frontend/src/styles.scss`, `android-nativo/core/designsystem/.../Tema.kt` (`PigguTheme`)

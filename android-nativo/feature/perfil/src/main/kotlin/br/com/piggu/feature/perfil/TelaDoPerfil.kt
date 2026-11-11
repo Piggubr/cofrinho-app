@@ -137,6 +137,7 @@ data class EventosDoPerfil(
     val alternarModulo: (ModuloDeEstiloDeVida) -> Unit = {},
     val escolherModo: (ModoDeCor) -> Unit = {},
     val mudarCoresDoCelular: (Boolean) -> Unit = {},
+    val mudarFundoPreto: (Boolean) -> Unit = {},
     val escolherCor: (VarianteDeCor) -> Unit = {},
     val dispensarAvisoDoPadrao: () -> Unit = {},
     val escolherIcone: (IconeDoApp) -> Unit = {},
@@ -244,6 +245,7 @@ fun TelaDoPerfil(
             alternarModulo = viewModel::alternarModulo,
             escolherModo = viewModel::escolherModo,
             mudarCoresDoCelular = viewModel::mudarCoresDoCelular,
+            mudarFundoPreto = viewModel::mudarFundoPreto,
             escolherCor = viewModel::escolherCor,
             dispensarAvisoDoPadrao = viewModel::dispensarAvisoDoPadrao,
             escolherIcone = viewModel::escolherIcone,
@@ -480,6 +482,7 @@ private fun Aparencia(estado: EstadoDoPerfil, eventos: EventosDoPerfil, coresDoC
                 }
             }
         }
+        Chave(stringResource(R.string.perfil_fundo_preto), estado.fundoPreto, estado.modo != ModoDeCor.Claro, eventos.mudarFundoPreto)
         if (coresDoCelularDisponiveis) {
             Chave(stringResource(R.string.perfil_cores_do_celular), estado.coresDoCelular, true, eventos.mudarCoresDoCelular)
             Explicacao(stringResource(R.string.perfil_cores_do_celular_explicacao))

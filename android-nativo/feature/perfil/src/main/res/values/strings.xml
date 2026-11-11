@@ -66,7 +66,8 @@
 
     <!-- Aparência, cor e ícone -->
     <string name="perfil_aparencia_titulo">Aparência</string>
-    <string name="perfil_aparencia_explicacao">No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.</string>
+    <string name="perfil_aparencia_explicacao">No automático o Piggu segue o modo claro ou escuro do aparelho. O fundo preto economiza bateria em telas OLED. Vale para este aparelho.</string>
+    <string name="perfil_fundo_preto">Fundo preto no modo escuro</string>
     <string name="perfil_cores_do_celular">Cores do celular</string>
     <string name="perfil_cores_do_celular_explicacao">Usa as cores do seu papel de parede no lugar da Cor do Piggu.</string>
     <string name="perfil_cor_titulo">Cor do Piggu</string>
