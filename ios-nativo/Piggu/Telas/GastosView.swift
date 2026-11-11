@@ -63,7 +63,7 @@ struct GastosView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .comSeletorDeMes($mes, troca: lancamentos) { filtros }
-            .navigationTitle("Gastos")
+            .navigationTitle(lancamentos == nil ? Text("Gastos") : Text("Lançamentos"))
             .topoDoPiggu()
             .searchable(text: $busca, prompt: Text("Buscar gastos"))
             .refreshable { await carregar() }
@@ -115,34 +115,45 @@ struct GastosView: View {
             Faixa(texto: erro, tipo: .erro).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
         if sessao.fila.pendentes > 0 {
-            HStack {
-                Label(sessao.fila.pendentes == 1
-                      ? String(localized: "1 gasto esperando conexão")
-                      : String(localized: "\(sessao.fila.pendentes) gastos esperando conexão"),
-                      systemImage: "icloud.and.arrow.up")
-                Spacer()
+            Section {
+                ForEach(Array(sessao.fila.naFila.enumerated()), id: \.offset) { _, pedido in
+                    LinhaDaFila(pedido: pedido, detalhe: String(localized: "Pendente: esperando conexão"))
+                }
                 Button("Enviar agora") {
                     Task {
                         if await sessao.fila.enviar() > 0 { aoMudar() }
                     }
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .font(.sora(.footnote, peso: .medium))
+            } header: {
+                Label(sessao.fila.pendentes == 1
+                      ? String(localized: "1 gasto esperando conexão")
+                      : String(localized: "\(sessao.fila.pendentes) gastos esperando conexão"),
+                      systemImage: "icloud.and.arrow.up")
             }
-            .font(.sora(.footnote))
             .listRowBackground(paleta.alertaSuave)
         }
-        if sessao.fila.recusados > 0 {
-            Faixa(texto: String(localized: "\(sessao.fila.recusados) gasto(s) guardado(s) sem conexão foram recusados pelo servidor; lance de novo."),
-                  tipo: .erro)
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+        if !sessao.fila.recusados.isEmpty {
+            Section {
+                ForEach(sessao.fila.recusados) { recusado in
+                    VStack(alignment: .leading, spacing: 6) {
+                        LinhaDaFila(pedido: recusado.pedido, detalhe: recusado.motivo)
+                        Button("Dispensar") { sessao.fila.dispensar(recusado) }
+                            .font(.sora(.footnote, peso: .medium))
+                            .buttonStyle(.borderless)
+                    }
+                }
+            } header: {
+                Label("Recusados pelo servidor: lance de novo", systemImage: "exclamationmark.triangle")
+            }
+            .listRowBackground(paleta.perigoSuave)
         }
         if let sugestao {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Sempre usar \(sugestao.categoria) para \"\(sugestao.termo)\"?")
                 HStack {
                     Button("Criar regra") { Task { await criarRegra(sugestao.termo, sugestao.categoria) } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                     Button("Agora não") { self.sugestao = nil }
                         .buttonStyle(.borderless)
                 }
@@ -167,11 +178,15 @@ struct GastosView: View {
                 LadoALado {
                     Text(filtrando ? "Total filtrado" : "Total do mês")
                     Spacer()
-                    Text(Formatos.moeda(filtrados.reduce(0) { $0 + $1.valor }))
+                    Text(Formatos.moeda(filtrados.reduce(0) { $0 + $1.valor } + (filtrando ? 0 : naFila)))
                         .font(.sora(.body, peso: .semibold))
                         .monospacedDigit()
                 }
                 .accessibilityElement(children: .combine)
+                if !filtrando, naFila > 0 {
+                    Text("Inclui \(Formatos.moeda(naFila)) pendentes na fila")
+                        .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                }
                 if filtrando {
                     Button("Limpar filtros") {
                         busca = ""
@@ -196,6 +211,8 @@ struct GastosView: View {
             }
         }
     }
+
+    private var naFila: Decimal { sessao.fila.valorNaFila(mes: Formatos.mes(mes)) }
 
     private func linha(_ gasto: Gasto, comData: Bool) -> some View {
         Button { editando = gasto } label: {
@@ -281,16 +298,17 @@ struct GastosView: View {
     /// Filtros em vidro, flutuando sobre a lista abaixo do seletor de mes.
     /// Rola de lado quando o texto grande nao cabe, em vez de cortar o nome do filtro.
     private var filtros: some View {
+        // Nao cabe lado a lado (texto grande): um embaixo do outro, sem cortar o chip (IOS-5).
         ViewThatFits(in: .horizontal) {
-            filtrosLadoALado
-            ScrollView(.horizontal, showsIndicators: false) {
-                filtrosLadoALado.padding(.horizontal)
-            }
+            GrupoDeVidro(espaco: 8) { menusDeFiltro }.padding(.bottom, 4)
+            VStack(alignment: .leading, spacing: 8) { menusDeFiltro }
+                .padding(.horizontal)
+                .padding(.bottom, 4)
         }
     }
 
-    private var filtrosLadoALado: some View {
-        GrupoDeVidro(espaco: 8) {
+    @ViewBuilder
+    private var menusDeFiltro: some View {
             Menu {
                 Picker("Categoria", selection: $filtroDeCategoria) {
                     Text("Todas as categorias").tag(String?.none)
@@ -309,14 +327,12 @@ struct GastosView: View {
                      ativo: filtroDePagamento != .todas, icone: "creditcard")
             }
             .accessibilityLabel("Filtrar por forma de pagamento")
-        }
-        .padding(.bottom, 4)
     }
 
     private func chip(_ texto: String, ativo: Bool, icone: String) -> some View {
         Label(texto, systemImage: ativo ? "\(icone).fill" : icone)
             .font(.sora(.footnote, peso: ativo ? .semibold : .regular))
-            .lineLimit(1)
+            .lineLimit(2)
             .foregroundStyle(ativo ? paleta.primaria : paleta.texto)
             .padding(.horizontal, 14)
             .frame(minHeight: 36)
@@ -509,6 +525,29 @@ private struct LinhaDeGasto: View {
                 .monospacedDigit()
         }
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Um gasto guardado no aparelho (na fila ou recusado): o que era, quanto, de quando e por que.
+private struct LinhaDaFila: View {
+    let pedido: NovoLancamento
+    let detalhe: String
+
+    @Environment(\.paleta) private var paleta
+
+    var body: some View {
+        LadoALado {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: pedido.itens.map(\.item).joined(separator: ", "))
+                    .font(.sora(.subheadline, peso: .medium))
+                Text(verbatim: "\(Formatos.dataCurta(pedido.data)) · \(detalhe)")
+                    .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+            }
+            Spacer(minLength: 8)
+            Text(Formatos.moeda(pedido.itens.reduce(0) { $0 + $1.valor }))
+                .font(.sora(.subheadline, peso: .semibold)).monospacedDigit()
+        }
         .accessibilityElement(children: .combine)
     }
 }
