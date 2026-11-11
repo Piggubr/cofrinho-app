@@ -4,7 +4,7 @@
 //   d=$(mktemp -d) && npm i --prefix "$d" @material/material-color-utilities@0.3.0 &&
 //   cp gerar-cores.mjs "$d" && ln -s "$PWD/src" "$d/src" && node "$d/gerar-cores.mjs"
 import { writeFileSync } from 'node:fs';
-import { argbFromHex, Hct, MaterialDynamicColors as C, SchemeNeutral, SchemeVibrant, TonalPalette } from '@material/material-color-utilities';
+import { argbFromHex, Hct, MaterialDynamicColors as C, SchemeNeutral, SchemeVibrant, TonalPalette, Contrast } from '@material/material-color-utilities';
 
 // primaria e primaria-contraste de cada tema do site, no claro e no escuro, na ordem do
 // TEMAS de frontend/src/app/core/ui/tema.ts. `texto` troca só a primary do Android quando a do
@@ -47,6 +47,13 @@ function esquema(nome, [primaria, contraste], escuro, Esquema = SchemeVibrant, t
   }
   // A primária e o texto sobre ela ficam iguais aos do site; o resto sai do algoritmo.
   const fixas = { primary: argbFromHex(texto ?? primaria), onPrimary: argbFromHex(contraste) };
+  // O texto na cor do tema sobre o primaryContainer (botões em pílula, "Ver receitas") também
+  // precisa de 4,5:1 (BUG-015): o container escurece (ou clareia, no claro) até dar.
+  const tom = Hct.fromInt(C.primaryContainer.getArgb(s));
+  const doTexto = Hct.fromInt(fixas.primary);
+  let container = tom.tone;
+  while (Contrast.ratioOfTones(doTexto.tone, container) < 4.6 && container > 0 && container < 100) container += escuro ? -1 : 1;
+  if (container !== tom.tone) fixas.primaryContainer = s.primaryPalette.tone(container);
   const linhas = papeis.map((p) => `    ${p} = Color(${hex(fixas[p] ?? C[p].getArgb(s))}),`);
   const fn = escuro ? 'darkColorScheme' : 'lightColorScheme';
   return `internal val ${nome} = ${fn}(\n${linhas.join('\n')}\n)\n`;
