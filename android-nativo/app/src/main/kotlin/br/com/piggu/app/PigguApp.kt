@@ -95,6 +95,7 @@ import kotlinx.coroutines.flow.merge
 import br.com.piggu.core.ui.LocalAbrirCaminho
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -407,6 +408,11 @@ private fun FolhaDeLancar(tipo: Lancamento, valorDoGasto: java.math.BigDecimal?,
             }
         },
     )
+    // Recriada depois de o sistema matar o app, a folha voltava pela metade, com o "Lançar" fora da tela.
+    LaunchedEffect(folha) {
+        snapshotFlow { folha.currentValue }.first { it != SheetValue.Hidden }
+        folha.expand()
+    }
     ModalBottomSheet(onDismissRequest = { if (sujoAgora) perguntando = true else fechar() }, sheetState = folha) {
         Text(
             stringResource(if (tipo == Lancamento.Gasto) R.string.lancar_gasto else R.string.lancar_receita),

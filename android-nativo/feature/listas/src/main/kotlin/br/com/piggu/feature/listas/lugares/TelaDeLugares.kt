@@ -265,7 +265,7 @@ private fun CartaoDoLugar(lugar: Lugar, moeda: String, eventos: EventosDosLugare
                 Text(
                     buildAnnotatedString {
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.tertiary)) { append("★".repeat(cheias)) }
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outlineVariant)) { append("★".repeat(5 - cheias)) }
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) { append("★".repeat(5 - cheias)) }
                     },
                     Modifier.semantics { contentDescription = nota },
                 )
