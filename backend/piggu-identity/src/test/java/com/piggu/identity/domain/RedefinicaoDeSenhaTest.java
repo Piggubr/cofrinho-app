@@ -148,6 +148,27 @@ class RedefinicaoDeSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("criar a primeira senha pelo Perfil nao grava a senha: manda o link ao e-mail da conta")
+    void primeiraSenhaPeloPerfilVaiPeloEmail() {
+        cadastrarEEntrar();
+        UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
+        conta.apagarSenha();
+        conta.confirmarEmail();
+        usuarios.save(conta);
+        clearInvocations(email);
+
+        assertThatThrownBy(() -> auth.definirSenha(conta.getId(), null, "doIntruso123", null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("CRIAR_SENHA_PELO_EMAIL"));
+        assertThat(usuarios.findByEmail(EMAIL).orElseThrow().temSenha()).isFalse();
+        assertThatThrownBy(() -> auth.entrarComSenha(EMAIL, "doIntruso123", true, null))
+                .isInstanceOf(UnauthorizedException.class);
+
+        redefinicao.redefinir(tokenDoEmail(), NOVA);
+        assertThat(auth.entrarComSenha(EMAIL, NOVA, true, null).accessToken()).isNotBlank();
+    }
+
+    @Test
     @DisplayName("o pedido nao espera o provedor de e-mail, e o link sai depois de gravado")
     void naoEsperaOEmail() {
         cadastrarEEntrar();

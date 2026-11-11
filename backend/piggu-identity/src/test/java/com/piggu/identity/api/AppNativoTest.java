@@ -7,6 +7,8 @@ import com.piggu.common.security.PigguRole;
 import com.piggu.identity.apple.AppleIdTokenVerifier;
 import com.piggu.identity.apple.AppleProfile;
 import com.piggu.identity.apple.RevogacaoDaApple;
+import com.piggu.identity.domain.Senhas;
+import com.piggu.identity.domain.UserAccount;
 import com.piggu.identity.domain.UserAccountRepository;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
@@ -59,6 +61,9 @@ class AppNativoTest extends PostgresIntegrationTest {
 
     @Autowired
     private UserAccountRepository usuarios;
+
+    @Autowired
+    private Senhas senhas;
 
     @BeforeEach
     void preparar() {
@@ -128,7 +133,13 @@ class AppNativoTest extends PostgresIntegrationTest {
         String outro = refreshDe(entrarNoApp());
         String id = JsonPath.read(aqui.getResponse().getContentAsString(), "$.usuario.id");
         String familia = JsonPath.read(aqui.getResponse().getContentAsString(), "$.usuario.familia");
-        trocarSenha(id, familia, "{\"novaSenha\":\"cofrinho123\"}").andExpect(status().isOk());
+        trocarSenha(id, familia, "{\"novaSenha\":\"cofrinho123\"}")
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("CRIAR_SENHA_PELO_EMAIL"));
+        // A primeira senha vem do link do e-mail (RedefinicaoDeSenhaTest); aqui so a troca.
+        UserAccount conta = usuarios.findById(java.util.UUID.fromString(id)).orElseThrow();
+        conta.definirSenha(senhas.hash("cofrinho123"));
+        usuarios.save(conta);
 
         trocarSenha(id, familia, "{\"senhaAtual\":\"cofrinho123\",\"novaSenha\":\"cofrinho456\","
                 + "\"refreshToken\":\"" + refreshDe(aqui) + "\"}")
