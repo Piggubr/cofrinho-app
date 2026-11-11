@@ -6,6 +6,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { ContaFixa } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { TETO_DE_GASTO, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
@@ -79,6 +80,11 @@ export class Bills {
     const dia = this.dia();
     if (!descricao || valor === null || valor <= 0 || dia === null || dia < 1 || dia > 31) {
       this.erro.set($localize`Preencha descrição, valor e um dia de vencimento entre 1 e 31.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(valor, TETO_DE_GASTO);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
     this.executar(

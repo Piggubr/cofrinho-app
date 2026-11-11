@@ -10,6 +10,7 @@ import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso } from '../../core/ui/datas';
 import { Focar } from '../../core/ui/focar';
 import { Icone } from '../../core/ui/icone';
+import { TETO_DE_ENTRADA, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { Carregando } from '../../core/ui/carregando';
@@ -298,6 +299,11 @@ export class Objetivos {
     const valor = this.valores()[objetivo.id];
     if (!valor || valor <= 0) {
       this.erro.set($localize`Digite um valor de depósito válido.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(valor, TETO_DE_ENTRADA);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
     this.depositando.set(objetivo.id);

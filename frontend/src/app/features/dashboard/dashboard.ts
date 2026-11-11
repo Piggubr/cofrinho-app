@@ -17,6 +17,7 @@ import { AindaDaParaGastar } from './ainda-da-para-gastar';
 import { Objetivos } from './objetivos';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { VERSAO_DO_AVISO } from '../../core/privacidade/aviso';
+import { TETO_DE_ENTRADA, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
@@ -293,6 +294,11 @@ export class Dashboard {
     const valor = this.novoDeposito();
     if (!valor || valor <= 0) {
       this.erro.set($localize`Digite um valor de depósito válido.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(valor, TETO_DE_ENTRADA);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
 

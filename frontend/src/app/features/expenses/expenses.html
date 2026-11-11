@@ -44,7 +44,7 @@
   <div class="cartao-titulo">
     <h2 i18n>Lançar gasto</h2>
   </div>
-  <app-formulario-de-gasto (lancado)="aoLancar($event)" />
+  <app-formulario-de-gasto (lancado)="aoLancar($event)" (falhou)="aviso.set('')" />
 </section>
 
 <section class="cartao">
