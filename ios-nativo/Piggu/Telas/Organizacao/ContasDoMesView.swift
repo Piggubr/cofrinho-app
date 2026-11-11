@@ -105,10 +105,15 @@ struct ContasDoMesView: View {
                         Text("Todas em aberto").font(.sora(.subheadline))
                     }
                     Spacer()
-                    Button("Pagar \(marcadas.count) · \(Formatos.moeda(total))") { Task { await pagarMarcadas(emAberto) } }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .disabled(ocupado || marcadas.isEmpty)
+                    // Sem nada marcado, a orientacao no lugar do "Pagar 0 · R$ 0,00" apagado (BUG-012, BUG-015).
+                    if marcadas.isEmpty {
+                        Text("Marque as que já pagou").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                    } else {
+                        Button("Pagar \(marcadas.count) · \(Formatos.moeda(total))") { Task { await pagarMarcadas(emAberto) } }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                            .disabled(ocupado)
+                    }
                 }
             }
             ForEach(contas) { conta in

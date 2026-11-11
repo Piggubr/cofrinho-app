@@ -55,9 +55,12 @@ struct MaisView: View {
                 // Os grupos e a ordem do menu do site (shell.ts); o Planejar tem o mesmo da aba (BUG-027).
                 Section("Planejar") {
                     Button { abrirRota(.aba(.relatorios)) } label: {
-                        Label("Relatórios", systemImage: "chart.bar.xaxis")
+                        Label {
+                            Text("Relatórios").foregroundStyle(paleta.texto)
+                        } icon: {
+                            Image(systemName: "chart.bar.xaxis").foregroundStyle(paleta.primaria)
+                        }
                     }
-                    .foregroundStyle(paleta.texto)
                     ForEach([TelaDoMais.metas, .orcamento, .contasDoMes], id: \.self) { link($0) }
                 }
                 .listRowBackground(paleta.superficie)

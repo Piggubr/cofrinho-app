@@ -335,7 +335,9 @@ struct GastosView: View {
             .lineLimit(2)
             .foregroundStyle(ativo ? paleta.primaria : paleta.texto)
             .padding(.horizontal, 14)
-            .frame(minHeight: 36)
+            .frame(minHeight: 44)
+            // Fundo da superficie sob o vidro: o texto nao depende do que rola atras (BUG-015).
+            .background(paleta.superficie.opacity(0.9), in: Capsule())
             .pigguVidro()
     }
 

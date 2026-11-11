@@ -53,9 +53,8 @@ struct CartaoDoResumo: View {
         .foregroundStyle(paleta.primariaContraste)
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(colors: [paleta.primaria, paleta.serieGasto], startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        // Cor solida: o branco sobre a ponta clara do degrade (serieGasto) ficava abaixo de 4,5:1 (BUG-015).
+        .background(paleta.primaria, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityElement(children: aoAbrir == nil ? .combine : .contain)
     }
 

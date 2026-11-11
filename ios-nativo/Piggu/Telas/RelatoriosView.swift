@@ -66,7 +66,7 @@ struct RelatoriosView: View {
             .navigationTitle("Relatórios")
             // Empurrado no Planejar, o titulo em linha ficava "Relató…" entre os botoes (BUG-025).
             .navigationBarTitleDisplayMode(.large)
-            .topoDoPiggu()
+            .topoDoPiggu(marca: comPilha)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ShareLink(item: CSVDosGastos(mes: chave, cliente: sessao.cliente),
