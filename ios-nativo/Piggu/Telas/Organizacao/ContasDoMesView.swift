@@ -140,6 +140,8 @@ struct ContasDoMesView: View {
                               conta.automatico ? String(localized: "lança sozinha") : nil]
                             .compactMap { $0 }.joined(separator: " · "))
                             .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                            // Quebra em vez de cortar no texto grande ("05/11/2026 ·…", IOS-5).
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
                     Text(Formatos.moeda(conta.valor)).font(.sora(.body, peso: .semibold)).monospacedDigit()

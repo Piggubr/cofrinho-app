@@ -89,11 +89,13 @@ struct FamiliaView: View {
             }
             ForEach(familia.membros) { pessoa in
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(pessoa.nome)
+                    // Encolhe em vez de quebrar nome e e-mail no meio no texto grande (IOS-5).
+                    Text(pessoa.nome).lineLimit(3).minimumScaleFactor(0.5)
                     Text([pessoa.email ?? "", Self.papel(pessoa.papel),
                           pessoa.parceriaPendente == true ? String(localized: "convidado para parceiro") : ""]
                         .filter { !$0.isEmpty }.joined(separator: " · "))
                         .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                        .lineLimit(2).minimumScaleFactor(0.4)
                     if ehTitular && (pessoa.papel == .membro || pessoa.papel == .parceiro) {
                         HStack {
                             Button(pessoa.parceriaPendente == true ? "Cancelar convite de parceiro"

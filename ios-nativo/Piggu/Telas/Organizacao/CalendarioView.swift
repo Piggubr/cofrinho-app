@@ -206,6 +206,7 @@ private struct GradeDoMes: View {
         LazyVGrid(columns: colunas, spacing: 4) {
             ForEach(["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"], id: \.self) { nome in
                 Text(LocalizedStringKey(nome)).font(.sora(.caption, peso: .semibold)).foregroundStyle(paleta.textoSuave)
+                    .lineLimit(1).minimumScaleFactor(0.5)
             }
             ForEach(Array(dias.enumerated()), id: \.offset) { _, dia in
                 if let dia {
@@ -232,12 +233,15 @@ private struct GradeDoMes: View {
                 Text(String(Int(dia.suffix(2)) ?? 0))
                     .font(.sora(.subheadline, peso: dia == hoje ? .bold : .regular))
                 if gasto > 0 {
-                    // Em R$ com centavos (BUG-025): "149,9" parecia outro numero. Encolhe para caber.
-                    Text(Formatos.moeda(gasto))
-                        .font(.sora(.caption2, peso: .medium))
-                        .foregroundStyle(paleta.serieGasto)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.4)
+                    // Em R$ com centavos (BUG-025): "149,9" parecia outro numero. No texto grande, sem o
+                    // simbolo e depois so o ponto; o VoiceOver le o valor inteiro.
+                    ViewThatFits(in: .horizontal) {
+                        Text(Formatos.moeda(gasto)).lineLimit(1)
+                        Text(Formatos.valorParaDigitar(gasto)).lineLimit(1)
+                        Circle().fill(paleta.serieGasto).frame(width: 6, height: 6)
+                    }
+                    .font(.sora(.caption2, peso: .medium))
+                    .foregroundStyle(paleta.serieGasto)
                 }
                 if lembretes > 0 {
                     Circle().fill(paleta.primaria).frame(width: 5, height: 5)
@@ -282,7 +286,7 @@ private struct GraficoDoMes: View {
             Text("Nenhuma receita ou gasto neste mês até agora.")
                 .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
         } else {
-            HStack(alignment: .top) {
+            LadoALado(alinhamento: .top) {
                 numero("Receitas", receitas)
                 numero("Gastos", gastos)
                 numero("Sobra", receitas - gastos, negativo: receitas < gastos)
