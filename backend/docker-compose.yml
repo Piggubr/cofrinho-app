@@ -330,6 +330,8 @@ services:
       LIFESTYLE_URL: http://lifestyle:8084
       MEDIA_URL: http://media:8085
       BANKING_URL: http://banking:8086
+      # Desligado: o gateway responde o /api/banking/status sem chamar o banking.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
     ports:
       # So na propria maquina: de fora, a API chega pelo Caddy (HTTPS).
