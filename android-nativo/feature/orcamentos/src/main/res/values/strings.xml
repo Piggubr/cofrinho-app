@@ -13,7 +13,6 @@
     <string name="orcamento_total_no_mes">Total no mês (%1$s)</string>
     <string name="orcamento_salvar_limite">Salvar limite</string>
     <string name="orcamento_guardando">Guardando…</string>
-    <string name="orcamento_limite_invalido">Digite um valor válido para o limite.</string>
     <string name="orcamento_outros_meses">Limites dos outros meses</string>
     <string name="orcamento_nenhum_limite">Nenhum limite cadastrado</string>
     <string name="orcamento_salvar">Salvar</string>

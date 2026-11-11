@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -34,9 +35,17 @@ fun CampoDeValor(
     erro: String? = null,
 ) {
     var texto by rememberSaveable { mutableStateOf(escreverValor(valor)) }
-    // Valor trocado por fora (limpar o formulário, link com valor): o texto acompanha.
+    var primeira by remember { mutableStateOf(true) }
     LaunchedEffect(valor) {
-        if (lerValor(texto) != valor) texto = escreverValor(valor)
+        // Recriado depois de o sistema matar o app: o texto guardado vale e volta para o estado,
+        // em vez de ser apagado pelo valor ainda vazio (BUG-016).
+        if (primeira && valor == null && lerValor(texto) != null) {
+            aoMudar(lerValor(texto))
+        } else if (lerValor(texto) != valor) {
+            // Valor trocado por fora (limpar o formulário, link com valor): o texto acompanha.
+            texto = escreverValor(valor)
+        }
+        primeira = false
     }
     OutlinedTextField(
         texto,

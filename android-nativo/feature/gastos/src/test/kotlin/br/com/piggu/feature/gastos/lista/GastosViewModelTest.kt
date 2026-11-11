@@ -1,5 +1,7 @@
 package br.com.piggu.feature.gastos.lista
 
+import br.com.piggu.core.network.MensagemDeErro
+import br.com.piggu.core.ui.R as CoreUi
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.CacheDeRespostas
 import br.com.piggu.core.data.Carga
@@ -247,23 +249,46 @@ class GastosViewModelTest {
     }
 
     @Test
-    fun `gasto da fila aparece no dia como aguardando e fora do total`() = runTest {
+    fun `gasto da fila aparece no dia como aguardando e entra no total, e o recusado fica ate dispensar`() = runTest {
         val lancamento = NovoLancamento(
             data = "2026-10-27",
             itens = listOf(ItemDeGasto("Pão de queijo", valor = BigDecimal("12.00"))),
             idDoEnvio = "envio-1",
         )
-        val fila = FilaNaMemoria(listOf(GastoAguardando("envio-1", lancamento, 0)), recusados = 2)
+        val recusado = GastoAguardando("envio-2", lancamento.copy(idDoEnvio = "envio-2"), 0, motivo = "Confira a data.")
+        val fila = FilaNaMemoria(listOf(GastoAguardando("envio-1", lancamento, 0)), recusados = listOf(recusado))
         val viewModel = tela(fila = fila)
         val estado = viewModel.pronto()
         val dia = estado.dias.first { it.dia == "2026-10-27" }
         val linha = dia.gastos.single { it.aguardando }
         assertEquals("Pão de queijo", linha.gasto.item)
-        assertEquals(2, estado.recusados)
-        assertEquals(estado.gastos!!.fold(BigDecimal.ZERO) { s, g -> s + g.valor }, estado.total)
+        assertEquals(listOf(recusado), estado.recusados)
+        assertEquals(estado.gastos!!.fold(BigDecimal("12.00")) { s, g -> s + g.valor }, estado.total)
+        assertEquals(BigDecimal("12.00"), estado.totalAguardando)
 
-        viewModel.esquecerRecusados()
-        viewModel.estado.esperar { it.recusados == 0 }
+        viewModel.dispensarRecusado("envio-2")
+        viewModel.estado.esperar { it.recusados.isEmpty() }
+    }
+
+    @Test
+    fun `editar recusa zero e passar do teto, e a data trocada para longe pergunta antes`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = tela(fixas)
+        viewModel.abrirEdicao(viewModel.gasto("Uber Centro"))
+        viewModel.mudarValor(BigDecimal("0"))
+        viewModel.salvarEdicao()
+        assertEquals(MensagemDeErro.DoApp(CoreUi.string.valor_minimo), viewModel.estado.value.edicao!!.erro)
+        viewModel.mudarValor(BigDecimal("999999999.99"))
+        viewModel.salvarEdicao()
+        assertEquals(MensagemDeErro.DoApp(CoreUi.string.valor_maximo_gasto), viewModel.estado.value.edicao!!.erro)
+
+        viewModel.mudarValor(BigDecimal("20.00"))
+        viewModel.mudarData(java.time.LocalDate.of(2027, 6, 1))
+        viewModel.salvarEdicao()
+        assertTrue(viewModel.estado.value.edicao!!.confirmarData)
+        assertTrue(fixas.pedidos.none { it.startsWith("PUT ") })
+        viewModel.salvarEdicaoMesmoAssim()
+        viewModel.estado.esperar { it.edicao == null }
     }
 
     @Test

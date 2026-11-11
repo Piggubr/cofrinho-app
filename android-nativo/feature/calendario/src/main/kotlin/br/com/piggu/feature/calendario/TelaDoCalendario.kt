@@ -1,5 +1,6 @@
 package br.com.piggu.feature.calendario
 
+import br.com.piggu.core.ui.CampoDeData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -425,7 +426,7 @@ private fun LazyListScope.novaNota(estado: EstadoDoCalendario, eventos: EventosD
             Text(stringResource(R.string.calendario_nota_com_data), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
             Switch(nota.comData, onCheckedChange = null)
         }
-        if (nota.comData) CampoDeData(nota.data, eventos.mudarData)
+        if (nota.comData) CampoDeData(stringResource(R.string.calendario_nota_data), nota.data, eventos.mudarData, Modifier.fillMaxWidth())
         CampoDeValor(
             nota.valor,
             eventos.mudarValor,
@@ -459,40 +460,6 @@ private fun LazyListScope.novaNota(estado: EstadoDoCalendario, eventos: EventosD
             Text(stringResource(if (estado.guardando) R.string.calendario_guardando else R.string.calendario_criar_nota))
         }
     }
-}
-
-/**
- * Data (aaaa-mm-dd) num campo só de leitura que abre o calendário. O DatePicker trabalha em
- * milissegundos UTC: por isso a conversão por UTC, para não deslocar o dia.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CampoDeData(data: String, aoMudar: (String) -> Unit) {
-    var aberto by rememberSaveable { mutableStateOf(false) }
-    OutlinedTextField(
-        dataCurta(data),
-        {},
-        Modifier.fillMaxWidth(),
-        readOnly = true,
-        label = { Text(stringResource(R.string.calendario_nota_data)) },
-        singleLine = true,
-        trailingIcon = {
-            IconButton({ aberto = true }) { Icon(painterResource(Icone.Calendario.desenho), stringResource(R.string.calendario_escolher_data)) }
-        },
-    )
-    if (!aberto) return
-    val dia = runCatching { LocalDate.parse(data) }.getOrNull()
-    val calendario = rememberDatePickerState(dia?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli())
-    DatePickerDialog(
-        onDismissRequest = { aberto = false },
-        confirmButton = {
-            TextButton({
-                calendario.selectedDateMillis?.let { aoMudar(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString()) }
-                aberto = false
-            }) { Text(stringResource(R.string.calendario_ok)) }
-        },
-        dismissButton = { TextButton({ aberto = false }) { Text(stringResource(Comum.string.cancelar)) } },
-    ) { DatePicker(calendario) }
 }
 
 /** Confirma antes de apagar, como o site; a nota com gasto avisa que o gasto vai junto. */

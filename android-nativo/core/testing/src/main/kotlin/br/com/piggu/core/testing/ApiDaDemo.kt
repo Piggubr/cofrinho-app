@@ -127,6 +127,20 @@ class ApiDaDemo(
 
     // ---------- Ajudantes ----------
 
+    /** Os limites do backend (D-189): o valor entre 0,01 e o teto, a data de 2000 até hoje + 2 anos. */
+    private fun conferirValor(valor: BigDecimal, teto: BigDecimal = TETO_DO_GASTO) {
+        if (valor < BigDecimal("0.01")) throw ErroDaDemo(400, "Digite um valor a partir de R$ 0,01.", "VALIDACAO")
+        if (valor > teto) throw ErroDaDemo(400, "O valor é alto demais.", "VALIDACAO")
+    }
+
+    private fun conferirData(texto: String?) {
+        val data = runCatching { LocalDate.parse(texto) }.getOrNull() ?: return
+        val ultimo = hoje().plusYears(2)
+        if (data < LocalDate.of(2000, 1, 1) || data > ultimo) {
+            throw ErroDaDemo(400, "Confira a data: use uma data entre 2000 e ${ultimo.year}.", "VALIDACAO")
+        }
+    }
+
     private fun novoId(prefixo: String): String = "$prefixo-${relogio.millis().toString(36)}-${++sequencia}"
 
     private fun hoje() = LocalDate.now(relogio)
@@ -194,8 +208,18 @@ class ApiDaDemo(
         val gastosAntes = somar(antes.values)
         val sobra = receitas - gastos
         val hoje = hoje()
-        val projecao = if (mes == mesAtual()) {
-            gastos.multiply(BigDecimal(hoje.lengthOfMonth())).divide(BigDecimal(hoje.dayOfMonth), 2, RoundingMode.HALF_UP)
+        val corrente = mes == mesAtual()
+        // D-190: os fixos contam uma vez; os variáveis seguem o ritmo do mês até hoje.
+        val fixos = somar(doMes(mes).filter { it.texto("tipo") == "Fixo" }.map { it.dinheiro("valor") })
+        val projecao = if (corrente) {
+            fixos + (gastos - fixos).multiply(BigDecimal(hoje.lengthOfMonth())).divide(BigDecimal(hoje.dayOfMonth), 2, RoundingMode.HALF_UP)
+        } else {
+            null
+        }
+        val anterior = java.time.YearMonth.parse(somarMes(mes, -1))
+        val ateMesmoDia = if (corrente) {
+            val limite = anterior.atDay(minOf(hoje.dayOfMonth, anterior.lengthOfMonth())).toString()
+            somar(doMes(anterior.toString()).filter { it.data() <= limite }.map { it.dinheiro("valor") })
         } else {
             null
         }
@@ -208,6 +232,9 @@ class ApiDaDemo(
             "gastosMesAnterior" to gastosAntes,
             "variacao" to if (gastosAntes.signum() > 0) arredondar((gastos - gastosAntes).toDouble() / gastosAntes.toDouble() * 100, 1) else null,
             "projecaoDeGastos" to projecao,
+            "gastosFixos" to fixos,
+            "gastosAteMesmoDiaAnterior" to ateMesmoDia,
+            "variacaoAteMesmoDia" to ateMesmoDia?.takeIf { it.signum() > 0 }?.let { arredondar((gastos - it).toDouble() / it.toDouble() * 100, 1) },
             "porCategoria" to agora.entries.sortedByDescending { it.value }
                 .map { (categoria, total) -> mapOf("categoria" to categoria, "total" to total, "anterior" to (antes[categoria] ?: BigDecimal.ZERO)) },
         )
@@ -797,6 +824,8 @@ class ApiDaDemo(
         rota("POST", "/expenses") { p ->
             // O reenvio da fila com o mesmo idDoEnvio devolve a primeira resposta (API_SPEC, Convenções).
             val idDoEnvio = p.corpo.texto("idDoEnvio")
+            conferirData(p.corpo.texto("data"))
+            p.corpo.objetos("itens").forEach { conferirValor(it.dinheiro("valor")) }
             idDoEnvio?.let(estado.envios::get) ?: lancar(p.corpo).also { novos ->
                 if (p.corpo.logico("recorrente")) {
                     for (g in novos) {
@@ -808,10 +837,13 @@ class ApiDaDemo(
             }
         }
         rota("PUT", "/expenses/{id}") { p ->
+            conferirValor(p.corpo.dinheiro("valor"))
+            conferirData(p.corpo.texto("data"))
             exigir(estado.gastos.achar(p.id), "Gasto não encontrado.").apply {
                 this["item"] = p.corpo["item"]
                 this["categoria"] = categoriaValida(p.corpo.texto("categoria"))
                 this["valor"] = p.corpo.dinheiro("valor")
+                p.corpo.texto("data")?.let { this["data"] = it }
             }
         }
         rota("DELETE", "/expenses/{id}") { p ->
@@ -853,6 +885,12 @@ class ApiDaDemo(
         rota("GET", "/incomes") { p -> estado.receitas.filter { it.data().startsWith(p.mes()) }.sortedByDescending { it.data() } }
         rota("POST", "/incomes") { p ->
             val c = p.corpo
+            conferirValor(c.dinheiro("valor"), TETO_DA_RECEITA)
+            if (c.logico("segundoDia")) conferirValor(c.dinheiro("segundoValor"), TETO_DA_RECEITA)
+            conferirData(c.texto("data"))
+            // O reenvio com o mesmo idDoEnvio devolve a primeira resposta e não grava de novo (D-192).
+            val idDoEnvio = c.texto("idDoEnvio")
+            idDoEnvio?.let(estado.envios::get)?.let { return@rota it.single() }
             val receita = registro(
                 "id" to novoId("receita"), "data" to c["data"], "descricao" to c["descricao"],
                 "categoria" to (c.texto("categoria")?.ifEmpty { null } ?: "Outros"), "valor" to c.dinheiro("valor"),
@@ -867,10 +905,13 @@ class ApiDaDemo(
                 )
                 estado.contasPagas += "${fixa.texto("id")}|${receita.data().take(7)}"
             }
+            if (idDoEnvio != null) estado.envios[idDoEnvio] = listOf(receita)
             receita
         }
         rota("GET", "/incomes/receivables") { estado.aReceber.sortedBy { it.data() } }
         rota("POST", "/incomes/receivables") { p ->
+            conferirValor(p.corpo.dinheiro("valor"), TETO_DA_RECEITA)
+            conferirData(p.corpo.texto("data"))
             registro(
                 "id" to novoId("receber"), "quem" to p.corpo.texto("quem"), "descricao" to (p.corpo.texto("descricao") ?: ""),
                 "valor" to p.corpo.dinheiro("valor"), "data" to p.corpo["data"],
@@ -927,6 +968,7 @@ class ApiDaDemo(
         rota("PUT", "/budgets") { p ->
             val categoria = categoriaValida(p.corpo.texto("categoria"))
             val limite = p.corpo.dinheiro("limite")
+            conferirValor(limite)
             val existente = estado.orcamentos.find { it.texto("categoria") == categoria }
             if (existente != null) {
                 existente["limite"] = limite
@@ -987,11 +1029,14 @@ class ApiDaDemo(
         // Metas, cofrinho, notas, produtos
         rota("GET", "/monthly-goals") { estado.metas.toMap() }
         rota("PUT", "/monthly-goals") { p ->
+            conferirValor(p.corpo.dinheiro("limite"))
             estado.metas[p.corpo.texto("mes").orEmpty()] = p.corpo.dinheiro("limite")
             estado.metas.toMap()
         }
         rota("GET", "/piggy-bank") { cofrinho() }
         rota("POST", "/piggy-bank/deposits") { p ->
+            conferirValor(p.corpo.dinheiro("valor"), TETO_DA_RECEITA)
+            conferirData(p.corpo.texto("data"))
             val objetivo = p.corpo.texto("objetivo")
             if (objetivo != null) exigir(estado.objetivos.achar(objetivo), "Objetivo não encontrado.")
             registro(
@@ -1242,3 +1287,7 @@ class ApiDaDemo(
         )
     }
 }
+
+/** Os tetos do backend (D-189): gasto, orçamento e limite; receita, a receber e depósito. */
+private val TETO_DO_GASTO = BigDecimal("1000000.00")
+private val TETO_DA_RECEITA = BigDecimal("10000000.00")

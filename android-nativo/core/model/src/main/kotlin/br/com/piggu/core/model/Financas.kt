@@ -312,6 +312,8 @@ data class NovaReceita(
     val recorrente: Boolean = false,
     val segundoDia: Int? = null,
     val segundoValor: Decimal? = null,
+    /** Um por envio, repetido ao tentar de novo: o servidor não grava duas vezes (D-192). */
+    val idDoEnvio: String? = null,
 )
 
 /** BillResponse: conta fixa no mês, quando vence e se já foi lançada. */
@@ -380,9 +382,15 @@ data class ResumoDoMes(
     val gastosMesAnterior: Decimal,
     /** Contra o mês anterior, em porcentagem; nula se o anterior não teve gasto. */
     val variacao: Decimal? = null,
-    /** Só no mês corrente: o ritmo de gasto até hoje levado ao fim do mês. */
+    /** Só no mês corrente: os fixos uma vez e os variáveis pelo ritmo até hoje (D-190). */
     val projecaoDeGastos: Decimal? = null,
     val porCategoria: List<CategoriaNoMes> = emptyList(),
+    /** Soma dos gastos tipo Fixo no mês; ausente no backend antigo. */
+    val gastosFixos: Decimal? = null,
+    /** Só no mês corrente: o mês anterior do dia 1 até o mesmo dia de hoje. */
+    val gastosAteMesmoDiaAnterior: Decimal? = null,
+    /** Só no mês corrente: % até hoje contra [gastosAteMesmoDiaAnterior]; nula se ele é zero. */
+    val variacaoAteMesmoDia: Decimal? = null,
 )
 
 @Serializable

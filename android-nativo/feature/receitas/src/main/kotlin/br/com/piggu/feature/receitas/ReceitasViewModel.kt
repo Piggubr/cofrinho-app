@@ -1,5 +1,7 @@
 package br.com.piggu.feature.receitas
 
+import br.com.piggu.core.ui.formatos.TETO_DA_RECEITA
+import br.com.piggu.core.ui.formatos.problemaDoValor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.CacheDeRespostas
@@ -181,7 +183,8 @@ class ReceitasViewModel internal constructor(
         val valor = e.valorAReceber
         when {
             quem.isEmpty() -> recusar(CampoDoAReceber.Quem, R.string.a_receber_falta_quem)
-            valor == null || valor.signum() <= 0 -> recusar(CampoDoAReceber.Valor, R.string.a_receber_falta_valor)
+            valor == null -> recusar(CampoDoAReceber.Valor, R.string.a_receber_falta_valor)
+            problemaDoValor(valor, TETO_DA_RECEITA) != null -> recusar(CampoDoAReceber.Valor, problemaDoValor(valor, TETO_DA_RECEITA)!!)
             e.dataAReceber.isBlank() -> recusar(null, R.string.a_receber_falta_data)
             else -> {
                 estadoAtual.update { it.copy(guardando = true, faltouNoAReceber = null, erro = null) }

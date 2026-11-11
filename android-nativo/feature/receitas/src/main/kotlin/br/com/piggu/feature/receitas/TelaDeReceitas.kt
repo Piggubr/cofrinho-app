@@ -1,5 +1,6 @@
 package br.com.piggu.feature.receitas
 
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -45,6 +46,7 @@ import br.com.piggu.core.model.AReceber
 import br.com.piggu.core.model.ContaFixa
 import br.com.piggu.core.model.Receita
 import br.com.piggu.core.ui.AvisoDeGuardado
+import br.com.piggu.core.ui.CampoDeData
 import br.com.piggu.core.ui.CampoDeValor
 import br.com.piggu.core.ui.EstadoDeErro
 import br.com.piggu.core.ui.Esqueleto
@@ -125,7 +127,7 @@ fun TelaDeReceitas(estado: EstadoDeReceitas, eventos: EventosDeReceitas, modifie
         estado.guardadoEm?.let { AvisoDeGuardado(it, estado.conectado) }
         LazyColumn(
             Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = FOLGA_DO_LANCAR),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {

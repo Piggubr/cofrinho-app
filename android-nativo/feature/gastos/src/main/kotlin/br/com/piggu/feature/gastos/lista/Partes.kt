@@ -1,5 +1,10 @@
 package br.com.piggu.feature.gastos.lista
 
+import br.com.piggu.core.ui.ConfirmarData
+import br.com.piggu.core.ui.ValorQueCabe
+import br.com.piggu.core.data.GastoAguardando
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -62,12 +67,12 @@ import br.com.piggu.core.designsystem.Icone
 import br.com.piggu.core.model.Gasto
 import br.com.piggu.core.model.MembroDaFamilia
 import br.com.piggu.core.ui.CampoDeCategoria
+import br.com.piggu.core.ui.CampoDeData
 import br.com.piggu.core.ui.CampoDeValor
 import br.com.piggu.core.ui.SeletorDeMes
 import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.formatarMoeda
 import br.com.piggu.feature.gastos.R
-import br.com.piggu.feature.gastos.formulario.CampoDeData
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -155,24 +160,41 @@ internal fun Total(estado: EstadoDosGastos, acoes: AcoesDosGastos) {
             Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
         )
-        Text(formatarMoeda(estado.total, estado.moeda), style = MaterialTheme.typography.titleMedium)
+        Column(horizontalAlignment = Alignment.End) {
+            ValorQueCabe(formatarMoeda(estado.total, estado.moeda), estilo = MaterialTheme.typography.titleMedium)
+            if (estado.totalAguardando.signum() > 0) {
+                Text(
+                    stringResource(R.string.gastos_inclui_aguardando, formatarMoeda(estado.totalAguardando, estado.moeda)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
     if (estado.filtrando) {
         TextButton(acoes::limparFiltros, Modifier.padding(horizontal = 8.dp)) { Text(stringResource(R.string.gastos_limpar_filtros)) }
     }
 }
 
+/** Um gasto que o servidor recusou na fila: item, valor, data e o motivo, até a pessoa dispensar (BUG-010). */
 @Composable
-internal fun AvisoDeRecusados(quantos: Int, entendi: () -> Unit) {
+internal fun AvisoDeRecusado(recusado: GastoAguardando, moeda: String?, dispensar: () -> Unit) {
+    val l = recusado.lancamento
+    val total = l.itens.fold(java.math.BigDecimal.ZERO) { soma, item -> soma + item.valor }
     Surface(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), MaterialTheme.shapes.medium, MaterialTheme.colorScheme.errorContainer) {
-        Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp).semantics { liveRegion = LiveRegionMode.Polite }) {
+            Text(stringResource(R.string.gastos_recusado_titulo), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
             Text(
-                pluralStringResource(R.plurals.gastos_recusados, quantos, quantos),
-                Modifier.weight(1f).padding(vertical = 8.dp),
+                stringResource(R.string.gastos_recusado_linha, l.itens.joinToString { it.item }, formatarMoeda(total, moeda), dataCurta(l.data)),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                stringResource(R.string.gastos_recusado_motivo, recusado.motivo?.ifBlank { null } ?: stringResource(R.string.gastos_recusado_sem_motivo)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onErrorContainer,
             )
-            TextButton(entendi) { Text(stringResource(R.string.gastos_entendi)) }
+            TextButton(dispensar, Modifier.align(Alignment.End)) { Text(stringResource(R.string.gastos_dispensar)) }
         }
     }
 }
@@ -434,7 +456,7 @@ internal fun EditarGasto(
             )
             CampoDeCategoria(categorias, edicao.categoria, acoes::mudarCategoria, criarCategoria, acoes::categoriasCriadas, Modifier.fillMaxWidth(), automatica = false)
             CampoDeValor(edicao.valor, acoes::mudarValor, moeda ?: "BRL", Modifier.fillMaxWidth())
-            CampoDeData(java.time.LocalDate.parse(edicao.data), acoes::mudarData)
+            CampoDeData(stringResource(R.string.formulario_data), edicao.data, { acoes.mudarData(java.time.LocalDate.parse(it)) }, Modifier.fillMaxWidth())
             if (edicao.podeCompartilhar) {
                 Row(
                     Modifier.fillMaxWidth().toggleable(edicao.compartilhado, role = Role.Switch, onValueChange = acoes::mudarCompartilhado),
@@ -452,6 +474,7 @@ internal fun EditarGasto(
                 Button(acoes::salvarEdicao, enabled = !edicao.salvando) { Text(stringResource(R.string.gastos_salvar)) }
             }
         }
+        ConfirmarData(edicao.data.takeIf { edicao.confirmarData }, acoes::salvarEdicaoMesmoAssim, acoes::corrigirDataDaEdicao)
     }
 }
 

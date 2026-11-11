@@ -172,6 +172,18 @@ class ContratoTest {
         "media/AssetUploadRequest",
     )
 
+    /**
+     * Os campos do contrato da auditoria de 11/11/2026 que o PR do backend (D-190, D-192) acrescenta
+     * ao `docs/api`. Opcionais no app: o backend antigo ignora o `idDoEnvio` e não manda os outros.
+     * Saem daqui quando o `docs/api` regravado chegar à develop.
+     */
+    private val AINDA_NAO_NO_CONTRATO = setOf(
+        "finance/IncomeRequest.idDoEnvio",
+        "finance/ResumoDoMes.gastosFixos",
+        "finance/ResumoDoMes.gastosAteMesmoDiaAnterior",
+        "finance/ResumoDoMes.variacaoAteMesmoDia",
+    )
+
     private val pasta = File(System.getProperty("piggu.contrato") ?: "../../../docs/api")
 
     @Suppress("UNCHECKED_CAST")
@@ -185,7 +197,8 @@ class ContratoTest {
         val diferentes = tipos.mapNotNull { (arquivo, schema, tipo) ->
             @Suppress("UNCHECKED_CAST")
             val doContrato = (schemas(arquivo).getValue(schema)["properties"] as Map<String, Any?>).keys.sorted()
-            val doApp = tipo.descriptor.elementNames.sorted()
+            // Campo que o app já manda ou lê antes do backend regravar o contrato: aceito só enquanto falta lá.
+            val doApp = tipo.descriptor.elementNames.filterNot { "$arquivo/$schema.$it" in AINDA_NAO_NO_CONTRATO && it !in doContrato }.sorted()
             if (doContrato == doApp) null else "$arquivo/$schema: contrato $doContrato, app $doApp"
         }
 

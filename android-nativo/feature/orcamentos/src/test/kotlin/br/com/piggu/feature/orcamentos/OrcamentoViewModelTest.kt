@@ -105,7 +105,8 @@ class OrcamentoViewModelTest {
         val gastos = rede.financas.listarGastos("2026-10").fold(BigDecimal.ZERO) { s, g -> s + g.valor }
         assertEquals(0, estado.gastoDoMes.compareTo(gastos))
         assertEquals(gastos.multiply(BigDecimal(100)).divide(BigDecimal(4500), 0, java.math.RoundingMode.HALF_UP).toInt().coerceAtMost(100), estado.progresso)
-        assertEquals(listOf("2026-10", "2026-09", "2026-08"), estado.outrosMeses.map { it.first })
+        // O mês atual (2026-10) fica no topo da tela, não na lista dos outros (BUG-024).
+        assertEquals(listOf("2026-09", "2026-08"), estado.outrosMeses.map { it.first })
         // O formulário já vem com o limite do mês atual, como no site.
         assertEquals(0, estado.limite!!.compareTo(BigDecimal(4500)))
 
@@ -144,7 +145,7 @@ class OrcamentoViewModelTest {
 
         vm.mudarLimite(BigDecimal.ZERO)
         vm.salvarLimite()
-        assertEquals(MensagemDeErro.DoApp(R.string.orcamento_limite_invalido), vm.estado.value.erro)
+        assertEquals(MensagemDeErro.DoApp(br.com.piggu.core.ui.R.string.valor_minimo), vm.estado.value.erro)
         vm.mudarLimite(null)
         vm.salvarLimite()
         assertTrue(pedidos("PUT").isEmpty())
@@ -181,7 +182,7 @@ class OrcamentoViewModelTest {
         assertEquals("", vm.estado.value.categoria)
         vm.mudarValorDaEdicao(null)
         vm.salvarEdicao()
-        assertEquals(MensagemDeErro.DoApp(R.string.orcamento_limite_invalido), vm.estado.value.erro)
+        assertEquals(MensagemDeErro.DoApp(br.com.piggu.core.ui.R.string.valor_minimo), vm.estado.value.erro)
         vm.mudarValorDaEdicao(alvo.gasto)
         vm.salvarEdicao()
         val cheio = vm.estado.esperar { e -> e.editando == null && e.orcamentos.any { it.id == alvo.id && it.limite.compareTo(alvo.gasto) == 0 } }

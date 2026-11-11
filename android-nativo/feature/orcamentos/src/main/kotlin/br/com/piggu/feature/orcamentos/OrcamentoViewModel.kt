@@ -1,5 +1,6 @@
 package br.com.piggu.feature.orcamentos
 
+import br.com.piggu.core.ui.formatos.problemaDoValor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.CacheDeRespostas
@@ -92,8 +93,9 @@ data class EstadoDoOrcamento(
 
     val estourou: Boolean get() = metaDoMesAtual.signum() > 0 && gastoDoMes > metaDoMesAtual
 
-    /** Todos os limites, do mês mais novo para o mais velho ("Limites dos outros meses" do site). */
-    val outrosMeses: List<Pair<String, BigDecimal>> get() = pronto.metas.entries.sortedByDescending { it.key }.map { it.key to it.value }
+    /** Os limites dos outros meses, do mais novo para o mais velho: o do mês atual já está no topo (BUG-024). */
+    val outrosMeses: List<Pair<String, BigDecimal>>
+        get() = pronto.metas.entries.filter { it.key != mesAtual }.sortedByDescending { it.key }.map { it.key to it.value }
 
     /** O seletor do formulário vai até um ano à frente: limite se define antes do mês chegar. */
     val ultimoMesDoLimite: String get() = YearMonth.parse(mesAtual).plusMonths(12).toString()
@@ -167,7 +169,8 @@ class OrcamentoViewModel internal constructor(
         val e = estadoAtual.value
         if (e.salvando) return
         val limite = e.limite
-        if (limite == null || limite.signum() <= 0) return recusar(R.string.orcamento_limite_invalido)
+        problemaDoValor(limite)?.let { return recusar(it) }
+        checkNotNull(limite)
         executar {
             val metas = financas.definirMeta(PedidoDeMeta(e.mesDoLimite, limite))
             // A resposta já é a lista nova: aparece sem esperar a recarga.
@@ -196,7 +199,8 @@ class OrcamentoViewModel internal constructor(
         val edicao = e.editando ?: return
         if (e.salvando) return
         val valor = edicao.valor
-        if (valor == null || valor.signum() <= 0) return recusar(R.string.orcamento_limite_invalido)
+        problemaDoValor(valor)?.let { return recusar(it) }
+        checkNotNull(valor)
         executar {
             if (edicao.categoria != null) {
                 financas.definirOrcamento(PedidoDeOrcamento(edicao.categoria, valor))
@@ -225,7 +229,8 @@ class OrcamentoViewModel internal constructor(
         // Sem Premium a tela mostra o convite no lugar do formulário; o backend recusaria (402).
         if (e.salvando || !e.premium) return
         val limite = e.limiteDaCategoria
-        if (e.categoria.isBlank() || limite == null || limite.signum() <= 0) return recusar(R.string.orcamento_categoria_invalida)
+        if (e.categoria.isBlank() || limite == null) return recusar(R.string.orcamento_categoria_invalida)
+        problemaDoValor(limite)?.let { return recusar(it) }
         executar {
             financas.definirOrcamento(PedidoDeOrcamento(e.categoria, limite))
             estadoAtual.update { it.copy(categoria = "", limiteDaCategoria = null) }

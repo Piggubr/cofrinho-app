@@ -1,5 +1,9 @@
 package br.com.piggu.feature.listas.lugares
 
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import br.com.piggu.core.ui.CampoDeData
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -256,10 +260,14 @@ private fun CartaoDoLugar(lugar: Lugar, moeda: String, eventos: EventosDosLugare
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 val nota = stringResource(R.string.lugares_nota_de_5, lugar.nota)
+                // As cinco, com as vazias apagadas: quatro estrelas não parecem cinco.
+                val cheias = lugar.nota.coerceIn(0, 5)
                 Text(
-                    "★".repeat(lugar.nota.coerceIn(0, 5)),
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.tertiary)) { append("★".repeat(cheias)) }
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outlineVariant)) { append("★".repeat(5 - cheias)) }
+                    },
                     Modifier.semantics { contentDescription = nota },
-                    color = MaterialTheme.colorScheme.tertiary,
                 )
                 lugar.comentario?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 if (lugar.valor.signum() > 0) {
@@ -411,40 +419,6 @@ private fun Foto(f: FormularioDeLugar, eventos: EventosDosLugares) {
             }
         }
     }
-}
-
-/**
- * Data (aaaa-mm-dd) num campo só de leitura que abre o calendário. O DatePicker trabalha em
- * milissegundos UTC: por isso a conversão por UTC, para não deslocar o dia.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CampoDeData(rotulo: String, data: String, aoMudar: (String) -> Unit, modifier: Modifier = Modifier) {
-    var aberto by rememberSaveable { mutableStateOf(false) }
-    OutlinedTextField(
-        dataCurta(data),
-        {},
-        modifier,
-        readOnly = true,
-        label = { Text(rotulo) },
-        singleLine = true,
-        trailingIcon = {
-            IconButton({ aberto = true }) { Icon(painterResource(Icone.Calendario.desenho), stringResource(R.string.lugares_escolher_data)) }
-        },
-    )
-    if (!aberto) return
-    val dia = runCatching { LocalDate.parse(data) }.getOrNull()
-    val calendario = rememberDatePickerState(dia?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli())
-    DatePickerDialog(
-        onDismissRequest = { aberto = false },
-        confirmButton = {
-            TextButton({
-                calendario.selectedDateMillis?.let { aoMudar(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString()) }
-                aberto = false
-            }) { Text(stringResource(R.string.lugares_ok)) }
-        },
-        dismissButton = { TextButton({ aberto = false }) { Text(stringResource(Comum.string.cancelar)) } },
-    ) { DatePicker(calendario) }
 }
 
 @Composable

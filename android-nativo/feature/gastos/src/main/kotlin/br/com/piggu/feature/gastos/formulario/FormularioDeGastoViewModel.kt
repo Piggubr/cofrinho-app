@@ -3,6 +3,7 @@ package br.com.piggu.feature.gastos.formulario
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.core.content.edit
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.Carga
@@ -27,7 +28,12 @@ import br.com.piggu.core.network.ErroDaApi
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.network.ServicoDeFinancas
 import br.com.piggu.core.network.mensagemDeErro
+import br.com.piggu.core.model.Decimal
+import br.com.piggu.core.model.JsonDoPiggu
+import br.com.piggu.core.ui.formatos.TETO_DO_GASTO
 import br.com.piggu.core.ui.formatos.chaveDoMes
+import br.com.piggu.core.ui.formatos.dataPedeConfirmacao
+import br.com.piggu.core.ui.formatos.problemaDoValor
 import br.com.piggu.feature.gastos.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,6 +46,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import java.io.IOException
 import java.io.InputStream
 import java.math.BigDecimal
@@ -119,7 +126,13 @@ data class EstadoDoFormulario(
     val itensDoRecibo: List<ItemDoFormulario> = emptyList(),
     /** O recibo confirmado que preencheu o formulário: vai no Lançar, com a origem "Foto". */
     val reciboId: String? = null,
+    /** Data futura ou de mais de um ano: o "Lançar mesmo assim?" fica aberto. */
+    val confirmarData: Boolean = false,
 ) {
+    /** Algo digitado: fechar a folha pergunta antes de descartar (BUG-016). */
+    val temAlgoDigitado: Boolean
+        get() = estabelecimento.isNotBlank() || itens.any { it.item.isNotBlank() || it.valor != null } || itens.size > 1 || reciboId != null
+
     val cartoes: List<ContaOuCartao> get() = contas.filter { it.tipo == TipoDeConta.CARTAO }
     val bancos: List<ContaOuCartao> get() = contas.filter { it.tipo == TipoDeConta.CONTA }
     val outraMoeda: Boolean get() = moedaDaCompra != moeda
@@ -169,6 +182,7 @@ class FormularioDeGastoViewModel @Inject constructor(
     rede: MonitorDeRede,
     private val lancamentos: Lancamentos,
     relogio: Clock,
+    private val estadoSalvo: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     private val usuario = sessao.usuario
     private val estadoAtual = MutableStateFlow(
@@ -180,6 +194,11 @@ class FormularioDeGastoViewModel @Inject constructor(
     )
     val estado: StateFlow<EstadoDoFormulario> = estadoAtual.asStateFlow()
 
+    /** O que estava digitado quando o sistema matou o app (BUG-016); nulo na folha nova. */
+    private val rascunho: RascunhoDoGasto? = estadoSalvo.get<String>(RASCUNHO)?.let {
+        runCatching { JsonDoPiggu.decodeFromString(RascunhoDoGasto.serializer(), it) }.getOrNull()
+    }
+
     // A última conta usada vira a padrão do próximo lançamento, neste aparelho (piggu_conta_padrao do site).
     private val preferencias = contexto.getSharedPreferences("piggu_formulario_de_gasto", Context.MODE_PRIVATE)
     private var proximaChave = 1
@@ -189,6 +208,15 @@ class FormularioDeGastoViewModel @Inject constructor(
     private var buscaDaCotacao: Job? = null
 
     init {
+        rascunho?.let { r ->
+            proximaChave = (r.itens.maxOfOrNull { it.chave } ?: 0) + 1
+            estadoAtual.update { r.aplicar(it) }
+            if (r.moedaDaCompra != estadoAtual.value.moeda) trocarMoeda(r.moedaDaCompra)
+        }
+        // Cada mudança vai para o SavedStateHandle: sobrevive à morte do processo.
+        viewModelScope.launch {
+            estadoAtual.collect { estadoSalvo[RASCUNHO] = JsonDoPiggu.encodeToString(RascunhoDoGasto.serializer(), RascunhoDoGasto.de(it)) }
+        }
         viewModelScope.launch { rede.conectado.collect { conectado -> estadoAtual.update { it.copy(semInternet = !conectado) } } }
         viewModelScope.launch {
             listas.categorias().collect { carga ->
@@ -202,7 +230,9 @@ class FormularioDeGastoViewModel @Inject constructor(
                 estadoAtual.update { it.copy(contas = carga.valor) }
                 if (primeira) {
                     primeira = false
-                    val padrao = carga.valor.firstOrNull { it.id == preferencias.getString(CONTA_PADRAO, null) }
+                    val guardada = rascunho?.contaId ?: preferencias.getString(CONTA_PADRAO, null)
+                    val padrao = carga.valor.firstOrNull { it.id == guardada }
+                    if (rascunho != null && padrao == null) return@collect
                     trocarForma(if (padrao?.tipo == TipoDeConta.CARTAO) FormaDePagamento.CARTAO else FormaDePagamento.DEBITO, padrao?.id)
                 }
             }
@@ -229,7 +259,7 @@ class FormularioDeGastoViewModel @Inject constructor(
         if (valor != null && valor.signum() > 0) mudarItem(estadoAtual.value.itens.first().chave) { it.copy(valor = valor) }
     }
 
-    fun mudarData(data: LocalDate) = estadoAtual.update { it.copy(data = data) }
+    fun mudarData(data: LocalDate) = estadoAtual.update { it.copy(data = data, confirmarData = false) }
     fun mudarEstabelecimento(texto: String) = estadoAtual.update { it.copy(estabelecimento = texto.take(200)) }
     fun alternarMaisOpcoes() = estadoAtual.update { it.copy(maisOpcoes = !it.maisOpcoes) }
 
@@ -320,13 +350,18 @@ class FormularioDeGastoViewModel @Inject constructor(
         }
     }
 
-    fun lancar() {
+    /** "Corrigir a data": fecha a pergunta e abre as opções, onde está a data. */
+    fun corrigirData() = estadoAtual.update { it.copy(confirmarData = false, maisOpcoes = true) }
+
+    /** @param dataConfirmada a pessoa já disse "Lançar" na pergunta da data. */
+    fun lancar(dataConfirmada: Boolean = false) {
         val atual = estadoAtual.value
         if (atual.salvando) return
-        estadoAtual.update { it.copy(faltou = null, itemComErro = null) }
+        estadoAtual.update { it.copy(faltou = null, itemComErro = null, confirmarData = false) }
         atual.itens.firstOrNull { it.item.isBlank() }?.let { return falhar(R.string.formulario_digite_o_item, item = it.chave) }
-        atual.itens.firstOrNull { it.valor == null || it.valor.signum() < 0 || it.valor > VALOR_MAXIMO }
-            ?.let { return falhar(R.string.formulario_valor_invalido, item = it.chave) }
+        atual.itens.firstNotNullOfOrNull { linha -> problemaDoValor(linha.valor, TETO_DO_GASTO)?.let { linha to it } }?.let { (linha, problema) ->
+            return falhar(problema, item = linha.chave)
+        }
         if (atual.outraMoeda && atual.cotacao == null) return falhar(R.string.formulario_aguarde_a_cotacao)
         if (atual.forma == FormaDePagamento.CARTAO && atual.cartoes.isEmpty()) return falhar(R.string.formulario_cadastre_o_cartao)
         if (atual.contaId.isEmpty() && (atual.forma == FormaDePagamento.CARTAO || atual.bancos.isNotEmpty())) {
@@ -336,6 +371,10 @@ class FormularioDeGastoViewModel @Inject constructor(
         val parcelas = if (atual.modo == ModoDaCompra.PARCELADO) atual.parcelas.toIntOrNull() ?: 0 else 1
         if (parcelas !in 1..48 || (atual.modo == ModoDaCompra.PARCELADO && parcelas < 2)) {
             return falhar(R.string.formulario_parcelas_invalidas, CampoQueFaltou.PARCELAS)
+        }
+        if (!dataConfirmada && dataPedeConfirmacao(atual.data, atual.hoje)) {
+            estadoAtual.update { it.copy(confirmarData = true) }
+            return
         }
 
         val pedido = NovoLancamento(
@@ -415,6 +454,7 @@ class FormularioDeGastoViewModel @Inject constructor(
                 dividirCom = emptyList(),
                 compartilhado = null,
                 reciboId = null,
+                erro = null,
                 salvando = false,
                 lancado = aviso,
             )
@@ -490,7 +530,7 @@ class FormularioDeGastoViewModel @Inject constructor(
     fun confirmarRecibo() {
         val atual = estadoAtual.value
         val lido = atual.recibo ?: return
-        val itens = atual.itensDoRecibo.filter { it.item.isNotBlank() && it.valor != null && it.valor.signum() >= 0 && it.valor <= VALOR_MAXIMO }
+        val itens = atual.itensDoRecibo.filter { it.item.isNotBlank() && problemaDoValor(it.valor, TETO_DO_GASTO) == null }
         if (itens.isEmpty()) return falhar(R.string.recibo_nenhum_item_valido)
         estadoAtual.update {
             it.copy(
@@ -527,7 +567,48 @@ class FormularioDeGastoViewModel @Inject constructor(
         const val CONTA_PADRAO = "conta_padrao"
         const val MOEDA_SEM_PREFERENCIA = "EUR"
         const val MAXIMO_DE_ITENS = 100
-        val VALOR_MAXIMO = BigDecimal(1_000_000)
+        const val RASCUNHO = "rascunho-do-gasto"
+    }
+}
+
+/** O que a pessoa digitou no formulário, guardado no SavedStateHandle (BUG-016). */
+@Serializable
+internal data class RascunhoDoGasto(
+    val data: String,
+    val estabelecimento: String = "",
+    val itens: List<Linha> = emptyList(),
+    val forma: FormaDePagamento = FormaDePagamento.DEBITO,
+    val contaId: String = "",
+    val modo: ModoDaCompra = ModoDaCompra.VISTA,
+    val parcelas: String = "1",
+    val moedaDaCompra: String,
+    val dividirCom: List<String> = emptyList(),
+    val compartilhado: Boolean? = null,
+    val maisOpcoes: Boolean = false,
+    val reciboId: String? = null,
+) {
+    @Serializable
+    data class Linha(val chave: Int, val item: String, val categoria: String, val valor: Decimal? = null)
+
+    fun aplicar(e: EstadoDoFormulario) = e.copy(
+        data = runCatching { LocalDate.parse(data) }.getOrDefault(e.data),
+        estabelecimento = estabelecimento,
+        itens = itens.map { ItemDoFormulario(it.chave, it.item, it.categoria, it.valor) }.ifEmpty { e.itens },
+        forma = forma,
+        contaId = contaId,
+        modo = modo,
+        parcelas = parcelas,
+        dividirCom = dividirCom,
+        compartilhado = compartilhado,
+        maisOpcoes = maisOpcoes,
+        reciboId = reciboId,
+    )
+
+    companion object {
+        fun de(e: EstadoDoFormulario) = RascunhoDoGasto(
+            e.data.toString(), e.estabelecimento, e.itens.map { Linha(it.chave, it.item, it.categoria, it.valor) }, e.forma, e.contaId,
+            e.modo, e.parcelas, e.moedaDaCompra, e.dividirCom, e.compartilhado, e.maisOpcoes, e.reciboId,
+        )
     }
 }
 
