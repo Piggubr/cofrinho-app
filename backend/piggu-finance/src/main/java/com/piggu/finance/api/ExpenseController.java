@@ -65,8 +65,8 @@ public class ExpenseController {
     }
 
     public record ExtratoRequest(
-            @NotBlank(message = "O arquivo esta vazio.")
-            @Size(max = 2_000_000, message = "Arquivo grande demais (maximo 2 MB).") String conteudo,
+            @NotBlank(message = "O arquivo está vazio.")
+            @Size(max = 2_000_000, message = "Arquivo grande demais (máximo 2 MB).") String conteudo,
             UUID contaId) {
     }
 
@@ -81,7 +81,7 @@ public class ExpenseController {
 
     public record ImportRequest(
             UUID contaId,
-            @NotEmpty(message = "Escolha ao menos um lancamento.")
+            @NotEmpty(message = "Escolha ao menos um lançamento.")
             @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas) {
     }
 
@@ -100,7 +100,7 @@ public class ExpenseController {
     }
 
     public record LinhasRequest(
-            @NotEmpty(message = "Nenhum lancamento para revisar.")
+            @NotEmpty(message = "Nenhum lançamento para revisar.")
             @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas,
             UUID contaId) {
     }

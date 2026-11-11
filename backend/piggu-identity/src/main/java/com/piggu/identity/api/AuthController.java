@@ -195,7 +195,7 @@ public class AuthController {
             return ResponseEntity.ok(servico.renovar(doCorpo, userAgent));
         }
         if (cookie == null || cookie.isBlank()) {
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
+            throw new UnauthorizedException("Sua sessão venceu. Entre novamente.");
         }
         return comCookie(servico.renovar(cookie, userAgent));
     }

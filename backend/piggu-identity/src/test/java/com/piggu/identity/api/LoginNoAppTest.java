@@ -66,7 +66,7 @@ class LoginNoAppTest extends PostgresIntegrationTest {
     @Test
     @DisplayName("cancelado no Google ou token recusado: a pagina so devolve ao app, sem codigo")
     void semCodigo() throws Exception {
-        given(google.verificar("falso", DESAFIO)).willThrow(new UnauthorizedException("Login Google invalido para este site."));
+        given(google.verificar("falso", DESAFIO)).willThrow(new UnauthorizedException("Login Google inválido para este site."));
 
         for (String[] campos : new String[][]{{"error", "access_denied"}, {"id_token", "falso"}}) {
             String pagina = mockMvc.perform(post("/api/auth/google/app")

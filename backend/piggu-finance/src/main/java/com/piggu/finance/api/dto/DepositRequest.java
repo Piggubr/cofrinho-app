@@ -19,7 +19,7 @@ public record DepositRequest(
         @DataDeLancamento
         LocalDate data,
 
-        @NotNull(message = "Digite um valor de deposito valido.")
+        @NotNull(message = "Digite um valor de depósito válido.")
         @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
         @DecimalMax(value = Valores.MAXIMO_DE_ENTRADA, message = Valores.ACIMA_DO_MAXIMO_DE_ENTRADA)
         BigDecimal valor,

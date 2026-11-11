@@ -162,7 +162,7 @@ class PluggyClientTest {
 
         assertThatThrownBy(() -> cliente.criarConnectToken("u"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("nao esta configurada");
+                .hasMessageContaining("não está configurada");
         pluggy.verify();
     }
 

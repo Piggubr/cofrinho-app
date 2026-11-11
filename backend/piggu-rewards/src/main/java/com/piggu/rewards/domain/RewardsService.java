@@ -68,12 +68,12 @@ public class RewardsService {
     public CoinBalanceResponse ajustar(CoinAdjustRequest pedido, UUID responsavel) {
         int valor = pedido.valor();
         if (valor == 0) {
-            throw new BusinessException("Digite uma quantidade valida de Fofocoins.");
+            throw new BusinessException("Digite uma quantidade válida de Fofocoins.");
         }
 
         int atual = lancamentos.saldo();
         if (atual + valor < 0) {
-            throw new BusinessException("O saldo nao pode ficar negativo.");
+            throw new BusinessException("O saldo não pode ficar negativo.");
         }
 
         lancamentos.save(new CoinEntry(valor, Texto.limitar(pedido.motivo(), 200), responsavel));
@@ -104,7 +104,7 @@ public class RewardsService {
     @Transactional
     public PrizeResponse atualizarPremio(UUID id, PrizeRequest pedido, UUID responsavel) {
         Prize premio = premios.findById(id)
-                .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Prêmio não encontrado."));
         premio.atualizar(
                 Texto.limitar(pedido.nome(), 100),
                 Texto.limitar(pedido.descricao(), 300),
@@ -118,7 +118,7 @@ public class RewardsService {
     @Transactional
     public void excluirPremio(UUID id) {
         Prize premio = premios.findById(id)
-                .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Prêmio não encontrado."));
         // Resgates apontam para o premio, entao ele nunca e apagado de verdade:
         // desativar preserva o historico e some da lista de resgate do mesmo jeito.
         premio.atualizar(premio.getName(), premio.getDescription(), premio.getPrice(), false, TrilhaDeAuditoria.SISTEMA);
@@ -135,15 +135,15 @@ public class RewardsService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public RedemptionResponse resgatar(UUID premioId, UUID usuarioId) {
         Prize premio = premios.findById(premioId)
-                .orElseThrow(() -> new NotFoundException("Premio nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Prêmio não encontrado."));
 
         if (!premio.isActive()) {
-            throw new BusinessException("Este premio nao esta disponivel.");
+            throw new BusinessException("Este prêmio não está disponível.");
         }
 
         int saldoAtual = lancamentos.saldo();
         if (saldoAtual < premio.getPrice()) {
-            throw new BusinessException("Voce ainda nao possui Fofocoins suficientes.");
+            throw new BusinessException("Você ainda não possui Fofocoins suficientes.");
         }
 
         CoinEntry debito = lancamentos.save(new CoinEntry(

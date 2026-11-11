@@ -75,7 +75,7 @@ class ExchangeRateServiceTest {
 
         assertThatThrownBy(() -> servico.consultar("EUR", "XAU"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("nao tem cotacao");
+                .hasMessageContaining("não tem cotação");
     }
 
     @Test

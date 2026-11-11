@@ -54,7 +54,7 @@ class ApiExceptionHandlerTest {
         mockMvc.perform(patch("/teste/somente-get"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.codigo").value("PEDIDO_INVALIDO"))
-                .andExpect(jsonPath("$.erro").value("Esta operacao nao existe neste endereco."));
+                .andExpect(jsonPath("$.erro").value("Esta operação não existe neste endereço."));
     }
 
     @Test
@@ -62,7 +62,7 @@ class ApiExceptionHandlerTest {
     void erroDeNegocioMantemMensagem() throws Exception {
         mockMvc.perform(get("/teste/negocio"))
                 .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.erro").value("O saldo nao pode ficar negativo."))
+                .andExpect(jsonPath("$.erro").value("O saldo não pode ficar negativo."))
                 .andExpect(jsonPath("$.codigo").value("BusinessException"));
     }
 
@@ -71,7 +71,7 @@ class ApiExceptionHandlerTest {
     void naoEncontradoDevolve404() throws Exception {
         mockMvc.perform(get("/teste/ausente"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.erro").value("Gasto nao encontrado."));
+                .andExpect(jsonPath("$.erro").value("Gasto não encontrado."));
     }
 
     @Test
@@ -164,12 +164,12 @@ class ApiExceptionHandlerTest {
 
         @GetMapping("/negocio")
         String negocio() {
-            throw new BusinessException("O saldo nao pode ficar negativo.");
+            throw new BusinessException("O saldo não pode ficar negativo.");
         }
 
         @GetMapping("/ausente")
         String ausente() {
-            throw new NotFoundException("Gasto nao encontrado.");
+            throw new NotFoundException("Gasto não encontrado.");
         }
 
         @GetMapping("/duplicado")

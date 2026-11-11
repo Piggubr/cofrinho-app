@@ -93,7 +93,7 @@ public class TesseractOcr {
      */
     private static Path temporario(String sufixo) throws IOException {
         if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-            throw new IOException("sistema de arquivos sem permissao POSIX");
+            throw new IOException("sistema de arquivos sem permissão POSIX");
         }
         return Files.createTempFile("recibo-", sufixo, SO_O_DONO);
     }

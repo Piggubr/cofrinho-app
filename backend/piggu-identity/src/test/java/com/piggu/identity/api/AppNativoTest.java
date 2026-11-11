@@ -178,7 +178,7 @@ class AppNativoTest extends PostgresIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         given(apple.verificar(anyString(), anyString())).willThrow(new BusinessException(
-                "O login com a Apple ainda nao esta disponivel.", HttpStatus.NOT_IMPLEMENTED, "EM_BREVE"));
+                "O login com a Apple ainda não está disponível.", HttpStatus.NOT_IMPLEMENTED, "EM_BREVE"));
         mockMvc.perform(post("/api/auth/apple").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"idToken\":\"t\",\"nonce\":\"n\"}"))
                 .andExpect(status().isNotImplemented())

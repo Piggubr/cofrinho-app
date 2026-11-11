@@ -111,7 +111,7 @@ public class ExpenseService {
 
         // A conta precisa ser da familia: o filtro do tenant faz o findById nao achar a dos outros.
         PaymentAccount conta = pedido.contaId() == null ? null : contas.findById(pedido.contaId())
-                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Conta ou cartão não encontrado."));
         // Sem escolha, o gasto segue a conta: o cartao do casal compartilha o que passa nele.
         boolean compartilhado = pedido.compartilhado() != null ? pedido.compartilhado()
                 : conta != null && conta.isShared();
@@ -229,7 +229,7 @@ public class ExpenseService {
     @Transactional
     public int importar(List<LinhaImportada> linhas, UUID contaId, UUID usuarioId) {
         PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
-                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Conta ou cartão não encontrado."));
         boolean compartilhado = conta != null && conta.isShared();
         List<String> ids = linhas.stream().map(LinhaImportada::idExterno).toList();
         Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportadosSemConta(ids)
@@ -358,7 +358,7 @@ public class ExpenseService {
 
     private Expense buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Gasto nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Gasto não encontrado."));
     }
 
     /** Gasto dividido ou compartilhado aparece para os outros, mas so quem lancou apaga. */

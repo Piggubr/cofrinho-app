@@ -15,7 +15,7 @@ public record MonthlyGoalRequest(
         @Pattern(regexp = Meses.FORMATO, message = Meses.INVALIDO)
         String mes,
 
-        @NotNull(message = "Digite um valor valido para a meta.")
+        @NotNull(message = "Digite um valor válido para a meta.")
         @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
         @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         BigDecimal limite

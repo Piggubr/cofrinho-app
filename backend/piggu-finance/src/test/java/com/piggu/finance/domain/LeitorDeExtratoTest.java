@@ -81,7 +81,7 @@ class LeitorDeExtratoTest {
         assertThat(linhas).hasSize(1);
         assertThat(linhas.get(0).valor()).isEqualByComparingTo("12.50");
         assertThatThrownBy(() -> LeitorDeExtrato.ler("data;descricao;valor\n;Padaria;-1,00\n"))
-                .isInstanceOf(BusinessException.class).hasMessageContaining("nao pode ser lida");
+                .isInstanceOf(BusinessException.class).hasMessageContaining("não pode ser lida");
     }
 
     @Test

@@ -53,7 +53,7 @@ public class IncomeController {
 
     public record IncomeRequest(
             @NotNull(message = "Escolha a data da receita.") @DataDeLancamento LocalDate data,
-            @NotBlank(message = "Digite a descricao.") @Size(max = 200, message = "A descricao e longa demais.") String descricao,
+            @NotBlank(message = "Digite a descrição.") @Size(max = 200, message = "A descrição é longa demais.") String descricao,
             @Size(max = 50) String categoria,
             @NotNull(message = "Digite o valor.")
             @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
@@ -104,7 +104,7 @@ public class IncomeController {
                     pedido.segundoValor());
         }
         if (pedido.segundoDia() != null || pedido.segundoValor() != null) {
-            throw new BusinessException("Duas parcelas so na receita que entra todo mes.");
+            throw new BusinessException("Duas parcelas só na receita que entra todo mês.");
         }
         return servico.criar(pedido.data(), pedido.descricao(), pedido.categoria(), pedido.valor(),
                 usuario.id(), compartilhado);

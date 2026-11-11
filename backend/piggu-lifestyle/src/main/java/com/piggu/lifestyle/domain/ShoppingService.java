@@ -66,14 +66,14 @@ public class ShoppingService {
     public void excluir(UUID id, CurrentUser usuario) {
         ShoppingItem item = buscar(id);
         if (!usuario.podeGerenciar(item.getUserId())) {
-            throw new ForbiddenException("Voce nao pode apagar este item.");
+            throw new ForbiddenException("Você não pode apagar este item.");
         }
         repositorio.delete(item);
     }
 
     private ShoppingItem buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Item nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Item não encontrado."));
     }
 
     private String normalizarLista(String lista) {

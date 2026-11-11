@@ -10,11 +10,11 @@ public record FeedPhotoRequest(
         @Pattern(regexp = Meses.FORMATO, message = Meses.INVALIDO)
         String mesKey,
 
-        @NotBlank(message = "A foto nao chegou.")
-        @Size(max = 7_000_000, message = "A foto e grande demais. O limite e de 5 MB.")
+        @NotBlank(message = "A foto não chegou.")
+        @Size(max = 7_000_000, message = "A foto é grande demais. O limite é de 5 MB.")
         String imageBase64,
 
-        @Pattern(regexp = "image/[a-z0-9.+-]{1,30}", message = "Formato de imagem nao aceito.")
+        @Pattern(regexp = "image/[a-z0-9.+-]{1,30}", message = "Formato de imagem não aceito.")
         String mimeType
 ) {
 }

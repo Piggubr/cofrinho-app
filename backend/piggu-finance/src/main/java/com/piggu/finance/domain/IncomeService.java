@@ -112,7 +112,7 @@ public class IncomeService {
     }
 
     private Income buscar(UUID id) {
-        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Receita nao encontrada."));
+        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Receita não encontrada."));
     }
 
     static String categoria(String informada) {

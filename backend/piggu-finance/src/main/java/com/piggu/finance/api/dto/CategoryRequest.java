@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CategoryRequest(
-        @NotBlank(message = "Digite um nome valido.")
-        @Size(min = 2, max = 50, message = "Digite um nome valido.")
+        @NotBlank(message = "Digite um nome válido.")
+        @Size(min = 2, max = 50, message = "Digite um nome válido.")
         String nome
 ) {
 }

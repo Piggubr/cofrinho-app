@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
  * Campos nulos ficam como estao.
  */
 public record UpdateUserRequest(
-        @Size(max = 120, message = "O apelido e' longo demais.") String apelido,
+        @Size(max = 120, message = "O apelido é longo demais.") String apelido,
         PigguRole role,
         Boolean ativo
 ) {

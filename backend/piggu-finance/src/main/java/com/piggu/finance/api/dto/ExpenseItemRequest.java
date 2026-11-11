@@ -23,7 +23,7 @@ import java.math.BigDecimal;
  */
 public record ExpenseItemRequest(
         @NotBlank(message = "Existe um item sem nome.")
-        @Size(max = 200, message = "O nome do item e longo demais.")
+        @Size(max = 200, message = "O nome do item é longo demais.")
         String item,
 
         @Size(max = 50)
@@ -38,7 +38,7 @@ public record ExpenseItemRequest(
         @Size(max = 30)
         String tipo,
 
-        @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.")
+        @Pattern(regexp = "[A-Z]{3}", message = "Moeda inválida.")
         String moedaOriginal,
 
         @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)

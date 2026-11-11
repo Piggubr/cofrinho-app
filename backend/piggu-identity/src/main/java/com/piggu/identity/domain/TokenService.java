@@ -160,7 +160,7 @@ public class TokenService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException erro) {
-            throw new IllegalStateException("SHA-256 indisponivel nesta JVM.", erro);
+            throw new IllegalStateException("SHA-256 indisponível nesta JVM.", erro);
         }
     }
 

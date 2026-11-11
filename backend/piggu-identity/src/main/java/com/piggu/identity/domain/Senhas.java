@@ -36,15 +36,15 @@ public class Senhas {
                     HttpStatus.UNPROCESSABLE_CONTENT, "SENHA_FRACA");
         }
         if (senha.getBytes(StandardCharsets.UTF_8).length > MAXIMO_EM_BYTES) {
-            throw new BusinessException("A senha pode ter no maximo " + MAXIMO_EM_BYTES + " caracteres.",
+            throw new BusinessException("A senha pode ter no máximo " + MAXIMO_EM_BYTES + " caracteres.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "SENHA_FRACA");
         }
         if (senha.chars().noneMatch(Character::isLetter) || senha.chars().noneMatch(Character::isDigit)) {
-            throw new BusinessException("Use letras e numeros na senha.",
+            throw new BusinessException("Use letras e números na senha.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "SENHA_FRACA");
         }
         if (email != null && senha.trim().equalsIgnoreCase(email.trim())) {
-            throw new BusinessException("A senha nao pode ser o seu e-mail.",
+            throw new BusinessException("A senha não pode ser o seu e-mail.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "SENHA_FRACA");
         }
     }

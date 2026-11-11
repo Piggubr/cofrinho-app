@@ -87,7 +87,7 @@ public class OrcamentoService {
     @Transactional
     public void excluir(UUID id) {
         CategoryBudget orcamento = orcamentos.findById(id)
-                .orElseThrow(() -> new NotFoundException("Orcamento nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Orçamento não encontrado."));
         orcamentos.delete(orcamento);
         trilha.apagou("orcamento", id, Resumos.orcamento(orcamento.getCategory(), orcamento.getLimitAmount()));
     }

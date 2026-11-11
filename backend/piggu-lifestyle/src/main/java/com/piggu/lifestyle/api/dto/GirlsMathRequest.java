@@ -20,10 +20,10 @@ import java.time.LocalDate;
  */
 public record GirlsMathRequest(
         @NotBlank(message = "Digite o produto.")
-        @Size(max = 120, message = "O nome do produto e longo demais.")
+        @Size(max = 120, message = "O nome do produto é longo demais.")
         String produto,
 
-        @Size(max = 120, message = "O nome da loja e longo demais.")
+        @Size(max = 120, message = "O nome da loja é longo demais.")
         String loja,
 
         @NotNull(message = "Digite o valor.")
@@ -33,10 +33,10 @@ public record GirlsMathRequest(
 
         LocalDate data,
 
-        @Size(max = 7_000_000, message = "A foto e grande demais. O limite e de 5 MB.")
+        @Size(max = 7_000_000, message = "A foto é grande demais. O limite é de 5 MB.")
         String imageBase64,
 
-        @Pattern(regexp = "image/[a-z0-9.+-]{1,30}", message = "Formato de imagem nao aceito.")
+        @Pattern(regexp = "image/[a-z0-9.+-]{1,30}", message = "Formato de imagem não aceito.")
         String mimeType
 ) {
 }

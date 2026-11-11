@@ -186,7 +186,7 @@ class AuthServiceTest extends PostgresIntegrationTest {
     void refreshDesconhecido() {
         assertThatThrownBy(() -> auth.renovar("token-que-nunca-existiu", null))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("sessao venceu");
+                .hasMessageContaining("sessão venceu");
     }
 
     @Test

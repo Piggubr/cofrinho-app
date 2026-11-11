@@ -16,11 +16,11 @@ import java.time.LocalDate;
  * vira tambem um gasto naquele dia.</p>
  */
 public record NoteRequest(
-        @NotBlank(message = "Digite o titulo da nota.")
-        @Size(max = 150, message = "O titulo e longo demais.")
+        @NotBlank(message = "Digite o título da nota.")
+        @Size(max = 150, message = "O título é longo demais.")
         String titulo,
 
-        @Size(max = 1500, message = "O texto da nota e longo demais.")
+        @Size(max = 1500, message = "O texto da nota é longo demais.")
         String texto,
 
         LocalDate data,

@@ -58,7 +58,7 @@ public class AuthService {
     static final Duration TRAVA_DA_SENHA = Duration.ofMinutes(15);
     private static final int ORIGENS_ANTES_DE_LIMPAR = 50_000;
 
-    private static final String SENHA_ERRADA = "E-mail ou senha incorretos. Se voce criou a conta pelo Google, "
+    private static final String SENHA_ERRADA = "E-mail ou senha incorretos. Se você criou a conta pelo Google, "
             + "entre pelo Google. Muitas tentativas seguidas bloqueiam a senha por 15 minutos.";
 
     /**
@@ -336,7 +336,7 @@ public class AuthService {
     @Transactional(noRollbackFor = BusinessException.class)
     public UserResponse definirSenha(java.util.UUID usuarioId, String senhaAtual, String novaSenha, String refreshAtual) {
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         Instant agora = Instant.now();
         if (conta.temSenha()) {
             if (conta.senhaTravada(agora)) {
@@ -346,7 +346,7 @@ public class AuthService {
             if (!senhas.confere(senhaAtual, conta.getPasswordHash())) {
                 conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
                 usuarios.save(conta);
-                throw new BusinessException("A senha atual nao confere.", HttpStatus.UNPROCESSABLE_CONTENT,
+                throw new BusinessException("A senha atual não confere.", HttpStatus.UNPROCESSABLE_CONTENT,
                         "SENHA_ATUAL_ERRADA");
             }
         }
@@ -369,17 +369,17 @@ public class AuthService {
     @Transactional
     public TokenResponse renovar(String refreshToken, String userAgent) {
         RefreshSession sessao = sessoes.findByTokenHash(tokens.hash(refreshToken))
-                .orElseThrow(() -> new UnauthorizedException("Sua sessao venceu. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Sua sessão venceu. Entre novamente."));
 
         if (!sessao.estaValida()) {
             // Revogacao em transacao propria: a excecao abaixo desfaz esta transacao,
             // e um DELETE feito aqui dentro seria desfeito junto.
             revogador.revogar(sessao.getId());
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
+            throw new UnauthorizedException("Sua sessão venceu. Entre novamente.");
         }
 
         UserAccount conta = usuarios.findById(sessao.getUserId())
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
 
         if (!conta.isActive()) {
             log.warn("Renovacao recusada: conta desativada id={}", conta.getId());
@@ -403,7 +403,7 @@ public class AuthService {
     public UserResponse perfil(java.util.UUID usuarioId) {
         return usuarios.findById(usuarioId)
                 .map(conta -> UserResponse.de(conta, familias.daConta(conta)))
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
     }
 
     @Transactional
@@ -412,7 +412,7 @@ public class AuthService {
         String conversao = Moedas.validar(pedido.moedaConversao());
         String cotacao = pedido.moedaCotacao() == null ? null : Moedas.validar(pedido.moedaCotacao());
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         conta.alterarPreferencias(moeda, cotacao, conversao, pedido.mostrarCotacao(), fusoValido(pedido.fuso()));
         return UserResponse.de(conta, familias.daConta(conta));
     }
@@ -420,7 +420,7 @@ public class AuthService {
     @Transactional
     public UserResponse escolherModulos(java.util.UUID usuarioId, List<String> modulos) {
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         conta.escolherModulos(modulos);
         return UserResponse.de(conta, familias.daConta(conta));
     }
@@ -434,7 +434,7 @@ public class AuthService {
     public UserResponse escolherCompartilhamento(java.util.UUID usuarioId, boolean mostrarTudoAoParceiro,
                                                  boolean compartilharPorPadrao) {
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         if (mostrarTudoAoParceiro) {
             FamiliaService.exigirEmailConfirmado(conta);
             UserAccount parceiro = parceiroDe(conta).orElseThrow(() -> new BusinessException(
@@ -465,13 +465,13 @@ public class AuthService {
     @Transactional(readOnly = true)
     public void exigirEmailConfirmado(java.util.UUID usuarioId) {
         FamiliaService.exigirEmailConfirmado(usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente.")));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente.")));
     }
 
     @Transactional
     public UserResponse escolherAvisos(java.util.UUID usuarioId, boolean porEmail, boolean porPush) {
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         // Aviso por e-mail so para endereco provado: o Piggu nao manda texto de ninguem a quem nao pediu (D-157).
         if (porEmail && !conta.isAlertsByEmail()) {
             FamiliaService.exigirEmailConfirmado(conta);
@@ -493,7 +493,7 @@ public class AuthService {
         }
         String numero = "+" + digitos;
         if ((!comCodigo && !Paises.BRASIL.equals(pais)) || !numero.matches("\\+[1-9]\\d{7,14}")) {
-            throw new BusinessException("Confira o celular. Fora do Brasil, comece com + e o codigo do pais.",
+            throw new BusinessException("Confira o celular. Fora do Brasil, comece com + e o código do pais.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "TELEFONE_INVALIDO");
         }
         return numero;
@@ -506,7 +506,7 @@ public class AuthService {
         try {
             return java.time.ZoneId.of(fuso.trim()).getId();
         } catch (java.time.DateTimeException invalido) {
-            throw new com.piggu.common.error.BusinessException("Fuso horario desconhecido: " + Texto.limitar(fuso, 50));
+            throw new com.piggu.common.error.BusinessException("Fuso horário desconhecido: " + Texto.limitar(fuso, 50));
         }
     }
 
