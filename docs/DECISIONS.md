@@ -187,6 +187,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-181](#d-181-o-app-capacitor-sai-do-repositório-o-site-mantém-a-ponte-para-quem-ainda-tem-ele-instalado) | O app Capacitor sai do repositório; o site mantém a ponte para quem ainda tem ele instalado | Valendo |
 | [D-182](#d-182-rotas-de-admin-pedem-o-código-do-app-autenticador) | Rotas de ADMIN pedem o código do app autenticador | Valendo |
 | [D-183](#d-183-a-tertiary-do-chiclete-no-android-sai-da-paleta-rosa) | A tertiary do Chiclete no Android sai da paleta rosa | Valendo |
+| [D-189](#d-189-valor-a-partir-de-r-001-e-data-entre-2000-e-hoje--2-anos) | Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos | Valendo |
+| [D-190](#d-190-projeção-do-mês-com-os-fixos-uma-vez-e-comparação-até-o-mesmo-dia) | Projeção do mês com os fixos uma vez e comparação até o mesmo dia | Valendo |
+| [D-191](#d-191-gateway-responde-503-ou-504-com-servico_indisponivel-com-prazo-por-rota-e-o-status-do-banking-desligado-sai-dele) | Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele | Valendo |
+| [D-192](#d-192-receita-com-iddoenvio-mês-validado-dividir-só-com-a-família-fotos-com-dono-certo-e-mensagens-com-acento) | Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento | Valendo |
 
 ---
 
@@ -1916,3 +1920,54 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: mudar a data de todas as parcelas juntas, que mexe em meses que a pessoa não está vendo.
 - Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)
+
+## D-189: Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (mínimo, tetos e faixa de datas); o assistente, dentro da autonomia recebida, no detalhe da importação
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-008, BUG-023, C-5) achou o gasto de R$ 0,00 aceito pela API e pelos três apps, enquanto o depósito e a receita exigiam mais que zero; a edição do gasto e a receita sem teto nos apps; e 01/01/1900 e 31/12/2099 aceitos sem aviso em gasto e receita. As mensagens vinham cruas e sem acento ("O valor e alto demais.").
+- Decisão: todo campo de valor vai de R$ 0,01 até o teto: 1.000.000,00 no gasto (lançar, editar, item de recibo e de nota, linha de importação, conta fixa), no orçamento, na meta do mês, no limite e no valor do evento da nota; 10.000.000,00 na receita, no valor a receber e no depósito. Os textos são "Digite um valor a partir de R$ 0,01." e "O valor máximo é R$ 1.000.000,00." (ou R$ 10.000.000,00), iguais nos apps. Gasto (lançar e editar), receita, valor a receber e depósito só aceitam data de 01/01/2000 até hoje em Brasília mais 2 anos, com "Confira a data: use uma data entre 2000 e <ano>." no campo `data`. Na importação de extrato, a linha de valor zero sai da prévia e da gravação em vez de derrubar o arquivo.
+- Alternativas: aceitar zero só no item de nota, que deixava duas regras para o mesmo campo; recusar o extrato inteiro com uma linha zero, que trava a importação por causa de um estorno.
+- Consequências: o app que mandar 0 recebe 400 `VALIDACAO`; os apps conferem o mesmo mínimo e teto antes de enviar e pedem confirmação para data futura ou com mais de um ano. O teto da data anda com o calendário. As constantes ficam num lugar só (`Valores`).
+- Onde ver: `backend/piggu-common/.../web/Valores.java`, `DataDeLancamento.java`, os DTOs do finance e do lifestyle, `ExpenseService.previa` e `importar`
+
+## D-190: Projeção do mês com os fixos uma vez e comparação até o mesmo dia
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026
+- Registrado por: Claude
+- Contexto: a projeção levava tudo pelo ritmo (gasto até hoje ÷ dia × dias do mês). No dia 11, o aluguel lançado no dia 5 entrava quase três vezes e a projeção passava muito do limite (C-2). A variação comparava o mês pela metade com o mês anterior inteiro.
+- Decisão: no mês corrente, `projecaoDeGastos` = gastos do tipo `Fixo` do mês, uma vez, + variáveis até hoje ÷ dia de hoje × dias do mês + variáveis já lançados para depois de hoje, uma vez (a projeção nunca fica abaixo do que já foi lançado). O `ResumoDoMes` ganha `gastosFixos` (todo mês), `gastosAteMesmoDiaAnterior` (mês anterior do dia 1 ao mesmo dia de hoje, limitado ao último dia dele) e `variacaoAteMesmoDia` (% contra esse valor; nula se ele for zero). Os dois últimos e a projeção são nulos fora do mês corrente.
+- Alternativas: projetar só pelas contas fixas cadastradas, que deixa de fora o gasto marcado Fixo à mão.
+- Consequências: só acrescenta campos (D-059). Os apps usam `variacaoAteMesmoDia` no mês corrente ("contra o mesmo dia de <mês anterior>") e `variacao` nos meses fechados; sem os campos (backend antigo), seguem como antes. Quatro somas a mais no mês corrente.
+- Onde ver: `backend/piggu-finance/.../domain/RelatorioService.java` (`resumo`, `projetar`, `mesmoDia`), `ExpenseRepository.somarFixosNoPeriodo`
+
+## D-191: Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (503, 504 e o banking desligado); o assistente, dentro da autonomia recebida, nos prazos
+- Registrado por: Claude
+- Contexto: serviço fora do ar virava 500 fora do `ApiError` (BUG-005), e o Painel gerava um 500 a cada abertura porque o banking não sobe com o Open Finance desligado. Sem prazo, um serviço travado deixava a chamada pendurada por mais de 50 s (BUG-006).
+- Decisão: conexão recusada, nome que não resolve ou conexão fechada no meio viram 503; tempo esgotado vira 504; os dois com o corpo `ApiError` e o código `SERVICO_INDISPONIVEL` ("Essa parte do Piggu está fora do ar agora. Tente de novo em instantes."). A conexão tem 2 s e a resposta 20 s, acima dos 15 s que o lifestyle espera pelo TMDB e pelo catálogo. Prazo maior só onde é lento de verdade: 90 s no assistente, na leitura de recibo e na importação de extrato (Gemini até 45 s e OCR até 20 s); 120 s em exportar e apagar a conta (o identity chama cada serviço em sequência, até 30 s cada); 40 s no banking (Pluggy até 30 s). Com `PIGGU_OPEN_FINANCE=false`, o gateway responde `GET /api/banking/status` com `200 {"habilitado": false}` sem chamar o banking; o Compose passa a mesma variável ao gateway.
+- Alternativas: os apps pararem de chamar o status com o Open Finance desligado, que precisa de uma versão nova de cada app e não ajuda quem não atualizar; um prazo só, grande, que volta a deixar a tela pendurada.
+- Consequências: as rotas lentas são rotas próprias no gateway (`finance-lento`, `identity-lento`), que aparecem separadas nas métricas por rota. O 504 não desfaz o que o serviço já gravou: o app tenta de novo com o mesmo `idDoEnvio`. Religar o Open Finance pede `PIGGU_OPEN_FINANCE=true` também no gateway (já vem do `.env`).
+- Onde ver: `backend/piggu-gateway/.../ServicoForaDoAr.java`, `BankingDesligadoGlobalFilter.java`, `application.yml` (`httpclient`, rotas), `ServicoForaDoArTest`
+
+## D-192: Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (receita sem duplicar e corrigir os achados); o assistente, dentro da autonomia recebida, nos detalhes técnicos
+- Registrado por: Claude
+- Contexto: a auditoria achou a receita sem proteção contra reenvio (BUG-011), `2026-13` aceito como mês e meta do mês sem mês virando 409 (BUG-007), `dividirCom` aceitando ids de outra família (BUG-022), o volume de fotos nascendo com dono root (BUG-001), o script de init sem permissão de execução (BUG-030), o `--premium` dos dados de exemplo sem assinante (BUG-031) e 112 mensagens sem acento (BUG-009). Também o token de conta excluída aceito por até 5 min (BUG-021).
+- Decisão:
+  - `POST /api/incomes` aceita `idDoEnvio`, com a mesma regra do gasto (D-073), na tabela `income_submissions`.
+  - Mês é `AAAA-MM` com o mês de 01 a 12 (`Meses.FORMATO`), no corpo e na URL; a meta do mês e a foto do feed exigem o mês.
+  - O finance não tem a lista de membros (ela mora no identity) e não chama outro serviço no caminho de uma requisição (D-003). Então cada chamada com token grava a pessoa na família do token (`household_people`, que nasce com quem já tem dado na família), e o `dividirCom` só aceita quem está lá: 400 "Só dá para dividir com pessoas da sua família.".
+  - O Dockerfile cria `/dados/fotos` com dono `piggu` antes do `USER piggu`, e os `.sh` do Git têm o bit de execução.
+  - O `dados-de-exemplo.sh --premium` grava a conta como assinante do plano individual, e o `GET /api/family` usa a regra do `planoPara`: a casa só é PREMIUM se a assinatura cobre alguém.
+  - Toda mensagem que chega ao usuário vem acentuada, e o `scripts/conferir-acentos.sh` (agora em Python, que também roda no Mac) falha se uma string Java do backend voltar a ter palavra comum sem acento.
+  - Risco aceito (BUG-021): o access token de uma conta excluída continua aceito nos serviços de domínio até vencer, no máximo 5 min. Os serviços validam o token sozinhos pelo JWKS, sem chamar o identity (D-003), e o refresh da conta já não renova. Uma lista de tokens revogados exigiria uma chamada ou um cache compartilhado em toda requisição, para fechar uma janela de 5 min em que a pessoa que pediu a exclusão continua com o próprio token.
+- Alternativas: pedir os membros ao identity a cada `dividirCom`, que cria a primeira chamada entre serviços no caminho do dia a dia; recusar só ids que não aparecem em nenhum gasto, que barra o parceiro novo que ainda não lançou nada.
+- Consequências: uma pessoa que entrou na família e nunca abriu o app ainda não pode entrar numa divisão; ao abrir, passa a poder. Quem sai da família leva a linha junto (dado pessoal). Volume de fotos que já nasceu com dono root (servidor antigo) não muda com a imagem nova: conferir com `docker exec <media> ls -ld /dados/fotos` e, se for root, `chown` uma vez. Testes que comparam texto passaram a usar a mensagem acentuada.
+- Onde ver: `backend/piggu-finance/.../domain/IncomeService.umaVezSo`, `PessoasDaFamilia.java`, `V28__envio_unico_de_receitas.sql`, `V29__pessoas_da_familia.sql`, `backend/piggu-common/.../web/Meses.java`, `backend/Dockerfile`, `backend/scripts/dados-de-exemplo.sh`, `FamiliaResponse.java`, `scripts/conferir-acentos.sh`
