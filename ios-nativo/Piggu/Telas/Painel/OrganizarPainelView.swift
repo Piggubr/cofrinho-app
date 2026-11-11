@@ -31,7 +31,7 @@ struct OrganizarPainelView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Personalizar o Painel")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Pronto") { fechar() } }
             }

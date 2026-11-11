@@ -65,6 +65,9 @@ struct PrincipalView: View {
             .onChange(of: rota, initial: true) { _, nova in
                 abrir(nova)
             }
+            // A aba guardada pela janela (@SceneStorage) ganha do padrao: no iPad, que restaura a
+            // janela, o -PigguAba abria no Painel (IOS-13). O pedido explicito vale ao abrir.
+            .onAppear { if let pedida = Self.abaPedida { selecionar(pedida) } }
             // A aba guardada antes do D-164 pode ser receitas ou relatorios, que não estão mais na barra.
             .onChange(of: aba, initial: true) { _, nova in
                 if nova == .receitas || nova == .relatorios { selecionar(nova) }
@@ -211,11 +214,13 @@ struct PrincipalView: View {
 
     // Em Debug, `-PigguAba gastos` e `-PigguLancar YES` abrem direto numa tela (prints).
     #if DEBUG
-    private static var abaInicial: Aba {
-        UserDefaults.standard.string(forKey: "PigguAba").flatMap(Aba.init(rawValue:)) ?? .painel
+    private static var abaPedida: Aba? {
+        UserDefaults.standard.string(forKey: "PigguAba").flatMap(Aba.init(rawValue:))
     }
+    private static var abaInicial: Aba { abaPedida ?? .painel }
     private static var lancarAoAbrir: Bool { UserDefaults.standard.bool(forKey: "PigguLancar") }
     #else
+    private static let abaPedida: Aba? = nil
     private static let abaInicial = Aba.painel
     private static let lancarAoAbrir = false
     #endif
@@ -231,7 +236,11 @@ private extension View {
     /// O + flutua sobre a lista, acima da barra de abas; a lista ganha folga embaixo para o
     /// ultimo item nao ficar escondido atras dele.
     func comBotaoDeLancar(gasto: @escaping () -> Void, receita: @escaping () -> Void) -> some View {
-        contentMargins(.bottom, 88, for: .scrollContent)
+        // Folga no fim das listas pelo safe area (IOS-6): o contentMargins nao chegava nas
+        // listas de dentro das pilhas e o + cobria o ultimo valor.
+        safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: 80).allowsHitTesting(false).accessibilityHidden(true)
+        }
             .overlay(alignment: .bottomTrailing) {
                 BotaoDeLancar(gasto: gasto, receita: receita)
                     .popoverTip(Dicas.Lancar(), arrowEdge: .bottom)

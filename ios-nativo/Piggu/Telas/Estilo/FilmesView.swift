@@ -65,7 +65,7 @@ struct FilmesView: View {
                     ForEach(paraVer) { filme in
                         LinhaDoFilme(filme: filme) {
                             Button("Já assistimos") { Task { await alternar(filme) } }
-                                .buttonStyle(.bordered).controlSize(.small)
+                                .buttonStyle(.pilula).controlSize(.small)
                         }
                         .swipeActions { apagar(filme) }
                     }
@@ -127,7 +127,7 @@ struct FilmesView: View {
                     Text(sinopse).font(.sora(.footnote)).lineLimit(4)
                 }
                 Button(destaque ? "Adicionar à lista" : "Adicionar") { Task { await adicionar(filme) } }
-                    .buttonStyle(.bordered).controlSize(.small)
+                    .buttonStyle(.pilula).controlSize(.small)
             }
         }
         .padding(.vertical, 2)

@@ -73,7 +73,7 @@ struct FamiliaView: View {
                         Task { await executar(String(localized: "Convite recusado. Você continua vendo só o que lança.")) {
                             try await $0.recusarParceria() } }
                     }
-                    .buttonStyle(.bordered).disabled(ocupado)
+                    .buttonStyle(.pilula).disabled(ocupado)
                 }
             }
             .listRowBackground(paleta.suave)
@@ -100,9 +100,9 @@ struct FamiliaView: View {
                                    : pessoa.papel == .parceiro ? "Voltar a membro" : "Convidar para parceiro") {
                                 mudarPapel(pessoa)
                             }
-                            .buttonStyle(.bordered).controlSize(.small)
+                            .buttonStyle(.pilula).controlSize(.small)
                             Button("Remover", role: .destructive) { confirmacao = .remover(pessoa) }
-                                .buttonStyle(.bordered).controlSize(.small)
+                                .buttonStyle(.pilula).controlSize(.small)
                         }
                         .disabled(ocupado)
                     }
@@ -155,13 +155,13 @@ struct FamiliaView: View {
                         Button("Cancelar") {
                             Task { await executar(String(localized: "Convite cancelado.")) { try await $0.cancelarConvite(convite.id) } }
                         }
-                        .buttonStyle(.bordered).controlSize(.small)
+                        .buttonStyle(.pilula).controlSize(.small)
                     }
                 }
             } header: {
                 Text("Convidar alguém")
             } footer: {
-                Text("A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro lançam, use \"Convidar para parceiro\" na lista acima; vale quando a pessoa aceitar.")
+                Text("A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu par verem o que um e o outro lançam, use \"Convidar para parceiro\" na lista acima; vale quando a pessoa aceitar.")
             }
             .listRowBackground(paleta.superficie)
         } else {

@@ -57,7 +57,7 @@ struct BuscaView: View {
             .searchable(text: $termo, isPresented: $buscaAtiva, placement: .navigationBarDrawer(displayMode: .always),
                         prompt: Text("Gastos, lugares, filmes, compras e telas"))
             .navigationTitle("Buscar")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fechar") { fechar() }

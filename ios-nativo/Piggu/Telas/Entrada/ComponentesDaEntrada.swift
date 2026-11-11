@@ -177,7 +177,7 @@ struct CampoDeNascimento: View {
                     .environment(\.locale, Formatos.localidade)
                     .padding()
                     .navigationTitle("Data de nascimento")
-                    .navigationBarTitleDisplayMode(.inline)
+                    .tituloDaFolha()
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Cancelar") { escolhendo = false }
@@ -253,7 +253,7 @@ struct BotaoDeContorno: View {
 
     var body: some View {
         Button(titulo, role: papel, action: acao)
-            .buttonStyle(.bordered)
+            .buttonStyle(.pilula)
             .font(.sora(.subheadline, peso: .medium))
     }
 }

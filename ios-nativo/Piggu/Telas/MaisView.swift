@@ -9,6 +9,7 @@ struct MaisView: View {
 
     @Environment(Sessao.self) private var sessao
     @Environment(\.paleta) private var paleta
+    @Environment(\.abrirRota) private var abrirRota
     @State private var confirmandoSaida = false
 
     private var versao: String {
@@ -34,8 +35,11 @@ struct MaisView: View {
                             LadoALado(espaco: 14) {
                                 FotoDaPessoa(foto: usuario.foto, nome: usuario.nome, lado: 48)
                                 VStack(alignment: .leading, spacing: 2) {
+                                    // Encolhe em vez de quebrar a palavra no meio no texto grande (IOS-5).
                                     Text(usuario.nome).font(.sora(.headline, peso: .semibold))
+                                        .lineLimit(3).minimumScaleFactor(0.5)
                                     Text(usuario.email).font(.sora(.subheadline)).foregroundStyle(paleta.textoSuave)
+                                        .lineLimit(1).minimumScaleFactor(0.4)
                                 }
                             }
                             .padding(.vertical, 4)
@@ -48,9 +52,17 @@ struct MaisView: View {
                 }
 
                 TipView(Dicas.Planejar()).listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                grupo("Planejar", [.metas, .orcamento, .contasDoMes])
-                grupo("Contas", [.cartoes, .calendario])
-                Section("Conta") {
+                // Os grupos e a ordem do menu do site (shell.ts); o Planejar tem o mesmo da aba (BUG-027).
+                Section("Planejar") {
+                    Button { abrirRota(.aba(.relatorios)) } label: {
+                        Label("Relatórios", systemImage: "chart.bar.xaxis")
+                    }
+                    .foregroundStyle(paleta.texto)
+                    ForEach([TelaDoMais.metas, .orcamento, .contasDoMes], id: \.self) { link($0) }
+                }
+                .listRowBackground(paleta.superficie)
+                grupo("Cartões e datas", [.cartoes, .calendario])
+                Section("Família e plano") {
                     TipView(Dicas.Familia())
                     link(.familia)
                     if ehTitular {

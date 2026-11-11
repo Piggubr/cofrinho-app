@@ -124,3 +124,31 @@ struct BotaoDeLancar: View {
             .contentShape(Circle())
     }
 }
+
+/// O botao em pilula (o `.bordered` do sistema com a cor do Piggu), com contraste de 4,5:1: o
+/// `.bordered` pinta o fundo com a propria cor transparente e o texto rosa ficava abaixo disso
+/// (BUG-015). O destrutivo fica so com o contorno, que no fundo rosa-claro passa do 4,5:1.
+struct EstiloPilula: ButtonStyle {
+    @Environment(\.paleta) private var paleta
+    @Environment(\.isEnabled) private var ativo
+
+    func makeBody(configuration: Configuration) -> some View {
+        let destrutivo = configuration.role == .destructive
+        let cor = destrutivo ? paleta.perigo : paleta.primaria
+        configuration.label
+            .foregroundStyle(cor)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .frame(minHeight: 44)
+            .background {
+                Capsule().fill(destrutivo ? Color.clear : paleta.suave)
+                Capsule().strokeBorder(destrutivo ? cor : Color.clear, lineWidth: 1)
+            }
+            .contentShape(Capsule())
+            .opacity(ativo ? (configuration.isPressed ? 0.6 : 1) : 0.45)
+    }
+}
+
+extension ButtonStyle where Self == EstiloPilula {
+    static var pilula: EstiloPilula { EstiloPilula() }
+}

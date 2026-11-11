@@ -88,13 +88,18 @@ struct ContasECartoesView: View {
                             if let fatura = conta.faturaAberta {
                                 Text("Fatura aberta (\(Formatos.nomeDoMes(chave: fatura.mes))): \(Formatos.moeda(fatura.total))")
                                 if let ultima = fatura.ultimaCompra, let fechamento = fatura.fechamento {
+                                    // Informativo: na cor do texto, nao no rosa que lembra erro.
                                     Text("Compras até \(Formatos.dataCurta(ultima)) entram nesta fatura. A partir de \(Formatos.dataCurta(fechamento)), dia do fechamento, vão para a próxima.")
-                                        .foregroundStyle(paleta.primaria)
                                 }
                             }
                             if let fatura = conta.faturaAPagar {
                                 if fatura.paga == true {
                                     Text("Fatura de \(Formatos.nomeDoMes(chave: fatura.mes)) paga")
+                                } else if fatura.vencimento < Formatos.dia(Date()) {
+                                    // Data que ja passou nao e "ate": e o que venceu.
+                                    if fatura.total > 0 {
+                                        Text("Fatura de \(Formatos.nomeDoMes(chave: fatura.mes)): \(Formatos.moeda(fatura.total)), venceu em \(Formatos.dataCurta(fatura.vencimento))")
+                                    }
                                 } else {
                                     Text("A pagar: \(Formatos.moeda(fatura.total)) até \(Formatos.dataCurta(fatura.vencimento))")
                                 }
@@ -110,13 +115,13 @@ struct ContasECartoesView: View {
             HStack {
                 if conta.tipo == .cartao, let fatura = conta.faturaAberta {
                     Button("Ver fatura") { faturaAberta = FaturaNaTela(cartao: conta, mes: fatura.mes) }
-                        .buttonStyle(.bordered).controlSize(.small)
+                        .buttonStyle(.pilula).controlSize(.small)
                 }
                 if minha && temCompanhia {
                     Button(conta.compartilhado == true ? "Deixar só meu" : "Compartilhar") {
                         Task { await executar { try await $0.compartilharConta(conta.id, !(conta.compartilhado ?? false)) } }
                     }
-                    .buttonStyle(.bordered).controlSize(.small)
+                    .buttonStyle(.pilula).controlSize(.small)
                 }
             }
         }
@@ -185,7 +190,7 @@ private struct FaturaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle(cartao.nome)
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Fechar") { fechar() } }
             }
@@ -218,7 +223,7 @@ private struct FaturaView: View {
                     Etiqueta(texto: String(localized: "Paga"))
                     Spacer()
                     Button("Desfazer pagamento") { Task { await alternar(fatura) } }
-                        .buttonStyle(.bordered).disabled(ocupado)
+                        .buttonStyle(.pilula).disabled(ocupado)
                 } else {
                     Button("Marcar como paga") { Task { await alternar(fatura) } }
                         .botaoPrincipal().disabled(ocupado)
@@ -335,7 +340,7 @@ private struct NovaContaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Nova conta ou cartão")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {

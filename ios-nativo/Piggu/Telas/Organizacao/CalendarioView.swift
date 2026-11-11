@@ -216,8 +216,9 @@ private struct GradeDoMes: View {
             }
         }
         .padding(.vertical, 4)
-        // Sete colunas no iPhone: acima disso o dia de dois digitos quebra. O VoiceOver le cada dia.
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        // Sete colunas no iPhone: cresce ate o 2o tamanho de acessibilidade (IOS-5); acima disso o
+        // dia de dois digitos quebra. O VoiceOver le cada dia.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     private func celula(_ dia: String, hoje: String) -> some View {
@@ -231,12 +232,12 @@ private struct GradeDoMes: View {
                 Text(String(Int(dia.suffix(2)) ?? 0))
                     .font(.sora(.subheadline, peso: dia == hoje ? .bold : .regular))
                 if gasto > 0 {
-                    Text(gasto.formatted(.number.notation(.compactName).precision(.fractionLength(0...1))
-                        .locale(Formatos.localidade)))
+                    // Em R$ com centavos (BUG-025): "149,9" parecia outro numero. Encolhe para caber.
+                    Text(Formatos.moeda(gasto))
                         .font(.sora(.caption2, peso: .medium))
                         .foregroundStyle(paleta.serieGasto)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .minimumScaleFactor(0.4)
                 }
                 if lembretes > 0 {
                     Circle().fill(paleta.primaria).frame(width: 5, height: 5)
@@ -477,7 +478,7 @@ private struct NovaNotaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Nova nota")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {

@@ -52,7 +52,7 @@ struct TextoLegalView: View {
         }
         .background(paleta.fundo)
         .navigationTitle(documento.titulo)
-        .navigationBarTitleDisplayMode(.inline)
+        .tituloDaFolha()
     }
 
     @ViewBuilder

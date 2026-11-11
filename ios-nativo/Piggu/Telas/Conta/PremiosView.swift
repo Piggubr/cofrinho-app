@@ -10,6 +10,8 @@ struct PremiosView: View {
     @State private var carga: Carga<DadosDosPremios> = .carregando
     @State private var historico = false
     @State private var ajuste = ""
+    /// Dar ou tirar, no lugar do numero negativo.
+    @State private var tirar = false
     @State private var motivo = ""
     @State private var nome = ""
     @State private var descricao = ""
@@ -71,14 +73,19 @@ struct PremiosView: View {
                     .monospacedDigit().contentTransition(.numericText())
             }
             if cuidaDosPremios {
+                Picker("Ajuste", selection: $tirar) {
+                    Text("Dar").tag(false)
+                    Text("Tirar").tag(true)
+                }
+                .seletorSegmentado()
                 LabeledContent("Quantidade") {
-                    TextField("Use negativo para debitar", text: $ajuste)
-                        .keyboardType(.numbersAndPunctuation).multilineTextAlignment(.trailing)
+                    TextField("Ex.: 10", text: $ajuste)
+                        .keyboardType(.numberPad).multilineTextAlignment(.trailing)
                         .accessibilityLabel("Quantidade")
                 }
                 TextField("Motivo", text: $motivo, prompt: Text("Ex.: Arrumou a cozinha"))
                     .onChange(of: motivo) { _, novo in if novo.count > 200 { motivo = String(novo.prefix(200)) } }
-                Button("Ajustar") { Task { await ajustar() } }
+                Button(tirar ? "Tirar Fofocoins" : "Dar Fofocoins") { Task { await ajustar() } }
             }
             DisclosureGroup(historico ? "Esconder histórico" : "Ver histórico", isExpanded: $historico) {
                 if saldo.historico.isEmpty {
@@ -103,7 +110,9 @@ struct PremiosView: View {
             TextField("Descrição", text: $descricao)
                 .onChange(of: descricao) { _, novo in if novo.count > 300 { descricao = String(novo.prefix(300)) } }
             LabeledContent("Preço em Fofocoins") {
+                // Largura do numero: o campo nao come o rotulo ("Preço em Fofocoi…", BUG-025).
                 TextField("Preço", text: $preco).keyboardType(.numberPad).multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 90)
                     .accessibilityLabel("Preço em Fofocoins")
             }
             Button("Criar") { Task { await criarPremio() } }
@@ -177,7 +186,7 @@ struct PremiosView: View {
     }
 
     private func ajustar() async {
-        guard let valor = Int(ajuste.trimmingCharacters(in: .whitespaces)), valor != 0 else {
+        guard let quantidade = Int(ajuste.trimmingCharacters(in: .whitespaces)), quantidade > 0 else {
             erro = String(localized: "Digite uma quantidade válida de Fofocoins.")
             return
         }
@@ -186,6 +195,7 @@ struct PremiosView: View {
             erro = String(localized: "Explique o motivo do ajuste.")
             return
         }
+        let valor = tirar ? -quantidade : quantidade
         await executar(String(localized: "Saldo atualizado.")) { _ = try await $0.ajustarMoedas(valor, motivo: motivo) }
         if erro == nil {
             ajuste = ""
