@@ -40,6 +40,7 @@ struct RedefinirSenhaView: View {
                 }
                 BotaoDeEnviar(titulo: "Salvar a senha nova", carregando: salvando) { await salvar() }
             }
+            .task { if await sessao.linkDeSenhaVenceu(token) { estado = .linkRuim } }
         case .pronto:
             TelaDeEntrada(titulo: "Senha nova salva",
                           subtitulo: "Pronto. Por segurança, saímos da sua conta em todos os aparelhos; entre com a senha nova.") {

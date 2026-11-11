@@ -18,18 +18,19 @@ struct EditarGastoView: View {
     @State private var data = Date()
     @State private var salvando = false
     @State private var erro: String?
+    @State private var confirmandoData = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Item", text: $item)
+                    TextField("Descrição", text: $item)
                         .onChange(of: item) { _, novo in if novo.count > 200 { item = String(novo.prefix(200)) } }
                     CampoDeCategoria(categoria: $categoria, categorias: $categorias, automatica: false)
                     LabeledContent("Valor (\(Formatos.simboloDaMoeda))") {
                         CampoDeValor(rotulo: "Valor", texto: $valor).multilineTextAlignment(.trailing)
                     }
-                    DatePicker("Data", selection: $data, displayedComponents: .date)
+                    DatePicker("Data", selection: $data, in: Limites.datas(), displayedComponents: .date)
                     if podeCompartilhar {
                         Toggle("Compartilhado", isOn: $compartilhado)
                     }
@@ -43,13 +44,14 @@ struct EditarGastoView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Editar gasto")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Salvar") { Task { await salvar() } }.disabled(salvando)
                 }
             }
+            .confirmacaoDeData(data, mostrando: $confirmandoData) { Task { await salvar(dataConfirmada: true) } }
             .onAppear {
                 item = gasto.item
                 categoria = gasto.categoria
@@ -60,11 +62,22 @@ struct EditarGastoView: View {
         }
     }
 
-    private func salvar() async {
+    private func salvar(dataConfirmada: Bool = false) async {
         let item = item.trimmingCharacters(in: .whitespaces)
         let dia = Formatos.dia(data)
-        guard !item.isEmpty, let valor = Formatos.lerValor(valor), valor >= 0 else {
-            erro = String(localized: "Confira o nome e o valor do gasto.")
+        guard !item.isEmpty else {
+            erro = String(localized: "Digite a descrição.")
+            return
+        }
+        let valor = Formatos.lerValor(valor)
+        if let problema = Limites.problema(valor) {
+            erro = problema
+            return
+        }
+        guard let valor else { return }
+        // So pergunta se a data mudou: o gasto antigo que a pessoa so corrige o valor passa direto.
+        if !dataConfirmada, dia != gasto.data, Limites.pedeConfirmacao(data) {
+            confirmandoData = true
             return
         }
         salvando = true

@@ -145,7 +145,7 @@ struct ContasDoMesView: View {
                 Spacer()
                 if conta.situacao != .paga {
                     Button("Marcar como paga") { Task { await pagar(conta) } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                         .controlSize(.small)
                         .disabled(ocupado)
                 }
@@ -260,7 +260,7 @@ private struct NovaContaFixaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Nova conta fixa")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -276,9 +276,17 @@ private struct NovaContaFixaView: View {
 
     private func criar() async {
         let descricao = descricao.trimmingCharacters(in: .whitespaces)
-        guard !descricao.isEmpty, let valor = Formatos.lerValor(valor), valor > 0,
-              let dia = Int(dia), (1...31).contains(dia) else {
-            erro = String(localized: "Preencha descrição, valor e um dia de vencimento entre 1 e 31.")
+        guard !descricao.isEmpty else {
+            erro = String(localized: "Digite a descrição.")
+            return
+        }
+        let valor = Formatos.lerValor(valor)
+        if let problema = Limites.problema(valor) {
+            erro = problema
+            return
+        }
+        guard let valor, let dia = Int(dia), (1...31).contains(dia) else {
+            erro = String(localized: "Escolha um dia de vencimento entre 1 e 31.")
             return
         }
         salvando = true

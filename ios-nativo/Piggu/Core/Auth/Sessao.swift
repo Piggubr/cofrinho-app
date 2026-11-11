@@ -127,6 +127,20 @@ final class Sessao {
 
     /// Senha nova pelo link do e-mail. Todas as sessoes da conta caem: se havia uma aqui,
     /// sai dela tambem.
+    /// O link de senha nova ja venceu? Para avisar ao abrir, antes de digitar (IOS-14).
+    /// shortcut: sem rota que so confira o link, manda uma senha que o backend sempre recusa; ele
+    /// confere o link antes da senha (RedefinicaoDeSenha.redefinir). Trocar por uma rota de
+    /// conferencia quando o backend tiver.
+    func linkDeSenhaVenceu(_ token: String) async -> Bool {
+        do {
+            let _: SemCorpo = try await cliente.post(
+                "/auth/senha/redefinir", corpo: PedidoDeSenhaNova(token: token, novaSenha: "-"), aberta: true)
+            return false
+        } catch {
+            return (error as? ErroDaAPI)?.codigo == "LINK_INVALIDO"
+        }
+    }
+
     func redefinirSenha(token: String, novaSenha: String) async throws {
         let _: SemCorpo = try await cliente.post(
             "/auth/senha/redefinir", corpo: PedidoDeSenhaNova(token: token, novaSenha: novaSenha), aberta: true)

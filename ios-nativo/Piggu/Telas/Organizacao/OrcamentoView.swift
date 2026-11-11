@@ -220,10 +220,12 @@ struct OrcamentoView: View {
     }
 
     private func salvarLimite() async {
-        guard let valor = Formatos.lerValor(limite), valor > 0 else {
-            erro = String(localized: "Digite um valor válido para o limite.")
+        let valor = Formatos.lerValor(limite)
+        if let problema = Limites.problema(valor) {
+            erro = problema
             return
         }
+        guard let valor else { return }
         salvando = true
         erro = nil
         defer { salvando = false }
@@ -235,10 +237,16 @@ struct OrcamentoView: View {
     }
 
     private func salvarCategoria() async {
-        guard !categoria.isEmpty, let valor = Formatos.lerValor(limiteDaCategoria), valor > 0 else {
-            erro = String(localized: "Escolha a categoria e um limite maior que zero.")
+        guard !categoria.isEmpty else {
+            erro = String(localized: "Escolha a categoria.")
             return
         }
+        let valor = Formatos.lerValor(limiteDaCategoria)
+        if let problema = Limites.problema(valor) {
+            erro = problema
+            return
+        }
+        guard let valor else { return }
         salvando = true
         erro = nil
         defer { salvando = false }
@@ -303,7 +311,7 @@ private struct EditarLimiteView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle(edicao.titulo)
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") { fechar() }
@@ -318,10 +326,12 @@ private struct EditarLimiteView: View {
     }
 
     private func guardar() async {
-        guard let valor = Formatos.lerValor(texto), valor > 0 else {
-            erro = String(localized: "Digite um valor válido para o limite.")
+        let valor = Formatos.lerValor(texto)
+        if let problema = Limites.problema(valor) {
+            erro = problema
             return
         }
+        guard let valor else { return }
         salvando = true
         erro = nil
         defer { salvando = false }
