@@ -61,7 +61,7 @@
 
     <!-- Convidar -->
     <string name="familia_convidar_titulo">Convidar alguém</string>
-    <string name="familia_convidar_explica">A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro lançam, use “Convidar para parceiro” na lista acima; vale quando a pessoa aceitar.</string>
+    <string name="familia_convidar_explica">A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu par verem o que um e o outro lançam, use “Convidar para parceiro” na lista acima; vale quando a pessoa aceitar.</string>
     <string name="familia_email">E-mail</string>
     <string name="familia_email_exemplo">pessoa@email.com</string>
     <string name="familia_convidar">Convidar</string>

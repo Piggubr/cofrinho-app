@@ -1,6 +1,7 @@
 package br.com.piggu.app
 
 import androidx.navigation3.runtime.NavKey
+import br.com.piggu.app.navegacao.Destino
 import br.com.piggu.app.navegacao.Tela
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,6 +27,29 @@ class NavegacaoTest {
         val pilha = mutableListOf<NavKey>(Tela.Painel, Tela.Gastos)
         pilha.irPara(Tela.Gastos)
         assertEquals(listOf(Tela.Painel, Tela.Gastos), pilha)
+    }
+}
+
+class LinksTest {
+    @Test
+    fun `link para tela ja aberta volta ate ela em vez de empilhar outra`() {
+        val pilha = mutableListOf<NavKey>(Tela.Painel, Tela.Calendario, Tela.Metas)
+        pilha.abrirSemRepetir(Tela.Calendario)
+        assertEquals(listOf(Tela.Painel, Tela.Calendario), pilha)
+        pilha.abrirSemRepetir(Tela.Calendario)
+        assertEquals(listOf(Tela.Painel, Tela.Calendario), pilha)
+        pilha.abrirSemRepetir(Tela.Metas)
+        assertEquals(listOf(Tela.Painel, Tela.Calendario, Tela.Metas), pilha)
+    }
+
+    @Test
+    fun `link que chegou sem sessao fica guardado e sai uma vez so`() {
+        val pendente = LinkPendente()
+        assertEquals(null, pendente.retirar())
+        pendente.guardar(Destino.Abrir(Tela.Metas))
+        pendente.guardar(Destino.LancarGasto(java.math.BigDecimal("12.50")))
+        assertEquals(Destino.LancarGasto(java.math.BigDecimal("12.50")), pendente.retirar())
+        assertEquals(null, pendente.retirar())
     }
 }
 

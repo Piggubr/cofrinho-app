@@ -36,13 +36,17 @@ class MenuTest {
     fun `no Mais do celular as abas nao se repetem`() {
         val grupos = gruposVisiveis(ehTitular = true, modulos = null, semAsAbas = true)
         assertFalse(GrupoDoMenu.DiaADia in grupos.map { it.first })
-        assertEquals(Tela.Metas, grupos.first().second.first().tela)
+        // A seção Planejar do Mais tem o mesmo que a aba Planejar, na mesma ordem (BUG-027).
+        assertEquals(
+            br.com.piggu.feature.planejar.ATALHOS_DO_PLANEJAR.map { it.caminho },
+            grupos.first { it.first == GrupoDoMenu.Planejar }.second.map { it.tela.caminho },
+        )
         assertFalse(telas(grupos).any { it in ITENS_DAS_ABAS.map { aba -> aba.tela } })
     }
 
     @Test
     fun `as abas do celular levam o Painel, os lancamentos e o Planejar com os relatorios`() {
-        assertEquals(listOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Relatorios, Tela.Planejar), ITENS_DAS_ABAS.map { it.tela })
+        assertEquals(listOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Planejar), ITENS_DAS_ABAS.map { it.tela })
     }
 
     @Test
