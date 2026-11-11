@@ -195,7 +195,7 @@ export class Shell {
     { rota: '/compras', rotulo: $localize`Compras`, icone: 'carrinho', grupo: 'estilo' },
     { rota: '/lugares', rotulo: $localize`Lugares`, icone: 'local', grupo: 'estilo' },
     { rota: '/filmes', rotulo: $localize`Filmes`, icone: 'filme', grupo: 'estilo' },
-    { rota: '/feed', rotulo: $localize`Fotos`, icone: 'imagem', grupo: 'estilo' },
+    { rota: '/feed', rotulo: $localize`Fotos do mês`, icone: 'imagem', grupo: 'estilo' },
     { rota: '/premios', rotulo: $localize`Prêmios`, icone: 'trofeu', grupo: 'estilo' },
     { rota: '/girls-math', rotulo: $localize`Girls Math`, icone: 'sacola', grupo: 'estilo' },
     { rota: '/familia', rotulo: $localize`Família`, icone: 'pessoas', grupo: 'conta' },
@@ -250,9 +250,14 @@ export class Shell {
       this.ligarAbasNativas();
     }
 
-    // Tour das funcoes principais no primeiro acesso. A demo ja abre com dados e a faixa.
+    // Tour das funcoes principais no primeiro acesso, so no Painel: aberto num link para o
+    // Perfil ou o Premium, ele cobria a tela que a pessoa foi ver. A demo ja abre com dados.
     if (!this.modoDemo) {
-      this.tutorial.abrirSeNovo();
+      effect(() => {
+        if (this.rotaAtual().split(/[?#]/)[0] === '/painel' && !untracked(() => this.tutorial.aberto())) {
+          untracked(() => this.tutorial.abrirSeNovo());
+        }
+      });
     }
 
     // Refaz a consulta quando a pessoa troca as moedas ou liga a cotacao no perfil.

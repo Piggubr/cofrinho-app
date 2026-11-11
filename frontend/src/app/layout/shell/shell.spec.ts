@@ -191,7 +191,7 @@ describe('Shell', () => {
       'Girls Math',
       'Lugares',
       'Filmes',
-      'Fotos',
+      'Fotos do mês',
       'Prêmios',
     ]);
   });
@@ -206,7 +206,7 @@ describe('Shell', () => {
       a.textContent?.trim(),
     );
 
-    for (const nome of ['Compras', 'Lugares', 'Filmes', 'Fotos', 'Prêmios', 'Girls Math']) {
+    for (const nome of ['Compras', 'Lugares', 'Filmes', 'Fotos do mês', 'Prêmios', 'Girls Math']) {
       expect(itens).toContain(nome);
     }
   });
@@ -533,10 +533,19 @@ describe('Shell', () => {
   describe('tour do primeiro acesso', () => {
     beforeEach(() => localStorage.removeItem(CHAVE_DO_TOUR));
 
-    function primeiroAcesso() {
+    /** O tour so abre no Painel: navega ate a rota antes de olhar. */
+    async function primeiroAcesso(rota = '/painel') {
       const tela = abrir();
+      const router = TestBed.inject(Router);
+      router.resetConfig([
+        { path: 'painel', component: TelaVazia },
+        { path: 'perfil', component: TelaVazia },
+      ]);
+      await router.navigateByUrl(rota);
+      tela.detectChanges();
       http.match(() => true).forEach((pedido) => pedido.flush(null));
-      return { tela, pagina: tela.nativeElement as HTMLElement };
+      tela.detectChanges();
+      return { tela, pagina: tela.nativeElement as HTMLElement, router };
     }
 
     const titulo = (pagina: HTMLElement) =>
@@ -546,8 +555,19 @@ describe('Shell', () => {
         (b) => b.textContent?.trim() === texto,
       )!;
 
-    it('abre na primeira vez, destaca o "+" e nao volta depois de pular', () => {
-      const { tela, pagina } = primeiroAcesso();
+    it('aberto direto em outra tela, so comeca quando a pessoa chega ao Painel', async () => {
+      const { tela, pagina, router } = await primeiroAcesso('/perfil');
+      expect(pagina.querySelector('app-tutorial')).toBeNull();
+
+      await router.navigateByUrl('/painel');
+      tela.detectChanges();
+      http.match(() => true).forEach((pedido) => pedido.flush(null));
+      tela.detectChanges();
+      expect(titulo(pagina)).toBe('Bem-vindo ao Piggu');
+    });
+
+    it('abre na primeira vez, destaca o "+" e nao volta depois de pular', async () => {
+      const { tela, pagina } = await primeiroAcesso();
       expect(titulo(pagina)).toBe('Bem-vindo ao Piggu');
 
       botao(pagina, 'Próximo').click();
@@ -571,12 +591,12 @@ describe('Shell', () => {
           { provide: AuthService, useValue: auth },
         ],
       });
-      const { pagina: deNovo } = primeiroAcesso();
+      const { pagina: deNovo } = await primeiroAcesso();
       expect(deNovo.querySelector('app-tutorial')).toBeNull();
     });
 
-    it('no fim, "Lançar meu primeiro gasto" fecha o tour e abre o painel do "+"', () => {
-      const { tela, pagina } = primeiroAcesso();
+    it('no fim, "Lançar meu primeiro gasto" fecha o tour e abre o painel do "+"', async () => {
+      const { tela, pagina } = await primeiroAcesso();
       for (let i = 0; i < 7; i++) {
         botao(pagina, 'Próximo').click();
         tela.detectChanges();
@@ -591,9 +611,9 @@ describe('Shell', () => {
       expect(pagina.querySelector('app-lancamento-rapido')).not.toBeNull();
     });
 
-    it('o membro ve o mesmo tour, com o "+"', () => {
+    it('o membro ve o mesmo tour, com o "+"', async () => {
       auth.usuario.set(usuarioDeTeste({ role: 'MEMBRO' }));
-      const { tela, pagina } = primeiroAcesso();
+      const { tela, pagina } = await primeiroAcesso();
       expect(pagina.querySelector('.balao .contagem')?.textContent?.trim()).toBe('1/8');
 
       botao(pagina, 'Próximo').click();

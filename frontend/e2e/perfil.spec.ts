@@ -73,8 +73,8 @@ test('liga e desliga a cotacao do topo sem botao de salvar', async ({ page, isMo
     await expect(page.locator('.cotacao')).toHaveText(/1 BRL = US\$\s0,1818/);
   }
 
-  // A moeda do app nao mexe no par da cotacao.
-  await cartao.getByLabel('Moeda do app').selectOption('EUR');
+  // A moeda de exibicao nao mexe no par da cotacao.
+  await cartao.getByLabel('Moeda de exibição').selectOption('EUR');
   await expect(cartao.getByLabel('Cotação entre')).toHaveValue('BRL');
   if (!isMobile) {
     await expect(page.locator('.cotacao')).toHaveText(/1 BRL = US\$\s0,1818/);
