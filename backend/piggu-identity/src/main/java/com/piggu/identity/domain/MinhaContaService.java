@@ -263,14 +263,14 @@ public class MinhaContaService {
     @Transactional
     public UserResponse aceitarTermos(UUID contaId, String versao) {
         if (!Consentimentos.versaoAceita(versao)) {
-            throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
+            throw new BusinessException("Os termos mudaram. Recarregue a página e leia de novo.",
                     HttpStatus.UNPROCESSABLE_CONTENT, Consentimentos.CODIGO_AVISO_MUDOU);
         }
         UserAccount conta = conta(contaId);
         conta.aceitarTermos(versao);
         usuarios.save(conta);
         trilha.registrar(conta.getHouseholdId(), conta.getId(), TrilhaDeAuditoria.Acao.EDITOU, "conta",
-                conta.getId(), null, "Termos aceitos (versao " + versao + ")");
+                conta.getId(), null, "Termos aceitos (versão " + versao + ")");
         log.info("Termos aceitos: conta={} versao={}", conta.getId(), versao);
         return UserResponse.de(conta, familia.daConta(conta));
     }
@@ -344,6 +344,6 @@ public class MinhaContaService {
 
     private UserAccount conta(UUID id) {
         return usuarios.findById(id)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
     }
 }

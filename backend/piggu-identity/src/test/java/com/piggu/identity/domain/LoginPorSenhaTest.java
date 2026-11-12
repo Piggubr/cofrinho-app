@@ -253,7 +253,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("conta do Google sem senha avisa para entrar pelo Google; depois de criar a senha, entra pelos dois")
+    @DisplayName("conta do Google sem senha avisa para entrar pelo Google, nao cria a senha so com o token; depois dela, entra pelos dois")
     void googleCriaSenhaDepois() {
         responderGoogleCom(EMAIL);
         TokenResponse google = auth.entrarComGoogle("token", Consentimentos.VERSAO_DO_AVISO, null);
@@ -264,7 +264,14 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
                 .as("conta so do Google responde como senha errada")
                 .isInstanceOf(UnauthorizedException.class).hasMessageStartingWith("E-mail ou senha incorretos.");
 
-        assertThat(auth.definirSenha(google.usuario().id(), null, SENHA, null).temSenha()).isTrue();
+        assertThatThrownBy(() -> auth.definirSenha(google.usuario().id(), null, SENHA, null))
+                .as("a primeira senha vai pelo link do e-mail (RedefinicaoDeSenhaTest)")
+                .isInstanceOfSatisfying(BusinessException.class,
+                        erro -> assertThat(erro.getCodigo()).isEqualTo("CRIAR_SENHA_PELO_EMAIL"));
+        UserAccount conta = usuarios.findByEmail(EMAIL).orElseThrow();
+        assertThat(conta.temSenha()).isFalse();
+        conta.definirSenha(senhas.hash(SENHA));
+        usuarios.save(conta);
         assertThat(auth.entrarComSenha(EMAIL, SENHA, true, null).usuario().id()).isEqualTo(google.usuario().id());
         assertThat(auth.entrarComGoogle("token", null, null).usuario().temSenha()).isTrue();
     }
@@ -335,7 +342,7 @@ class LoginPorSenhaTest extends PostgresIntegrationTest {
         comparsa = usuarios.save(comparsa);
         armada.mostrarTudoPara(comparsa.getId());
         usuarios.save(armada);
-        aparelhos.registrar(armada.getId(), "ab".repeat(32), "IOS");
+        aparelhos.registrar(armada.getId(), "ab".repeat(32), "IOS", null);
 
         responderGoogleCom(EMAIL);
         TokenResponse dono = auth.entrarComGoogle("token", null, null);

@@ -101,7 +101,7 @@ class PremiosEMoedasTest extends PostgresIntegrationTest {
         String id = id(premio(titular, "Jantar fora", 150));
         mockMvc.perform(post("/api/prizes/" + id + "/redemptions").with(titular))
                 .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.erro").value("Voce ainda nao possui Fofocoins suficientes."));
+                .andExpect(jsonPath("$.erro").value("Você ainda não possui Fofocoins suficientes."));
 
         ajustar(titular, 200, "Mes no azul");
         mockMvc.perform(post("/api/prizes/" + id + "/redemptions").with(titular))
@@ -119,7 +119,7 @@ class PremiosEMoedasTest extends PostgresIntegrationTest {
         ajustar(titular, 500, "Mais");
         mockMvc.perform(post("/api/prizes/" + id + "/redemptions").with(titular))
                 .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.erro").value("Este premio nao esta disponivel."));
+                .andExpect(jsonPath("$.erro").value("Este prêmio não está disponível."));
 
         RequestPostProcessor outra = TokensDeTeste.da(UUID.randomUUID(), "outra@piggu.test", PigguRole.TITULAR);
         mockMvc.perform(post("/api/prizes/" + id + "/redemptions").with(outra)).andExpect(status().isNotFound());

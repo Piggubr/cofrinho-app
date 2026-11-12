@@ -51,7 +51,7 @@ public class GoogleIdTokenVerifier {
     public GoogleProfile verificar(String idToken, String nonce) {
         Jwt token = decodificar(idToken);
         if (Texto.vazio(nonce) || !nonce.equals(token.getClaimAsString("nonce"))) {
-            throw new UnauthorizedException("Login Google invalido para este site.");
+            throw new UnauthorizedException("Login Google inválido para este site.");
         }
         return perfil(token);
     }
@@ -70,7 +70,7 @@ public class GoogleIdTokenVerifier {
 
     private Jwt decodificar(String idToken) {
         if (Texto.vazio(idToken)) {
-            throw new UnauthorizedException("Faca login com Google para continuar.");
+            throw new UnauthorizedException("Faça login com Google para continuar.");
         }
 
         Jwt token;
@@ -78,30 +78,30 @@ public class GoogleIdTokenVerifier {
             token = decoder.decode(idToken);
         } catch (JwtException erro) {
             log.debug("ID token do Google recusado", erro);
-            throw new UnauthorizedException("Seu login venceu ou e' invalido. Entre novamente.");
+            throw new UnauthorizedException("Seu login venceu ou é inválido. Entre novamente.");
         }
         return token;
     }
 
     private GoogleProfile perfil(Jwt token) {
         if (!propriedades.issuers().contains(token.getIssuer().toString())) {
-            throw new UnauthorizedException("Login Google invalido para este site.");
+            throw new UnauthorizedException("Login Google inválido para este site.");
         }
 
         List<String> audiencia = token.getAudience();
         boolean audienciaConhecida = audiencia != null
                 && audiencia.stream().anyMatch(propriedades.clientIds()::contains);
         if (!audienciaConhecida) {
-            throw new UnauthorizedException("Login Google invalido para este site.");
+            throw new UnauthorizedException("Login Google inválido para este site.");
         }
 
         if (!Boolean.TRUE.equals(token.getClaim("email_verified"))) {
-            throw new UnauthorizedException("O e-mail Google nao esta verificado.");
+            throw new UnauthorizedException("O e-mail Google não está verificado.");
         }
 
         String email = Texto.email(token.getClaimAsString("email"));
         if (email.isEmpty()) {
-            throw new UnauthorizedException("O Google nao informou o seu e-mail.");
+            throw new UnauthorizedException("O Google não informou o seu e-mail.");
         }
 
         return new GoogleProfile(

@@ -105,7 +105,7 @@ public class Consentimentos {
 
     private void gravar(CurrentUser usuario, String finalidade, String versaoDoAviso) {
         if (!versaoAceita(versaoDoAviso)) {
-            throw new BusinessException("O aviso de privacidade mudou. Recarregue a pagina e leia de novo.",
+            throw new BusinessException("O aviso de privacidade mudou. Recarregue a página e leia de novo.",
                     HttpStatus.CONFLICT, CODIGO_AVISO_MUDOU);
         }
         jdbc.update("INSERT INTO consents (household_id, user_id, purpose, notice_version) VALUES (?, ?, ?, ?)",

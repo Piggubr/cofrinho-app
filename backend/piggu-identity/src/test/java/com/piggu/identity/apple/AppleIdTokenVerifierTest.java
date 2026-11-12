@@ -106,9 +106,9 @@ class AppleIdTokenVerifierTest {
         String outraAudiencia = token(c -> c.audience("com.outro.app"));
 
         assertThatThrownBy(() -> verificador.verificar(outroEmissor, NONCE))
-                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("invalido para este app");
+                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("inválido para este app");
         assertThatThrownBy(() -> verificador.verificar(outraAudiencia, NONCE))
-                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("invalido para este app");
+                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("inválido para este app");
     }
 
     @Test
@@ -118,9 +118,9 @@ class AppleIdTokenVerifierTest {
         String semEmail = token(c -> c.claim("email", null));
 
         assertThatThrownBy(() -> verificador.verificar(naoVerificado, NONCE))
-                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("nao esta verificado");
+                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("não está verificado");
         assertThatThrownBy(() -> verificador.verificar(semEmail, NONCE))
-                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("nao informou");
+                .isInstanceOf(UnauthorizedException.class).hasMessageContaining("não informou");
     }
 
     @Test

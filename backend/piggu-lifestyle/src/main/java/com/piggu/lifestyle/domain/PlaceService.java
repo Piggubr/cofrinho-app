@@ -66,7 +66,7 @@ public class PlaceService {
         Place lugar = buscar(id);
 
         if (!usuario.podeGerenciar(lugar.getUserId())) {
-            throw new ForbiddenException("Voce nao pode editar este lugar.");
+            throw new ForbiddenException("Você não pode editar este lugar.");
         }
 
         lugar.aplicar(
@@ -98,7 +98,7 @@ public class PlaceService {
         Place lugar = buscar(id);
 
         if (!usuario.podeGerenciar(lugar.getUserId())) {
-            throw new ForbiddenException("Voce nao pode excluir este lugar.");
+            throw new ForbiddenException("Você não pode excluir este lugar.");
         }
 
         media.apagar(lugar.getPhotoAssetId());
@@ -127,7 +127,7 @@ public class PlaceService {
 
     private Place buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Lugar nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Lugar não encontrado."));
     }
 
     private boolean temFoto(PlaceRequest pedido) {

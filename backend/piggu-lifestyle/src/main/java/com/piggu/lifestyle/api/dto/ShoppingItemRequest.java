@@ -9,13 +9,13 @@ import jakarta.validation.constraints.Size;
  */
 public record ShoppingItemRequest(
         @NotBlank(message = "Digite o que deseja adicionar.")
-        @Size(max = 150, message = "O nome do item e longo demais.")
+        @Size(max = 150, message = "O nome do item é longo demais.")
         String item,
 
         @Size(max = 50)
         String quantidade,
 
-        @Pattern(regexp = "Compras|Desejos", message = "Lista invalida.")
+        @Pattern(regexp = "Compras|Desejos", message = "Lista inválida.")
         String lista,
 
         @Size(max = 100)

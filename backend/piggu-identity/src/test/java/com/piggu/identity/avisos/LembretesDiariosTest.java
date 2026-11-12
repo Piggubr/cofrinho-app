@@ -147,10 +147,10 @@ class LembretesDiariosTest extends PostgresIntegrationTest {
         UserAccount caio = familias.criarConta("caio@outra.test", "Caio", Consentimentos.VERSAO_DO_AVISO);
         String androidVelho = TOKEN_DO_ANDROID.replace('x', 'v');
         auth.escolherAvisos(ana.getId(), false, true);
-        aparelhos.registrar(ana.getId(), "aa".repeat(32), "IOS");
-        aparelhos.registrar(ana.getId(), "bb".repeat(32), "IOS");
-        aparelhos.registrar(ana.getId(), TOKEN_DO_ANDROID, "ANDROID");
-        aparelhos.registrar(ana.getId(), androidVelho, "ANDROID");
+        aparelhos.registrar(ana.getId(), "aa".repeat(32), "IOS", null);
+        aparelhos.registrar(ana.getId(), "bb".repeat(32), "IOS", null);
+        aparelhos.registrar(ana.getId(), TOKEN_DO_ANDROID, "ANDROID", null);
+        aparelhos.registrar(ana.getId(), androidVelho, "ANDROID", null);
         when(financeiro.deHoje(anyString())).thenReturn(List.of(fatura("f1")));
         when(push.enviar(eq("aa".repeat(32)), any())).thenReturn(CanalDePush.Resultado.ENVIADO);
         when(push.enviar(eq("bb".repeat(32)), any())).thenReturn(CanalDePush.Resultado.TOKEN_INVALIDO);

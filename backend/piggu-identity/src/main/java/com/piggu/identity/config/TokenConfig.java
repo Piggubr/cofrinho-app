@@ -52,7 +52,7 @@ public class TokenConfig {
         try (InputStream fluxo = abrir(propriedades.publicKey(), "piggu.jwt.public-key")) {
             return RsaKeyConverters.x509().convert(fluxo);
         } catch (IOException erro) {
-            throw new IllegalStateException("Nao foi possivel ler a chave publica RSA.", erro);
+            throw new IllegalStateException("Não foi possível ler a chave pública RSA.", erro);
         }
     }
 
@@ -61,7 +61,7 @@ public class TokenConfig {
         try (InputStream fluxo = abrir(propriedades.privateKey(), "piggu.jwt.private-key")) {
             return RsaKeyConverters.pkcs8().convert(fluxo);
         } catch (IOException erro) {
-            throw new IllegalStateException("Nao foi possivel ler a chave privada RSA.", erro);
+            throw new IllegalStateException("Não foi possível ler a chave privada RSA.", erro);
         }
     }
 
@@ -77,12 +77,12 @@ public class TokenConfig {
      */
     static void conferirChave(RSAPublicKey publica, String origem, String ambiente) {
         if (CHAVE_VAZADA.equals(impressao(publica))) {
-            throw new IllegalStateException("Esta chave JWT esteve no Git e e publica. Gere um par novo com"
-                    + " scripts/gerar-chaves-dev.sh (local) ou fora do repositorio (producao).");
+            throw new IllegalStateException("Esta chave JWT esteve no Git e é pública. Gere um par novo com"
+                    + " scripts/gerar-chaves-dev.sh (local) ou fora do repositório (produção).");
         }
         if ("producao".equals(ambiente) && origem != null && origem.contains("piggu-dev-")) {
-            throw new IllegalStateException("Em producao defina JWT_PRIVATE_KEY e JWT_PUBLIC_KEY com um par proprio;"
-                    + " a chave de desenvolvimento nao serve.");
+            throw new IllegalStateException("Em produção defina JWT_PRIVATE_KEY e JWT_PUBLIC_KEY com um par próprio;"
+                    + " a chave de desenvolvimento não serve.");
         }
     }
 
@@ -91,7 +91,7 @@ public class TokenConfig {
             byte[] modulo = publica.getModulus().toString(16).getBytes(StandardCharsets.US_ASCII);
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(modulo));
         } catch (NoSuchAlgorithmException erro) {
-            throw new IllegalStateException("SHA-256 indisponivel nesta JVM.", erro);
+            throw new IllegalStateException("SHA-256 indisponível nesta JVM.", erro);
         }
     }
 
@@ -127,7 +127,7 @@ public class TokenConfig {
         if (limpo.startsWith("classpath:") || limpo.startsWith("file:")) {
             Resource recurso = carregador.getResource(limpo);
             if (!recurso.exists()) {
-                throw new IllegalStateException("Arquivo de chave nao encontrado em " + limpo
+                throw new IllegalStateException("Arquivo de chave não encontrado em " + limpo
                         + ". No ambiente local, gere com scripts/gerar-chaves-dev.sh.");
             }
             return recurso.getInputStream();

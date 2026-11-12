@@ -52,7 +52,7 @@ public class DadosDaFamilia {
 
         public Tabela {
             if (!NOME_SQL.matcher(nome).matches() || (autor != null && !NOME_SQL.matcher(autor).matches())) {
-                throw new IllegalArgumentException("Nome de tabela ou coluna invalido: " + nome);
+                throw new IllegalArgumentException("Nome de tabela ou coluna inválido: " + nome);
             }
             if (privada && autor == null) {
                 throw new IllegalArgumentException("Tabela privada precisa da coluna do autor: " + nome);
@@ -102,7 +102,7 @@ public class DadosDaFamilia {
         public Dona {
             if (!NOME_SQL.matcher(chave).matches() || !NOME_SQL.matcher(nome).matches()
                     || !NOME_SQL.matcher(autor).matches()) {
-                throw new IllegalArgumentException("Nome de tabela ou coluna invalido: " + nome);
+                throw new IllegalArgumentException("Nome de tabela ou coluna inválido: " + nome);
             }
         }
     }
@@ -227,7 +227,7 @@ public class DadosDaFamilia {
         try {
             return json.readTree(linhas);
         } catch (Exception erro) {
-            throw new IllegalStateException("Exportacao gerou JSON invalido", erro);
+            throw new IllegalStateException("Exportação gerou JSON inválido", erro);
         }
     }
 }

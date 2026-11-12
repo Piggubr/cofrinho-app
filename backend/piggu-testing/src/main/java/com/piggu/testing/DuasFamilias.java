@@ -9,6 +9,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,8 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 public final class DuasFamilias {
 
-    public final RequestPostProcessor casaA = titularDe(UUID.randomUUID());
-    public final RequestPostProcessor casaB = titularDe(UUID.randomUUID());
+    public final UUID familiaA = UUID.randomUUID();
+    public final UUID familiaB = UUID.randomUUID();
+    public final RequestPostProcessor casaA = titularDe(familiaA);
+    public final RequestPostProcessor casaB = titularDe(familiaB);
 
     private final MockMvc mockMvc;
     private final ObjectMapper json;
@@ -33,6 +36,15 @@ public final class DuasFamilias {
 
     private static RequestPostProcessor titularDe(UUID familia) {
         return TokensDeTeste.da(familia, "titular-" + familia + "@piggu.test", PigguRole.TITULAR);
+    }
+
+    /**
+     * Outra pessoa da familia A que ja abriu o app (fez uma chamada): o finance passa a
+     * reconhecer o id dela no {@code dividirCom}. So no finance.
+     */
+    public UUID pessoaDaA(String email) throws Exception {
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.da(familiaA, email, PigguRole.MEMBRO)));
+        return TokensDeTeste.idDe(email);
     }
 
     /** POST que precisa dar certo; devolve o corpo da resposta. */

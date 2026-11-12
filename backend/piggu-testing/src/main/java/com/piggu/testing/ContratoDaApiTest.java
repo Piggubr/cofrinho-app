@@ -46,7 +46,7 @@ public abstract class ContratoDaApiTest extends PostgresIntegrationTest {
     protected abstract String servico();
 
     @Test
-    @DisplayName("o contrato gerado do codigo e o mesmo de docs/api")
+    @DisplayName("o contrato gerado do código é o mesmo de docs/api")
     void contratoNaoMudou() throws Exception {
         String gerado = mockMvc.perform(get("/v3/api-docs.yaml"))
                 .andExpect(status().isOk())

@@ -349,6 +349,6 @@ public class AssinaturaService {
 
     private UserAccount conta(UUID usuarioId) {
         return usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
     }
 }

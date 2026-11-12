@@ -881,7 +881,7 @@ components:
         valor:
           type: number
           maximum: 1000000
-          minimum: 0
+          minimum: 0.01
       required:
       - data
       - nome

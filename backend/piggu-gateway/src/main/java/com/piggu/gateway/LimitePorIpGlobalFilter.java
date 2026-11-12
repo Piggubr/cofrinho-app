@@ -7,10 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -18,9 +16,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -114,15 +110,10 @@ public class LimitePorIpGlobalFilter implements GlobalFilter, Ordered {
         }
     }
 
-    /** Mesmo corpo de erro dos servicos (ApiError), que o front ja sabe mostrar. */
     private static Mono<Void> recusar(ServerHttpResponse resposta, long espera) {
-        resposta.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-        resposta.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         resposta.getHeaders().set(HttpHeaders.RETRY_AFTER, Long.toString(espera));
-        String corpo = "{\"erro\":\"Muitas chamadas seguidas. Espere um pouco e tente de novo.\","
-                + "\"codigo\":\"LIMITE_DE_CHAMADAS\",\"campos\":[],\"momento\":\"" + Instant.now() + "\"}";
-        DataBuffer buffer = resposta.bufferFactory().wrap(corpo.getBytes(StandardCharsets.UTF_8));
-        return resposta.writeWith(Mono.just(buffer));
+        return ServicoForaDoAr.escrever(resposta, HttpStatus.TOO_MANY_REQUESTS, "LIMITE_DE_CHAMADAS",
+                "Muitas chamadas seguidas. Espere um pouco e tente de novo.");
     }
 
     /** Logo depois da correlacao, para a recusa tambem levar X-Request-Id e linha de acesso. */

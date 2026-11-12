@@ -55,8 +55,9 @@ public class OrcamentoService {
                     BigDecimal gasto = porCategoria.getOrDefault(orcamento.getCategory(), BigDecimal.ZERO);
                     BigDecimal limite = orcamento.getLimitAmount();
                     BigDecimal vezesCem = gasto.multiply(BigDecimal.valueOf(100));
-                    BigDecimal percentual = vezesCem.divide(limite, 0, RoundingMode.HALF_UP);
-                    // O alerta sai do valor sem arredondar: 99,5% aparece como 100, mas nao estourou.
+                    // Arredonda para baixo, como o alerta: 99,99% mostra 99, e o 100 so aparece
+                    // junto com ESTOUROU (BUG-028); 79,99% mostra 79 com o alerta ainda OK.
+                    BigDecimal percentual = vezesCem.divide(limite, 0, RoundingMode.DOWN);
                     Alerta alerta = vezesCem.compareTo(limite.multiply(LIMIAR_ESTOURO)) >= 0 ? Alerta.ESTOUROU
                             : vezesCem.compareTo(limite.multiply(LIMIAR_DE_ATENCAO)) >= 0 ? Alerta.ATENCAO : Alerta.OK;
                     return new Situacao(orcamento.getId(), orcamento.getCategory(), orcamento.getLimitAmount(), gasto,
@@ -86,7 +87,7 @@ public class OrcamentoService {
     @Transactional
     public void excluir(UUID id) {
         CategoryBudget orcamento = orcamentos.findById(id)
-                .orElseThrow(() -> new NotFoundException("Orcamento nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Orçamento não encontrado."));
         orcamentos.delete(orcamento);
         trilha.apagou("orcamento", id, Resumos.orcamento(orcamento.getCategory(), orcamento.getLimitAmount()));
     }

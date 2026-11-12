@@ -169,7 +169,7 @@ public class PluggyClient {
 
     private JsonNode chamar(Supplier<RestClient.RequestHeadersSpec<?>> pedido) {
         if (!propriedades.habilitado()) {
-            throw new BusinessException("A conexao com bancos nao esta configurada.");
+            throw new BusinessException("A conexão com bancos não está configurada.");
         }
         try {
             return pedido.get().retrieve()
@@ -181,7 +181,7 @@ public class PluggyClient {
             throw erro;
         } catch (RuntimeException erro) {
             log.error("Falha ao consultar a Pluggy", erro);
-            throw new UpstreamException("O servico de conexao com bancos esta indisponivel agora.");
+            throw new UpstreamException("O serviço de conexão com bancos está indisponível agora.");
         }
     }
 
@@ -190,11 +190,11 @@ public class PluggyClient {
             synchronized (this) {
                 apiKey = null;
             }
-            return new UpstreamException("A credencial da Pluggy foi recusada. Confira a configuracao.");
+            return new UpstreamException("A credencial da Pluggy foi recusada. Confira a configuração.");
         }
         if (codigo == 404) {
-            return new NotFoundException("Conexao bancaria nao encontrada na Pluggy.");
+            return new NotFoundException("Conexão bancária não encontrada na Pluggy.");
         }
-        return new UpstreamException("A Pluggy nao respondeu corretamente (erro " + codigo + ").");
+        return new UpstreamException("A Pluggy não respondeu corretamente (erro " + codigo + ").");
     }
 }

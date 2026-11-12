@@ -112,10 +112,10 @@ class GoogleIdTokenVerifierTest {
 
         assertThatThrownBy(() -> verificador.verificar(outroEmissor))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("invalido para este site");
+                .hasMessageContaining("inválido para este site");
         assertThatThrownBy(() -> verificador.verificar(outraAudiencia))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("invalido para este site");
+                .hasMessageContaining("inválido para este site");
     }
 
     @Test
@@ -126,10 +126,10 @@ class GoogleIdTokenVerifierTest {
 
         assertThatThrownBy(() -> verificador.verificar(naoVerificado))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("nao esta verificado");
+                .hasMessageContaining("não está verificado");
         assertThatThrownBy(() -> verificador.verificar(semEmail))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("nao informou");
+                .hasMessageContaining("não informou");
     }
 
     @Test

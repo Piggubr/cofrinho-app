@@ -103,9 +103,9 @@ class MediaClientTest {
         BusinessException recusa = new BusinessException("Grande demais.");
         assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", recusa)).isSameAs(recusa);
         assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", new UpstreamException("sem id")))
-                .hasMessageContaining("indisponivel");
+                .hasMessageContaining("indisponível");
         assertThatThrownBy(() -> cliente.falhaAoEnviar("x", null, "lugar", new IllegalStateException("caiu")))
-                .isInstanceOf(UpstreamException.class).hasMessageContaining("indisponivel");
+                .isInstanceOf(UpstreamException.class).hasMessageContaining("indisponível");
     }
 
     @Test
@@ -125,7 +125,7 @@ class MediaClientTest {
 
         assertThatThrownBy(() -> cliente.enviar("aGVsbG8=", "image/png", "lugar"))
                 .isInstanceOf(UpstreamException.class)
-                .hasMessageContaining("Sessao ausente");
+                .hasMessageContaining("Sessão ausente");
     }
 
     @Test

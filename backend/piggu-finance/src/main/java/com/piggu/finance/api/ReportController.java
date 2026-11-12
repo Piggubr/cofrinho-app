@@ -39,7 +39,7 @@ public class ReportController {
     @GetMapping("/year")
     public RelatorioService.RelatorioDoAno ano(@RequestParam(required = false) Integer ano, @AuthUser CurrentUser usuario) {
         if (ano != null && (ano < 2000 || ano > 2100)) {
-            throw new BusinessException("Ano invalido.", HttpStatus.BAD_REQUEST, "PEDIDO_INVALIDO");
+            throw new BusinessException("Ano inválido.", HttpStatus.BAD_REQUEST, "PEDIDO_INVALIDO");
         }
         Year alvo = ano == null ? Year.now(Meses.BRASILIA) : Year.of(ano);
         return relatorios.doAno(alvo, usuario);

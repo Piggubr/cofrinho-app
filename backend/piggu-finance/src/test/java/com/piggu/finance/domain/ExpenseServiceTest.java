@@ -150,7 +150,7 @@ class ExpenseServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> gastos.excluir(ausente, DONO, false))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Gasto nao encontrado.");
+                .hasMessage("Gasto não encontrado.");
     }
 
     @Test
