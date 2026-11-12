@@ -1,5 +1,6 @@
 package br.com.piggu.feature.receitas
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -45,8 +46,8 @@ class Montagem(val rede: RedeDeTeste, val fixas: RespostasFixas, private val loj
         ReceitasViewModel(financas, cache, ListasParaLancar(cache, financas, rede.identidade), rede.sessao, lancamentos, DIA_DAS_CAPTURAS, conectado)
     }
 
-    fun formulario(financas: ServicoDeFinancas = rede.financas) = naLoja {
-        FormularioDeReceitaViewModel(financas, cache, ListasParaLancar(cache, financas, rede.identidade), rede.sessao, lancamentos, DIA_DAS_CAPTURAS)
+    fun formulario(financas: ServicoDeFinancas = rede.financas, estadoSalvo: SavedStateHandle = SavedStateHandle()) = naLoja {
+        FormularioDeReceitaViewModel(financas, cache, ListasParaLancar(cache, financas, rede.identidade), rede.sessao, lancamentos, DIA_DAS_CAPTURAS, estadoSalvo)
     }
 
     private inline fun <reified T : ViewModel> naLoja(crossinline criar: () -> T): T =

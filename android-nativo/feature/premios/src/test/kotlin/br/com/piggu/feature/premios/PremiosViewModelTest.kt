@@ -196,10 +196,10 @@ class PremiosViewModelTest {
         assertEquals(MensagemDeErro.DoApp(R.string.premios_motivo_vazio), premios.estado.value.erro)
         assertTrue(pedidos("POST /api/coins").isEmpty())
 
-        premios.mudarAjusteValor("-15")
-        assertEquals("-15", premios.estado.value.ajusteValor)
+        // "Tirar" desconta sem a pessoa digitar o sinal.
+        premios.mudarAjusteValor("15")
         premios.mudarAjusteMotivo(" Esqueceu a louça ")
-        premios.ajustar()
+        premios.ajustar(tirar = true)
         val depois = premios.estado.esperar { it.saldo == 105 && !it.ocupado }
         assertEquals(listOf("""POST /api/coins/adjustments {"valor":-15,"motivo":"Esqueceu a louça"}"""), pedidos("POST /api/coins"))
         assertEquals(Aviso(R.string.premios_saldo_atualizado), depois.aviso)

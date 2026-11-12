@@ -33,7 +33,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.com.piggu.core.ui.CampoDeData
 import br.com.piggu.core.ui.CampoDeValor
+import br.com.piggu.core.ui.ConfirmarData
 import java.math.BigDecimal
 import br.com.piggu.core.ui.R as Comum
 
@@ -48,6 +50,8 @@ data class EventosDoFormularioDeReceita(
     val mudarSegundoValor: (BigDecimal?) -> Unit = {},
     val mudarCompartilhada: (Boolean) -> Unit = {},
     val lancar: () -> Unit = {},
+    val lancarMesmoAssim: () -> Unit = {},
+    val corrigirData: () -> Unit = {},
 )
 
 /**
@@ -81,7 +85,9 @@ fun FormularioDeReceita(
             mudarSegundoDia = viewModel::mudarSegundoDia,
             mudarSegundoValor = viewModel::mudarSegundoValor,
             mudarCompartilhada = viewModel::mudarCompartilhada,
-            lancar = viewModel::lancar,
+            lancar = { viewModel.lancar() },
+            lancarMesmoAssim = { viewModel.lancar(dataConfirmada = true) },
+            corrigirData = viewModel::corrigirData,
         ),
         modifier,
     )
@@ -90,55 +96,59 @@ fun FormularioDeReceita(
 /** O formulário só desenhado (capturas e prévias). */
 @Composable
 fun FormularioDeReceita(estado: EstadoDoFormularioDeReceita, eventos: EventosDoFormularioDeReceita, modifier: Modifier = Modifier) {
-    Column(
-        modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        estado.erro?.let {
-            Text(it.texto(), Modifier.semantics { liveRegion = LiveRegionMode.Assertive }, color = MaterialTheme.colorScheme.error)
-        }
-        CampoDeValor(estado.valor, eventos.mudarValor, estado.moeda, Modifier.fillMaxWidth())
-        OutlinedTextField(
-            estado.descricao,
-            eventos.mudarDescricao,
-            Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.receita_descricao)) },
-            placeholder = { Text(stringResource(R.string.receita_descricao_exemplo)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        )
-        CategoriaDaReceita(estado.opcoesDeCategoria, estado.categoria, eventos.mudarCategoria)
-        CampoDeData(stringResource(R.string.receita_data), estado.data, eventos.mudarData, Modifier.fillMaxWidth())
-        CaixaDeMarcar(stringResource(R.string.receita_repetir, estado.diaDaReceita), estado.repetir, eventos.mudarRepetir)
-        if (estado.repetir) {
-            CaixaDeMarcar(stringResource(R.string.receita_duas_parcelas), estado.emDuasParcelas, eventos.mudarEmDuasParcelas)
-            if (estado.emDuasParcelas) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        estado.segundoDia,
-                        eventos.mudarSegundoDia,
-                        Modifier.weight(1f),
-                        label = { Text(stringResource(R.string.receita_segundo_dia)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                    )
-                    CampoDeValor(
-                        estado.segundoValor,
-                        eventos.mudarSegundoValor,
-                        estado.moeda,
-                        Modifier.weight(1f),
-                        rotulo = stringResource(R.string.receita_segundo_valor),
-                    )
+    // O "Lançar" fica fora da rolagem: na tela pequena ele não some abaixo da dobra (BUG-013).
+    Column(modifier) {
+        Column(
+            Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            estado.erro?.let {
+                Text(it.texto(), Modifier.semantics { liveRegion = LiveRegionMode.Assertive }, color = MaterialTheme.colorScheme.error)
+            }
+            CampoDeValor(estado.valor, eventos.mudarValor, estado.moeda, Modifier.fillMaxWidth())
+            OutlinedTextField(
+                estado.descricao,
+                eventos.mudarDescricao,
+                Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.receita_descricao)) },
+                placeholder = { Text(stringResource(R.string.receita_descricao_exemplo)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            )
+            CategoriaDaReceita(estado.opcoesDeCategoria, estado.categoria, eventos.mudarCategoria)
+            CampoDeData(stringResource(R.string.receita_data), estado.data, eventos.mudarData, Modifier.fillMaxWidth())
+            CaixaDeMarcar(stringResource(R.string.receita_repetir, estado.diaDaReceita), estado.repetir, eventos.mudarRepetir)
+            if (estado.repetir) {
+                CaixaDeMarcar(stringResource(R.string.receita_duas_parcelas), estado.emDuasParcelas, eventos.mudarEmDuasParcelas)
+                if (estado.emDuasParcelas) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            estado.segundoDia,
+                            eventos.mudarSegundoDia,
+                            Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.receita_segundo_dia)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                        )
+                        CampoDeValor(
+                            estado.segundoValor,
+                            eventos.mudarSegundoValor,
+                            estado.moeda,
+                            Modifier.weight(1f),
+                            rotulo = stringResource(R.string.receita_segundo_valor),
+                        )
+                    }
                 }
             }
+            if (estado.temCompanhia) {
+                CaixaDeMarcar(stringResource(R.string.receita_compartilhada), estado.compartilhadaEfetiva, eventos.mudarCompartilhada)
+            }
         }
-        if (estado.temCompanhia) {
-            CaixaDeMarcar(stringResource(R.string.receita_compartilhada), estado.compartilhadaEfetiva, eventos.mudarCompartilhada)
-        }
-        Button(eventos.lancar, Modifier.fillMaxWidth(), enabled = !estado.salvando) {
+        Button(eventos.lancar, Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp), enabled = !estado.salvando) {
             Text(stringResource(R.string.receita_lancar))
         }
     }
+    ConfirmarData(estado.data.takeIf { estado.confirmarData }, eventos.lancarMesmoAssim, eventos.corrigirData)
 }
 
 /** As categorias de receita são fixas (GET /incomes/categories): só escolher, sem criar como no gasto. */

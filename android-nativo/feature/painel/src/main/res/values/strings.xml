@@ -26,6 +26,7 @@
 
     <!-- Resumo do mês. -->
     <string name="resumo_titulo">Sobra do mês</string>
+    <string name="resumo_explica">Receitas menos gastos</string>
     <string name="resumo_poupado">%1$s%% poupado</string>
     <string name="resumo_receitas">Receitas</string>
     <string name="resumo_gastos">Gastos</string>
@@ -51,6 +52,10 @@
     <string name="gastar_conta_receitas">Receitas de %1$s, menos %2$s já gastos e %3$s de contas a pagar</string>
     <string name="gastar_sem_teto">Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.</string>
     <string name="gastar_lancar_receitas">Lançar receitas</string>
+    <string name="gastar_de_onde_limite">Limite do mês menos o que já foi gasto e as contas a pagar</string>
+    <string name="gastar_de_onde_receitas">Receitas do mês menos o que já foi gasto e as contas a pagar</string>
+    <string name="gastar_carregando">Somando as contas do mês…</string>
+    <string name="gastar_erro">Não deu para somar as contas do mês. %1$s</string>
     <string name="mes_gasto">Gasto no mês</string>
     <string name="mes_limite">Limite do mês</string>
     <string name="mes_progresso">%1$d%% do limite</string>
@@ -76,7 +81,9 @@
     <string name="cofrinho_vazio">Nenhum depósito ainda</string>
     <string name="cofrinho_primeiro">Fazer o primeiro depósito</string>
     <string name="cofrinho_apagar_pergunta">Apagar este depósito?</string>
-    <string name="deposito_invalido">Digite um valor de depósito válido.</string>
+    <string name="cofrinho_saldo">Saldo %1$s</string>
+    <string name="cofrinho_ver_todos">Ver todos (%1$d)</string>
+    <string name="cofrinho_ver_menos">Ver menos</string>
     <string name="data_e_pessoa">%1$s · %2$s</string>
     <string name="ex_membro">Ex-membro</string>
 

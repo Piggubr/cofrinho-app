@@ -7,6 +7,9 @@
     <string name="relatorios_a_menos">▼ %1$s%% a menos</string>
     <string name="relatorios_igual">igual</string>
     <string name="relatorios_projecao">Projeção do mês</string>
+    <string name="relatorios_projecao_explica">Os gastos fixos entram uma vez; os outros seguem o ritmo do mês.</string>
+    <string name="relatorios_ate_o_mesmo_dia">Até hoje em %1$s</string>
+    <string name="relatorios_contra_o_mesmo_dia">%1$s contra o mesmo dia de %2$s</string>
     <string name="relatorios_este_mes">Este mês</string>
     <string name="relatorios_categoria_descricao">%1$s: %2$s neste mês, %3$s no mês anterior</string>
     <string name="relatorios_vazio_titulo">Nenhum gasto neste mês</string>

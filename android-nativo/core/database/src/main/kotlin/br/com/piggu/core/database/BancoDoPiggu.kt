@@ -61,15 +61,25 @@ data class GastoGuardado(
     val json: String,
     /** Milissegundos desde 1970. */
     val guardadoEm: Long,
+    /** O servidor recusou (400, 422): o porquê, para a pessoa ver até dispensar. Nulo ainda espera subir. */
+    val recusadoPor: String? = null,
 )
 
 @Dao
 interface GastosAguardandoDao {
+    /** Os que esperam e os recusados, na ordem. */
     @Query("SELECT * FROM gastos_aguardando WHERE usuario = :usuario ORDER BY ordem")
     fun observar(usuario: String): Flow<List<GastoGuardado>>
 
-    @Query("SELECT * FROM gastos_aguardando WHERE usuario = :usuario ORDER BY ordem")
+    /** Só os que ainda esperam subir. */
+    @Query("SELECT * FROM gastos_aguardando WHERE usuario = :usuario AND recusadoPor IS NULL ORDER BY ordem")
     suspend fun daPessoa(usuario: String): List<GastoGuardado>
+
+    @Query("UPDATE gastos_aguardando SET recusadoPor = :motivo WHERE ordem = :ordem")
+    suspend fun recusar(ordem: Long, motivo: String)
+
+    @Query("DELETE FROM gastos_aguardando WHERE usuario = :usuario AND idDoEnvio = :idDoEnvio")
+    suspend fun dispensar(usuario: String, idDoEnvio: String)
 
     /** O mesmo idDoEnvio duas vezes fica uma só. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -80,13 +90,13 @@ interface GastosAguardandoDao {
 }
 
 /**
- * Versão 2: a fila de gastos. Ela não é cache, então toda versão nova precisa de migração (aqui
+ * Versão 3: o gasto recusado fica na fila com o motivo (BUG-010). Versão 2: a fila de gastos. Ela não é cache, então toda versão nova precisa de migração (aqui
  * automática) para não perder gasto guardado; só o resto pode começar vazio.
  */
 @Database(
     entities = [RespostaGuardada::class, GastoGuardado::class],
-    version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    version = 3,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class BancoDoPiggu : RoomDatabase() {
     abstract fun respostas(): RespostasGuardadasDao

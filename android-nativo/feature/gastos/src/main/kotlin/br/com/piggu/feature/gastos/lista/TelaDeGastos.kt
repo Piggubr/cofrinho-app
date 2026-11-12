@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -53,9 +54,6 @@ import java.time.format.DateTimeFormatter
 
 /** Tipos que o seletor oferece: o CSV e o OFX (que muitos aparelhos chamam de octet-stream). */
 private val TIPOS_DO_EXTRATO = arrayOf("text/*", "application/x-ofx", "application/ofx", "application/vnd.intu.qfx", "application/octet-stream")
-
-/** A folga do + da moldura, para o último item não ficar embaixo dele. */
-private val FOLGA_DO_LANCAR = 88.dp
 
 /**
  * A aba Gastos.
@@ -163,7 +161,7 @@ fun ConteudoDosGastos(
     Box(modifier.fillMaxSize()) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FOLGA_DO_LANCAR)) {
             item(key = "topo") { Topo(estado, acoes) }
-            if (estado.recusados > 0) item(key = "recusados") { AvisoDeRecusados(estado.recusados, acoes::esquecerRecusados) }
+            items(estado.recusados, key = { "recusado-${it.idDoEnvio}" }) { AvisoDeRecusado(it, estado.moeda) { acoes.dispensarRecusado(it.idDoEnvio) } }
             estado.sugestao?.let { sugestao -> item(key = "sugestao") { SugestaoDeRegra(sugestao, acoes) } }
 
             when (val carga = estado.carga) {

@@ -1,5 +1,6 @@
 package br.com.piggu.feature.planejar
 
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import androidx.annotation.StringRes
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
@@ -41,11 +42,11 @@ data class AtalhoDoPlanejar(val caminho: String, @param:StringRes val titulo: In
 
 /** Os atalhos de plan-hub.ts, na mesma ordem, e os que vieram com a aba (D-164). */
 val ATALHOS_DO_PLANEJAR = listOf(
-    AtalhoDoPlanejar("/orcamentos", R.string.planejar_orcamento, R.string.planejar_orcamento_descricao, Icone.Pizza),
-    AtalhoDoPlanejar("/contas-fixas", R.string.planejar_contas_do_mes, R.string.planejar_contas_do_mes_descricao, Icone.Recibo),
-    // Aba do celular desde o D-164: junta o que saiu da barra.
+    // Na ordem da seção Planejar do menu (e do Mais): o mesmo conteúdo nos dois lugares (BUG-027).
     AtalhoDoPlanejar("/relatorios", R.string.planejar_relatorios, R.string.planejar_relatorios_descricao, Icone.Grafico),
     AtalhoDoPlanejar("/metas", R.string.planejar_metas, R.string.planejar_metas_descricao, Icone.Bandeira),
+    AtalhoDoPlanejar("/orcamentos", R.string.planejar_orcamento, R.string.planejar_orcamento_descricao, Icone.Pizza),
+    AtalhoDoPlanejar("/contas-fixas", R.string.planejar_contas_do_mes, R.string.planejar_contas_do_mes_descricao, Icone.Recibo),
 )
 
 /**
@@ -71,7 +72,7 @@ fun TelaDoPlanejar(voltar: (() -> Unit)?, abrirTela: (caminho: String) -> Unit, 
         },
     ) { margens ->
         Column(
-            Modifier.padding(margens).fillMaxSize().verticalScroll(rememberScrollState()).wrapContentWidth().widthIn(max = 720.dp).padding(16.dp),
+            Modifier.padding(margens).fillMaxSize().verticalScroll(rememberScrollState()).wrapContentWidth().widthIn(max = 720.dp).padding(16.dp).padding(bottom = FOLGA_DO_LANCAR),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ATALHOS_DO_PLANEJAR.forEach { Atalho(it) { abrirTela(it.caminho) } }

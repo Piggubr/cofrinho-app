@@ -68,6 +68,4 @@
     <string name="calendario_falta_data">Escolha a data do evento pago.</string>
     <string name="calendario_nota_criada">Nota criada.</string>
     <string name="calendario_nota_apagada">Nota apagada.</string>
-    <string name="calendario_escolher_data">Escolher a data</string>
-    <string name="calendario_ok">OK</string>
 </resources>

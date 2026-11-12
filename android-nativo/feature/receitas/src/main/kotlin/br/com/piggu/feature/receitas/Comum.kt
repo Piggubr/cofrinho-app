@@ -72,38 +72,3 @@ internal fun CaixaDeMarcar(texto: String, marcada: Boolean, aoMudar: (Boolean) -
         Text(texto, Modifier.padding(start = 8.dp))
     }
 }
-
-/**
- * Data (aaaa-mm-dd) num campo só de leitura que abre o calendário. O DatePicker trabalha em
- * milissegundos UTC: por isso a conversão por UTC, para não deslocar o dia.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun CampoDeData(rotulo: String, data: String, aoMudar: (String) -> Unit, modifier: Modifier = Modifier) {
-    var aberto by rememberSaveable { mutableStateOf(false) }
-    val escolher = stringResource(R.string.receitas_escolher_data)
-    OutlinedTextField(
-        dataCurta(data),
-        {},
-        modifier,
-        readOnly = true,
-        label = { Text(rotulo) },
-        singleLine = true,
-        trailingIcon = {
-            IconButton({ aberto = true }) { Icon(painterResource(Icone.Calendario.desenho), escolher) }
-        },
-    )
-    if (!aberto) return
-    val dia = runCatching { LocalDate.parse(data) }.getOrNull()
-    val calendario = rememberDatePickerState(dia?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli())
-    DatePickerDialog(
-        onDismissRequest = { aberto = false },
-        confirmButton = {
-            TextButton({
-                calendario.selectedDateMillis?.let { aoMudar(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString()) }
-                aberto = false
-            }) { Text(stringResource(R.string.receitas_ok)) }
-        },
-        dismissButton = { TextButton({ aberto = false }) { Text(stringResource(br.com.piggu.core.ui.R.string.cancelar)) } },
-    ) { DatePicker(calendario) }
-}

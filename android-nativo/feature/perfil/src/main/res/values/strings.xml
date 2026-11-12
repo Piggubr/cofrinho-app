@@ -27,9 +27,9 @@
     <string name="perfil_papel_membro">Membro</string>
 
     <!-- Moeda -->
-    <string name="perfil_moeda_titulo">Moeda</string>
-    <string name="perfil_moeda_do_app">Moeda do app</string>
-    <string name="perfil_moeda_explicacao">É a moeda em que os valores aparecem; os valores já lançados não são convertidos.</string>
+    <string name="perfil_moeda_titulo">Moeda de exibição</string>
+    <string name="perfil_moeda_do_app">Moeda de exibição</string>
+    <string name="perfil_moeda_explicacao">Muda só o símbolo com que os valores aparecem. Trocar não converte nada: um gasto de R$ 100 passa a aparecer como € 100, por exemplo. Escolha a moeda em que você lança.</string>
     <string name="perfil_mostrar_cotacao">Mostrar a cotação no topo do app</string>
     <string name="perfil_cotacao_entre">Cotação entre</string>
     <string name="perfil_cotacao_para">e</string>

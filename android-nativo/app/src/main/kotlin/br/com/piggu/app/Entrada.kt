@@ -69,7 +69,7 @@ fun TelaCheia(
     abrirTour: () -> Unit = {},
     avisoDoEmail: @Composable () -> Unit = {},
 ) {
-    fun abrir(destino: Tela) { pilha.add(destino) }
+    fun abrir(destino: Tela) { pilha.abrirSemRepetir(destino) }
     val voltar = { pilha.voltar(base) }
     when (tela) {
         Tela.Entrar -> TelaDeLogin(
@@ -135,12 +135,13 @@ fun TelaCheia(
 
 /** Uma pilha só de telas cheias, com a navegação de voltar do sistema. */
 @Composable
-private fun PilhaDeTelasCheias(base: Tela, links: Flow<Destino>, aceita: (Tela) -> Boolean, sair: () -> Unit) {
+private fun PilhaDeTelasCheias(base: Tela, links: Flow<Destino>, aceita: (Tela) -> Boolean, sair: () -> Unit, guardar: (Destino) -> Unit) {
     val pilha = rememberNavBackStack(base)
     LaunchedEffect(links) {
         links.collect { destino ->
-            val tela = (destino as? Destino.Abrir)?.tela ?: return@collect
-            if (aceita(tela) && pilha.lastOrNull() != tela) pilha.add(tela)
+            val tela = (destino as? Destino.Abrir)?.tela
+            // O que só abre com sessão (lançar gasto, uma tela do app) espera o login.
+            if (tela != null && aceita(tela)) pilha.abrirSemRepetir(tela) else guardar(destino)
         }
     }
     NavDisplay(
@@ -152,13 +153,13 @@ private fun PilhaDeTelasCheias(base: Tela, links: Flow<Destino>, aceita: (Tela) 
 
 /** Sem sessão: o login e as telas abertas (os links do e-mail e os textos legais). */
 @Composable
-fun EntradaSemSessao(links: Flow<Destino>) {
-    PilhaDeTelasCheias(Tela.Entrar, links, aceita = Tela::aberta, sair = {})
+fun EntradaSemSessao(links: Flow<Destino>, guardarLink: (Destino) -> Unit = {}) {
+    PilhaDeTelasCheias(Tela.Entrar, links, aceita = Tela::aberta, sair = {}, guardar = guardarLink)
 }
 
 /** O que falta antes do resto (termosGuard): o aceite, ou o "Sobre você"; os textos legais abrem por cima. */
 @Composable
-fun PendenciaDaConta(pendencia: Pendencia, links: Flow<Destino>, sair: () -> Unit) {
+fun PendenciaDaConta(pendencia: Pendencia, links: Flow<Destino>, sair: () -> Unit, guardarLink: (Destino) -> Unit = {}) {
     val base = if (pendencia == Pendencia.Termos) Tela.Aceite else Tela.SobreVoce
-    PilhaDeTelasCheias(base, links, aceita = { it == Tela.Termos || it == Tela.Privacidade }, sair = sair)
+    PilhaDeTelasCheias(base, links, aceita = { it == Tela.Termos || it == Tela.Privacidade }, sair = sair, guardar = guardarLink)
 }

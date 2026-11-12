@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -71,6 +72,7 @@ data class EventosDosPremios(
     val mudarAjusteValor: (String) -> Unit = {},
     val mudarAjusteMotivo: (String) -> Unit = {},
     val ajustar: () -> Unit = {},
+    val tirar: () -> Unit = {},
     val pedirParaResgatar: (Premio) -> Unit = {},
     val pedirParaRemover: (Premio) -> Unit = {},
     val confirmar: () -> Unit = {},
@@ -96,7 +98,8 @@ fun TelaDosPremios(voltar: () -> Unit, modifier: Modifier = Modifier, viewModel:
             alternarHistorico = viewModel::alternarHistorico,
             mudarAjusteValor = viewModel::mudarAjusteValor,
             mudarAjusteMotivo = viewModel::mudarAjusteMotivo,
-            ajustar = viewModel::ajustar,
+            ajustar = { viewModel.ajustar() },
+            tirar = { viewModel.ajustar(tirar = true) },
             pedirParaResgatar = viewModel::pedirParaResgatar,
             pedirParaRemover = viewModel::pedirParaRemover,
             confirmar = viewModel::confirmar,
@@ -192,7 +195,10 @@ private fun Fofocoins(estado: EstadoDosPremios, historico: List<MovimentoDeMoeda
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 )
-                Button(eventos.ajustar, Modifier.fillMaxWidth(), enabled = !estado.ocupado) { Text(stringResource(R.string.premios_ajustar)) }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(eventos.ajustar, Modifier.weight(1f).heightIn(min = 48.dp), enabled = !estado.ocupado) { Text(stringResource(R.string.premios_dar)) }
+                    OutlinedButton(eventos.tirar, Modifier.weight(1f).heightIn(min = 48.dp), enabled = !estado.ocupado) { Text(stringResource(R.string.premios_tirar)) }
+                }
             }
             TextButton(eventos.alternarHistorico, Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(if (estado.mostrarHistorico) R.string.premios_esconder_historico else R.string.premios_ver_historico))

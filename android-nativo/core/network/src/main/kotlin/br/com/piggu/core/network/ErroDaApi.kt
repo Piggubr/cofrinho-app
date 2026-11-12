@@ -73,6 +73,9 @@ fun lerCorpoDeErro(texto: String): CorpoDeErro? =
         null
     }
 
+/** O código do 503/504 do gateway: a parte do Piggu está fora do ar (D-191). */
+const val SERVICO_INDISPONIVEL = "SERVICO_INDISPONIVEL"
+
 /** O texto do erro para a tela: um do app (`strings.xml`) ou o que o servidor escreveu. */
 sealed interface MensagemDeErro {
     data class DoApp(@param:StringRes val texto: Int) : MensagemDeErro
@@ -94,6 +97,9 @@ fun mensagemDeErro(
     @StringRes padrao: Int = R.string.erro_nao_foi_possivel_concluir,
 ): MensagemDeErro = when {
     erro is ErroDaApi.SemInternet -> MensagemDeErro.DoApp(R.string.erro_sem_conexao)
+    // Serviço fora do ar ou tempo esgotado no gateway (D-191), ou um 503/504 de proxy sem texto: a frase do contrato.
+    erro is ErroDaApi.DoServidor && (erro.codigo == SERVICO_INDISPONIVEL || (erro.status == 503 || erro.status == 504) && erro.mensagem.isNullOrBlank()) ->
+        MensagemDeErro.DoApp(R.string.erro_servico_indisponivel)
     erro is ErroDaApi.DoServidor && !erro.mensagem.isNullOrBlank() -> MensagemDeErro.DoServidor(erro.mensagem)
     else -> MensagemDeErro.DoApp(padrao)
 }

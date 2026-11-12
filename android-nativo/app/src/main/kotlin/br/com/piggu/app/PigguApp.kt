@@ -1,5 +1,11 @@
 package br.com.piggu.app
 
+import br.com.piggu.feature.receitas.FormularioDeReceitaViewModel
+import br.com.piggu.feature.gastos.formulario.FormularioDeGastoViewModel
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -65,7 +71,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import br.com.piggu.app.moldura.FOLGA_DO_LANCAR
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import br.com.piggu.app.moldura.Moldura
 import br.com.piggu.app.moldura.PerfilDaMoldura
 import br.com.piggu.app.moldura.TelaDoMais
@@ -88,6 +94,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.merge
 import br.com.piggu.core.ui.LocalAbrirCaminho
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -96,6 +104,27 @@ fun MutableList<NavKey>.irPara(aba: NavKey) {
     if (lastOrNull() == aba) return
     retainAll(listOf(Tela.Painel))
     if (aba != Tela.Painel) add(aba)
+}
+
+/**
+ * Abre a tela por cima; se ela já está na pilha, volta até ela em vez de empilhar outra igual
+ * (o launchSingleTop com popUpTo, BUG-035).
+ */
+fun MutableList<NavKey>.abrirSemRepetir(tela: NavKey) {
+    val i = indexOf(tela)
+    if (i < 0) add(tela) else while (size > i + 1) removeAt(lastIndex)
+}
+
+/** Guarda o último link que não podia abrir ainda (sem sessão) até a pessoa entrar. */
+class LinkPendente {
+    private var destino: Destino? = null
+
+    fun guardar(destino: Destino) {
+        this.destino = destino
+    }
+
+    /** O link guardado, uma vez só. */
+    fun retirar(): Destino? = destino.also { destino = null }
 }
 
 /** O app inteiro: o tema da pessoa e, pela sessão, o login, uma pendência ou a moldura. */
@@ -116,13 +145,15 @@ fun PigguApp(
         ModoDeCor.Escuro -> true
     }
     BarrasDoSistema(escuro)
+    // Link que chegou antes da sessão (sem login ou com pendência): abre depois de entrar (BUG-018).
+    val linkPendente = remember { LinkPendente() }
     PigguTheme(estado.cor, estado.modo, estado.coresDoCelular, estado.fundoPreto) {
         val abrirNoSite = lembrarAbrirNoSite()
         when (val raiz = estado.raiz) {
             Raiz.Abrindo -> Abrindo()
             Raiz.Atualizar -> AtualizeOApp()
-            Raiz.Login -> EntradaSemSessao(links)
-            is Raiz.Pendente -> key(raiz.pendencia) { PendenciaDaConta(raiz.pendencia, links, viewModel::sair) }
+            Raiz.Login -> EntradaSemSessao(links, linkPendente::guardar)
+            is Raiz.Pendente -> key(raiz.pendencia) { PendenciaDaConta(raiz.pendencia, links, viewModel::sair, linkPendente::guardar) }
             // Sem saber ainda se a trava está ligada, nada de valores na tela.
             is Raiz.Logado if trava.travado == null -> Abrindo()
             is Raiz.Logado -> {
@@ -135,7 +166,9 @@ fun PigguApp(
                     }
                 }
                 // Link de widget, atalho ou bloco com o app travado espera o desbloqueio (lançar seria por cima da trava).
-                val linksDepoisDaTrava = remember(links) { links.onEach { travaViewModel.estado.first { it.travado == false } } }
+                val linksDepoisDaTrava = remember(links) {
+                    merge(flow { linkPendente.retirar()?.let { emit(it) } }, links).onEach { travaViewModel.estado.first { it.travado == false } }
+                }
                 // "/plano" ou "/contas-e-cartoes" pedidos de dentro de uma tela abrem a tela nativa, como um link.
                 val caminhosDoApp = remember { MutableSharedFlow<Destino>(extraBufferCapacity = 1) }
                 val todosOsLinks = remember(linksDepoisDaTrava) { merge(linksDepoisDaTrava, caminhosDoApp) }
@@ -207,7 +240,7 @@ fun AppLogado(
             tela in Tela.abas -> pilha.irPara(tela)
             // Já logado, o login e as pendências não têm o que fazer: fica no Painel.
             tela == Tela.Entrar || tela == Tela.Aceite || tela == Tela.SobreVoce -> pilha.irPara(Tela.Painel)
-            tela.nativa -> pilha.add(tela)
+            tela.nativa -> pilha.abrirSemRepetir(tela)
             else -> abrirNoSite(tela.caminho)
         }
     }
@@ -350,23 +383,53 @@ enum class Lancamento { Gasto, Receita }
 
 /**
  * O formulário do +, numa folha por cima da aba aberta (lancamento-rapido do site). Lançou,
- * a folha fecha e o aviso curto confirma; as telas abertas recarregam pelo Lancamentos.
+ * a folha fecha e o aviso curto confirma; as telas abertas recarregam pelo Lancamentos. Com algo
+ * digitado, Voltar, tocar fora ou arrastar para baixo pergunta antes de descartar (BUG-016).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FolhaDeLancar(tipo: Lancamento, valorDoGasto: java.math.BigDecimal?, fechar: () -> Unit, aoLancar: (String) -> Unit) {
-    ModalBottomSheet(onDismissRequest = fechar, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    // Uma chave por abertura: a folha nova não lembra o formulário pela metade; a recriada (o sistema matou o app) lembra.
+    val chave = rememberSaveable { java.util.UUID.randomUUID().toString() }
+    val gasto: FormularioDeGastoViewModel? = if (tipo == Lancamento.Gasto) hiltViewModel(key = "gasto-$chave") else null
+    val receita: FormularioDeReceitaViewModel? = if (tipo == Lancamento.Receita) hiltViewModel(key = "receita-$chave") else null
+    val sujo = gasto?.estado?.collectAsStateWithLifecycle()?.value?.temAlgoDigitado
+        ?: receita?.estado?.collectAsStateWithLifecycle()?.value?.temAlgoDigitado ?: false
+    val sujoAgora by rememberUpdatedState(sujo)
+    var perguntando by rememberSaveable { mutableStateOf(false) }
+    val folha = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { valor ->
+            if (valor == SheetValue.Hidden && sujoAgora) {
+                perguntando = true
+                false
+            } else {
+                true
+            }
+        },
+    )
+    // Recriada depois de o sistema matar o app, a folha voltava pela metade, com o "Lançar" fora da tela.
+    LaunchedEffect(folha) {
+        snapshotFlow { folha.currentValue }.first { it != SheetValue.Hidden }
+        folha.expand()
+    }
+    ModalBottomSheet(onDismissRequest = { if (sujoAgora) perguntando = true else fechar() }, sheetState = folha) {
         Text(
             stringResource(if (tipo == Lancamento.Gasto) R.string.lancar_gasto else R.string.lancar_receita),
             Modifier.padding(horizontal = 24.dp, vertical = 8.dp).semantics { heading() },
             style = MaterialTheme.typography.titleLarge,
         )
-        // Uma chave por abertura: a folha nova não lembra o formulário pela metade.
-        val chave = rememberSaveable { java.util.UUID.randomUUID().toString() }
-        when (tipo) {
-            Lancamento.Receita -> FormularioDeReceita(aoLancar, viewModel = hiltViewModel(key = "receita-$chave"))
-            Lancamento.Gasto -> FormularioDeGasto(aoLancar, valorDoGasto, viewModel = hiltViewModel(key = "gasto-$chave"))
-        }
+        receita?.let { FormularioDeReceita(aoLancar, viewModel = it) }
+        gasto?.let { FormularioDeGasto(aoLancar, valorDoGasto, viewModel = it) }
+    }
+    if (perguntando) {
+        AlertDialog(
+            onDismissRequest = { perguntando = false },
+            title = { Text(stringResource(if (tipo == Lancamento.Gasto) R.string.descartar_gasto else R.string.descartar_receita)) },
+            text = { Text(stringResource(R.string.descartar_texto)) },
+            confirmButton = { TextButton({ perguntando = false; fechar() }) { Text(stringResource(R.string.descartar)) } },
+            dismissButton = { TextButton({ perguntando = false }) { Text(stringResource(R.string.continuar_editando)) } },
+        )
     }
 }
 

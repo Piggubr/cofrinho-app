@@ -31,6 +31,8 @@ private val pares: List<Triple<String, (ColorScheme) -> Color, (ColorScheme) -> 
     Triple("primary sobre surfaceContainerHighest", { it.primary }, { it.surfaceContainerHighest }),
     Triple("onSurfaceVariant sobre surfaceContainerHighest", { it.onSurfaceVariant }, { it.surfaceContainerHighest }),
     Triple("error sobre surface", { it.error }, { it.surface }),
+    // Botões em pílula e o "Ver receitas/gastos": o rosa sobre o container rosa (BUG-015).
+    Triple("primary sobre primaryContainer", { it.primary }, { it.primaryContainer }),
 )
 
 class ContrasteTest {

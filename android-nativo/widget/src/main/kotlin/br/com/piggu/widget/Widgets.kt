@@ -1,5 +1,6 @@
 package br.com.piggu.widget
 
+import br.com.piggu.core.data.FUSO_DA_CONTA
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
@@ -74,7 +75,7 @@ abstract class WidgetDoPiggu : GlanceAppWidget() {
             // Lido na composição: um updateAll com a sessão do widget aberta redesenha com o resumo novo.
             val resumo by guarda.resumo.collectAsState(inicial)
             TemaDoWidget(resumo) {
-                Cartao(link()) { Conteudo(resumo?.takeIf { it.mes == YearMonth.now().toString() }, resumo != null) }
+                Cartao(link()) { Conteudo(resumo?.takeIf { it.mes == YearMonth.now(FUSO_DA_CONTA).toString() }, resumo != null) }
             }
         }
     }
@@ -107,9 +108,10 @@ class GastoDoMesWidget : WidgetDoPiggu() {
         val porcentagem = resumo.porcentagemDoLimite
         val restante = resumo.restante
         if (porcentagem == null || resumo.limite == null || restante == null) {
-            Detalhe(texto(R.string.widget_sem_limite))
+            // Sem limite, o teto são as receitas, como no Painel.
+            Detalhe(restante?.let { texto(R.string.widget_ainda_da, formatarMoeda(it, resumo.moeda)) } ?: texto(R.string.widget_sem_limite))
         } else {
-            val estourou = porcentagem > 100
+            val estourou = restante.signum() < 0
             val cor = if (estourou) GlanceTheme.colors.error else GlanceTheme.colors.primary
             LinearProgressIndicator(
                 progress = porcentagem.coerceAtMost(100) / 100f,

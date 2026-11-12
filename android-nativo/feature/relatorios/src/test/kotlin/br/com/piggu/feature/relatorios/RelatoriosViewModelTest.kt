@@ -101,9 +101,11 @@ class RelatoriosViewModelTest {
             assertEquals(c.categoria, 0, antes.compareTo(c.anterior))
         }
         assertEquals(0, setembro.gastos.compareTo(outubro.gastosMesAnterior))
-        // O ritmo de gasto até 28/10 levado aos 31 dias.
-        val projecao = outubro.gastos.multiply(BigDecimal(31)).divide(BigDecimal(28), 2, RoundingMode.HALF_UP)
+        // D-190: os fixos uma vez, e os variáveis pelo ritmo até 28/10 levado aos 31 dias.
+        val fixos = outubro.gastosFixos!!
+        val projecao = fixos + (outubro.gastos - fixos).multiply(BigDecimal(31)).divide(BigDecimal(28), 2, RoundingMode.HALF_UP)
         assertEquals(0, projecao.compareTo(outubro.projecaoDeGastos))
+        assertTrue(outubro.gastosAteMesmoDiaAnterior != null)
         val maior = outubro.porCategoria.flatMap { listOf(it.total, it.anterior) }.max()
         assertEquals(0, maior.compareTo(estado.maiorDaCategoria))
         assertEquals(1f, estado.fracaoDoMes(maior))

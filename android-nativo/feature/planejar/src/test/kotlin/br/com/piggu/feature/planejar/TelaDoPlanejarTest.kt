@@ -25,7 +25,7 @@ class TelaDoPlanejarTest {
         var voltou = false
         compose.setContent { PigguTheme { TelaDoPlanejar(voltar = { voltou = true }, abrirTela = { abertos += it }) } }
 
-        assertEquals(listOf("/orcamentos", "/contas-fixas", "/relatorios", "/metas"), ATALHOS_DO_PLANEJAR.map { it.caminho })
+        assertEquals(listOf("/relatorios", "/metas", "/orcamentos", "/contas-fixas"), ATALHOS_DO_PLANEJAR.map { it.caminho })
         compose.onNodeWithText("80% e 100%", substring = true).assertExists()
         compose.onNodeWithText("Orçamento").assertHasClickAction().performClick()
         compose.onNodeWithText("Contas do mês").performClick()

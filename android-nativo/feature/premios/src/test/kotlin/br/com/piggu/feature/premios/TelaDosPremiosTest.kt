@@ -29,7 +29,7 @@ class TelaDosPremiosTest {
     @Test
     fun `quem cuida ve ajustar, novo, editar e remover`() {
         abrir(cuida = true)
-        compose.onNodeWithText("Ajustar").assertExists()
+        compose.onNodeWithText("Dar").assertExists()
         compose.onNodeWithContentDescription("Novo prêmio").assertExists()
         compose.onNodeWithContentDescription("Editar Pizza").assertExists()
         compose.onNodeWithContentDescription("Remover Pizza").assertExists()
@@ -38,7 +38,7 @@ class TelaDosPremiosTest {
     @Test
     fun `o membro so resgata, e so o que o saldo paga`() {
         abrir(cuida = false)
-        compose.onNodeWithText("Ajustar").assertDoesNotExist()
+        compose.onNodeWithText("Dar").assertDoesNotExist()
         compose.onNodeWithContentDescription("Novo prêmio").assertDoesNotExist()
         compose.onNodeWithContentDescription("Editar Pizza").assertDoesNotExist()
         compose.onNodeWithContentDescription("Remover Pizza").assertDoesNotExist()

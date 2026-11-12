@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="erro_nao_foi_possivel_concluir">Não foi possível concluir.</string>
+    <string name="erro_servico_indisponivel">Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.</string>
     <string name="erro_sem_conexao">Sem conexão com o servidor. Confira a internet e tente de novo.</string>
 </resources>

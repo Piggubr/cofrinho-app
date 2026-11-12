@@ -1,6 +1,8 @@
 package br.com.piggu.app
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +14,7 @@ import br.com.piggu.core.ui.formatos.lerValor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import java.util.Locale
 import javax.inject.Inject
 
 // FragmentActivity: o BiometricPrompt da trava do app precisa dela.
@@ -21,6 +24,13 @@ class MainActivity : FragmentActivity() {
     private val links = Channel<Destino>(Channel.BUFFERED)
 
     @Inject lateinit var retornoDoBanco: RetornoDoBanco
+
+    override fun attachBaseContext(novo: Context) {
+        super.attachBaseContext(novo)
+        // Os textos do próprio Material (fechar a folha, alça, calendário, busca) seguem o idioma do
+        // app, não o do aparelho: com o celular em inglês, o TalkBack lia "Close sheet" (BUG-033).
+        applyOverrideConfiguration(Configuration().apply { setLocale(Locale.forLanguageTag("pt-BR")) })
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()

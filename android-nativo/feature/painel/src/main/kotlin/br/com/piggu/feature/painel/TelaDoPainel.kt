@@ -1,5 +1,6 @@
 package br.com.piggu.feature.painel
 
+import br.com.piggu.core.ui.FOLGA_DO_LANCAR
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -168,7 +169,8 @@ fun TelaDoPainel(
     PullToRefreshBox(estado.atualizando, eventos.atualizar, modifier.fillMaxSize()) {
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            // O fim da lista desce além do +, para ele não cobrir o último cartão (BUG-013).
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = FOLGA_DO_LANCAR),
             verticalArrangement = Arrangement.spacedBy(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -193,7 +195,7 @@ fun TelaDoPainel(
                         item(key = "guardado") { AvisoDeGuardado(quandoFoiGuardado(quando), estado.conectado, largura) }
                     }
                     // Fixo no topo, e logo abaixo os primeiros passos até a pessoa terminar ou pular (D-164).
-                    if (estado.mostraAindaDaParaGastar) item(key = "ainda-da-para-gastar") { CartaoAindaDaParaGastar(estado, abrirTela, largura) }
+                    if (estado.mostraAindaDaParaGastar) item(key = "ainda-da-para-gastar") { CartaoAindaDaParaGastar(estado, abrirTela, largura, eventos.tentarDeNovo) }
                     if (estado.mostraGuia) item(key = "guia") { CartaoDoGuia(estado, eventos, abrirTela, lancarGasto, largura) }
                     if (estado.mostraMesPassado) item(key = "mes-passado") { CartaoDoMesPassado(estado, abrirTela, lancarGasto, largura) }
                     items(estado.cartoes, key = { it.id }) { bloco ->

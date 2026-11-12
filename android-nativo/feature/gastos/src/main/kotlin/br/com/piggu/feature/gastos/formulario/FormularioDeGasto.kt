@@ -79,6 +79,8 @@ import br.com.piggu.core.model.OrigemDaLeitura
 import br.com.piggu.core.model.ReciboLido
 import br.com.piggu.core.network.mensagemDeErro
 import br.com.piggu.core.ui.CampoDeCategoria
+import br.com.piggu.core.ui.CampoDeData
+import br.com.piggu.core.ui.ConfirmarData
 import br.com.piggu.core.ui.CampoDeValor
 import br.com.piggu.core.ui.formatos.dataCurta
 import br.com.piggu.core.ui.formatos.formatarMoeda
@@ -123,38 +125,47 @@ fun FormularioDeGasto(
     }
     val fotos = lembrarFotosDoRecibo(viewModel::lerFotoDoRecibo)
 
-    Column(
-        modifier.verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        if (estado.semInternet) Aviso(stringResource(R.string.formulario_sem_internet), erro = false)
-        estado.erro?.let { Aviso(it.texto(contexto), erro = true) }
+    // O "Lançar" fica fora da rolagem: na tela pequena ele não some abaixo da dobra (BUG-013).
+    Column(modifier) {
+        Column(
+            Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (estado.semInternet) Aviso(stringResource(R.string.formulario_sem_internet), erro = false)
+            estado.erro?.let { Aviso(it.texto(contexto), erro = true) }
 
-        // Recibo lido: os itens ficam em conferência no lugar do formulário até a pessoa confirmar.
-        estado.recibo?.let { lido ->
-            ConferirRecibo(estado, lido, viewModel)
-            return@Column
-        }
+            // Recibo lido: os itens ficam em conferência no lugar do formulário até a pessoa confirmar.
+            estado.recibo?.let { lido ->
+                ConferirRecibo(estado, lido, viewModel)
+                return@Column
+            }
 
-        estado.itens.forEachIndexed { indice, linha ->
-            key(linha.chave) { LinhaDoItem(estado, linha, indice, estado.itens.size > 1, viewModel) }
+            estado.itens.forEachIndexed { indice, linha ->
+                key(linha.chave) { LinhaDoItem(estado, linha, indice, estado.itens.size > 1, viewModel) }
+            }
+            if (estado.itens.size < 100) {
+                TextButton(viewModel::adicionarItem) {
+                    Icon(painterResource(Icone.Mais.desenho), null)
+                    Text(stringResource(R.string.formulario_adicionar_item))
+                }
+            }
+
+            ComoPagou(estado, viewModel)
+            if (estado.forma == FormaDePagamento.CARTAO) ComoFoiACompra(estado, viewModel)
+            MaisOpcoes(estado, viewModel)
+            LerRecibo(estado, fotos)
         }
-        if (estado.itens.size < 100) {
-            TextButton(viewModel::adicionarItem) {
-                Icon(painterResource(Icone.Mais.desenho), null)
-                Text(stringResource(R.string.formulario_adicionar_item))
+        if (estado.recibo == null) {
+            Button(
+                { viewModel.lancar() },
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp).heightIn(min = 48.dp),
+                enabled = !estado.salvando,
+            ) {
+                Text(stringResource(if (estado.salvando) R.string.formulario_guardando else R.string.formulario_lancar))
             }
         }
-
-        ComoPagou(estado, viewModel)
-        if (estado.forma == FormaDePagamento.CARTAO) ComoFoiACompra(estado, viewModel)
-        MaisOpcoes(estado, viewModel)
-
-        Button(viewModel::lancar, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !estado.salvando) {
-            Text(stringResource(if (estado.salvando) R.string.formulario_guardando else R.string.formulario_lancar))
-        }
-        LerRecibo(estado, fotos)
     }
+    ConfirmarData(estado.data.toString().takeIf { estado.confirmarData }, { viewModel.lancar(dataConfirmada = true) }, viewModel::corrigirData)
     estado.pedidoDeIa?.let { mensagem -> PedidoDeIa(mensagem.texto(contexto), viewModel) }
 }
 
@@ -441,7 +452,7 @@ private fun MaisOpcoes(estado: EstadoDoFormulario, viewModel: FormularioDeGastoV
         }
         if (!estado.maisOpcoes) return@Column
 
-        CampoDeData(estado.data, viewModel::mudarData)
+        CampoDeData(stringResource(R.string.formulario_data), estado.data.toString(), { viewModel.mudarData(LocalDate.parse(it)) }, Modifier.fillMaxWidth())
         OutlinedTextField(
             estado.estabelecimento,
             viewModel::mudarEstabelecimento,
@@ -471,36 +482,6 @@ private fun MaisOpcoes(estado: EstadoDoFormulario, viewModel: FormularioDeGastoV
             Marcavel(stringResource(R.string.formulario_compartilhar), estado.compartilhadoEfetivo, viewModel::mudarCompartilhado)
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun CampoDeData(data: LocalDate, aoEscolher: (LocalDate) -> Unit) {
-    var aberto by rememberSaveable { mutableStateOf(false) }
-    val rotulo = stringResource(R.string.formulario_escolher_data)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        OutlinedTextField(
-            dataCurta(data.toString()),
-            {},
-            Modifier.weight(1f),
-            readOnly = true,
-            label = { Text(stringResource(R.string.formulario_data)) },
-        )
-        IconButton({ aberto = true }) { Icon(painterResource(Icone.Calendario.desenho), rotulo) }
-    }
-    if (!aberto) return
-    // O DatePicker trabalha com meia-noite UTC: a conversão não desloca o dia.
-    val seletor = rememberDatePickerState(initialSelectedDateMillis = data.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
-    DatePickerDialog(
-        onDismissRequest = { aberto = false },
-        confirmButton = {
-            TextButton({
-                seletor.selectedDateMillis?.let { aoEscolher(Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate()) }
-                aberto = false
-            }) { Text(stringResource(R.string.formulario_ok)) }
-        },
-        dismissButton = { TextButton({ aberto = false }) { Text(stringResource(R.string.formulario_cancelar)) } },
-    ) { DatePicker(seletor) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

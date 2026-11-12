@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
@@ -80,9 +79,9 @@ internal fun MolduraDaEntrada(titulo: String, subtitulo: String, conteudo: @Comp
     Surface(Modifier.fillMaxSize()) {
         Column(
             Modifier
-                .verticalScroll(rememberScrollState())
+                // As barras e o teclado ficam fora da rolagem: o conteúdo não passa por baixo do relógio (BUG-017).
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

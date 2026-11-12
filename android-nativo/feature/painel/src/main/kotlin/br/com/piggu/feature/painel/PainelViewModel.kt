@@ -1,5 +1,16 @@
 package br.com.piggu.feature.painel
 
+import br.com.piggu.core.ui.formatos.problemaDoValor
+import br.com.piggu.core.ui.formatos.TETO_DA_RECEITA
+import kotlin.jvm.optionals.getOrNull
+import java.util.Optional
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
+import br.com.piggu.core.data.totalNoMes
+import br.com.piggu.core.data.calcularContaDoMes
+import br.com.piggu.core.data.FilaDeGastos
+import br.com.piggu.core.data.ContaDoMes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.CacheDeRespostas
@@ -159,6 +170,16 @@ data class EstadoDoPainel(
     val moedaEscolhida: String? = null,
     /** Começo do mês (D-165): o mês de hoje ainda sem gasto mostra o anterior como referência. */
     val gastosDoMesPassado: List<Gasto> = emptyList(),
+    /** As contas fixas do mês; nulas enquanto carregam (o "Ainda dá" espera por elas, BUG-002). */
+    val contasDoMes: List<ContaFixa>? = null,
+    /** As contas do mês falharam: o "Ainda dá" mostra o erro com "Tentar de novo". */
+    val erroDasContas: MensagemDeErro? = null,
+    /** O resumo (com as receitas, o teto sem limite) falhou. */
+    val erroDoResumo: MensagemDeErro? = null,
+    /** O resumo já respondeu (ou falhou): sem limite, as receitas são o teto. */
+    val resumoRespondeu: Boolean = false,
+    /** Os gastos da fila sem internet neste mês: já saíram do bolso (BUG-010). */
+    val aguardandoNoMes: BigDecimal = BigDecimal.ZERO,
 ) {
     private val nucleo: Nucleo? get() = (carga as? Carga.Pronto)?.valor
 
@@ -178,31 +199,36 @@ data class EstadoDoPainel(
     /** O cartão dos bancos vai junto do "mes", como no site; sem ele, junto do primeiro. */
     val bancosJuntoDe: IdDoBloco? get() = if (bancos == null) null else cartoes.firstOrNull { it == IdDoBloco.Mes } ?: cartoes.firstOrNull()
 
-    val gastoNoMes: BigDecimal get() = nucleo?.gastos?.fold(BigDecimal.ZERO) { soma, gasto -> soma + gasto.valor } ?: BigDecimal.ZERO
+    /** O do servidor e o da fila sem internet, que ainda vai subir. */
+    val gastoNoMes: BigDecimal get() = (nucleo?.gastos?.fold(BigDecimal.ZERO) { soma, gasto -> soma + gasto.valor } ?: BigDecimal.ZERO) + aguardandoNoMes
     val limiteDoMes: BigDecimal get() = nucleo?.metas?.get(mes) ?: BigDecimal.ZERO
     val progressoDoLimite: Int
         get() = if (limiteDoMes.signum() <= 0) 0 else minOf(100, (gastoNoMes * BigDecimal(100) / limiteDoMes).toDouble().let(Math::round).toInt())
     val estourouOLimite: Boolean get() = limiteDoMes.signum() > 0 && gastoNoMes > limiteDoMes
 
-    // Ainda dá para gastar (D-164): o teto do mês menos o gasto e as contas fixas que ainda vão sair.
-    /** Contas fixas de gasto ainda não pagas no mês; as pagas já viraram gasto. */
-    val contasAPagar: BigDecimal
-        get() = avisos.contas.filter { it.tipo != TipoDeContaFixa.RECEITA }.fold(BigDecimal.ZERO) { soma, conta -> soma + conta.valor }
-
+    // Ainda dá para gastar (D-164): a conta do Painel do site, a mesma do widget (BUG-002).
     /** O limite do mês ou, sem ele, as receitas do mês. */
     val tetoEhOLimite: Boolean get() = limiteDoMes.signum() > 0
-    val tetoDoMes: BigDecimal? get() = if (tetoEhOLimite) limiteDoMes else resumo?.receitas?.takeIf { it.signum() > 0 }
 
-    /** Nulo sem limite e sem receita: o cartão convida a definir um dos dois. Negativo é o que passou. */
-    val aindaDaParaGastar: BigDecimal? get() = tetoDoMes?.let { it - gastoNoMes - contasAPagar }
+    /** O que impede a conta: as contas do mês ou, sem limite, o resumo que falhou. */
+    val erroDaConta: MensagemDeErro? get() = erroDasContas ?: erroDoResumo?.takeIf { !tetoEhOLimite }
+
+    /** A conta ainda não fecha: faltam as contas do mês ou, sem limite, as receitas. Nunca "R$ 0,00 de contas" por engano. */
+    val contaCarregando: Boolean get() = erroDaConta == null && (contasDoMes == null || (!tetoEhOLimite && !resumoRespondeu))
+
+    /** Nula carregando, com erro ou sem limite e sem receita (o cartão convida a definir um dos dois). */
+    val contaDoMes: ContaDoMes?
+        get() = contasDoMes?.takeIf { erroDaConta == null && !contaCarregando }
+            ?.let { calcularContaDoMes(mes, limiteDoMes, resumo?.receitas, gastoNoMes, it, LocalDate.parse(hoje)) }
+
+    val contasAPagar: BigDecimal get() = contaDoMes?.contasAPagar ?: BigDecimal.ZERO
+    val tetoDoMes: BigDecimal? get() = contaDoMes?.teto
+
+    /** Negativo é o que passou. */
+    val aindaDaParaGastar: BigDecimal? get() = contaDoMes?.resta
 
     /** Só no mês de hoje e com saldo: dividido pelos dias que faltam, hoje incluído. */
-    val porDia: BigDecimal?
-        get() {
-            val resta = aindaDaParaGastar?.takeIf { it.signum() > 0 && mes == mesAtual } ?: return null
-            val dia = LocalDate.parse(hoje)
-            return resta.divide(BigDecimal(dia.lengthOfMonth() - dia.dayOfMonth + 1), 2, RoundingMode.DOWN)
-        }
+    val porDia: BigDecimal? get() = contaDoMes?.porDia
 
     /** O membro vê o resto zerado (ESCONDIDOS_DO_MEMBRO): a conta não teria sentido. */
     val mostraAindaDaParaGastar: Boolean get() = nucleo != null && !ehMembro
@@ -274,6 +300,7 @@ class PainelViewModel @Inject constructor(
     lancamentos: Lancamentos,
     rede: MonitorDeRede,
     private val relogio: Clock,
+    fila: Optional<FilaDeGastos> = Optional.empty(),
 ) : ViewModel() {
     private val estadoAtual = MutableStateFlow(
         relogio.mesAtual().let { EstadoDoPainel(mes = it, mesAtual = it, hoje = LocalDate.now(relogio).toString()) },
@@ -304,6 +331,14 @@ class PainelViewModel @Inject constructor(
         viewModelScope.launch { aparelho.guia(pessoa).collect { json -> estadoAtual.update { it.copy(guia = EstadoDoGuia.deJson(json)) } } }
         // Lançado pelo + ou pela fila com esta tela aberta: recarrega (a primeira leitura é só a inicial).
         viewModelScope.launch { lancamentos.versao.drop(1).collect { carregar() } }
+        // O que está na fila sem internet já saiu do bolso: entra no gasto e no "Ainda dá" (BUG-010).
+        fila.getOrNull()?.let { f ->
+            viewModelScope.launch {
+                combine(f.aguardando, estadoAtual.map { it.mes to it.visao }.distinctUntilChanged()) { lista, (mes, visao) ->
+                    if (visao == Visao.Compartilhado) BigDecimal.ZERO else lista.totalNoMes(mes)
+                }.collect { total -> estadoAtual.update { it.copy(aguardandoNoMes = total) } }
+            }
+        }
         // A rede voltou: troca o guardado pelo de agora.
         viewModelScope.launch {
             rede.conectado.collect { conectado ->
@@ -318,12 +353,12 @@ class PainelViewModel @Inject constructor(
     // Carregar
 
     fun mudarMes(mes: String) {
-        estadoAtual.update { it.copy(mes = mes) }
+        estadoAtual.update { it.copy(mes = mes, contasDoMes = null, resumoRespondeu = false) }
         carregar()
     }
 
     fun trocarVisao(visao: Visao) {
-        estadoAtual.update { it.copy(visao = visao) }
+        estadoAtual.update { it.copy(visao = visao, resumoRespondeu = false) }
         carregar()
     }
 
@@ -335,13 +370,23 @@ class PainelViewModel @Inject constructor(
 
     fun carregar() {
         carregamento?.cancel()
+        // "Tentar de novo" depois do erro: o cartão volta a carregar.
+        if (estadoAtual.value.erroDaConta != null) estadoAtual.update { it.copy(contasDoMes = null, erroDasContas = null, erroDoResumo = null, resumoRespondeu = false) }
         val (mes, visao) = estadoAtual.value.let { it.mes to it.visao }
         val parametro = visao.id.takeIf { visao != Visao.Tudo }
         val sufixo = parametro?.let { "/$it" }.orEmpty()
         carregamento = viewModelScope.launch {
             launch {
                 cache.carregar("resumo/$mes$sufixo", ResumoDoMes.serializer()) { financas.resumoDoMes(mes, parametro) }
-                    .collect { carga -> estadoAtual.update { it.copy(resumo = (carga as? Carga.Pronto)?.valor) } }
+                    .collect { carga ->
+                        estadoAtual.update {
+                            it.copy(
+                                resumo = (carga as? Carga.Pronto)?.valor,
+                                resumoRespondeu = carga !is Carga.Carregando,
+                                erroDoResumo = (carga as? Carga.Falhou)?.let { f -> mensagemDeErro(f.erro) },
+                            )
+                        }
+                    }
             }
             launch { carregarAvisos(mes) }
             launch { listas.familia().collect { carga -> (carga as? Carga.Pronto)?.let { f -> estadoAtual.update { it.copy(membros = f.valor.membros) } } } }
@@ -375,7 +420,15 @@ class PainelViewModel @Inject constructor(
     private suspend fun carregarAvisos(mes: String) = coroutineScope {
         val hoje = LocalDate.now(relogio)
         val limiteDaFatura = hoje.plusDays(10).toString()
-        val contas = async { buscar(null) { financas.contasFixas(mes) }.orEmpty() }
+        // As contas fazem parte do "Ainda dá": a falha aparece no cartão, em vez de virar zero.
+        val contas = async {
+            try {
+                financas.contasFixas(mes).also { lista -> estadoAtual.update { it.copy(contasDoMes = lista, erroDasContas = null) } }
+            } catch (erro: ErroDaApi) {
+                estadoAtual.update { it.copy(erroDasContas = mensagemDeErro(erro)) }
+                emptyList()
+            }
+        }
         val orcamentos = async { buscar(null) { financas.orcamentos(mes) }.orEmpty() }
         // A fatura não depende do mês escolhido: é sempre a próxima a vencer.
         val cartoes = async { (listas.contas().last() as? Carga.Pronto)?.valor.orEmpty() }
@@ -440,7 +493,8 @@ class PainelViewModel @Inject constructor(
 
     fun depositar() {
         val valor = estadoAtual.value.deposito
-        if (valor == null || valor.signum() <= 0) return mostrarErro(IdDoBloco.Cofrinho, MensagemDeErro.DoApp(R.string.deposito_invalido))
+        problemaDoValor(valor, TETO_DA_RECEITA)?.let { return mostrarErro(IdDoBloco.Cofrinho, MensagemDeErro.DoApp(it)) }
+        checkNotNull(valor)
         agir(Acao.Deposito, IdDoBloco.Cofrinho) {
             financas.depositar(NovoDeposito(valor, hoje))
             estadoAtual.update { it.copy(deposito = null) }
@@ -517,7 +571,8 @@ class PainelViewModel @Inject constructor(
 
     fun depositarNoObjetivo(id: String) {
         val valor = estadoAtual.value.valoresDosObjetivos[id]
-        if (valor == null || valor.signum() <= 0) return mostrarErro(IdDoBloco.Objetivos, MensagemDeErro.DoApp(R.string.deposito_invalido))
+        problemaDoValor(valor, TETO_DA_RECEITA)?.let { return mostrarErro(IdDoBloco.Objetivos, MensagemDeErro.DoApp(it)) }
+        checkNotNull(valor)
         agir(Acao.Objetivo, IdDoBloco.Objetivos) {
             financas.depositar(NovoDeposito(valor, hoje, id))
             estadoAtual.update { it.copy(valoresDosObjetivos = it.valoresDosObjetivos - id) }
