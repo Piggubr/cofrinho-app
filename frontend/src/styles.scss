@@ -1808,3 +1808,15 @@ app-vazio .vazio-acao {
     opacity: 0.6;
   }
 }
+
+/* Fundo preto no modo escuro (Perfil > Aparencia), em todas as cores. Fica no fim para vencer
+ * os temas, que tem a mesma especificidade. So o fundo muda: cartoes e campos ja sobressaem. */
+@media (prefers-color-scheme: dark) {
+  :root[data-fundo-preto]:not([data-modo='claro']) {
+    --site-bg: #000;
+  }
+}
+
+:root[data-fundo-preto][data-modo='escuro'] {
+  --site-bg: #000;
+}

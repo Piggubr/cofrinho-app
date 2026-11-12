@@ -206,8 +206,24 @@ function lerModoSalvo(): ModoDeAparencia {
   }
 }
 
-function aplicar(tema: Tema, modo: ModoDeAparencia): void {
+/** Fundo preto (#000) no modo escuro, so neste aparelho; o styles.scss le o data-fundo-preto. */
+const CHAVE_DO_FUNDO_PRETO = 'piggu_fundo_preto';
+
+function lerFundoPretoSalvo(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_DO_FUNDO_PRETO) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function aplicar(tema: Tema, modo: ModoDeAparencia, fundoPreto: boolean): void {
   const raiz = document.documentElement;
+  if (fundoPreto) {
+    raiz.dataset['fundoPreto'] = '';
+  } else {
+    delete raiz.dataset['fundoPreto'];
+  }
   if (tema.id === TEMAS[0].id) {
     delete raiz.dataset['tema'];
   } else {
@@ -222,13 +238,13 @@ function aplicar(tema: Tema, modo: ModoDeAparencia): void {
   // mesmo com o aparelho no outro modo.
   document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
     const escuro = modo === 'automatico' ? meta.media.includes('dark') : modo === 'escuro';
-    meta.content = escuro ? tema.fundoEscuro : tema.fundo;
+    meta.content = escuro ? (fundoPreto ? '#000000' : tema.fundoEscuro) : tema.fundo;
   });
 }
 
 /** Chamado no main.ts antes do Angular subir, para a tela nao piscar no Chiclete. */
 export function aplicarTemaSalvo(): void {
-  aplicar(lerTemaSalvo(), lerModoSalvo());
+  aplicar(lerTemaSalvo(), lerModoSalvo(), lerFundoPretoSalvo());
 }
 
 /** Marca que a cor ou o icone voltaram ao padrao porque o Premium acabou. */
@@ -268,6 +284,7 @@ export class Temas {
   private readonly auth = inject(AuthService);
   readonly atual = signal<Tema>(lerTemaSalvo());
   readonly modo = signal<ModoDeAparencia>(lerModoSalvo());
+  readonly fundoPreto = signal(lerFundoPretoSalvo());
 
   constructor() {
     effect(() => {
@@ -293,7 +310,7 @@ export class Temas {
   /** O modo vale para todas as cores e nao depende do plano. */
   escolherModo(modo: ModoDeAparencia): void {
     this.modo.set(modo);
-    aplicar(this.atual(), modo);
+    aplicar(this.atual(), modo, this.fundoPreto());
     try {
       localStorage.setItem(CHAVE_DO_MODO, modo);
     } catch {
@@ -301,9 +318,20 @@ export class Temas {
     }
   }
 
+  /** Vale no escuro e no automatico com o aparelho escuro. */
+  escolherFundoPreto(ligado: boolean): void {
+    this.fundoPreto.set(ligado);
+    aplicar(this.atual(), this.modo(), ligado);
+    try {
+      localStorage.setItem(CHAVE_DO_FUNDO_PRETO, ligado ? '1' : '0');
+    } catch {
+      // Sem armazenamento (aba privada): vale ate fechar a aba.
+    }
+  }
+
   private salvar(tema: Tema): void {
     this.atual.set(tema);
-    aplicar(tema, untracked(this.modo));
+    aplicar(tema, untracked(this.modo), untracked(this.fundoPreto));
     try {
       localStorage.setItem(CHAVE, tema.id);
     } catch {

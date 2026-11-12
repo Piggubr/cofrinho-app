@@ -56,6 +56,7 @@ export class Profile {
   protected readonly temaAtual = this.temasDoApp.atual;
   protected readonly modos = MODOS;
   protected readonly modoAtual = this.temasDoApp.modo;
+  protected readonly fundoPreto = this.temasDoApp.fundoPreto;
   protected readonly iconesDoApp = inject(IconesDoApp);
   protected readonly icones = ICONES_DO_APP;
   protected readonly iconeAtual = this.iconesDoApp.atual;
@@ -431,6 +432,10 @@ export class Profile {
 
   protected escolherModo(modo: ModoDeAparencia): void {
     this.temasDoApp.escolherModo(modo);
+  }
+
+  protected escolherFundoPreto(ligado: boolean): void {
+    this.temasDoApp.escolherFundoPreto(ligado);
   }
 
   protected escolherTema(id: IdDoTema): void {
