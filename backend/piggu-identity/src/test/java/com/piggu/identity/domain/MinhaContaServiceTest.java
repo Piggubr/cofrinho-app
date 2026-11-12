@@ -436,7 +436,7 @@ class MinhaContaServiceTest extends PostgresIntegrationTest {
     @DisplayName("a exportacao leva os aparelhos que recebem avisos e os avisos ja enviados, sem o token inteiro")
     void exportaAvisos() {
         String token = "ab".repeat(32);
-        aparelhos.registrar(titular.getId(), token, "IOS");
+        aparelhos.registrar(titular.getId(), token, "IOS", null);
         avisosEnviados.marcar(titular.getId(), java.util.List.of("fatura:2026-10"));
 
         java.util.Map<String, Object> arquivo = contas.exportar(como(titular));

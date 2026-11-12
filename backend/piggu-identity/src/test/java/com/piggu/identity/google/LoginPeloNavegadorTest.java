@@ -79,7 +79,7 @@ class LoginPeloNavegadorTest {
     @Test
     @DisplayName("token que o Google nao confirma (ou com outro nonce) nem fica guardado")
     void tokenRecusado() {
-        willThrow(new UnauthorizedException("Login Google invalido para este site."))
+        willThrow(new UnauthorizedException("Login Google inválido para este site."))
                 .given(google).verificar("falso", DESAFIO);
 
         assertThatThrownBy(() -> navegador.guardar("falso", DESAFIO)).isInstanceOf(UnauthorizedException.class);

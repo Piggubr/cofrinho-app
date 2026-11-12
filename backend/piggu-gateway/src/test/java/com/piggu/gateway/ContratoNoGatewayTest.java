@@ -54,7 +54,8 @@ class ContratoNoGatewayTest {
                                 MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.GET, concreto))))
                         .map(Route::getId)
                         .blockFirst();
-                if (!servico.equals(destino)) {
+                // "finance-lento" e a rota de prazo maior do mesmo servico.
+                if (destino == null || !servico.equals(destino.replace("-lento", ""))) {
                     fora.add(servico + " " + caminho + " -> " + destino);
                 }
             }

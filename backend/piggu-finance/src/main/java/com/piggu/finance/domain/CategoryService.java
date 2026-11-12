@@ -55,12 +55,12 @@ public class CategoryService {
     public String criar(String nomeBruto, UUID usuarioId) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 50);
         if (nome.length() < 2) {
-            throw new BusinessException("Digite um nome valido.");
+            throw new BusinessException("Digite um nome válido.");
         }
         boolean jaExiste = listar().stream()
                 .anyMatch(existente -> existente.toLowerCase(Locale.ROOT).equals(nome.toLowerCase(Locale.ROOT)));
         if (jaExiste) {
-            throw new BusinessException("Essa opcao ja existe.");
+            throw new BusinessException("Essa opção já existe.");
         }
         repositorio.save(new CustomCategory(nome, usuarioId));
         return nome;

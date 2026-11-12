@@ -69,6 +69,10 @@ app nessa lista, separado por vírgula. O app atual, que abre o site num WebView
 **Renovar**: `POST /api/auth/refresh` com o cookie devolve um par novo. Renove quando
 faltar menos de um minuto para `expiresIn` acabar, ou quando uma chamada voltar `401`, e
 repita a chamada uma vez. Se a renovação também der `401`, a sessão acabou: volte ao login.
+Guarde sempre o refresh novo e nunca reenvie um que já foi trocado: um refresh já usado que
+volta mais de 30 s depois da troca é tratado como cópia e derruba aquela sessão (o login
+daquele aparelho, com o aparelho de push dela). Dentro dos 30 s (duas abas renovando juntas)
+ele só recebe `401`, e a sessão continua (D-193).
 **Sair**: `POST /api/auth/logout` (responde `204` e apaga o cookie).
 
 **No app nativo** (D-058, D-072) não há cookie: o refresh viaja no corpo e o app o guarda no
@@ -136,8 +140,10 @@ resposta `default` de cada operação:
 `erro` já vem escrito para mostrar na tela. Decida pelo **status** e, quando precisar tratar
 um caso específico, pelo **`codigo`**, nunca pelo texto. `campos` só vem preenchido em `VALIDACAO`.
 Exceção: o `401` de token ausente, vencido ou inválido vem do Spring Security **sem corpo**
-(só o cabeçalho `WWW-Authenticate`). E um `502`, `503` ou `504` do próprio gateway (serviço
-fora do ar) pode vir com outro corpo: trate pelo status.
+(só o cabeçalho `WWW-Authenticate`). Serviço fora do ar ou sem conexão responde `503`, e serviço
+que não respondeu a tempo responde `504`, os dois do próprio gateway com o corpo `ApiError` e o
+`codigo` `SERVICO_INDISPONIVEL` (D-191). O `413` e o `429` do proxy de fora (Caddy) podem vir sem
+corpo: trate pelo status.
 
 | Status | Quando |
 |---|---|
@@ -154,6 +160,8 @@ fora do ar) pode vir com outro corpo: trate pelo status.
 | 500 | Falha interna (`ERRO_INTERNO`); o detalhe fica só no log |
 | 501 | Ainda não disponível (`EM_BREVE`) |
 | 502 | Serviço de fora falhou: Gemini, TMDB, Pluggy, câmbio (`UpstreamException`) |
+| 503 | Um serviço do Piggu está fora do ar ou sem conexão (`SERVICO_INDISPONIVEL`, do gateway) |
+| 504 | Um serviço do Piggu não respondeu a tempo (`SERVICO_INDISPONIVEL`, do gateway). Prazo: 20 s; 90 s no assistente, na leitura de recibo e na importação; 120 s em exportar e apagar a conta; 40 s no Open Finance |
 
 Valores de `codigo` que existem hoje (procure por `BusinessException` no código):
 
@@ -177,6 +185,7 @@ Valores de `codigo` que existem hoje (procure por `BusinessException` no código
 | `CONFLITO` | 409 | Recarregar e tentar de novo |
 | `CORPO_GRANDE_DEMAIS` | 413 | Reduzir a foto ou o arquivo |
 | `LIMITE_DE_CHAMADAS` | 429 | Esperar o `Retry-After` |
+| `SERVICO_INDISPONIVEL` | 503, 504 | "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes." Pode tentar de novo; num envio, com o mesmo `idDoEnvio` |
 | `ERRO_INTERNO` | 500 | Mensagem genérica |
 | `BusinessException`, `NotFoundException`, `ForbiddenException`, `UnauthorizedException`, `UpstreamException` | 422, 404, 403, 401, 502 | Sem código próprio: vale o nome da classe; trate pelo status |
 
@@ -198,10 +207,32 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
 - **Cabeçalhos**: `Authorization: Bearer ...` em toda rota que não é de login e
   `Content-Type: application/json` em todo corpo. Opcionais: `User-Agent` (fica na sessão,
   ex.: `Piggu-iOS/1.4.0`) e `X-Request-Id` (até 64 letras, números e `-`; volta na resposta).
-- **Reenvio sem duplicar**: `POST /api/expenses` aceita `idDoEnvio` (UUID que o app gera uma
-  vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com o mesmo id: na
-  mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos da primeira
-  vez. Sem o campo, cada envio lança.
+- **Reenvio sem duplicar**: `POST /api/expenses` e `POST /api/incomes` aceitam `idDoEnvio` (UUID
+  que o app gera uma vez por envio e guarda com a fila). Se a resposta se perder, mande de novo com
+  o mesmo id: na mesma família nada é lançado de novo, e a resposta é o mesmo `201` com os gastos
+  (ou a receita) da primeira vez. Sem o campo, cada envio lança (D-192).
+- **Valores**: todo campo de valor vai de **R$ 0,01** até o teto: 1.000.000,00 no gasto (lançar,
+  editar, item de recibo e de nota, linha de importação, conta fixa), no orçamento, na meta do mês,
+  no limite e no valor do evento da nota; 10.000.000,00 na receita, no valor a receber e no
+  depósito do cofrinho. Fora disso, `400` `VALIDACAO` com "Digite um valor a partir de R$ 0,01." ou
+  "O valor máximo é R$ 1.000.000,00." (ou R$ 10.000.000,00). Na importação de extrato, a linha de
+  valor zero sai da prévia e não derruba o arquivo (D-189).
+- **Datas de lançamento**: gasto (lançar e editar), receita, valor a receber e depósito vão de
+  `2000-01-01` até hoje (Brasília) mais 2 anos. Fora disso, `400` `VALIDACAO` no campo `data`, com
+  "Confira a data: use uma data entre 2000 e <ano>." (D-189).
+- **Mês**: `AAAA-MM` com o mês de `01` a `12`, no corpo e nos parâmetros; `2026-13` é `400`
+  (D-192). A meta do mês (`PUT /api/monthly-goals`) e a foto do feed (`POST /api/feed`) exigem o mês.
+- **Dividir um gasto**: `dividirCom` só aceita pessoas da família (as do `GET /api/family`); outro
+  id é `400` `VALIDACAO`. Quem o finance ainda não viu é conferido no identity na hora; se ele
+  estiver fora do ar, o lançamento dá `503` `SERVICO_INDISPONIVEL` e nada é gravado: tente de novo
+  com o mesmo `idDoEnvio` (D-192).
+- **Relatório do mês** (`GET /api/reports/month`): no mês corrente, `projecaoDeGastos` conta os
+  gastos `Fixo` uma vez e leva os outros pelo ritmo (até hoje ÷ dia de hoje × dias do mês);
+  `gastosAteMesmoDiaAnterior` e `variacaoAteMesmoDia` comparam com o mês anterior até o mesmo dia.
+  `gastosFixos` vem em todo mês; os outros três são nulos fora do mês corrente (D-190).
+- **Open Finance desligado** (`PIGGU_OPEN_FINANCE=false`): `GET /api/banking/status` responde
+  `200 {"habilitado": false}` direto do gateway, sem chamar o banking; as outras rotas do banking
+  dão `503` (D-191).
 - **Limite de chamadas**: 600 por minuto por IP na API inteira (gateway). Nas rotas de
   login, cadastro e renovação, 20 por minuto por IP; nas outras rotas abertas, 120. Com
   sessão, por conta: 120 escritas, 15 envios de foto ou extrato e 60 buscas que custam por

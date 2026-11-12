@@ -76,7 +76,7 @@ class PlaceTagServiceTest extends PostgresIntegrationTest {
     void duplicataRecusada() {
         assertThatThrownBy(() -> marcadores.criar("favorito", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Essa opcao ja existe.");
+                .hasMessage("Essa opção já existe.");
     }
 
     @Test

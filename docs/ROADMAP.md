@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 08/11/2026.
+Última atualização: 11/11/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -46,6 +46,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).
 - 11/11/2026: Android: correções da auditoria (D-196): valor mínimo e tetos com texto próprio, confirmação de data, rascunho que sobrevive à morte do processo e pergunta antes de descartar, link guardado até o login, gasto recusado da fila visível até dispensar, "Ainda dá" com carregando e erro (o mesmo cálculo no widget), fuso de Brasília, contraste e textos do Material em pt-BR, `versionCode` 205.
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).

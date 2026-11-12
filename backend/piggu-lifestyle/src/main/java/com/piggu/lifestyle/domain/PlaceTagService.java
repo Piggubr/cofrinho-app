@@ -49,10 +49,10 @@ public class PlaceTagService {
     public String criar(String nomeBruto, UUID usuarioId) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 50);
         if (nome.length() < 2) {
-            throw new BusinessException("Digite um nome valido.");
+            throw new BusinessException("Digite um nome válido.");
         }
         if (listar().stream().anyMatch(nome::equalsIgnoreCase)) {
-            throw new BusinessException("Essa opcao ja existe.");
+            throw new BusinessException("Essa opção já existe.");
         }
         repositorio.save(new CustomPlaceTag(nome, usuarioId));
         return nome;

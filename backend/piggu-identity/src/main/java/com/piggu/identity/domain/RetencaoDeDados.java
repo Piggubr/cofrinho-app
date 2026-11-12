@@ -1,5 +1,6 @@
 package com.piggu.identity.domain;
 
+import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.billing.TestesGratis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ public class RetencaoDeDados {
     private final MinhaContaService contas;
     private final TransactionTemplate transacao;
     private final TestesGratis testes;
+    private final Aparelhos aparelhos;
     private final Duration semAcesso;
     private final Duration desativada;
 
@@ -52,6 +54,7 @@ public class RetencaoDeDados {
                            MinhaContaService contas,
                            TransactionTemplate transacao,
                            TestesGratis testes,
+                           Aparelhos aparelhos,
                            @Value("${piggu.retencao.conta-sem-acesso:P730D}") Duration semAcesso,
                            @Value("${piggu.retencao.conta-desativada:P365D}") Duration desativada) {
         this.sessoes = sessoes;
@@ -60,6 +63,7 @@ public class RetencaoDeDados {
         this.contas = contas;
         this.transacao = transacao;
         this.testes = testes;
+        this.aparelhos = aparelhos;
         this.semAcesso = semAcesso;
         this.desativada = desativada;
     }
@@ -87,10 +91,14 @@ public class RetencaoDeDados {
     private void limparSessoesEConvites(Instant agora) {
         transacao.executeWithoutResult(status -> {
             int sessoesApagadas = sessoes.apagarExpiradas(agora);
+            // Refresh trocado ha mais de 30 dias (a validade do refresh) ja nao diz nada (D-193).
+            sessoes.esquecerRotacionados(agora.minus(Duration.ofDays(30)));
             int convitesApagados = convites.apagarVencidos(agora);
             int cpfsApagados = testes.apagarVencidos(agora);
-            log.info("Retencao: sessoes={} convites={} cpfsDeTeste={} apagados", sessoesApagadas, convitesApagados,
-                    cpfsApagados);
+            // Aparelho sem sessao (de antes da D-188) que o app nao cadastrou de novo em 30 dias.
+            int aparelhosApagados = aparelhos.esquecerSoltos(agora.minus(Duration.ofDays(30)));
+            log.info("Retencao: sessoes={} convites={} cpfsDeTeste={} aparelhosSoltos={} apagados", sessoesApagadas,
+                    convitesApagados, cpfsApagados, aparelhosApagados);
         });
     }
 }

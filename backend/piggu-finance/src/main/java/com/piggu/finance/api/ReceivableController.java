@@ -1,5 +1,7 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.DataDeLancamento;
+import com.piggu.common.web.Valores;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.finance.domain.AReceberService;
@@ -44,9 +46,9 @@ public class ReceivableController {
             @NotBlank(message = "Diga quem está te devendo.") @Size(max = 80, message = "O nome é longo demais.") String quem,
             @Size(max = 200, message = "A descrição é longa demais.") String descricao,
             @NotNull(message = "Digite o valor.")
-            @DecimalMin(value = "0.01", message = "Digite um valor válido.")
-            @DecimalMax(value = "10000000", message = "O valor é alto demais.") BigDecimal valor,
-            @NotNull(message = "Escolha a data combinada para receber.") LocalDate data) {
+            @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+            @DecimalMax(value = Valores.MAXIMO_DE_ENTRADA, message = Valores.ACIMA_DO_MAXIMO_DE_ENTRADA) BigDecimal valor,
+            @NotNull(message = "Escolha a data combinada para receber.") @DataDeLancamento LocalDate data) {
     }
 
     public record ReceivableResponse(UUID id, String quem, String descricao, BigDecimal valor, LocalDate data) {

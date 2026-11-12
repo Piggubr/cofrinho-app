@@ -43,7 +43,34 @@ spring:
           # Tempo e resultado de cada chamada por rota (servico), para o painel de performance.
           metrics:
             enabled: true
+          # Sem prazo, um servico travado deixava a chamada pendurada por minutos (BUG-006). A
+          # conexao na rede interna abre em milissegundos; a resposta tem 20 s, acima dos 15 s
+          # que o lifestyle espera pelo TMDB e pelo catalogo. Estouro vira 504 (ServicoForaDoAr).
+          httpclient:
+            connect-timeout: 2000
+            response-timeout: 20s
           routes:
+            # Rotas lentas de verdade, com prazo proprio (ms). Vem antes da rota do servico,
+            # porque vale a primeira que casa.
+            # Assistente e leitura de recibo: Gemini (ate 45 s) e OCR (ate 20 s) numa chamada so.
+            # Importacao: o extrato inteiro (ate 1.000 linhas) passa pela categorizacao.
+            - id: finance-lento
+              uri: ${FINANCE_URL:http://localhost:8082}
+              order: -1
+              predicates:
+                - Path=/api/assistant/**,/api/receipts/parse,/api/expenses/import/**,/api/expenses/import
+              metadata:
+                response-timeout: 90000
+
+            # Exportar e apagar a conta: o identity chama cada servico em sequencia (ate 30 s cada).
+            - id: identity-lento
+              uri: ${IDENTITY_URL:http://localhost:8081}
+              order: -1
+              predicates:
+                - Path=/api/me,/api/me/export
+              metadata:
+                response-timeout: 120000
+
             - id: identity
               uri: ${IDENTITY_URL:http://localhost:8081}
               predicates:
@@ -69,10 +96,13 @@ spring:
               predicates:
                 - Path=/api/assets/**,/api/feed/**
 
+            # Sincronizar conversa com a Pluggy, que tem ate 30 s para responder.
             - id: banking
               uri: ${BANKING_URL:http://localhost:8086}
               predicates:
                 - Path=/api/banking/**
+              metadata:
+                response-timeout: 40000
 
 management:
   endpoints:
@@ -95,6 +125,10 @@ logging:
     com.piggu: ${LOG_LEVEL:INFO}
 
 piggu:
+  # Open Finance desligado (padrao): GET /api/banking/status responde aqui, sem chamar o
+  # banking (BankingDesligadoGlobalFilter). Mesma variavel do identity e do banking.
+  open-finance:
+    ligado: ${PIGGU_OPEN_FINANCE:false}
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
   limite:

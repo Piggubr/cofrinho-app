@@ -49,12 +49,24 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("conteudo que nao e JSON responde 415 com texto proprio, e JSON quebrado responde 400")
+    void protocoloComTextoProprio() throws Exception {
+        mockMvc.perform(post("/teste/validado").contentType(MediaType.TEXT_PLAIN).content("oi"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.codigo").value("PEDIDO_INVALIDO"))
+                .andExpect(jsonPath("$.erro").value("Formato de conteúdo não suportado."));
+        mockMvc.perform(post("/teste/validado").contentType(MediaType.APPLICATION_JSON).content("{quebrado"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Não entendi os dados enviados."));
+    }
+
+    @Test
     @DisplayName("metodo nao suportado responde 405, nao 500")
     void metodoNaoSuportadoDevolve405() throws Exception {
         mockMvc.perform(patch("/teste/somente-get"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.codigo").value("PEDIDO_INVALIDO"))
-                .andExpect(jsonPath("$.erro").value("Esta operacao nao existe neste endereco."));
+                .andExpect(jsonPath("$.erro").value("Esta operação não existe neste endereço."));
     }
 
     @Test
@@ -62,7 +74,7 @@ class ApiExceptionHandlerTest {
     void erroDeNegocioMantemMensagem() throws Exception {
         mockMvc.perform(get("/teste/negocio"))
                 .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.erro").value("O saldo nao pode ficar negativo."))
+                .andExpect(jsonPath("$.erro").value("O saldo não pode ficar negativo."))
                 .andExpect(jsonPath("$.codigo").value("BusinessException"));
     }
 
@@ -71,7 +83,7 @@ class ApiExceptionHandlerTest {
     void naoEncontradoDevolve404() throws Exception {
         mockMvc.perform(get("/teste/ausente"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.erro").value("Gasto nao encontrado."));
+                .andExpect(jsonPath("$.erro").value("Gasto não encontrado."));
     }
 
     @Test
@@ -164,12 +176,12 @@ class ApiExceptionHandlerTest {
 
         @GetMapping("/negocio")
         String negocio() {
-            throw new BusinessException("O saldo nao pode ficar negativo.");
+            throw new BusinessException("O saldo não pode ficar negativo.");
         }
 
         @GetMapping("/ausente")
         String ausente() {
-            throw new NotFoundException("Gasto nao encontrado.");
+            throw new NotFoundException("Gasto não encontrado.");
         }
 
         @GetMapping("/duplicado")

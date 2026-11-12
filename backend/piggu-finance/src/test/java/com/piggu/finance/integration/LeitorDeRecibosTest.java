@@ -197,7 +197,7 @@ class LeitorDeRecibosTest {
     void geminiSemItensContaNaCota() {
         LeitorDeRecibos soGemini = new LeitorDeRecibos(ocr, gemini, memoria, consentimentos, cota, false);
         when(gemini.habilitado()).thenReturn(true);
-        when(gemini.ler(any())).thenThrow(new GeminiReceiptReader.LeituraCobrada("A IA nao encontrou itens no recibo."));
+        when(gemini.ler(any())).thenThrow(new GeminiReceiptReader.LeituraCobrada("A IA não encontrou itens no recibo."));
 
         assertThatThrownBy(() -> soGemini.ler(FOTO, GRATUITA)).isInstanceOf(BusinessException.class);
         verify(cota, never()).devolver(any());

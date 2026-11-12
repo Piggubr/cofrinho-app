@@ -43,7 +43,7 @@ public class RegrasDeCategoria {
     public Regra definir(String termoBruto, String categoria, UUID pessoa) {
         String termo = ChaveProduto.de(termoBruto);
         if (termo.length() < 2 || termo.length() > 100) {
-            throw new BusinessException("Digite um termo valido para a regra.");
+            throw new BusinessException("Digite um termo válido para a regra.");
         }
         String valida = categorias.normalizar(categoria);
         CategoryRule regra = regras.findByTerm(termo)
@@ -57,7 +57,7 @@ public class RegrasDeCategoria {
 
     @Transactional
     public void excluir(UUID id) {
-        regras.delete(regras.findById(id).orElseThrow(() -> new NotFoundException("Regra nao encontrada.")));
+        regras.delete(regras.findById(id).orElseThrow(() -> new NotFoundException("Regra não encontrada.")));
     }
 
     /** As regras da familia, carregadas uma vez por lancamento. */

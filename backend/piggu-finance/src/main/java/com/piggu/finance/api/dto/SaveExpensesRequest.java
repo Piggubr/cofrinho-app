@@ -1,5 +1,6 @@
 package com.piggu.finance.api.dto;
 
+import com.piggu.common.web.DataDeLancamento;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,7 +29,8 @@ import java.util.UUID;
  *                  devolve os gastos da primeira vez; nulo lanca sempre
  */
 public record SaveExpensesRequest(
-        @NotNull(message = "A data do gasto e invalida.")
+        @NotNull(message = "Escolha a data do gasto.")
+        @DataDeLancamento
         LocalDate data,
 
         @Size(max = 200)
@@ -39,18 +41,18 @@ public record SaveExpensesRequest(
         @Size(max = 30)
         String origem,
 
-        @NotEmpty(message = "A lista de gastos esta vazia.")
-        @Size(max = 100, message = "A lista de gastos e grande demais.")
+        @NotEmpty(message = "A lista de gastos está vazia.")
+        @Size(max = 100, message = "A lista de gastos é grande demais.")
         @Valid
         List<ExpenseItemRequest> itens,
 
         UUID contaId,
 
-        @Min(value = 1, message = "Parcelas invalidas.")
-        @Max(value = 48, message = "No maximo 48 parcelas.")
+        @Min(value = 1, message = "Parcelas inválidas.")
+        @Max(value = 48, message = "No máximo 48 parcelas.")
         Integer parcelas,
 
-        @Size(max = 20, message = "Divisao com gente demais.")
+        @Size(max = 20, message = "Divisão com gente demais.")
         List<UUID> dividirCom,
 
         Boolean recorrente,

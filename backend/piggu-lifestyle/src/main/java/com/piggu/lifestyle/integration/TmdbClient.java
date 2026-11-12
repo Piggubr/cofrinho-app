@@ -111,7 +111,7 @@ public class TmdbClient {
 
     private JsonNode chamar(String caminho, Map<String, String> parametros) {
         if (!propriedades.habilitado()) {
-            throw new BusinessException("A busca de filmes nao esta configurada.");
+            throw new BusinessException("A busca de filmes não está configurada.");
         }
 
         Function<UriBuilder, URI> uri = builder -> {
@@ -133,7 +133,7 @@ public class TmdbClient {
             throw erro;
         } catch (RuntimeException erro) {
             log.error("Falha ao consultar o TMDB", erro);
-            throw new UpstreamException("O catalogo de filmes esta indisponivel agora.");
+            throw new UpstreamException("O catálogo de filmes está indisponível agora.");
         }
     }
 
@@ -154,8 +154,8 @@ public class TmdbClient {
 
     private RuntimeException traduzirErro(int codigo) {
         if (codigo == 401) {
-            return new UpstreamException("A credencial do TMDB foi recusada. Confira a configuracao.");
+            return new UpstreamException("A credencial do TMDB foi recusada. Confira a configuração.");
         }
-        return new UpstreamException("O TMDB nao respondeu corretamente (erro " + codigo + ").");
+        return new UpstreamException("O TMDB não respondeu corretamente (erro " + codigo + ").");
     }
 }

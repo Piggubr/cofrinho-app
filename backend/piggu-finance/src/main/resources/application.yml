@@ -37,6 +37,9 @@ spring:
 piggu:
   # dev (padrao) ou producao. Em producao o servico recusa subir com segredo fraco.
   ambiente: ${PIGGU_AMBIENTE:dev}
+  servicos:
+    # So para o dividirCom com alguem que o finance ainda nao viu (PessoasDaFamilia, D-192).
+    identity-url: ${IDENTITY_URL:http://localhost:8081}
   leitura-de-nota:
     # Notas lidas pela foto por familia no mes, no gratuito.
     gratis-por-mes: ${PIGGU_LEITURAS_GRATIS_POR_MES:10}

@@ -80,7 +80,7 @@ public class MediaClient {
         }
 
         if (resposta == null || !resposta.hasNonNull("id")) {
-            throw new UpstreamException("Nao consegui guardar a foto agora.");
+            throw new UpstreamException("Não consegui guardar a foto agora.");
         }
         return UUID.fromString(resposta.path("id").asString());
     }
@@ -121,7 +121,7 @@ public class MediaClient {
         if (autenticacao != null && autenticacao.getPrincipal() instanceof Jwt jwt) {
             return "Bearer " + jwt.getTokenValue();
         }
-        throw new UpstreamException("Sessao ausente para falar com o servico de fotos.");
+        throw new UpstreamException("Sessão ausente para falar com o serviço de fotos.");
     }
 
     /** Chamado pelo circuito; visivel para o teste. */
@@ -130,6 +130,6 @@ public class MediaClient {
             throw recusada;
         }
         log.error("Servico de media indisponivel ao enviar foto", erro);
-        throw new UpstreamException("O servico de fotos esta indisponivel. Tente novamente em instantes.");
+        throw new UpstreamException("O serviço de fotos está indisponível. Tente novamente em instantes.");
     }
 }

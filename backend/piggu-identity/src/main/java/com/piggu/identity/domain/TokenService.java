@@ -37,6 +37,9 @@ public class TokenService {
 
     private static final SecureRandom ALEATORIO = new SecureRandom();
 
+    /** Id da sessao longa no access token. */
+    public static final String CLAIM_SESSAO = "sid";
+
     private final JwtEncoder encoder;
     private final JwtProperties propriedades;
     private final UserAccountRepository usuarios;
@@ -52,8 +55,8 @@ public class TokenService {
      * servicos recusam ate completar (D-088). Os tokens internos nao levam: apagar a conta e o
      * lembrete funcionam com o cadastro pela metade.
      */
-    public String gerarAccessToken(UserAccount conta, Household familia) {
-        return gerar(conta, familia, propriedades.accessTtl(), null, null, conta.cadastroIncompleto());
+    public String gerarAccessToken(UserAccount conta, Household familia, UUID sessao) {
+        return gerar(conta, familia, propriedades.accessTtl(), null, null, conta.cadastroIncompleto(), sessao);
     }
 
     /**
@@ -78,16 +81,16 @@ public class TokenService {
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao) {
-        return gerar(conta, familia, validade, exclusao, null, false);
+        return gerar(conta, familia, validade, exclusao, null, false, null);
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
                          UUID destino) {
-        return gerar(conta, familia, validade, exclusao, destino, false);
+        return gerar(conta, familia, validade, exclusao, destino, false, null);
     }
 
     private String gerar(UserAccount conta, Household familia, Duration validade, EscopoDeExclusao exclusao,
-                         UUID destino, boolean cadastroPendente) {
+                         UUID destino, boolean cadastroPendente, UUID sessao) {
         Instant agora = Instant.now();
         JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .issuer(propriedades.issuer())
@@ -107,6 +110,10 @@ public class TokenService {
         }
         if (destino != null) {
             claims.claim(EscopoDeExclusao.CLAIM_DESTINO, destino.toString());
+        }
+        if (sessao != null) {
+            // A sessao longa que emitiu: o aparelho de push cadastrado com este token fica preso a ela (D-188).
+            claims.claim(CLAIM_SESSAO, sessao.toString());
         }
         if (cadastroPendente) {
             claims.claim(CurrentUserArgumentResolver.JwtClaims.CLAIM_CADASTRO, false);
@@ -160,7 +167,7 @@ public class TokenService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException erro) {
-            throw new IllegalStateException("SHA-256 indisponivel nesta JVM.", erro);
+            throw new IllegalStateException("SHA-256 indisponível nesta JVM.", erro);
         }
     }
 

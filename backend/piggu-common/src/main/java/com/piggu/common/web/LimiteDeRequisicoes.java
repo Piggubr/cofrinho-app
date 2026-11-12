@@ -100,7 +100,7 @@ public class LimiteDeRequisicoes extends OncePerRequestFilter {
         if (etapa == Etapa.ANTES_DO_LOGIN && escrita) {
             long maximo = envio ? limites.envioMaximo() : limites.corpoMaximo();
             if (pedido.getContentLengthLong() > maximo) {
-                recusar(resposta, HttpStatus.CONTENT_TOO_LARGE, "O envio e grande demais.", "CORPO_GRANDE_DEMAIS", 0);
+                recusar(resposta, HttpStatus.CONTENT_TOO_LARGE, "O envio é grande demais.", "CORPO_GRANDE_DEMAIS", 0);
                 return;
             }
         }

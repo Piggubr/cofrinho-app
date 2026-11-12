@@ -85,7 +85,7 @@ public class RedefinicaoDeSenha {
             if (email.enviar(conta.getEmail(), "Piggu: crie uma senha nova",
                     "Recebemos um pedido para criar uma senha nova no Piggu. Abra o link abaixo; ele vale por 1 hora.\n\n"
                             + link
-                            + "\n\nSe nao foi voce quem pediu, ignore este e-mail: sua senha continua a mesma.")) {
+                            + "\n\nSe não foi você quem pediu, ignore este e-mail: sua senha continua a mesma.")) {
                 log.info("Link de nova senha enviado: conta={}", conta.getId());
             }
         });
@@ -97,7 +97,7 @@ public class RedefinicaoDeSenha {
         UserAccount conta = token == null || token.isBlank() ? null
                 : usuarios.findByPasswordResetHash(tokens.hash(token.trim())).orElse(null);
         if (conta == null || !conta.linkDeSenhaValido(Instant.now())) {
-            throw new BusinessException("Este link venceu ou ja foi usado. Peca outro em \"Esqueci minha senha\".",
+            throw new BusinessException("Este link venceu ou já foi usado. Peça outro em \"Esqueci minha senha\".",
                     HttpStatus.UNPROCESSABLE_CONTENT, "LINK_INVALIDO");
         }
         if (!conta.isActive()) {

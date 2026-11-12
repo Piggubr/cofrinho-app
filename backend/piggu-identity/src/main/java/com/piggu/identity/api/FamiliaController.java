@@ -38,13 +38,13 @@ public class FamiliaController {
         this.servico = servico;
     }
 
-    public record NomeRequest(@NotBlank(message = "Digite o nome da familia.")
-                              @Size(max = 120, message = "O nome e longo demais.") String nome) {
+    public record NomeRequest(@NotBlank(message = "Digite o nome da família.")
+                              @Size(max = 120, message = "O nome é longo demais.") String nome) {
     }
 
-    public record ConviteRequest(@NotBlank(message = "Digite um e-mail valido.")
-                                 @Email(message = "Digite um e-mail valido.")
-                                 @Size(max = 320, message = "O e-mail e longo demais.") String email) {
+    public record ConviteRequest(@NotBlank(message = "Digite um e-mail válido.")
+                                 @Email(message = "Digite um e-mail válido.")
+                                 @Size(max = 320, message = "O e-mail é longo demais.") String email) {
     }
 
     @Operation(summary = "Ver a família")
