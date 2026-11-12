@@ -202,6 +202,7 @@ class CompartilhadoTest extends PostgresIntegrationTest {
     void quemDeveAQuem() throws Exception {
         UUID casa = UUID.randomUUID();
         RequestPostProcessor ela = TokensDeTeste.da(casa, ELA, PigguRole.TITULAR);
+        mockMvc.perform(get("/api/expenses").with(TokensDeTeste.da(casa, ELE, PigguRole.PARCEIRO)));
         String dividir = "[\"" + TokensDeTeste.idDe(ELA) + "\",\"" + TokensDeTeste.idDe(ELE) + "\"]";
         mockMvc.perform(post("/api/expenses").with(ela).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"data\":\"2026-09-10\",\"compartilhado\":true,\"dividirCom\":" + dividir

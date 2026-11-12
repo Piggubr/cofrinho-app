@@ -69,6 +69,11 @@ chamadas saem do `identity`, fora do caminho do dia a dia:
 - **Avisos do dia** (`AvisosDoFinanceiro`): o job diário pergunta ao finance o que avisar
   (fatura, orçamento, conta vencendo) antes de mandar e-mail ou push.
 
+E uma do finance para o identity, só no caso de falta: um gasto dividido (`dividirCom`) com
+alguém que o finance ainda não viu na família (o parceiro que acabou de entrar) confere o
+`GET /api/family` com o token de quem divide (`FamiliaNoIdentity`, D-192). Depois disso a pessoa
+fica na tabela local `household_people` e a chamada não se repete.
+
 O endereço de cada serviço fica em `piggu.dados.servicos` no `application.yml` do
 identity. Isso não é acaso, é o critério que definiu as fronteiras: as operações que
 precisam de transação ficaram juntas.

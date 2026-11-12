@@ -327,6 +327,8 @@ erDiagram
     assistant_usage
     receipt_usage
     expense_submissions
+    income_submissions
+    household_people
     app_settings
     eventos_de_auditoria
 ```
@@ -475,6 +477,8 @@ Uma linha por produto e pessoa (único por família, pessoa e `product_key`).
 | `assistant_usage` | `user_id` + `reference_month` (chave), `questions` | Perguntas ao assistente de IA no mês, para o limite do Premium. A conversa não é guardada |
 | `receipt_usage` | `household_id` + `reference_month` (chave), `reads` | Notas lidas pela foto no mês, para a cota do gratuito |
 | `expense_submissions` | `household_id` + `id` (chave), `user_id`, `expense_ids` (uuid[]), `created_at` | Envios de gasto do app com `idDoEnvio`: o mesmo id de novo na família não lança e devolve os gastos de `expense_ids`. Gravado na transação dos gastos |
+| `income_submissions` | `household_id` + `id` (chave), `user_id`, `income_id`, `created_at` | O mesmo para a receita (`POST /api/incomes` com `idDoEnvio`, D-192): o id de novo devolve a receita de `income_id` |
+| `household_people` | `household_id` + `user_id` (chave), `first_seen_at` | Quem o finance já viu em cada família: toda chamada com token grava a pessoa. O `dividirCom` só aceita quem está aqui (D-192). Nasceu (V29) com quem já tinha algum dado na família; sai com a conta e vai junto quando a pessoa muda de família |
 | `app_settings` | `setting_key` (chave), `setting_value` | Valores pequenos do serviço; hoje a última cotação de cada par (`ultima_cotacao_eur_brl`). Não é por família |
 | `eventos_de_auditoria` | igual à do identity | Quem criou, mudou ou apagou o quê (gasto, depósito, conta fixa...). Sai depois de 400 dias |
 

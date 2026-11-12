@@ -39,7 +39,10 @@ RUN if [ "$MODULO" = "piggu-finance" ]; then \
     fi
 
 # Usuario sem privilegios: um processo comprometido nao vira root no container.
-RUN addgroup -S piggu && adduser -S piggu -G piggu
+# O volume nomeado novo copia o dono da pasta da imagem: sem este mkdir/chown, o
+# /dados/fotos nasce root e o media nao grava nenhuma foto (BUG-001 da auditoria).
+RUN addgroup -S piggu && adduser -S piggu -G piggu \
+    && mkdir -p /dados/fotos && chown -R piggu:piggu /dados
 USER piggu
 
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

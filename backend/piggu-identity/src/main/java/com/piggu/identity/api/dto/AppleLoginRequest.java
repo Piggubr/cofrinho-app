@@ -16,8 +16,8 @@ import jakarta.validation.constraints.Size;
  * @param codigo          authorization code da Apple: o servidor troca por um refresh token para
  *                        revogar o acesso quando a conta for excluida
  */
-public record AppleLoginRequest(@NotBlank(message = "Faca login com a Apple para continuar.") @Size(max = 4096) String idToken,
-                                @NotBlank(message = "Faca login com a Apple para continuar.") @Size(max = 200) String nonce,
+public record AppleLoginRequest(@NotBlank(message = "Faça login com a Apple para continuar.") @Size(max = 4096) String idToken,
+                                @NotBlank(message = "Faça login com a Apple para continuar.") @Size(max = 200) String nonce,
                                 @Size(max = 120) String nome,
                                 @Size(max = 20) String versaoDosTermos,
                                 Boolean lembrar,

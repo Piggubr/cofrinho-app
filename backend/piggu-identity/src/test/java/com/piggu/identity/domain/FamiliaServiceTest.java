@@ -67,7 +67,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         FamiliaResponse doTitular = familias.ver(como(titular));
         FamiliaResponse doMembro = familias.ver(como(membro));
 
-        assertThat(doTitular.nome()).isEqualTo("Familia de Ana");
+        assertThat(doTitular.nome()).isEqualTo("Família de Ana");
         assertThat(doTitular.membros()).extracting(FamiliaResponse.Membro::email)
                 .containsExactly("titular@familia.test", "membro@familia.test");
         assertThat(doTitular.convites()).extracting(FamiliaResponse.Convite::email).containsExactly("pendente@familia.test");
@@ -79,11 +79,11 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
     @DisplayName("quem ja e da casa nao recebe convite; quem tem conta em outra familia recebe")
     void conviteParaQuemJaTemConta() {
         assertThatThrownBy(() -> familias.convidar(como(titular), "membro@familia.test"))
-                .isInstanceOf(BusinessException.class).hasMessageContaining("ja faz parte");
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já faz parte");
 
         familias.convidar(como(titular), "vizinho@outra.test");
         assertThat(familias.convitesParaMim(como(vizinho)))
-                .extracting(FamiliaResponse.Convite::familia).containsExactly("Familia de Ana");
+                .extracting(FamiliaResponse.Convite::familia).containsExactly("Família de Ana");
     }
 
     @Test
@@ -98,7 +98,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         assertThat(familias.ver(como(titular)).membros()).extracting(FamiliaResponse.Membro::email)
                 .doesNotContain("nova@familia.test");
         assertThat(familias.convitesParaMim(como(nova)))
-                .extracting(FamiliaResponse.Convite::familia).containsExactly("Familia de Ana");
+                .extracting(FamiliaResponse.Convite::familia).containsExactly("Família de Ana");
     }
 
     @Test
@@ -215,7 +215,7 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
         familias.mudarPapel(como(titular), membro.getId(), PigguRole.PARCEIRO);
 
         assertThatThrownBy(() -> familias.mudarPapel(como(titular), caio.getId(), PigguRole.PARCEIRO))
-                .isInstanceOf(BusinessException.class).hasMessageContaining("ja tem um parceiro");
+                .isInstanceOf(BusinessException.class).hasMessageContaining("já tem um parceiro");
 
         familias.aceitarParceria(como(membro));
         assertThatThrownBy(() -> familias.mudarPapel(como(titular), caio.getId(), PigguRole.PARCEIRO))
@@ -381,5 +381,14 @@ class FamiliaServiceTest extends PostgresIntegrationTest {
 
     private static CurrentUser como(UserAccount conta) {
         return new CurrentUser(conta.getId(), conta.getEmail(), conta.getRole(), null, conta.getHouseholdId());
+    }
+
+    @Test
+    @DisplayName("convite sem e-mail de verdade e titular tirando a si mesmo sao recusados")
+    void pedidosInvalidos() {
+        assertThatThrownBy(() -> familias.convidar(como(titular), "sem-arroba"))
+                .isInstanceOf(BusinessException.class).hasMessage("Digite um e-mail válido.");
+        assertThatThrownBy(() -> familias.removerMembro(como(titular), titular.getId()))
+                .isInstanceOf(BusinessException.class).hasMessage("Para sair da família, use a opção Sair.");
     }
 }

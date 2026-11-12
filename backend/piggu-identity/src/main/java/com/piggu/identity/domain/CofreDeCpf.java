@@ -45,12 +45,12 @@ public class CofreDeCpf {
         boolean producao = "producao".equalsIgnoreCase(ambiente);
         if (chave == null || chave.isBlank()) {
             if (producao) {
-                throw new IllegalStateException("Em producao defina PIGGU_CPF_CHAVE (gere com: openssl rand -base64 32).");
+                throw new IllegalStateException("Em produção defina PIGGU_CPF_CHAVE (gere com: openssl rand -base64 32).");
             }
             chave = CHAVE_DE_DESENVOLVIMENTO;
         }
         if (producao && CHAVE_DE_DESENVOLVIMENTO.equals(chave.trim())) {
-            throw new IllegalStateException("PIGGU_CPF_CHAVE e a chave de desenvolvimento. Gere outra: openssl rand -base64 32");
+            throw new IllegalStateException("PIGGU_CPF_CHAVE é a chave de desenvolvimento. Gere outra: openssl rand -base64 32");
         }
         byte[] mestra = Base64.getDecoder().decode(chave.trim());
         if (mestra.length < 32) {
@@ -86,7 +86,7 @@ public class CofreDeCpf {
             return Base64.getEncoder().encodeToString(ByteBuffer.allocate(nonce.length + cifrado.length)
                     .put(nonce).put(cifrado).array());
         } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("Nao foi possivel cifrar o documento", erro);
+            throw new IllegalStateException("Não foi possível cifrar o documento", erro);
         }
     }
 
@@ -98,7 +98,7 @@ public class CofreDeCpf {
             byte[] claro = cifra.doFinal(tudo, TAMANHO_DO_NONCE, tudo.length - TAMANHO_DO_NONCE);
             return new String(claro, StandardCharsets.UTF_8);
         } catch (GeneralSecurityException | IllegalArgumentException erro) {
-            throw new IllegalStateException("Nao foi possivel ler o documento guardado (a PIGGU_CPF_CHAVE mudou?)", erro);
+            throw new IllegalStateException("Não foi possível ler o documento guardado (a PIGGU_CPF_CHAVE mudou?)", erro);
         }
     }
 
@@ -108,7 +108,7 @@ public class CofreDeCpf {
             mac.init(chaveDoIndice);
             return HexFormat.of().formatHex(mac.doFinal(texto.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("Nao foi possivel calcular o indice do documento", erro);
+            throw new IllegalStateException("Não foi possível calcular o indice do documento", erro);
         }
     }
 

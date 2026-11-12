@@ -18,6 +18,12 @@ public final class Meses {
     /** O Piggu e brasileiro primeiro: "este mes" e o de Brasilia. */
     public static final ZoneId BRASILIA = ZoneId.of("America/Sao_Paulo");
 
+    /** AAAA-MM com mes de 01 a 12: o mes com dois digitos quaisquer de antes deixava passar 2026-13 (BUG-007). */
+    public static final String FORMATO = "^\\d{4}-(0[1-9]|1[0-2])$";
+
+    /** Mensagem de mes invalido, igual no corpo e na URL. */
+    public static final String INVALIDO = "Mês inválido. Use o formato AAAA-MM.";
+
     private Meses() {
     }
 
@@ -29,7 +35,7 @@ public final class Meses {
         try {
             return YearMonth.parse(mes.trim());
         } catch (DateTimeParseException invalido) {
-            throw new BusinessException("Mes invalido. Use o formato AAAA-MM.", HttpStatus.BAD_REQUEST, "PEDIDO_INVALIDO");
+            throw new BusinessException(INVALIDO, HttpStatus.BAD_REQUEST, "PEDIDO_INVALIDO");
         }
     }
 }

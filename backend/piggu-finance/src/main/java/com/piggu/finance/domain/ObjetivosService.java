@@ -118,7 +118,7 @@ public class ObjetivosService {
     }
 
     private SavingsGoal buscar(UUID id) {
-        return objetivos.findById(id).orElseThrow(() -> new NotFoundException("Objetivo nao encontrado."));
+        return objetivos.findById(id).orElseThrow(() -> new NotFoundException("Objetivo não encontrado."));
     }
 
     static Situacao situacao(SavingsGoal objetivo, BigDecimal guardado, LocalDate hoje) {

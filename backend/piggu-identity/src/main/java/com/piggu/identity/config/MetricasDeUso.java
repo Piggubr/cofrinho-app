@@ -58,12 +58,12 @@ public class MetricasDeUso implements MeterBinder {
         for (String janela : new String[] {"dia", "semana", "mes"}) {
             Gauge.builder(PESSOAS_ATIVAS, this, m -> m.valor(janela))
                     .tag("janela", janela)
-                    .description("Pessoas que usaram o app na janela (ultimo dia, 7 ou 30 dias)")
+                    .description("Pessoas que usaram o app na janela (último dia, 7 ou 30 dias)")
                     .register(registro);
         }
         Gauge.builder(CONTAS, this, m -> m.valor("contas")).description("Contas existentes").register(registro);
         Gauge.builder(FAMILIAS_PREMIUM, this, m -> m.valor("premium"))
-                .description("Familias com Premium ativo (inclui teste gratis)").register(registro);
+                .description("Famílias com Premium ativo (inclui teste grátis)").register(registro);
     }
 
     double valor(String coluna) {

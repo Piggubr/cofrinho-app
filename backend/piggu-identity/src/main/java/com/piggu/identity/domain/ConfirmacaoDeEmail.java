@@ -74,7 +74,7 @@ public class ConfirmacaoDeEmail {
         }
         depoisDoCommit(() -> email.enviar(conta.getEmail(), "Piggu: confirme seu e-mail",
                 "Para confirmar seu e-mail no Piggu, abra o link abaixo. Ele vale por 24 horas.\n\n" + link
-                        + "\n\nSe nao foi voce quem criou a conta, ignore este e-mail."));
+                        + "\n\nSe não foi você quem criou a conta, ignore este e-mail."));
     }
 
     /**
@@ -104,9 +104,9 @@ public class ConfirmacaoDeEmail {
             return;
         }
         depoisDoCommit(() -> email.enviar(conta.getEmail(), "Piggu: tentativa de criar conta com seu e-mail",
-                "Alguem tentou criar uma conta no Piggu com este e-mail, que ja tem conta.\n\n"
-                        + "Se foi voce, entre em " + site + "/entrar com sua senha ou pelo Google. "
-                        + "Se nao foi, ignore este e-mail: nada mudou na sua conta."));
+                "Alguém tentou criar uma conta no Piggu com este e-mail, que já tem conta.\n\n"
+                        + "Se foi você, entre em " + site + "/entrar com sua senha ou pelo Google. "
+                        + "Se não foi, ignore este e-mail: nada mudou na sua conta."));
     }
 
     /**
@@ -131,7 +131,7 @@ public class ConfirmacaoDeEmail {
     @Transactional
     public void reenviar(UUID usuarioId) {
         UserAccount conta = usuarios.findById(usuarioId)
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         if (conta.linkDeEmailValido(Instant.now().plus(VALIDADE).minus(INTERVALO))) {
             throw new BusinessException("Acabamos de mandar um link. Espere um minuto para pedir outro.",
                     HttpStatus.TOO_MANY_REQUESTS, "LINK_RECENTE");
@@ -151,7 +151,7 @@ public class ConfirmacaoDeEmail {
         UserAccount conta = token == null || token.isBlank() ? null
                 : usuarios.findByEmailTokenHash(tokens.hash(token.trim())).orElse(null);
         if (conta == null || !conta.linkDeEmailValido(Instant.now())) {
-            throw new BusinessException("Este link de confirmacao venceu ou ja foi usado. Peca outro no Perfil.",
+            throw new BusinessException("Este link de confirmação venceu ou já foi usado. Peça outro no Perfil.",
                     HttpStatus.UNPROCESSABLE_CONTENT, "LINK_INVALIDO");
         }
         if (conta.temSenha() && !conta.getId().equals(quem)) {

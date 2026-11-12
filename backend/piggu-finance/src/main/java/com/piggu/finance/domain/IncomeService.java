@@ -3,9 +3,11 @@ package com.piggu.finance.domain;
 import com.piggu.common.auditoria.TrilhaDeAuditoria;
 import com.piggu.common.error.NotFoundException;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.security.FamiliaAtual;
 import com.piggu.common.web.Texto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /** Receitas da familia. */
 @Service
@@ -26,10 +29,36 @@ public class IncomeService {
 
     private final IncomeRepository repositorio;
     private final TrilhaDeAuditoria trilha;
+    private final JdbcTemplate jdbc;
 
-    public IncomeService(IncomeRepository repositorio, TrilhaDeAuditoria trilha) {
+    public IncomeService(IncomeRepository repositorio, TrilhaDeAuditoria trilha, JdbcTemplate jdbc) {
         this.repositorio = repositorio;
         this.trilha = trilha;
+        this.jdbc = jdbc;
+    }
+
+    /**
+     * Receita com o id do envio do app, como o gasto ({@code ExpenseService.umaVezSo}): o mesmo
+     * envio de novo nao lanca nada e devolve a receita da primeira vez (D-192). O id entra na
+     * transacao da receita; dois envios ao mesmo tempo esperam um pelo outro na chave.
+     */
+    @Transactional
+    public Income umaVezSo(UUID idDoEnvio, UUID usuarioId, Supplier<Income> lancar) {
+        if (idDoEnvio == null) {
+            return lancar.get();
+        }
+        UUID familia = FamiliaAtual.atual();
+        if (jdbc.update("INSERT INTO income_submissions (household_id, id, user_id) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
+                familia, idDoEnvio, usuarioId) == 0) {
+            UUID id = jdbc.queryForObject("SELECT income_id FROM income_submissions WHERE household_id = ? AND id = ?",
+                    UUID.class, familia, idDoEnvio);
+            log.info("Envio repetido de receita: id={} receita={}", idDoEnvio, id);
+            return buscar(id);
+        }
+        Income receita = lancar.get();
+        jdbc.update("UPDATE income_submissions SET income_id = ? WHERE household_id = ? AND id = ?",
+                receita.getId(), familia, idDoEnvio);
+        return receita;
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +112,7 @@ public class IncomeService {
     }
 
     private Income buscar(UUID id) {
-        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Receita nao encontrada."));
+        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Receita não encontrada."));
     }
 
     static String categoria(String informada) {

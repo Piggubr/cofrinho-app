@@ -57,7 +57,7 @@ public class PersonalGoalService {
 
     private PersonalGoal buscar(UUID id, UUID usuarioId) {
         return repositorio.findByIdAndUserId(id, usuarioId)
-                .orElseThrow(() -> new NotFoundException("Meta nao encontrada."));
+                .orElseThrow(() -> new NotFoundException("Meta não encontrada."));
     }
 
     private static int atual(PersonalGoalRequest pedido) {

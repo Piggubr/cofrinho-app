@@ -59,9 +59,13 @@ psql_em piggu_lifestyle -v familia="$familia" -v pessoa="$pessoa" < "$EXEMPLOS/e
 psql_em piggu_identity -v pessoa="$pessoa" <<< "UPDATE users SET lifestyle_modules = NULL WHERE id = :'pessoa'"
 
 if $premium; then
-  psql_em piggu_identity -v familia="$familia" <<< \
+  # Sem quem assinou, o plano individual nao cobre ninguem (Household.planoPara): a conta
+  # vira a assinante, como numa assinatura de verdade.
+  psql_em piggu_identity -v familia="$familia" -v pessoa="$pessoa" <<< \
     "UPDATE households SET premium_since = COALESCE(premium_since, now()),
-                           premium_until = GREATEST(COALESCE(premium_until, now()), now()) + interval '30 days'
+                           premium_until = GREATEST(COALESCE(premium_until, now()), now()) + interval '30 days',
+                           plan_kind = CASE WHEN subscriber_id IS NULL THEN 'INDIVIDUAL' ELSE plan_kind END,
+                           subscriber_id = COALESCE(subscriber_id, :'pessoa')
      WHERE id = :'familia'"
 fi
 

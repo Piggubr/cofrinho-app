@@ -30,7 +30,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                 : SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof Jwt jwt)) {
-            throw new UnauthorizedException("Faca login para continuar.");
+            throw new UnauthorizedException("Faça login para continuar.");
         }
         return JwtClaims.toCurrentUser(jwt);
     }
@@ -56,7 +56,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         public static CurrentUser toCurrentUser(Jwt jwt) {
             String email = jwt.getClaimAsString(CLAIM_EMAIL);
             if (email == null || email.isBlank()) {
-                throw new UnauthorizedException("Sua sessao esta incompleta. Entre novamente.");
+                throw new UnauthorizedException("Sua sessão está incompleta. Entre novamente.");
             }
             return new CurrentUser(
                     UUID.fromString(jwt.getSubject()),

@@ -16,11 +16,11 @@ import jakarta.validation.constraints.Size;
  *                       nula mantem a atual
  */
 public record PreferencesRequest(
-        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.") String moeda,
-        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.") String moedaConversao,
+        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda inválida.") String moeda,
+        @NotBlank @Pattern(regexp = "[A-Z]{3}", message = "Moeda inválida.") String moedaConversao,
         @NotNull Boolean mostrarCotacao,
         @Size(max = 50) String fuso,
-        @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.") String moedaCotacao
+        @Pattern(regexp = "[A-Z]{3}", message = "Moeda inválida.") String moedaCotacao
 ) {
 
     public PreferencesRequest(String moeda, String moedaConversao, Boolean mostrarCotacao) {

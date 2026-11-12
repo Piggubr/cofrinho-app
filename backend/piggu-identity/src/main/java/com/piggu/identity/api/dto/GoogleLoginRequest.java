@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
  * @param lembrar         continuar conectado; falso deixa o cookie so ate fechar o navegador
  * @param refreshNoCorpo  so o app nativo: o refresh vem no corpo da resposta, nao no cookie (D-058)
  */
-public record GoogleLoginRequest(@NotBlank(message = "Faca login com Google para continuar.") @Size(max = 4096) String idToken,
+public record GoogleLoginRequest(@NotBlank(message = "Faça login com Google para continuar.") @Size(max = 4096) String idToken,
                                  @Size(max = 20) String versaoDosTermos,
                                  Boolean lembrar,
                                  Boolean refreshNoCorpo) {

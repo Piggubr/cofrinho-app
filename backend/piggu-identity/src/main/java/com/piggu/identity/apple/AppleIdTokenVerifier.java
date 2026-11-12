@@ -30,7 +30,7 @@ import java.util.List;
 public class AppleIdTokenVerifier {
 
     private static final Logger log = LoggerFactory.getLogger(AppleIdTokenVerifier.class);
-    private static final String RECUSADO = "Login com a Apple invalido para este app.";
+    private static final String RECUSADO = "Login com a Apple inválido para este app.";
 
     private final AppleProperties propriedades;
     private final NimbusJwtDecoder decoder;
@@ -47,11 +47,11 @@ public class AppleIdTokenVerifier {
 
     public AppleProfile verificar(String idToken, String nonce) {
         if (!ligado()) {
-            throw new BusinessException("O login com a Apple ainda nao esta disponivel.",
+            throw new BusinessException("O login com a Apple ainda não está disponível.",
                     HttpStatus.NOT_IMPLEMENTED, "EM_BREVE");
         }
         if (Texto.vazio(idToken) || Texto.vazio(nonce)) {
-            throw new UnauthorizedException("Faca login com a Apple para continuar.");
+            throw new UnauthorizedException("Faça login com a Apple para continuar.");
         }
 
         Jwt token;
@@ -59,7 +59,7 @@ public class AppleIdTokenVerifier {
             token = decoder.decode(idToken);
         } catch (JwtException erro) {
             log.debug("Identity token da Apple recusado", erro);
-            throw new UnauthorizedException("Seu login venceu ou e' invalido. Entre novamente.");
+            throw new UnauthorizedException("Seu login venceu ou é inválido. Entre novamente.");
         }
 
         if (token.getIssuer() == null || !propriedades.issuer().equals(token.getIssuer().toString())) {
@@ -74,11 +74,11 @@ public class AppleIdTokenVerifier {
         }
         // A Apple manda email_verified ora como texto ("true"), ora como booleano.
         if (!"true".equals(String.valueOf(token.getClaims().get("email_verified")))) {
-            throw new UnauthorizedException("O e-mail da Apple nao esta verificado.");
+            throw new UnauthorizedException("O e-mail da Apple não está verificado.");
         }
         String email = Texto.email(token.getClaimAsString("email"));
         if (email.isEmpty()) {
-            throw new UnauthorizedException("A Apple nao informou o seu e-mail.");
+            throw new UnauthorizedException("A Apple não informou o seu e-mail.");
         }
         String clienteId = audiencia.stream().filter(propriedades.clientIds()::contains).findFirst().orElseThrow();
         return new AppleProfile(token.getSubject(), email, clienteId);

@@ -70,7 +70,7 @@ public class BankingService {
         PluggyClient.Item item = pluggy.buscarItem(itemId);
         if (!usuario.id().toString().equals(item.clientUserId())) {
             log.warn("Registro de item Pluggy de outra conta recusado: item={}", item.id());
-            throw new ForbiddenException("Esta conexao bancaria nao foi feita pela sua conta.");
+            throw new ForbiddenException("Esta conexão bancária não foi feita pela sua conta.");
         }
         List<PluggyClient.Conta> remotas = pluggy.listarContas(item.id());
 
@@ -96,7 +96,7 @@ public class BankingService {
     public List<BankAccountResponse> desconectar(UUID conexaoId, CurrentUser usuario) {
         BankConnection conexao = conexoes.findById(conexaoId)
                 .filter(encontrada -> usuario.id().equals(encontrada.getUserId()))
-                .orElseThrow(() -> new NotFoundException("Banco conectado nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Banco conectado não encontrado."));
         try {
             pluggy.apagarItem(conexao.getPluggyItemId());
         } catch (NotFoundException jaApagado) {
@@ -124,7 +124,7 @@ public class BankingService {
     public List<GastoDoBanco> gastosDesde(LocalDate desde, CurrentUser usuario) {
         LocalDate hoje = LocalDate.now();
         if (desde.isAfter(hoje) || desde.isBefore(hoje.minusDays(MAXIMO_DE_DIAS))) {
-            throw new BusinessException("Escolha uma data dos ultimos " + MAXIMO_DE_DIAS + " dias.");
+            throw new BusinessException("Escolha uma data dos últimos " + MAXIMO_DE_DIAS + " dias.");
         }
         List<GastoDoBanco> gastos = new ArrayList<>();
         List<BankAccount> doUsuario = contas.listarDoUsuario(usuario.id());

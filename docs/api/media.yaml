@@ -273,12 +273,14 @@ components:
           minLength: 0
         mesKey:
           type: string
-          pattern: "^\\d{4}-\\d{2}$"
+          minLength: 1
+          pattern: "^\\d{4}-(0[1-9]|1[0-2])$"
         mimeType:
           type: string
           pattern: "image/[a-z0-9.+-]{1,30}"
       required:
       - imageBase64
+      - mesKey
     FeedPhotoResponse:
       type: object
       properties:

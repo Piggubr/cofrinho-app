@@ -50,11 +50,11 @@ public class SavingsGoalController {
      * @param compartilhado meta a dois; na edicao, nulo mantem como esta
      */
     public record ObjetivoRequest(
-            @NotBlank(message = "De um nome ao objetivo.") @Size(max = 60, message = "O nome e longo demais.")
+            @NotBlank(message = "Dê um nome ao objetivo.") @Size(max = 60, message = "O nome é longo demais.")
             String nome,
             @NotNull(message = "Digite quanto quer juntar.")
             @DecimalMin(value = "0.01", message = "Digite quanto quer juntar.")
-            @DecimalMax(value = "10000000", message = "O valor e alto demais.") BigDecimal alvo,
+            @DecimalMax(value = "10000000", message = "O valor é alto demais.") BigDecimal alvo,
             LocalDate prazo,
             Boolean compartilhado) {
     }

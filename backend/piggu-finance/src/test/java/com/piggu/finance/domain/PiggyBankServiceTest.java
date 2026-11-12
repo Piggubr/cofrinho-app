@@ -116,7 +116,7 @@ class PiggyBankServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> cofrinho.excluir(alheio.id(), MEMBRO))
                 .isInstanceOf(ForbiddenException.class)
-                .hasMessageContaining("nao pode apagar");
+                .hasMessageContaining("não pode apagar");
     }
 
     @Test

@@ -80,6 +80,6 @@ class ConversaComGeminiTest {
 
         assertThatThrownBy(() -> conversa.responder("i", List.of(), "?", List.of(), (n, a) -> Map.of()))
                 .isInstanceOf(UpstreamException.class)
-                .hasMessageContaining("Nao consegui chegar");
+                .hasMessageContaining("Não consegui chegar");
     }
 }
