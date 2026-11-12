@@ -47,7 +47,7 @@ struct AssistenteView: View {
             conteudo
                 .background(paleta.fundo)
                 .navigationTitle("Assistente")
-                .navigationBarTitleDisplayMode(.inline)
+                .tituloDaFolha()
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Fechar") { fechar() }
@@ -111,7 +111,7 @@ struct AssistenteView: View {
                             .foregroundStyle(paleta.textoSuave)
                         ForEach(Self.sugestoes, id: \.key) { sugestao in
                             Button(String(localized: sugestao)) { Task { await perguntar(String(localized: sugestao)) } }
-                                .buttonStyle(.bordered)
+                                .buttonStyle(.pilula)
                         }
                     }
                     ForEach(Array(falas.enumerated()), id: \.offset) { _, fala in
@@ -160,7 +160,7 @@ struct AssistenteView: View {
 
     private func botaoDeAbrir(_ rota: Rota) -> some View {
         Button(String(localized: "Abrir \(nome(rota))")) { ir(rota) }
-            .buttonStyle(.bordered)
+            .buttonStyle(.pilula)
             .font(.sora(.footnote, peso: .semibold))
     }
 

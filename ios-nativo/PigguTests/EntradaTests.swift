@@ -132,6 +132,13 @@ struct EntradaTests {
         }
     }
 
+    /// O link vencido avisa ao abrir, antes de digitar (IOS-14); o bom segue para o formulario.
+    @Test func linkDeSenhaVencidoAvisaAoAbrir() async {
+        let sessao = sessao()
+        #expect(await sessao.linkDeSenhaVenceu("vencido"))
+        #expect(await !sessao.linkDeSenhaVenceu("bom"))
+    }
+
     @Test func redefinirComSessaoAbertaSaiDoAparelho() async throws {
         let sessao = sessao(logado: true)
         await sessao.restaurar()

@@ -32,7 +32,7 @@ struct MinhasMetasView: View {
         }
         .scrollContentBackground(.hidden)
         .background(paleta.fundo)
-        .navigationTitle("Minhas metas")
+        .navigationTitle("Metas do mês")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 if let metas = carga.valor, !metas.isEmpty {
@@ -106,7 +106,7 @@ struct MinhasMetasView: View {
                 Spacer()
                 if !meta.concluida {
                     Button("+1") { Task { await avancar(meta) } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                         .controlSize(.small)
                         .disabled(salvando)
                         .accessibilityLabel("Mais um em \(meta.titulo)")
@@ -138,7 +138,7 @@ struct MinhasMetasView: View {
 
     /// So titulo e progresso, nada de dinheiro.
     nonisolated static func textoParaCompartilhar(_ metas: [MetaDoMes], rotuloDoMes: String) -> String {
-        ([String(localized: "Minhas metas de \(rotuloDoMes):")]
+        ([String(localized: "Metas do mês de \(rotuloDoMes):")]
             + metas.map { "\($0.concluida ? "✅" : "⏳") \($0.titulo): \($0.atual) de \($0.alvo)" })
             .joined(separator: "\n")
     }
@@ -215,7 +215,7 @@ private struct MetaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle(meta == nil ? "Criar meta" : "Editar meta")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {

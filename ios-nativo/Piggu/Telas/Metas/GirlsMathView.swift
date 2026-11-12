@@ -99,6 +99,7 @@ struct GirlsMathView: View {
                 .onChange(of: loja) { _, novo in if novo.count > 120 { loja = String(novo.prefix(120)) } }
             LabeledContent("Quanto custava (\(Formatos.simboloDaMoeda))") {
                 CampoDeValor(rotulo: "Quanto custava", texto: $valor).multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 120)
             }
             Button(salvando ? "Guardando..." : "Guardar no Girls Math") { Task { await guardar() } }
                 .disabled(salvando)

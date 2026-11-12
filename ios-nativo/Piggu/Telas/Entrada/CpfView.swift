@@ -30,7 +30,7 @@ struct CpfView: View {
                 .foregroundStyle(paleta.textoSuave)
             BotaoDeContorno(titulo: "Agora não") { fechar() }
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .tituloDaFolha()
         .onAppear {
             if let atual = sessao.usuario?.pais, !atual.isEmpty {
                 pais = atual

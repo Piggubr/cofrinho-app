@@ -73,7 +73,7 @@ struct FamiliaView: View {
                         Task { await executar(String(localized: "Convite recusado. Você continua vendo só o que lança.")) {
                             try await $0.recusarParceria() } }
                     }
-                    .buttonStyle(.bordered).disabled(ocupado)
+                    .buttonStyle(.pilula).disabled(ocupado)
                 }
             }
             .listRowBackground(paleta.suave)
@@ -89,20 +89,22 @@ struct FamiliaView: View {
             }
             ForEach(familia.membros) { pessoa in
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(pessoa.nome)
+                    // Encolhe em vez de quebrar nome e e-mail no meio no texto grande (IOS-5).
+                    Text(pessoa.nome).lineLimit(3).minimumScaleFactor(0.5)
                     Text([pessoa.email ?? "", Self.papel(pessoa.papel),
                           pessoa.parceriaPendente == true ? String(localized: "convidado para parceiro") : ""]
                         .filter { !$0.isEmpty }.joined(separator: " · "))
                         .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                        .lineLimit(2).minimumScaleFactor(0.4)
                     if ehTitular && (pessoa.papel == .membro || pessoa.papel == .parceiro) {
                         HStack {
                             Button(pessoa.parceriaPendente == true ? "Cancelar convite de parceiro"
                                    : pessoa.papel == .parceiro ? "Voltar a membro" : "Convidar para parceiro") {
                                 mudarPapel(pessoa)
                             }
-                            .buttonStyle(.bordered).controlSize(.small)
+                            .buttonStyle(.pilula).controlSize(.small)
                             Button("Remover", role: .destructive) { confirmacao = .remover(pessoa) }
-                                .buttonStyle(.bordered).controlSize(.small)
+                                .buttonStyle(.pilula).controlSize(.small)
                         }
                         .disabled(ocupado)
                     }
@@ -155,13 +157,13 @@ struct FamiliaView: View {
                         Button("Cancelar") {
                             Task { await executar(String(localized: "Convite cancelado.")) { try await $0.cancelarConvite(convite.id) } }
                         }
-                        .buttonStyle(.bordered).controlSize(.small)
+                        .buttonStyle(.pilula).controlSize(.small)
                     }
                 }
             } header: {
                 Text("Convidar alguém")
             } footer: {
-                Text("A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu marido ou sua esposa verem o que um e o outro lançam, use \"Convidar para parceiro\" na lista acima; vale quando a pessoa aceitar.")
+                Text("A pessoa entra com a conta Google desse e-mail e já cai na sua família como membro (no plano casal, a primeira pessoa adulta que aceitar já entra como parceiro). O convite vale 7 dias. Cada membro vê só o que lança. Para você e seu par verem o que um e o outro lançam, use \"Convidar para parceiro\" na lista acima; vale quando a pessoa aceitar.")
             }
             .listRowBackground(paleta.superficie)
         } else {

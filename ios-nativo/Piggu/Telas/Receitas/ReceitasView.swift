@@ -68,7 +68,7 @@ struct ReceitasView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .comSeletorDeMes($mes, troca: lancamentos)
-            .navigationTitle("Receitas")
+            .navigationTitle(lancamentos == nil ? Text("Receitas") : Text("Lançamentos"))
             .topoDoPiggu()
             .refreshable { await carregar() }
             .onChange(of: abrirNoMes, initial: true) { _, novo in
@@ -157,7 +157,7 @@ struct ReceitasView: View {
                             .foregroundStyle(atrasada ? paleta.perigo : paleta.textoSuave)
                         Spacer()
                         Button("Recebi") { Task { await receber(conta) } }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.pilula)
                             .controlSize(.small)
                     }
                 }

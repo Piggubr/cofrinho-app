@@ -108,7 +108,8 @@ actor TransporteDeDemonstracao: Transporte {
             "item": item,
             "categoria": categoria,
             "valor": valor,
-            "tipo": "Variavel",
+            // A conta da casa e fixa: a projecao do mes (D-190) a conta uma vez.
+            "tipo": categoria == "Casa" ? "Fixo" : "Variavel",
             "origem": "Manual",
             "usuario": usuario ?? Self.usuarioPadrao["id"] as Any,
             "registradoEm": ISO8601DateFormatter().string(from: Date()),
@@ -172,6 +173,10 @@ actor TransporteDeDemonstracao: Transporte {
             }
         }
 
+        if let recusa = Self.recusa(metodo, caminho, corpo) {
+            return responder(url, 400, erro(recusa, codigo: "VALIDACAO"))
+        }
+
         switch (metodo, caminho) {
         case ("POST", "/auth/entrar"):
             logado = true
@@ -196,6 +201,9 @@ actor TransporteDeDemonstracao: Transporte {
             return corpo["token"] as? String == "vencido"
                 ? responder(url, 422, erro("Este link venceu ou ja foi usado. Peca outro em \"Esqueci minha senha\".",
                                            codigo: "LINK_INVALIDO"))
+                // Como o backend: o link vale, mas a senha fraca e recusada.
+                : (corpo["novaSenha"] as? String ?? "").count < 8
+                ? responder(url, 422, erro("A senha precisa de pelo menos 8 caracteres.", codigo: "VALIDACAO"))
                 : responder(url, 204, nil)
         case ("POST", "/auth/confirmar-email"):
             guard corpo["token"] as? String != "vencido" else {
@@ -317,7 +325,7 @@ actor TransporteDeDemonstracao: Transporte {
             let partes = caminho.split(separator: "/").map(String.init)
             if metodo == "PUT", partes.count == 2, partes[0] == "expenses",
                let indice = gastos.firstIndex(where: { $0["id"] as? String == partes[1] }) {
-                for chave in ["item", "categoria", "valor", "compartilhado"] where corpo[chave] != nil {
+                for chave in ["item", "categoria", "valor", "compartilhado", "data"] where corpo[chave] != nil {
                     gastos[indice][chave] = corpo[chave]
                 }
                 return responder(url, 200, gastos[indice])
@@ -376,6 +384,38 @@ actor TransporteDeDemonstracao: Transporte {
         ]
     }
 
+    /// Recusa o que o backend recusa (D-189): valor fora de 0,01 a teto e data fora de
+    /// 01/01/2000 a hoje + 2 anos, com as mesmas mensagens.
+    static func recusa(_ metodo: String, _ caminho: String, _ corpo: [String: Any], hoje: Date = Date()) -> String? {
+        let partes = caminho.split(separator: "/")
+        let teto: Decimal
+        var valores: [Any?]
+        switch (metodo, caminho) {
+        case ("POST", "/expenses"):
+            teto = Limites.gasto
+            valores = (corpo["itens"] as? [[String: Any]] ?? []).map { $0["valor"] }
+        case ("PUT", _) where partes.count == 2 && partes[0] == "expenses":
+            teto = Limites.gasto
+            valores = corpo["valor"] == nil ? [] : [corpo["valor"]]
+        case ("POST", "/incomes"), ("POST", "/incomes/receivables"), ("POST", "/piggy-bank/deposits"):
+            teto = Limites.receita
+            valores = [corpo["valor"]]
+        default:
+            return nil
+        }
+        for valor in valores {
+            let numero = (valor as? NSNumber).map { Decimal(string: $0.stringValue) ?? 0 }
+            if let problema = Limites.problema(numero, maximo: teto) { return problema }
+        }
+        if let data = corpo["data"] as? String {
+            let fim = Formatos.dia(Calendar.current.date(byAdding: .year, value: 2, to: hoje) ?? hoje)
+            if data < "2000-01-01" || data > fim {
+                return String(localized: "Confira a data: use uma data entre 2000 e \(String(fim.prefix(4))).")
+            }
+        }
+        return nil
+    }
+
     private func erro(_ mensagem: String, codigo: String = "DEMO") -> [String: Any] {
         ["erro": mensagem, "codigo": codigo, "campos": [], "momento": ISO8601DateFormatter().string(from: Date())]
     }
@@ -414,6 +454,14 @@ actor TransporteDeDemonstracao: Transporte {
         let receitas = dados.receitas.filter { ($0["data"] as? String)?.hasPrefix(mes) == true }
             .reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
         let anterior = total > 0 ? 1480.0 : 0
+        // A projecao do contrato (D-190): os fixos uma vez, os variaveis pelo ritmo do mes.
+        let corrente = mes == Formatos.mes(Date())
+        let fixos = doMes.filter { $0["tipo"] as? String == "Fixo" }.reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
+        let calendario = Calendar.current
+        let dia = Double(calendario.component(.day, from: Date()))
+        let dias = Double(calendario.range(of: .day, in: .month, for: Date())?.count ?? 30)
+        let projecao = fixos + (total - fixos) / dia * dias
+        let ateOMesmoDia = anterior * dia / 31
         return [
             "mes": mes,
             "receitas": receitas,
@@ -422,7 +470,11 @@ actor TransporteDeDemonstracao: Transporte {
             "taxaDePoupanca": receitas > 0 ? ((receitas - total) / receitas * 1000).rounded() / 10 : NSNull(),
             "gastosMesAnterior": anterior,
             "variacao": anterior > 0 ? ((total - anterior) / anterior * 1000).rounded() / 10 : NSNull(),
-            "projecaoDeGastos": mes == Formatos.mes(Date()) ? total * 1.6 : NSNull(),
+            "projecaoDeGastos": corrente ? (projecao * 100).rounded() / 100 : NSNull(),
+            "gastosFixos": fixos,
+            "gastosAteMesmoDiaAnterior": corrente ? (ateOMesmoDia * 100).rounded() / 100 : NSNull(),
+            "variacaoAteMesmoDia": corrente && ateOMesmoDia > 0
+                ? ((total - ateOMesmoDia) / ateOMesmoDia * 1000).rounded() / 10 : NSNull(),
             "porCategoria": porCategoria
                 .sorted { $0.value > $1.value }
                 .map { ["categoria": $0.key, "total": $0.value, "anterior": $0.value * 0.9] },

@@ -51,7 +51,11 @@ enum ErroDaAPI: LocalizedError, Equatable {
             return String(localized: "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção.")
         case .sessaoEncerrada:
             return String(localized: "Sua sessão venceu. Entre novamente.")
-        case let .servidor(status, mensagem, _):
+        case let .servidor(status, mensagem, codigo):
+            // Gateway com o servico fora do ar ou lento (D-191): o texto do contrato, com ou sem corpo.
+            if status == 503 || status == 504 || codigo == "SERVICO_INDISPONIVEL" {
+                return String(localized: "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.")
+            }
             if let mensagem, !mensagem.isEmpty {
                 return mensagem
             }

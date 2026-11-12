@@ -65,8 +65,8 @@ struct PrimeirosPassos: View {
                     passo("3. Lance o primeiro gasto ou importe o extrato", feito: temGasto) {
                         if !temGasto {
                             HStack {
-                                Button("Lançar gasto", action: aoLancar).buttonStyle(.bordered)
-                                Button("Importar extrato") { importando = true }.buttonStyle(.bordered)
+                                Button("Lançar gasto", action: aoLancar).buttonStyle(.pilula)
+                                Button("Importar extrato") { importando = true }.buttonStyle(.pilula)
                             }
                         }
                     }

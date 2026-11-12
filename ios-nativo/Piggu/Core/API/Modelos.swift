@@ -259,7 +259,7 @@ struct Receita: Codable, Identifiable, Equatable, Sendable {
 }
 
 /// Corpo de POST /incomes.
-struct NovaReceita: Codable, Sendable {
+struct NovaReceita: Codable, Equatable, Sendable {
     let data: String
     let descricao: String
     let categoria: String
@@ -269,6 +269,17 @@ struct NovaReceita: Codable, Sendable {
     /// So na recorrente em duas parcelas (D-087).
     var segundoDia: Int?
     var segundoValor: Decimal?
+    /// Como no gasto (D-192): o reenvio com o mesmo id devolve a primeira resposta e nao duplica.
+    var idDoEnvio: String?
+
+    /// O mesmo pedido de novo leva o mesmo id; mudou algum campo, e outro envio, com id novo.
+    func comIdDoEnvio(repetindo anterior: NovaReceita?) -> NovaReceita {
+        var semId = anterior
+        semId?.idDoEnvio = nil
+        var pedido = self
+        pedido.idDoEnvio = (semId == self ? anterior?.idDoEnvio : nil) ?? UUID().uuidString.lowercased()
+        return pedido
+    }
 }
 
 /// POST /bills.
@@ -678,6 +689,12 @@ struct ResumoDoMes: Codable, Equatable, Sendable {
     /// So no mes corrente: o ritmo de gasto ate hoje levado ao fim do mes.
     let projecaoDeGastos: Decimal?
     let porCategoria: [PorCategoria]
+    /// Os campos da projecao nova (D-190); ausentes num backend antigo.
+    var gastosFixos: Decimal? = nil
+    /// Mes anterior do dia 1 ao mesmo dia de hoje; so no mes corrente.
+    var gastosAteMesmoDiaAnterior: Decimal? = nil
+    /// Em porcentagem, contra `gastosAteMesmoDiaAnterior`; so no mes corrente.
+    var variacaoAteMesmoDia: Decimal? = nil
 }
 
 /// Resposta de GET /categories: as oito de fabrica mais as criadas.
