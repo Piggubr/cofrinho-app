@@ -1942,6 +1942,7 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o app guardar o token e tentar apagar de novo quando o `DELETE` falha, que não cobre as sessões derrubadas pelo servidor; apagar todos os aparelhos de uma vez na migração, que deixa todo mundo sem push até abrir o app.
 - Consequências: nenhum app muda, e a API não perde nem renomeia campo. A sessão guarda a data do login, não a da última renovação; o `criadaEm` da exportação passa a mostrar quando a pessoa entrou. De duas renovações simultâneas com o mesmo refresh, só uma passa, como antes.
 - Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V42__push_preso_a_sessao.sql`, `.../avisos/Aparelhos.java` (`registrar`, `esquecerSoltos`), `.../domain/AuthService.java` (`renovar`), `.../domain/TokenService.java` (`CLAIM_SESSAO`)
+
 ## D-189: Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos
 - Data: 11/11/2026
 - Situação: Valendo
@@ -1992,3 +1993,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: pedir os membros ao identity a cada `dividirCom`, que põe uma chamada entre serviços em toda divisão; só a tabela local, que barrava o parceiro recém-entrado que ainda não abriu o app (o app oferece a pessoa, pela lista do `/api/family`, e o finance recusava); recusar só ids que não aparecem em nenhum gasto, com o mesmo problema.
 - Consequências: o finance passa a chamar o identity, mas só quando falta alguém na tabela, uma vez por pessoa (depois ela consta). Com o identity fora, dividir com quem ainda não consta dá 503; com quem já consta, segue. Quem sai da família leva a linha junto (dado pessoal). Volume de fotos que já nasceu com dono root (servidor antigo) não muda com a imagem nova: conferir com `docker exec <media> ls -ld /dados/fotos` e, se for root, `chown` uma vez. Testes que comparam texto passaram a usar a mensagem acentuada.
 - Onde ver: `backend/piggu-finance/.../domain/IncomeService.umaVezSo`, `PessoasDaFamilia.java`, `integration/FamiliaNoIdentity.java`, `V28__envio_unico_de_receitas.sql`, `V29__pessoas_da_familia.sql`, `backend/piggu-common/.../web/Meses.java`, `backend/Dockerfile`, `backend/scripts/dados-de-exemplo.sh`, `FamiliaResponse.java`, `scripts/conferir-acentos.sh`
+
+## D-193: Refresh já trocado que volta derruba aquela sessão
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (derrubar só aquele login, com 30 s de tolerância); a tabela separada foi do assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-020) mostrou que um refresh já rotacionado, apresentado de novo, só recebia `401`: quem tivesse copiado o refresh e renovado antes do dono seguia com a sessão viva, sem nenhum sinal.
+- Decisão: cada renovação guarda o hash do refresh trocado em `refresh_rotated`, ligado à sessão (`ON DELETE CASCADE`). Se um refresh desses volta mais de 30 s depois da troca, a sessão é apagada (o login daquele aparelho e, pela D-188, o aparelho de push dela) e a resposta é o mesmo `401` de sempre. Dentro dos 30 s, só o `401`, para duas abas que renovam juntas não derrubarem o próprio login. As outras sessões da conta continuam.
+- Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`
