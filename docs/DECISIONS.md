@@ -1917,6 +1917,17 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)
 
+## D-187: A primeira senha de conta do Google ou da Apple só pelo e-mail, e a sessão do iOS no Keychain
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (aprovou as correções F2 e F7 do scan de segurança de 10/11 e pediu para ligar o Keychain no iOS)
+- Registrado por: Claude
+- Contexto: em `POST /api/auth/senha`, a conta sem senha (só Google ou Apple) criava a primeira só com o token de acesso. Um token vazado virava uma entrada permanente por e-mail e senha. No iOS, com o Keychain desligado, o refresh de 30 dias ficava no cookie, em `Library/Cookies`, que vai para o backup do aparelho.
+- Decisão: conta sem senha recebe o link de "Esqueci minha senha" no e-mail e a resposta 403 com `codigo: CRIAR_SENHA_PELO_EMAIL`; trocar a senha que já existe não muda. No iOS, `PIGGU_REFRESH_NO_CORPO = YES` em Debug e Release (D-072), e a pasta `Library/Cookies` fica marcada fora do backup.
+- Alternativas: pedir a senha do Google ou da Apple de novo (reautenticação) antes de criar a senha, o que exige uma etapa nova nos três apps; só tirar o cookie do backup, deixando o refresh fora do Keychain.
+- Consequências: criar a primeira senha passa a exigir o e-mail, e usar o link derruba todas as sessões. No iOS, quem já estava logado entra de novo uma vez, e um backup restaurado não leva a sessão.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`definirSenha`), `ios-nativo/Piggu/Core/API/ClienteDaAPI.swift` (`TransporteURLSession`), `ios-nativo/Piggu.xcodeproj/project.pbxproj`
+
 ## D-188: O aparelho de push fica preso à sessão de login
 - Data: 11/11/2026
 - Situação: Valendo
