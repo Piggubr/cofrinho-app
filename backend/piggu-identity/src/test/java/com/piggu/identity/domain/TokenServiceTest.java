@@ -54,23 +54,23 @@ class TokenServiceTest extends PostgresIntegrationTest {
         usuarios.save(adulto);
 
         // Casal novo: cada um ve o seu (e o compartilhado, que nao passa pelo token).
-        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa, null)).getClaimAsStringList("tambemVe"))
                 .containsExactly(menor.getId().toString());
 
         // A titular escolhe mostrar tudo ao parceiro: so ele passa a ver o dela.
         titular.mostrarTudoPara(parceiro.getId());
         usuarios.save(titular);
-        assertThat(decoder.decode(tokens.gerarAccessToken(parceiro, casa)).getClaimAsStringList("tambemVe"))
+        assertThat(decoder.decode(tokens.gerarAccessToken(parceiro, casa, null)).getClaimAsStringList("tambemVe"))
                 .containsExactlyInAnyOrder(titular.getId().toString(), menor.getId().toString());
-        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa, null)).getClaimAsStringList("tambemVe"))
                 .containsExactly(menor.getId().toString());
 
         parceiro.mostrarTudoPara(titular.getId());
         usuarios.save(parceiro);
-        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa)).getClaimAsStringList("tambemVe"))
+        assertThat(decoder.decode(tokens.gerarAccessToken(titular, casa, null)).getClaimAsStringList("tambemVe"))
                 .containsExactlyInAnyOrder(parceiro.getId().toString(), menor.getId().toString());
-        assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa)).hasClaim("tambemVe")).isFalse();
-        assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa)).hasClaim("tambemVe")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(menor, casa, null)).hasClaim("tambemVe")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(adulto, casa, null)).hasClaim("tambemVe")).isFalse();
 
         // O adulto promovido a parceiro nao herda a permissao dada a outra pessoa.
         assertThat(adulto.getId()).isNotEqualTo(titular.getShowsAllTo());
@@ -82,7 +82,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
     void accessTokenCarregaOEssencial() {
         UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA, null));
 
         assertThat(token.getSubject()).isEqualTo(conta.getId().toString());
         assertThat(token.getClaimAsString("email")).isEqualTo("titular@piggu.test");
@@ -97,7 +97,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
     void tokenTrazOKid() {
         UserAccount conta = new UserAccount("admin@piggu.test", PigguRole.ADMIN, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA, null));
 
         assertThat(token.getHeaders()).containsEntry("kid", "piggu-signing-key");
         assertThat(token.getHeaders()).containsEntry("alg", "RS256");
@@ -108,7 +108,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
     void tokenExpira() {
         UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA));
+        Jwt token = decoder.decode(tokens.gerarAccessToken(conta, FAMILIA, null));
 
         assertThat(token.getExpiresAt()).isNotNull().isAfter(Instant.now());
         assertThat(tokens.segundosDeAcesso()).isEqualTo(300);
@@ -119,7 +119,7 @@ class TokenServiceTest extends PostgresIntegrationTest {
     void semClaimDoCpf() {
         UserAccount conta = new UserAccount("titular@piggu.test", PigguRole.TITULAR, FAMILIA.getId());
 
-        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA)).hasClaim("cpf")).isFalse();
+        assertThat(decoder.decode(tokens.gerarAccessToken(conta, FAMILIA, null)).hasClaim("cpf")).isFalse();
         assertThat(decoder.decode(tokens.gerarTokenDeExclusao(conta, FAMILIA, EscopoDeExclusao.PESSOA))
                 .hasClaim("cpf")).isFalse();
     }

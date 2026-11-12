@@ -1927,3 +1927,36 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: trocar o fundo escuro de todos para preto (perde o tom do tema e pode deixar um rastro ao rolar em OLED); preto com os cartões um degrau mais claros (não precisou).
 - Consequências: com o modo Claro a opção fica desligada. Os widgets do iOS e do Android também ficam pretos no escuro (no Android, pelo `secondaryContainer`, de onde o Glance tira o fundo do widget); mudam quando o app grava o resumo de novo, o que a chave já pede.
 - Onde ver: `ios-nativo/Compartilhado/Tema.swift` (`comFundoPreto`), `frontend/src/app/core/ui/tema.ts` e o fim do `frontend/src/styles.scss`, `android-nativo/core/designsystem/.../Tema.kt` (`PigguTheme`)
+
+## D-187: A primeira senha de conta do Google ou da Apple só pelo e-mail, e a sessão do iOS no Keychain
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (aprovou as correções F2 e F7 do scan de segurança de 10/11 e pediu para ligar o Keychain no iOS)
+- Registrado por: Claude
+- Contexto: em `POST /api/auth/senha`, a conta sem senha (só Google ou Apple) criava a primeira só com o token de acesso. Um token vazado virava uma entrada permanente por e-mail e senha. No iOS, com o Keychain desligado, o refresh de 30 dias ficava no cookie, em `Library/Cookies`, que vai para o backup do aparelho.
+- Decisão: conta sem senha recebe o link de "Esqueci minha senha" no e-mail e a resposta 403 com `codigo: CRIAR_SENHA_PELO_EMAIL`; trocar a senha que já existe não muda. No iOS, `PIGGU_REFRESH_NO_CORPO = YES` em Debug e Release (D-072), e a pasta `Library/Cookies` fica marcada fora do backup.
+- Alternativas: pedir a senha do Google ou da Apple de novo (reautenticação) antes de criar a senha, o que exige uma etapa nova nos três apps; só tirar o cookie do backup, deixando o refresh fora do Keychain.
+- Consequências: criar a primeira senha passa a exigir o e-mail, e usar o link derruba todas as sessões. No iOS, quem já estava logado entra de novo uma vez, e um backup restaurado não leva a sessão.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`definirSenha`), `ios-nativo/Piggu/Core/API/ClienteDaAPI.swift` (`TransporteURLSession`), `ios-nativo/Piggu.xcodeproj/project.pbxproj`
+
+## D-188: O aparelho de push fica preso à sessão de login
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (escolheu ligar o aparelho à sessão e deixar os aparelhos de antes se ligarem sozinhos)
+- Registrado por: Claude
+- Contexto: o scan de segurança de 10/11 (F5) achou que o aparelho de push não tinha ligação com a sessão de login. Quando o `DELETE /api/auth/me/devices` falhava ao sair, o app esquecia o token e o aparelho seguia recebendo os avisos da conta. Sessões derrubadas pelo servidor (troca ou redefinição de senha, sessões revogadas) também não tiravam o aparelho.
+- Decisão: `push_devices.session_id` aponta para `refresh_sessions` com `ON DELETE CASCADE`: apagar a sessão apaga o aparelho. O access token leva o id da sessão em `sid`, e `POST /api/auth/me/devices` prende o aparelho a ela; uma sessão que já saiu não cadastra nada. A renovação passa a trocar o refresh na mesma linha (`rotacionar`), sem criar sessão nova, para o id não mudar a cada 5 minutos. Os aparelhos de antes ficam sem sessão e continuam recebendo; os apps cadastram de novo ao abrir, e os que seguirem sem sessão por 30 dias (`seen_at`) saem na retenção diária.
+- Alternativas: o app guardar o token e tentar apagar de novo quando o `DELETE` falha, que não cobre as sessões derrubadas pelo servidor; apagar todos os aparelhos de uma vez na migração, que deixa todo mundo sem push até abrir o app.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. A sessão guarda a data do login, não a da última renovação; o `criadaEm` da exportação passa a mostrar quando a pessoa entrou. De duas renovações simultâneas com o mesmo refresh, só uma passa, como antes.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V42__push_preso_a_sessao.sql`, `.../avisos/Aparelhos.java` (`registrar`, `esquecerSoltos`), `.../domain/AuthService.java` (`renovar`), `.../domain/TokenService.java` (`CLAIM_SESSAO`)
+
+## D-193: Refresh já trocado que volta derruba aquela sessão
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (derrubar só aquele login, com 30 s de tolerância); a tabela separada foi do assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-020) mostrou que um refresh já rotacionado, apresentado de novo, só recebia `401`: quem tivesse copiado o refresh e renovado antes do dono seguia com a sessão viva, sem nenhum sinal.
+- Decisão: cada renovação guarda o hash do refresh trocado em `refresh_rotated`, ligado à sessão (`ON DELETE CASCADE`). Se um refresh desses volta mais de 30 s depois da troca, a sessão é apagada (o login daquele aparelho e, pela D-188, o aparelho de push dela) e a resposta é o mesmo `401` de sempre. Dentro dos 30 s, só o `401`, para duas abas que renovam juntas não derrubarem o próprio login. As outras sessões da conta continuam.
+- Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`

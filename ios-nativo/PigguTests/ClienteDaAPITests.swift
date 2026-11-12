@@ -123,6 +123,13 @@ struct ClienteDaAPITests {
         #expect(!cliente.pedeRefreshNoCorpo)
     }
 
+    @Test func pastaDoCookieDoRefreshFicaForaDoBackup() throws {
+        _ = TransporteURLSession.cookiesForaDoBackup
+
+        let pasta = URL.libraryDirectory.appending(path: "Cookies", directoryHint: .isDirectory)
+        #expect(try pasta.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup == true)
+    }
+
     @Test func comCofreRenovaPeloCorpoEGuardaORefreshNovo() async throws {
         let cofre = CofreDeTeste("r1")
         let transporte = TransporteRoteirizado([(200, tokens(access: "a2", refresh: "r2"))])

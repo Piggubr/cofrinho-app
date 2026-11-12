@@ -15,9 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 
 import static com.piggu.identity.avisos.LembretesDiariosTest.TOKEN_DO_ANDROID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +51,9 @@ class AparelhosTest extends PostgresIntegrationTest {
 
     @Autowired
     private RefreshSessionRepository sessoes;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private UserAccount ana;
 
@@ -83,6 +91,25 @@ class AparelhosTest extends PostgresIntegrationTest {
         registrar("curto", "ANDROID").andExpect(status().isBadRequest());
 
         assertThat(aparelhos.doUsuario(ana.getId(), "ANDROID")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("aparelho sem sessao sai depois de 30 dias sem cadastrar de novo; o recente fica (D-188)")
+    void soltosSaemNaRetencao() {
+        aparelhos.registrar(ana.getId(), "aa".repeat(32), "IOS", null);
+        aparelhos.registrar(ana.getId(), "bb".repeat(32), "IOS", null);
+        jdbc.update("UPDATE push_devices SET seen_at = now() - interval '31 days' WHERE token = ?", "aa".repeat(32));
+
+        assertThat(aparelhos.esquecerSoltos(Instant.now().minus(Duration.ofDays(30)))).isEqualTo(1);
+        assertThat(aparelhos.doUsuario(ana.getId(), "IOS")).containsExactly("bb".repeat(32));
+    }
+
+    @Test
+    @DisplayName("token de sessao que ja saiu nao cadastra o aparelho (D-188)")
+    void sessaoQueSaiuNaoCadastra() {
+        aparelhos.registrar(ana.getId(), "cc".repeat(32), "IOS", UUID.randomUUID());
+
+        assertThat(aparelhos.doUsuario(ana.getId(), "IOS")).isEmpty();
     }
 
     private ResultActions registrar(String token, String plataforma)
