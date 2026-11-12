@@ -56,7 +56,7 @@ class AtualizadorDoWidget @Inject constructor(
     /** @param voltas emite a cada vez que o app vem para a frente; os testes passam um fluxo fixo. */
     fun vigiar(voltas: Flow<Unit> = voltasParaAFrente()) {
         escopo.launch {
-            combine(sessao.estado, lancamentos.versao, voltas, preferencias.travar) { estado, _, _, travar -> estado to travar }
+            combine(sessao.estado, lancamentos.versao, voltas, preferencias.travar, preferencias.fundoPreto) { estado, _, _, travar, _ -> estado to travar }
                 .collectLatest { (estado, travar) ->
                     when {
                         // Com a trava do Piggu ligada, o widget fica sem números, como no iOS (D-162).
@@ -93,6 +93,7 @@ class AtualizadorDoWidget @Inject constructor(
                     metas = metas.await(),
                     moeda = usuario.preferencias?.moeda,
                     cor = cor,
+                    fundoPreto = preferencias.fundoPreto.first(),
                     agora = relogio.millis(),
                 )
             }
@@ -119,6 +120,7 @@ internal fun resumoDoMes(
     cor: String?,
     agora: Long,
     aindaDa: BigDecimal? = null,
+    fundoPreto: Boolean = false,
 ): ResumoDoWidget {
     val meta = metas.firstOrNull { !it.concluida } ?: metas.lastOrNull()
     return ResumoDoWidget(
@@ -130,6 +132,7 @@ internal fun resumoDoMes(
         metasConcluidas = metas.count { it.concluida },
         metasTotal = metas.size,
         cor = cor,
+        fundoPreto = fundoPreto,
         atualizadoEm = agora,
         aindaDa = aindaDa,
     )

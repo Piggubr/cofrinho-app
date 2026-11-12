@@ -43,8 +43,8 @@ struct Paleta: Sendable {
     let primaria: Color
     /// --primaria-contraste: texto sobre a primaria.
     let primariaContraste: Color
-    /// --site-bg: fundo das telas.
-    let fundo: Color
+    /// --site-bg: fundo das telas. `var` para o `comFundoPreto`.
+    var fundo: Color
     /// --surface: cartoes e linhas de lista.
     let superficie: Color
     /// --surface-sunken
@@ -140,6 +140,26 @@ extension Paleta {
         suave: Color(claro: 0xF3ECFB, escuro: 0x2C2238),
         serieGasto: Color(claro: 0xA07CC5, escuro: 0xC4A5EC),
         serieReceita: Color(claro: 0x7FA07F, escuro: 0x8FBF8F))
+}
+
+extension Paleta {
+    /// Fundo #000 no escuro, como o fundo do sistema do iOS. Cartoes, campos e bordas ficam como
+    /// estao: ja sobressaem mais no preto, e nenhuma cor perde contraste num fundo mais escuro.
+    var comFundoPreto: Paleta {
+        var paleta = self
+        paleta.fundo = fundo.pretaNoEscuro
+        return paleta
+    }
+}
+
+extension Color {
+    /// #000 no escuro; no claro, a propria cor (D-186).
+    var pretaNoEscuro: Color {
+        let original = UIColor(self)
+        return Color(uiColor: UIColor { tracos in
+            tracos.userInterfaceStyle == .dark ? .black : original.resolvedColor(with: tracos)
+        })
+    }
 }
 
 extension EnvironmentValues {

@@ -63,6 +63,8 @@ enum ModoDeAparencia: String, CaseIterable, Identifiable {
     case automatico, claro, escuro
 
     static let chave = "piggu_modo"
+    /// Fundo preto no modo escuro (so no iOS por enquanto).
+    static let chaveFundoPreto = "piggu_fundo_preto"
 
     var id: String { rawValue }
 

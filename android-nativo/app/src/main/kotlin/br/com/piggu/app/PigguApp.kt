@@ -147,7 +147,7 @@ fun PigguApp(
     BarrasDoSistema(escuro)
     // Link que chegou antes da sessão (sem login ou com pendência): abre depois de entrar (BUG-018).
     val linkPendente = remember { LinkPendente() }
-    PigguTheme(estado.cor, estado.modo, estado.coresDoCelular) {
+    PigguTheme(estado.cor, estado.modo, estado.coresDoCelular, estado.fundoPreto) {
         val abrirNoSite = lembrarAbrirNoSite()
         when (val raiz = estado.raiz) {
             Raiz.Abrindo -> Abrindo()

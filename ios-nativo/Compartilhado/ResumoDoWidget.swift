@@ -25,6 +25,8 @@ struct ResumoDoWidget: Codable, Equatable, Sendable {
     let metasTotal: Int
     /// A cor do Piggu escolhida no app (Tema.rawValue).
     let tema: String
+    /// Fundo preto no modo escuro (D-186); nil nos resumos gravados antes da opcao.
+    var fundoPreto: Bool?
     let atualizadoEm: Date
 
     /// Quanto do limite ja foi, de 0 a 1 (pode passar de 1); nil sem limite.

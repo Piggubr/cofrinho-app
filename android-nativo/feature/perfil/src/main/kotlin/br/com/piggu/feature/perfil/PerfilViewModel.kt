@@ -80,6 +80,7 @@ data class EstadoDoPerfil(
     val cor: VarianteDeCor = VarianteDeCor.Chiclete,
     val modo: ModoDeCor = ModoDeCor.Automatico,
     val coresDoCelular: Boolean = false,
+    val fundoPreto: Boolean = false,
     val voltouAoPadrao: Boolean = false,
     val icone: IconeDoApp = IconeDoApp.Padrao,
     /** Travar com a biometria ou o bloqueio de tela, e esconder nos recentes: deste aparelho. */
@@ -142,13 +143,15 @@ class PerfilViewModel internal constructor(
                 preferenciasDoAparelho.cor,
                 preferenciasDoAparelho.modo,
                 preferenciasDoAparelho.coresDoCelular,
+                preferenciasDoAparelho.fundoPreto,
                 preferenciasDoAparelho.voltouAoPadrao,
-            ) { cor, modo, coresDoCelular, voltou ->
+            ) { cor, modo, coresDoCelular, fundoPreto, voltou ->
                 estadoAtual.update {
                     it.copy(
                         cor = VarianteDeCor.deId(cor).efetiva(it.usuario?.ehPremium),
                         modo = ModoDeCor.deId(modo),
                         coresDoCelular = coresDoCelular,
+                        fundoPreto = fundoPreto,
                         voltouAoPadrao = voltou,
                     )
                 }
@@ -315,6 +318,10 @@ class PerfilViewModel internal constructor(
             preferenciasDoAparelho.mudarCor(cor.id)
             if (estadoAtual.value.coresDoCelular) preferenciasDoAparelho.mudarCoresDoCelular(false)
         }
+    }
+
+    fun mudarFundoPreto(ligado: Boolean) {
+        viewModelScope.launch { preferenciasDoAparelho.mudarFundoPreto(ligado) }
     }
 
     fun mudarCoresDoCelular(ligadas: Boolean) {

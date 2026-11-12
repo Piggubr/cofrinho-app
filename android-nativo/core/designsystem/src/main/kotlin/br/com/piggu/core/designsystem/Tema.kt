@@ -9,6 +9,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
@@ -121,6 +122,8 @@ fun PigguTheme(
     modo: ModoDeCor = ModoDeCor.Automatico,
     // Cores do celular (do papel de parede, Material You), só no Android 12 ou mais novo.
     coresDinamicas: Boolean = false,
+    // Fundo preto no escuro: só o fundo e a superfície das telas; os cartões já sobressaem no preto.
+    fundoPreto: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val escuro = when (modo) {
@@ -134,6 +137,6 @@ fun PigguTheme(
             if (escuro) dynamicDarkColorScheme(contexto) else dynamicLightColorScheme(contexto)
         }
         else -> variante.esquema(escuro)
-    }
+    }.let { if (escuro && fundoPreto) it.copy(background = Color.Black, surface = Color.Black) else it }
     MaterialTheme(colorScheme = cores, typography = Tipografia, content = content)
 }

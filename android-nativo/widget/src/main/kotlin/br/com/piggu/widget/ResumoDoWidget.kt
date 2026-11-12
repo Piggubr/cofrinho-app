@@ -39,6 +39,8 @@ data class ResumoDoWidget(
     val metasTotal: Int = 0,
     /** A cor do Piggu que vale (VarianteDeCor.id); nula com as Cores do celular. */
     val cor: String? = null,
+    /** Fundo preto no modo escuro (Perfil > Aparência, D-186). */
+    val fundoPreto: Boolean = false,
     val atualizadoEm: Long,
     /** O "Ainda dá para gastar" do Painel, com a mesma conta (calcularContaDoMes, BUG-002); nulo sem teto. */
     val aindaDa: Decimal? = null,

@@ -297,7 +297,8 @@
     <h2 i18n id="titulo-aparencia">Aparência</h2>
   </div>
   <p i18n class="linha-detalhe">
-    No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.
+    No automático o Piggu segue o modo claro ou escuro do aparelho. O fundo preto economiza bateria
+    em telas OLED. Vale para este aparelho.
   </p>
   <div class="alternador modos" role="radiogroup" aria-labelledby="titulo-aparencia">
     @for (modo of modos; track modo.id) {
@@ -312,6 +313,16 @@
       </button>
     }
   </div>
+  <label class="caixa linha-chave">
+    <span i18n>Fundo preto no modo escuro</span>
+    <input
+      type="checkbox"
+      class="chave"
+      [ngModel]="fundoPreto()"
+      [disabled]="modoAtual() === 'claro'"
+      (ngModelChange)="escolherFundoPreto($event)"
+    />
+  </label>
 </section>
 
 <section class="cartao" aria-labelledby="titulo-tema" id="personalizar">
