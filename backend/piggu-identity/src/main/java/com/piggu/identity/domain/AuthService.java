@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -81,6 +82,7 @@ public class AuthService {
     private final Senhas senhas;
     private final MinhaContaService minhaConta;
     private final ConfirmacaoDeEmail confirmacao;
+    private final RedefinicaoDeSenha redefinicao;
     private final Set<String> emailsDeAdmin;
 
     public AuthService(GoogleIdTokenVerifier verificador,
@@ -94,6 +96,7 @@ public class AuthService {
                        Senhas senhas,
                        MinhaContaService minhaConta,
                        ConfirmacaoDeEmail confirmacao,
+                       RedefinicaoDeSenha redefinicao,
                        @Value("${piggu.admin-emails:}") List<String> emailsDeAdmin) {
         this.verificador = verificador;
         this.apple = apple;
@@ -106,6 +109,7 @@ public class AuthService {
         this.senhas = senhas;
         this.minhaConta = minhaConta;
         this.confirmacao = confirmacao;
+        this.redefinicao = redefinicao;
         this.emailsDeAdmin = emailsDeAdmin.stream().map(Texto::email).filter(email -> !email.isEmpty())
                 .collect(Collectors.toSet());
     }
@@ -328,8 +332,10 @@ public class AuthService {
     }
 
     /**
-     * Cria a senha (conta que so entrava pelo Google) ou troca a atual, que entao precisa
-     * ser informada. Trocar derruba as outras sessoes; a deste aparelho continua.
+     * Troca a senha atual, que precisa ser informada. Trocar derruba as outras sessoes; a
+     * deste aparelho continua. Conta sem senha (so Google ou Apple) nao cria a primeira aqui:
+     * so o token de acesso, que pode ter vazado, viraria uma entrada permanente. Ela recebe o
+     * link de "Esqueci minha senha" no e-mail, que so o dono le.
      *
      * @param refreshAtual cookie da sessao deste aparelho, que nao cai; pode ser nulo
      */
@@ -338,30 +344,31 @@ public class AuthService {
         UserAccount conta = usuarios.findById(usuarioId)
                 .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
         Instant agora = Instant.now();
-        if (conta.temSenha()) {
-            if (conta.senhaTravada(agora)) {
-                throw new BusinessException("Muitas tentativas erradas. Espere alguns minutos.",
-                        HttpStatus.TOO_MANY_REQUESTS, "SENHA_TRAVADA");
-            }
-            if (!senhas.confere(senhaAtual, conta.getPasswordHash())) {
-                conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
-                usuarios.save(conta);
-                throw new BusinessException("A senha atual não confere.", HttpStatus.UNPROCESSABLE_CONTENT,
-                        "SENHA_ATUAL_ERRADA");
-            }
+        if (!conta.temSenha()) {
+            // O link sai mesmo com a excecao: noRollbackFor deixa gravar o pedido.
+            redefinicao.pedir(conta.getEmail());
+            throw new BusinessException("Para criar a senha, abra o link que mandamos para o seu e-mail. "
+                    + "Ele vale por 1 hora.", HttpStatus.FORBIDDEN, "CRIAR_SENHA_PELO_EMAIL");
+        }
+        if (conta.senhaTravada(agora)) {
+            throw new BusinessException("Muitas tentativas erradas. Espere alguns minutos.",
+                    HttpStatus.TOO_MANY_REQUESTS, "SENHA_TRAVADA");
+        }
+        if (!senhas.confere(senhaAtual, conta.getPasswordHash())) {
+            conta.registrarSenhaErrada(TENTATIVAS_DE_SENHA, TRAVA_DA_SENHA, agora);
+            usuarios.save(conta);
+            throw new BusinessException("A senha atual não confere.", HttpStatus.UNPROCESSABLE_CONTENT,
+                    "SENHA_ATUAL_ERRADA");
         }
         senhas.validar(novaSenha, conta.getEmail());
 
-        boolean trocou = conta.temSenha();
         conta.definirSenha(senhas.hash(novaSenha));
         usuarios.save(conta);
-        if (trocou) {
-            String manter = refreshAtual == null || refreshAtual.isBlank() ? null : tokens.hash(refreshAtual);
-            sessoes.findByUserId(conta.getId()).stream()
-                    .filter(sessao -> !sessao.getTokenHash().equals(manter))
-                    .forEach(sessoes::delete);
-        }
-        log.info("Senha {}: conta={}", trocou ? "trocada" : "criada", conta.getId());
+        String manter = refreshAtual == null || refreshAtual.isBlank() ? null : tokens.hash(refreshAtual);
+        sessoes.findByUserId(conta.getId()).stream()
+                .filter(sessao -> !sessao.getTokenHash().equals(manter))
+                .forEach(sessoes::delete);
+        log.info("Senha trocada: conta={}", conta.getId());
         return UserResponse.de(conta, familias.daConta(conta));
     }
 
@@ -387,11 +394,17 @@ public class AuthService {
             throw new ForbiddenException("Esta conta foi desativada.");
         }
 
-        sessoes.delete(sessao);
+        // Mesma sessao com refresh novo: o id fica, e o aparelho de push preso a ele tambem (D-188).
+        limparSessoesVencidas();
+        String refresh = tokens.gerarRefreshToken();
+        if (sessoes.rotacionar(sessao.getId(), sessao.getTokenHash(), tokens.hash(refresh),
+                Texto.limitar(userAgent, 300), tokens.expiracaoDaSessao()) == 0) {
+            throw new UnauthorizedException("Sua sessão venceu. Entre novamente.");
+        }
         // Quem so renova tambem esta usando: sem isto a retencao apagaria conta ativa.
         conta.registrarAcesso();
         usuarios.save(conta);
-        return emitirPar(conta, userAgent, sessao.isRemember());
+        return par(conta, sessao.getId(), refresh, sessao.isRemember());
     }
 
     @Transactional
@@ -514,17 +527,20 @@ public class AuthService {
         limparSessoesVencidas();
 
         String refresh = tokens.gerarRefreshToken();
-        sessoes.save(new RefreshSession(
+        RefreshSession sessao = sessoes.save(new RefreshSession(
                 conta.getId(),
                 tokens.hash(refresh),
                 Texto.limitar(userAgent, 300),
                 tokens.expiracaoDaSessao(),
                 lembrar
         ));
+        return par(conta, sessao.getId(), refresh, lembrar);
+    }
 
+    private TokenResponse par(UserAccount conta, UUID sessao, String refresh, boolean lembrar) {
         Household familia = familias.daConta(conta);
         return new TokenResponse(
-                tokens.gerarAccessToken(conta, familia),
+                tokens.gerarAccessToken(conta, familia, sessao),
                 refresh,
                 tokens.segundosDeAcesso(),
                 UserResponse.de(conta, familia),

@@ -1,8 +1,11 @@
 package com.piggu.identity.avisos;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,11 +20,29 @@ public class Aparelhos {
         this.jdbc = jdbc;
     }
 
-    public void registrar(UUID usuario, String token, String plataforma) {
-        jdbc.update("""
-                INSERT INTO push_devices (token, user_id, platform) VALUES (?, ?, ?)
-                ON CONFLICT (token) DO UPDATE SET user_id = EXCLUDED.user_id, platform = EXCLUDED.platform
-                """, token, usuario, plataforma);
+    /**
+     * Prende o aparelho a sessao do token (D-188): ela apagada, ele sai junto. Sessao que ja
+     * saiu nao cadastra nada. Sem sessao (token de antes da D-188) fica solto ate a retencao.
+     */
+    public void registrar(UUID usuario, String token, String plataforma, UUID sessao) {
+        try {
+            jdbc.update("""
+                    INSERT INTO push_devices (token, user_id, platform, session_id, seen_at)
+                    SELECT ?, ?, ?, s.id, now()
+                    FROM (SELECT 1) um LEFT JOIN refresh_sessions s ON s.id = ? AND s.user_id = ?
+                    WHERE ?::uuid IS NULL OR s.id IS NOT NULL
+                    ON CONFLICT (token) DO UPDATE SET user_id = EXCLUDED.user_id, platform = EXCLUDED.platform,
+                        session_id = EXCLUDED.session_id, seen_at = EXCLUDED.seen_at
+                    """, token, usuario, plataforma, sessao, usuario, sessao);
+        } catch (DataIntegrityViolationException sessaoSaiuAgora) {
+            // A sessao foi apagada entre a leitura e a gravacao: e um logout, nao ha o que cadastrar.
+        }
+    }
+
+    /** Aparelho sem sessao que nao cadastrou de novo desde {@code limite}: o app nao abre mais nele. */
+    public int esquecerSoltos(Instant limite) {
+        return jdbc.update("DELETE FROM push_devices WHERE session_id IS NULL AND seen_at < ?",
+                Timestamp.from(limite));
     }
 
     /** O token do iPhone foi guardado em minusculas e o do Android como veio: serve qualquer dos dois. */

@@ -273,7 +273,7 @@ public class AuthController {
     }
 
     /**
-     * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
+     * Troca a senha; conta sem senha recebe no e-mail o link para criar a primeira. O cookie da sessao
      * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica; no app
      * nativo, o {@code refreshToken} do corpo.
      */

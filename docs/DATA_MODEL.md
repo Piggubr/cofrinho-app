@@ -209,6 +209,7 @@ erDiagram
     households ||--o{ household_invites : "convites"
     users ||--o{ refresh_sessions : "sessões"
     users ||--o{ push_devices : "aparelhos"
+    refresh_sessions |o--o{ push_devices : "session_id"
     users ||--o{ alerts_sent : "avisos mandados"
     users ||--o{ trial_campaign_uses : "usou"
     trial_campaigns ||--o{ trial_campaign_uses : "usos"
@@ -289,7 +290,7 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 |---|---|---|
 | `household_invites` | `email` (texto(320)), `invited_by` (uuid), `expires_at` | Convite para entrar na família. Único por família e e-mail; vale 7 dias e a retenção apaga os vencidos |
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
-| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado |
+| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform`, `session_id`, `seen_at` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado. Preso à sessão em que foi cadastrado (D-188): a sessão apagada leva o aparelho junto. Sem sessão e sem cadastro novo por 30 dias, sai na retenção |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
 | `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe e Apple; o RevenueCat, que saiu em D-145, também gravava aqui): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
