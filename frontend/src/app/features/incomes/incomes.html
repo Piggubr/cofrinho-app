@@ -13,7 +13,7 @@
   <div class="cartao-titulo">
     <h2 i18n id="titulo-nova-receita">Nova receita</h2>
   </div>
-  <app-formulario-de-receita (lancado)="aoLancar($event)" />
+  <app-formulario-de-receita (lancado)="aoLancar($event)" (falhou)="aviso.set('')" />
 </section>
 
 @if (recorrentes().length) {

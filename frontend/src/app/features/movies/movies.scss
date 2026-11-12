@@ -60,6 +60,9 @@
   font-size: 1.15rem;
   line-height: 1;
   padding: 0;
+  /* Alvo de toque de 24px (WCAG 2.5.8), mesmo com a estrela pequena. */
+  min-width: 24px;
+  min-height: 24px;
   cursor: pointer;
 }
 

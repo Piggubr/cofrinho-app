@@ -28,6 +28,7 @@ import {
   Usuario,
 } from '../core/api/models';
 import { dataIso } from '../core/ui/datas';
+import { TETO_DE_ENTRADA, TETO_DE_GASTO, TETO_DE_LIMITE, erroDeData, erroDeValor } from '../core/ui/limites';
 import {
   CATEGORIAS_BASE,
   CATEGORIAS_DE_RECEITA,
@@ -121,6 +122,20 @@ function falhar(pedido: HttpRequest<unknown>, erro: ErroDaDemo): Observable<neve
 
 // ---------- Ajudantes ----------
 
+/** Recusa o que o backend recusa (D-189): valor de 0,01 ate o teto e data de 2000 a hoje + 2 anos. */
+function conferirValor(valor: unknown, teto: number): void {
+  const erro = erroDeValor(Number(valor), teto);
+  if (erro) throw new ErroDaDemo(400, erro, 'VALIDACAO');
+}
+
+function conferirData(data: unknown): void {
+  const erro = erroDeData(String(data ?? ''));
+  if (erro) throw new ErroDaDemo(400, erro, 'VALIDACAO');
+}
+
+/** Receita reenviada com o mesmo idDoEnvio: devolve a primeira resposta (D-192). */
+const receitasPorEnvio = new Map<string, unknown>();
+
 const hojeIso = () => dataIso(new Date());
 const mesAtual = () => hojeIso().slice(0, 7);
 const mesDe = (pedido: HttpRequest<unknown>) => pedido.params.get('mes') || mesAtual();
@@ -194,10 +209,18 @@ function resumo(mes: string): ResumoDoMes {
   const gastosAntes = somar(Object.values(antes));
   const sobra = arredondar(receitas - gastos);
   const hoje = new Date();
-  const projecao =
-    mes === mesAtual()
-      ? arredondar((gastos * new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate()) / hoje.getDate())
-      : null;
+  const corrente = mes === mesAtual();
+  // D-190: os fixos entram uma vez; os variaveis ate hoje seguem o ritmo do mes.
+  const gastosFixos = somar(doMes(mes).filter((g) => g.tipo === 'Fixo').map((g) => g.valor));
+  const ateHoje = doMes(mes).filter((g) => g.data <= hojeIso());
+  const variaveisAteHoje = somar(ateHoje.filter((g) => g.tipo !== 'Fixo').map((g) => g.valor));
+  const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  const projecao = corrente ? arredondar(gastosFixos + (variaveisAteHoje * diasNoMes) / hoje.getDate()) : null;
+  const diaAnterior = Math.min(hoje.getDate(), new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate());
+  const ateMesmoDia = corrente
+    ? somar(doMes(anterior).filter((g) => Number(g.data.slice(8, 10)) <= diaAnterior).map((g) => g.valor))
+    : null;
+  const gastosAteHoje = somar(ateHoje.map((g) => g.valor));
   return {
     mes,
     receitas,
@@ -207,6 +230,9 @@ function resumo(mes: string): ResumoDoMes {
     gastosMesAnterior: gastosAntes,
     variacao: gastosAntes > 0 ? Math.round(((gastos - gastosAntes) / gastosAntes) * 1000) / 10 : null,
     projecaoDeGastos: projecao,
+    gastosFixos,
+    gastosAteMesmoDiaAnterior: ateMesmoDia,
+    variacaoAteMesmoDia: ateMesmoDia ? Math.round(((gastosAteHoje - ateMesmoDia) / ateMesmoDia) * 1000) / 10 : null,
     porCategoria: Object.entries(agora)
       .map(([categoria, total]) => ({ categoria, total, anterior: antes[categoria] ?? 0 }))
       .sort((a, b) => b.total - a.total),
@@ -705,6 +731,8 @@ const ROTAS: Rota[] = [
       .filter((g) => visao !== 'casal' || g.compartilhado).sort((a, b) => b.data.localeCompare(a.data) || b.registradoEm.localeCompare(a.registradoEm));
   }],
   ['POST', /^\/expenses$/, (_p, _x, c) => {
+    conferirData(c['data']);
+    ((c['itens'] ?? []) as Corpo[]).forEach((item) => conferirValor(item['valor'], TETO_DE_GASTO));
     const novos = lancar(c);
     if (c['recorrente']) {
       for (const g of novos) {
@@ -717,6 +745,7 @@ const ROTAS: Rota[] = [
   }],
   ['PUT', new RegExp(`^/expenses/${ID}$`), (_p, [id], c) => {
     const gasto = exigir(estado.gastos.find((g) => g.id === id), 'Gasto não encontrado.');
+    conferirValor(c['valor'], TETO_DE_GASTO);
     Object.assign(gasto, { item: c['item'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']) });
     return gasto;
   }],
@@ -759,6 +788,13 @@ const ROTAS: Rota[] = [
   ['GET', /^\/incomes\/categories$/, () => CATEGORIAS_DE_RECEITA],
   ['GET', /^\/incomes$/, (p) => estado.receitas.filter((r) => r.data.startsWith(mesDe(p))).sort((a, b) => b.data.localeCompare(a.data))],
   ['POST', /^\/incomes$/, (_p, _x, c) => {
+    const envio = c['idDoEnvio'] as string | undefined;
+    if (envio && receitasPorEnvio.has(envio)) {
+      return receitasPorEnvio.get(envio);
+    }
+    conferirValor(c['valor'], TETO_DE_ENTRADA);
+    if (c['segundoValor'] != null) conferirValor(c['segundoValor'], TETO_DE_ENTRADA);
+    conferirData(c['data']);
     const receita = { id: novoId('receita'), data: c['data'], descricao: c['descricao'], categoria: c['categoria'] || 'Outros', valor: Number(c['valor']), usuario: estado.titular.id };
     estado.receitas.push(receita);
     if (c['recorrente']) {
@@ -767,10 +803,13 @@ const ROTAS: Rota[] = [
       estado.contasFixas.push({ id, descricao: receita.descricao, categoria: receita.categoria, valor: receita.valor, dia: Number(receita.data.slice(8)), automatico: true, tipo: 'RECEITA', ...segunda });
       estado.contasPagas.add(`${id}|${receita.data.slice(0, 7)}`);
     }
+    if (envio) receitasPorEnvio.set(envio, receita);
     return receita;
   }],
   ['GET', /^\/incomes\/receivables$/, () => [...estado.aReceber].sort((a, b) => a.data.localeCompare(b.data))],
   ['POST', /^\/incomes\/receivables$/, (_p, _x, c) => {
+    conferirValor(c['valor'], TETO_DE_ENTRADA);
+    conferirData(c['data']);
     const conta = { id: novoId('receber'), quem: String(c['quem']), descricao: c['descricao'] ?? '', valor: Number(c['valor']), data: c['data'] };
     estado.aReceber.push(conta);
     return conta;
@@ -792,6 +831,7 @@ const ROTAS: Rota[] = [
   // Contas fixas
   ['GET', /^\/bills$/, (p) => contasFixas(mesDe(p), p.params.get('tipo') ?? 'GASTO')],
   ['POST', /^\/bills$/, (_p, _x, c) => {
+    conferirValor(c['valor'], TETO_DE_GASTO);
     estado.contasFixas.push({ id: novoId('fixa'), descricao: c['descricao'], categoria: categoriaValida(c['categoria']), valor: Number(c['valor']), dia: Number(c['dia']), automatico: !!c['automatico'] });
   }],
   ['DELETE', new RegExp(`^/bills/${ID}$`), (_p, [id]) => remover(estado.contasFixas, id)],
@@ -814,6 +854,7 @@ const ROTAS: Rota[] = [
   // Orcamentos
   ['GET', /^\/budgets$/, (p) => orcamentos(mesDe(p))],
   ['PUT', /^\/budgets$/, (_p, _x, c) => {
+    conferirValor(c['limite'], TETO_DE_LIMITE);
     const categoria = categoriaValida(c['categoria']);
     const existente = estado.orcamentos.find((o) => o.categoria === categoria);
     if (existente) {
@@ -867,9 +908,11 @@ const ROTAS: Rota[] = [
   // Metas, cofrinho, notas, produtos
   // Sempre uma copia: devolver o mesmo objeto faz o signal da tela nao ver a mudanca.
   ['GET', /^\/monthly-goals$/, () => ({ ...estado.metas })],
-  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
+  ['PUT', /^\/monthly-goals$/, (_p, _x, c) => { conferirValor(c['limite'], TETO_DE_LIMITE); estado.metas[String(c['mes'])] = Number(c['limite']); return { ...estado.metas }; }],
   ['GET', /^\/piggy-bank$/, () => cofrinho()],
   ['POST', /^\/piggy-bank\/deposits$/, (_p, _x, c) => {
+    conferirValor(c['valor'], TETO_DE_ENTRADA);
+    if (c['data']) conferirData(c['data']);
     const objetivo = (c['objetivo'] as string | undefined) ?? null;
     if (objetivo) {
       exigir(estado.objetivos.find((o) => o.id === objetivo), 'Objetivo não encontrado.');

@@ -1,4 +1,4 @@
-import { Component, ElementRef, afterNextRender, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
@@ -21,6 +21,7 @@ import { faturaDaCompra } from '../../core/ui/fatura';
 import { CampoDeCategoria } from '../../core/ui/campo-de-categoria';
 import { CampoDeValor } from '../../core/ui/campo-de-valor';
 import { Icone } from '../../core/ui/icone';
+import { TETO_DE_GASTO, confirmarData, erroDeData, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 
@@ -64,6 +65,8 @@ export class FormularioDeGasto {
   /** Foto escolhida no balao do "+": o formulario ja abre lendo o recibo. */
   readonly foto = input<File | null>(null);
   readonly lancado = output<GastoLancado>();
+  /** Apareceu um erro: quem abriu o formulario tira o "Gasto lançado." anterior (BUG-026). */
+  readonly falhou = output<void>();
 
   protected readonly erro = signal('');
   protected readonly salvando = signal(false);
@@ -158,6 +161,25 @@ export class FormularioDeGasto {
   });
 
   constructor() {
+    // Rascunho (BUG-016): um recarregar da pagina nao perde o que ja foi digitado.
+    const rascunho = lerRascunho();
+    if (rascunho) {
+      this.novoItem.set(rascunho.item);
+      this.novoValor.set(rascunho.valor);
+      this.novaCategoria.set(rascunho.categoria);
+      this.novaData.set(rascunho.data);
+    }
+    effect(() =>
+      guardarRascunho({
+        item: this.novoItem(),
+        valor: this.novoValor(),
+        categoria: this.novaCategoria(),
+        data: this.novaData(),
+      }),
+    );
+    effect(() => {
+      if (this.erro()) this.falhou.emit();
+    });
     this.finance.listarCategorias().subscribe({
       next: (resposta) => this.categorias.set(resposta?.categorias ?? []),
     });
@@ -237,14 +259,26 @@ export class FormularioDeGasto {
       this.erro.set($localize`Digite o nome do item.`);
       return;
     }
-    if (valor === null || valor < 0) {
-      this.erro.set($localize`Digite um valor válido.`);
+    const erroNoValor = erroDeValor(valor, TETO_DE_GASTO);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
     const outraMoeda = this.moedaDaCompra() && this.moedaDaCompra() !== this.moeda.codigo();
     const convertido = this.convertido();
     if (outraMoeda && convertido === null) {
       this.erro.set($localize`Aguarde a cotação da moeda da compra.`);
+      return;
+    }
+    // O teto vale para o que e gravado: na outra moeda, o valor ja convertido.
+    const erroNoConvertido = outraMoeda ? erroDeValor(convertido, TETO_DE_GASTO) : null;
+    if (erroNoConvertido) {
+      this.erro.set(erroNoConvertido);
+      return;
+    }
+    const erroNaData = erroDeData(this.novaData());
+    if (erroNaData) {
+      this.erro.set(erroNaData);
       return;
     }
     if (this.forma() === 'CARTAO' && !this.cartoes().length) {
@@ -266,6 +300,9 @@ export class FormularioDeGasto {
       this.erro.set($localize`Parcelado: de 2 a 48 parcelas.`);
       return;
     }
+    if (!confirmarData(this.novaData())) {
+      return;
+    }
 
     this.salvando.set(true);
     this.erro.set('');
@@ -277,7 +314,7 @@ export class FormularioDeGasto {
         {
           item,
           categoria: this.novaCategoria() || null,
-          valor: outraMoeda ? convertido! : valor,
+          valor: outraMoeda ? convertido! : valor!,
           // Sem o campo Tipo na tela: o recorrente vira conta fixa, o resto e variavel.
           tipo: this.modo() === 'RECORRENTE' ? 'Fixo' : 'Variavel',
           moedaOriginal: outraMoeda ? this.moedaDaCompra() : null,
@@ -339,8 +376,11 @@ export class FormularioDeGasto {
 
   private limparLancamento(): void {
     guardarContaPadrao(this.novaConta());
+    this.erro.set('');
     this.novoItem.set('');
     this.novoValor.set(null);
+    // BUG-003: o proximo gasto e de hoje; a data escolhida so valia para este.
+    this.novaData.set(hojeIso());
     this.trocarModo('VISTA');
     this.precoAcima.set(null);
     this.dividirCom.set([]);
@@ -434,10 +474,15 @@ export class FormularioDeGasto {
 
   protected confirmarRecibo(): void {
     const lido = this.recibo();
-    const itens = this.itensEmConferencia().filter((item) => item.item.trim() && item.valor >= 0);
+    const itens = this.itensEmConferencia().filter((item) => item.item.trim());
 
     if (!lido || !itens.length) {
       this.erro.set($localize`Adicione pelo menos um item válido.`);
+      return;
+    }
+    const erroNoItem = itens.map((item) => erroDeValor(item.valor, TETO_DE_GASTO)).find(Boolean);
+    if (erroNoItem) {
+      this.erro.set(erroNoItem);
       return;
     }
 
@@ -455,6 +500,7 @@ export class FormularioDeGasto {
       .subscribe({
         next: () => {
           this.cancelarRecibo();
+          this.erro.set('');
           this.salvando.set(false);
           this.lancado.emit({ mensagem: $localize`Recibo lançado.`, offline: false });
         },
@@ -517,5 +563,41 @@ function guardarContaPadrao(conta: string): void {
     else localStorage.removeItem(CONTA_PADRAO);
   } catch {
     // Sem armazenamento (aba privada): segue sem lembrar.
+  }
+}
+
+const RASCUNHO = 'piggu_rascunho_gasto';
+
+/** So o que a pessoa digitou no formulario; nada de conta, cartao ou sessao. */
+interface Rascunho {
+  item: string;
+  valor: number | null;
+  categoria: string;
+  data: string;
+}
+
+/** Rascunho da aba (sessionStorage): some ao fechar a aba ou ao lancar. */
+export function lerRascunho(): Rascunho | null {
+  try {
+    const lido = JSON.parse(sessionStorage.getItem(RASCUNHO) ?? 'null') as Partial<Rascunho> | null;
+    if (!lido || typeof lido !== 'object') return null;
+    return {
+      item: typeof lido.item === 'string' ? lido.item.slice(0, 200) : '',
+      valor: typeof lido.valor === 'number' && Number.isFinite(lido.valor) ? lido.valor : null,
+      categoria: typeof lido.categoria === 'string' ? lido.categoria : '',
+      data: typeof lido.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(lido.data) ? lido.data : hojeIso(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function guardarRascunho(rascunho: Rascunho): void {
+  try {
+    const vazio = !rascunho.item && rascunho.valor === null && !rascunho.categoria && rascunho.data === hojeIso();
+    if (vazio) sessionStorage.removeItem(RASCUNHO);
+    else sessionStorage.setItem(RASCUNHO, JSON.stringify(rascunho));
+  } catch {
+    // Sem armazenamento (aba privada): segue sem rascunho.
   }
 }

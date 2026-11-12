@@ -47,7 +47,11 @@
         (click)="pagarMarcadas()"
         [disabled]="ocupado() || !marcadas().length"
       >
-        Pagar {{ marcadas().length }} · {{ totalMarcado() | moeda }}
+        @if (marcadas().length) {
+          Pagar {{ marcadas().length }} · {{ totalMarcado() | moeda }}
+        } @else {
+          Marque as contas para pagar
+        }
       </button>
     </div>
   }

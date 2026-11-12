@@ -39,7 +39,7 @@ const MOEDAS_DO_GUIA = ['BRL', 'EUR', 'USD', 'GBP', 'ARS', 'CLP', 'UYU', 'JPY'];
             } @else {
               <div class="linha-de-campos">
                 <div class="campo">
-                  <label i18n for="moeda-do-guia">Moeda</label>
+                  <label i18n for="moeda-do-guia">Moeda de exibição</label>
                   <select
                     id="moeda-do-guia"
                     [ngModel]="moedaEscolhida()"

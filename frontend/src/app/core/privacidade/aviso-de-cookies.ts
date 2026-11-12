@@ -58,6 +58,34 @@ import { ConsentimentoDeCookies } from './consentimento-de-cookies';
     .acoes .botao {
       flex: 1 1 10rem;
     }
+    /* Celular pequeno: mais baixo, para nao cobrir o "Entrar" ate a pessoa responder. */
+    @media (max-width: 480px) {
+      .aviso-de-cookies {
+        bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 1rem);
+        padding: 0.65rem 0.8rem;
+      }
+      .titulo {
+        display: inline;
+        margin-right: 0.3rem;
+        font-size: 0.85rem;
+      }
+      .texto {
+        display: inline;
+        font-size: 0.78rem;
+        line-height: 1.4;
+      }
+      .acoes {
+        flex-wrap: nowrap;
+        margin-top: 0.5rem;
+      }
+      .acoes .botao {
+        flex: 1 1 0;
+        min-height: 40px;
+        padding-block: 0.4rem;
+        font-size: 0.85rem;
+      }
+    }
   `,
 })
 export class AvisoDeCookies {

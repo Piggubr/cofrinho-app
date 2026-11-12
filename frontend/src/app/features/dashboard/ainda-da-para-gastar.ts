@@ -5,6 +5,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { ContaFixa, Visao } from '../../core/api/models';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { MoedaPipe } from '../../core/ui/moeda';
+import { Carregando } from '../../core/ui/carregando';
 
 export interface ContaDoMes {
   readonly teto: number;
@@ -41,14 +42,16 @@ export function calcularContaDoMes(
   let porDia: number | null = null;
   if (mes === mesKey(hoje) && resta > 0) {
     const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
-    porDia = Math.floor((resta / (diasNoMes - hoje.getDate() + 1)) * 100) / 100;
+    // Para baixo de proposito, como no iOS e no Android: gastando o "por dia" todo dia, a
+    // soma nunca passa do que resta. Em centavos inteiros para o ponto flutuante nao tirar 1 centavo.
+    porDia = Math.floor(Math.round(resta * 100) / (diasNoMes - hoje.getDate() + 1)) / 100;
   }
   return { teto, tetoEhOLimite, gasto, contasAPagar, resta, porDia };
 }
 
 @Component({
   selector: 'app-ainda-da-para-gastar',
-  imports: [MoedaPipe, RouterLink],
+  imports: [Carregando, MoedaPipe, RouterLink],
   template: `
     <section class="cartao gastar" aria-labelledby="titulo-gastar">
       <h2 id="titulo-gastar">
@@ -58,7 +61,23 @@ export function calcularContaDoMes(
           <ng-container i18n>Ainda dá para gastar em {{ nomeDoMes() }}</ng-container>
         }
       </h2>
-      @if (conta(); as c) {
+      @if (!carregou()) {
+        <app-carregando formato="texto" [linhas]="2" />
+      } @else if (falhou()) {
+        <p i18n>Não consegui carregar as contas do mês, então ainda não dá para fazer a conta.</p>
+        <div class="acoes">
+          <button i18n type="button" class="botao contorno pequeno" (click)="tentarDeNovo()">
+            Tentar de novo
+          </button>
+        </div>
+      } @else if (conta(); as c) {
+        <p class="explicacao">
+          @if (c.tetoEhOLimite) {
+            <ng-container i18n>Limite do mês menos o que já foi gasto e as contas a pagar</ng-container>
+          } @else {
+            <ng-container i18n>Receitas do mês menos o que já foi gasto e as contas a pagar</ng-container>
+          }
+        </p>
         <p class="valor" [class.passou]="c.resta < 0">{{ c.resta | moeda }}</p>
         @if (c.resta < 0) {
           <p i18n class="passou">Já passou do que dava para gastar este mês.</p>
@@ -78,7 +97,7 @@ export function calcularContaDoMes(
             >
           }
         </p>
-      } @else if (carregou()) {
+      } @else {
         <p i18n>
           Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.
         </p>
@@ -114,6 +133,10 @@ export function calcularContaDoMes(
     .valor.passou {
       color: var(--danger);
     }
+    .explicacao {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
     .conta {
       margin-top: 0.5rem;
       font-size: 0.85rem;
@@ -141,6 +164,9 @@ export class AindaDaParaGastar {
   private readonly receitas = signal(0);
   private readonly contas = signal<ContaFixa[]>([]);
   protected readonly carregou = signal(false);
+  /** As contas nao vieram: sem elas o numero sairia inflado (BUG-002). */
+  protected readonly falhou = signal(false);
+  private readonly tentativa = signal(0);
 
   protected readonly nomeDoMes = computed(() => mesPorExtenso(this.mes()).toLowerCase());
   protected readonly passado = computed(() => this.mes() < mesKey(new Date()));
@@ -150,7 +176,9 @@ export class AindaDaParaGastar {
 
   constructor() {
     effect((onCleanup) => {
+      this.tentativa();
       this.carregou.set(false);
+      this.falhou.set(false);
       const pedido = forkJoin({
         resumo: this.finance.resumoDoMes(this.mes(), this.visao()),
         contas: this.finance.contasFixas(this.mes()),
@@ -160,14 +188,17 @@ export class AindaDaParaGastar {
           this.contas.set(contas ?? []);
           this.carregou.set(true);
         },
-        // Sem receitas e contas, o numero sai so do limite e do gasto.
+        // Nunca "R$ 0,00 de contas a pagar" por erro: mostra o erro e o "Tentar de novo".
         error: () => {
-          this.receitas.set(0);
-          this.contas.set([]);
+          this.falhou.set(true);
           this.carregou.set(true);
         },
       });
       onCleanup(() => pedido.unsubscribe());
     });
+  }
+
+  protected tentarDeNovo(): void {
+    this.tentativa.update((n) => n + 1);
   }
 }

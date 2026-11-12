@@ -31,6 +31,35 @@ function barra(x: number, altura: number): string {
     + `Q${direita},${topo} ${direita},${topo + r}V${BASE}Z`;
 }
 
+/** O que a caixa "Mês anterior" compara: o mes inteiro ou, no mes corrente, ate o mesmo dia. */
+export interface Comparacao {
+  readonly rotulo: string;
+  readonly valor: number;
+  readonly variacao: number | null;
+  /** "contra o mesmo dia de outubro"; nulo quando compara com o mes inteiro. */
+  readonly contra: string | null;
+}
+
+/**
+ * No mes corrente, com o backend novo (D-190), compara ate o mesmo dia do mes anterior:
+ * um mes pela metade contra o anterior inteiro sempre parecia economia. Sem o campo novo
+ * (backend antigo) ou em mes fechado, continua o mes anterior inteiro.
+ */
+export function comparacaoDoMes(resumo: ResumoDoMes): Comparacao {
+  const anterior = resumo.gastosAteMesmoDiaAnterior;
+  if (anterior === null || anterior === undefined) {
+    return { rotulo: $localize`Mês anterior`, valor: resumo.gastosMesAnterior, variacao: resumo.variacao, contra: null };
+  }
+  const [ano, mes] = resumo.mes.split('-').map(Number);
+  const nome = mesPorExtenso(mesKey(somarMeses(new Date(ano, mes - 1, 1), -1))).split(' ')[0].toLowerCase();
+  return {
+    rotulo: $localize`Até o mesmo dia de ${nome}:mes:`,
+    valor: anterior,
+    variacao: resumo.variacaoAteMesmoDia ?? null,
+    contra: $localize`contra o mesmo dia de ${nome}:mes:`,
+  };
+}
+
 /**
  * Relatorios: o mes por categoria contra o anterior, com projecao (gratis),
  * e o ano mes a mes, receitas contra gastos (Premium).
@@ -51,6 +80,10 @@ export class Reports {
   protected readonly resumo = signal<ResumoDoMes | null>(null);
   protected readonly doAno = signal<RelatorioDoAno | null>(null);
   protected readonly erro = signal('');
+  protected readonly comparacao = computed(() => {
+    const resumo = this.resumo();
+    return resumo ? comparacaoDoMes(resumo) : null;
+  });
   protected readonly mesEmFoco = signal<number | null>(null);
 
   /** Maior valor da categoria no mes, contando o anterior, para a escala das barras. */
