@@ -74,7 +74,7 @@ class FilaNoRoomTest {
         idDoEnvio = id,
     )
 
-    private fun servidor(status: Int, codigo: String? = null) = ErroDaApi.DoServidor(status, codigo, null, emptyList(), null)
+    private fun servidor(status: Int, codigo: String? = null, mensagem: String? = null) = ErroDaApi.DoServidor(status, codigo, mensagem, emptyList(), null)
 
     @Test
     fun `envia na ordem e avisa as telas, e guardar agenda o trabalho unico com rede`() = runTest {
@@ -95,19 +95,24 @@ class FilaNoRoomTest {
     }
 
     @Test
-    fun `400 e 422 tiram da fila e contam como recusados`() = runTest {
+    fun `400 e 422 saem da espera e ficam guardados com o motivo ate a pessoa dispensar`() = runTest {
         val m = montar()
         m.fila.guardar(gasto("Leite"))
         m.fila.guardar(gasto("Pão"))
         m.fila.guardar(gasto("Café"))
-        respostas += servidor(400)
+        respostas += servidor(400, "VALIDACAO", "Confira a data: use uma data entre 2000 e 2028.")
         respostas += servidor(422)
         assertEquals(1, m.fila.enviar())
-        assertEquals(2, m.fila.recusados.value)
+        val recusados = m.fila.recusados.esperar { it.size == 2 }
+        assertEquals(listOf("Leite", "Pão"), recusados.map { it.lancamento.itens.single().item })
+        assertEquals(listOf("Confira a data: use uma data entre 2000 e 2028.", ""), recusados.map { it.motivo })
         assertEquals(listOf("Café"), enviados.map { it.itens.single().item })
         assertEquals(0, m.fila.restam())
-        m.fila.esquecerRecusados()
-        assertEquals(0, m.fila.recusados.value)
+        // Recusado não volta a subir no próximo envio.
+        assertEquals(0, m.fila.enviar())
+        assertEquals(1, enviados.size)
+        m.fila.dispensar("id-Leite")
+        assertEquals(listOf("id-Pão"), m.fila.recusados.esperar { it.size == 1 }.map { it.idDoEnvio })
     }
 
     @Test
@@ -120,7 +125,7 @@ class FilaNoRoomTest {
         assertEquals(2, m.fila.restam())
         respostas += servidor(404, "NotFoundException")
         assertEquals(1, m.fila.enviar())
-        assertEquals(1, m.fila.recusados.value)
+        assertEquals(1, m.fila.recusados.esperar { it.size == 1 }.size)
         assertEquals(listOf("Pão"), enviados.map { it.itens.single().item })
     }
 
@@ -145,7 +150,7 @@ class FilaNoRoomTest {
             assertEquals(0, m.fila.enviar())
             assertEquals(2, m.fila.restam())
         }
-        assertEquals(0, m.fila.recusados.value)
+        assertEquals(emptyList<GastoAguardando>(), m.fila.recusados.value)
         assertEquals(emptyList<NovoLancamento>(), enviados)
     }
 

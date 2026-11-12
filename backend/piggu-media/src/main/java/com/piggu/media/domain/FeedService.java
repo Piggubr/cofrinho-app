@@ -68,7 +68,7 @@ public class FeedService {
     public FeedPhotoResponse legendar(UUID id, String legenda, CurrentUser usuario) {
         FeedPhoto foto = buscar(id);
         if (!usuario.podeGerenciar(foto.getUserId())) {
-            throw new ForbiddenException("Voce nao pode editar esta foto.");
+            throw new ForbiddenException("Você não pode editar esta foto.");
         }
         foto.legendar(Texto.limitar(legenda, 300));
         return FeedPhotoResponse.de(repositorio.save(foto));
@@ -78,7 +78,7 @@ public class FeedService {
     public void excluir(UUID id, CurrentUser usuario) {
         FeedPhoto foto = buscar(id);
         if (!usuario.podeGerenciar(foto.getUserId())) {
-            throw new ForbiddenException("Voce nao pode apagar esta foto.");
+            throw new ForbiddenException("Você não pode apagar esta foto.");
         }
         Asset asset = assets.detalhes(foto.getAssetId());
         repositorio.delete(foto);
@@ -87,7 +87,7 @@ public class FeedService {
 
     private FeedPhoto buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Foto nao encontrada."));
+                .orElseThrow(() -> new NotFoundException("Foto não encontrada."));
     }
 
     /** Pasta no formato "2026-09 - Setembro", igual a que o Apps Script criava. */

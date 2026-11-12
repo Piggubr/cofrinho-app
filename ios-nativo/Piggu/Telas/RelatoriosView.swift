@@ -64,7 +64,9 @@ struct RelatoriosView: View {
             .background(paleta.fundo)
             .comSeletorDeMes($mes)
             .navigationTitle("Relatórios")
-            .topoDoPiggu()
+            // Empurrado no Planejar, o titulo em linha ficava "Relató…" entre os botoes (BUG-025).
+            .navigationBarTitleDisplayMode(.large)
+            .topoDoPiggu(marca: comPilha)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ShareLink(item: CSVDosGastos(mes: chave, cliente: sessao.cliente),
@@ -86,20 +88,29 @@ struct RelatoriosView: View {
     private func numeros(_ resumo: ResumoDoMes) -> some View {
         Section {
             LabeledContent("Gastos") { Text(Formatos.moeda(resumo.gastos)).foregroundStyle(paleta.texto) }
+            // No mes corrente, contra o mesmo dia do anterior (D-190); backend antigo: o mes inteiro.
+            let ateOMesmoDia = resumo.gastosAteMesmoDiaAnterior
+            let variacao = ateOMesmoDia == nil ? resumo.variacao : resumo.variacaoAteMesmoDia
             LabeledContent {
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(Formatos.moeda(resumo.gastosMesAnterior)).foregroundStyle(paleta.texto)
-                    if let variacao = resumo.variacao {
-                        Text(textoDaVariacao(variacao))
+                    Text(Formatos.moeda(ateOMesmoDia ?? resumo.gastosMesAnterior)).foregroundStyle(paleta.texto)
+                    if let variacao {
+                        Text(ateOMesmoDia == nil ? textoDaVariacao(variacao)
+                             : String(localized: "\(textoDaVariacao(variacao)) contra o mesmo dia de \(mesAnterior(resumo.mes))"))
                             .font(.sora(.footnote))
+                            .multilineTextAlignment(.trailing)
                             .foregroundStyle(variacao > 0 ? paleta.perigo : paleta.sucesso)
                     }
                 }
             } label: {
-                Text("Mês anterior")
+                Text(ateOMesmoDia == nil ? "Mês anterior" : "Mês anterior até hoje")
             }
             if let projecao = resumo.projecaoDeGastos {
                 LabeledContent("Projeção do mês") { Text(Formatos.moeda(projecao)).foregroundStyle(paleta.texto) }
+                if resumo.gastosFixos != nil {
+                    Text("Os gastos fixos entram uma vez; os outros seguem o ritmo do mês.")
+                        .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                }
             }
         }
         .monospacedDigit()
@@ -228,6 +239,12 @@ struct RelatoriosView: View {
     /// "2026-10" vira "Out", como o eixo do site.
     static func mesCurto(_ mes: String) -> String {
         Int(mes.suffix(2)).flatMap { (1...12).contains($0) ? mesesCurtos[$0 - 1] : nil } ?? mes
+    }
+
+    /// "outubro" do mes antes de aaaa-mm.
+    private func mesAnterior(_ mes: String) -> String {
+        let inicio = Formatos.data(deDia: mes + "-01") ?? Date()
+        return Formatos.nomeDoMes(Formatos.somarMeses(-1, a: inicio)).lowercased(with: Formatos.localidade)
     }
 
     /// "▲ 12,5% a mais", como o site.

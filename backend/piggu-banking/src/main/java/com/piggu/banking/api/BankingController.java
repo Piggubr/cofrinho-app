@@ -73,7 +73,7 @@ public class BankingController {
         exigirLigado();
         usuario.exigirPremium("Conectar bancos pelo Open Finance");
         consentimentos.exigirAgora(usuario, "PLUGGY",
-                "Para conectar um banco, autorize o compartilhamento dos seus dados bancarios com a Pluggy.",
+                "Para conectar um banco, autorize o compartilhamento dos seus dados bancários com a Pluggy.",
                 pedido == null ? null : pedido.autorizo(), pedido == null ? null : pedido.versaoDoAviso());
         return servico.gerarConnectToken(usuario);
     }

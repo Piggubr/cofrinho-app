@@ -1,5 +1,8 @@
 package br.com.piggu.feature.gastos.formulario
 
+import androidx.lifecycle.SavedStateHandle
+import br.com.piggu.core.ui.R as CoreUi
+import java.time.LocalDate
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -87,12 +90,16 @@ class FormularioDeGastoViewModelTest {
     }
 
     private val fila = FilaNaMemoria()
+
+    /** Outro ViewModel na mesma rede do último [abrir] (a morte do processo, no teste do rascunho). */
+    private var criar: (SavedStateHandle) -> FormularioDeGastoViewModel = { error("abra antes") }
     private val lancamentos = Lancamentos()
 
     private suspend fun TestScope.abrir(
         fixas: RespostasFixas = RespostasFixas(),
         conectado: Boolean = true,
         gratuito: Boolean = false,
+        estadoSalvo: SavedStateHandle = SavedStateHandle(),
         financas: (ServicoDeFinancas) -> ServicoDeFinancas = { it },
     ): FormularioDeGastoViewModel {
         conectar(conectado)
@@ -100,9 +107,13 @@ class FormularioDeGastoViewModelTest {
         rede.entrar()
         if (gratuito) rede.sessao.entrou(rede.sessao.usuario!!.copy(plano = Plano.GRATUITO, role = PigguRole.TITULAR))
         val listas = ListasParaLancar(CacheDeRespostas(SemCache, DIA_DAS_CAPTURAS), rede.financas, rede.identidade)
-        val viewModel = FormularioDeGastoViewModel(
-            contexto, rede.sessao, financas(rede.financas), listas, fila, MonitorDeRede(contexto, backgroundScope), lancamentos, DIA_DAS_CAPTURAS,
-        )
+        criar = { salvo ->
+            FormularioDeGastoViewModel(
+                contexto, rede.sessao, financas(rede.financas), listas, fila, MonitorDeRede(contexto, backgroundScope), lancamentos, DIA_DAS_CAPTURAS,
+                salvo,
+            )
+        }
+        val viewModel = criar(estadoSalvo)
         viewModel.estado.esperar { it.contas.isNotEmpty() && it.membros.isNotEmpty() && it.categorias.isNotEmpty() }
         return viewModel
     }
@@ -120,6 +131,44 @@ class FormularioDeGastoViewModelTest {
     private fun FormularioDeGastoViewModel.erro() = (estado.value.erro as? MensagemDeErro.DoApp)?.texto
 
     @Test
+    fun `data futura ou muito antiga pergunta antes de lancar`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = abrir(fixas)
+        viewModel.preencher("Leite", "8.50")
+        viewModel.mudarData(LocalDate.of(2024, 1, 15))
+        viewModel.lancar()
+        assertTrue(viewModel.estado.value.confirmarData)
+        assertTrue(fixas.lancados().isEmpty())
+
+        viewModel.corrigirData()
+        assertFalse(viewModel.estado.value.confirmarData)
+        assertTrue(viewModel.estado.value.maisOpcoes)
+
+        viewModel.lancar()
+        viewModel.lancar(dataConfirmada = true)
+        viewModel.estado.esperar { it.lancado != null }
+        assertEquals("2024-01-15", fixas.lancados().single().data)
+    }
+
+    @Test
+    fun `o que foi digitado volta depois de o sistema matar o app`() = runTest {
+        val salvo = SavedStateHandle()
+        val antes = abrir(estadoSalvo = salvo)
+        antes.preencher("Pão de queijo", "45.90")
+        antes.mudarEstabelecimento("Padaria")
+        assertTrue(antes.estado.value.temAlgoDigitado)
+
+        // Um ViewModel novo com o mesmo SavedStateHandle, como depois da morte do processo.
+        val depois = criar(SavedStateHandle(salvo.keys().associateWith { salvo.get<Any>(it) }))
+        depois.estado.esperar { it.contas.isNotEmpty() }
+        val linha = depois.estado.value.itens.single()
+        assertEquals("Pão de queijo", linha.item)
+        assertEquals(BigDecimal("45.90"), linha.valor)
+        assertEquals("Padaria", depois.estado.value.estabelecimento)
+        assertEquals("conta-itau", depois.estado.value.contaId)
+    }
+
+    @Test
     fun `aponta o que falta - item, valor, conta, cartao e parcelas - sem chamar o servidor`() = runTest {
         val fixas = RespostasFixas()
         val viewModel = abrir(fixas)
@@ -133,10 +182,13 @@ class FormularioDeGastoViewModelTest {
 
         viewModel.mudarDescricao(viewModel.estado.value.itens[0].chave, "Leite")
         viewModel.lancar()
-        assertEquals(R.string.formulario_valor_invalido, viewModel.erro())
+        assertEquals(CoreUi.string.valor_minimo, viewModel.erro())
+        viewModel.mudarValor(viewModel.estado.value.itens[0].chave, BigDecimal("0.00"))
+        viewModel.lancar()
+        assertEquals(CoreUi.string.valor_minimo, viewModel.erro())
         viewModel.mudarValor(viewModel.estado.value.itens[0].chave, BigDecimal("1000000.01"))
         viewModel.lancar()
-        assertEquals(R.string.formulario_valor_invalido, viewModel.erro())
+        assertEquals(CoreUi.string.valor_maximo_gasto, viewModel.erro())
         viewModel.mudarValor(viewModel.estado.value.itens[0].chave, BigDecimal("8.50"))
 
         viewModel.escolherConta("")

@@ -77,7 +77,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> recompensas.ajustar(new CoinAdjustRequest(-11, "Debito grande"), ADMIN))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("O saldo nao pode ficar negativo.");
+                .hasMessage("O saldo não pode ficar negativo.");
 
         assertThat(recompensas.saldo().saldo()).isEqualTo(10);
     }
@@ -124,7 +124,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> recompensas.resgatar(premio.id(), TITULAR))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Voce ainda nao possui Fofocoins suficientes.");
+                .hasMessage("Você ainda não possui Fofocoins suficientes.");
 
         assertThat(recompensas.saldo().saldo()).isEqualTo(50);
         assertThat(recompensas.listarResgates()).isEmpty();
@@ -138,7 +138,7 @@ class RewardsServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> recompensas.resgatar(premio.id(), TITULAR))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Este premio nao esta disponivel.");
+                .hasMessage("Este prêmio não está disponível.");
     }
 
     @Test

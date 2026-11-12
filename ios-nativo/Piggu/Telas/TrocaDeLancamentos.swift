@@ -10,7 +10,7 @@ struct TrocaDeLancamentos: View {
             Text("Gastos").tag(Aba.gastos)
             Text("Receitas").tag(Aba.receitas)
         }
-        .pickerStyle(.segmented)
+        .seletorSegmentado()
         .padding(.horizontal, 16)
         .padding(.bottom, 4)
     }

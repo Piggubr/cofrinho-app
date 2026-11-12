@@ -9,9 +9,8 @@ struct PlanejarView: View {
 
     var body: some View {
         List {
+            // A ordem do grupo Planejar do site e do Mais (BUG-027).
             Section {
-                atalho(.orcamento, descricao: "O limite do mês e, por categoria, com aviso em 80% e 100%.")
-                atalho(.contasDoMes, descricao: "Aluguel, luz, internet: o que vence todo mês, lançado no dia.")
                 if let abrirRelatorios {
                     Button(action: abrirRelatorios) {
                         linha(titulo: String(localized: "Relatórios"), simbolo: "chart.bar.xaxis",
@@ -20,6 +19,8 @@ struct PlanejarView: View {
                     .foregroundStyle(.primary)
                 }
                 atalho(.metas, descricao: "O que você quer alcançar este mês, passo a passo.")
+                atalho(.orcamento, descricao: "O limite do mês e, por categoria, com aviso em 80% e 100%.")
+                atalho(.contasDoMes, descricao: "Aluguel, luz, internet: o que vence todo mês, lançado no dia.")
             }
             .listRowBackground(paleta.superficie)
         }

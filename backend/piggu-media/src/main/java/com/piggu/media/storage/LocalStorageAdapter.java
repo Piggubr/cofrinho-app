@@ -27,7 +27,7 @@ public class LocalStorageAdapter implements StoragePort {
             Files.createDirectories(raiz);
             log.warn("Google Drive nao configurado: as fotos serao gravadas em {}", raiz.toAbsolutePath());
         } catch (IOException erro) {
-            throw new IllegalStateException("Nao foi possivel criar a pasta de arquivos em " + raiz, erro);
+            throw new IllegalStateException("Não foi possível criar a pasta de arquivos em " + raiz, erro);
         }
     }
 
@@ -41,7 +41,7 @@ public class LocalStorageAdapter implements StoragePort {
             return identificador;
         } catch (IOException erro) {
             log.error("Falha ao gravar arquivo local", erro);
-            throw new UpstreamException("Nao consegui guardar a foto agora.");
+            throw new UpstreamException("Não consegui guardar a foto agora.");
         }
     }
 
@@ -53,7 +53,7 @@ public class LocalStorageAdapter implements StoragePort {
             return new ArquivoGuardado(tipo == null ? "image/jpeg" : tipo, Files.readAllBytes(arquivo));
         } catch (IOException erro) {
             log.error("Falha ao ler arquivo local {}", idNoProvedor, erro);
-            throw new UpstreamException("Nao consegui carregar a foto agora.");
+            throw new UpstreamException("Não consegui carregar a foto agora.");
         }
     }
 
@@ -64,7 +64,7 @@ public class LocalStorageAdapter implements StoragePort {
         } catch (IOException erro) {
             // Quem chama mantem o registro e tenta de novo: sem ele, o arquivo ficaria no disco para sempre.
             log.warn("Nao foi possivel apagar o arquivo local {}", idNoProvedor, erro);
-            throw new UpstreamException("Nao consegui apagar a foto agora. Tente de novo em instantes.");
+            throw new UpstreamException("Não consegui apagar a foto agora. Tente de novo em instantes.");
         }
     }
 
@@ -81,7 +81,7 @@ public class LocalStorageAdapter implements StoragePort {
     private Path resolverSeguro(String identificador) throws IOException {
         Path alvo = raiz.resolve(identificador).normalize();
         if (!alvo.startsWith(raiz.normalize())) {
-            throw new IOException("Caminho de arquivo invalido: " + identificador);
+            throw new IOException("Caminho de arquivo inválido: " + identificador);
         }
         return alvo;
     }

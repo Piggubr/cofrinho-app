@@ -370,5 +370,3 @@ private fun GavetaDoMenu(perfil: PerfilDaMoldura, abaAtual: Tela?, abrir: (Tela)
     }
 }
 
-/** O + flutuante fica por cima da lista; o fim dela ganha esta folga para nada ficar escondido. */
-val FOLGA_DO_LANCAR = 88.dp

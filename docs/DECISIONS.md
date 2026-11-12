@@ -187,6 +187,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-181](#d-181-o-app-capacitor-sai-do-repositório-o-site-mantém-a-ponte-para-quem-ainda-tem-ele-instalado) | O app Capacitor sai do repositório; o site mantém a ponte para quem ainda tem ele instalado | Valendo |
 | [D-182](#d-182-rotas-de-admin-pedem-o-código-do-app-autenticador) | Rotas de ADMIN pedem o código do app autenticador | Valendo |
 | [D-183](#d-183-a-tertiary-do-chiclete-no-android-sai-da-paleta-rosa) | A tertiary do Chiclete no Android sai da paleta rosa | Valendo |
+| [D-189](#d-189-valor-a-partir-de-r-001-e-data-entre-2000-e-hoje--2-anos) | Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos | Valendo |
+| [D-190](#d-190-projeção-do-mês-com-os-fixos-uma-vez-e-comparação-até-o-mesmo-dia) | Projeção do mês com os fixos uma vez e comparação até o mesmo dia | Valendo |
+| [D-191](#d-191-gateway-responde-503-ou-504-com-servico_indisponivel-com-prazo-por-rota-e-o-status-do-banking-desligado-sai-dele) | Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele | Valendo |
+| [D-192](#d-192-receita-com-iddoenvio-mês-validado-dividir-só-com-a-família-fotos-com-dono-certo-e-mensagens-com-acento) | Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento | Valendo |
 
 ---
 
@@ -1916,3 +1920,155 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: mudar a data de todas as parcelas juntas, que mexe em meses que a pessoa não está vendo.
 - Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)
+
+## D-186: Fundo preto opcional no modo escuro
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 ("achei excelente, pode seguir com isso")
+- Registrado por: Claude
+- Contexto: no escuro, o fundo das telas é um cinza bem escuro puxado para a cor do tema (`#14060D` no Chiclete). Parte das pessoas prefere o preto puro, que economiza bateria em telas OLED e é o fundo escuro do próprio iOS.
+- Decisão: Perfil > Aparência ganha "Fundo preto no modo escuro", desligado por padrão e guardado no aparelho (`piggu_fundo_preto`). Ligado, só o fundo das telas vira `#000` no escuro (no Android, também o `surface`). Cartões, campos, bordas e barras ficam como estão, com a cor do tema, porque já sobressaem no preto. Nenhuma cor perde contraste num fundo mais escuro, então o `ContrasteTest` e os ajustes da D-134 continuam valendo. No site, a barra do navegador também fica preta.
+- Alternativas: trocar o fundo escuro de todos para preto (perde o tom do tema e pode deixar um rastro ao rolar em OLED); preto com os cartões um degrau mais claros (não precisou).
+- Consequências: com o modo Claro a opção fica desligada. Os widgets do iOS e do Android também ficam pretos no escuro (no Android, pelo `secondaryContainer`, de onde o Glance tira o fundo do widget); mudam quando o app grava o resumo de novo, o que a chave já pede.
+- Onde ver: `ios-nativo/Compartilhado/Tema.swift` (`comFundoPreto`), `frontend/src/app/core/ui/tema.ts` e o fim do `frontend/src/styles.scss`, `android-nativo/core/designsystem/.../Tema.kt` (`PigguTheme`)
+
+## D-187: A primeira senha de conta do Google ou da Apple só pelo e-mail, e a sessão do iOS no Keychain
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (aprovou as correções F2 e F7 do scan de segurança de 10/11 e pediu para ligar o Keychain no iOS)
+- Registrado por: Claude
+- Contexto: em `POST /api/auth/senha`, a conta sem senha (só Google ou Apple) criava a primeira só com o token de acesso. Um token vazado virava uma entrada permanente por e-mail e senha. No iOS, com o Keychain desligado, o refresh de 30 dias ficava no cookie, em `Library/Cookies`, que vai para o backup do aparelho.
+- Decisão: conta sem senha recebe o link de "Esqueci minha senha" no e-mail e a resposta 403 com `codigo: CRIAR_SENHA_PELO_EMAIL`; trocar a senha que já existe não muda. No iOS, `PIGGU_REFRESH_NO_CORPO = YES` em Debug e Release (D-072), e a pasta `Library/Cookies` fica marcada fora do backup.
+- Alternativas: pedir a senha do Google ou da Apple de novo (reautenticação) antes de criar a senha, o que exige uma etapa nova nos três apps; só tirar o cookie do backup, deixando o refresh fora do Keychain.
+- Consequências: criar a primeira senha passa a exigir o e-mail, e usar o link derruba todas as sessões. No iOS, quem já estava logado entra de novo uma vez, e um backup restaurado não leva a sessão.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`definirSenha`), `ios-nativo/Piggu/Core/API/ClienteDaAPI.swift` (`TransporteURLSession`), `ios-nativo/Piggu.xcodeproj/project.pbxproj`
+
+## D-188: O aparelho de push fica preso à sessão de login
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (escolheu ligar o aparelho à sessão e deixar os aparelhos de antes se ligarem sozinhos)
+- Registrado por: Claude
+- Contexto: o scan de segurança de 10/11 (F5) achou que o aparelho de push não tinha ligação com a sessão de login. Quando o `DELETE /api/auth/me/devices` falhava ao sair, o app esquecia o token e o aparelho seguia recebendo os avisos da conta. Sessões derrubadas pelo servidor (troca ou redefinição de senha, sessões revogadas) também não tiravam o aparelho.
+- Decisão: `push_devices.session_id` aponta para `refresh_sessions` com `ON DELETE CASCADE`: apagar a sessão apaga o aparelho. O access token leva o id da sessão em `sid`, e `POST /api/auth/me/devices` prende o aparelho a ela; uma sessão que já saiu não cadastra nada. A renovação passa a trocar o refresh na mesma linha (`rotacionar`), sem criar sessão nova, para o id não mudar a cada 5 minutos. Os aparelhos de antes ficam sem sessão e continuam recebendo; os apps cadastram de novo ao abrir, e os que seguirem sem sessão por 30 dias (`seen_at`) saem na retenção diária.
+- Alternativas: o app guardar o token e tentar apagar de novo quando o `DELETE` falha, que não cobre as sessões derrubadas pelo servidor; apagar todos os aparelhos de uma vez na migração, que deixa todo mundo sem push até abrir o app.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. A sessão guarda a data do login, não a da última renovação; o `criadaEm` da exportação passa a mostrar quando a pessoa entrou. De duas renovações simultâneas com o mesmo refresh, só uma passa, como antes.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V42__push_preso_a_sessao.sql`, `.../avisos/Aparelhos.java` (`registrar`, `esquecerSoltos`), `.../domain/AuthService.java` (`renovar`), `.../domain/TokenService.java` (`CLAIM_SESSAO`)
+
+## D-189: Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (mínimo, tetos e faixa de datas); o assistente, dentro da autonomia recebida, no detalhe da importação
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-008, BUG-023, C-5) achou o gasto de R$ 0,00 aceito pela API e pelos três apps, enquanto o depósito e a receita exigiam mais que zero; a edição do gasto e a receita sem teto nos apps; e 01/01/1900 e 31/12/2099 aceitos sem aviso em gasto e receita. As mensagens vinham cruas e sem acento ("O valor e alto demais.").
+- Decisão: todo campo de valor vai de R$ 0,01 até o teto: 1.000.000,00 no gasto (lançar, editar, item de recibo e de nota, linha de importação, conta fixa), no orçamento, na meta do mês, no limite e no valor do evento da nota; 10.000.000,00 na receita, no valor a receber e no depósito. Os textos são "Digite um valor a partir de R$ 0,01." e "O valor máximo é R$ 1.000.000,00." (ou R$ 10.000.000,00), iguais nos apps. Gasto (lançar e editar), receita, valor a receber e depósito só aceitam data de 01/01/2000 até hoje em Brasília mais 2 anos, com "Confira a data: use uma data entre 2000 e <ano>." no campo `data`. Na importação de extrato, a linha de valor zero sai da prévia e da gravação em vez de derrubar o arquivo.
+- Alternativas: aceitar zero só no item de nota, que deixava duas regras para o mesmo campo; recusar o extrato inteiro com uma linha zero, que trava a importação por causa de um estorno.
+- Consequências: o app que mandar 0 recebe 400 `VALIDACAO`; os apps conferem o mesmo mínimo e teto antes de enviar e pedem confirmação para data futura ou com mais de um ano. O teto da data anda com o calendário. As constantes ficam num lugar só (`Valores`).
+- Onde ver: `backend/piggu-common/.../web/Valores.java`, `DataDeLancamento.java`, os DTOs do finance e do lifestyle, `ExpenseService.previa` e `importar`
+
+## D-190: Projeção do mês com os fixos uma vez e comparação até o mesmo dia
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026
+- Registrado por: Claude
+- Contexto: a projeção levava tudo pelo ritmo (gasto até hoje ÷ dia × dias do mês). No dia 11, o aluguel lançado no dia 5 entrava quase três vezes e a projeção passava muito do limite (C-2). A variação comparava o mês pela metade com o mês anterior inteiro.
+- Decisão: no mês corrente, `projecaoDeGastos` = gastos do tipo `Fixo` do mês, uma vez, + variáveis até hoje ÷ dia de hoje × dias do mês + variáveis já lançados para depois de hoje, uma vez (a projeção nunca fica abaixo do que já foi lançado). O `ResumoDoMes` ganha `gastosFixos` (todo mês), `gastosAteMesmoDiaAnterior` (mês anterior do dia 1 ao mesmo dia de hoje, limitado ao último dia dele) e `variacaoAteMesmoDia` (% contra esse valor; nula se ele for zero). Os dois últimos e a projeção são nulos fora do mês corrente.
+- Alternativas: projetar só pelas contas fixas cadastradas, que deixa de fora o gasto marcado Fixo à mão.
+- Consequências: só acrescenta campos (D-059). Os apps usam `variacaoAteMesmoDia` no mês corrente ("contra o mesmo dia de <mês anterior>") e `variacao` nos meses fechados; sem os campos (backend antigo), seguem como antes. Quatro somas a mais no mês corrente.
+- Onde ver: `backend/piggu-finance/.../domain/RelatorioService.java` (`resumo`, `projetar`, `mesmoDia`), `ExpenseRepository.somarFixosNoPeriodo`
+
+## D-191: Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (503, 504 e o banking desligado); o assistente, dentro da autonomia recebida, nos prazos
+- Registrado por: Claude
+- Contexto: serviço fora do ar virava 500 fora do `ApiError` (BUG-005), e o Painel gerava um 500 a cada abertura porque o banking não sobe com o Open Finance desligado. Sem prazo, um serviço travado deixava a chamada pendurada por mais de 50 s (BUG-006).
+- Decisão: conexão recusada, nome que não resolve ou conexão fechada no meio viram 503; tempo esgotado vira 504; os dois com o corpo `ApiError` e o código `SERVICO_INDISPONIVEL` ("Essa parte do Piggu está fora do ar agora. Tente de novo em instantes."). A conexão tem 2 s e a resposta 20 s, acima dos 15 s que o lifestyle espera pelo TMDB e pelo catálogo. Prazo maior só onde é lento de verdade: 90 s no assistente, na leitura de recibo e na importação de extrato (Gemini até 45 s e OCR até 20 s); 120 s em exportar e apagar a conta (o identity chama cada serviço em sequência, até 30 s cada); 40 s no banking (Pluggy até 30 s). Com `PIGGU_OPEN_FINANCE=false`, o gateway responde `GET /api/banking/status` com `200 {"habilitado": false}` sem chamar o banking; o Compose passa a mesma variável ao gateway.
+- Alternativas: os apps pararem de chamar o status com o Open Finance desligado, que precisa de uma versão nova de cada app e não ajuda quem não atualizar; um prazo só, grande, que volta a deixar a tela pendurada.
+- Consequências: as rotas lentas são rotas próprias no gateway (`finance-lento`, `identity-lento`), que aparecem separadas nas métricas por rota. O 504 não desfaz o que o serviço já gravou: o app tenta de novo com o mesmo `idDoEnvio`. Religar o Open Finance pede `PIGGU_OPEN_FINANCE=true` também no gateway (já vem do `.env`).
+- Onde ver: `backend/piggu-gateway/.../ServicoForaDoAr.java`, `BankingDesligadoGlobalFilter.java`, `application.yml` (`httpclient`, rotas), `ServicoForaDoArTest`
+
+## D-192: Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (receita sem duplicar e corrigir os achados); o assistente, dentro da autonomia recebida, nos detalhes técnicos
+- Registrado por: Claude
+- Contexto: a auditoria achou a receita sem proteção contra reenvio (BUG-011), `2026-13` aceito como mês e meta do mês sem mês virando 409 (BUG-007), `dividirCom` aceitando ids de outra família (BUG-022), o volume de fotos nascendo com dono root (BUG-001), o script de init sem permissão de execução (BUG-030), o `--premium` dos dados de exemplo sem assinante (BUG-031) e 112 mensagens sem acento (BUG-009). Também o token de conta excluída aceito por até 5 min (BUG-021).
+- Decisão:
+  - `POST /api/incomes` aceita `idDoEnvio`, com a mesma regra do gasto (D-073), na tabela `income_submissions`.
+  - Mês é `AAAA-MM` com o mês de 01 a 12 (`Meses.FORMATO`), no corpo e na URL; a meta do mês e a foto do feed exigem o mês.
+  - A lista de membros mora no identity. O finance guarda quem já viu: cada chamada com token grava a pessoa na família do token (`household_people`, que nasce com quem já tem dado na família). Quando o `dividirCom` traz alguém que não está lá (o parceiro que acabou de entrar e nunca abriu o app), o finance faz uma chamada só ao identity, `GET /api/family` com o token de quem divide (prazo de 2 s para conectar e 5 s para responder), grava quem vier e segue. Quem nem o identity confirma: 400 "Só dá para dividir com pessoas da sua família.". Identity fora do ar: 503 `SERVICO_INDISPONIVEL`, sem gravar a divisão. O caminho comum segue sem chamada entre serviços (D-003).
+  - O Dockerfile cria `/dados/fotos` com dono `piggu` antes do `USER piggu`, e os `.sh` do Git têm o bit de execução.
+  - O `dados-de-exemplo.sh --premium` grava a conta como assinante do plano individual, e o `GET /api/family` usa a regra do `planoPara`: a casa só é PREMIUM se a assinatura cobre alguém.
+  - Toda mensagem que chega ao usuário vem acentuada, e o `scripts/conferir-acentos.sh` (agora em Python, que também roda no Mac) falha se uma string Java do backend voltar a ter palavra comum sem acento.
+  - Risco aceito (BUG-021): o access token de uma conta excluída continua aceito nos serviços de domínio até vencer, no máximo 5 min. Os serviços validam o token sozinhos pelo JWKS, sem chamar o identity (D-003), e o refresh da conta já não renova. Uma lista de tokens revogados exigiria uma chamada ou um cache compartilhado em toda requisição, para fechar uma janela de 5 min em que a pessoa que pediu a exclusão continua com o próprio token.
+- Alternativas: pedir os membros ao identity a cada `dividirCom`, que põe uma chamada entre serviços em toda divisão; só a tabela local, que barrava o parceiro recém-entrado que ainda não abriu o app (o app oferece a pessoa, pela lista do `/api/family`, e o finance recusava); recusar só ids que não aparecem em nenhum gasto, com o mesmo problema.
+- Consequências: o finance passa a chamar o identity, mas só quando falta alguém na tabela, uma vez por pessoa (depois ela consta). Com o identity fora, dividir com quem ainda não consta dá 503; com quem já consta, segue. Quem sai da família leva a linha junto (dado pessoal). Volume de fotos que já nasceu com dono root (servidor antigo) não muda com a imagem nova: conferir com `docker exec <media> ls -ld /dados/fotos` e, se for root, `chown` uma vez. Testes que comparam texto passaram a usar a mensagem acentuada.
+- Onde ver: `backend/piggu-finance/.../domain/IncomeService.umaVezSo`, `PessoasDaFamilia.java`, `integration/FamiliaNoIdentity.java`, `V28__envio_unico_de_receitas.sql`, `V29__pessoas_da_familia.sql`, `backend/piggu-common/.../web/Meses.java`, `backend/Dockerfile`, `backend/scripts/dados-de-exemplo.sh`, `FamiliaResponse.java`, `scripts/conferir-acentos.sh`
+
+## D-193: Refresh já trocado que volta derruba aquela sessão
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (derrubar só aquele login, com 30 s de tolerância); a tabela separada foi do assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-020) mostrou que um refresh já rotacionado, apresentado de novo, só recebia `401`: quem tivesse copiado o refresh e renovado antes do dono seguia com a sessão viva, sem nenhum sinal.
+- Decisão: cada renovação guarda o hash do refresh trocado em `refresh_rotated`, ligado à sessão (`ON DELETE CASCADE`). Se um refresh desses volta mais de 30 s depois da troca, a sessão é apagada (o login daquele aparelho e, pela D-188, o aparelho de push dela) e a resposta é o mesmo `401` de sempre. Dentro dos 30 s, só o `401`, para duas abas que renovam juntas não derrubarem o próprio login. As outras sessões da conta continuam.
+- Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`
+## D-194: Site corrige os achados da auditoria de 11/11/2026
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (limites de valor e data, projeção, "Ainda dá", texto da família, moeda de exibição, nomes); o assistente, dentro da autonomia recebida, nos detalhes técnicos abaixo
+- Registrado por: Claude
+- Contexto: a auditoria de 11/11/2026 achou no site a data presa no formulário de gasto (BUG-003), o Perfil passando de 390px (BUG-004), as Contas do mês sobrepostas (BUG-012), o "+" cobrindo o fim das páginas (BUG-013), valores e datas sem regra (BUG-008, BUG-023), o "Ainda dá" inflado quando as contas falham (BUG-002) e outros acabamentos (BUG-016, 024, 025, 026, 032, 036).
+- Decisão:
+  - Valor e data seguem o contrato comum (D-189): `core/ui/limites.ts` confere de R$ 0,01 até o teto de cada campo, com os textos do contrato, e a data entre 2000 e hoje + 2 anos. Gasto e receita pedem confirmação ("Essa data é dd/mm/aaaa. Lançar mesmo assim?") para data futura ou de mais de 1 ano atrás. No "a receber" a data combinada costuma ser futura, então lá a confirmação só aparece passando de 1 ano para frente ou para trás. O depósito do cofrinho é sempre de hoje no site, então não pergunta. A confirmação usa o `confirm()` do navegador, como o resto do site: os botões ficam OK e Cancelar.
+  - Depois de lançar, a data do gasto, da receita e do "a receber" volta para hoje. O rascunho do gasto (descrição, valor, categoria e data) fica no `sessionStorage` da aba e some ao lançar ou ao fechar a aba; conta, cartão e sessão não entram.
+  - A receita manda `idDoEnvio` (D-192): o mesmo id ao tentar de novo com o mesmo pedido; mudou o pedido, id novo.
+  - 503 e 504 sem a mensagem da API viram "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes." (D-191).
+  - "Ainda dá para gastar": a fórmula do site continua a referência; o cartão fica em carregando até as contas chegarem e, se elas falham, mostra o erro com "Tentar de novo". O "por dia" continua arredondado para baixo, como no iOS e no Android, agora em centavos inteiros.
+  - Relatórios: no mês corrente, com o backend novo (D-190), a comparação é até o mesmo dia do mês anterior e a projeção explica que os fixos entram uma vez; sem os campos novos, fica como antes.
+  - O tour "Bem-vindo ao Piggu" só começa no Painel; `/aceite` e `/cpf` já em dia voltam ao Painel.
+  - Alvos de toque de 24px (caixas de seleção, estrelas e links soltos) e o aviso de cookies mais baixo em celular pequeno.
+- Alternativas: um diálogo próprio para a data, com os botões "Lançar" e "Corrigir a data", ficou para quando o site tiver um componente de diálogo; guardar o rascunho no `localStorage` deixaria o formulário no aparelho depois de fechar a aba.
+- Consequências: a demonstração (`api-da-demo.ts`) recusa o mesmo que o backend e devolve os campos novos da projeção. O site passa a esperar os campos de D-190 a D-192, mas funciona sem eles.
+- Onde ver: `frontend/src/app/core/ui/limites.ts`, `frontend/src/app/features/expenses/formulario-de-gasto.ts`, `frontend/src/app/features/incomes/formulario-de-receita.ts`, `frontend/src/app/features/dashboard/ainda-da-para-gastar.ts`, `frontend/src/app/features/reports/reports.ts`, `frontend/src/app/core/ui/mensagem-de-erro.ts`, `frontend/src/app/core/auth/auth.guard.ts`
+## D-195: Correções da auditoria no iOS: um só "Ainda dá", a fila que mostra o recusado e as regras de valor e data
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (mínimo R$ 0,01, tetos, confirmação de data, projeção, "Moeda de exibição", texto neutro da família, build 7); o assistente, dentro da autonomia recebida, nos detalhes técnicos
+- Registrado por: Claude
+- Contexto: a auditoria de 11/11/2026 achou no iOS o "Ainda dá para gastar" diferente na Siri e inflado enquanto as contas carregavam (BUG-002), gasto recusado na fila sumindo sem dizer qual (BUG-010), regras de valor e data soltas (BUG-008, BUG-011, BUG-023), texto grande, contraste e o + cobrindo conteúdo (BUG-013, BUG-014, BUG-015), textos cortados e nomes diferentes do site (BUG-025, BUG-027) e o teste de desempenho quebrado (BUG-019).
+- Decisão:
+  - O `AindaDaParaGastar.calcular` vai para `Compartilhado/` e é a única conta do Painel, da Siri e dos widgets (a mesma do `calcularContaDoMes` do site). O cartão fica carregando até as contas fixas e os membros chegarem; se as contas falham, mostra o erro com "Tentar de novo". O widget só mostra o número quando o app gravou as contas a pagar. Nome sem a lista de membros vira "…", nunca "Ex-membro".
+  - A fila guarda o gasto recusado (400, 422 e o 404 do Piggu) com o motivo, fora do envio, até a pessoa tocar em "Dispensar"; sobrevive a fechar o app. O que está na fila entra no total do mês e no "Ainda dá", marcado como pendente (o parcelado conta a 1ª parcela no mês da data).
+  - `Limites`: mínimo R$ 0,01 e tetos do contrato em lançar, editar, receita, a receber, depósito, conta fixa e orçamento, com os textos do contrato; o seletor de data vai de 01/01/2000 a hoje + 2 anos; data futura ou de mais de 1 ano atrás pede "Lançar mesmo assim?". A demonstração recusa o mesmo que o backend.
+  - A receita manda `idDoEnvio`, gerado uma vez por envio e reaproveitado ao tentar de novo; sem internet ela não vai para a fila (só o gasto vai) e o texto diz isso.
+  - 503 e 504 (ou `SERVICO_INDISPONIVEL`) mostram o texto do contrato. Os Relatórios usam `variacaoAteMesmoDia` e a explicação da projeção quando o backend manda os campos novos (D-190).
+  - O link vencido de senha é conferido ao abrir: sem rota própria no backend, o app manda uma senha que o backend sempre recusa e olha se a resposta é `LINK_INVALIDO` (o backend confere o link antes da senha).
+  - Botões em pílula com o estilo `.pilula` (fundo `suave`, texto na cor principal; destrutivo só com contorno), no lugar do `.bordered`. No texto grande: segmentados viram menu, folhas mostram o título em cima, o título grande da barra para em 36 pt, o calendário cresce até o 2º tamanho de acessibilidade, nome e e-mail encolhem em vez de quebrar a palavra.
+  - Nomes do site: "Lançamentos", "Metas do mês", "Fotos do mês"; o Mais tem os grupos do menu do site e o Planejar mostra o mesmo nos dois lugares. O Premium deixa a escolha do plano como ação principal; "Restaurar compras", "Termos de Uso" e "Aviso de Privacidade" ficam embaixo, discretos.
+- Alternativas: mandar a receita para a fila sem internet, como o gasto (fica para depois: precisa de outra fila e do aviso de recusa); pedir uma rota de conferência do link de senha ao backend (melhor, mas é outro PR); deixar o calendário parado no xxLarge (D-095), que a auditoria apontou.
+- Consequências: o número do "Ainda dá" demora o tempo das contas fixas para aparecer; o widget antigo, gravado antes desta versão, pede para abrir o app até a próxima atualização. Build 7, não enviado.
+- Onde ver: `ios-nativo/Compartilhado/AindaDaParaGastar.swift`, `ios-nativo/Piggu/Telas/Painel/ModeloDoPainel.swift` (`aindaDa`), `ios-nativo/Piggu/Core/Offline/FilaDeGastos.swift`, `ios-nativo/Piggu/Core/Formatos/Limites.swift`, `ios-nativo/Piggu/Core/Design/Vidro.swift` (`EstiloPilula`), `ios-nativo/Piggu/Core/Design/Fonte.swift`
+## D-196: Correções da auditoria no Android nativo
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (mínimo, tetos, datas, projeção, textos da família e da moeda, versão 205); os detalhes técnicos, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria de 11/11/2026 achou no Android (AND-1 a AND-12) gasto de R$ 0,00 e receita de R$ 999.999.999,99 aceitos, formulário perdido ao matar o processo ou ao tocar em Voltar, link sem sessão descartado, o "Ainda dá para gastar" com "R$ 0,00 de contas a pagar" quando as contas falham, gasto recusado na fila sumindo sem dizer qual, o "mês atual" pelo fuso do aparelho e os textos do Material em inglês.
+- Decisão:
+  - Valores: mínimo R$ 0,01 e os tetos do backend (D-189) em lançar, editar, receita, a receber, depósito, orçamento e limite, conferidos no app com "Digite um valor a partir de R$ 0,01." e "O valor máximo é R$ 1.000.000,00." (ou R$ 10.000.000,00). Data futura ou de mais de um ano atrás pergunta "Essa data é dd/mm/aaaa. Lançar mesmo assim?" no gasto, na edição (só se a data mudou) e na receita; no a receber, a data é o vencimento e costuma ser futura, então não pergunta. A `ApiDaDemo` recusa o que o backend recusa (valor e data fora de 2000 até hoje + 2 anos).
+  - Formulários de gasto e receita guardam o rascunho no `SavedStateHandle`; o `CampoDeValor` não apaga mais o texto restaurado. Com algo digitado, Voltar, tocar fora ou arrastar a folha pergunta "Descartar este gasto?" (ou receita). O "Lançar" fica fora da rolagem.
+  - Receita leva `idDoEnvio` (D-192), repetido ao tentar de novo o mesmo pedido.
+  - Fila sem internet: o gasto recusado (400, 422, 404 do Piggu) fica no Room (versão 3, coluna `recusadoPor`) com item, valor, data e motivo até a pessoa tocar em "Dispensar". Os que esperam entram no total da lista e no "Ainda dá", marcados como aguardando envio.
+  - "Ainda dá para gastar": a conta do Painel do site (`calcularContaDoMes`, em `core:data`), a mesma do widget. Enquanto as contas do mês (ou, sem limite, as receitas) não chegam, o cartão fica carregando; se falham, mostra o erro com "Tentar de novo". Uma linha diz de onde vem o número, e a "Sobra do mês" diz "Receitas menos gastos".
+  - "Hoje" e o "mês atual" pelo fuso da conta (`America/Sao_Paulo`), não pelo do aparelho. O app força o pt-BR na Activity, para os textos do Material (folhas, calendário, busca) não saírem em inglês.
+  - Link recebido sem sessão (ou com pendência) fica guardado e abre depois do login; link para tela já aberta volta até ela em vez de empilhar outra.
+  - 503/504 sem texto ou com `SERVICO_INDISPONIVEL` mostram "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.".
+  - Projeção nos Relatórios: no mês corrente, compara com o mesmo dia do mês anterior (`variacaoAteMesmoDia`) e explica a projeção; sem os campos novos, fica como antes (D-190).
+  - Telas: insets fora da rolagem nas telas de entrada, folga do + no fim das listas das abas, números em uma linha só com a fonte grande, `primaryContainer` ajustado no gerador das cores para o rosa dar 4,5:1 (par conferido no `ContrasteTest`), "Lançamentos" e "Fotos do mês" no menu, seção Planejar do Mais igual à aba (com Relatórios), 3 depósitos no Painel com "Ver todos", "Saldo" no chip, bancos conectados antes da conta nova, "Dar" e "Tirar" Fofocoins, estrelas vazias em Lugares, campo de data que abre o calendário ao tocar em qualquer parte, "Limites dos outros meses" sem o mês atual, texto da família neutro e "Moeda de exibição" com a explicação.
+  - `versionCode` 205.
+- Alternativas: guardar o rascunho só no `rememberSaveable` (não sobrevive com o ViewModel recriado vazio); apagar o recusado da fila e só avisar (a pessoa não sabe qual gasto refazer); manter o "Ainda dá" sem as contas enquanto carrega (o número inflado da auditoria).
+- Consequências: o `docs/api` só muda com o PR do backend (D-190, D-192), que regrava o contrato; até lá, o `ContratoTest` do Android aceita `IncomeRequest.idDoEnvio` e os três campos novos do `ResumoDoMes` como "ainda não no contrato" (opcionais: o backend antigo ignora e não manda), e a lista sai quando o contrato regravado chegar à develop. O banco local vai para a versão 3 por migração automática, sem perder a fila. O widget passa a pedir as contas fixas e o resumo do mês; sem eles, fica com o último resumo.
+- Onde ver: `android-nativo/core/ui/.../formatos/Limites.kt`, `CampoDeData.kt`, `core/data/.../AindaDaParaGastar.kt`, `FilaNoRoom.kt`, `core/database/.../BancoDoPiggu.kt`, `feature/gastos/.../formulario/FormularioDeGastoViewModel.kt`, `feature/receitas/.../FormularioDeReceitaViewModel.kt`, `app/.../PigguApp.kt` (`FolhaDeLancar`, `LinkPendente`), `app/.../MainActivity.kt`

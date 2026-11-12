@@ -1,5 +1,6 @@
 package br.com.piggu.widget
 
+import org.junit.Assert.assertTrue
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -46,6 +47,9 @@ class AtualizadorDoWidgetTest {
         val gravado = resumo.esperar { it != null }!!
         assertEquals("2026-10", gravado.mes)
         assertEquals(0, BigDecimal(4500).compareTo(gravado.limite))
+        // A mesma conta do Painel: o limite menos o gasto e as contas que ainda vão sair (a demo tem a Academia vencida).
+        assertTrue(gravado.aindaDa!! < gravado.limite!! - gravado.gasto)
+        assertEquals(gravado.aindaDa, gravado.restante)
         // A primeira meta ainda aberta da Ana; das três, uma acabou.
         assertEquals(ResumoDoWidget.Meta("Ler 2 livros", 1, 2), gravado.meta)
         assertEquals(1 to 3, gravado.metasConcluidas to gravado.metasTotal)

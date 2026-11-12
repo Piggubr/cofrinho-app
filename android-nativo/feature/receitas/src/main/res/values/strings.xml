@@ -18,8 +18,6 @@
     <string name="receitas_duas_parcelas_detalhe">Dia %1$d: %2$s · dia %3$d: %4$s · %5$s</string>
     <string name="receitas_parar_de_repetir">Parar de repetir</string>
     <string name="receitas_parar_pergunta">Parar de lançar \"%1$s\" todo mês? As receitas já lançadas continuam.</string>
-    <string name="receitas_escolher_data">Escolher a data</string>
-    <string name="receitas_ok">OK</string>
 
     <!-- A receber -->
     <string name="a_receber_titulo">A receber</string>
@@ -52,7 +50,6 @@
     <string name="receita_compartilhada">Compartilhada: aparece para quem mora com você</string>
     <string name="receita_lancar">Lançar receita</string>
     <string name="receita_falta_descricao">Digite a descrição da receita.</string>
-    <string name="receita_valor_invalido">Digite um valor válido.</string>
     <string name="receita_falta_segundo_dia">Informe o dia da 2ª parcela (1 a 31).</string>
     <string name="receita_falta_segundo_valor">Digite o valor da 2ª parcela.</string>
     <string name="receita_lancada">Receita lançada.</string>

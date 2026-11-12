@@ -53,12 +53,12 @@ public class MovieService {
     public MovieResponse adicionar(TmdbMovie filme, UUID usuarioId) {
         String titulo = Texto.limitar(filme.titulo(), 200);
         if (titulo.isEmpty()) {
-            throw new BusinessException("O filme nao chegou corretamente.");
+            throw new BusinessException("O filme não chegou corretamente.");
         }
 
         String tmdbId = Texto.limitar(filme.tmdbId(), 20);
         if (!tmdbId.isEmpty() && repositorio.findByTmdbIdAndUserId(tmdbId, usuarioId).isPresent()) {
-            throw new BusinessException("Esse filme ja esta na lista.");
+            throw new BusinessException("Esse filme já está na lista.");
         }
 
         Movie novo = new Movie(
@@ -101,13 +101,13 @@ public class MovieService {
     public void excluir(UUID id, CurrentUser usuario) {
         Movie filme = buscar(id);
         if (!usuario.podeGerenciar(filme.getUserId())) {
-            throw new ForbiddenException("Voce nao pode apagar este filme.");
+            throw new ForbiddenException("Você não pode apagar este filme.");
         }
         repositorio.delete(filme);
     }
 
     private Movie buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Filme nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Filme não encontrado."));
     }
 }

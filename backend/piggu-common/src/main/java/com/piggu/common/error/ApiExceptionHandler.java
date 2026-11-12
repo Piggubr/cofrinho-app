@@ -65,7 +65,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> tratarPedidoMalFormado(Exception erro) {
         log.debug("Pedido mal formado", erro);
         return ResponseEntity.badRequest()
-                .body(ApiError.de("Nao entendi os dados enviados.", "PEDIDO_INVALIDO"));
+                .body(ApiError.de("Não entendi os dados enviados.", "PEDIDO_INVALIDO"));
     }
 
     /**
@@ -93,7 +93,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> tratarAcessoNegado(AccessDeniedException erro) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiError.de("Esta acao nao esta disponivel para o seu perfil.", "SEM_PERMISSAO"));
+                .body(ApiError.de("Esta ação não está disponível para o seu perfil.", "SEM_PERMISSAO"));
     }
 
     @ExceptionHandler(Exception.class)
@@ -105,7 +105,7 @@ public class ApiExceptionHandler {
             // A mensagem do banco traz o valor ("Key (email)=(fulano@...)"): so a classe vai pro log.
             log.warn("Restricao do banco violada em {} {}: {}", pedido.getMethod(), rota, erro.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiError.de("Outra alteracao chegou antes. Tente de novo.", "CONFLITO"));
+                    .body(ApiError.de("Outra alteração chegou antes. Tente de novo.", "CONFLITO"));
         }
         log.error("Falha inesperada em {} {}", pedido.getMethod(), rota == null ? "(rota desconhecida)" : rota, erro);
         Metrics.counter(FALHAS, "excecao", erro.getClass().getSimpleName()).increment();
@@ -129,18 +129,18 @@ public class ApiExceptionHandler {
 
     private String mensagemDoProtocolo(HttpStatusCode status) {
         if (status.isSameCodeAs(HttpStatus.METHOD_NOT_ALLOWED)) {
-            return "Esta operacao nao existe neste endereco.";
+            return "Esta operação não existe neste endereço.";
         }
         if (status.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-            return "Endereco nao encontrado.";
+            return "Endereço não encontrado.";
         }
         if (status.isSameCodeAs(HttpStatus.UNSUPPORTED_MEDIA_TYPE)) {
-            return "Formato de conteudo nao suportado.";
+            return "Formato de conteúdo não suportado.";
         }
-        return "Nao entendi os dados enviados.";
+        return "Não entendi os dados enviados.";
     }
 
     private String mensagemDoCampo(FieldError campo) {
-        return campo.getDefaultMessage() == null ? "Valor invalido." : campo.getDefaultMessage();
+        return campo.getDefaultMessage() == null ? "Valor inválido." : campo.getDefaultMessage();
     }
 }

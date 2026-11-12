@@ -4,10 +4,11 @@
     <string name="premios_titulo">Prêmios</string>
     <string name="premios_fofocoins">Fofocoins</string>
     <string name="premios_quantidade">Quantidade</string>
-    <string name="premios_quantidade_exemplo">Use negativo para debitar</string>
+    <string name="premios_quantidade_exemplo">Quantas Fofocoins</string>
     <string name="premios_motivo">Motivo</string>
     <string name="premios_motivo_exemplo">Ex.: Arrumou a cozinha</string>
-    <string name="premios_ajustar">Ajustar</string>
+    <string name="premios_dar">Dar</string>
+    <string name="premios_tirar">Tirar</string>
     <string name="premios_ver_historico">Ver histórico</string>
     <string name="premios_esconder_historico">Esconder histórico</string>
     <string name="premios_sem_movimentacao">Nenhuma movimentação ainda.</string>

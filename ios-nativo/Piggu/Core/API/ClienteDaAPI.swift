@@ -51,7 +51,11 @@ enum ErroDaAPI: LocalizedError, Equatable {
             return String(localized: "O acesso ao servidor está protegido e o app ainda não consegue passar por essa proteção.")
         case .sessaoEncerrada:
             return String(localized: "Sua sessão venceu. Entre novamente.")
-        case let .servidor(status, mensagem, _):
+        case let .servidor(status, mensagem, codigo):
+            // Gateway com o servico fora do ar ou lento (D-191): o texto do contrato, com ou sem corpo.
+            if status == 503 || status == 504 || codigo == "SERVICO_INDISPONIVEL" {
+                return String(localized: "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.")
+            }
             if let mensagem, !mensagem.isEmpty {
                 return mensagem
             }
@@ -75,7 +79,19 @@ struct TransporteURLSession: Transporte {
     /// HttpOnly do refresh, enviado sozinho nas chamadas para /api/auth.
     var sessao: URLSession = .shared
 
+    /// O sistema grava esse cookie em Library/Cookies, que entra no backup do iCloud e do
+    /// computador. Fora do backup, o refresh de 30 dias fica so neste iPhone, como no Keychain
+    /// (`ThisDeviceOnly`). Roda uma vez por abertura, antes do primeiro pedido.
+    static let cookiesForaDoBackup: Void = {
+        var pasta = URL.libraryDirectory.appending(path: "Cookies", directoryHint: .isDirectory)
+        var valores = URLResourceValues()
+        valores.isExcludedFromBackup = true
+        try? FileManager.default.createDirectory(at: pasta, withIntermediateDirectories: true)
+        try? pasta.setResourceValues(valores)
+    }()
+
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        _ = Self.cookiesForaDoBackup
         let (dados, resposta) = try await sessao.data(for: pedido)
         guard let http = resposta as? HTTPURLResponse else {
             throw ErroDaAPI.respostaInvalida

@@ -283,6 +283,6 @@ public class ContasFixasService {
     }
 
     private RecurringBill buscar(UUID id) {
-        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Conta fixa nao encontrada."));
+        return repositorio.findById(id).orElseThrow(() -> new NotFoundException("Conta fixa não encontrada."));
     }
 }

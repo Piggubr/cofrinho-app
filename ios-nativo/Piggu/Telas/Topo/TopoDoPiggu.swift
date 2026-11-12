@@ -15,13 +15,15 @@ extension View {
     /// O cabecalho do site (shell.html) no topo de cada aba: a marca a esquerda, que volta ao
     /// Painel, e a busca e o assistente a direita. `antes` entra na mesma bolha, a esquerda da
     /// lupa (a cotacao no Painel).
-    func topoDoPiggu(@ViewBuilder antes: () -> some View = { EmptyView() }) -> some View {
-        modifier(TopoDoPiggu(antes: antes()))
+    /// `marca: false` na tela empurrada: o voltar ja ocupa a esquerda e o titulo nao cabia.
+    func topoDoPiggu(marca: Bool = true, @ViewBuilder antes: () -> some View = { EmptyView() }) -> some View {
+        modifier(TopoDoPiggu(antes: antes(), comMarca: marca))
     }
 }
 
 private struct TopoDoPiggu<Antes: View>: ViewModifier {
     let antes: Antes
+    var comMarca = true
 
     @Environment(\.abrirRota) private var abrirRota
     @State private var buscando = false
@@ -33,12 +35,14 @@ private struct TopoDoPiggu<Antes: View>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar {
-                if #available(iOS 26, *) {
-                    // A bolha da barra fica de fora: o logo traz a dele, do tamanho do logo.
-                    ToolbarItem(placement: .topBarLeading) { marca }
-                        .sharedBackgroundVisibility(.hidden)
-                } else {
-                    ToolbarItem(placement: .topBarLeading) { marca }
+                if comMarca {
+                    if #available(iOS 26, *) {
+                        // A bolha da barra fica de fora: o logo traz a dele, do tamanho do logo.
+                        ToolbarItem(placement: .topBarLeading) { marca }
+                            .sharedBackgroundVisibility(.hidden)
+                    } else {
+                        ToolbarItem(placement: .topBarLeading) { marca }
+                    }
                 }
                 // Um item so, e nao um grupo: o grupo poe a folga dele entre cada botao.
                 ToolbarItem(placement: .topBarTrailing) {

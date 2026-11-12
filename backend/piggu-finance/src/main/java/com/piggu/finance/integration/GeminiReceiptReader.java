@@ -71,7 +71,7 @@ public class GeminiReceiptReader {
     public ReceiptParseResponse ler(ReceiptParseRequest pedido) {
         if (!propriedades.habilitado()) {
             throw new BusinessException(
-                    "A leitura de recibos por foto nao esta configurada. Adicione os itens a mao.");
+                    "A leitura de recibos por foto não está configurada. Adicione os itens a mão.");
         }
 
         LocalDate hoje = LocalDate.now(Meses.BRASILIA);
@@ -111,7 +111,7 @@ public class GeminiReceiptReader {
             throw erro;
         } catch (RuntimeException erro) {
             log.error("Nao foi possivel falar com o Gemini", erro);
-            throw new UpstreamException("Nao consegui ler o recibo agora. Tente de novo em instantes.");
+            throw new UpstreamException("Não consegui ler o recibo agora. Tente de novo em instantes.");
         }
     }
 
@@ -137,13 +137,13 @@ public class GeminiReceiptReader {
         List<String> linhas = new ArrayList<>(List.of(
                 "Leia esta foto de um recibo ou nota fiscal.",
                 "Extraia cada item e classifique-o em: " + String.join(", ", categorias.listar()) + ".",
-                "Valores devem ser numeros na moeda impressa na nota (em geral reais), sem simbolo.",
-                "Data no formato AAAA-MM-DD. Se nao conseguir ler, use " + hoje + ".",
-                "Se nao der para separar os itens, devolva um item com o total e categoria Outros.",
-                "Nunca invente itens ou valores que nao estejam visiveis."
+                "Valores devem ser números na moeda impressa na nota (em geral reais), sem símbolo.",
+                "Data no formato AAAA-MM-DD. Se não conseguir ler, use " + hoje + ".",
+                "Se não der para separar os itens, devolva um item com o total e categoria Outros.",
+                "Nunca invente itens ou valores que não estejam visíveis."
         ));
         if (!memoria.isEmpty()) {
-            linhas.add("Use esta memoria para padronizar nomes e categorias quando houver "
+            linhas.add("Use esta memória para padronizar nomes e categorias quando houver "
                     + "correspondencia: " + String.join("; ", memoria));
         }
         return String.join(System.lineSeparator(), linhas);
@@ -171,7 +171,7 @@ public class GeminiReceiptReader {
 
     private String extrairTexto(JsonNode resposta) {
         if (resposta == null) {
-            throw new UpstreamException("A IA nao respondeu.");
+            throw new UpstreamException("A IA não respondeu.");
         }
         JsonNode partes = resposta.path("candidates").path(0).path("content").path("parts");
         StringBuilder texto = new StringBuilder();
@@ -182,7 +182,7 @@ public class GeminiReceiptReader {
             }
         });
         if (texto.isEmpty()) {
-            throw new LeituraCobrada("A IA nao encontrou itens no recibo.");
+            throw new LeituraCobrada("A IA não encontrou itens no recibo.");
         }
         return texto.toString();
     }
@@ -193,7 +193,7 @@ public class GeminiReceiptReader {
         } catch (Exception erro) {
             // O texto e o recibo da pessoa: so o tamanho vai para o log.
             log.error("Resposta do Gemini fora do formato esperado ({} caracteres)", texto.length(), erro);
-            throw new RespostaCobrada("A IA devolveu uma resposta que nao consegui entender.");
+            throw new RespostaCobrada("A IA devolveu uma resposta que não consegui entender.");
         }
     }
 
@@ -211,7 +211,7 @@ public class GeminiReceiptReader {
                     valor));
         });
         if (resultado.isEmpty()) {
-            throw new LeituraCobrada("A IA nao encontrou itens no recibo.");
+            throw new LeituraCobrada("A IA não encontrou itens no recibo.");
         }
         return resultado;
     }
@@ -228,10 +228,10 @@ public class GeminiReceiptReader {
     private RuntimeException traduzirErro(int codigo) {
         return switch (codigo) {
             case 400 -> new BusinessException("O Gemini recusou o formato da imagem ou do pedido.");
-            case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuracao.");
-            case 404 -> new UpstreamException("O modelo do Gemini nao esta disponivel para esta chave.");
+            case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuração.");
+            case 404 -> new UpstreamException("O modelo do Gemini não está disponível para esta chave.");
             case 429 -> new UpstreamException("A cota do Gemini acabou por enquanto. Tente mais tarde.");
-            default -> new UpstreamException("O Gemini nao conseguiu ler o recibo agora (erro " + codigo + ").");
+            default -> new UpstreamException("O Gemini não conseguiu ler o recibo agora (erro " + codigo + ").");
         };
     }
 

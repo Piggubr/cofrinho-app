@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 08/11/2026.
+Última atualização: 11/11/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -22,12 +22,12 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
-- iOS nativo: liberar o 2.0.0 (build 6), enviado em 10/11 com a data na edição do gasto (D-185), para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 7 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
+- iOS nativo: liberar o 2.0.0 (build 6), enviado em 10/11 com a data na edição do gasto (D-185), para o grupo de testes no TestFlight (com o Dudu). O build 7 (correções da auditoria, D-195) está no repositório e ainda não foi enviado; sai quando o Dudu pedir, e o envio seguinte sobe `CURRENT_PROJECT_VERSION` para 8 ([ios-nativo/README](../ios-nativo/README.md)).
 - iOS nativo: foto do recibo no +, num PR à parte (D-098).
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
 - Android: mapa dentro do app (Maps Compose) quando houver a chave do Google Maps (D-125).
-- Android: o próximo AAB é o `versionCode` 204 (2.0.0, data na edição do gasto, D-185). Depois do merge na `main`, rodar à mão o job "AAB de produção" do `android-nativo.yml` e enviar o `app-producao-release.aab` ao Play Console, com o Dudu. O secret `PIGGU_GOOGLE_SERVICES_BASE64` existe no repositório desde 04/11, então este AAB já sai com push (D-166).
+- Android: o AAB 204 (data na edição do gasto, D-185) foi gerado em 10/11. As correções da auditoria de 11/11 (D-196) levam o `versionCode` 205: depois do merge na `main`, rodar à mão o job "AAB de produção" do `android-nativo.yml` e enviar o `app-producao-release.aab` ao Play Console, com o Dudu. O envio seguinte precisa do 206. O secret `PIGGU_GOOGLE_SERVICES_BASE64` existe no repositório desde 04/11, então o AAB já sai com push (D-166).
 - Android: criar no Play Console e no Google Cloud as assinaturas, a conta de serviço e o Pub/Sub da compra (D-132, D-133).
 - Android: enviar o 2.0.0 ao teste interno do Play Console (só com a confirmação do Dudu), criar o ID OAuth do Android com a chave do Play (D-104).
 - Antes de cobrar o Premium: identificar o fornecedor nos Termos e no Aviso de Privacidade (nome, CPF ou CNPJ e endereço, Decreto 7.962/2013, art. 2º) e nomear o provedor de hospedagem na tabela de operadores. Depende do Dudu decidir se abre CNPJ.
@@ -46,6 +46,11 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).
+- 11/11/2026: site com os achados da auditoria corrigidos: data do gasto volta para hoje, limites de valor e data do contrato, rascunho do gasto, receita com `idDoEnvio`, Perfil e Contas do mês no celular, "+" sem cobrir o fim das páginas, "Ainda dá" sem número inflado, projeção até o mesmo dia e tour só no Painel (D-194).
+- 11/11/2026: iOS nativo, correções da auditoria: um só "Ainda dá para gastar" no Painel, na Siri e nos widgets, sem número inflado enquanto as contas carregam; gasto recusado na fila visível; mínimo, tetos e datas do contrato; receita sem duplicar; texto grande, contraste e o + sem cobrir conteúdo; nomes iguais ao site; build 7 (D-195).
+
+- 11/11/2026: Android: correções da auditoria (D-196): valor mínimo e tetos com texto próprio, confirmação de data, rascunho que sobrevive à morte do processo e pergunta antes de descartar, link guardado até o login, gasto recusado da fila visível até dispensar, "Ainda dá" com carregando e erro (o mesmo cálculo no widget), fuso de Brasília, contraste e textos do Material em pt-BR, `versionCode` 205.
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
 - 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).

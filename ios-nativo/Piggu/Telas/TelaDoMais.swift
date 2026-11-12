@@ -18,7 +18,7 @@ enum TelaDoMais: String, CaseIterable, Hashable {
         case .compras: String(localized: "Compras")
         case .lugares: String(localized: "Lugares")
         case .filmes: String(localized: "Filmes")
-        case .fotos: String(localized: "Fotos")
+        case .fotos: String(localized: "Fotos do mês")
         case .premios: String(localized: "Prêmios")
         case .girlsMath: String(localized: "Girls Math")
         case .familia: String(localized: "Família")

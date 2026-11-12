@@ -67,6 +67,36 @@ describe('Reports', () => {
     expect(pagina.querySelectorAll('path.barra.gasto[d^="M"]').length).toBe(1);
   });
 
+  it('no mes corrente com o backend novo compara ate o mesmo dia e explica a projecao', () => {
+    const tela = TestBed.createComponent(Reports);
+    http.expectOne((r) => r.url === '/api/reports/month').flush({
+      ...RESUMO,
+      mes: '2026-11',
+      gastosFixos: 120,
+      gastosAteMesmoDiaAnterior: 250,
+      variacaoAteMesmoDia: 20,
+    });
+    http.expectOne((r) => r.url === '/api/reports/year').flush(ANO);
+    tela.detectChanges();
+    const texto: string = tela.nativeElement.textContent;
+    expect(texto).toContain('Até o mesmo dia de outubro');
+    expect(texto).toContain('20% a mais');
+    expect(texto).toContain('contra o mesmo dia de outubro');
+    expect(texto).not.toContain('50% a mais');
+    expect(texto).toContain('Os gastos fixos entram uma vez; os outros seguem o ritmo do mês.');
+  });
+
+  it('sem os campos novos (backend antigo) continua o mes anterior inteiro', () => {
+    const tela = TestBed.createComponent(Reports);
+    http.expectOne((r) => r.url === '/api/reports/month').flush(RESUMO);
+    http.expectOne((r) => r.url === '/api/reports/year').flush(ANO);
+    tela.detectChanges();
+    const texto: string = tela.nativeElement.textContent;
+    expect(texto).toContain('Mês anterior');
+    expect(texto).not.toContain('contra o mesmo dia');
+    expect(texto).not.toContain('Os gastos fixos entram uma vez');
+  });
+
   it('no gratuito o ano vira convite e nem e pedido', () => {
     auth.usuario.set(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     const tela = TestBed.createComponent(Reports);

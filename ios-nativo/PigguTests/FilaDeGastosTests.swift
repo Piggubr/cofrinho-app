@@ -43,7 +43,7 @@ struct FilaDeGastosTests {
         #expect(primeiro?.idDoEnvio == "envio-Pão")
     }
 
-    @Test func recusadoPeloServidorSaiDaFilaEContinua() async {
+    @Test func recusadoPeloServidorSaiDaFilaEContinua() async throws {
         let transporte = TransporteRoteirizado([(422, #"{"erro":"Valor inválido."}"#), (201, "[]")])
         let fila = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: transporte), soNaMemoria: true)
         fila.usuario = "u1"
@@ -53,8 +53,49 @@ struct FilaDeGastosTests {
         let enviados = await fila.enviar()
 
         #expect(enviados == 1)
-        #expect(fila.recusados == 1)
         #expect(fila.pendentes == 0)
+        // Fica guardado com o que era e o motivo, ate a pessoa dispensar (BUG-010).
+        let recusado = try #require(fila.recusados.first)
+        #expect(fila.recusados.count == 1)
+        #expect(recusado.pedido.itens.first?.item == "Errado")
+        #expect(recusado.valor == 10)
+        #expect(recusado.pedido.data == "2026-10-27")
+        #expect(recusado.motivo == "Valor inválido.")
+        fila.dispensar(recusado)
+        #expect(fila.recusados.isEmpty)
+    }
+
+    @Test func recusadoSobreviveAFecharOAppENaoEReenviado() async throws {
+        let nome = "FilaDeTeste-\(UUID().uuidString)"
+        let transporte = TransporteRoteirizado([(400, #"{"erro":"Digite um valor a partir de R$ 0,01."}"#)])
+        do {
+            let fila = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: transporte), nome: nome)
+            fila.usuario = "u1"
+            fila.guardar(pedido("Zero"))
+            #expect(await fila.enviar() == 0)
+        }
+        // "Abrir o app de novo": outra fila no mesmo arquivo.
+        let reaberta = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: transporte), nome: nome)
+        reaberta.usuario = "u1"
+        let recusado = try #require(reaberta.recusados.first)
+        #expect(recusado.motivo == "Digite um valor a partir de R$ 0,01.")
+        #expect(reaberta.pendentes == 0)
+        #expect(await reaberta.enviar() == 0)
+        #expect(await transporte.recebidos.count == 1)
+        reaberta.dispensar(recusado)
+        #expect(reaberta.recusados.isEmpty)
+    }
+
+    @Test func naFilaEntraNoTotalDoMes() {
+        let fila = FilaDeGastos(cliente: ClienteDaAPI(urlBase: base, transporte: TransporteSemRede()), soNaMemoria: true)
+        fila.usuario = "u1"
+        fila.guardar(pedido("Pão"))
+        var parcelado = pedido("TV")
+        parcelado.parcelas = 4
+        fila.guardar(parcelado)
+        fila.guardar(NovoLancamento(data: "2026-09-01", itens: [ItemDeGasto(item: "Outro mês", categoria: nil, valor: 99)]))
+        #expect(fila.valorNaFila(mes: "2026-10") == Decimal(string: "12.5"))
+        #expect(fila.valorNaFila(mes: "2026-09") == 99)
     }
 
     @Test func cartaoApagadoNoSiteSaiDaFilaComoRecusado() async {
@@ -67,7 +108,7 @@ struct FilaDeGastosTests {
         fila.guardar(pedido("Certo"), agora: Date(timeIntervalSince1970: 2))
 
         #expect(await fila.enviar() == 1)
-        #expect(fila.recusados == 1)
+        #expect(fila.recusados.count == 1)
         #expect(fila.pendentes == 0)
 
         // 404 sem o codigo (proxy, rota que nao existe) segue parando a fila.
@@ -95,7 +136,7 @@ struct FilaDeGastosTests {
         #expect(await fora.enviar() == 1)
         // Parou no B: o B e o C esperam a proxima vez, na mesma ordem.
         #expect(fora.pendentes == 2)
-        #expect(fora.recusados == 0)
+        #expect(fora.recusados.isEmpty)
     }
 
     @Test func soQuemGuardouEnvia() async {

@@ -33,4 +33,16 @@ class MesesTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("codigo").isEqualTo("PEDIDO_INVALIDO");
     }
+
+    @Test
+    @DisplayName("mes 13 e mes 00 sao recusados na URL; o formato do corpo aceita so 01 a 12 (BUG-007)")
+    void mesQueNaoExiste() {
+        assertThatThrownBy(() -> Meses.ouAtual("2026-13")).isInstanceOf(BusinessException.class)
+                .hasMessage(Meses.INVALIDO);
+        assertThat("2026-13").doesNotMatch(Meses.FORMATO);
+        assertThat("2026-00").doesNotMatch(Meses.FORMATO);
+        assertThat("2026-1").doesNotMatch(Meses.FORMATO);
+        assertThat("2026-01").matches(Meses.FORMATO);
+        assertThat("2026-12").matches(Meses.FORMATO);
+    }
 }

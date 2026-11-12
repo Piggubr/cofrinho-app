@@ -1,5 +1,7 @@
 package br.com.piggu.feature.calendario
 
+import androidx.compose.foundation.layout.FlowRow
+import br.com.piggu.core.ui.ValorQueCabe
 import android.icu.text.CompactDecimalFormat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -109,7 +111,8 @@ internal fun GraficoDoMes(estado: EstadoDoCalendario, apontar: (Int?) -> Unit) {
                 if (ultimo.sobra.signum() < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
             )
         }
-        Row(Modifier.clearAndSetSemantics {}, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Uma legenda por linha quando não cabem lado a lado: nada de "acumulad/os".
+        FlowRow(Modifier.clearAndSetSemantics {}, horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Legenda(receita, stringResource(R.string.calendario_receitas_acumuladas))
             Legenda(gasto, stringResource(R.string.calendario_gastos_acumulados))
         }
@@ -122,7 +125,8 @@ internal fun GraficoDoMes(estado: EstadoDoCalendario, apontar: (Int?) -> Unit) {
 private fun Numero(rotulo: String, valor: String, modifier: Modifier, cor: Color = MaterialTheme.colorScheme.onSurface) {
     Column(modifier.semantics(mergeDescendants = true) {}) {
         Text(rotulo, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = cor)
+        // Com a fonte grande o valor diminui até caber, em vez de quebrar "R$ 2.462,/50" (BUG-014).
+        ValorQueCabe(valor, estilo = MaterialTheme.typography.titleSmall, cor = cor, peso = FontWeight.SemiBold)
     }
 }
 

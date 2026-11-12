@@ -48,7 +48,7 @@ struct LoginView: View {
                         Text("Entrar").tag(Modo.entrar)
                         Text("Criar conta").tag(Modo.cadastro)
                     }
-                    .pickerStyle(.segmented)
+                    .seletorSegmentado()
                     .onChange(of: modo) { trocouDeModo() }
 
                     switch modo {

@@ -76,7 +76,7 @@ struct EstadoDeErro: View {
     private var conteudo: (icone: String, titulo: LocalizedStringKey, texto: Text) {
         if erro == .semConexao || !rede.conectado {
             return ("wifi.slash", "Você está sem internet",
-                    Text("Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo."))
+                    Text("Não deu para abrir esta tela agora. Confira o Wi-Fi ou os dados móveis e tente de novo. Você ainda pode lançar gastos no +: eles ficam guardados e vão quando a conexão voltar."))
         }
         switch erro {
         case .respostaInvalida, .servidor(status: 500..., mensagem: _, codigo: _):

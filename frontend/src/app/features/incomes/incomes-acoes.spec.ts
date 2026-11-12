@@ -226,7 +226,10 @@ describe('Incomes: acoes', () => {
     digitar(pagina, '#motivo-a-receber', 'Metade da pizza');
     digitar(pagina, '#valor-a-receber', '25');
     digitar(pagina, '#data-a-receber', '2020-01-10');
+    // Mais de 1 ano atras: pergunta antes (D-194).
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
     clicar(pagina, 'Guardar a receber');
+    expect(confirmar).toHaveBeenCalledWith('Essa data é 10/01/2020. Lançar mesmo assim?');
 
     const pedido = http.expectOne(
       (r) => r.method === 'POST' && r.url === '/api/incomes/receivables',
@@ -244,6 +247,45 @@ describe('Incomes: acoes', () => {
     expect(pagina.querySelector('[role=status]')?.textContent).toContain('Guardado.');
     expect(pagina.querySelector('.atrasada')?.textContent).toContain('Está te devendo desde');
     expect(tela.componentInstance['quem']()).toBe('');
+  });
+
+  it('receita: teto proprio, mesmo idDoEnvio ao tentar de novo e data de volta para hoje', () => {
+    const tela = abrir();
+    const pagina: HTMLElement = tela.nativeElement;
+    const alerta = () => {
+      tela.detectChanges();
+      return pagina.querySelector('[role=alert]')?.textContent?.trim();
+    };
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    digitar(pagina, '#descricao-receita', 'Bônus');
+    digitar(pagina, '#valor-receita', '10.000.000,01');
+    clicar(pagina, 'Lançar receita');
+    expect(alerta()).toBe('O valor máximo é R$ 10.000.000,00.');
+
+    digitar(pagina, '#valor-receita', '500');
+    digitar(pagina, '#data-receita', '2025-01-02');
+    clicar(pagina, 'Lançar receita');
+    expect(confirmar).toHaveBeenCalledWith('Essa data é 02/01/2025. Lançar mesmo assim?');
+    const primeiro = http.expectOne((r) => r.method === 'POST' && r.url === '/api/incomes');
+    const id = primeiro.request.body.idDoEnvio;
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    primeiro.flush('<html>Gateway Timeout</html>', { status: 504, statusText: 'x' });
+    expect(alerta()).toBe('Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.');
+
+    clicar(pagina, 'Lançar receita');
+    const segundo = http.expectOne((r) => r.method === 'POST' && r.url === '/api/incomes');
+    expect(segundo.request.body.idDoEnvio).toBe(id);
+    segundo.flush({ ...receita, data: '2025-01-02' });
+    responderLista([], [], [], '2025-01');
+    tela.detectChanges();
+    responderCards();
+    tela.detectChanges();
+
+    expect(alerta()).toBeUndefined();
+    expect(tela.debugElement.query((d) => d.name === 'app-formulario-de-receita').componentInstance['data']()).toBe(
+      dataIso(new Date()),
+    );
   });
 
   it('erro ao guardar o a receber aparece e libera o botao', () => {

@@ -183,16 +183,17 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
     falha se ficarem diferentes do HTML do site).
   - Excluir minha conta no Mais e na tela dos termos (`DELETE /api/me`, digitando EXCLUIR).
 - **Sessão como no app web**: o access token fica só em memória; o refresh vem no cookie
-  HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema.
+  HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema, com
+  a pasta `Library/Cookies` fora do backup do iCloud e do computador.
   Em 401 o app faz uma única renovação (`POST /api/auth/refresh`) e repete o pedido; chamadas
   simultâneas esperam a mesma renovação. Ao abrir o app, a sessão é recuperada pelo cookie.
   Sair chama `POST /api/auth/logout` e apaga o cookie. Sem rede ao abrir, o app entra com o
   perfil guardado e renova a sessão quando a rede volta.
-- **Sessão no Keychain (desligada)**: com `PIGGU_REFRESH_NO_CORPO = YES` (build setting) ou
+- **Sessão no Keychain (ligada)**: com `PIGGU_REFRESH_NO_CORPO = YES` (build setting, ligado em Debug e Release) ou
   `-PigguRefreshNoCorpo YES`, o login pede `refreshNoCorpo` e o refresh vai para o Keychain
   (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, só com "Continuar conectado"), e
-  `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). Fica desligada até a etapa 1 do
-  backend chegar à produção.
+  `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). O backend já atende, como no
+  Android. Quem vinha da sessão no cookie entra de novo uma vez.
 - **Painel** (`features/dashboard`): no topo, fixo, o "Ainda dá para gastar" (D-164); depois os cartões do site na ordem e com a visibilidade escolhidas em
   "Personalizar o Painel" (mesma chave e JSON do site, `piggu_painel_<id>`): sobra do mês,
   Para ficar de olho (orçamentos, fatura, contas do mês, quem está devendo), gasto e limite,
@@ -330,10 +331,17 @@ Receitas), em [`docs/prints/etapa-4/`](docs/prints/etapa-4/); os da etapa 5 (org
 - Abrir o app com o perfil guardado não espera a rede: as telas mostram o que guardaram e a
   renovação do token segue por trás (D-095). No simulador, com a build otimizada: 0,63 a 0,75 s
   do `init` ao Painel com dados, também com 3.000 gastos.
+- Correções da auditoria de 11/11/2026 (D-195): um só "Ainda dá para gastar" no Painel, na Siri e
+  nos widgets (`Compartilhado/AindaDaParaGastar.swift`), que espera as contas e mostra o erro; o
+  gasto recusado na fila fica visível até a pessoa dispensar, e o que está na fila entra no total;
+  mínimo, tetos e confirmação de data do contrato (`Core/Formatos/Limites.swift`), também na
+  demonstração; receita com `idDoEnvio`; botão em pílula `.pilula` com contraste de 4,5:1; no texto
+  grande, os segmentados viram menu, as folhas mostram o título em cima e o calendário cresce até o
+  2º tamanho de acessibilidade.
 
 ## Versão e envio
 
-Versão 2.0.0 (`MARKETING_VERSION`), build 4 (`CURRENT_PROJECT_VERSION`), Bundle ID
+Versão 2.0.0 (`MARKETING_VERSION`), build 7 (`CURRENT_PROJECT_VERSION`, com as correções da auditoria de 11/11/2026, D-195; ainda não enviado: o próximo envio ao TestFlight leva este build 7, e o seguinte sobe para 8), Bundle ID
 `br.com.piggu.app`, time `H766LA27ZJ`, assinatura automática. Entitlements: push
 (`aps-environment`, que o Xcode troca para production ao exportar), App Group
 `group.br.com.piggu.app` (o widget também), Entrar com Apple e os domínios associados de

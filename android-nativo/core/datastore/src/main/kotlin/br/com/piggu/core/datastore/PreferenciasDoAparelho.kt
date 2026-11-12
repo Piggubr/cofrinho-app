@@ -23,6 +23,9 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
     /** Cores do celular (Material You), no Android 12 ou mais novo. Só existe no Android. */
     val coresDoCelular: Flow<Boolean> = dados.data.map { it[CORES_DO_CELULAR] ?: false }
 
+    /** Fundo preto (#000) no modo escuro, como o iOS e o site. */
+    val fundoPreto: Flow<Boolean> = dados.data.map { it[FUNDO_PRETO] ?: false }
+
     /** A cor Premium voltou ao padrão porque o Premium acabou; sai depois que o aviso aparece. */
     val voltouAoPadrao: Flow<Boolean> = dados.data.map { it[VOLTOU] ?: false }
 
@@ -32,6 +35,10 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
 
     suspend fun mudarModo(id: String) {
         dados.edit { it[MODO] = id }
+    }
+
+    suspend fun mudarFundoPreto(ligado: Boolean) {
+        dados.edit { it[FUNDO_PRETO] = ligado }
     }
 
     suspend fun mudarCoresDoCelular(ligadas: Boolean) {
@@ -71,6 +78,7 @@ class PreferenciasDoAparelho(private val dados: DataStore<Preferences>) {
         val MODO = stringPreferencesKey("piggu_modo")
         val VOLTOU = booleanPreferencesKey("piggu_personalizacao_voltou")
         val CORES_DO_CELULAR = booleanPreferencesKey("cores_do_celular")
+        val FUNDO_PRETO = booleanPreferencesKey("piggu_fundo_preto")
         // A mesma chave do UserDefaults do iOS.
         val TRAVAR = booleanPreferencesKey("piggu_trava_biometrica")
         val ESCONDER_NOS_RECENTES = booleanPreferencesKey("esconder_nos_recentes")

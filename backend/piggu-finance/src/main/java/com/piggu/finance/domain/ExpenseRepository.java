@@ -37,6 +37,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim")
     BigDecimal somarNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
+    /** So os gastos do tipo Fixo (aluguel, contas fixas), que a projecao do mes conta uma vez. */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e "
+            + "WHERE lower(e.kind) = 'fixo' AND e.expenseDate >= :inicio AND e.expenseDate <= :fim")
+    BigDecimal somarFixosNoPeriodo(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
     @Query("SELECT e.category, COALESCE(SUM(e.amount), 0) FROM Expense e "
             + "WHERE e.expenseDate >= :inicio AND e.expenseDate <= :fim GROUP BY e.category")
     List<Object[]> totaisPorCategoria(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);

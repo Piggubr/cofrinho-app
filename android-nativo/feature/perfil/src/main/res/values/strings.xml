@@ -27,9 +27,9 @@
     <string name="perfil_papel_membro">Membro</string>
 
     <!-- Moeda -->
-    <string name="perfil_moeda_titulo">Moeda</string>
-    <string name="perfil_moeda_do_app">Moeda do app</string>
-    <string name="perfil_moeda_explicacao">É a moeda em que os valores aparecem; os valores já lançados não são convertidos.</string>
+    <string name="perfil_moeda_titulo">Moeda de exibição</string>
+    <string name="perfil_moeda_do_app">Moeda de exibição</string>
+    <string name="perfil_moeda_explicacao">Muda só o símbolo com que os valores aparecem. Trocar não converte nada: um gasto de R$ 100 passa a aparecer como € 100, por exemplo. Escolha a moeda em que você lança.</string>
     <string name="perfil_mostrar_cotacao">Mostrar a cotação no topo do app</string>
     <string name="perfil_cotacao_entre">Cotação entre</string>
     <string name="perfil_cotacao_para">e</string>
@@ -66,7 +66,8 @@
 
     <!-- Aparência, cor e ícone -->
     <string name="perfil_aparencia_titulo">Aparência</string>
-    <string name="perfil_aparencia_explicacao">No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.</string>
+    <string name="perfil_aparencia_explicacao">No automático o Piggu segue o modo claro ou escuro do aparelho. O fundo preto economiza bateria em telas OLED. Vale para este aparelho.</string>
+    <string name="perfil_fundo_preto">Fundo preto no modo escuro</string>
     <string name="perfil_cores_do_celular">Cores do celular</string>
     <string name="perfil_cores_do_celular_explicacao">Usa as cores do seu papel de parede no lugar da Cor do Piggu.</string>
     <string name="perfil_cor_titulo">Cor do Piggu</string>

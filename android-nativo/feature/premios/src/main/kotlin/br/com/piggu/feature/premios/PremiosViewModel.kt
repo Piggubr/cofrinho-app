@@ -155,9 +155,10 @@ class PremiosViewModel internal constructor(
 
     fun mudarAjusteMotivo(texto: String) = estadoAtual.update { it.copy(ajusteMotivo = texto.take(200)) }
 
-    fun ajustar() {
+    /** "Dar" soma a quantidade; "Tirar" ([tirar]) desconta, sem a pessoa precisar digitar o sinal. */
+    fun ajustar(tirar: Boolean = false) {
         val e = estadoAtual.value
-        val valor = e.ajusteValor.toIntOrNull()
+        val valor = e.ajusteValor.toIntOrNull()?.let { if (tirar) -kotlin.math.abs(it) else it }
         val motivo = e.ajusteMotivo.trim()
         val invalido = when {
             valor == null || valor == 0 -> R.string.premios_quantidade_invalida

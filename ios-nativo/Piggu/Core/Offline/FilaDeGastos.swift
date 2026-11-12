@@ -9,6 +9,9 @@ final class GastoNaFila {
     var usuario: String
     var pedido: Data
     var guardadoEm: Date
+    /// Recusado pelo servidor (BUG-010): fica guardado, fora do envio, ate a pessoa dispensar.
+    var recusadoEm: Date?
+    var motivo: String?
 
     init(usuario: String, pedido: Data, guardadoEm: Date) {
         self.usuario = usuario
@@ -20,17 +23,27 @@ final class GastoNaFila {
 /// Gastos lancados sem sinal (na fila do mercado, no metro), como a FilaDeGastos do site.
 ///
 /// Ficam no SwiftData e vao para o servidor, na ordem, quando a rede volta, ao abrir o app e
-/// no "Enviar agora". Um envio recusado por dado invalido (400 ou 422) sai da fila e conta em
-/// `recusados`; qualquer outra falha (sem rede, servidor fora, sessao encerrada) para ali e
+/// no "Enviar agora". Um envio recusado por dado invalido (400 ou 422) para de ser enviado e fica
+/// em `recusados`, com o motivo, ate a pessoa dispensar (BUG-010); qualquer outra falha (sem rede, servidor fora, sessao encerrada) para ali e
 /// guarda o resto. Nao e apagada ao sair da conta: e gasto que a pessoa ainda nao tem no
 /// servidor, e vai quando ela entrar de novo.
 @MainActor
 @Observable
 final class FilaDeGastos {
+    /// Um gasto que o servidor recusou, com o que era e por que.
+    struct Recusado: Identifiable, Equatable {
+        let id: PersistentIdentifier
+        let pedido: NovoLancamento
+        let motivo: String
+        var valor: Decimal { pedido.itens.reduce(0) { $0 + $1.valor } }
+    }
+
     /// Os da pessoa logada esperando conexao.
-    private(set) var pendentes = 0
-    /// Recusados pelo servidor no ultimo envio, para a tela avisar.
-    var recusados = 0
+    var pendentes: Int { naFila.count }
+    /// Os pedidos esperando conexao: entram no total do mes e no "Ainda da", como pendentes.
+    private(set) var naFila: [NovoLancamento] = []
+    /// Recusados pelo servidor, guardados ate a pessoa dispensar (sobrevivem a fechar o app).
+    private(set) var recusados: [Recusado] = []
 
     var usuario: String? {
         didSet { contar() }
@@ -40,9 +53,10 @@ final class FilaDeGastos {
     @ObservationIgnored private let contexto: ModelContext
     @ObservationIgnored private var enviando = false
 
-    init(cliente: ClienteDaAPI, soNaMemoria: Bool = false) {
+    /// `nome`: o arquivo no disco (os testes usam outro para provar que o recusado sobrevive).
+    init(cliente: ClienteDaAPI, soNaMemoria: Bool = false, nome: String = "FilaDeGastos") {
         self.cliente = cliente
-        let disco = ModelConfiguration("FilaDeGastos", isStoredInMemoryOnly: soNaMemoria)
+        let disco = ModelConfiguration(nome, isStoredInMemoryOnly: soNaMemoria)
         let container = (try? ModelContainer(for: GastoNaFila.self, configurations: disco))
             // Banco que nao abre: a fila vale ate fechar o app, em vez de o app nao abrir.
             ?? (try! ModelContainer(for: GastoNaFila.self,
@@ -65,8 +79,7 @@ final class FilaDeGastos {
         enviando = true
         defer { enviando = false }
         var enviados = 0
-        var recusados = 0
-        for guardado in daPessoa() {
+        for guardado in daPessoa() where guardado.recusadoEm == nil {
             guard let pedido = try? JSONDecoder().decode(NovoLancamento.self, from: guardado.pedido) else {
                 contexto.delete(guardado)
                 continue
@@ -74,20 +87,36 @@ final class FilaDeGastos {
             do {
                 _ = try await cliente.lancarGastos(pedido)
                 enviados += 1
-            } catch ErroDaAPI.servidor(status: 400, _, _), ErroDaAPI.servidor(status: 422, _, _),
-                    ErroDaAPI.servidor(status: 404, _, codigo: "NotFoundException") {
-                // 404 do Piggu: o cartao ou a conta foi apagado e o gasto nunca vai passar (D-147).
-                recusados += 1
+                contexto.delete(guardado)
+            } catch let erro as ErroDaAPI where Self.recusado(erro) {
+                guardado.recusadoEm = Date()
+                guardado.motivo = erro.localizedDescription
             } catch {
                 break
             }
-            contexto.delete(guardado)
             try? contexto.save()
         }
         try? contexto.save()
-        self.recusados = recusados
         contar()
         return enviados
+    }
+
+    /// 400 e 422, e o 404 do Piggu (o cartao ou a conta foi apagado, D-147): nunca vai passar.
+    private static func recusado(_ erro: ErroDaAPI) -> Bool {
+        switch erro {
+        case .servidor(status: 400, _, _), .servidor(status: 422, _, _),
+             .servidor(status: 404, _, codigo: "NotFoundException"): true
+        default: false
+        }
+    }
+
+    /// A pessoa viu o recusado e tirou o aviso.
+    func dispensar(_ recusado: Recusado) {
+        if let guardado = contexto.model(for: recusado.id) as? GastoNaFila {
+            contexto.delete(guardado)
+            try? contexto.save()
+        }
+        contar()
     }
 
     private func daPessoa() -> [GastoNaFila] {
@@ -98,6 +127,24 @@ final class FilaDeGastos {
     }
 
     private func contar() {
-        pendentes = daPessoa().count
+        let todos = daPessoa()
+        let decoder = JSONDecoder()
+        naFila = todos.filter { $0.recusadoEm == nil }
+            .compactMap { try? decoder.decode(NovoLancamento.self, from: $0.pedido) }
+        recusados = todos.compactMap { guardado in
+            guard guardado.recusadoEm != nil,
+                  let pedido = try? decoder.decode(NovoLancamento.self, from: guardado.pedido) else { return nil }
+            return Recusado(id: guardado.persistentModelID, pedido: pedido,
+                            motivo: guardado.motivo ?? String(localized: "O servidor não aceitou este gasto."))
+        }
+    }
+
+    /// Soma dos gastos na fila daquele mes (aaaa-mm), para o total e o "Ainda da".
+    /// shortcut: o parcelado conta so a 1a parcela no mes da data, sem a regra da fatura do cartao;
+    /// trocar pela conta do backend se a fila passar a guardar compras grandes no cartao.
+    func valorNaFila(mes: String) -> Decimal {
+        naFila.filter { $0.data.hasPrefix(mes) }.reduce(0) { soma, pedido in
+            soma + pedido.itens.reduce(0) { $0 + $1.valor } / Decimal(max(pedido.parcelas ?? 1, 1))
+        }
     }
 }

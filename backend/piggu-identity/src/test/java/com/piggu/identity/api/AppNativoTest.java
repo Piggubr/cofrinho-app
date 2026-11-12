@@ -1,12 +1,16 @@
 package com.piggu.identity.api;
 
 import com.jayway.jsonpath.JsonPath;
+import com.nimbusds.jwt.SignedJWT;
 import com.piggu.common.dados.Consentimentos;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.PigguRole;
 import com.piggu.identity.apple.AppleIdTokenVerifier;
 import com.piggu.identity.apple.AppleProfile;
 import com.piggu.identity.apple.RevogacaoDaApple;
+import com.piggu.identity.avisos.Aparelhos;
+import com.piggu.identity.domain.Senhas;
+import com.piggu.identity.domain.UserAccount;
 import com.piggu.identity.domain.UserAccountRepository;
 import com.piggu.identity.google.GoogleIdTokenVerifier;
 import com.piggu.identity.google.GoogleProfile;
@@ -25,6 +29,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -59,6 +65,12 @@ class AppNativoTest extends PostgresIntegrationTest {
 
     @Autowired
     private UserAccountRepository usuarios;
+
+    @Autowired
+    private Aparelhos aparelhos;
+
+    @Autowired
+    private Senhas senhas;
 
     @BeforeEach
     void preparar() {
@@ -128,7 +140,13 @@ class AppNativoTest extends PostgresIntegrationTest {
         String outro = refreshDe(entrarNoApp());
         String id = JsonPath.read(aqui.getResponse().getContentAsString(), "$.usuario.id");
         String familia = JsonPath.read(aqui.getResponse().getContentAsString(), "$.usuario.familia");
-        trocarSenha(id, familia, "{\"novaSenha\":\"cofrinho123\"}").andExpect(status().isOk());
+        trocarSenha(id, familia, "{\"novaSenha\":\"cofrinho123\"}")
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("CRIAR_SENHA_PELO_EMAIL"));
+        // A primeira senha vem do link do e-mail (RedefinicaoDeSenhaTest); aqui so a troca.
+        UserAccount conta = usuarios.findById(java.util.UUID.fromString(id)).orElseThrow();
+        conta.definirSenha(senhas.hash("cofrinho123"));
+        usuarios.save(conta);
 
         trocarSenha(id, familia, "{\"senhaAtual\":\"cofrinho123\",\"novaSenha\":\"cofrinho456\","
                 + "\"refreshToken\":\"" + refreshDe(aqui) + "\"}")
@@ -178,11 +196,42 @@ class AppNativoTest extends PostgresIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         given(apple.verificar(anyString(), anyString())).willThrow(new BusinessException(
-                "O login com a Apple ainda nao esta disponivel.", HttpStatus.NOT_IMPLEMENTED, "EM_BREVE"));
+                "O login com a Apple ainda não está disponível.", HttpStatus.NOT_IMPLEMENTED, "EM_BREVE"));
         mockMvc.perform(post("/api/auth/apple").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"idToken\":\"t\",\"nonce\":\"n\"}"))
                 .andExpect(status().isNotImplemented())
                 .andExpect(jsonPath("$.codigo").value("EM_BREVE"));
+    }
+
+    @Test
+    @DisplayName("o aparelho de push fica preso a sessao: passa pela renovacao e sai com o logout (D-188)")
+    void pushPresoASessao() throws Exception {
+        MvcResult login = entrarNoApp();
+        String corpo = login.getResponse().getContentAsString();
+        String id = JsonPath.read(corpo, "$.usuario.id");
+        String familia = JsonPath.read(corpo, "$.usuario.familia");
+        String sessao = sessaoDe(JsonPath.read(corpo, "$.accessToken"));
+        String aparelho = "dQw4w9WgXcQ:APA91bH" + "x-Y_z".repeat(28);
+        mockMvc.perform(post("/api/auth/me/devices")
+                        .with(jwt().jwt(token -> token.subject(id)
+                                        .claim("email", "nativo@exemplo.test")
+                                        .claim("role", PigguRole.TITULAR.name())
+                                        .claim("familia", familia)
+                                        .claim("sid", sessao))
+                                .authorities(new SimpleGrantedAuthority(PigguRole.TITULAR.authority())))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"" + aparelho + "\",\"plataforma\":\"ANDROID\"}"))
+                .andExpect(status().isNoContent());
+
+        MvcResult renovado = renovar(refreshDe(login)).andExpect(status().isOk()).andReturn();
+        String acessoNovo = JsonPath.read(renovado.getResponse().getContentAsString(), "$.accessToken");
+        assertThat(sessaoDe(acessoNovo)).isEqualTo(sessao);
+        assertThat(aparelhos.doUsuario(UUID.fromString(id), "ANDROID")).containsExactly(aparelho);
+
+        mockMvc.perform(post("/api/auth/logout").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"" + refreshDe(renovado) + "\"}"))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(aparelhos.doUsuario(UUID.fromString(id), "ANDROID")).isEmpty();
     }
 
     private MvcResult entrarNoApp() throws Exception {
@@ -206,6 +255,10 @@ class AppNativoTest extends PostgresIntegrationTest {
     private ResultActions renovar(String refresh) throws Exception {
         return mockMvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"refreshToken\":\"" + refresh + "\"}"));
+    }
+
+    private static String sessaoDe(String acesso) throws Exception {
+        return SignedJWT.parse(acesso).getJWTClaimsSet().getStringClaim("sid");
     }
 
     private static String refreshDe(MvcResult resposta) throws Exception {

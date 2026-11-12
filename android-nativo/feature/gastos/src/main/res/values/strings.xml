@@ -41,11 +41,12 @@
     <string name="gastos_item">Item</string>
     <string name="gastos_salvar">Salvar</string>
     <string name="gastos_confira_nome_e_valor">Confira o nome e o valor do gasto.</string>
-    <plurals name="gastos_recusados">
-        <item quantity="one">%1$d gasto guardado sem conexão foi recusado pelo servidor; lance de novo.</item>
-        <item quantity="other">%1$d gastos guardados sem conexão foram recusados pelo servidor; lance de novo.</item>
-    </plurals>
-    <string name="gastos_entendi">Entendi</string>
+    <string name="gastos_recusado_titulo">O servidor recusou este gasto guardado sem conexão; lance de novo se ainda valer.</string>
+    <string name="gastos_recusado_linha">%1$s · %2$s · %3$s</string>
+    <string name="gastos_recusado_motivo">Motivo: %1$s</string>
+    <string name="gastos_recusado_sem_motivo">o servidor não disse o motivo</string>
+    <string name="gastos_dispensar">Dispensar</string>
+    <string name="gastos_inclui_aguardando">Inclui %1$s aguardando envio</string>
     <string name="gastos_ex_membro">Ex-membro</string>
 
     <!-- Divisão do mês -->
@@ -121,9 +122,6 @@
     <string name="formulario_dividido">dividido</string>
     <string name="formulario_compartilhado">compartilhado</string>
     <string name="formulario_data">Data</string>
-    <string name="formulario_escolher_data">Escolher a data</string>
-    <string name="formulario_ok">OK</string>
-    <string name="formulario_cancelar">Cancelar</string>
     <string name="formulario_estabelecimento">Estabelecimento (opcional)</string>
     <string name="formulario_estabelecimento_exemplo">Ex.: Mercado do bairro</string>
     <string name="formulario_moeda_da_compra">Moeda da compra</string>
@@ -137,7 +135,6 @@
 
     <!-- Validações e mensagens do formulário -->
     <string name="formulario_digite_o_item">Digite o nome do item.</string>
-    <string name="formulario_valor_invalido">Digite um valor válido.</string>
     <string name="formulario_aguarde_a_cotacao">Aguarde a cotação da moeda da compra.</string>
     <string name="formulario_cadastre_o_cartao">Cadastre o cartão em Cartões e bancos, ou escolha Débito/Pix.</string>
     <string name="formulario_escolha_o_cartao">Escolha em qual cartão foi a compra.</string>

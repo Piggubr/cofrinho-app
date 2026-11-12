@@ -43,9 +43,9 @@ public class AccountController {
 
     public record AccountRequest(
             @NotBlank(message = "Digite o nome.") @Size(max = 60) String nome,
-            @NotNull(message = "Escolha conta ou cartao.") PaymentAccount.Tipo tipo,
-            @Min(value = 1, message = "Dia invalido.") @Max(value = 31, message = "Dia invalido.") Integer fechamento,
-            @Min(value = 1, message = "Dia invalido.") @Max(value = 31, message = "Dia invalido.") Integer vencimento,
+            @NotNull(message = "Escolha conta ou cartão.") PaymentAccount.Tipo tipo,
+            @Min(value = 1, message = "Dia inválido.") @Max(value = 31, message = "Dia inválido.") Integer fechamento,
+            @Min(value = 1, message = "Dia inválido.") @Max(value = 31, message = "Dia inválido.") Integer vencimento,
             Boolean compartilhado) {
     }
 

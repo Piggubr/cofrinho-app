@@ -35,7 +35,7 @@ struct EsqueciSenhaView: View {
                 BotaoDeEnviar(titulo: "Mandar o link", carregando: enviando) { await pedir() }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .tituloDaFolha()
     }
 
     private func pedir() async {

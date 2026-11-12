@@ -74,7 +74,7 @@ public class PiggyBankService {
         UUID objetivo = pedido.objetivo();
         if (objetivo != null) {
             // Objetivo de outra pessoa ou familia nem aparece: os filtros respondem 404.
-            objetivos.findById(objetivo).orElseThrow(() -> new NotFoundException("Objetivo nao encontrado."));
+            objetivos.findById(objetivo).orElseThrow(() -> new NotFoundException("Objetivo não encontrado."));
         }
         PiggyDeposit deposito = depositos.save(new PiggyDeposit(data, pedido.valor(), usuario.id(), objetivo));
         trilha.criou("deposito", deposito.getId(), Resumos.deposito(deposito));
@@ -85,11 +85,11 @@ public class PiggyBankService {
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
         PiggyDeposit deposito = depositos.findById(id)
-                .orElseThrow(() -> new NotFoundException("Deposito nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Depósito não encontrado."));
 
         if (!usuario.podeGerenciar(deposito.getUserId())) {
             log.warn("Tentativa de apagar deposito alheio recusada: id={}", id);
-            throw new ForbiddenException("Voce nao pode apagar este deposito.");
+            throw new ForbiddenException("Você não pode apagar este depósito.");
         }
         depositos.delete(deposito);
         trilha.apagou("deposito", id, Resumos.deposito(deposito));

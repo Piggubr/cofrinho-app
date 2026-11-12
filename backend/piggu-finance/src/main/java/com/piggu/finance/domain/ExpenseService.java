@@ -57,6 +57,7 @@ public class ExpenseService {
     private final PaymentAccountRepository contas;
     private final DivisaoDeGastos divisao;
     private final TrilhaDeAuditoria trilha;
+    private final PessoasDaFamilia pessoas;
     private final JdbcTemplate jdbc;
 
     public ExpenseService(ExpenseRepository repositorio,
@@ -66,7 +67,8 @@ public class ExpenseService {
                           PaymentAccountRepository contas,
                           DivisaoDeGastos divisao,
                           TrilhaDeAuditoria trilha,
-                          JdbcTemplate jdbc) {
+                          JdbcTemplate jdbc,
+                          PessoasDaFamilia pessoas) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
@@ -75,6 +77,7 @@ public class ExpenseService {
         this.divisao = divisao;
         this.trilha = trilha;
         this.jdbc = jdbc;
+        this.pessoas = pessoas;
     }
 
     @Transactional(readOnly = true)
@@ -108,7 +111,7 @@ public class ExpenseService {
 
         // A conta precisa ser da familia: o filtro do tenant faz o findById nao achar a dos outros.
         PaymentAccount conta = pedido.contaId() == null ? null : contas.findById(pedido.contaId())
-                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Conta ou cartão não encontrado."));
         // Sem escolha, o gasto segue a conta: o cartao do casal compartilha o que passa nele.
         boolean compartilhado = pedido.compartilhado() != null ? pedido.compartilhado()
                 : conta != null && conta.isShared();
@@ -125,8 +128,9 @@ public class ExpenseService {
 
         List<Expense> salvos = repositorio.saveAll(gastos);
         if (pedido.dividirCom() != null) {
-            divisao.dividir(salvos, pedido.dividirCom().stream()
-                    .filter(Objects::nonNull).distinct().toList());
+            List<UUID> comQuem = pedido.dividirCom().stream().filter(Objects::nonNull).distinct().toList();
+            pessoas.exigirDaFamilia(comQuem);
+            divisao.dividir(salvos, comQuem);
         }
         // ponytail: parcela nao entra na memoria de precos (o valor seria o da parcela, nao o do produto).
         if (parcelas == 1) {
@@ -209,7 +213,8 @@ public class ExpenseService {
         Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportados(ids)
                 : repositorio.idsExternosJaImportadosNaConta(ids, contaId));
         List<CategoryRule> regrasDaFamilia = regras.carregar();
-        return linhas.stream().map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
+        // Linha de valor zero (tarifa estornada, ajuste) nao e gasto: sai da previa sem derrubar o extrato.
+        return linhas.stream().filter(l -> l.valor().signum() > 0).map(l -> new LinhaDaPrevia(l.data(), l.descricao(), l.valor(), l.idExterno(),
                 categoriaDe(new ExpenseItemRequest(l.descricao(), null, l.valor(), null), "", ORIGEM_EXTRATO,
                         regrasDaFamilia),
                 jaImportadas.contains(l.idExterno()))).toList();
@@ -224,7 +229,7 @@ public class ExpenseService {
     @Transactional
     public int importar(List<LinhaImportada> linhas, UUID contaId, UUID usuarioId) {
         PaymentAccount conta = contaId == null ? null : contas.findById(contaId)
-                .orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Conta ou cartão não encontrado."));
         boolean compartilhado = conta != null && conta.isShared();
         List<String> ids = linhas.stream().map(LinhaImportada::idExterno).toList();
         Set<String> jaImportadas = new HashSet<>(contaId == null ? repositorio.idsExternosJaImportadosSemConta(ids)
@@ -232,7 +237,7 @@ public class ExpenseService {
         List<CategoryRule> regrasDaFamilia = regras.carregar();
         UUID lote = UUID.randomUUID();
         List<Expense> novos = linhas.stream()
-                .filter(l -> jaImportadas.add(l.idExterno()))
+                .filter(l -> l.valor().signum() > 0 && jaImportadas.add(l.idExterno()))
                 .map(l -> {
                     ExpenseItemRequest item = new ExpenseItemRequest(l.descricao(), l.categoria(), l.valor(), null);
                     // A categoria escolhida na previa vale como escolha manual.
@@ -353,7 +358,7 @@ public class ExpenseService {
 
     private Expense buscar(UUID id) {
         return repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Gasto nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Gasto não encontrado."));
     }
 
     /** Gasto dividido ou compartilhado aparece para os outros, mas so quem lancou apaga. */

@@ -46,6 +46,8 @@ data class EdicaoDoGasto(
     val data: String = gasto.data,
     val salvando: Boolean = false,
     val erro: MensagemDeErro? = null,
+    /** A data trocada é futura ou de mais de um ano: o "Lançar mesmo assim?" fica aberto. */
+    val confirmarData: Boolean = false,
 )
 
 /** Apagado na tela, esperando o "Desfazer" da Snackbar acabar para ir ao servidor. */
@@ -74,7 +76,8 @@ data class EstadoDosGastos(
     val contas: List<ContaOuCartao> = emptyList(),
     val membros: List<MembroDaFamilia> = emptyList(),
     val aguardando: List<GastoAguardando> = emptyList(),
-    val recusados: Int = 0,
+    /** Os que o servidor recusou na fila: ficam à vista, com o motivo, até a pessoa dispensar (BUG-010). */
+    val recusados: List<GastoAguardando> = emptyList(),
     /** Apagados nesta tela: somem na hora, antes da lista voltar do servidor. */
     val ocultos: Set<String> = emptySet(),
     /** O gasto aberto pelo link, marcado na lista. */
@@ -111,9 +114,13 @@ data class EstadoDosGastos(
             .toSortedMap(reverseOrder())
             .map { (dia, linhas) -> DiaDeGastos(dia, linhas) }
 
-    /** O que o servidor já tem, como no Painel: a fila entra quando subir. */
+    /** Os do servidor e os da fila, que já saíram do bolso (marcados "aguardando envio", BUG-010). */
     val total: BigDecimal
-        get() = dias.flatMap { it.gastos }.filterNot { it.aguardando }.fold(BigDecimal.ZERO) { soma, l -> soma + l.gasto.valor }
+        get() = dias.flatMap { it.gastos }.fold(BigDecimal.ZERO) { soma, l -> soma + l.gasto.valor }
+
+    /** Quanto do [total] ainda espera subir. */
+    val totalAguardando: BigDecimal
+        get() = dias.flatMap { it.gastos }.filter { it.aguardando }.fold(BigDecimal.ZERO) { soma, l -> soma + l.gasto.valor }
 
     val vazio: Boolean get() = gastos.isNullOrEmpty() && aguardandoDoMes().isEmpty()
 

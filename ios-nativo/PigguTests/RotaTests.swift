@@ -72,6 +72,7 @@ struct RotaTests {
 
     @Test func valorParaDigitarUsaVirgula() {
         #expect(Formatos.valorParaDigitar(12.5) == "12,50")
-        #expect(Formatos.valorParaDigitar(1234) == "1234,00")
+        #expect(Formatos.valorParaDigitar(1234) == "1.234,00")
+        #expect(Formatos.lerValor(Formatos.valorParaDigitar(4200)) == 4200)
     }
 }

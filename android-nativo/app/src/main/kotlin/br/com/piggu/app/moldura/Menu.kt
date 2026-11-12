@@ -30,9 +30,11 @@ data class ItemDoMenu(
 /** Os itens de shell.ts, na mesma ordem. Todo papel vê o menu inteiro; só o Premium é do titular. */
 val ITENS_DO_MENU: List<ItemDoMenu> = listOf(
     ItemDoMenu(Tela.Painel, R.string.tela_painel, Icone.Casa, GrupoDoMenu.DiaADia),
-    ItemDoMenu(Tela.Gastos, R.string.tela_gastos, Icone.Carteira, GrupoDoMenu.DiaADia),
+    // "Lançamentos": a tela com Gastos | Receitas, o mesmo nome da aba (BUG-027).
+    ItemDoMenu(Tela.Gastos, R.string.tela_lancamentos, Icone.Carteira, GrupoDoMenu.DiaADia),
     ItemDoMenu(Tela.Receitas, R.string.tela_receitas, Icone.Entrada, GrupoDoMenu.DiaADia),
-    ItemDoMenu(Tela.Relatorios, R.string.tela_relatorios, Icone.Grafico, GrupoDoMenu.DiaADia),
+    // Relatórios fica no Planejar, como no site e na aba Planejar.
+    ItemDoMenu(Tela.Relatorios, R.string.tela_relatorios, Icone.Grafico, GrupoDoMenu.Planejar),
     ItemDoMenu(Tela.Planejar, R.string.tela_planejar, Icone.Alvo, GrupoDoMenu.Planejar),
     ItemDoMenu(Tela.Metas, R.string.tela_metas, Icone.Bandeira, GrupoDoMenu.Planejar),
     ItemDoMenu(Tela.Orcamentos, R.string.tela_orcamentos, Icone.Pizza, GrupoDoMenu.Planejar),
@@ -49,8 +51,12 @@ val ITENS_DO_MENU: List<ItemDoMenu> = listOf(
     ItemDoMenu(Tela.GirlsMath, R.string.tela_girls_math, Icone.Sacola, GrupoDoMenu.Estilo, modulo = "girls-math"),
 )
 
-/** Abas do celular (atalhos() de shell.ts), com o Mais no fim. */
-val ITENS_DAS_ABAS: List<ItemDoMenu> = ITENS_DO_MENU.filter { it.tela in setOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Relatorios, Tela.Planejar) }
+/**
+ * As telas que já são abas do celular (Painel, Lançamentos com Gastos e Receitas, e o Planejar): o
+ * Mais não repete. O resto segue as seções do menu do site, e a seção Planejar do Mais tem os
+ * mesmos atalhos da aba, na mesma ordem (BUG-027).
+ */
+val ITENS_DAS_ABAS: List<ItemDoMenu> = ITENS_DO_MENU.filter { it.tela in setOf(Tela.Painel, Tela.Gastos, Tela.Receitas, Tela.Planejar) }
 
 /**
  * Os grupos que a pessoa vê, sem grupo vazio (gruposVisiveis de shell.ts). [modulos] nulo (conta

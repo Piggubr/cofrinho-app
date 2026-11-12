@@ -48,7 +48,7 @@ final class DesempenhoUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-PigguDemo", "YES", "-PigguDemoLogado", "YES", "-PigguDemoCache", "YES"] + argumentos
         let resumo = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label CONTAINS 'Sobra do mês'")).firstMatch
+            .matching(NSPredicate(format: "label CONTAINS 'Ainda dá para gastar'")).firstMatch
         // A primeira abertura enche o cache.
         app.launch()
         XCTAssertTrue(resumo.waitForExistence(timeout: 15))

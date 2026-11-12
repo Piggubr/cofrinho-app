@@ -54,11 +54,11 @@ public final class LeitorDeExtrato {
 
     public static List<Linha> ler(String conteudo) {
         if (Texto.vazio(conteudo)) {
-            throw new BusinessException("O arquivo esta vazio.");
+            throw new BusinessException("O arquivo está vazio.");
         }
         List<Linha> linhas = conteudo.toUpperCase().contains("<OFX>") ? ofx(conteudo) : csv(conteudo);
         if (linhas.size() > MAXIMO_DE_LINHAS) {
-            throw new BusinessException("Extrato grande demais: no maximo " + MAXIMO_DE_LINHAS + " lancamentos por vez.");
+            throw new BusinessException("Extrato grande demais: no máximo " + MAXIMO_DE_LINHAS + " lançamentos por vez.");
         }
         return linhas;
     }
@@ -70,7 +70,7 @@ public final class LeitorDeExtrato {
             String bloco = transacao.group(1);
             String trnamt = campo(bloco, "TRNAMT");
             if (!VALOR_OFX.matcher(trnamt).matches()) {
-                throw new BusinessException("Valor que nao da para ler no OFX: " + Texto.limitar(trnamt, 30));
+                throw new BusinessException("Valor que não dá para ler no OFX: " + Texto.limitar(trnamt, 30));
             }
             BigDecimal valor = new BigDecimal(trnamt.replace(',', '.'));
             if (valor.signum() >= 0) {
@@ -83,7 +83,7 @@ public final class LeitorDeExtrato {
             linhas.add(new Linha(dia, limpar(descricao), valor.negate(), id.isEmpty() ? null : "ofx:" + id));
         }
         if (linhas.isEmpty() && !TRANSACAO_OFX.matcher(conteudo).find()) {
-            throw new BusinessException("Nao achei lancamentos nesse OFX.");
+            throw new BusinessException("Não achei lançamentos nesse OFX.");
         }
         return comIdsGerados(linhas);
     }
@@ -110,7 +110,7 @@ public final class LeitorDeExtrato {
                     (int) Math.round(Double.parseDouble(partes.group(5)) * 3600));
             return hora.atOffset(fuso).atZoneSameInstant(Meses.BRASILIA).toLocalDate();
         } catch (DateTimeException | NumberFormatException invalida) {
-            throw new BusinessException("Data que nao da para ler no OFX: " + Texto.limitar(texto, 30));
+            throw new BusinessException("Data que não dá para ler no OFX: " + Texto.limitar(texto, 30));
         }
     }
 
@@ -126,12 +126,12 @@ public final class LeitorDeExtrato {
         int valor = indice(colunas, "valor", "value", "amount", "quantia");
         int id = colunas.indexOf("id");
         if (data < 0 || descricao < 0 || valor < 0) {
-            throw new BusinessException("O CSV precisa das colunas data, descricao e valor.");
+            throw new BusinessException("O CSV precisa das colunas data, descrição e valor.");
         }
         List<Linha> lidas = new ArrayList<>();
         for (int i = 1; i < linhasDoArquivo.length; i++) {
             if (linhasDoArquivo[i].length() > MAXIMO_POR_LINHA) {
-                throw new BusinessException("Linha " + (i + 1) + " do CSV e comprida demais.");
+                throw new BusinessException("Linha " + (i + 1) + " do CSV é comprida demais.");
             }
             // Linha so de separadores (";;;" que o Excel deixa no fim) tambem e vazia.
             if (linhasDoArquivo[i].replace(String.valueOf(separador), "").isBlank()) {
@@ -149,7 +149,7 @@ public final class LeitorDeExtrato {
                         valorDe(celula(celulas, valor)), id >= 0 && !celula(celulas, id).isEmpty()
                         ? "csv:" + celula(celulas, id) : null));
             } catch (DateTimeParseException | NumberFormatException | IndexOutOfBoundsException invalida) {
-                throw new BusinessException("Linha " + (i + 1) + " do CSV nao pode ser lida.");
+                throw new BusinessException("Linha " + (i + 1) + " do CSV não pode ser lida.");
             }
         }
         // Extrato com sinal: so os negativos sao gastos. Planilha sem sinal: tudo e gasto.
@@ -227,7 +227,7 @@ public final class LeitorDeExtrato {
 
     private static String limpar(String descricao) {
         String texto = Texto.limitar(Texto.espacoUnico(descricao), 200);
-        return texto.isEmpty() ? "Sem descricao" : texto;
+        return texto.isEmpty() ? "Sem descrição" : texto;
     }
 
     private static String sha256(String texto) {

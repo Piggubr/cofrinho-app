@@ -45,7 +45,7 @@ public class MeusDadosController {
     public ResponseEntity<Void> apagar(@AuthUser CurrentUser usuario, @AuthenticationPrincipal Jwt token) {
         EscopoDeExclusao escopo = EscopoDeExclusao.de(token.getClaimAsString(EscopoDeExclusao.CLAIM));
         if (escopo == null) {
-            throw new ForbiddenException("Exclusao de dados so pelo pedido de exclusao da conta.");
+            throw new ForbiddenException("Exclusão de dados só pelo pedido de exclusão da conta.");
         }
         if (escopo == EscopoDeExclusao.MUDAR) {
             dados.mover(usuario, UUID.fromString(token.getClaimAsString(EscopoDeExclusao.CLAIM_DESTINO)));

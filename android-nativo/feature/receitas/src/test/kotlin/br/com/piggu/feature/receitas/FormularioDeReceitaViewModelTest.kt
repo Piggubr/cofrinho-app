@@ -1,5 +1,8 @@
 package br.com.piggu.feature.receitas
 
+import br.com.piggu.core.testing.DIA_DAS_CAPTURAS
+import br.com.piggu.core.ui.R as CoreUi
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.testing.RespostasFixas
@@ -118,6 +121,57 @@ class FormularioDeReceitaViewModelTest {
     }
 
     @Test
+    fun `tentar de novo depois da falha repete o idDoEnvio, e a receita nova ganha outro`() = runTest {
+        val fixas = RespostasFixas("POST /api/incomes" to RespostasFixas.erro(503, "SERVICO_INDISPONIVEL", "fora"))
+        val montagem = montar(pasta.root, loja, fixas)
+        val formulario = montagem.formulario()
+        formulario.pronto()
+        formulario.mudarDescricao("Freela")
+        formulario.mudarValor(BigDecimal("150"))
+        formulario.lancar()
+        formulario.estado.esperar { !it.salvando && it.erro != null }
+        formulario.lancar()
+        formulario.estado.esperar { !it.salvando && it.erro != null }
+        val ids = montagem.pedidos("POST /api/incomes").map { Regex("\"idDoEnvio\":\"([^\"]+)\"").find(it)!!.groupValues[1] }
+        assertEquals(2, ids.size)
+        assertEquals(ids[0], ids[1])
+        formulario.mudarValor(BigDecimal("151"))
+        formulario.lancar()
+        formulario.estado.esperar { !it.salvando && it.erro != null }
+        val terceiro = Regex("\"idDoEnvio\":\"([^\"]+)\"").find(montagem.pedidos("POST /api/incomes").last())!!.groupValues[1]
+        assertTrue(terceiro != ids[0])
+    }
+
+    @Test
+    fun `data de mais de um ano atras pergunta antes de lancar`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val formulario = montagem.formulario()
+        formulario.pronto()
+        formulario.mudarDescricao("Freela")
+        formulario.mudarValor(BigDecimal("150"))
+        formulario.mudarData("2020-01-01")
+        formulario.lancar()
+        assertTrue(formulario.estado.value.confirmarData)
+        assertTrue(montagem.pedidos("POST /api/incomes").isEmpty())
+        formulario.lancar(dataConfirmada = true)
+        formulario.estado.esperar { it.lancada != null }
+        assertTrue(montagem.pedidos("POST /api/incomes").single().contains("\"data\":\"2020-01-01\""))
+    }
+
+    @Test
+    fun `o rascunho volta do SavedStateHandle`() = runTest {
+        val montagem = montar(pasta.root, loja)
+        val salvo = SavedStateHandle()
+        val antes = montagem.formulario(estadoSalvo = salvo)
+        antes.mudarDescricao("Freela")
+        antes.mudarValor(BigDecimal("45.90"))
+        assertTrue(antes.estado.value.temAlgoDigitado)
+        val depois = montagem.formulario(estadoSalvo = SavedStateHandle(salvo.keys().associateWith { salvo.get<Any>(it) }))
+        assertEquals("Freela", depois.estado.value.descricao)
+        assertEquals(BigDecimal("45.90"), depois.estado.value.valor)
+    }
+
+    @Test
     fun `duas parcelas sem repetir nao manda a segunda`() = runTest {
         val montagem = montar(pasta.root, loja)
         val formulario = montagem.formulario()
@@ -147,7 +201,10 @@ class FormularioDeReceitaViewModelTest {
         formulario.mudarDescricao("Freela")
         formulario.mudarValor(BigDecimal.ZERO)
         formulario.lancar()
-        assertEquals(MensagemDeErro.DoApp(R.string.receita_valor_invalido), formulario.estado.value.erro)
+        assertEquals(MensagemDeErro.DoApp(CoreUi.string.valor_minimo), formulario.estado.value.erro)
+        formulario.mudarValor(BigDecimal("999999999.99"))
+        formulario.lancar()
+        assertEquals(MensagemDeErro.DoApp(CoreUi.string.valor_maximo_receita), formulario.estado.value.erro)
         formulario.mudarValor(BigDecimal("999999"))
         val estados = estadosDe(formulario.estado)
         formulario.lancar()

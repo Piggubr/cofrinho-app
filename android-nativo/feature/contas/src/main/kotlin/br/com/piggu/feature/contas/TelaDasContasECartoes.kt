@@ -165,8 +165,9 @@ fun TelaDasContasECartoes(estado: EstadoDasContasECartoes, eventos: EventosDasCo
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 item { SuasContas(estado, eventos) }
-                if (estado.contas is Carga.Pronto) item { NovaContaOuCartao(estado, eventos) }
+                // Os bancos conectados vêm antes do formulário de conta nova: quem chega aqui procura o que já tem.
                 if (estado.mostrarBancos) item { Bancos(estado, eventos) }
+                if (estado.contas is Carga.Pronto) item { NovaContaOuCartao(estado, eventos) }
             }
         }
     }

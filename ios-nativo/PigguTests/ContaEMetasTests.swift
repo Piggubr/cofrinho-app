@@ -20,7 +20,7 @@ struct ContaEMetasTests {
     @Test func textoParaCompartilharSemDinheiro() {
         let texto = MinhasMetasView.textoParaCompartilhar(
             [meta("Ler", 1, de: 2), meta("Caminhar", 3, de: 3)], rotuloDoMes: "Outubro de 2026")
-        #expect(texto == "Minhas metas de Outubro de 2026:\n⏳ Ler: 1 de 2\n✅ Caminhar: 3 de 3")
+        #expect(texto == "Metas do mês de Outubro de 2026:\n⏳ Ler: 1 de 2\n✅ Caminhar: 3 de 3")
     }
 
     @Test func fotoDePerfilViraQuadradoDe320() throws {

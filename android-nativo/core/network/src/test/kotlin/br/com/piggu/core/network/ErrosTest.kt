@@ -76,6 +76,23 @@ class ErrosTest {
     }
 
     @Test
+    fun `503 e 504 do gateway dizem que a parte esta fora do ar, mesmo com pagina do proxy`() = runTest {
+        api.responder(
+            503,
+            """{"erro":"Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.","codigo":"SERVICO_INDISPONIVEL","campos":[],"momento":"2026-11-11T10:00:00Z"}""",
+            "Content-Type", "application/json",
+        )
+        val foraDoAr = erroDe { api.identidade.meuPerfil() }
+        api.responder(504, "<html>Gateway Timeout</html>", "Content-Type", "text/html")
+        val tempoEsgotado = erroDe { api.identidade.meuPerfil() }
+
+        for (erro in listOf(foraDoAr, tempoEsgotado)) {
+            assertEquals(MensagemDeErro.DoApp(R.string.erro_servico_indisponivel), mensagemDeErro(erro))
+        }
+        assertEquals(SERVICO_INDISPONIVEL, (foraDoAr as ErroDaApi.DoServidor).codigo)
+    }
+
+    @Test
     fun `cai no padrao quando o corpo nao traz mensagem`() = runTest {
         api.responder(500, """{"algo":"inesperado"}""")
         val semMensagem = erroDe { api.identidade.meuPerfil() }

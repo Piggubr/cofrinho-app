@@ -20,7 +20,7 @@ struct BotoesDeFoto: View {
             VStack(alignment: .leading) { botoes }
         }
         .labelStyle(.titleAndIcon)
-        .buttonStyle(.bordered)
+        .buttonStyle(.pilula)
         .controlSize(.small)
         .onChange(of: item) { _, novo in
             guard let novo else { return }

@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.Valores;
 import com.piggu.finance.api.dto.ProductResponse;
 import com.piggu.finance.domain.ProductMemoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,7 +44,7 @@ public class ProductController {
     @GetMapping("/price-check")
     public ResponseEntity<ProductMemoryService.ConferenciaDePreco> conferir(
             @RequestParam @Size(max = 200) String item,
-            @RequestParam @DecimalMin("0") @DecimalMax("1000000") BigDecimal valor) {
+            @RequestParam @DecimalMin(Valores.MINIMO) @DecimalMax(Valores.MAXIMO) BigDecimal valor) {
         ProductMemoryService.ConferenciaDePreco conferencia = servico.conferir(item, valor);
         return conferencia == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(conferencia);
     }

@@ -59,7 +59,7 @@ public class CascataDeDados {
             return chamada.get();
         } catch (RuntimeException erro) {
             log.error("Servico {} nao respondeu a {}", servico, ROTA, erro);
-            throw new UpstreamException("Nao consegui falar com todos os servicos agora. Sua conta continua; tente de novo.");
+            throw new UpstreamException("Não consegui falar com todos os serviços agora. Sua conta continua; tente de novo.");
         }
     }
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 /** A fila sem Room nem rede, para os testes das telas e as capturas: só guarda. */
-class FilaNaMemoria(aguardando: List<GastoAguardando> = emptyList(), recusados: Int = 0) : FilaDeGastos {
+class FilaNaMemoria(aguardando: List<GastoAguardando> = emptyList(), recusados: List<GastoAguardando> = emptyList()) : FilaDeGastos {
     override val aguardando = MutableStateFlow(aguardando)
     override val recusados = MutableStateFlow(recusados)
 
@@ -17,5 +17,5 @@ class FilaNaMemoria(aguardando: List<GastoAguardando> = emptyList(), recusados: 
     }
 
     override suspend fun enviar(): Int = 0
-    override suspend fun esquecerRecusados() { recusados.value = 0 }
+    override suspend fun dispensar(idDoEnvio: String) = recusados.update { lista -> lista.filterNot { it.idDoEnvio == idDoEnvio } }
 }

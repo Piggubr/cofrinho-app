@@ -6,6 +6,7 @@ import { FinanceService } from '../../core/api/finance.service';
 import { Orcamento } from '../../core/api/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
+import { TETO_DE_LIMITE, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { Icone } from '../../core/ui/icone';
@@ -67,6 +68,11 @@ export class Budgets {
     const limite = this.limite();
     if (!this.categoria() || limite === null || limite <= 0) {
       this.erro.set($localize`Escolha a categoria e um limite maior que zero.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(limite, TETO_DE_LIMITE);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
     this.ocupado.set(true);

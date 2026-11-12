@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -34,13 +35,31 @@ fun CampoDeValor(
     erro: String? = null,
 ) {
     var texto by rememberSaveable { mutableStateOf(escreverValor(valor)) }
-    // Valor trocado por fora (limpar o formulário, link com valor): o texto acompanha.
+    var primeira by remember { mutableStateOf(true) }
+    // O que este campo mandou desde que o estado alcançou o texto: um valor antigo que ainda chega
+    // (digitação rápida) não é "troca por fora" e não apaga o que já foi digitado.
+    val enviados = remember { mutableListOf<BigDecimal?>() }
     LaunchedEffect(valor) {
-        if (lerValor(texto) != valor) texto = escreverValor(valor)
+        val doTexto = lerValor(texto)
+        when {
+            // Recriado depois de o sistema matar o app: o texto guardado vale e volta para o estado,
+            // em vez de ser apagado pelo valor ainda vazio (BUG-016).
+            primeira && valor == null && doTexto != null -> aoMudar(doTexto)
+            doTexto == valor -> enviados.clear()
+            // Valor trocado por fora (limpar o formulário, link com valor): o texto acompanha.
+            valor !in enviados -> {
+                texto = escreverValor(valor)
+                enviados.clear()
+            }
+        }
+        primeira = false
     }
     OutlinedTextField(
         texto,
-        { novo -> texto = novo; aoMudar(lerValor(novo)) },
+        { novo ->
+            texto = novo
+            lerValor(novo).let { enviados += it; aoMudar(it) }
+        },
         modifier.onFocusChanged { foco -> if (!foco.isFocused) lerValor(texto)?.let { texto = escreverValor(it) } },
         label = { Text(rotulo) },
         singleLine = true,

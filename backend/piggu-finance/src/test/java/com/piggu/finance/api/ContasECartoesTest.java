@@ -140,4 +140,19 @@ class ContasECartoesTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$[0].item").value("Padaria"))
                 .andExpect(jsonPath("$[0].contaId").doesNotExist());
     }
+
+    @Test
+    @DisplayName("nome curto demais e fatura de conta que nao e cartao sao recusados")
+    void contaInvalida() throws Exception {
+        mockMvc.perform(post("/api/accounts").with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\" x \",\"tipo\":\"CONTA\"}"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.erro").value("Digite o nome da conta ou do cartão."));
+        String conta = casas.criar("/api/accounts", casas.casaA, "{\"nome\":\"Corrente\",\"tipo\":\"CONTA\"}")
+                .path("id").asString();
+
+        mockMvc.perform(get("/api/accounts/" + conta + "/statement").with(casas.casaA))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.erro").value("Fatura só existe para cartão."));
+    }
 }

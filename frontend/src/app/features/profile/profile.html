@@ -30,7 +30,7 @@
         <span class="selo-da-camera" aria-hidden="true"><app-icone nome="camera" /></span>
         <span i18n class="so-leitor">Escolher foto de perfil</span>
       </button>
-      <label for="arquivo-da-foto-de-perfil" hidden i18n>Foto de perfil</label>
+      <label for="arquivo-da-foto-de-perfil" class="so-leitor" i18n>Foto de perfil</label>
       <input
         #seletorDeFoto
         id="arquivo-da-foto-de-perfil"
@@ -119,7 +119,7 @@
 
   <!-- Cada escolha ja salva, como nos Avisos. -->
   <div class="campo">
-    <label i18n for="moeda">Moeda do app</label>
+    <label i18n for="moeda">Moeda de exibição</label>
     <select
       id="moeda"
       [ngModel]="moeda()"
@@ -132,7 +132,9 @@
     </select>
   </div>
   <p i18n class="linha-detalhe">
-    É a moeda em que os valores aparecem; os valores já lançados não são convertidos.
+    Muda só o símbolo em que os valores aparecem. Trocar não converte nada: um gasto de R$ 100
+    passa a aparecer como € 100, por exemplo. Para uma compra em outra moeda, use "Moeda da
+    compra" ao lançar o gasto.
   </p>
 
   <label class="caixa linha-chave">
@@ -297,7 +299,8 @@
     <h2 i18n id="titulo-aparencia">Aparência</h2>
   </div>
   <p i18n class="linha-detalhe">
-    No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.
+    No automático o Piggu segue o modo claro ou escuro do aparelho. O fundo preto economiza bateria
+    em telas OLED. Vale para este aparelho.
   </p>
   <div class="alternador modos" role="radiogroup" aria-labelledby="titulo-aparencia">
     @for (modo of modos; track modo.id) {
@@ -312,6 +315,16 @@
       </button>
     }
   </div>
+  <label class="caixa linha-chave">
+    <span i18n>Fundo preto no modo escuro</span>
+    <input
+      type="checkbox"
+      class="chave"
+      [ngModel]="fundoPreto()"
+      [disabled]="modoAtual() === 'claro'"
+      (ngModelChange)="escolherFundoPreto($event)"
+    />
+  </label>
 </section>
 
 <section class="cartao" aria-labelledby="titulo-tema" id="personalizar">

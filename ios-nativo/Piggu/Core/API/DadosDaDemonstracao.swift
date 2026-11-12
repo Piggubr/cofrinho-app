@@ -275,9 +275,11 @@ struct DadosDaDemonstracao {
          ]]
     }
 
-    private var cofrinho: [String: Any] {
+    /// Sem nenhum gasto (o mes vazio), o cofrinho tambem nao tem: senao o guia dava o 1o gasto como feito.
+    private func cofrinho(_ gastos: [[String: Any]]) -> [String: Any] {
         let total = depositos.reduce(0.0) { $0 + ($1["valor"] as? Double ?? 0) }
-        return ["depositos": depositos, "totalDepositos": total, "totalGastos": 420.0, "saldo": total - 420]
+        let gasto = gastos.isEmpty ? 0 : 420.0
+        return ["depositos": depositos, "totalDepositos": total, "totalGastos": gasto, "saldo": total - gasto]
     }
 
     private func situacaoDoAssistente() -> [String: Any] {
@@ -355,7 +357,7 @@ struct DadosDaDemonstracao {
         case ("GET", "monthly-goals"):
             return (200, limites)
         case ("GET", "piggy-bank"):
-            return (200, cofrinho)
+            return (200, cofrinho(gastos))
         case ("POST", "piggy-bank/deposits"):
             let deposito: [String: Any] = [
                 "id": Self.novoId(), "data": corpo["data"] ?? Formatos.dia(Date()), "valor": corpo["valor"] ?? 0,

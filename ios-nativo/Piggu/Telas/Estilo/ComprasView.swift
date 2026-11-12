@@ -25,7 +25,7 @@ struct ComprasView: View {
                     Text("Compras").tag(ItemDeCompra.Lista.compras)
                     Text("Desejos").tag(ItemDeCompra.Lista.desejos)
                 }
-                .pickerStyle(.segmented)
+                .seletorSegmentado()
                 .labelsHidden()
                 LadoALado {
                     TextField("Item", text: $item, prompt: Text("Ex.: Ovos"))

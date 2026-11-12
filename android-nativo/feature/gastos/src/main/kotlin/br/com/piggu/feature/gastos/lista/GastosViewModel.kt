@@ -1,5 +1,8 @@
 package br.com.piggu.feature.gastos.lista
 
+import br.com.piggu.core.ui.formatos.TETO_DO_GASTO
+import br.com.piggu.core.ui.formatos.dataPedeConfirmacao
+import br.com.piggu.core.ui.formatos.problemaDoValor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.Carga
@@ -71,6 +74,8 @@ interface AcoesDosGastos {
     fun mudarCompartilhado(compartilhado: Boolean) {}
     fun mudarData(data: java.time.LocalDate) {}
     fun salvarEdicao() {}
+    fun salvarEdicaoMesmoAssim() {}
+    fun corrigirDataDaEdicao() {}
     fun fecharEdicao() {}
 
     /** Deslizou: a parcela com próximas pergunta antes; o resto some e espera o "Desfazer". */
@@ -102,7 +107,8 @@ interface AcoesDosGastos {
     fun exportar() {}
     fun csvEntregue() {}
 
-    fun esquecerRecusados() {}
+    /** O gasto recusado na fila sai do aviso (e do aparelho). */
+    fun dispensarRecusado(idDoEnvio: String) {}
     fun avisoMostrado() {}
 }
 
@@ -143,6 +149,7 @@ class GastosViewModel internal constructor(
             EstadoDosGastos(mes = mes, mesAtual = mes, moeda = sessao.usuario?.preferencias?.moeda, eu = sessao.usuario?.id)
         },
     )
+    private val hoje = java.time.LocalDate.now(relogio)
     val estado: StateFlow<EstadoDosGastos> = estadoAtual.asStateFlow()
 
     private val recarga = MutableStateFlow(0)
@@ -178,7 +185,7 @@ class GastosViewModel internal constructor(
         }
         fila?.let { fila ->
             viewModelScope.launch { fila.aguardando.collect { lista -> estadoAtual.update { it.copy(aguardando = lista) } } }
-            viewModelScope.launch { fila.recusados.collect { n -> estadoAtual.update { it.copy(recusados = n) } } }
+            viewModelScope.launch { fila.recusados.collect { lista -> estadoAtual.update { it.copy(recusados = lista) } } }
         }
         carregarRegras()
     }
@@ -240,16 +247,30 @@ class GastosViewModel internal constructor(
     override fun mudarCategoria(categoria: String) = editar { it.copy(categoria = categoria) }
     override fun mudarValor(valor: java.math.BigDecimal?) = editar { it.copy(valor = valor) }
     override fun mudarCompartilhado(compartilhado: Boolean) = editar { it.copy(compartilhado = compartilhado) }
-    override fun mudarData(data: java.time.LocalDate) = editar { it.copy(data = data.toString()) }
+    override fun mudarData(data: java.time.LocalDate) = editar { it.copy(data = data.toString(), confirmarData = false) }
+    override fun corrigirDataDaEdicao() = editar { it.copy(confirmarData = false) }
+    override fun salvarEdicaoMesmoAssim() = salvar(dataConfirmada = true)
     override fun fecharEdicao() = estadoAtual.update { it.copy(edicao = null) }
 
-    override fun salvarEdicao() {
-        val edicao = estadoAtual.value.edicao ?: return
+    override fun salvarEdicao() = salvar(dataConfirmada = false)
+
+    private fun salvar(dataConfirmada: Boolean) {
+        val edicao = estadoAtual.value.edicao?.copy(confirmarData = false) ?: return
         if (edicao.salvando) return
         val item = edicao.item.trim()
         val valor = edicao.valor
-        if (item.isEmpty() || valor == null || valor.signum() < 0) {
+        if (item.isEmpty()) {
             estadoAtual.update { it.copy(edicao = edicao.copy(erro = MensagemDeErro.DoApp(R.string.gastos_confira_nome_e_valor))) }
+            return
+        }
+        problemaDoValor(valor, TETO_DO_GASTO)?.let { problema ->
+            estadoAtual.update { it.copy(edicao = edicao.copy(erro = MensagemDeErro.DoApp(problema))) }
+            return
+        }
+        checkNotNull(valor)
+        // Só a data trocada pergunta: o gasto antigo que já estava lá não.
+        if (!dataConfirmada && edicao.data != edicao.gasto.data && dataPedeConfirmacao(java.time.LocalDate.parse(edicao.data), hoje)) {
+            estadoAtual.update { it.copy(edicao = edicao.copy(confirmarData = true)) }
             return
         }
         estadoAtual.update { it.copy(edicao = edicao.copy(salvando = true, erro = null)) }
@@ -437,8 +458,8 @@ class GastosViewModel internal constructor(
 
     override fun csvEntregue() = estadoAtual.update { it.copy(csv = null) }
 
-    override fun esquecerRecusados() {
-        viewModelScope.launch { fila?.esquecerRecusados() }
+    override fun dispensarRecusado(idDoEnvio: String) {
+        viewModelScope.launch { fila?.dispensar(idDoEnvio) }
     }
 
     /** Some o que a Snackbar mostrou: o aviso, que vem antes, ou o erro. */

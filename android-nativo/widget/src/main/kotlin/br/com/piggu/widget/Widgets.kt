@@ -1,5 +1,6 @@
 package br.com.piggu.widget
 
+import br.com.piggu.core.data.FUSO_DA_CONTA
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
@@ -40,6 +41,11 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
+import android.os.Build
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -69,7 +75,7 @@ abstract class WidgetDoPiggu : GlanceAppWidget() {
             // Lido na composição: um updateAll com a sessão do widget aberta redesenha com o resumo novo.
             val resumo by guarda.resumo.collectAsState(inicial)
             TemaDoWidget(resumo) {
-                Cartao(link()) { Conteudo(resumo?.takeIf { it.mes == YearMonth.now().toString() }, resumo != null) }
+                Cartao(link()) { Conteudo(resumo?.takeIf { it.mes == YearMonth.now(FUSO_DA_CONTA).toString() }, resumo != null) }
             }
         }
     }
@@ -102,9 +108,10 @@ class GastoDoMesWidget : WidgetDoPiggu() {
         val porcentagem = resumo.porcentagemDoLimite
         val restante = resumo.restante
         if (porcentagem == null || resumo.limite == null || restante == null) {
-            Detalhe(texto(R.string.widget_sem_limite))
+            // Sem limite, o teto são as receitas, como no Painel.
+            Detalhe(restante?.let { texto(R.string.widget_ainda_da, formatarMoeda(it, resumo.moeda)) } ?: texto(R.string.widget_sem_limite))
         } else {
-            val estourou = porcentagem > 100
+            val estourou = restante.signum() < 0
             val cor = if (estourou) GlanceTheme.colors.error else GlanceTheme.colors.primary
             LinearProgressIndicator(
                 progress = porcentagem.coerceAtMost(100) / 100f,
@@ -193,11 +200,24 @@ class LancarGastoReceiver : GlanceAppWidgetReceiver() {
 /** A cor do Piggu escolhida no app, claro e escuro como o aparelho; com as Cores do celular, as do aparelho. */
 @Composable
 private fun TemaDoWidget(resumo: ResumoDoWidget?, conteudo: @Composable () -> Unit) {
+    val preto = resumo?.fundoPreto == true
+    if (resumo != null && resumo.cor == null) {
+        // As Cores do celular só existem no Android 12 ou mais novo, como a opção do Perfil.
+        if (!preto || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return GlanceTheme(content = conteudo)
+        val contexto = LocalContext.current
+        return GlanceTheme(
+            colors = ColorProviders(light = dynamicLightColorScheme(contexto), dark = dynamicDarkColorScheme(contexto).comFundoPreto()),
+            content = conteudo,
+        )
+    }
     // Sem resumo (não entrou), o Chiclete padrão.
-    if (resumo != null && resumo.cor == null) return GlanceTheme(content = conteudo)
     val variante = VarianteDeCor.deId(resumo?.cor)
-    GlanceTheme(colors = ColorProviders(light = variante.esquema(escuro = false), dark = variante.esquema(escuro = true)), content = conteudo)
+    val escuro = variante.esquema(escuro = true).let { if (preto) it.comFundoPreto() else it }
+    GlanceTheme(colors = ColorProviders(light = variante.esquema(escuro = false), dark = escuro), content = conteudo)
 }
+
+/** O widgetBackground do Glance sai do secondaryContainer (que os widgets não usam em outro lugar). */
+private fun ColorScheme.comFundoPreto() = copy(secondaryContainer = Color.Black)
 
 @Composable
 private fun Cartao(link: String, conteudo: @Composable ColumnScope.() -> Unit) {

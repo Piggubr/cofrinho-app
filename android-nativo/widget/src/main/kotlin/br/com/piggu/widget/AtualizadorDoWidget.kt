@@ -1,5 +1,7 @@
 package br.com.piggu.widget
 
+import java.time.LocalDate
+import br.com.piggu.core.data.calcularContaDoMes
 import android.content.Context
 import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.Lifecycle
@@ -54,7 +56,7 @@ class AtualizadorDoWidget @Inject constructor(
     /** @param voltas emite a cada vez que o app vem para a frente; os testes passam um fluxo fixo. */
     fun vigiar(voltas: Flow<Unit> = voltasParaAFrente()) {
         escopo.launch {
-            combine(sessao.estado, lancamentos.versao, voltas, preferencias.travar) { estado, _, _, travar -> estado to travar }
+            combine(sessao.estado, lancamentos.versao, voltas, preferencias.travar, preferencias.fundoPreto) { estado, _, _, travar, _ -> estado to travar }
                 .collectLatest { (estado, travar) ->
                     when {
                         // Com a trava do Piggu ligada, o widget fica sem números, como no iOS (D-162).
@@ -74,17 +76,24 @@ class AtualizadorDoWidget @Inject constructor(
         val resumo = runCatching {
             coroutineScope {
                 val gastos = async { financas.listarGastos(mes) }
+                // Sem as contas do mês (ou as receitas) o "Ainda dá" sairia inflado: falhou, fica o último resumo.
+                val contas = async { financas.contasFixas(mes) }
+                val receitas = async { financas.resumoDoMes(mes, null).receitas }
                 val limites = async { runCatching { financas.listarMetas() }.getOrNull() }
                 val metas = async { runCatching { estiloDeVida.listarMetasDoMes() }.getOrNull().orEmpty() }
                 val cor = if (preferencias.coresDoCelular.first()) null
                 else VarianteDeCor.deId(preferencias.cor.first()).efetiva(usuario.ehPremium).id
+                val gasto = gastos.await().fold(BigDecimal.ZERO) { soma, gasto -> soma + gasto.valor }
+                val limite = limites.await()?.get(mes)
                 resumoDoMes(
                     mes = mes,
-                    gasto = gastos.await().fold(BigDecimal.ZERO) { soma, gasto -> soma + gasto.valor },
-                    limite = limites.await()?.get(mes),
+                    gasto = gasto,
+                    limite = limite,
+                    aindaDa = calcularContaDoMes(mes, limite, receitas.await(), gasto, contas.await(), LocalDate.now(relogio))?.resta,
                     metas = metas.await(),
                     moeda = usuario.preferencias?.moeda,
                     cor = cor,
+                    fundoPreto = preferencias.fundoPreto.first(),
                     agora = relogio.millis(),
                 )
             }
@@ -110,6 +119,8 @@ internal fun resumoDoMes(
     moeda: String?,
     cor: String?,
     agora: Long,
+    aindaDa: BigDecimal? = null,
+    fundoPreto: Boolean = false,
 ): ResumoDoWidget {
     val meta = metas.firstOrNull { !it.concluida } ?: metas.lastOrNull()
     return ResumoDoWidget(
@@ -121,7 +132,9 @@ internal fun resumoDoMes(
         metasConcluidas = metas.count { it.concluida },
         metasTotal = metas.size,
         cor = cor,
+        fundoPreto = fundoPreto,
         atualizadoEm = agora,
+        aindaDa = aindaDa,
     )
 }
 

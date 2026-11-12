@@ -51,7 +51,7 @@ public class DriveStorageAdapter implements StoragePort {
             return criado.getId();
         } catch (IOException erro) {
             log.error("Falha ao enviar arquivo para o Drive", erro);
-            throw new UpstreamException("Nao consegui guardar a foto agora. Tente novamente.");
+            throw new UpstreamException("Não consegui guardar a foto agora. Tente novamente.");
         }
     }
 
@@ -64,7 +64,7 @@ public class DriveStorageAdapter implements StoragePort {
             return new ArquivoGuardado(metadados.getMimeType(), saida.toByteArray());
         } catch (IOException erro) {
             log.error("Falha ao ler arquivo {} do Drive", idNoProvedor, erro);
-            throw new UpstreamException("Nao consegui carregar a foto agora.");
+            throw new UpstreamException("Não consegui carregar a foto agora.");
         }
     }
 
@@ -87,7 +87,7 @@ public class DriveStorageAdapter implements StoragePort {
     /** Quem chama mantem o registro e tenta de novo: sem ele, o arquivo ficaria no Drive para sempre. */
     private static UpstreamException naoApagou(String idNoProvedor, IOException erro) {
         log.warn("Nao foi possivel apagar o arquivo {} no Drive", idNoProvedor, erro);
-        return new UpstreamException("Nao consegui apagar a foto agora. Tente de novo em instantes.");
+        return new UpstreamException("Não consegui apagar a foto agora. Tente de novo em instantes.");
     }
 
     private String resolverPasta(String nomeDaPasta) throws IOException {

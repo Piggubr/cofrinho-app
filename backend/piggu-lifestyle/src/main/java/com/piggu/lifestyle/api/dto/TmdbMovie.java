@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 /** Filme vindo do TMDB, ainda nao salvo na lista. */
 public record TmdbMovie(
         @Size(max = 20) String tmdbId,
-        @NotBlank(message = "O filme nao chegou corretamente.") @Size(max = 300) String titulo,
+        @NotBlank(message = "O filme não chegou corretamente.") @Size(max = 300) String titulo,
         @Size(max = 10) String ano,
         @Size(max = 500) String poster,
         @DecimalMin("0") @DecimalMax("10") BigDecimal nota,

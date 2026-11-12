@@ -108,7 +108,7 @@ class TmdbClientTest {
                 .hasMessageContaining("erro 500");
         assertThatThrownBy(() -> cliente.buscar("Matrix"))
                 .isInstanceOf(UpstreamException.class)
-                .hasMessageContaining("indisponivel");
+                .hasMessageContaining("indisponível");
         assertThatThrownBy(() -> cliente.buscar("M")).isInstanceOf(BusinessException.class);
     }
 

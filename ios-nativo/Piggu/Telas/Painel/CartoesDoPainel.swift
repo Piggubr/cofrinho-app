@@ -32,6 +32,9 @@ struct CartaoDoResumo: View {
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
+            // Diferente do "Ainda dá", que tira tambem as contas a pagar (BUG-002).
+            Text("Receitas menos gastos")
+                .font(.sora(.footnote, peso: .medium))
             LadoALado(espaco: 10) {
                 parcela("Receitas", resumo.receitas, icone: "chart.line.uptrend.xyaxis", abre: .receitas)
                 parcela("Gastos", resumo.gastos, icone: "wallet.pass", abre: .gastos)
@@ -50,9 +53,8 @@ struct CartaoDoResumo: View {
         .foregroundStyle(paleta.primariaContraste)
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(colors: [paleta.primaria, paleta.serieGasto], startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        // Cor solida: o branco sobre a ponta clara do degrade (serieGasto) ficava abaixo de 4,5:1 (BUG-015).
+        .background(paleta.primaria, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityElement(children: aoAbrir == nil ? .combine : .contain)
     }
 
@@ -169,11 +171,14 @@ private struct LinhaDeAviso: View {
     }
 }
 
-/// Ainda dá para gastar (D-164): fixo no topo do Painel, fora do Personalizar.
+/// Ainda dá para gastar (D-164): fixo no topo do Painel, fora do Personalizar. Fica carregando até
+/// as contas e os membros chegarem e mostra o erro se as contas falharem (BUG-002, D-195).
 struct CartaoAindaDaParaGastar: View {
     let mes: Date
-    /// nil sem limite e sem receita.
-    let conta: AindaDaParaGastar?
+    let estado: ModeloDoPainel.EstadoDoAindaDa
+    /// O que está na fila do aparelho e já entrou no gasto (BUG-010).
+    var pendentes: Decimal = 0
+    var tentarDeNovo: () -> Void = {}
     let irPara: (Aba) -> Void
 
     @Environment(\.paleta) private var paleta
@@ -186,40 +191,25 @@ struct CartaoAindaDaParaGastar: View {
             Text(passado ? "Sobrou em \(nomeDoMes)" : "Ainda dá para gastar em \(nomeDoMes)")
                 .font(.sora(.headline, peso: .semibold))
                 .accessibilityAddTraits(.isHeader)
-            if let conta {
-                let passou = conta.resta < 0
-                Text(Formatos.moeda(conta.resta))
-                    .font(.sora(.largeTitle, peso: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(passou ? paleta.perigo : paleta.primaria)
-                if passou {
-                    Text("Já passou do que dava para gastar este mês.").font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
-                } else if let porDia = conta.porDia {
-                    Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
-                }
-                // A conta à vista: quem não entende o número entende de onde ele veio.
-                // "Receitas de" e "já gastos" sao links: abrem Receitas e Gastos no mes do Painel.
-                Group {
-                    if conta.tetoEhOLimite {
-                        Text("Limite de \(Formatos.moeda(conta.teto)), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
-                    } else {
-                        Text("[Receitas de \(Formatos.moeda(conta.teto))](piggu://receitas), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
-                    }
-                }
-                .font(.sora(.footnote))
-                .foregroundStyle(paleta.textoSuave)
-                .tint(paleta.primaria)
-                .environment(\.openURL, OpenURLAction { url in
-                    irPara(url.host() == "receitas" ? .receitas : .gastos)
-                    return .handled
-                })
-            } else {
+            switch estado {
+            case .carregando:
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .accessibilityLabel("Carregando as contas do mês")
+            case let .falhou(erro):
+                Text("Não deu para ver as contas do mês, então este número ainda não está certo. \(erro.localizedDescription)")
+                    .font(.sora(.subheadline))
+                Button("Tentar de novo", action: tentarDeNovo)
+                    .buttonStyle(.pilula)
+                    .font(.sora(.subheadline, peso: .medium))
+            case let .pronto(conta?):
+                numero(conta)
+            case .pronto(nil):
                 Text("Defina um limite para o mês ou lance suas receitas para ver quanto ainda dá para gastar.")
                     .font(.sora(.subheadline))
-                HStack {
-                    NavigationLink("Definir limite", value: TelaDoMais.orcamento)
-                    Spacer()
-                    Button("Lançar receitas") { irPara(.receitas) }
+                ViewThatFits {
+                    HStack { botoesSemTeto }
+                    VStack(alignment: .leading, spacing: 8) { botoesSemTeto }
                 }
                 .font(.sora(.subheadline, peso: .medium))
             }
@@ -228,6 +218,97 @@ struct CartaoAindaDaParaGastar: View {
         .padding(18)
         .background(paleta.suave, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder
+    private var botoesSemTeto: some View {
+        NavigationLink("Definir limite", value: TelaDoMais.orcamento)
+        Spacer(minLength: 8)
+        Button("Lançar receitas") { irPara(.receitas) }
+    }
+
+    @ViewBuilder
+    private func numero(_ conta: AindaDaParaGastar) -> some View {
+        let passou = conta.resta < 0
+        Text(Formatos.moeda(conta.resta))
+            .font(.sora(.largeTitle, peso: .bold))
+            .monospacedDigit()
+            .minimumScaleFactor(0.6)
+            .lineLimit(1)
+            .foregroundStyle(passou ? paleta.perigo : paleta.primaria)
+        if passou {
+            Text(passado ? "Passou do que dava para gastar em \(nomeDoMes)." : "Já passou do que dava para gastar este mês.")
+                .font(.sora(.subheadline)).foregroundStyle(paleta.perigo)
+        } else if let porDia = conta.porDia {
+            Text("Cerca de \(Formatos.moeda(porDia)) por dia até o fim do mês").font(.sora(.subheadline))
+        }
+        // De onde vem o número, em uma linha (contrato da auditoria), e a conta à vista embaixo.
+        Text(conta.tetoEhOLimite ? "Limite do mês menos o que já foi gasto e as contas a pagar"
+                                 : "Receitas do mês menos o que já foi gasto e as contas a pagar")
+            .font(.sora(.footnote, peso: .medium))
+        // "Receitas de" e "já gastos" sao links: abrem Receitas e Gastos no mes do Painel.
+        Group {
+            if conta.tetoEhOLimite {
+                Text("Limite de \(Formatos.moeda(conta.teto)), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+            } else {
+                Text("[Receitas de \(Formatos.moeda(conta.teto))](piggu://receitas), menos [\(Formatos.moeda(conta.gasto)) já gastos](piggu://gastos) e \(Formatos.moeda(conta.contasAPagar)) de contas a pagar")
+            }
+            if pendentes > 0 {
+                Text("Os gastos incluem \(Formatos.moeda(pendentes)) pendentes, esperando conexão.")
+            }
+        }
+        .font(.sora(.footnote))
+        .foregroundStyle(paleta.textoSuave)
+        .tint(paleta.primaria)
+        .environment(\.openURL, OpenURLAction { url in
+            irPara(url.host() == "receitas" ? .receitas : .gastos)
+            return .handled
+        })
+    }
+}
+
+/// O que falta na conta (CPF, e-mail sem confirmar), no topo do Painel: antes só aparecia no Perfil.
+struct AvisosDaConta: View {
+    let usuario: Usuario
+
+    @Environment(\.paleta) private var paleta
+
+    var body: some View {
+        if usuario.emailConfirmado == false || usuario.cpfInformado == false {
+            VStack(alignment: .leading, spacing: 10) {
+                if usuario.emailConfirmado == false {
+                    NavigationLink(value: TelaDoMais.perfil) {
+                        Label("Confirme seu e-mail: abra o link que mandamos para \(usuario.email). Sem isso, não dá para aceitar convite da família.",
+                              systemImage: "envelope.badge")
+                    }
+                }
+                if usuario.cpfInformado == false {
+                    Link(destination: URL(string: "piggu://cpf")!) {
+                        Label("Informe seu CPF para deixar a conta completa.", systemImage: "person.text.rectangle")
+                    }
+                }
+            }
+            .font(.sora(.footnote, peso: .medium))
+            .foregroundStyle(paleta.texto)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(paleta.alertaSuave, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+    }
+}
+
+/// Conta de membro (D-164): o "Ainda dá" é de quem cuida do orçamento da casa.
+struct CartaoSemAindaDaDoMembro: View {
+    @Environment(\.paleta) private var paleta
+
+    var body: some View {
+        Label("Quem cuida do limite e das contas da casa vê aqui quanto ainda dá para gastar. Na conta de membro, você lança e acompanha os seus gastos.",
+              systemImage: "info.circle")
+            .font(.sora(.footnote))
+            .foregroundStyle(paleta.textoSuave)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(paleta.superficie, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 
@@ -322,7 +403,7 @@ struct CartaoDosBancos: View {
                     Text("\(banco.instituicao) conectado").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
                     Spacer()
                     Button("Desconectar") { desconectando = banco }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                         .controlSize(.small)
                         .disabled(openFinance.ocupado)
                 }
@@ -333,7 +414,7 @@ struct CartaoDosBancos: View {
             HStack {
                 if ehPremium {
                     Button(openFinance.ocupado ? "Aguarde..." : "Conectar banco") { pedindoAutorizacao = true }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                         .disabled(openFinance.ocupado)
                     if !openFinance.contas.isEmpty {
                         Spacer()
@@ -376,7 +457,7 @@ struct CartaoDosBancos: View {
                 }
                 .botaoPrincipal()
                 Button("Cancelar") { pedindoAutorizacao = false }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.pilula)
             }
         }
         .padding(12)
@@ -494,7 +575,7 @@ struct CartaoDosObjetivos: View {
                                   acao: "Criar o primeiro objetivo") { formulario = FormularioDeObjetivo(objetivo: nil) }
                 } else if modelo.podeCriarObjetivo {
                     Button("Novo objetivo") { formulario = FormularioDeObjetivo(objetivo: nil) }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                 } else {
                     Text("No gratuito, um objetivo por vez. Com o Piggu Premium, quantos quiser.")
                         .font(.sora(.footnote))
@@ -565,7 +646,7 @@ struct CartaoDosObjetivos: View {
                             }
                         }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.pilula)
                 }
             }
         }
@@ -618,7 +699,7 @@ struct CartaoDasMetas: View {
                     .font(.sora(.footnote))
                     .foregroundStyle(paleta.textoSuave)
                     NavigationLink("Ver metas", value: TelaDoMais.metas)
-                        .buttonStyle(.bordered).controlSize(.small)
+                        .buttonStyle(.pilula).controlSize(.small)
                 }
             }
         }
@@ -706,11 +787,11 @@ struct CartaoDasNotas: View {
                     .botaoPrincipal()
                     .disabled(salvando)
                     Button("Cancelar") { escrevendo = false }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                 }
             } else {
                 Button("+ Criar outra") { escrevendo = true }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.pilula)
             }
         }
         .confirmationDialog(apagando.map { String(localized: "Apagar a nota \"\($0.titulo)\"?") } ?? "",
