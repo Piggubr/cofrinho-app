@@ -183,16 +183,17 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
     falha se ficarem diferentes do HTML do site).
   - Excluir minha conta no Mais e na tela dos termos (`DELETE /api/me`, digitando EXCLUIR).
 - **Sessão como no app web**: o access token fica só em memória; o refresh vem no cookie
-  HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema.
+  HttpOnly (`Path=/api/auth`, `SameSite=Strict`) e fica no `HTTPCookieStorage` do sistema, com
+  a pasta `Library/Cookies` fora do backup do iCloud e do computador.
   Em 401 o app faz uma única renovação (`POST /api/auth/refresh`) e repete o pedido; chamadas
   simultâneas esperam a mesma renovação. Ao abrir o app, a sessão é recuperada pelo cookie.
   Sair chama `POST /api/auth/logout` e apaga o cookie. Sem rede ao abrir, o app entra com o
   perfil guardado e renova a sessão quando a rede volta.
-- **Sessão no Keychain (desligada)**: com `PIGGU_REFRESH_NO_CORPO = YES` (build setting) ou
+- **Sessão no Keychain (ligada)**: com `PIGGU_REFRESH_NO_CORPO = YES` (build setting, ligado em Debug e Release) ou
   `-PigguRefreshNoCorpo YES`, o login pede `refreshNoCorpo` e o refresh vai para o Keychain
   (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, só com "Continuar conectado"), e
-  `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). Fica desligada até a etapa 1 do
-  backend chegar à produção.
+  `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). O backend já atende, como no
+  Android. Quem vinha da sessão no cookie entra de novo uma vez.
 - **Painel** (`features/dashboard`): no topo, fixo, o "Ainda dá para gastar" (D-164); depois os cartões do site na ordem e com a visibilidade escolhidas em
   "Personalizar o Painel" (mesma chave e JSON do site, `piggu_painel_<id>`): sobra do mês,
   Para ficar de olho (orçamentos, fatura, contas do mês, quem está devendo), gasto e limite,

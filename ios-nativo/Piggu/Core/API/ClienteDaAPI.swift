@@ -75,7 +75,19 @@ struct TransporteURLSession: Transporte {
     /// HttpOnly do refresh, enviado sozinho nas chamadas para /api/auth.
     var sessao: URLSession = .shared
 
+    /// O sistema grava esse cookie em Library/Cookies, que entra no backup do iCloud e do
+    /// computador. Fora do backup, o refresh de 30 dias fica so neste iPhone, como no Keychain
+    /// (`ThisDeviceOnly`). Roda uma vez por abertura, antes do primeiro pedido.
+    static let cookiesForaDoBackup: Void = {
+        var pasta = URL.libraryDirectory.appending(path: "Cookies", directoryHint: .isDirectory)
+        var valores = URLResourceValues()
+        valores.isExcludedFromBackup = true
+        try? FileManager.default.createDirectory(at: pasta, withIntermediateDirectories: true)
+        try? pasta.setResourceValues(valores)
+    }()
+
     func enviar(_ pedido: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        _ = Self.cookiesForaDoBackup
         let (dados, resposta) = try await sessao.data(for: pedido)
         guard let http = resposta as? HTTPURLResponse else {
             throw ErroDaAPI.respostaInvalida
