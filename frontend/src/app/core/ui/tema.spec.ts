@@ -15,9 +15,40 @@ describe('Temas', () => {
   afterEach(() => {
     localStorage.removeItem('piggu_tema');
     localStorage.removeItem('piggu_modo');
+    localStorage.removeItem('piggu_fundo_preto');
     esquecerQueVoltouAoPadrao();
     delete document.documentElement.dataset['tema'];
     delete document.documentElement.dataset['modo'];
+    delete document.documentElement.dataset['fundoPreto'];
+  });
+
+  it('fundo preto: marca o <html>, pinta a barra escura de preto e fica salvo', () => {
+    const claro = document.createElement('meta');
+    claro.name = 'theme-color';
+    claro.media = '(prefers-color-scheme: light)';
+    const escuro = document.createElement('meta');
+    escuro.name = 'theme-color';
+    escuro.media = '(prefers-color-scheme: dark)';
+    document.head.append(claro, escuro);
+    const temas = TestBed.inject(Temas);
+
+    temas.escolherFundoPreto(true);
+    expect(document.documentElement.dataset['fundoPreto']).toBe('');
+    expect([claro.content, escuro.content]).toEqual(['#fff4f9', '#000000']);
+
+    // Trocar a cor mantem o fundo preto.
+    temas.escolher('azul');
+    expect(escuro.content).toBe('#000000');
+
+    temas.escolherFundoPreto(false);
+    expect(document.documentElement.dataset['fundoPreto']).toBeUndefined();
+    expect(escuro.content).toBe('#0f1317');
+
+    localStorage.setItem('piggu_fundo_preto', '1');
+    aplicarTemaSalvo();
+    expect(document.documentElement.dataset['fundoPreto']).toBe('');
+    claro.remove();
+    escuro.remove();
   });
 
   it('aplica o tema salvo e ignora um valor desconhecido', () => {

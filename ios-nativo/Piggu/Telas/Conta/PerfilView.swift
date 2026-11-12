@@ -10,6 +10,7 @@ struct PerfilView: View {
     @Environment(TravaDoApp.self) private var trava
     @AppStorage(Tema.chave) private var tema = Tema.chiclete
     @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
+    @AppStorage(ModoDeAparencia.chaveFundoPreto) private var fundoPreto = false
     @AppStorage(PrincipalView.chaveEsconderAbas) private var esconderAbas = false
     @State private var membros: [MembroDaFamilia] = []
     @State private var moedas: [MoedaDisponivel] = []
@@ -257,13 +258,17 @@ struct PerfilView: View {
                 ForEach(ModoDeAparencia.allCases) { Text($0.nome).tag($0) }
             }
             .pickerStyle(.segmented)
+            Toggle("Fundo preto no modo escuro", isOn: $fundoPreto)
+                .disabled(modo == .claro)
+                // O widget so muda quando o app grava o resumo de novo.
+                .onChange(of: fundoPreto) { Task { await AtualizadorDoSistema.atualizar(sessao) } }
             if #available(iOS 26, *) {
                 Toggle("Esconder a barra de abas ao rolar", isOn: $esconderAbas)
             }
         } header: {
             Text("Aparência")
         } footer: {
-            Text("No automático o Piggu segue o modo claro ou escuro do aparelho. Vale para este aparelho.")
+            Text("No automático o Piggu segue o modo claro ou escuro do aparelho. O fundo preto economiza bateria em telas OLED. Vale para este aparelho.")
         }
         .listRowBackground(paleta.superficie)
     }
