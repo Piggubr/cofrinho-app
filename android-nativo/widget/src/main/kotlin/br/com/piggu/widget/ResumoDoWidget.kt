@@ -39,6 +39,8 @@ data class ResumoDoWidget(
     val metasTotal: Int = 0,
     /** A cor do Piggu que vale (VarianteDeCor.id); nula com as Cores do celular. */
     val cor: String? = null,
+    /** Fundo preto no modo escuro (Perfil > Aparência, D-186). */
+    val fundoPreto: Boolean = false,
     val atualizadoEm: Long,
 ) {
     @Serializable

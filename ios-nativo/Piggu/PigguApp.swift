@@ -57,6 +57,7 @@ struct RaizView: View {
     @Environment(Sessao.self) private var sessao
     @AppStorage(Tema.chave) private var temaEscolhido = Tema.chiclete
     @AppStorage(ModoDeAparencia.chave) private var modo = ModoDeAparencia.automatico
+    @AppStorage(ModoDeAparencia.chaveFundoPreto) private var fundoPreto = false
     @Environment(\.scenePhase) private var fase
     @State private var trava = TravaDoApp()
     private let central = CentralDeRotas.compartilhada
@@ -69,6 +70,8 @@ struct RaizView: View {
     private var tema: Tema {
         temaEscolhido.premium && sessao.usuario?.plano != .premium ? .chiclete : temaEscolhido
     }
+
+    private var paleta: Paleta { fundoPreto ? tema.paleta.comFundoPreto : tema.paleta }
 
     var body: some View {
         Group {
@@ -84,7 +87,7 @@ struct RaizView: View {
                     ProgressView()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(tema.paleta.fundo)
+                .background(paleta.fundo)
             case .deslogado:
                 LoginView()
             case let .logado(usuario) where usuario.termosPendentes:
@@ -97,7 +100,7 @@ struct RaizView: View {
         }
         .background {
             JanelaDaTrava(trava: trava, ativa: trava.travado && sessao.usuario != nil,
-                          paleta: tema.paleta, esquema: modo.esquema)
+                          paleta: paleta, esquema: modo.esquema)
         }
         .background(FecharTecladoAoTocarFora())
         .scrollDismissesKeyboard(.interactively)
@@ -126,9 +129,9 @@ struct RaizView: View {
                     }
             }
         }
-        .environment(\.paleta, tema.paleta)
+        .environment(\.paleta, paleta)
         .preferredColorScheme(modo.esquema)
-        .tint(tema.paleta.primaria)
+        .tint(paleta.primaria)
         .font(.sora())
         .animation(.default, value: sessao.estado)
         // Renovacao e compra feitas fora desta tela chegam ao backend enquanto o app esta aberto.

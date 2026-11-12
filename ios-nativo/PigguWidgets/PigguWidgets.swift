@@ -39,6 +39,8 @@ struct FornecedorDoPiggu: TimelineProvider {
 
 private extension ResumoDoWidget {
     var paleta: Paleta { (Tema(rawValue: tema) ?? .chiclete).paleta }
+    /// O cartao do widget: preto no escuro com o fundo preto ligado.
+    var fundoDoWidget: Color { fundoPreto == true ? paleta.superficie.pretaNoEscuro : paleta.superficie }
     /// O resumo e de outro mes (o app nao abriu desde a virada): melhor nao mostrar numero velho.
     var doMesAtual: Bool {
         let partes = Calendar.current.dateComponents([.year, .month], from: .now)
@@ -81,7 +83,7 @@ private struct VistaDoGasto: View {
             }
         }
         .widgetURL(URL(string: "piggu://gastos"))
-        .containerBackground(for: .widget) { paleta.superficie }
+        .containerBackground(for: .widget) { resumo?.fundoDoWidget ?? paleta.superficie }
     }
 
     private func pequeno(_ resumo: ResumoDoWidget, _ paleta: Paleta) -> some View {
@@ -216,7 +218,7 @@ private struct VistaDaMeta: View {
             }
         }
         .widgetURL(URL(string: "piggu://metas"))
-        .containerBackground(for: .widget) { paleta.superficie }
+        .containerBackground(for: .widget) { resumo?.fundoDoWidget ?? paleta.superficie }
     }
 }
 

@@ -49,7 +49,8 @@ enum AtualizadorDoSistema {
             moeda: Formatos.codigoDaMoeda,
             meta: meta.map { ResumoDoWidget.Meta(titulo: $0.titulo, atual: $0.atual, alvo: $0.alvo) },
             metasConcluidas: metas.filter(\.concluida).count, metasTotal: metas.count,
-            tema: UserDefaults.standard.string(forKey: Tema.chave) ?? Tema.chiclete.rawValue, atualizadoEm: Date(),
+            tema: UserDefaults.standard.string(forKey: Tema.chave) ?? Tema.chiclete.rawValue,
+            fundoPreto: UserDefaults.standard.bool(forKey: ModoDeAparencia.chaveFundoPreto), atualizadoEm: Date(),
             receitas: receitas, contasAPagar: contasAPagar)
     }
 

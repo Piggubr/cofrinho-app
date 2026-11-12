@@ -50,6 +50,7 @@ data class EstadoDoApp(
     val cor: VarianteDeCor = VarianteDeCor.Chiclete,
     val modo: ModoDeCor = ModoDeCor.Automatico,
     val coresDoCelular: Boolean = false,
+    val fundoPreto: Boolean = false,
     /** O Premium acabou e a cor voltou ao padrão: a moldura avisa uma vez. */
     val avisarCorPadrao: Boolean = false,
 )
@@ -70,7 +71,7 @@ class AppViewModel @Inject constructor(
     val estado: StateFlow<EstadoDoApp> = combine(
         sessao.estado,
         aviso.precisaAtualizar,
-        combine(preferencias.cor, preferencias.modo, preferencias.coresDoCelular, preferencias.voltouAoPadrao, ::Aparencia),
+        combine(preferencias.cor, preferencias.modo, preferencias.coresDoCelular, preferencias.fundoPreto, preferencias.voltouAoPadrao, ::Aparencia),
         cotacao,
         iconesDoApp.escolhido,
     ) { sessao, atualizar, aparencia, cotacao, icone ->
@@ -87,6 +88,7 @@ class AppViewModel @Inject constructor(
             cor = VarianteDeCor.deId(aparencia.cor).efetiva(usuario?.ehPremium),
             modo = ModoDeCor.deId(aparencia.modo),
             coresDoCelular = aparencia.coresDoCelular,
+            fundoPreto = aparencia.fundoPreto,
             avisarCorPadrao = aparencia.voltou,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, EstadoDoApp())
@@ -137,7 +139,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch { sessao.sair() }
     }
 
-    private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val voltou: Boolean)
+    private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val fundoPreto: Boolean, val voltou: Boolean)
 }
 
 private fun Usuario.paraAMoldura(cotacao: Cotacao?) = PerfilDaMoldura(
