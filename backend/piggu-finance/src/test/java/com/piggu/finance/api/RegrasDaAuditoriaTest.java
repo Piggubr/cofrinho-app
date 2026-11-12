@@ -1,6 +1,8 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.error.BusinessException;
 import com.piggu.common.web.Meses;
+import com.piggu.finance.integration.FamiliaNoIdentity;
 import com.piggu.testing.DuasFamilias;
 import com.piggu.testing.PostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -18,8 +22,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -36,6 +46,10 @@ class RegrasDaAuditoriaTest extends PostgresIntegrationTest {
 
     @Autowired
     private ObjectMapper json;
+
+    /** O identity de verdade nao sobe no teste: aqui ele diz quem e da familia. */
+    @MockitoBean
+    private FamiliaNoIdentity identity;
 
     private DuasFamilias casas;
 
@@ -116,6 +130,7 @@ class RegrasDaAuditoriaTest extends PostgresIntegrationTest {
     @DisplayName("BUG-022: dividirCom com id de outra familia ou inventado da 400 e nao grava; com quem e da casa, divide")
     void dividirSoComAFamilia() throws Exception {
         UUID estranho = UUID.randomUUID();
+        when(identity.membros()).thenReturn(new HashSet<>());
         enviar("POST", "/api/expenses", casas.casaA, "{\"data\":\"2026-07-10\",\"dividirCom\":[\"" + estranho
                 + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":30}]}")
                 .andExpect(status().isBadRequest())
@@ -211,5 +226,46 @@ class RegrasDaAuditoriaTest extends PostgresIntegrationTest {
                 .andExpect(jsonPath("$.projecaoDeGastos").value(projecao.doubleValue()))
                 .andExpect(jsonPath("$.gastosAteMesmoDiaAnterior").value(100.0))
                 .andExpect(jsonPath("$.variacaoAteMesmoDia").value(2200.0));
+    }
+
+    @Test
+    @DisplayName("parceiro recem-entrado que nunca abriu o app: o identity confirma, a divisao entra e ele passa a constar")
+    void dividirComParceiroNovo() throws Exception {
+        UUID parceiro = UUID.randomUUID();
+        when(identity.membros()).thenReturn(new HashSet<>(Set.of(parceiro)));
+        String corpo = "{\"data\":\"2026-05-10\",\"dividirCom\":[\"" + parceiro
+                + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":40}]}";
+
+        enviar("POST", "/api/expenses", casas.casaA, corpo).andExpect(status().isCreated());
+        mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-05").with(casas.casaA))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + parceiro + "')].saldo").value(-40.0));
+
+        // Ja consta na familia: a segunda divisao nao pergunta de novo ao identity.
+        enviar("POST", "/api/expenses", casas.casaA, corpo).andExpect(status().isCreated());
+        verify(identity, times(1)).membros();
+    }
+
+    @Test
+    @DisplayName("identity fora do ar na conferencia: 503 SERVICO_INDISPONIVEL e nenhum gasto gravado")
+    void dividirComIdentityForaDoAr() throws Exception {
+        when(identity.membros()).thenThrow(new BusinessException("Essa parte do Piggu está fora do ar agora. "
+                + "Tente de novo em instantes.", HttpStatus.SERVICE_UNAVAILABLE, "SERVICO_INDISPONIVEL"));
+
+        enviar("POST", "/api/expenses", casas.casaA, "{\"data\":\"2026-04-10\",\"dividirCom\":[\"" + UUID.randomUUID()
+                + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":40}]}")
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.codigo").value("SERVICO_INDISPONIVEL"));
+        mockMvc.perform(get("/api/expenses").param("mes", "2026-04").with(casas.casaA))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("divisao so com quem ja passou pelo finance nao chama o identity")
+    void caminhoComumSemIdentity() throws Exception {
+        UUID ana = casas.pessoaDaA("ana-" + UUID.randomUUID() + "@piggu.test");
+        casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-03-10\",\"dividirCom\":[\"" + ana
+                + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":30}]}");
+
+        verifyNoInteractions(identity);
     }
 }

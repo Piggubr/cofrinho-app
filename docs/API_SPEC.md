@@ -218,8 +218,10 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
   "Confira a data: use uma data entre 2000 e <ano>." (D-189).
 - **Mês**: `AAAA-MM` com o mês de `01` a `12`, no corpo e nos parâmetros; `2026-13` é `400`
   (D-192). A meta do mês (`PUT /api/monthly-goals`) e a foto do feed (`POST /api/feed`) exigem o mês.
-- **Dividir um gasto**: `dividirCom` só aceita pessoas da família que já abriram o app; outro id
-  é `400` `VALIDACAO` (D-192).
+- **Dividir um gasto**: `dividirCom` só aceita pessoas da família (as do `GET /api/family`); outro
+  id é `400` `VALIDACAO`. Quem o finance ainda não viu é conferido no identity na hora; se ele
+  estiver fora do ar, o lançamento dá `503` `SERVICO_INDISPONIVEL` e nada é gravado: tente de novo
+  com o mesmo `idDoEnvio` (D-192).
 - **Relatório do mês** (`GET /api/reports/month`): no mês corrente, `projecaoDeGastos` conta os
   gastos `Fixo` uma vez e leva os outros pelo ritmo (até hoje ÷ dia de hoje × dias do mês);
   `gastosAteMesmoDiaAnterior` e `variacaoAteMesmoDia` comparam com o mês anterior até o mesmo dia.

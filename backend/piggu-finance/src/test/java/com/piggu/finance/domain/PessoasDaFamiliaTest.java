@@ -2,6 +2,7 @@ package com.piggu.finance.domain;
 
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.FamiliaAtual;
+import com.piggu.finance.integration.FamiliaNoIdentity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,8 @@ class PessoasDaFamiliaTest {
     private static final String INSERIR = "INSERT INTO household_people (household_id, user_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
 
     private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    private final PessoasDaFamilia pessoas = new PessoasDaFamilia(jdbc);
+    private final FamiliaNoIdentity identity = mock(FamiliaNoIdentity.class);
+    private final PessoasDaFamilia pessoas = new PessoasDaFamilia(jdbc, identity);
     private final UUID familia = UUID.randomUUID();
     private final UUID pessoa = UUID.randomUUID();
 
@@ -95,23 +97,51 @@ class PessoasDaFamiliaTest {
     }
 
     @Test
-    @DisplayName("dividir com quem nao esta na lista da familia da 400; lista vazia nem consulta")
-    void exigirDaFamilia() {
+    @DisplayName("todos ja vistos: nem consulta o identity; lista vazia nem consulta o banco")
+    void caminhoComum() {
         UUID conhecida = UUID.randomUUID();
-        UUID estranha = UUID.randomUUID();
         when(jdbc.queryForList(anyString(), eq(UUID.class), any(), any())).thenReturn(List.of(conhecida));
 
+        FamiliaAtual.como(familia, () -> pessoas.exigirDaFamilia(List.of(conhecida, conhecida)));
+        pessoas.exigirDaFamilia(List.of());
+
+        verify(jdbc, times(1)).queryForList(anyString(), eq(UUID.class), any(), any());
+        verifyNoInteractions(identity);
+    }
+
+    @Test
+    @DisplayName("parceiro que nunca abriu o app: o identity confirma, ele e gravado e a divisao segue")
+    void parceiroNovoConfirmadoNoIdentity() {
+        UUID conhecida = UUID.randomUUID();
+        UUID parceiro = UUID.randomUUID();
+        when(jdbc.queryForList(anyString(), eq(UUID.class), any(), any())).thenReturn(List.of(conhecida));
+        when(identity.membros()).thenReturn(new java.util.HashSet<>(List.of(conhecida, parceiro)));
+
+        FamiliaAtual.como(familia, () ->
+                assertThatCode(() -> pessoas.exigirDaFamilia(List.of(conhecida, parceiro))).doesNotThrowAnyException());
+
+        verify(jdbc).update(INSERIR, familia, parceiro);
+        verify(jdbc).update(INSERIR, familia, conhecida);
+    }
+
+    @Test
+    @DisplayName("id que nem o identity confirma da 400; identity fora propaga o 503 sem gravar ninguem")
+    void naoConfirmado() {
+        UUID estranha = UUID.randomUUID();
+        when(jdbc.queryForList(anyString(), eq(UUID.class), any(), any())).thenReturn(List.of());
+        when(identity.membros()).thenReturn(new java.util.HashSet<>())
+                .thenThrow(new BusinessException("fora", org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                        "SERVICO_INDISPONIVEL"));
+
         FamiliaAtual.como(familia, () -> {
-            assertThatCode(() -> pessoas.exigirDaFamilia(List.of(conhecida))).doesNotThrowAnyException();
-            assertThatCode(() -> pessoas.exigirDaFamilia(List.of(conhecida, conhecida))).doesNotThrowAnyException();
-            assertThatThrownBy(() -> pessoas.exigirDaFamilia(List.of(conhecida, estranha)))
+            assertThatThrownBy(() -> pessoas.exigirDaFamilia(List.of(estranha)))
                     .isInstanceOf(BusinessException.class)
                     .hasMessage("Só dá para dividir com pessoas da sua família.")
                     .extracting("codigo").isEqualTo("VALIDACAO");
+            assertThatThrownBy(() -> pessoas.exigirDaFamilia(List.of(estranha)))
+                    .isInstanceOf(BusinessException.class)
+                    .extracting("codigo").isEqualTo("SERVICO_INDISPONIVEL");
         });
-
-        pessoas.exigirDaFamilia(List.of());
-        verify(jdbc, times(3)).queryForList(anyString(), eq(UUID.class), any(), any());
         verify(jdbc, never()).update(anyString(), any(Object.class), any(Object.class));
     }
 }
