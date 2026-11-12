@@ -7,16 +7,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record PrizeRequest(
-        @NotBlank(message = "Digite o nome do premio.")
-        @Size(max = 100, message = "O nome do premio e longo demais.")
+        @NotBlank(message = "Digite o nome do prêmio.")
+        @Size(max = 100, message = "O nome do prêmio é longo demais.")
         String nome,
 
-        @Size(max = 300, message = "A descricao e longa demais.")
+        @Size(max = 300, message = "A descrição é longa demais.")
         String descricao,
 
-        @NotNull(message = "Digite um preco valido.")
-        @Min(value = 1, message = "Digite um preco valido.")
-        @Max(value = 10000000, message = "O preco e alto demais.")
+        @NotNull(message = "Digite um preço válido.")
+        @Min(value = 1, message = "Digite um preço válido.")
+        @Max(value = 10000000, message = "O preço é alto demais.")
         Integer preco,
 
         Boolean ativo

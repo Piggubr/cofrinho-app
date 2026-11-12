@@ -95,6 +95,7 @@ class CadaUmVeOSeuTest extends PostgresIntegrationTest {
         UUID casa = UUID.randomUUID();
         RequestPostProcessor quemPagou = TokensDeTeste.da(casa, TITULAR, PigguRole.TITULAR);
         RequestPostProcessor quemDivide = TokensDeTeste.da(casa, ADULTO, PigguRole.MEMBRO);
+        mockMvc.perform(get("/api/expenses").with(quemDivide)); // ja abriu o app: e da familia (D-192)
         mockMvc.perform(post("/api/expenses").with(quemPagou).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"data\":\"2026-09-10\",\"dividirCom\":[\"" + TokensDeTeste.idDe(TITULAR) + "\",\""
                                 + TokensDeTeste.idDe(ADULTO) + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":100}]}"))

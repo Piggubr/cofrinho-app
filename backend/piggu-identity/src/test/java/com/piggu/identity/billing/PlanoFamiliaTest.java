@@ -3,6 +3,7 @@ package com.piggu.identity.billing;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.security.PigguRole;
 import com.piggu.common.security.Plano;
+import com.piggu.identity.api.dto.FamiliaResponse;
 import com.piggu.identity.config.StripeProperties;
 import com.piggu.identity.domain.Household;
 import com.piggu.identity.domain.UserAccount;
@@ -16,6 +17,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,6 +66,22 @@ class PlanoFamiliaTest {
 
         casa.aplicarAssinatura("WEB", null, agora.plusSeconds(2));
         assertThat(casa.planoPara(assinante)).as("cancelado: ninguem").isEqualTo(Plano.GRATUITO);
+    }
+
+    @Test
+    @DisplayName("GET /api/family segue a regra do planoPara: Premium sem assinante nao cobre ninguem (BUG-031)")
+    void familiaComARegraDoPlano() {
+        Household casa = new Household("Casa");
+        Instant agora = Instant.now();
+
+        // Como o dados-de-exemplo.sh --premium gravava: so o premium_until.
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora);
+        assertThat(FamiliaResponse.de(casa, List.of(conta), List.of()).plano()).isEqualTo(Plano.GRATUITO);
+        assertThat(casa.planoPara(conta)).isEqualTo(Plano.GRATUITO);
+
+        casa.aplicarAssinatura("WEB", agora.plus(Duration.ofDays(30)), agora.plusSeconds(1), agora,
+                TipoDePlano.INDIVIDUAL, conta.getId());
+        assertThat(FamiliaResponse.de(casa, List.of(conta), List.of()).plano()).isEqualTo(Plano.PREMIUM);
     }
 
     @Test

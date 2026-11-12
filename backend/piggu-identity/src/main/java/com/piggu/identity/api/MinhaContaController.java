@@ -85,7 +85,7 @@ public class MinhaContaController {
                               @NotBlank @Size(max = 40) String mimeType) {
     }
 
-    public record TermosRequest(@NotBlank(message = "Informe a versao dos termos.") @Size(max = 20) String versao) {
+    public record TermosRequest(@NotBlank(message = "Informe a versão dos termos.") @Size(max = 20) String versao) {
     }
 
     /** Os Termos mudaram: a pessoa aceita a versao nova para seguir usando o app. */

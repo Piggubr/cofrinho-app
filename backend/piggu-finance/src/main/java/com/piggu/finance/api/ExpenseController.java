@@ -1,5 +1,6 @@
 package com.piggu.finance.api;
 
+import com.piggu.common.web.Valores;
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
 import com.piggu.common.web.Meses;
@@ -64,22 +65,23 @@ public class ExpenseController {
     }
 
     public record ExtratoRequest(
-            @NotBlank(message = "O arquivo esta vazio.")
-            @Size(max = 2_000_000, message = "Arquivo grande demais (maximo 2 MB).") String conteudo,
+            @NotBlank(message = "O arquivo está vazio.")
+            @Size(max = 2_000_000, message = "Arquivo grande demais (máximo 2 MB).") String conteudo,
             UUID contaId) {
     }
 
     public record LinhaRequest(
             @NotNull LocalDate data,
             @NotBlank @Size(max = 200) String descricao,
-            @NotNull @DecimalMin("0") @DecimalMax("1000000") BigDecimal valor,
+            // Zero passa aqui e sai da previa e da importacao (ExpenseService): nao derruba o extrato.
+            @NotNull @DecimalMin("0") @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO) BigDecimal valor,
             @NotBlank @Size(max = 120) String idExterno,
             @Size(max = 50) String categoria) {
     }
 
     public record ImportRequest(
             UUID contaId,
-            @NotEmpty(message = "Escolha ao menos um lancamento.")
+            @NotEmpty(message = "Escolha ao menos um lançamento.")
             @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas) {
     }
 
@@ -98,7 +100,7 @@ public class ExpenseController {
     }
 
     public record LinhasRequest(
-            @NotEmpty(message = "Nenhum lancamento para revisar.")
+            @NotEmpty(message = "Nenhum lançamento para revisar.")
             @Size(max = LeitorDeExtrato.MAXIMO_DE_LINHAS) List<@Valid LinhaRequest> linhas,
             UUID contaId) {
     }

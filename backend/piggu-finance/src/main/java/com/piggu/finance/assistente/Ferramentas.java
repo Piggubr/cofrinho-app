@@ -41,7 +41,7 @@ public class Ferramentas {
             "contas-fixas", "contas-e-cartoes", "calendario", "planejar", "plano");
 
     private static final Map<String, Object> MES = Map.of("type", "string",
-            "description", "Mes no formato AAAA-MM. Sem mes, o atual.");
+            "description", "Mês no formato AAAA-MM. Sem mês, o atual.");
 
     private final RelatorioService relatorios;
     private final ExpenseService gastos;
@@ -75,35 +75,35 @@ public class Ferramentas {
     public List<Map<String, Object>> declaracoes() {
         return List.of(
                 declarar("resumo_do_mes",
-                        "Receitas, gastos, sobra, taxa de poupanca, comparacao com o mes anterior, projecao do "
-                                + "fim do mes, gasto por categoria e o limite total do mes, se houver.",
+                        "Receitas, gastos, sobra, taxa de poupança, comparação com o mês anterior, projeção do "
+                                + "fim do mês, gasto por categoria e o limite total do mês, se houver.",
                         Map.of("mes", MES), List.of()),
                 declarar("gastos_do_mes",
-                        "Gastos de um mes, opcionalmente so de uma categoria. Devolve total, quantidade e os "
+                        "Gastos de um mês, opcionalmente só de uma categoria. Devolve total, quantidade e os "
                                 + GASTOS_NA_LISTA + " maiores.",
                         Map.of("mes", MES, "categoria", Map.of("type", "string",
-                                "description", "Nome da categoria, como aparece no resumo do mes.")),
+                                "description", "Nome da categoria, como aparece no resumo do mês.")),
                         List.of()),
                 declarar("buscar_gastos",
-                        "Procura gastos de qualquer data pelo nome do item ou do estabelecimento (ate 20, os "
+                        "Procura gastos de qualquer data pelo nome do item ou do estabelecimento (até 20, os "
                                 + "mais recentes) e devolve o total do que achou.",
                         Map.of("texto", Map.of("type", "string", "description", "O que procurar, ex.: uber, padaria.")),
                         List.of("texto")),
                 declarar("orcamentos",
-                        "Limite por categoria no mes, quanto ja foi gasto, percentual e alerta (OK, ATENCAO a "
+                        "Limite por categoria no mês, quanto já foi gasto, percentual e alerta (OK, ATENCAO a "
                                 + "partir de 80%, ESTOUROU a partir de 100%).",
                         Map.of("mes", MES), List.of()),
                 declarar("contas_fixas",
-                        "Contas fixas do mes (aluguel, luz, internet) com valor, vencimento e situacao "
+                        "Contas fixas do mês (aluguel, luz, internet) com valor, vencimento e situação "
                                 + "(PAGA, PENDENTE, VENCIDA).",
                         Map.of("mes", MES), List.of()),
                 declarar("cofrinho",
-                        "Saldo do cofrinho da familia e os cofrinhos por objetivo: alvo, guardado, quanto falta, "
-                                + "prazo e quanto guardar por mes.",
+                        "Saldo do cofrinho da família e os cofrinhos por objetivo: alvo, guardado, quanto falta, "
+                                + "prazo e quanto guardar por mês.",
                         Map.of(), List.of()),
                 declarar("abrir_tela",
-                        "Abre uma tela do app quando a pessoa pede para ir a algum lugar ou para lancar, mudar "
-                                + "ou apagar algo (o assistente nao grava nada).",
+                        "Abre uma tela do app quando a pessoa pede para ir a algum lugar ou para lançar, mudar "
+                                + "ou apagar algo (o assistente não grava nada).",
                         Map.of("tela", Map.of("type", "string", "enum", TELAS.stream().sorted().toList())),
                         List.of("tela"))
         );

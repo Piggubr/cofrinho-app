@@ -39,7 +39,7 @@ import java.util.Locale;
 public class ExchangeRateService {
 
     private static final Logger log = LoggerFactory.getLogger(ExchangeRateService.class);
-    private static final String FONTE = "referencia de bancos centrais";
+    private static final String FONTE = "referência de bancos centrais";
     private static final Locale PORTUGUES = Locale.forLanguageTag("pt-BR");
 
     private final RestClient cliente;
@@ -72,7 +72,7 @@ public class ExchangeRateService {
                                     || status.value() == HttpStatus.NOT_FOUND.value(),
                             (req, res) -> {
                                 throw new BusinessException(
-                                        "A fonte de cambio nao tem cotacao de " + origem + " para " + destino + ".");
+                                        "A fonte de câmbio não tem cotação de " + origem + " para " + destino + ".");
                             })
                     .body(JsonNode.class);
 
@@ -137,11 +137,11 @@ public class ExchangeRateService {
 
     private BigDecimal extrairTaxa(JsonNode resposta) {
         if (resposta == null) {
-            throw new IllegalStateException("Resposta de cambio vazia.");
+            throw new IllegalStateException("Resposta de câmbio vazia.");
         }
         BigDecimal taxa = resposta.path("rate").decimalValue();
         if (taxa == null || taxa.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalStateException("Cotacao invalida.");
+            throw new IllegalStateException("Cotação inválida.");
         }
         return taxa;
     }
@@ -177,10 +177,10 @@ public class ExchangeRateService {
                 })
                 .orElseGet(() -> {
                     if (!"EUR".equals(de) || !"BRL".equals(para)) {
-                        throw new UpstreamException("A cotacao de " + de + " para " + para + " esta indisponivel agora.");
+                        throw new UpstreamException("A cotação de " + de + " para " + para + " está indisponível agora.");
                     }
                     return new ExchangeRateResponse(
-                            de, para, new BigDecimal(propriedades.padrao()), "", "valor temporario", true, true);
+                            de, para, new BigDecimal(propriedades.padrao()), "", "valor temporário", true, true);
                 });
     }
 }

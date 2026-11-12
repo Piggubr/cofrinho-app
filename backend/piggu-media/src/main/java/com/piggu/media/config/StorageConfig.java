@@ -45,7 +45,7 @@ public class StorageConfig {
         Resource credenciais = carregador.getResource(propriedades.credentialsLocation());
         if (!credenciais.exists()) {
             throw new IllegalStateException(
-                    "Credenciais do Drive nao encontradas em " + propriedades.credentialsLocation());
+                    "Credenciais do Drive não encontradas em " + propriedades.credentialsLocation());
         }
 
         try (InputStream fluxo = credenciais.getInputStream()) {

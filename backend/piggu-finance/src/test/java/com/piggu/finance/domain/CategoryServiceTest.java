@@ -66,7 +66,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> categorias.criar("pets", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Essa opcao ja existe.");
+                .hasMessage("Essa opção já existe.");
 
         assertThatThrownBy(() -> categorias.criar("Lazer", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class);
@@ -77,7 +77,7 @@ class CategoryServiceTest extends PostgresIntegrationTest {
     void nomeCurtoRecusado() {
         assertThatThrownBy(() -> categorias.criar("a", UUID.randomUUID()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Digite um nome valido.");
+                .hasMessage("Digite um nome válido.");
     }
 
     @Test

@@ -83,7 +83,7 @@ class GeminiReceiptReaderTest {
     void semChave() {
         assertThatThrownBy(() -> leitor("").ler(new ReceiptParseRequest("aW1n", "image/png")))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("nao esta configurada");
+                .hasMessageContaining("não está configurada");
         gemini.verify();
     }
 }

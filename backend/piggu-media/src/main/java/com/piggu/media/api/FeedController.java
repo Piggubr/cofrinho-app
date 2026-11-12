@@ -2,6 +2,8 @@ package com.piggu.media.api;
 
 import com.piggu.common.security.AuthUser;
 import com.piggu.common.security.CurrentUser;
+import com.piggu.common.web.Texto;
+import com.piggu.common.web.Meses;
 import com.piggu.media.api.dto.CaptionRequest;
 import com.piggu.media.api.dto.FeedPhotoRequest;
 import com.piggu.media.api.dto.FeedPhotoResponse;
@@ -41,7 +43,7 @@ public class FeedController {
     @Operation(summary = "Listar fotos do feed")
     @GetMapping
     public List<FeedPhotoResponse> listar(@RequestParam(required = false) String mes) {
-        return servico.listar(mes);
+        return servico.listar(Texto.vazio(mes) ? null : Meses.ouAtual(mes).toString());
     }
 
     @Operation(summary = "Publicar foto no feed")

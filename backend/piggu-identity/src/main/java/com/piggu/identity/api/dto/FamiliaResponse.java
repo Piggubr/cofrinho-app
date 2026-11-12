@@ -14,7 +14,8 @@ import java.util.UUID;
  * A familia de quem pergunta: nome, plano, quem faz parte e os convites pendentes
  * (estes so para o titular).
  *
- * @param plano        plano da casa: PREMIUM quando ha assinatura vigente, mesmo individual
+ * @param plano        plano da casa: PREMIUM quando a assinatura vigente cobre alguem da casa, mesmo
+ *                     individual (a mesma regra de {@link Household#planoPara}; sem quem assinou, nao cobre)
  * @param planoFamilia a assinatura vigente e o plano familia (vale para todos)
  * @param planoCasal   a assinatura vigente e o plano casal (vale para titular e parceiro)
  */
@@ -34,11 +35,15 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFa
     }
 
     public static FamiliaResponse de(Household familia, List<UserAccount> membros, List<HouseholdInvite> convites) {
+        // Antes era so o premiumUntil: casa com Premium sem assinante dizia PREMIUM aqui e
+        // GRATUITO no /api/billing/plan (BUG-031).
+        Plano daCasa = membros.stream().anyMatch(conta -> familia.planoPara(conta) == Plano.PREMIUM)
+                ? Plano.PREMIUM : Plano.GRATUITO;
         return new FamiliaResponse(
                 familia.getId(),
                 familia.getName(),
-                familia.planoVigente(),
-                familia.planoVigente() == Plano.PREMIUM && familia.isFamilia(),
+                daCasa,
+                daCasa == Plano.PREMIUM && familia.isFamilia(),
                 membros.stream()
                         .map(conta -> new Membro(conta.getId(), conta.nomeExibicao(), conta.getEmail(),
                                 conta.fotoExibida(), conta.getRole(),
@@ -48,6 +53,6 @@ public record FamiliaResponse(UUID id, String nome, Plano plano, boolean planoFa
                         .map(convite -> new Convite(convite.getId(), convite.getEmail(), convite.getExpiresAt(),
                                 familia.getName()))
                         .toList(),
-                familia.planoVigente() == Plano.PREMIUM && familia.isCasal());
+                daCasa == Plano.PREMIUM && familia.isCasal());
     }
 }

@@ -1,5 +1,6 @@
 package com.piggu.finance.api.dto;
 
+import com.piggu.common.web.Valores;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -22,26 +23,26 @@ import java.math.BigDecimal;
  */
 public record ExpenseItemRequest(
         @NotBlank(message = "Existe um item sem nome.")
-        @Size(max = 200, message = "O nome do item e longo demais.")
+        @Size(max = 200, message = "O nome do item é longo demais.")
         String item,
 
         @Size(max = 50)
         String categoria,
 
         @NotNull(message = "Existe um item sem valor.")
-        @DecimalMin(value = "0", message = "O valor nao pode ser negativo.")
-        @DecimalMax(value = "1000000", message = "O valor e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         @Digits(integer = 7, fraction = 2, message = "O valor tem centavos demais.")
         BigDecimal valor,
 
         @Size(max = 30)
         String tipo,
 
-        @Pattern(regexp = "[A-Z]{3}", message = "Moeda invalida.")
+        @Pattern(regexp = "[A-Z]{3}", message = "Moeda inválida.")
         String moedaOriginal,
 
-        @DecimalMin(value = "0", message = "O valor original nao pode ser negativo.")
-        @DecimalMax(value = "1000000", message = "O valor original e alto demais.")
+        @DecimalMin(value = Valores.MINIMO, message = Valores.ABAIXO_DO_MINIMO)
+        @DecimalMax(value = Valores.MAXIMO, message = Valores.ACIMA_DO_MAXIMO)
         BigDecimal valorOriginal
 ) {
 

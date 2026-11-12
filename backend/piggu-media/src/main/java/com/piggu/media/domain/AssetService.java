@@ -53,11 +53,11 @@ public class AssetService {
         byte[] conteudo = decodificar(imageBase64);
 
         if (conteudo.length > TAMANHO_MAXIMO) {
-            throw new BusinessException("A foto e grande demais. O limite e de 5 MB.");
+            throw new BusinessException("A foto é grande demais. O limite é de 5 MB.");
         }
         // shortcut: soma sem trava, duas fotos ao mesmo tempo passam um pouco do limite; trave a familia se virar cota paga.
         if (repositorio.bytesDaFamilia(FamiliaAtual.atual()) + conteudo.length > limiteDaFamiliaMb * 1024 * 1024) {
-            throw new BusinessException("As fotos da familia chegaram ao limite de "
+            throw new BusinessException("As fotos da família chegaram ao limite de "
                     + (limiteDaFamiliaMb >= 1024 ? limiteDaFamiliaMb / 1024 + " GB" : limiteDaFamiliaMb + " MB")
                     + ". Apague algumas para guardar outras.");
         }
@@ -103,7 +103,7 @@ public class AssetService {
             throw naoEncontrada();
         }
         if (!usuario.podeGerenciar(asset.getOwnerId())) {
-            throw new ForbiddenException("Voce nao pode apagar esta foto.");
+            throw new ForbiddenException("Você não pode apagar esta foto.");
         }
         apagarInterno(asset);
     }
@@ -120,7 +120,7 @@ public class AssetService {
     }
 
     private static NotFoundException naoEncontrada() {
-        return new NotFoundException("Foto nao encontrada.");
+        return new NotFoundException("Foto não encontrada.");
     }
 
     private byte[] decodificar(String imageBase64) {
@@ -132,7 +132,7 @@ public class AssetService {
                     : imageBase64;
             return Base64.getDecoder().decode(limpo.replaceAll("\\s", ""));
         } catch (IllegalArgumentException erro) {
-            throw new BusinessException("A foto chegou em um formato que nao consegui ler.");
+            throw new BusinessException("A foto chegou em um formato que não consegui ler.");
         }
     }
 

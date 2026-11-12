@@ -42,7 +42,7 @@ class RotasDoGatewayTest {
         List<String> ids = rotas.getRoutes().map(Route::getId).collectList().block();
 
         assertThat(ids).containsExactlyInAnyOrder(
-                "identity", "finance", "rewards", "lifestyle", "media", "banking");
+                "identity", "finance", "rewards", "lifestyle", "media", "banking", "finance-lento", "identity-lento");
     }
 
     @Autowired

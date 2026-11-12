@@ -203,7 +203,7 @@ class AssistenteTest extends PostgresIntegrationTest {
         String email = "falha-" + familia + "@piggu.test";
         jdbc.update("INSERT INTO assistant_usage (household_id, user_id, reference_month, questions) VALUES (?, ?, ?, 149)",
                 familia, TokensDeTeste.idDe(email), YearMonth.now(java.time.ZoneId.of("America/Sao_Paulo")).toString());
-        doThrow(new UpstreamException("A IA nao respondeu agora. Tente de novo."))
+        doThrow(new UpstreamException("A IA não respondeu agora. Tente de novo."))
                 .when(gemini).responder(anyString(), anyList(), anyString(), anyList(), any());
         RequestPostProcessor quem = TokensDeTeste.da(familia, email, PigguRole.TITULAR);
 

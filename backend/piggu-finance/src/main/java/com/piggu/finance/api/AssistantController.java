@@ -52,7 +52,7 @@ public class AssistantController {
      * @param versaoDoAviso versao do aviso de privacidade que a pessoa viu
      */
     public record PerguntaRequest(
-            @NotBlank(message = "Escreva a pergunta.") @Size(max = 500, message = "A pergunta e longa demais.")
+            @NotBlank(message = "Escreva a pergunta.") @Size(max = 500, message = "A pergunta é longa demais.")
             String pergunta,
             @Size(max = 40) List<@Valid FalaRequest> historico,
             @Pattern(regexp = "[A-Z]{3}") String moeda,

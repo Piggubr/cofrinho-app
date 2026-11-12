@@ -33,11 +33,17 @@ public class RelatorioService {
     /**
      * @param taxaDePoupanca   sobra sobre receitas, em porcentagem; nula sem receita no mes
      * @param variacao         gastos contra o mes anterior, em porcentagem; nula se o anterior nao teve gasto
-     * @param projecaoDeGastos so no mes corrente: o ritmo ate hoje levado ao fim do mes
+     * @param projecaoDeGastos so no mes corrente: os fixos uma vez e os outros no ritmo ate hoje (D-190)
+     * @param gastosFixos      soma dos gastos do tipo Fixo no mes
+     * @param gastosAteMesmoDiaAnterior so no mes corrente: o mes anterior do dia 1 ate o mesmo dia de hoje
+     * @param variacaoAteMesmoDia so no mes corrente: gastos ate hoje contra {@code gastosAteMesmoDiaAnterior},
+     *                            em porcentagem; nula se o anterior nao teve gasto
      */
     public record ResumoDoMes(String mes, BigDecimal receitas, BigDecimal gastos, BigDecimal sobra,
                               BigDecimal taxaDePoupanca, BigDecimal gastosMesAnterior, BigDecimal variacao,
-                              BigDecimal projecaoDeGastos, List<CategoriaNoMes> porCategoria) {
+                              BigDecimal projecaoDeGastos, List<CategoriaNoMes> porCategoria,
+                              BigDecimal gastosFixos, BigDecimal gastosAteMesmoDiaAnterior,
+                              BigDecimal variacaoAteMesmoDia) {
     }
 
     public record CategoriaNoMes(String categoria, BigDecimal total, BigDecimal anterior) {
@@ -71,8 +77,22 @@ public class RelatorioService {
                 .map(c -> new CategoriaNoMes(c, agora.get(c), antes.getOrDefault(c, BigDecimal.ZERO)))
                 .sorted(Comparator.comparing(CategoriaNoMes::total).reversed())
                 .toList();
+        BigDecimal fixos = gastos.somarFixosNoPeriodo(mes.atDay(1), mes.atEndOfMonth());
+
+        BigDecimal projecao = null;
+        BigDecimal anteriorAteMesmoDia = null;
+        BigDecimal variacaoAteMesmoDia = null;
+        if (YearMonth.from(hoje).equals(mes)) {
+            BigDecimal ateHoje = gastos.somarNoPeriodo(mes.atDay(1), hoje);
+            BigDecimal fixosAteHoje = gastos.somarFixosNoPeriodo(mes.atDay(1), hoje);
+            BigDecimal variaveisDepois = saiu.subtract(ateHoje).subtract(fixos.subtract(fixosAteHoje));
+            projecao = projetar(fixos, ateHoje.subtract(fixosAteHoje), variaveisDepois, mes, hoje);
+            anteriorAteMesmoDia = gastos.somarNoPeriodo(anterior.atDay(1), mesmoDia(anterior, hoje));
+            variacaoAteMesmoDia = porcentagem(ateHoje.subtract(anteriorAteMesmoDia), anteriorAteMesmoDia);
+        }
         return new ResumoDoMes(mes.toString(), entrou, saiu, sobra, porcentagem(sobra, entrou), saiuAntes,
-                porcentagem(saiu.subtract(saiuAntes), saiuAntes), projetar(saiu, mes, hoje), porCategoria);
+                porcentagem(saiu.subtract(saiuAntes), saiuAntes), projecao, porCategoria,
+                fixos, anteriorAteMesmoDia, variacaoAteMesmoDia);
     }
 
     /** Relatorio do ano, mes a mes e por categoria. Premium. */
@@ -95,13 +115,25 @@ public class RelatorioService {
         return new RelatorioDoAno(ano.getValue(), entrou, saiu, entrou.subtract(saiu), meses, porCategoria);
     }
 
-    /** Gasto ate hoje dividido pelos dias que passaram, vezes os dias do mes. Nulo fora do mes corrente. */
-    static BigDecimal projetar(BigDecimal gastoAteHoje, YearMonth mes, LocalDate hoje) {
+    /**
+     * Os fixos do mes entram uma vez; os variaveis ate hoje vao pelo ritmo (divididos pelos dias
+     * que passaram, vezes os dias do mes); os variaveis ja lancados para depois de hoje entram
+     * uma vez. Antes, tudo ia pelo ritmo e o aluguel do dia 5 saia quase triplicado (D-190).
+     * Nulo fora do mes corrente.
+     */
+    static BigDecimal projetar(BigDecimal fixos, BigDecimal variaveisAteHoje, BigDecimal variaveisDepois,
+                               YearMonth mes, LocalDate hoje) {
         if (!YearMonth.from(hoje).equals(mes)) {
             return null;
         }
-        return gastoAteHoje.multiply(BigDecimal.valueOf(mes.lengthOfMonth()))
-                .divide(BigDecimal.valueOf(hoje.getDayOfMonth()), 2, RoundingMode.HALF_UP);
+        return variaveisAteHoje.multiply(BigDecimal.valueOf(mes.lengthOfMonth()))
+                .divide(BigDecimal.valueOf(hoje.getDayOfMonth()), 2, RoundingMode.HALF_UP)
+                .add(fixos).add(variaveisDepois);
+    }
+
+    /** O mesmo dia de hoje no mes {@code anterior}, limitado ao ultimo dia dele (31/03 vira 28/02). */
+    static LocalDate mesmoDia(YearMonth anterior, LocalDate hoje) {
+        return anterior.atDay(Math.min(hoje.getDayOfMonth(), anterior.lengthOfMonth()));
     }
 
     private static BigDecimal somar(Map<String, BigDecimal> porCategoria) {

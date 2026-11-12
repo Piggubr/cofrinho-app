@@ -18,7 +18,7 @@ public final class Moedas {
     public static String validar(String codigo) {
         String limpo = codigo == null ? "" : codigo.trim().toUpperCase(Locale.ROOT);
         if (!limpo.matches("[A-Z]{3}")) {
-            throw new BusinessException("Moeda invalida: use o codigo de tres letras, como EUR ou BRL.");
+            throw new BusinessException("Moeda inválida: use o código de três letras, como EUR ou BRL.");
         }
         try {
             return Currency.getInstance(limpo).getCurrencyCode();

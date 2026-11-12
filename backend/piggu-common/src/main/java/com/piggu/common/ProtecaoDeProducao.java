@@ -33,14 +33,14 @@ public class ProtecaoDeProducao implements InitializingBean {
         for (String variavel : List.of("SITE_URL", "CORS_ORIGINS")) {
             String valor = ambiente.getProperty(variavel, "");
             if (valor.contains("http://")) {
-                throw new IllegalStateException("Em producao " + variavel + " precisa usar https:// (veio: " + valor + ").");
+                throw new IllegalStateException("Em produção " + variavel + " precisa usar https:// (veio: " + valor + ").");
             }
         }
         // Atras do Caddy e do gateway: com menos de 2, o limite por IP conta o IP do Caddy
         // e vira um balde so para todo mundo (20 logins por minuto no site inteiro).
         int proxies = Binder.get(ambiente).bind("piggu.limite.proxies-na-frente", Integer.class).orElse(1);
         if (proxies < 2) {
-            throw new IllegalStateException("Em producao PIGGU_LIMITE_PROXIESNAFRENTE precisa ser 2 (Caddy + gateway),"
+            throw new IllegalStateException("Em produção PIGGU_LIMITE_PROXIESNAFRENTE precisa ser 2 (Caddy + gateway),"
                     + " senao o limite por IP vale para todos juntos (veio: " + proxies + ").");
         }
         if (ambiente.getProperty("spring.datasource.url") == null) {
@@ -48,8 +48,8 @@ public class ProtecaoDeProducao implements InitializingBean {
         }
         String senha = ambiente.getProperty("spring.datasource.password", "");
         if (senha.length() < TAMANHO_MINIMO || SENHAS_CONHECIDAS.contains(senha.toLowerCase(Locale.ROOT))) {
-            throw new IllegalStateException("Em producao a senha do banco (DB_PASSWORD) precisa ter pelo menos "
-                    + TAMANHO_MINIMO + " caracteres e nao pode ser a padrao. Gere uma com: openssl rand -base64 24");
+            throw new IllegalStateException("Em produção a senha do banco (DB_PASSWORD) precisa ter pelo menos "
+                    + TAMANHO_MINIMO + " caracteres e não pode ser a padrão. Gere uma com: openssl rand -base64 24");
         }
     }
 }

@@ -14,10 +14,10 @@ import jakarta.validation.constraints.Size;
  */
 public record PersonalGoalRequest(
         @NotBlank(message = "Digite a meta.")
-        @Size(max = 80, message = "A meta e longa demais.")
+        @Size(max = 80, message = "A meta é longa demais.")
         String titulo,
 
-        @NotNull(message = "Diga quanto e o alvo da meta.")
+        @NotNull(message = "Diga quanto é o alvo da meta.")
         @Min(value = 1, message = "O alvo deve ser de 1 a 1.000.000.")
         @Max(value = 1_000_000, message = "O alvo deve ser de 1 a 1.000.000.")
         Integer alvo,

@@ -49,8 +49,8 @@ public class AvisosController {
      * os dois mudarem, e nenhum caractere aceito precisa de escape no endereco do envio.
      */
     public record AparelhoRequest(
-            @NotBlank @Pattern(regexp = "[0-9A-Za-z:_-]{32,512}", message = "Token de aparelho invalido.") String token,
-            @NotBlank @Pattern(regexp = "IOS|ANDROID", message = "Plataforma nao suportada.") String plataforma) {
+            @NotBlank @Pattern(regexp = "[0-9A-Za-z:_-]{32,512}", message = "Token de aparelho inválido.") String token,
+            @NotBlank @Pattern(regexp = "IOS|ANDROID", message = "Plataforma não suportada.") String plataforma) {
 
         /** O token do APNs nao diferencia maiuscula; o do FCM diferencia e vai como veio. */
         String tokenGuardado() {

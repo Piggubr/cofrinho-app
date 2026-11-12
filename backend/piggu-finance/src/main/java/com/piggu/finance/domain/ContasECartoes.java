@@ -88,11 +88,11 @@ public class ContasECartoes {
                        UUID pessoa, boolean compartilhado) {
         String nome = Texto.limitar(Texto.espacoUnico(nomeBruto), 60);
         if (nome.length() < 2) {
-            throw new BusinessException("Digite o nome da conta ou do cartao.");
+            throw new BusinessException("Digite o nome da conta ou do cartão.");
         }
         if (contas.existsByNameIgnoreCaseAndUserId(nome, pessoa)) {
 
-            throw new BusinessException("Ja existe uma conta com esse nome.");
+            throw new BusinessException("Já existe uma conta com esse nome.");
         }
         boolean cartao = tipo == PaymentAccount.Tipo.CARTAO;
         if (cartao && vencimento == null) {
@@ -141,7 +141,7 @@ public class ContasECartoes {
     public void pagarFatura(UUID id, YearMonth mes) {
         PaymentAccount conta = buscarCartao(id);
         if (mes.isAfter(mesDaFaturaAberta(conta.getClosingDay(), LocalDate.now(Meses.BRASILIA)))) {
-            throw new BusinessException("Essa fatura ainda nao comecou.");
+            throw new BusinessException("Essa fatura ainda não começou.");
         }
         // Condicional no SQL: dois toques ao mesmo tempo nunca voltam a marca para um mes anterior.
         if (jdbc.update("""
@@ -172,13 +172,13 @@ public class ContasECartoes {
     }
 
     private PaymentAccount buscar(UUID id) {
-        return contas.findById(id).orElseThrow(() -> new NotFoundException("Conta ou cartao nao encontrado."));
+        return contas.findById(id).orElseThrow(() -> new NotFoundException("Conta ou cartão não encontrado."));
     }
 
     private PaymentAccount buscarCartao(UUID id) {
         PaymentAccount conta = buscar(id);
         if (conta.getKind() != PaymentAccount.Tipo.CARTAO) {
-            throw new BusinessException("Fatura so existe para cartao.");
+            throw new BusinessException("Fatura só existe para cartão.");
         }
         return conta;
     }

@@ -161,6 +161,8 @@ services:
       PIGGU_AMBIENTE: ${PIGGU_AMBIENTE:-dev}
       PIGGU_LIMITE_PROXIESNAFRENTE: ${PIGGU_LIMITE_PROXIESNAFRENTE:-1}
       JWKS_URI: http://identity:8081/.well-known/jwks.json
+      # dividirCom com alguem que o finance ainda nao viu: confere no GET /api/family (D-192).
+      IDENTITY_URL: http://identity:8081
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       PIGGU_ASSISTENTE_PERGUNTAS_POR_MES: ${PIGGU_ASSISTENTE_PERGUNTAS_POR_MES:-150}
       # false (padrao): recibo lido so pelo Gemini. true volta o leitor proprio (Tesseract) primeiro.
@@ -330,6 +332,8 @@ services:
       LIFESTYLE_URL: http://lifestyle:8084
       MEDIA_URL: http://media:8085
       BANKING_URL: http://banking:8086
+      # Desligado: o gateway responde o /api/banking/status sem chamar o banking.
+      PIGGU_OPEN_FINANCE: ${PIGGU_OPEN_FINANCE:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
     ports:
       # So na propria maquina: de fora, a API chega pelo Caddy (HTTPS).
