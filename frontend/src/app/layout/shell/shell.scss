@@ -23,6 +23,8 @@
 
 .cabecalho {
   grid-area: cabecalho;
+  /* Como o conteudo: um titulo longo ("Cartões e bancos") nao pode alargar a coluna. */
+  min-width: 0;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -401,7 +403,10 @@
 
 .conteudo {
   grid-area: conteudo;
-  padding: 0.75rem 1.75rem 2.5rem;
+  /* Sem isso o item da grade cresce ate o maior texto sem quebra (BUG-004). */
+  min-width: 0;
+  /* O fim da pagina fica livre do "+" (56px a 1.5rem da borda), para ele nao cobrir nada (BUG-013). */
+  padding: 0.75rem 1.75rem calc(1.5rem + 56px + 1rem);
   max-width: 1080px;
   width: 100%;
 }
@@ -498,8 +503,9 @@
     display: none;
   }
 
+  /* Respiro do tamanho das abas mais o "+" que fica em cima delas (BUG-013). */
   .conteudo {
-    padding: 1.1rem 1rem calc(112px + env(safe-area-inset-bottom, 0px));
+    padding: 1.1rem 1rem calc(0.6rem + 76px + 54px + 1rem + env(safe-area-inset-bottom, 0px));
   }
 
   /* Barra de abas em capsula de vidro, flutuando acima da barra de gestos do iPhone
@@ -816,7 +822,7 @@
 
   @media (max-width: 899px) {
     .conteudo {
-      padding-bottom: calc(var(--abas-nativas-altura, 83px) + 1rem);
+      padding-bottom: calc(var(--abas-nativas-altura, 83px) + 0.75rem + 54px + 1rem);
     }
 
     /* A folha do "Mais" abre logo acima da barra, que segue tocavel para fecha-la. */

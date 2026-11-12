@@ -11,6 +11,8 @@ describe('LancamentoRapido', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
+    // O rascunho do formulario (BUG-016) nao passa de um teste para outro.
+    sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [...PROVEDORES_DE_TELA, { provide: AuthService, useValue: new AuthFalso() }],
     });
@@ -139,7 +141,7 @@ describe('LancamentoRapido', () => {
     clicar(pagina, 'Lançar');
     tela.detectChanges();
 
-    expect(pagina.textContent).toContain('Digite um valor válido.');
+    expect(pagina.textContent).toContain('Digite um valor a partir de R$ 0,01.');
     expect(http.match((p) => p.method === 'POST')).toEqual([]);
   });
 });

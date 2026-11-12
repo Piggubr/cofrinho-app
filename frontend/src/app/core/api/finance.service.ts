@@ -167,11 +167,14 @@ export class FinanceService extends ApiBase {
     receita: Omit<Receita, 'id' | 'usuario'>,
     recorrente = false,
     segundaParcela?: { segundoDia: number; segundoValor: number },
+    /** Mesmo id ao tentar de novo: o servidor devolve a primeira resposta e nao grava duas vezes. */
+    idDoEnvio?: string,
   ): Observable<Receita> {
     return this.http.post<Receita>(this.url('/incomes'), {
       ...receita,
       recorrente,
       ...segundaParcela,
+      ...(idDoEnvio ? { idDoEnvio } : {}),
     });
   }
 

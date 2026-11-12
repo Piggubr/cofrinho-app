@@ -20,7 +20,16 @@ describe('mensagemDeErro', () => {
   it('avisa sobre conexao quando nao houve resposta', () => {
     const erro = new HttpErrorResponse({ status: 0 });
 
-    expect(mensagemDeErro(erro)).toContain('Sem conexao');
+    expect(mensagemDeErro(erro)).toContain('Sem conexão');
+  });
+
+  it('servico fora do ar (503) ou lento (504) sem mensagem da API mostra o texto do contrato', () => {
+    const texto = 'Essa parte do Piggu está fora do ar agora. Tente de novo em instantes.';
+    expect(mensagemDeErro(new HttpErrorResponse({ status: 503, error: { codigo: 'SERVICO_INDISPONIVEL' } }))).toBe(texto);
+    expect(mensagemDeErro(new HttpErrorResponse({ status: 504, error: '<html>Gateway</html>' }))).toBe(texto);
+    // A mensagem propria do servico (o gateway manda a do contrato) continua valendo.
+    const doServico = new HttpErrorResponse({ status: 503, error: { erro: 'Catálogo fora do ar.' } });
+    expect(mensagemDeErro(doServico)).toBe('Catálogo fora do ar.');
   });
 
   it('aceita corpo em texto puro', () => {

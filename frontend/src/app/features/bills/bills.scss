@@ -8,19 +8,32 @@
   padding-bottom: 0;
 }
 
+/* Caixa, texto e valor numa linha so: o texto encolhe e quebra, o valor nunca encosta nele
+ * (BUG-012). O ".linha > :first-child" global fazia a caixa crescer e esmagar o nome. */
 .conta {
+  flex-wrap: nowrap;
   align-items: flex-start;
   padding: 0;
   border: none;
 }
 
-.conta-texto {
-  flex: 1;
+.conta > .marcar-conta {
+  flex: none;
+}
+
+.conta > .conta-texto {
+  flex: 1 1 0;
   min-width: 0;
 }
 
 .marcar-conta {
-  margin: 0.2rem 0.6rem 0 0;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+}
+
+.conta-valor {
+  flex: none;
 }
 
 .pagar-varias {
@@ -34,6 +47,11 @@
 
 .conta-valor {
   white-space: nowrap;
+}
+
+/* As acoes alinham com o texto, nao com a caixa de selecao. */
+.conta:has(.marcar-conta) + .conta-acoes {
+  padding-left: calc(24px + 0.75rem);
 }
 
 .etiqueta.paga {

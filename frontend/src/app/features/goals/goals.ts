@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { FinanceService } from '../../core/api/finance.service';
 import { Gasto } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
+import { TETO_DE_LIMITE, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso } from '../../core/ui/datas';
 import { Icone } from '../../core/ui/icone';
@@ -44,8 +45,10 @@ export class Goals {
   protected readonly mesEscolhido = signal(mesKey(new Date()));
   protected readonly limite = signal<number | null>(null);
 
+  /** Os outros meses: o atual ja aparece no topo, em "Limite do mês" (BUG-024). */
   protected readonly lista = computed<MetaNaTela[]>(() =>
     Object.entries(this.metas())
+      .filter(([mes]) => mes !== mesKey(new Date()))
       .map(([mes, limite]) => ({ mes, rotulo: mesPorExtenso(mes), limite }))
       .sort((a, b) => b.mes.localeCompare(a.mes)),
   );
@@ -92,6 +95,11 @@ export class Goals {
     const limite = this.limite();
     if (!limite || limite <= 0) {
       this.erro.set($localize`Digite um valor válido para o limite.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(limite, TETO_DE_LIMITE);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
 

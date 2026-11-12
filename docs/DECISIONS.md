@@ -2015,6 +2015,24 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
 - Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
 - Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`
+## D-194: Site corrige os achados da auditoria de 11/11/2026
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (limites de valor e data, projeção, "Ainda dá", texto da família, moeda de exibição, nomes); o assistente, dentro da autonomia recebida, nos detalhes técnicos abaixo
+- Registrado por: Claude
+- Contexto: a auditoria de 11/11/2026 achou no site a data presa no formulário de gasto (BUG-003), o Perfil passando de 390px (BUG-004), as Contas do mês sobrepostas (BUG-012), o "+" cobrindo o fim das páginas (BUG-013), valores e datas sem regra (BUG-008, BUG-023), o "Ainda dá" inflado quando as contas falham (BUG-002) e outros acabamentos (BUG-016, 024, 025, 026, 032, 036).
+- Decisão:
+  - Valor e data seguem o contrato comum (D-189): `core/ui/limites.ts` confere de R$ 0,01 até o teto de cada campo, com os textos do contrato, e a data entre 2000 e hoje + 2 anos. Gasto e receita pedem confirmação ("Essa data é dd/mm/aaaa. Lançar mesmo assim?") para data futura ou de mais de 1 ano atrás. No "a receber" a data combinada costuma ser futura, então lá a confirmação só aparece passando de 1 ano para frente ou para trás. O depósito do cofrinho é sempre de hoje no site, então não pergunta. A confirmação usa o `confirm()` do navegador, como o resto do site: os botões ficam OK e Cancelar.
+  - Depois de lançar, a data do gasto, da receita e do "a receber" volta para hoje. O rascunho do gasto (descrição, valor, categoria e data) fica no `sessionStorage` da aba e some ao lançar ou ao fechar a aba; conta, cartão e sessão não entram.
+  - A receita manda `idDoEnvio` (D-192): o mesmo id ao tentar de novo com o mesmo pedido; mudou o pedido, id novo.
+  - 503 e 504 sem a mensagem da API viram "Essa parte do Piggu está fora do ar agora. Tente de novo em instantes." (D-191).
+  - "Ainda dá para gastar": a fórmula do site continua a referência; o cartão fica em carregando até as contas chegarem e, se elas falham, mostra o erro com "Tentar de novo". O "por dia" continua arredondado para baixo, como no iOS e no Android, agora em centavos inteiros.
+  - Relatórios: no mês corrente, com o backend novo (D-190), a comparação é até o mesmo dia do mês anterior e a projeção explica que os fixos entram uma vez; sem os campos novos, fica como antes.
+  - O tour "Bem-vindo ao Piggu" só começa no Painel; `/aceite` e `/cpf` já em dia voltam ao Painel.
+  - Alvos de toque de 24px (caixas de seleção, estrelas e links soltos) e o aviso de cookies mais baixo em celular pequeno.
+- Alternativas: um diálogo próprio para a data, com os botões "Lançar" e "Corrigir a data", ficou para quando o site tiver um componente de diálogo; guardar o rascunho no `localStorage` deixaria o formulário no aparelho depois de fechar a aba.
+- Consequências: a demonstração (`api-da-demo.ts`) recusa o mesmo que o backend e devolve os campos novos da projeção. O site passa a esperar os campos de D-190 a D-192, mas funciona sem eles.
+- Onde ver: `frontend/src/app/core/ui/limites.ts`, `frontend/src/app/features/expenses/formulario-de-gasto.ts`, `frontend/src/app/features/incomes/formulario-de-receita.ts`, `frontend/src/app/features/dashboard/ainda-da-para-gastar.ts`, `frontend/src/app/features/reports/reports.ts`, `frontend/src/app/core/ui/mensagem-de-erro.ts`, `frontend/src/app/core/auth/auth.guard.ts`
 ## D-196: Correções da auditoria no Android nativo
 - Data: 11/11/2026
 - Situação: Valendo

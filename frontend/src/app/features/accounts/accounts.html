@@ -173,7 +173,7 @@
     <h2 i18n id="titulo-nova-conta">Nova conta ou cartão</h2>
   </div>
   <div class="linha-de-campos">
-    <div class="campo">
+    <div class="campo campo-largo">
       <label i18n for="nome-conta">Nome</label>
       <input
         i18n-placeholder
@@ -184,7 +184,7 @@
         (ngModelChange)="nome.set($event)"
       />
     </div>
-    <div class="campo">
+    <div class="campo campo-largo">
       <label i18n for="tipo-conta">Tipo</label>
       <select id="tipo-conta" [ngModel]="tipo()" (ngModelChange)="tipo.set($event)">
         <option i18n value="CARTAO">Cartão de crédito</option>

@@ -28,6 +28,7 @@ import {
 } from '../../core/api/models';
 import { MoedaPipe, MoedaService } from '../../core/ui/moeda';
 import { DataBrPipe } from '../../core/ui/data.pipe';
+import { TETO_DE_GASTO, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
 import { ImportarExtrato } from './importar-extrato';
@@ -187,8 +188,13 @@ export class Expenses {
 
   protected salvarEdicao(id: string): void {
     const valor = this.valorEditado();
-    if (!this.itemEditado().trim() || valor === null || valor < 0) {
+    if (!this.itemEditado().trim()) {
       this.erro.set($localize`Confira o nome e o valor do gasto.`);
+      return;
+    }
+    const erroNoValor = erroDeValor(valor, TETO_DE_GASTO);
+    if (erroNoValor) {
+      this.erro.set(erroNoValor);
       return;
     }
 
@@ -199,7 +205,7 @@ export class Expenses {
         {
           item: this.itemEditado().trim(),
           categoria: this.categoriaEditada(),
-          valor,
+          valor: valor!,
         },
         antes && this.ehMeu(antes) ? this.compartilhadoEditado() : undefined,
       )
