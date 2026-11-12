@@ -91,6 +91,8 @@ public class RetencaoDeDados {
     private void limparSessoesEConvites(Instant agora) {
         transacao.executeWithoutResult(status -> {
             int sessoesApagadas = sessoes.apagarExpiradas(agora);
+            // Refresh trocado ha mais de 30 dias (a validade do refresh) ja nao diz nada (D-193).
+            sessoes.esquecerRotacionados(agora.minus(Duration.ofDays(30)));
             int convitesApagados = convites.apagarVencidos(agora);
             int cpfsApagados = testes.apagarVencidos(agora);
             // Aparelho sem sessao (de antes da D-188) que o app nao cadastrou de novo em 30 dias.

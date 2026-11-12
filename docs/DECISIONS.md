@@ -1938,3 +1938,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o app guardar o token e tentar apagar de novo quando o `DELETE` falha, que não cobre as sessões derrubadas pelo servidor; apagar todos os aparelhos de uma vez na migração, que deixa todo mundo sem push até abrir o app.
 - Consequências: nenhum app muda, e a API não perde nem renomeia campo. A sessão guarda a data do login, não a da última renovação; o `criadaEm` da exportação passa a mostrar quando a pessoa entrou. De duas renovações simultâneas com o mesmo refresh, só uma passa, como antes.
 - Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V42__push_preso_a_sessao.sql`, `.../avisos/Aparelhos.java` (`registrar`, `esquecerSoltos`), `.../domain/AuthService.java` (`renovar`), `.../domain/TokenService.java` (`CLAIM_SESSAO`)
+
+## D-193: Refresh já trocado que volta derruba aquela sessão
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (derrubar só aquele login, com 30 s de tolerância); a tabela separada foi do assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-020) mostrou que um refresh já rotacionado, apresentado de novo, só recebia `401`: quem tivesse copiado o refresh e renovado antes do dono seguia com a sessão viva, sem nenhum sinal.
+- Decisão: cada renovação guarda o hash do refresh trocado em `refresh_rotated`, ligado à sessão (`ON DELETE CASCADE`). Se um refresh desses volta mais de 30 s depois da troca, a sessão é apagada (o login daquele aparelho e, pela D-188, o aparelho de push dela) e a resposta é o mesmo `401` de sempre. Dentro dos 30 s, só o `401`, para duas abas que renovam juntas não derrubarem o próprio login. As outras sessões da conta continuam.
+- Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`

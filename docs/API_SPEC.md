@@ -69,6 +69,10 @@ app nessa lista, separado por vírgula. O app atual, que abre o site num WebView
 **Renovar**: `POST /api/auth/refresh` com o cookie devolve um par novo. Renove quando
 faltar menos de um minuto para `expiresIn` acabar, ou quando uma chamada voltar `401`, e
 repita a chamada uma vez. Se a renovação também der `401`, a sessão acabou: volte ao login.
+Guarde sempre o refresh novo e nunca reenvie um que já foi trocado: um refresh já usado que
+volta mais de 30 s depois da troca é tratado como cópia e derruba aquela sessão (o login
+daquele aparelho, com o aparelho de push dela). Dentro dos 30 s (duas abas renovando juntas)
+ele só recebe `401`, e a sessão continua (D-193).
 **Sair**: `POST /api/auth/logout` (responde `204` e apaga o cookie).
 
 **No app nativo** (D-058, D-072) não há cookie: o refresh viaja no corpo e o app o guarda no
