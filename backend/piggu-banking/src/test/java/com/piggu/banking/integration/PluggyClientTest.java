@@ -3,6 +3,7 @@ package com.piggu.banking.integration;
 import com.piggu.banking.config.PluggyProperties;
 import com.piggu.common.error.BusinessException;
 import com.piggu.common.error.NotFoundException;
+import com.piggu.common.error.UpstreamException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -162,7 +163,36 @@ class PluggyClientTest {
 
         assertThatThrownBy(() -> cliente.criarConnectToken("u"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("nao esta configurada");
+                .hasMessageContaining("não está configurada");
+        pluggy.verify();
+    }
+
+    @Test
+    @DisplayName("credencial recusada, erro da Pluggy e queda de rede viram mensagens claras; a apiKey recusada e descartada")
+    void errosDaPluggy() {
+        pluggy.expect(requestTo("https://api.pluggy.test/auth"))
+                .andRespond(withSuccess("{\"apiKey\":\"chave\"}", MediaType.APPLICATION_JSON));
+        pluggy.expect(requestTo("https://api.pluggy.test/items/a"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+        // A apiKey recusada saiu: a proxima chamada autentica de novo.
+        pluggy.expect(requestTo("https://api.pluggy.test/auth"))
+                .andRespond(withSuccess("{\"apiKey\":\"nova\"}", MediaType.APPLICATION_JSON));
+        pluggy.expect(requestTo("https://api.pluggy.test/items/b"))
+                .andExpect(header("X-API-KEY", "nova"))
+                .andRespond(withStatus(HttpStatus.BAD_GATEWAY));
+        pluggy.expect(requestTo("https://api.pluggy.test/items/c"))
+                .andRespond(requisicao -> {
+                    throw new java.io.IOException("rede caiu");
+                });
+
+        PluggyClient cliente = new PluggyClient(builder, CONFIGURADA);
+
+        assertThatThrownBy(() -> cliente.buscarItem("a")).isInstanceOf(UpstreamException.class)
+                .hasMessage("A credencial da Pluggy foi recusada. Confira a configuração.");
+        assertThatThrownBy(() -> cliente.buscarItem("b")).isInstanceOf(UpstreamException.class)
+                .hasMessage("A Pluggy não respondeu corretamente (erro 502).");
+        assertThatThrownBy(() -> cliente.buscarItem("c")).isInstanceOf(UpstreamException.class)
+                .hasMessage("O serviço de conexão com bancos está indisponível agora.");
         pluggy.verify();
     }
 

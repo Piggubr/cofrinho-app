@@ -25,10 +25,10 @@ class MensagemTest {
 
         assertThat(mensagem.titulo()).isEqualTo("Piggu: 4 avisos de hoje");
         assertThat(String.join("\n", mensagem.linhas()).replace(' ', ' '))
-                .contains("Mercado ja usou 85% do limite (R$ 850,00 de R$ 1.000,00)")
+                .contains("Mercado já usou 85% do limite (R$ 850,00 de R$ 1.000,00)")
                 .contains("Lazer passou do limite: R$ 320,00 de R$ 300,00")
                 .contains("Luz vence em 22/10: R$ 180,00")
-                .contains("Aluguel venceu em 10/10 e nao foi paga: R$ 2.000,00");
+                .contains("Aluguel venceu em 10/10 e não foi paga: R$ 2.000,00");
         assertThat(mensagem.resumo()).endsWith("(e mais 3)");
         assertThat(mensagem.texto()).contains("Perfil > Avisos");
     }

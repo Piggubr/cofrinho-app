@@ -59,7 +59,7 @@ public class CatalogClient {
                     .header("Accept", "application/json")
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
-                        throw new UpstreamException("A busca de produtos esta indisponivel agora.");
+                        throw new UpstreamException("A busca de produtos está indisponível agora.");
                     })
                     .body(JsonNode.class);
 
@@ -68,7 +68,7 @@ public class CatalogClient {
             throw erro;
         } catch (RuntimeException erro) {
             log.error("Falha ao consultar o catalogo de produtos", erro);
-            throw new UpstreamException("A busca de produtos esta indisponivel agora.");
+            throw new UpstreamException("A busca de produtos está indisponível agora.");
         }
     }
 

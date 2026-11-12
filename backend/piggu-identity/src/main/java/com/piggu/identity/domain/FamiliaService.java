@@ -98,7 +98,7 @@ public class FamiliaService {
                     HttpStatus.UNPROCESSABLE_CONTENT, "TERMOS_NECESSARIOS");
         }
         if (!Consentimentos.versaoAceita(versaoDosTermos)) {
-            throw new BusinessException("Os termos mudaram. Recarregue a pagina e leia de novo.",
+            throw new BusinessException("Os termos mudaram. Recarregue a página e leia de novo.",
                     HttpStatus.CONFLICT, Consentimentos.CODIGO_AVISO_MUDOU);
         }
         Household familia = familias.save(new Household(nomePadrao(primeiroNome)));
@@ -122,13 +122,13 @@ public class FamiliaService {
     @Transactional(readOnly = true)
     public Household daConta(UserAccount conta) {
         return familias.findById(conta.getHouseholdId())
-                .orElseThrow(() -> new IllegalStateException("Conta sem familia: " + conta.getId()));
+                .orElseThrow(() -> new IllegalStateException("Conta sem família: " + conta.getId()));
     }
 
     /** A casa travada ate o fim da transacao, para aplicar um aviso de pagamento sem corrida. */
     public Household daContaTravada(UserAccount conta) {
         return familias.travar(conta.getHouseholdId())
-                .orElseThrow(() -> new IllegalStateException("Conta sem familia: " + conta.getId()));
+                .orElseThrow(() -> new IllegalStateException("Conta sem família: " + conta.getId()));
     }
 
     @Transactional(readOnly = true)
@@ -175,13 +175,13 @@ public class FamiliaService {
         exigirEmailConfirmado(conta(usuario));
         String email = Texto.email(emailBruto);
         if (email.isEmpty() || !email.contains("@")) {
-            throw new BusinessException("Digite um e-mail valido.");
+            throw new BusinessException("Digite um e-mail válido.");
         }
         boolean daCasa = usuarios.findByEmail(email)
                 .filter(existente -> existente.getHouseholdId().equals(usuario.familia()))
                 .isPresent();
         if (daCasa) {
-            throw new BusinessException("Essa pessoa ja faz parte da familia.", HttpStatus.CONFLICT, "JA_E_DA_FAMILIA");
+            throw new BusinessException("Essa pessoa já faz parte da família.", HttpStatus.CONFLICT, "JA_E_DA_FAMILIA");
         }
 
         // Trava a casa antes de contar: dois convites ao mesmo tempo nao passam do limite.
@@ -204,7 +204,7 @@ public class FamiliaService {
     private void exigirVagaParaConvite(UUID familiaId, Instant agora) {
         // Anti-abuso: convite vira linha no banco e aparece para o e-mail convidado.
         if (convites.countByHouseholdIdAndExpiresAtAfter(familiaId, agora) >= MAXIMO_DE_CONVITES) {
-            throw new BusinessException("Ja ha " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
+            throw new BusinessException("Já há " + MAXIMO_DE_CONVITES + " convites esperando resposta. "
                     + "Cancele algum para convidar outra pessoa.", HttpStatus.UNPROCESSABLE_CONTENT,
                     "LIMITE_DE_CONVITES");
         }
@@ -229,7 +229,7 @@ public class FamiliaService {
         exigirTitular(usuario);
         HouseholdInvite convite = convites.findById(conviteId)
                 .filter(encontrado -> encontrado.getHouseholdId().equals(usuario.familia()))
-                .orElseThrow(() -> new NotFoundException("Convite nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Convite não encontrado."));
         convites.delete(convite);
         return ver(usuario);
     }
@@ -258,10 +258,10 @@ public class FamiliaService {
         UserAccount conta = conta(usuario);
         HouseholdInvite convite = convites.findById(conviteId)
                 .filter(encontrado -> encontrado.getEmail().equals(conta.getEmail()) && encontrado.valido())
-                .orElseThrow(() -> new NotFoundException("Convite nao encontrado ou vencido."));
+                .orElseThrow(() -> new NotFoundException("Convite não encontrado ou vencido."));
         exigirEmailConfirmado(conta);
         if (convite.getHouseholdId().equals(conta.getHouseholdId())) {
-            throw new BusinessException("Voce ja faz parte dessa familia.");
+            throw new BusinessException("Você já faz parte dessa família.");
         }
         // A renovacao vai para a familia atual de quem paga: na outra casa, trocaria o plano de la.
         Household atual = daConta(conta);
@@ -362,13 +362,13 @@ public class FamiliaService {
     public FamiliaResponse removerMembro(CurrentUser usuario, UUID membroId) {
         exigirTitular(usuario);
         if (membroId.equals(usuario.id())) {
-            throw new BusinessException("Para sair da familia, use a opcao Sair.");
+            throw new BusinessException("Para sair da família, use a opção Sair.");
         }
         UserAccount membro = usuarios.findById(membroId)
                 .filter(encontrado -> encontrado.getHouseholdId().equals(usuario.familia()))
-                .orElseThrow(() -> new NotFoundException("Pessoa nao encontrada na familia."));
+                .orElseThrow(() -> new NotFoundException("Pessoa não encontrada na família."));
         if (cuidaDaFamilia(membro)) {
-            throw new ForbiddenException("So da para remover membros e parceiros.");
+            throw new ForbiddenException("Só dá para remover membros e parceiros.");
         }
         trilha.registrar(usuario.familia(), usuario.id(), Acao.REMOVEU, PESSOA, membroId, pessoa(membro), null);
         mudarParaFamiliaPropria(membro);
@@ -390,9 +390,9 @@ public class FamiliaService {
         }
         UserAccount membro = usuarios.findById(membroId)
                 .filter(encontrado -> encontrado.getHouseholdId().equals(usuario.familia()))
-                .orElseThrow(() -> new NotFoundException("Pessoa nao encontrada na familia."));
+                .orElseThrow(() -> new NotFoundException("Pessoa não encontrada na família."));
         if (cuidaDaFamilia(membro)) {
-            throw new ForbiddenException("O papel do titular nao muda por aqui.");
+            throw new ForbiddenException("O papel do titular não muda por aqui.");
         }
         if (papel == PigguRole.PARCEIRO) {
             exigirEmailConfirmado(conta(usuario));
@@ -423,7 +423,7 @@ public class FamiliaService {
                 .anyMatch(outro -> !outro.getId().equals(membro.getId())
                         && (outro.getRole() == PigguRole.PARCEIRO || outro.convidadoParaParceria()));
         if (outroParceiro) {
-            throw new BusinessException("A familia ja tem um parceiro (ou um convite esperando resposta). "
+            throw new BusinessException("A família já tem um parceiro (ou um convite esperando resposta). "
                     + "Volte essa pessoa a membro antes de convidar outra.", HttpStatus.CONFLICT, "JA_TEM_PARCEIRO");
         }
         membro.convidarParaParceria(Instant.now());
@@ -470,7 +470,7 @@ public class FamiliaService {
     public void sair(CurrentUser usuario) {
         UserAccount conta = conta(usuario);
         if (cuidaDaFamilia(conta)) {
-            throw new BusinessException("O titular nao sai da propria familia.");
+            throw new BusinessException("O titular não sai da própria família.");
         }
         UUID antiga = conta.getHouseholdId();
         String quem = pessoa(conta);
@@ -513,7 +513,7 @@ public class FamiliaService {
 
     private UserAccount conta(CurrentUser usuario) {
         return usuarios.findById(usuario.id())
-                .orElseThrow(() -> new UnauthorizedException("Conta nao encontrada. Entre novamente."));
+                .orElseThrow(() -> new UnauthorizedException("Conta não encontrada. Entre novamente."));
     }
 
     /** "Bia · PARCEIRO": o primeiro nome basta para a familia saber quem e. */
@@ -532,7 +532,7 @@ public class FamiliaService {
      */
     private void exigirTitular(CurrentUser usuario) {
         if (!usuario.isTitular() || !ehTitularDaFamiliaDoToken(conta(usuario), usuario)) {
-            throw new ForbiddenException("So o titular cuida da familia.");
+            throw new ForbiddenException("Só o titular cuida da família.");
         }
     }
 
@@ -552,6 +552,6 @@ public class FamiliaService {
     }
 
     private static String nomePadrao(String primeiroNome) {
-        return Texto.vazio(primeiroNome) ? "Minha familia" : Texto.limitar("Familia de " + primeiroNome.trim(), 120);
+        return Texto.vazio(primeiroNome) ? "Minha família" : Texto.limitar("Família de " + primeiroNome.trim(), 120);
     }
 }

@@ -58,7 +58,7 @@ class OrcamentoTest extends PostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("995 de 1000 e atencao, nao estourou; 795 e ok; 1000 estourou (o percentual arredondado e so para mostrar)")
+    @DisplayName("995 de 1000 e atencao e mostra 99, nao 100 (BUG-028); 795 e ok e mostra 79; 1000 estourou e mostra 100")
     void semArredondarOAlerta() throws Exception {
         orcamento(casas.casaA, "Alimentação", 1000).andExpect(status().isNoContent());
         orcamento(casas.casaA, "Transporte", 1000).andExpect(status().isNoContent());
@@ -69,9 +69,11 @@ class OrcamentoTest extends PostgresIntegrationTest {
 
         mockMvc.perform(get("/api/budgets").param("mes", "2026-09").with(casas.casaA))
                 .andExpect(jsonPath("$[?(@.categoria=='Alimentação')].alerta").value("ATENCAO"))
-                .andExpect(jsonPath("$[?(@.categoria=='Alimentação')].percentual").value(100))
+                .andExpect(jsonPath("$[?(@.categoria=='Alimentação')].percentual").value(99))
                 .andExpect(jsonPath("$[?(@.categoria=='Transporte')].alerta").value("ESTOUROU"))
-                .andExpect(jsonPath("$[?(@.categoria=='Lazer')].alerta").value("OK"));
+                .andExpect(jsonPath("$[?(@.categoria=='Transporte')].percentual").value(100))
+                .andExpect(jsonPath("$[?(@.categoria=='Lazer')].alerta").value("OK"))
+                .andExpect(jsonPath("$[?(@.categoria=='Lazer')].percentual").value(79));
     }
 
     @Test

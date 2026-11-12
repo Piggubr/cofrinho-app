@@ -67,7 +67,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
 
         assertThatThrownBy(() -> adicionar("603", "Matrix Reloaded"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("Esse filme ja esta na lista.");
+                .hasMessage("Esse filme já está na lista.");
     }
 
     @Test
@@ -84,7 +84,7 @@ class MovieServiceTest extends PostgresIntegrationTest {
     void filmeSemTitulo() {
         assertThatThrownBy(() -> adicionar("1", "   "))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("O filme nao chegou corretamente.");
+                .hasMessage("O filme não chegou corretamente.");
     }
 
     @Test

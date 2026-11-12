@@ -89,7 +89,7 @@ class CatalogClientTest {
 
         assertThatThrownBy(() -> cliente.buscar("feijao"))
                 .isInstanceOf(UpstreamException.class)
-                .hasMessageContaining("indisponivel");
+                .hasMessageContaining("indisponível");
     }
 
     @Test

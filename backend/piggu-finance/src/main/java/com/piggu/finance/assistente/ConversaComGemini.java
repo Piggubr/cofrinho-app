@@ -84,7 +84,7 @@ public class ConversaComGemini {
             }
             if (respostas.isEmpty()) {
                 if (textoFinal.isEmpty()) {
-                    throw new UpstreamException("A IA nao respondeu agora. Tente de novo.");
+                    throw new UpstreamException("A IA não respondeu agora. Tente de novo.");
                 }
                 return textoFinal.toString().strip();
             }
@@ -92,7 +92,7 @@ public class ConversaComGemini {
             conteudos.add(Map.of("role", "user", "parts", respostas));
         }
         log.warn("Assistente passou de {} rodadas de ferramenta", MAXIMO_DE_RODADAS);
-        throw new UpstreamException("Nao consegui chegar numa resposta. Tente perguntar de outro jeito.");
+        throw new UpstreamException("Não consegui chegar numa resposta. Tente perguntar de outro jeito.");
     }
 
     private JsonNode chamar(String instrucoes, List<Object> conteudos, List<Map<String, Object>> declaracoes) {
@@ -116,14 +116,14 @@ public class ConversaComGemini {
                     .body(JsonNode.class);
             JsonNode conteudo = resposta == null ? null : resposta.path("candidates").path(0).path("content");
             if (conteudo == null || conteudo.isMissingNode() || !conteudo.path("parts").isArray()) {
-                throw new UpstreamException("A IA nao respondeu agora. Tente de novo.");
+                throw new UpstreamException("A IA não respondeu agora. Tente de novo.");
             }
             return conteudo;
         } catch (BusinessException erro) {
             throw erro;
         } catch (RuntimeException erro) {
             log.error("Nao foi possivel falar com o Gemini no assistente", erro);
-            throw new UpstreamException("O assistente nao respondeu agora. Tente de novo em instantes.");
+            throw new UpstreamException("O assistente não respondeu agora. Tente de novo em instantes.");
         }
     }
 
@@ -133,10 +133,10 @@ public class ConversaComGemini {
 
     private static RuntimeException traduzirErro(int codigo) {
         return switch (codigo) {
-            case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuracao.");
-            case 404 -> new UpstreamException("O modelo do Gemini nao esta disponivel para esta chave.");
+            case 403 -> new UpstreamException("A chave do Gemini foi recusada. Confira a configuração.");
+            case 404 -> new UpstreamException("O modelo do Gemini não está disponível para esta chave.");
             case 429 -> new UpstreamException("A cota do Gemini acabou por enquanto. Tente mais tarde.");
-            default -> new UpstreamException("O assistente nao respondeu agora (erro " + codigo + ").");
+            default -> new UpstreamException("O assistente não respondeu agora (erro " + codigo + ").");
         };
     }
 }

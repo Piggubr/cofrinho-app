@@ -105,7 +105,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     void base64InvalidoViraErroDeNegocio() {
         assertThatThrownBy(() -> assets.guardar("nao@@e@@base64", "image/png", "FEED", null, TITULAR.id()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("formato que nao consegui ler");
+                .hasMessageContaining("formato que não consegui ler");
     }
 
     @Test
@@ -133,7 +133,7 @@ class AssetServiceTest extends PostgresIntegrationTest {
     void fotoInexistente() {
         assertThatThrownBy(() -> assets.baixar(UUID.randomUUID(), TITULAR.id()))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Foto nao encontrada.");
+                .hasMessage("Foto não encontrada.");
     }
 
     @Test

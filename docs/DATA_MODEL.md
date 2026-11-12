@@ -4,7 +4,7 @@
 
 | Serviço | Banco | Até a migração |
 |---|---|---|
-| identity | `piggu_identity` | V36 (`push_no_android`) |
+| identity | `piggu_identity` | V43 (`refresh_reaproveitado`) |
 | finance | `piggu_finance` | V21 (`indices_nas_chaves_estrangeiras`) |
 | rewards | `piggu_rewards` | V4 (`indices_nas_chaves_estrangeiras`) |
 | lifestyle | `piggu_lifestyle` | V5 (`cada_um_ve_o_seu`) |
@@ -209,6 +209,8 @@ erDiagram
     households ||--o{ household_invites : "convites"
     users ||--o{ refresh_sessions : "sessões"
     users ||--o{ push_devices : "aparelhos"
+    refresh_sessions |o--o{ push_devices : "session_id"
+    refresh_sessions ||--o{ refresh_rotated : "session_id"
     users ||--o{ alerts_sent : "avisos mandados"
     users ||--o{ trial_campaign_uses : "usou"
     trial_campaigns ||--o{ trial_campaign_uses : "usos"
@@ -289,7 +291,8 @@ E-mail único. `household_id` é chave estrangeira para `households`.
 |---|---|---|
 | `household_invites` | `email` (texto(320)), `invited_by` (uuid), `expires_at` | Convite para entrar na família. Único por família e e-mail; vale 7 dias e a retenção apaga os vencidos |
 | `refresh_sessions` | `user_id`, `token_hash` (texto(64), único), `user_agent`, `expires_at`, `revoked_at`, `remember` | Sessão longa (30 dias). Só o SHA-256 do refresh token; rotacionado a cada uso. `remember` é o "continuar conectado" |
-| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado |
+| `refresh_rotated` | `token_hash` (chave, texto(64)), `session_id`, `rotated_at` | Hash dos refresh já trocados de cada sessão (D-193): se um voltar depois de 30 s, a sessão cai. Sai com a sessão, e a retenção apaga os de mais de 30 dias |
+| `push_devices` | `token` (chave, texto(512)), `user_id`, `platform`, `session_id`, `seen_at` | Aparelho que recebe push: `IOS` (token do APNs, em minúsculas) ou `ANDROID` (token do FCM, como veio). O lembrete diário envia para `IOS` pelo APNs e para `ANDROID` pelo FCM; token recusado é apagado. Preso à sessão em que foi cadastrado (D-188): a sessão apagada leva o aparelho junto. Sem sessão e sem cadastro novo por 30 dias, sai na retenção |
 | `alerts_sent` | `user_id`, `alert_key` (chave composta), `sent_at` | Avisos já mandados, pela chave que o finance dá a cada um: o mesmo aviso não chega duas vezes. Sai depois de 120 dias |
 | `billing_events` | `event_id` (chave), `provider`, `received_at` | Avisos de pagamento já processados (Stripe e Apple; o RevenueCat, que saiu em D-145, também gravava aqui): cada um conta uma vez |
 | `trial_campaigns` | `code` (chave), `trial_days`, `starts_at`, `ends_at`, `max_uses`, `uses`, `for_previous_trial_users` | Campanha que libera o teste grátis (`/plano?promo=CODIGO`). Criada direto no banco |
@@ -324,6 +327,8 @@ erDiagram
     assistant_usage
     receipt_usage
     expense_submissions
+    income_submissions
+    household_people
     app_settings
     eventos_de_auditoria
 ```
@@ -472,6 +477,8 @@ Uma linha por produto e pessoa (único por família, pessoa e `product_key`).
 | `assistant_usage` | `user_id` + `reference_month` (chave), `questions` | Perguntas ao assistente de IA no mês, para o limite do Premium. A conversa não é guardada |
 | `receipt_usage` | `household_id` + `reference_month` (chave), `reads` | Notas lidas pela foto no mês, para a cota do gratuito |
 | `expense_submissions` | `household_id` + `id` (chave), `user_id`, `expense_ids` (uuid[]), `created_at` | Envios de gasto do app com `idDoEnvio`: o mesmo id de novo na família não lança e devolve os gastos de `expense_ids`. Gravado na transação dos gastos |
+| `income_submissions` | `household_id` + `id` (chave), `user_id`, `income_id`, `created_at` | O mesmo para a receita (`POST /api/incomes` com `idDoEnvio`, D-192): o id de novo devolve a receita de `income_id` |
+| `household_people` | `household_id` + `user_id` (chave), `first_seen_at` | Quem o finance já viu em cada família: toda chamada com token grava a pessoa. O `dividirCom` só aceita quem está aqui (D-192). Nasceu (V29) com quem já tinha algum dado na família; sai com a conta e vai junto quando a pessoa muda de família |
 | `app_settings` | `setting_key` (chave), `setting_value` | Valores pequenos do serviço; hoje a última cotação de cada par (`ultima_cotacao_eur_brl`). Não é por família |
 | `eventos_de_auditoria` | igual à do identity | Quem criou, mudou ou apagou o quê (gasto, depósito, conta fixa...). Sai depois de 400 dias |
 

@@ -195,7 +195,7 @@ public class AuthController {
             return ResponseEntity.ok(servico.renovar(doCorpo, userAgent));
         }
         if (cookie == null || cookie.isBlank()) {
-            throw new UnauthorizedException("Sua sessao venceu. Entre novamente.");
+            throw new UnauthorizedException("Sua sessão venceu. Entre novamente.");
         }
         return comCookie(servico.renovar(cookie, userAgent));
     }
@@ -273,7 +273,7 @@ public class AuthController {
     }
 
     /**
-     * Cria a senha de quem so entrava pelo Google, ou troca a atual. O cookie da sessao
+     * Troca a senha; conta sem senha recebe no e-mail o link para criar a primeira. O cookie da sessao
      * deste aparelho (o caminho e /api/auth, entao ele vem junto) diz qual sessao fica; no app
      * nativo, o {@code refreshToken} do corpo.
      */

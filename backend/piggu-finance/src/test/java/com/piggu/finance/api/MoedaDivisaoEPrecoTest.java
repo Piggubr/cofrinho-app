@@ -29,14 +29,17 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
     @Autowired
     private ObjectMapper json;
 
-    private static final String ANA = UUID.randomUUID().toString();
-    private static final String BETO = UUID.randomUUID().toString();
+    private String ana;
+    private String beto;
 
     private DuasFamilias casas;
 
     @BeforeEach
-    void preparar() {
+    void preparar() throws Exception {
         casas = new DuasFamilias(mockMvc, json);
+        // O dividirCom so aceita quem ja passou pelo finance nesta familia (D-192).
+        ana = casas.pessoaDaA("ana-" + UUID.randomUUID() + "@piggu.test").toString();
+        beto = casas.pessoaDaA("beto-" + UUID.randomUUID() + "@piggu.test").toString();
     }
 
     @Test
@@ -57,13 +60,13 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
     @DisplayName("100 dividido entre duas pessoas (repetida conta uma vez): quem pagou tem 50 a receber, a outra deve 50")
     void divisao() throws Exception {
         casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-09-10\",\"dividirCom\":"
-                + "[\"" + ANA + "\",\"" + ANA + "\",\"" + BETO + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":100}]}");
+                + "[\"" + ana + "\",\"" + ana + "\",\"" + beto + "\"],\"itens\":[{\"item\":\"Jantar\",\"valor\":100}]}");
         String quemPagou = json.readTree(mockMvc.perform(get("/api/expenses").param("mes", "2026-09").with(casas.casaA))
                 .andReturn().getResponse().getContentAsString()).get(0).path("usuario").asString();
 
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-09").with(casas.casaA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.pessoa=='" + BETO + "')].saldo").value(-50.0))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + beto + "')].saldo").value(-50.0))
                 .andExpect(jsonPath("$[?(@.pessoa=='" + quemPagou + "')].pagou").value(100.0));
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-09").with(casas.casaB))
                 .andExpect(jsonPath("$.length()").value(0));
@@ -73,7 +76,7 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
     @DisplayName("gasto dividido editado de 100 para 80: as partes viram 40 e 40")
     void divisaoEditada() throws Exception {
         casas.criar("/api/expenses", casas.casaA, "{\"data\":\"2026-08-10\",\"dividirCom\":"
-                + "[\"" + ANA + "\",\"" + BETO + "\"],\"itens\":[{\"item\":\"Mercado\",\"valor\":100}]}");
+                + "[\"" + ana + "\",\"" + beto + "\"],\"itens\":[{\"item\":\"Mercado\",\"valor\":100}]}");
         String id = json.readTree(mockMvc.perform(get("/api/expenses").param("mes", "2026-08").with(casas.casaA))
                 .andReturn().getResponse().getContentAsString()).get(0).path("id").asString();
 
@@ -82,8 +85,8 @@ class MoedaDivisaoEPrecoTest extends PostgresIntegrationTest {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/expenses/splits").param("mes", "2026-08").with(casas.casaA))
-                .andExpect(jsonPath("$[?(@.pessoa=='" + ANA + "')].parte").value(40.0))
-                .andExpect(jsonPath("$[?(@.pessoa=='" + BETO + "')].parte").value(40.0));
+                .andExpect(jsonPath("$[?(@.pessoa=='" + ana + "')].parte").value(40.0))
+                .andExpect(jsonPath("$[?(@.pessoa=='" + beto + "')].parte").value(40.0));
     }
 
     @Test

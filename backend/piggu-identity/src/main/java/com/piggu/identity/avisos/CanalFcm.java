@@ -119,7 +119,7 @@ public class CanalFcm {
                         lido.path("private_key_id").asString(), chave);
             } catch (GeneralSecurityException | IllegalArgumentException erro) {
                 throw new IllegalStateException(
-                        "Conta de servico do FCM invalida (esperado o JSON baixado do Google Cloud).", erro);
+                        "Conta de serviço do FCM inválida (esperado o JSON baixado do Google Cloud).", erro);
             }
         }
         return conta;
@@ -145,7 +145,7 @@ public class CanalFcm {
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         if (resposta.statusCode() != 200) {
-            throw new IllegalStateException("Google recusou a conta de servico do FCM: status="
+            throw new IllegalStateException("Google recusou a conta de serviço do FCM: status="
                     + resposta.statusCode() + " corpo=" + resposta.body());
         }
         acesso = json.readTree(resposta.body()).path("access_token").asString();

@@ -85,10 +85,10 @@ public class NoteService {
     @Transactional
     public void excluir(UUID id, CurrentUser usuario) {
         Note nota = repositorio.findById(id)
-                .orElseThrow(() -> new NotFoundException("Nota nao encontrada."));
+                .orElseThrow(() -> new NotFoundException("Nota não encontrada."));
 
         if (!usuario.podeGerenciar(nota.getUserId())) {
-            throw new ForbiddenException("Voce nao pode apagar esta nota.");
+            throw new ForbiddenException("Você não pode apagar esta nota.");
         }
 
         gastos.excluirSeExistir(nota.getExpenseId());

@@ -41,16 +41,16 @@ public record Mensagem(String titulo, List<String> linhas) {
     private static String linha(Aviso aviso, NumberFormat dinheiro) {
         String valor = aviso.valor() == null ? "" : dinheiro.format(aviso.valor());
         return switch (aviso.tipo()) {
-            case "ORCAMENTO_ATENCAO" -> aviso.assunto() + " ja usou " + inteiro(aviso.percentual())
+            case "ORCAMENTO_ATENCAO" -> aviso.assunto() + " já usou " + inteiro(aviso.percentual())
                     + "% do limite (" + valor + " de " + dinheiro.format(aviso.limite()) + ")";
             case "ORCAMENTO_ESTOUROU" -> aviso.assunto() + " passou do limite: " + valor + " de "
                     + dinheiro.format(aviso.limite());
             case "FATURA_VENCENDO" -> "Fatura do " + aviso.assunto() + " vence em " + DIA.format(aviso.data())
                     + ": " + valor;
             case "CONTA_VENCENDO" -> aviso.assunto() + " vence em " + DIA.format(aviso.data()) + ": " + valor;
-            case "CONTA_VENCIDA" -> aviso.assunto() + " venceu em " + DIA.format(aviso.data()) + " e nao foi paga: "
+            case "CONTA_VENCIDA" -> aviso.assunto() + " venceu em " + DIA.format(aviso.data()) + " e não foi paga: "
                     + valor;
-            case "A_RECEBER_ATRASADO" -> aviso.assunto() + " ainda nao te pagou " + valor + " (combinado para "
+            case "A_RECEBER_ATRASADO" -> aviso.assunto() + " ainda não te pagou " + valor + " (combinado para "
                     + DIA.format(aviso.data()) + ")";
             default -> aviso.assunto();
         };

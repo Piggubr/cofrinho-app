@@ -426,7 +426,7 @@ public class UserAccount {
     /** Fica presa a conta: mudar depois deixaria o menor sair da vista do titular. */
     public void informarNascimento(LocalDate data) {
         if (birthDate != null) {
-            throw new IllegalStateException("A conta ja tem data de nascimento");
+            throw new IllegalStateException("A conta já tem data de nascimento");
         }
         this.birthDate = data;
         // Entrou como parceiro pelo convite do plano casal antes de dizer a idade (D-086).
@@ -735,7 +735,7 @@ public class UserAccount {
     /** O CPF fica preso a conta: so entra uma vez (trocar e pelo canal de privacidade). */
     public void informarCpf(String cifrado, String indice) {
         if (temCpf()) {
-            throw new IllegalStateException("A conta ja tem CPF");
+            throw new IllegalStateException("A conta já tem CPF");
         }
         this.cpfCifrado = cifrado;
         this.cpfIndice = indice;

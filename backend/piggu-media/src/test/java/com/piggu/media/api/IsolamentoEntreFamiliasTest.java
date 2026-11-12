@@ -14,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,5 +56,22 @@ class IsolamentoEntreFamiliasTest extends PostgresIntegrationTest {
 
         mockMvc.perform(get("/api/assets/" + asset + "/content").with(casas.casaA)).andExpect(status().isOk());
         mockMvc.perform(get("/api/feed").with(casas.casaA)).andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("BUG-007: mes 13 ou ausente na foto do mural da 400; o filtro do mes tambem confere")
+    void mesDoMural() throws Exception {
+        mockMvc.perform(post("/api/feed").with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"mesKey\":\"2026-13\",\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/feed").with(casas.casaA).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}"))
+                .andExpect(status().isBadRequest());
+        casas.criar("/api/feed", casas.casaA,
+                "{\"mesKey\":\"2026-09\",\"imageBase64\":\"" + PNG + "\",\"mimeType\":\"image/png\"}");
+
+        mockMvc.perform(get("/api/feed").param("mes", "2026-13").with(casas.casaA)).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/feed").param("mes", "2026-09").with(casas.casaA)).andExpect(jsonPath("$.length()").value(1));
+        mockMvc.perform(get("/api/feed").param("mes", "2026-08").with(casas.casaA)).andExpect(jsonPath("$.length()").value(0));
     }
 }

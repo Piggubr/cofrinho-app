@@ -85,7 +85,7 @@ public class CodigoDoAdmin {
             int numero = ((h[i] & 0x7f) << 24) | ((h[i + 1] & 0xff) << 16) | ((h[i + 2] & 0xff) << 8) | (h[i + 3] & 0xff);
             return String.format(Locale.ROOT, "%06d", numero % 1_000_000);
         } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("HmacSHA1 indisponivel nesta JVM.", erro);
+            throw new IllegalStateException("HmacSHA1 indisponível nesta JVM.", erro);
         }
     }
 
@@ -98,7 +98,7 @@ public class CodigoDoAdmin {
         for (char c : limpo.toCharArray()) {
             int valor = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".indexOf(c);
             if (valor < 0) {
-                throw new IllegalArgumentException("PIGGU_ADMIN_TOTP nao e base32.");
+                throw new IllegalArgumentException("PIGGU_ADMIN_TOTP não é base32.");
             }
             acumulado = (acumulado << 5) | valor;
             bits += 5;

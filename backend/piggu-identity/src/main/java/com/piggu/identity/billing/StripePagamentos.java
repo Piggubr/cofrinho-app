@@ -326,7 +326,7 @@ public class StripePagamentos {
             mac.init(new SecretKeySpec(propriedades.webhookSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             return mac.doFinal(conteudo.getBytes(StandardCharsets.UTF_8));
         } catch (GeneralSecurityException erro) {
-            throw new IllegalStateException("HmacSHA256 indisponivel nesta JVM.", erro);
+            throw new IllegalStateException("HmacSHA256 indisponível nesta JVM.", erro);
         }
     }
 

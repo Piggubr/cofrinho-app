@@ -73,7 +73,7 @@ public class GirlsMathService {
     @Transactional
     public void excluir(UUID id, UUID usuarioId) {
         GirlsMathItem item = repositorio.findByIdAndUserId(id, usuarioId)
-                .orElseThrow(() -> new NotFoundException("Item nao encontrado."));
+                .orElseThrow(() -> new NotFoundException("Item não encontrado."));
         media.apagar(item.getPhotoAssetId());
         repositorio.delete(item);
     }

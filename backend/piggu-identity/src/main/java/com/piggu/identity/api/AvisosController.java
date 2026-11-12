@@ -5,6 +5,7 @@ import com.piggu.common.security.CurrentUser;
 import com.piggu.identity.api.dto.UserResponse;
 import com.piggu.identity.avisos.Aparelhos;
 import com.piggu.identity.domain.AuthService;
+import com.piggu.identity.domain.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,6 +13,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 /** Avisos fora do app: os canais que a pessoa quer e os aparelhos que recebem push. */
 @Tag(name = "Avisos", description = "Canais de aviso (e-mail e push) e aparelhos que recebem push.")
@@ -44,8 +49,8 @@ public class AvisosController {
      * os dois mudarem, e nenhum caractere aceito precisa de escape no endereco do envio.
      */
     public record AparelhoRequest(
-            @NotBlank @Pattern(regexp = "[0-9A-Za-z:_-]{32,512}", message = "Token de aparelho invalido.") String token,
-            @NotBlank @Pattern(regexp = "IOS|ANDROID", message = "Plataforma nao suportada.") String plataforma) {
+            @NotBlank @Pattern(regexp = "[0-9A-Za-z:_-]{32,512}", message = "Token de aparelho inválido.") String token,
+            @NotBlank @Pattern(regexp = "IOS|ANDROID", message = "Plataforma não suportada.") String plataforma) {
 
         /** O token do APNs nao diferencia maiuscula; o do FCM diferencia e vai como veio. */
         String tokenGuardado() {
@@ -62,9 +67,12 @@ public class AvisosController {
     @Operation(summary = "Registrar o aparelho para receber push")
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void registrar(@Valid @RequestBody AparelhoRequest pedido, @AuthUser CurrentUser usuario) {
+    public void registrar(@Valid @RequestBody AparelhoRequest pedido, @AuthUser CurrentUser usuario,
+                          @AuthenticationPrincipal Jwt jwt) {
         servico.exigirEmailConfirmado(usuario.id());
-        aparelhos.registrar(usuario.id(), pedido.tokenGuardado(), pedido.plataforma());
+        String sessao = jwt.getClaimAsString(TokenService.CLAIM_SESSAO);
+        aparelhos.registrar(usuario.id(), pedido.tokenGuardado(), pedido.plataforma(),
+                sessao == null ? null : UUID.fromString(sessao));
     }
 
     @Operation(summary = "Parar de mandar push para o aparelho")

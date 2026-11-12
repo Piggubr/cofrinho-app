@@ -44,7 +44,7 @@ public class UserAdminService {
     @Transactional
     public UserResponse alterar(UUID id, UpdateUserRequest pedido) {
         UserAccount conta = usuarios.findById(id)
-                .orElseThrow(() -> new NotFoundException("Conta nao encontrada."));
+                .orElseThrow(() -> new NotFoundException("Conta não encontrada."));
 
         if (pedido.apelido() != null) {
             conta.setNickname(Texto.limitar(pedido.apelido(), 120));

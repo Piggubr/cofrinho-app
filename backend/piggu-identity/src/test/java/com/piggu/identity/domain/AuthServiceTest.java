@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +51,9 @@ class AuthServiceTest extends PostgresIntegrationTest {
 
     @Autowired
     private FamiliaService familias;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     @BeforeEach
     void limpar() {
@@ -182,11 +186,44 @@ class AuthServiceTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("refresh ja rotacionado que volta depois de 30 s derruba aquela sessao e so ela (D-193)")
+    void reusoDepoisDaToleranciaDerrubaASessao() {
+        responderGoogleCom(AUTORIZADA);
+        TokenResponse roubado = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
+        TokenResponse outroAparelho = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
+        TokenResponse vivo = auth.renovar(roubado.refreshToken(), null);
+        jdbc.update("UPDATE refresh_rotated SET rotated_at = now() - interval '31 seconds'");
+
+        assertThatThrownBy(() -> auth.renovar(roubado.refreshToken(), null))
+                .isInstanceOf(UnauthorizedException.class);
+
+        assertThatThrownBy(() -> auth.renovar(vivo.refreshToken(), null))
+                .as("o refresh vivo da mesma sessao cai junto")
+                .isInstanceOf(UnauthorizedException.class);
+        assertThat(auth.renovar(outroAparelho.refreshToken(), null).refreshToken())
+                .as("a sessao do outro aparelho continua")
+                .isNotBlank();
+    }
+
+    @Test
+    @DisplayName("refresh ja rotacionado que volta em menos de 30 s (duas abas) e recusado sem derrubar a sessao")
+    void reusoDentroDaToleranciaNaoDerruba() {
+        responderGoogleCom(AUTORIZADA);
+        TokenResponse primeiro = auth.entrarComGoogle("token-google", Consentimentos.VERSAO_DO_AVISO, null);
+        TokenResponse vivo = auth.renovar(primeiro.refreshToken(), null);
+
+        assertThatThrownBy(() -> auth.renovar(primeiro.refreshToken(), null))
+                .isInstanceOf(UnauthorizedException.class);
+
+        assertThat(auth.renovar(vivo.refreshToken(), null).refreshToken()).isNotBlank();
+    }
+
+    @Test
     @DisplayName("refresh desconhecido e recusado")
     void refreshDesconhecido() {
         assertThatThrownBy(() -> auth.renovar("token-que-nunca-existiu", null))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("sessao venceu");
+                .hasMessageContaining("sessão venceu");
     }
 
     @Test

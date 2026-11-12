@@ -187,6 +187,10 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-181](#d-181-o-app-capacitor-sai-do-repositório-o-site-mantém-a-ponte-para-quem-ainda-tem-ele-instalado) | O app Capacitor sai do repositório; o site mantém a ponte para quem ainda tem ele instalado | Valendo |
 | [D-182](#d-182-rotas-de-admin-pedem-o-código-do-app-autenticador) | Rotas de ADMIN pedem o código do app autenticador | Valendo |
 | [D-183](#d-183-a-tertiary-do-chiclete-no-android-sai-da-paleta-rosa) | A tertiary do Chiclete no Android sai da paleta rosa | Valendo |
+| [D-189](#d-189-valor-a-partir-de-r-001-e-data-entre-2000-e-hoje--2-anos) | Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos | Valendo |
+| [D-190](#d-190-projeção-do-mês-com-os-fixos-uma-vez-e-comparação-até-o-mesmo-dia) | Projeção do mês com os fixos uma vez e comparação até o mesmo dia | Valendo |
+| [D-191](#d-191-gateway-responde-503-ou-504-com-servico_indisponivel-com-prazo-por-rota-e-o-status-do-banking-desligado-sai-dele) | Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele | Valendo |
+| [D-192](#d-192-receita-com-iddoenvio-mês-validado-dividir-só-com-a-família-fotos-com-dono-certo-e-mensagens-com-acento) | Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento | Valendo |
 
 ---
 
@@ -1917,6 +1921,89 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Consequências: o gasto pode trocar de mês; a tela recarrega e ele some do mês aberto. O site ainda não mostra a data na edição.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`atualizar`), `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`)
 
+## D-187: A primeira senha de conta do Google ou da Apple só pelo e-mail, e a sessão do iOS no Keychain
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (aprovou as correções F2 e F7 do scan de segurança de 10/11 e pediu para ligar o Keychain no iOS)
+- Registrado por: Claude
+- Contexto: em `POST /api/auth/senha`, a conta sem senha (só Google ou Apple) criava a primeira só com o token de acesso. Um token vazado virava uma entrada permanente por e-mail e senha. No iOS, com o Keychain desligado, o refresh de 30 dias ficava no cookie, em `Library/Cookies`, que vai para o backup do aparelho.
+- Decisão: conta sem senha recebe o link de "Esqueci minha senha" no e-mail e a resposta 403 com `codigo: CRIAR_SENHA_PELO_EMAIL`; trocar a senha que já existe não muda. No iOS, `PIGGU_REFRESH_NO_CORPO = YES` em Debug e Release (D-072), e a pasta `Library/Cookies` fica marcada fora do backup.
+- Alternativas: pedir a senha do Google ou da Apple de novo (reautenticação) antes de criar a senha, o que exige uma etapa nova nos três apps; só tirar o cookie do backup, deixando o refresh fora do Keychain.
+- Consequências: criar a primeira senha passa a exigir o e-mail, e usar o link derruba todas as sessões. No iOS, quem já estava logado entra de novo uma vez, e um backup restaurado não leva a sessão.
+- Onde ver: `backend/piggu-identity/.../domain/AuthService.java` (`definirSenha`), `ios-nativo/Piggu/Core/API/ClienteDaAPI.swift` (`TransporteURLSession`), `ios-nativo/Piggu.xcodeproj/project.pbxproj`
+
+## D-188: O aparelho de push fica preso à sessão de login
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: Dudu, em 11/11/2026 (escolheu ligar o aparelho à sessão e deixar os aparelhos de antes se ligarem sozinhos)
+- Registrado por: Claude
+- Contexto: o scan de segurança de 10/11 (F5) achou que o aparelho de push não tinha ligação com a sessão de login. Quando o `DELETE /api/auth/me/devices` falhava ao sair, o app esquecia o token e o aparelho seguia recebendo os avisos da conta. Sessões derrubadas pelo servidor (troca ou redefinição de senha, sessões revogadas) também não tiravam o aparelho.
+- Decisão: `push_devices.session_id` aponta para `refresh_sessions` com `ON DELETE CASCADE`: apagar a sessão apaga o aparelho. O access token leva o id da sessão em `sid`, e `POST /api/auth/me/devices` prende o aparelho a ela; uma sessão que já saiu não cadastra nada. A renovação passa a trocar o refresh na mesma linha (`rotacionar`), sem criar sessão nova, para o id não mudar a cada 5 minutos. Os aparelhos de antes ficam sem sessão e continuam recebendo; os apps cadastram de novo ao abrir, e os que seguirem sem sessão por 30 dias (`seen_at`) saem na retenção diária.
+- Alternativas: o app guardar o token e tentar apagar de novo quando o `DELETE` falha, que não cobre as sessões derrubadas pelo servidor; apagar todos os aparelhos de uma vez na migração, que deixa todo mundo sem push até abrir o app.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. A sessão guarda a data do login, não a da última renovação; o `criadaEm` da exportação passa a mostrar quando a pessoa entrou. De duas renovações simultâneas com o mesmo refresh, só uma passa, como antes.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V42__push_preso_a_sessao.sql`, `.../avisos/Aparelhos.java` (`registrar`, `esquecerSoltos`), `.../domain/AuthService.java` (`renovar`), `.../domain/TokenService.java` (`CLAIM_SESSAO`)
+
+## D-189: Valor a partir de R$ 0,01 e data entre 2000 e hoje + 2 anos
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (mínimo, tetos e faixa de datas); o assistente, dentro da autonomia recebida, no detalhe da importação
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-008, BUG-023, C-5) achou o gasto de R$ 0,00 aceito pela API e pelos três apps, enquanto o depósito e a receita exigiam mais que zero; a edição do gasto e a receita sem teto nos apps; e 01/01/1900 e 31/12/2099 aceitos sem aviso em gasto e receita. As mensagens vinham cruas e sem acento ("O valor e alto demais.").
+- Decisão: todo campo de valor vai de R$ 0,01 até o teto: 1.000.000,00 no gasto (lançar, editar, item de recibo e de nota, linha de importação, conta fixa), no orçamento, na meta do mês, no limite e no valor do evento da nota; 10.000.000,00 na receita, no valor a receber e no depósito. Os textos são "Digite um valor a partir de R$ 0,01." e "O valor máximo é R$ 1.000.000,00." (ou R$ 10.000.000,00), iguais nos apps. Gasto (lançar e editar), receita, valor a receber e depósito só aceitam data de 01/01/2000 até hoje em Brasília mais 2 anos, com "Confira a data: use uma data entre 2000 e <ano>." no campo `data`. Na importação de extrato, a linha de valor zero sai da prévia e da gravação em vez de derrubar o arquivo.
+- Alternativas: aceitar zero só no item de nota, que deixava duas regras para o mesmo campo; recusar o extrato inteiro com uma linha zero, que trava a importação por causa de um estorno.
+- Consequências: o app que mandar 0 recebe 400 `VALIDACAO`; os apps conferem o mesmo mínimo e teto antes de enviar e pedem confirmação para data futura ou com mais de um ano. O teto da data anda com o calendário. As constantes ficam num lugar só (`Valores`).
+- Onde ver: `backend/piggu-common/.../web/Valores.java`, `DataDeLancamento.java`, os DTOs do finance e do lifestyle, `ExpenseService.previa` e `importar`
+
+## D-190: Projeção do mês com os fixos uma vez e comparação até o mesmo dia
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026
+- Registrado por: Claude
+- Contexto: a projeção levava tudo pelo ritmo (gasto até hoje ÷ dia × dias do mês). No dia 11, o aluguel lançado no dia 5 entrava quase três vezes e a projeção passava muito do limite (C-2). A variação comparava o mês pela metade com o mês anterior inteiro.
+- Decisão: no mês corrente, `projecaoDeGastos` = gastos do tipo `Fixo` do mês, uma vez, + variáveis até hoje ÷ dia de hoje × dias do mês + variáveis já lançados para depois de hoje, uma vez (a projeção nunca fica abaixo do que já foi lançado). O `ResumoDoMes` ganha `gastosFixos` (todo mês), `gastosAteMesmoDiaAnterior` (mês anterior do dia 1 ao mesmo dia de hoje, limitado ao último dia dele) e `variacaoAteMesmoDia` (% contra esse valor; nula se ele for zero). Os dois últimos e a projeção são nulos fora do mês corrente.
+- Alternativas: projetar só pelas contas fixas cadastradas, que deixa de fora o gasto marcado Fixo à mão.
+- Consequências: só acrescenta campos (D-059). Os apps usam `variacaoAteMesmoDia` no mês corrente ("contra o mesmo dia de <mês anterior>") e `variacao` nos meses fechados; sem os campos (backend antigo), seguem como antes. Quatro somas a mais no mês corrente.
+- Onde ver: `backend/piggu-finance/.../domain/RelatorioService.java` (`resumo`, `projetar`, `mesmoDia`), `ExpenseRepository.somarFixosNoPeriodo`
+
+## D-191: Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (503, 504 e o banking desligado); o assistente, dentro da autonomia recebida, nos prazos
+- Registrado por: Claude
+- Contexto: serviço fora do ar virava 500 fora do `ApiError` (BUG-005), e o Painel gerava um 500 a cada abertura porque o banking não sobe com o Open Finance desligado. Sem prazo, um serviço travado deixava a chamada pendurada por mais de 50 s (BUG-006).
+- Decisão: conexão recusada, nome que não resolve ou conexão fechada no meio viram 503; tempo esgotado vira 504; os dois com o corpo `ApiError` e o código `SERVICO_INDISPONIVEL` ("Essa parte do Piggu está fora do ar agora. Tente de novo em instantes."). A conexão tem 2 s e a resposta 20 s, acima dos 15 s que o lifestyle espera pelo TMDB e pelo catálogo. Prazo maior só onde é lento de verdade: 90 s no assistente, na leitura de recibo e na importação de extrato (Gemini até 45 s e OCR até 20 s); 120 s em exportar e apagar a conta (o identity chama cada serviço em sequência, até 30 s cada); 40 s no banking (Pluggy até 30 s). Com `PIGGU_OPEN_FINANCE=false`, o gateway responde `GET /api/banking/status` com `200 {"habilitado": false}` sem chamar o banking; o Compose passa a mesma variável ao gateway.
+- Alternativas: os apps pararem de chamar o status com o Open Finance desligado, que precisa de uma versão nova de cada app e não ajuda quem não atualizar; um prazo só, grande, que volta a deixar a tela pendurada.
+- Consequências: as rotas lentas são rotas próprias no gateway (`finance-lento`, `identity-lento`), que aparecem separadas nas métricas por rota. O 504 não desfaz o que o serviço já gravou: o app tenta de novo com o mesmo `idDoEnvio`. Religar o Open Finance pede `PIGGU_OPEN_FINANCE=true` também no gateway (já vem do `.env`).
+- Onde ver: `backend/piggu-gateway/.../ServicoForaDoAr.java`, `BankingDesligadoGlobalFilter.java`, `application.yml` (`httpclient`, rotas), `ServicoForaDoArTest`
+
+## D-192: Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (receita sem duplicar e corrigir os achados); o assistente, dentro da autonomia recebida, nos detalhes técnicos
+- Registrado por: Claude
+- Contexto: a auditoria achou a receita sem proteção contra reenvio (BUG-011), `2026-13` aceito como mês e meta do mês sem mês virando 409 (BUG-007), `dividirCom` aceitando ids de outra família (BUG-022), o volume de fotos nascendo com dono root (BUG-001), o script de init sem permissão de execução (BUG-030), o `--premium` dos dados de exemplo sem assinante (BUG-031) e 112 mensagens sem acento (BUG-009). Também o token de conta excluída aceito por até 5 min (BUG-021).
+- Decisão:
+  - `POST /api/incomes` aceita `idDoEnvio`, com a mesma regra do gasto (D-073), na tabela `income_submissions`.
+  - Mês é `AAAA-MM` com o mês de 01 a 12 (`Meses.FORMATO`), no corpo e na URL; a meta do mês e a foto do feed exigem o mês.
+  - A lista de membros mora no identity. O finance guarda quem já viu: cada chamada com token grava a pessoa na família do token (`household_people`, que nasce com quem já tem dado na família). Quando o `dividirCom` traz alguém que não está lá (o parceiro que acabou de entrar e nunca abriu o app), o finance faz uma chamada só ao identity, `GET /api/family` com o token de quem divide (prazo de 2 s para conectar e 5 s para responder), grava quem vier e segue. Quem nem o identity confirma: 400 "Só dá para dividir com pessoas da sua família.". Identity fora do ar: 503 `SERVICO_INDISPONIVEL`, sem gravar a divisão. O caminho comum segue sem chamada entre serviços (D-003).
+  - O Dockerfile cria `/dados/fotos` com dono `piggu` antes do `USER piggu`, e os `.sh` do Git têm o bit de execução.
+  - O `dados-de-exemplo.sh --premium` grava a conta como assinante do plano individual, e o `GET /api/family` usa a regra do `planoPara`: a casa só é PREMIUM se a assinatura cobre alguém.
+  - Toda mensagem que chega ao usuário vem acentuada, e o `scripts/conferir-acentos.sh` (agora em Python, que também roda no Mac) falha se uma string Java do backend voltar a ter palavra comum sem acento.
+  - Risco aceito (BUG-021): o access token de uma conta excluída continua aceito nos serviços de domínio até vencer, no máximo 5 min. Os serviços validam o token sozinhos pelo JWKS, sem chamar o identity (D-003), e o refresh da conta já não renova. Uma lista de tokens revogados exigiria uma chamada ou um cache compartilhado em toda requisição, para fechar uma janela de 5 min em que a pessoa que pediu a exclusão continua com o próprio token.
+- Alternativas: pedir os membros ao identity a cada `dividirCom`, que põe uma chamada entre serviços em toda divisão; só a tabela local, que barrava o parceiro recém-entrado que ainda não abriu o app (o app oferece a pessoa, pela lista do `/api/family`, e o finance recusava); recusar só ids que não aparecem em nenhum gasto, com o mesmo problema.
+- Consequências: o finance passa a chamar o identity, mas só quando falta alguém na tabela, uma vez por pessoa (depois ela consta). Com o identity fora, dividir com quem ainda não consta dá 503; com quem já consta, segue. Quem sai da família leva a linha junto (dado pessoal). Volume de fotos que já nasceu com dono root (servidor antigo) não muda com a imagem nova: conferir com `docker exec <media> ls -ld /dados/fotos` e, se for root, `chown` uma vez. Testes que comparam texto passaram a usar a mensagem acentuada.
+- Onde ver: `backend/piggu-finance/.../domain/IncomeService.umaVezSo`, `PessoasDaFamilia.java`, `integration/FamiliaNoIdentity.java`, `V28__envio_unico_de_receitas.sql`, `V29__pessoas_da_familia.sql`, `backend/piggu-common/.../web/Meses.java`, `backend/Dockerfile`, `backend/scripts/dados-de-exemplo.sh`, `FamiliaResponse.java`, `scripts/conferir-acentos.sh`
+
+## D-193: Refresh já trocado que volta derruba aquela sessão
+- Data: 11/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, nas perguntas da auditoria de 11/11/2026 (derrubar só aquele login, com 30 s de tolerância); a tabela separada foi do assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a auditoria (BUG-020) mostrou que um refresh já rotacionado, apresentado de novo, só recebia `401`: quem tivesse copiado o refresh e renovado antes do dono seguia com a sessão viva, sem nenhum sinal.
+- Decisão: cada renovação guarda o hash do refresh trocado em `refresh_rotated`, ligado à sessão (`ON DELETE CASCADE`). Se um refresh desses volta mais de 30 s depois da troca, a sessão é apagada (o login daquele aparelho e, pela D-188, o aparelho de push dela) e a resposta é o mesmo `401` de sempre. Dentro dos 30 s, só o `401`, para duas abas que renovam juntas não derrubarem o próprio login. As outras sessões da conta continuam.
+- Alternativas: revogar todas as sessões da conta, que tira do ar aparelhos que não têm nada com a cópia; guardar só o último refresh trocado numa coluna de `refresh_sessions`, que deixa de reconhecer a cópia depois de duas renovações do invasor.
+- Consequências: nenhum app muda, e a API não perde nem renomeia campo. Um cliente que reenviar um refresh antigo por erro, depois de 30 s, perde o login e volta para a tela de entrada. A tabela cresce uma linha por renovação; sai com a sessão e, na retenção diária, depois de 30 dias.
+- Onde ver: `backend/piggu-identity/src/main/resources/db/migration/V43__refresh_reaproveitado.sql`, `.../domain/AuthService.java` (`renovar`, `TOLERANCIA_DE_REUSO`), `.../domain/RefreshSessionRepository.java`, `.../domain/RetencaoDeDados.java`
 ## D-194: Site corrige os achados da auditoria de 11/11/2026
 - Data: 11/11/2026
 - Situação: Valendo

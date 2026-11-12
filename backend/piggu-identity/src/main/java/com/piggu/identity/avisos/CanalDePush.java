@@ -117,7 +117,7 @@ public class CanalDePush {
         try {
             return (ECPrivateKey) KeyFactory.getInstance("EC").generatePrivate(pkcs8(pem));
         } catch (java.security.GeneralSecurityException | IllegalArgumentException erro) {
-            throw new IllegalStateException("Chave da Apple invalida (esperado o conteudo do AuthKey .p8).", erro);
+            throw new IllegalStateException("Chave da Apple inválida (esperado o conteúdo do AuthKey .p8).", erro);
         }
     }
 
