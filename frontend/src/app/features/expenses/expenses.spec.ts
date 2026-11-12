@@ -15,6 +15,8 @@ describe('Expenses', () => {
   let auth: AuthFalso;
 
   beforeEach(() => {
+    // O rascunho do formulario (BUG-016) nao passa de um teste para outro.
+    sessionStorage.clear();
     auth = new AuthFalso();
     auth.usuario.set(usuarioDeTeste({ plano: 'GRATUITO', premiumAte: null }));
     TestBed.configureTestingModule({

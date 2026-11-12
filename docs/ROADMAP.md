@@ -47,6 +47,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 ## Feito recentemente
 
 - 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).
+- 11/11/2026: site com os achados da auditoria corrigidos: data do gasto volta para hoje, limites de valor e data do contrato, rascunho do gasto, receita com `idDoEnvio`, Perfil e Contas do mês no celular, "+" sem cobrir o fim das páginas, "Ainda dá" sem número inflado, projeção até o mesmo dia e tour só no Painel (D-194).
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
 - 02/11/2026: Painel mais fácil de entender, no Android, no iOS e no site: "Ainda dá para gastar" fixo no topo, primeiros passos logo abaixo e quatro abas (Painel, Lançamentos, Planejar e Mais) (D-164), com piso de cobertura nos apps nativos (D-163).

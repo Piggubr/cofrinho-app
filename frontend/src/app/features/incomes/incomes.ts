@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AReceber, ContaFixa, Receita } from '../../core/api/models';
 import { DataBrPipe } from '../../core/ui/data.pipe';
 import { hojeIso, mesKey, mesPorExtenso, somarMeses } from '../../core/ui/datas';
+import { TETO_DE_ENTRADA, confirmarData, erroDeData, erroDeValor } from '../../core/ui/limites';
 import { mensagemDeErro } from '../../core/ui/mensagem-de-erro';
 import { MoedaPipe } from '../../core/ui/moeda';
 import { ResumoDoMesCard } from '../dashboard/resumo-do-mes';
@@ -110,13 +111,27 @@ export class Incomes {
       this.erro.set($localize`Diga quem está te devendo.`);
       return;
     }
-    if (valor === null || valor <= 0) {
+    if (valor === null) {
       this.faltouNoAReceber.set('valor');
       this.erro.set($localize`Digite quanto vão te pagar.`);
       return;
     }
+    const erroNoValor = erroDeValor(valor, TETO_DE_ENTRADA);
+    if (erroNoValor) {
+      this.faltouNoAReceber.set('valor');
+      this.erro.set(erroNoValor);
+      return;
+    }
     if (!this.dataAReceber()) {
       this.erro.set($localize`Escolha a data combinada para receber.`);
+      return;
+    }
+    const erroNaData = erroDeData(this.dataAReceber());
+    if (erroNaData) {
+      this.erro.set(erroNaData);
+      return;
+    }
+    if (!confirmarData(this.dataAReceber(), hojeIso(), true)) {
       return;
     }
     this.salvando.set(true);
@@ -128,6 +143,7 @@ export class Incomes {
           this.quem.set('');
           this.motivo.set('');
           this.valorAReceber.set(null);
+          this.dataAReceber.set(hojeIso());
           this.aviso.set($localize`Guardado. Quando receber, toque em Recebi.`);
           this.salvando.set(false);
           this.carregarAReceber();

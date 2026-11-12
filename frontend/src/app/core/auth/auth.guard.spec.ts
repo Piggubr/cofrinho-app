@@ -8,7 +8,7 @@ import {
   provideRouter,
 } from '@angular/router';
 import { PigguRole } from '../api/models';
-import { autenticadoGuard, perfilGuard, termosGuard } from './auth.guard';
+import { aceitePendenteGuard, autenticadoGuard, cpfPendenteGuard, perfilGuard, termosGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 /** Quem abre cada tela: sessao valida primeiro, depois o perfil. */
@@ -16,6 +16,7 @@ describe('guards de rota', () => {
   const autenticado = signal(false);
   const termosPendentes = signal(false);
   const sobreVocePendente = signal(false);
+  const usuario = signal<{ cpfInformado?: boolean } | null>(null);
   let restaurou = false;
   let perfil: PigguRole | null = null;
   let tentativasDeRestaurar = 0;
@@ -24,6 +25,7 @@ describe('guards de rota', () => {
     autenticado.set(false);
     termosPendentes.set(false);
     sobreVocePendente.set(false);
+    usuario.set(null);
     restaurou = false;
     perfil = null;
     tentativasDeRestaurar = 0;
@@ -36,6 +38,7 @@ describe('guards de rota', () => {
             autenticado,
             termosPendentes,
             sobreVocePendente,
+            usuario,
             restaurarSessao: async () => {
               tentativasDeRestaurar++;
               return restaurou;
@@ -71,6 +74,17 @@ describe('guards de rota', () => {
 
     termosPendentes.set(true);
     expect(destino(rodar(termosGuard))).toBe('/aceite');
+  });
+
+  it('aceite e cpf ja em dia voltam ao Painel (BUG-032)', () => {
+    expect(destino(rodar(aceitePendenteGuard))).toBe('/painel');
+    termosPendentes.set(true);
+    expect(rodar(aceitePendenteGuard)).toBe(true);
+
+    usuario.set({ cpfInformado: false });
+    expect(rodar(cpfPendenteGuard)).toBe(true);
+    usuario.set({ cpfInformado: true });
+    expect(destino(rodar(cpfPendenteGuard))).toBe('/painel');
   });
 
   it('com sessao aberta, passa sem perguntar ao servidor', async () => {

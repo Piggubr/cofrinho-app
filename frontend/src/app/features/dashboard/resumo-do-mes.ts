@@ -20,6 +20,7 @@ import { MoedaPipe } from '../../core/ui/moeda';
           }
         </div>
         <p class="sobra" [class.negativo]="r.sobra < 0">{{ r.sobra | moeda }}</p>
+        <p i18n class="linha-detalhe">Receitas menos gastos</p>
         <div class="resumo-do-mes">
           <div class="parcela">
             <span class="parcela-icone entrada"

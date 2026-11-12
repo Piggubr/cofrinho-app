@@ -28,6 +28,13 @@ export const termosGuard: CanActivateFn & CanActivateChildFn = () => {
   return auth.sobreVocePendente() ? inject(Router).createUrlTree(['/sobre-voce']) : true;
 };
 
+/** Termos ja aceitos: o /aceite aberto por link ou historico volta ao Painel (BUG-032). */
+export const aceitePendenteGuard: CanActivateFn = () =>
+  inject(AuthService).termosPendentes() ? true : inject(Router).createUrlTree(['/painel']);
+
+/** Documento ja informado: o /cpf nao pede de novo e volta ao Painel (BUG-032). */
+export const cpfPendenteGuard: CanActivateFn = () =>
+  inject(AuthService).usuario()?.cpfInformado === true ? inject(Router).createUrlTree(['/painel']) : true;
 
 /**
  * Restringe uma rota a perfis especificos.

@@ -12,7 +12,8 @@ import {
   digitar,
   gastoDeTeste,
 } from '../../testing/tela';
-import { FormularioDeGasto, GastoLancado } from './formulario-de-gasto';
+import { FormularioDeGasto, GastoLancado, lerRascunho } from './formulario-de-gasto';
+import { hojeIso } from '../../core/ui/datas';
 
 function conta(mudancas: Partial<ContaOuCartao>): ContaOuCartao {
   return {
@@ -72,6 +73,8 @@ describe('FormularioDeGasto', () => {
   let lancados: GastoLancado[];
 
   beforeEach(() => {
+    // O rascunho do formulario (BUG-016) nao passa de um teste para outro.
+    sessionStorage.clear();
     localStorage.removeItem('piggu_conta_padrao');
     localStorage.removeItem('piggu_fila_de_gastos');
     const auth = new AuthFalso();
@@ -86,6 +89,7 @@ describe('FormularioDeGasto', () => {
 
   afterEach(() => {
     http.verify();
+    vi.restoreAllMocks();
     localStorage.removeItem('piggu_conta_padrao');
   });
 
@@ -135,7 +139,7 @@ describe('FormularioDeGasto', () => {
 
     digitar(pagina, '#item', 'Mercado do mês');
     clicar(pagina, 'Lançar');
-    expect(alerta(tela)).toBe('Digite um valor válido.');
+    expect(alerta(tela)).toBe('Digite um valor a partir de R$ 0,01.');
 
     digitar(pagina, '#valor', '300');
     clicar(pagina, 'Lançar');
@@ -259,6 +263,98 @@ describe('FormularioDeGasto', () => {
       .expectOne((r) => r.method === 'POST')
       .flush({ erro: 'Categoria inexistente.' }, { status: 400, statusText: 'x' });
     expect(alerta(tela)).toBe('Categoria inexistente.');
+  });
+
+  it('depois de lancar a data volta para hoje e a mensagem de erro some (BUG-003, BUG-026)', () => {
+    const tela = abrir([conta({ id: 'b1' })], []);
+    const pagina: HTMLElement = tela.nativeElement;
+    let falhas = 0;
+    tela.componentInstance.falhou.subscribe(() => falhas++);
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    clicar(pagina, 'Lançar');
+    expect(alerta(tela)).toBe('Digite o nome do item.');
+    expect(falhas).toBe(1);
+
+    digitar(pagina, '#item', 'Padaria');
+    digitar(pagina, '#valor', '12,50');
+    digitar(pagina, '#data', '2025-01-02');
+    clicar(pagina, 'Lançar');
+    expect(confirmar).toHaveBeenCalledWith('Essa data é 02/01/2025. Lançar mesmo assim?');
+    const pedido = http.expectOne((r) => r.method === 'POST');
+    expect(pedido.request.body.data).toBe('2025-01-02');
+    pedido.flush([gastoDeTeste({ categoria: '' })]);
+    tela.detectChanges();
+
+    expect(alerta(tela)).toBeUndefined();
+    expect(tela.componentInstance['novaData']()).toBe(hojeIso());
+    expect(lancados.at(-1)!.mensagem).toBe('Gasto lançado.');
+    confirmar.mockRestore();
+  });
+
+  it('data fora do comum: cancelar a confirmacao nao envia; fora de 2000 a hoje + 2 anos nem pergunta', () => {
+    const tela = abrir([conta({ id: 'b1' })], []);
+    const pagina: HTMLElement = tela.nativeElement;
+    const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    digitar(pagina, '#item', 'Padaria');
+    digitar(pagina, '#valor', '10');
+    digitar(pagina, '#data', '1900-01-01');
+    clicar(pagina, 'Lançar');
+    expect(alerta(tela)).toMatch(/^Confira a data: use uma data entre 2000 e \d{4}\.$/);
+    expect(confirmar).not.toHaveBeenCalled();
+
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+    const iso = `${amanha.getFullYear()}-${String(amanha.getMonth() + 1).padStart(2, '0')}-${String(amanha.getDate()).padStart(2, '0')}`;
+    digitar(pagina, '#data', iso);
+    clicar(pagina, 'Lançar');
+    expect(confirmar).toHaveBeenCalledOnce();
+    expect(http.match((r) => r.method === 'POST')).toEqual([]);
+    confirmar.mockRestore();
+  });
+
+  it('valor acima do teto tem texto proprio e nao vai ao servidor (BUG-008)', () => {
+    const tela = abrir([conta({ id: 'b1' })], []);
+    const pagina: HTMLElement = tela.nativeElement;
+
+    digitar(pagina, '#item', 'Casa');
+    digitar(pagina, '#valor', '1.000.000,01');
+    clicar(pagina, 'Lançar');
+    expect(alerta(tela)).toBe('O valor máximo é R$ 1.000.000,00.');
+    digitar(pagina, '#valor', '0');
+    clicar(pagina, 'Lançar');
+    expect(alerta(tela)).toBe('Digite um valor a partir de R$ 0,01.');
+    expect(http.match((r) => r.method === 'POST')).toEqual([]);
+  });
+
+  it('o rascunho sobrevive a um recarregar e some depois de lancar (BUG-016)', async () => {
+    const tela = abrir([conta({ id: 'b1' })], []);
+    const pagina: HTMLElement = tela.nativeElement;
+    digitar(pagina, '#item', 'Feira');
+    digitar(pagina, '#valor', '42,90');
+    tela.detectChanges();
+    expect(lerRascunho()).toEqual({ item: 'Feira', valor: 42.9, categoria: '', data: hojeIso() });
+    // So o formulario: nada de conta, cartao ou token.
+    expect(Object.keys(JSON.parse(sessionStorage.getItem('piggu_rascunho_gasto')!))).toEqual([
+      'item',
+      'valor',
+      'categoria',
+      'data',
+    ]);
+
+    const outra = abrir([conta({ id: 'b1' })], []);
+    const outraPagina: HTMLElement = outra.nativeElement;
+    await outra.whenStable();
+    outra.detectChanges();
+    expect(outraPagina.querySelector<HTMLInputElement>('#item')!.value).toBe('Feira');
+    expect(outraPagina.querySelector<HTMLInputElement>('#valor')!.value).toBe('42,90');
+
+    clicar(outraPagina, 'Lançar');
+    http.expectOne((r) => r.method === 'POST').flush([gastoDeTeste({ categoria: '' })]);
+    outra.detectChanges();
+    expect(sessionStorage.getItem('piggu_rascunho_gasto')).toBeNull();
+    tela.destroy();
   });
 
   it('sem resposta, a fila guarda o mesmo idDoEnvio que foi no POST', () => {

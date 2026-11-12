@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { autenticadoGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
+import { aceitePendenteGuard, autenticadoGuard, cpfPendenteGuard, perfilGuard, termosGuard } from './core/auth/auth.guard';
 import { TelaDeErro } from './features/erros/tela-de-erro';
 
 /**
@@ -49,7 +49,7 @@ export const routes: Routes = [
   },
   {
     path: 'aceite',
-    canActivate: [autenticadoGuard],
+    canActivate: [autenticadoGuard, aceitePendenteGuard],
     loadComponent: () => import('./features/aceite/aceite').then((m) => m.Aceite),
   },
   // Como quer ser chamado e data de nascimento, uma vez, antes do resto.
@@ -62,7 +62,7 @@ export const routes: Routes = [
 
   {
     path: 'cpf',
-    canActivate: [autenticadoGuard, termosGuard],
+    canActivate: [autenticadoGuard, termosGuard, cpfPendenteGuard],
     loadComponent: () => import('./features/cpf/cpf').then((m) => m.Cpf),
   },
   {

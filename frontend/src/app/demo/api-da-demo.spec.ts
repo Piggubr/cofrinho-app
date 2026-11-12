@@ -74,6 +74,43 @@ describe('API da demonstracao', () => {
     expect((pluggy as HttpErrorResponse).status).toBe(422);
   });
 
+  it('recusa valor e data como o backend (D-189)', async () => {
+    const falha = (corpo: unknown, url = '/api/expenses') =>
+      post(url, corpo).then(() => null, (e: HttpErrorResponse) => [e.status, e.error.erro]);
+    expect(await falha({ data: `${mes}-01`, itens: [{ item: 'Zero', valor: 0 }] })).toEqual([
+      400,
+      'Digite um valor a partir de R$ 0,01.',
+    ]);
+    expect(await falha({ data: `${mes}-01`, itens: [{ item: 'Caro', valor: 1_000_000.01 }] })).toEqual([
+      400,
+      'O valor máximo é R$ 1.000.000,00.',
+    ]);
+    expect((await falha({ data: '1900-01-01', itens: [{ item: 'Velho', valor: 1 }] }))![1]).toContain(
+      'Confira a data',
+    );
+    const receita = { data: `${mes}-01`, descricao: 'Bônus', categoria: 'Outros', valor: 10_000_000.01 };
+    expect((await falha(receita, '/api/incomes'))![1]).toBe('O valor máximo é R$ 10.000.000,00.');
+  });
+
+  it('receita com o mesmo idDoEnvio nao grava duas vezes', async () => {
+    const corpo = { data: `${mes}-02`, descricao: 'Freela', categoria: 'Outros', valor: 300, idDoEnvio: 'envio-1' };
+    const primeira = await post<{ id: string }>('/api/incomes', corpo);
+    const segunda = await post<{ id: string }>('/api/incomes', corpo);
+    expect(segunda.id).toBe(primeira.id);
+    const lista = await get<{ id: string }[]>('/api/incomes', { mes });
+    expect(lista.filter((r) => r.id === primeira.id).length).toBe(1);
+  });
+
+  it('a projecao do mes traz os campos novos (D-190): fixos e o mesmo dia do mes anterior', async () => {
+    const r = await get<ResumoDoMes>('/api/reports/month', { mes });
+    expect(r.gastosFixos).toBeGreaterThanOrEqual(0);
+    expect(r.gastosAteMesmoDiaAnterior).not.toBeNull();
+    expect(r.projecaoDeGastos!).toBeGreaterThanOrEqual(r.gastosFixos!);
+    const passado = await get<ResumoDoMes>('/api/reports/month', { mes: '2020-01' });
+    expect(passado.gastosAteMesmoDiaAnterior).toBeNull();
+    expect(passado.variacaoAteMesmoDia).toBeNull();
+  });
+
   it('rota desconhecida responde 404 sem sair para a rede', async () => {
     const falha = await get('/api/nao-existe').catch((e: HttpErrorResponse) => e);
     expect((falha as HttpErrorResponse).status).toBe(404);
