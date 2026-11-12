@@ -202,7 +202,7 @@ private struct LugarView: View {
                                 Button(marcador) {
                                     if ativo { marcacoes.removeAll { $0 == marcador } } else { marcacoes.append(marcador) }
                                 }
-                                .buttonStyle(.bordered).tint(ativo ? paleta.primaria : paleta.textoSuave)
+                                .buttonStyle(.pilula).tint(ativo ? paleta.primaria : paleta.textoSuave)
                                 .accessibilityAddTraits(ativo ? .isSelected : [])
                             }
                         }
@@ -229,7 +229,7 @@ private struct LugarView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle(lugar == nil ? "Novo lugar" : "Editar lugar")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {

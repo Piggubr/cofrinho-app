@@ -95,7 +95,9 @@ struct PerfilView: View {
                     }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(usuario.nome).font(.sora(.headline, peso: .semibold))
+                        .lineLimit(3).minimumScaleFactor(0.5)
                     Text(usuario.email).font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                        .lineLimit(1).minimumScaleFactor(0.4)
                     Etiqueta(texto: FamiliaView.papel(usuario.role))
                     NavigationLink("Ver minha família", value: TelaDoMais.familia).font(.sora(.footnote))
                 }
@@ -126,7 +128,7 @@ struct PerfilView: View {
     /// Cada escolha ja salva, sem botao, como no site.
     private var moeda: some View {
         Section {
-            Picker("Moeda do app", selection: Binding(
+            Picker("Moeda de exibição", selection: Binding(
                 get: { preferencias.moeda ?? "BRL" }, set: { preferencias.moeda = $0; salvarPreferencias() })) {
                 ForEach(moedasNaLista, id: \.codigo) { Text("\($0.codigo) · \($0.nome)").tag($0.codigo) }
             }
@@ -145,9 +147,9 @@ struct PerfilView: View {
                 }
             }
         } header: {
-            Text("Moeda")
+            Text("Moeda de exibição")
         } footer: {
-            Text("É a moeda em que os valores aparecem; os valores já lançados não são convertidos. A cotação mostra quanto vale 1 da primeira moeda na segunda, como 1 USD = R$ 5,00. Ela não muda com a moeda do app.")
+            Text("É só o símbolo com que os valores aparecem. Trocar não converte nada: um gasto de R$ 100 lançado antes passa a aparecer como € 100. A cotação mostra quanto vale 1 da primeira moeda na segunda, como 1 USD = R$ 5,00, e não muda com a moeda de exibição.")
         }
         .disabled(moedas.isEmpty)
         .listRowBackground(paleta.superficie)
@@ -257,7 +259,7 @@ struct PerfilView: View {
             Picker("Aparência", selection: $modo) {
                 ForEach(ModoDeAparencia.allCases) { Text($0.nome).tag($0) }
             }
-            .pickerStyle(.segmented)
+            .seletorSegmentado()
             Toggle("Fundo preto no modo escuro", isOn: $fundoPreto)
                 .disabled(modo == .claro)
                 // O widget so muda quando o app grava o resumo de novo.
@@ -393,7 +395,7 @@ struct PerfilView: View {
                         Button(conta.ativo ? "Desativar" : "Ativar") {
                             Task { await executar(nil) { try await $0.alterarConta(conta.id, ativo: !conta.ativo) }; await carregarContas() }
                         }
-                        .buttonStyle(.bordered).controlSize(.small)
+                        .buttonStyle(.pilula).controlSize(.small)
                     }
                 }
             }

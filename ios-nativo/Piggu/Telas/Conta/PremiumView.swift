@@ -53,7 +53,7 @@ struct PremiumView: View {
             }
         }
         .navigationTitle("Premium")
-        .navigationBarTitleDisplayMode(.inline)
+        .tituloDaFolha()
         .manageSubscriptionsSheet(isPresented: $gerenciando)
         .task(id: rede.conectado) { await carregar() }
     }
@@ -149,16 +149,26 @@ struct PremiumView: View {
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
-                botaoDeRestaurar.font(.sora(.subheadline, peso: .medium))
+                Text("Escolha o plano abaixo.").font(.sora(.subheadline, peso: .medium))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
         .subscriptionStoreButtonLabel(.multiline)
-        // Restaurar fica no cabecalho (manda ao backend); fechar nao cabe numa tela empurrada.
-        .storeButton(.hidden, for: .restorePurchases, .cancellation)
-        .subscriptionStorePolicyDestination(for: .termsOfService) { TextoLegalView(documento: .termos) }
-        .subscriptionStorePolicyDestination(for: .privacyPolicy) { TextoLegalView(documento: .privacidade) }
+        // A escolha do plano e a acao principal; restaurar (manda ao backend) e os textos legais,
+        // com os nomes do Piggu (BUG-027), ficam embaixo, discretos. Fechar nao cabe numa tela empurrada.
+        .storeButton(.hidden, for: .restorePurchases, .cancellation, .policies)
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 6) {
+                botaoDeRestaurar
+                    .buttonStyle(.borderless)
+                    .font(.sora(.footnote, peso: .medium))
+                LinksLegais()
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(paleta.fundo)
+        }
         .inAppPurchaseOptions { _ in
             // O backend so da o Premium para a conta marcada na compra.
             sessao.usuario.flatMap { UUID(uuidString: $0.id) }.map { [.appAccountToken($0)] } ?? []

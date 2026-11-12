@@ -45,6 +45,7 @@ struct LancarGastoView: View {
     /// O ultimo pedido enviado: tocar "Lançar" de novo sem mudar nada repete o idDoEnvio.
     @State private var ultimoEnvio: NovoLancamento?
     @State private var erro: String?
+    @State private var confirmandoData = false
     @State private var faltou: String?
     @FocusState private var focado: Campo?
     @Environment(TravaDoApp.self) private var trava
@@ -104,7 +105,7 @@ struct LancarGastoView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Lançar gasto")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") { fechar() }
@@ -117,6 +118,7 @@ struct LancarGastoView: View {
                     }
                 }
             }
+            .confirmacaoDeData(data, mostrando: $confirmandoData) { Task { await lancar(dataConfirmada: true) } }
             .comTelasDoMais()
             .fullScreenCover(isPresented: $lendoNota) {
                 LeitorDeNota { leitura in
@@ -187,7 +189,7 @@ struct LancarGastoView: View {
                 Text("Cartão de crédito").tag(Forma.cartao)
                 Text("Débito/Pix").tag(Forma.debito)
             }
-            .pickerStyle(.segmented)
+            .seletorSegmentado()
             .labelsHidden()
             if forma == .cartao {
                 if cartoes.isEmpty {
@@ -224,7 +226,7 @@ struct LancarGastoView: View {
                 Text("Parcelado").tag(Modo.parcelado)
                 Text("Recorrente").tag(Modo.recorrente)
             }
-            .pickerStyle(.segmented)
+            .seletorSegmentado()
             .labelsHidden()
             if modo == .parcelado {
                 LabeledContent("Quantas parcelas") {
@@ -251,7 +253,7 @@ struct LancarGastoView: View {
     private var opcoes: some View {
         Section {
             DisclosureGroup(isExpanded: $maisOpcoes) {
-                DatePicker("Data", selection: $data, displayedComponents: .date)
+                DatePicker("Data", selection: $data, in: Limites.datas(), displayedComponents: .date)
                 Picker("Moeda da compra", selection: $moedaDaCompra) {
                     ForEach(moedasDaCompra, id: \.self) { Text($0).tag($0) }
                 }
@@ -362,17 +364,18 @@ struct LancarGastoView: View {
         precoAcima = conferencia?.acima == true ? conferencia : nil
     }
 
-    private func lancar() async {
+    private func lancar(dataConfirmada: Bool = false) async {
         let item = item.trimmingCharacters(in: .whitespaces)
         faltou = nil
         guard !item.isEmpty else {
-            erro = String(localized: "Digite o nome do item.")
+            erro = String(localized: "Digite a descrição.")
             return
         }
-        guard let valor, valor >= 0, valor <= Rota.valorMaximo else {
-            erro = String(localized: "Digite um valor válido.")
+        if let problema = Limites.problema(valor) ?? (outraMoeda ? convertido.flatMap { Limites.problema($0) } : nil) {
+            erro = problema
             return
         }
+        guard let valor else { return }
         if outraMoeda && convertido == nil {
             erro = String(localized: "Aguarde a cotação da moeda da compra.")
             return
@@ -392,6 +395,11 @@ struct LancarGastoView: View {
         guard (1...48).contains(quantas), modo != .parcelado || quantas >= 2 else {
             faltou = "parcelas"
             erro = String(localized: "Parcelado: de 2 a 48 parcelas.")
+            return
+        }
+
+        if !dataConfirmada, Limites.pedeConfirmacao(data) {
+            confirmandoData = true
             return
         }
 

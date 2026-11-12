@@ -41,7 +41,7 @@ enum Rota: Hashable, Identifiable, Sendable {
     }
 
     /// O mesmo teto do backend (ExpenseItemRequest).
-    static let valorMaximo: Decimal = 1_000_000
+    static let valorMaximo = Limites.gasto
 
     private static let dominios: Set<String> = ["piggu.com.br", "www.piggu.com.br"]
 

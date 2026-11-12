@@ -105,10 +105,15 @@ struct ContasDoMesView: View {
                         Text("Todas em aberto").font(.sora(.subheadline))
                     }
                     Spacer()
-                    Button("Pagar \(marcadas.count) · \(Formatos.moeda(total))") { Task { await pagarMarcadas(emAberto) } }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .disabled(ocupado || marcadas.isEmpty)
+                    // Sem nada marcado, a orientacao no lugar do "Pagar 0 · R$ 0,00" apagado (BUG-012, BUG-015).
+                    if marcadas.isEmpty {
+                        Text("Marque as que já pagou").font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                    } else {
+                        Button("Pagar \(marcadas.count) · \(Formatos.moeda(total))") { Task { await pagarMarcadas(emAberto) } }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                            .disabled(ocupado)
+                    }
                 }
             }
             ForEach(contas) { conta in
@@ -135,6 +140,8 @@ struct ContasDoMesView: View {
                               conta.automatico ? String(localized: "lança sozinha") : nil]
                             .compactMap { $0 }.joined(separator: " · "))
                             .font(.sora(.footnote)).foregroundStyle(paleta.textoSuave)
+                            // Quebra em vez de cortar no texto grande ("05/11/2026 ·…", IOS-5).
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
                     Text(Formatos.moeda(conta.valor)).font(.sora(.body, peso: .semibold)).monospacedDigit()
@@ -145,7 +152,7 @@ struct ContasDoMesView: View {
                 Spacer()
                 if conta.situacao != .paga {
                     Button("Marcar como paga") { Task { await pagar(conta) } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.pilula)
                         .controlSize(.small)
                         .disabled(ocupado)
                 }
@@ -260,7 +267,7 @@ private struct NovaContaFixaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Nova conta fixa")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -276,9 +283,17 @@ private struct NovaContaFixaView: View {
 
     private func criar() async {
         let descricao = descricao.trimmingCharacters(in: .whitespaces)
-        guard !descricao.isEmpty, let valor = Formatos.lerValor(valor), valor > 0,
-              let dia = Int(dia), (1...31).contains(dia) else {
-            erro = String(localized: "Preencha descrição, valor e um dia de vencimento entre 1 e 31.")
+        guard !descricao.isEmpty else {
+            erro = String(localized: "Digite a descrição.")
+            return
+        }
+        let valor = Formatos.lerValor(valor)
+        if let problema = Limites.problema(valor) {
+            erro = problema
+            return
+        }
+        guard let valor, let dia = Int(dia), (1...31).contains(dia) else {
+            erro = String(localized: "Escolha um dia de vencimento entre 1 e 31.")
             return
         }
         salvando = true

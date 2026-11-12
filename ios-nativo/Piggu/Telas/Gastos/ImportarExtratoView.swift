@@ -53,7 +53,7 @@ struct ImportarExtratoView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Importar extrato")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Fechar") { fechar() } }
                 if !linhas.isEmpty {

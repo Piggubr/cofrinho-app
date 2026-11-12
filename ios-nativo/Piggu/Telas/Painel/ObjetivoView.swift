@@ -44,7 +44,7 @@ struct ObjetivoView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle(objetivo == nil ? "Novo objetivo" : "Editar objetivo")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {

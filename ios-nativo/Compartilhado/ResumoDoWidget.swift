@@ -28,6 +28,17 @@ struct ResumoDoWidget: Codable, Equatable, Sendable {
     /// Fundo preto no modo escuro (D-186); nil nos resumos gravados antes da opcao.
     var fundoPreto: Bool?
     let atualizadoEm: Date
+    /// Receitas do mes, para o teto sem limite (D-195).
+    var receitas: Decimal? = nil
+    /// Contas fixas de gasto ainda nao pagas; nil quando nao chegaram (o "Ainda da" nao aparece).
+    var contasAPagar: Decimal? = nil
+
+    /// O mesmo "Ainda da para gastar" do Painel; nil sem as contas ou sem limite e receita.
+    var aindaDa: AindaDaParaGastar? {
+        guard let contasAPagar else { return nil }
+        return AindaDaParaGastar.calcular(limite: limite ?? 0, receitas: receitas, gasto: gasto,
+                                          contasAPagar: contasAPagar, mes: mes, hoje: atualizadoEm)
+    }
 
     /// Quanto do limite ja foi, de 0 a 1 (pode passar de 1); nil sem limite.
     var fracaoDoLimite: Double? {
@@ -35,7 +46,6 @@ struct ResumoDoWidget: Codable, Equatable, Sendable {
         return NSDecimalNumber(decimal: gasto / limite).doubleValue
     }
 
-    var restante: Decimal? { limite.map { $0 - gasto } }
 
     func moeda(_ valor: Decimal) -> String {
         valor.formatted(.currency(code: moeda).locale(Locale(identifier: "pt_BR")))
@@ -61,5 +71,5 @@ struct ResumoDoWidget: Codable, Equatable, Sendable {
     static let exemplo = ResumoDoWidget(
         mes: "2026-10", gasto: 1039.39, limite: 2500, moeda: "BRL",
         meta: Meta(titulo: "Caminhar 10 km", atual: 6, alvo: 10), metasConcluidas: 1, metasTotal: 3,
-        tema: "chiclete", atualizadoEm: Date())
+        tema: "chiclete", atualizadoEm: Date(), receitas: 6950, contasAPagar: 640)
 }

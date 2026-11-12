@@ -25,6 +25,9 @@ struct NovaReceitaView: View {
     @State private var compartilhada: Bool?
     @State private var salvando = false
     @State private var erro: String?
+    @State private var confirmandoData = false
+    /// O ultimo pedido: tocar de novo depois de um erro manda o mesmo id e nao duplica.
+    @State private var ultimoEnvio: NovaReceita?
 
     private var dia: Int { Calendar.current.component(.day, from: data) }
     private var compartilhadaEfetiva: Bool {
@@ -45,7 +48,7 @@ struct NovaReceitaView: View {
                             Text($0).tag($0)
                         }
                     }
-                    DatePicker("Data", selection: $data, displayedComponents: .date)
+                    DatePicker("Data", selection: $data, in: Limites.datas(), displayedComponents: .date)
                 }
                 .listRowBackground(paleta.superficie)
                 Section {
@@ -79,13 +82,14 @@ struct NovaReceitaView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("Nova receita")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Lançar receita") { Task { await lancar() } }.disabled(salvando)
                 }
             }
+            .confirmacaoDeData(data, mostrando: $confirmandoData) { Task { await lancar(dataConfirmada: true) } }
             .task {
                 let cliente = sessao.cliente
                 async let categorias = try? cliente.categoriasDeReceita()
@@ -96,16 +100,18 @@ struct NovaReceitaView: View {
         }
     }
 
-    private func lancar() async {
+    private func lancar(dataConfirmada: Bool = false) async {
         let descricao = descricao.trimmingCharacters(in: .whitespaces)
         guard !descricao.isEmpty else {
-            erro = String(localized: "Digite a descrição da receita.")
+            erro = String(localized: "Digite a descrição.")
             return
         }
-        guard let valor = Formatos.lerValor(valor), valor > 0 else {
-            erro = String(localized: "Digite um valor válido.")
+        let valor = Formatos.lerValor(valor)
+        if let problema = Limites.problema(valor, maximo: Limites.receita) {
+            erro = problema
             return
         }
+        guard let valor else { return }
         let dividir = repetir && emDuasParcelas
         let diaDaSegunda = Int(segundoDia)
         let valorDaSegunda = Formatos.lerValor(segundoValor)
@@ -113,22 +119,33 @@ struct NovaReceitaView: View {
             erro = String(localized: "Informe o dia da 2ª parcela (1 a 31).")
             return
         }
-        if dividir, (valorDaSegunda ?? 0) <= 0 {
-            erro = String(localized: "Digite o valor da 2ª parcela.")
+        if dividir, let problema = Limites.problema(valorDaSegunda, maximo: Limites.receita) {
+            erro = String(localized: "2ª parcela: \(problema)")
+            return
+        }
+        if !dataConfirmada, Limites.pedeConfirmacao(data) {
+            confirmandoData = true
             return
         }
         salvando = true
+        erro = nil
         defer { salvando = false }
+        let pedido = NovaReceita(
+            data: Formatos.dia(data), descricao: descricao, categoria: categoria, valor: valor,
+            compartilhado: temCompanhia && compartilhadaEfetiva, recorrente: repetir,
+            segundoDia: dividir ? diaDaSegunda : nil, segundoValor: dividir ? valorDaSegunda : nil)
+            .comIdDoEnvio(repetindo: ultimoEnvio)
+        ultimoEnvio = pedido
         do {
-            try await sessao.cliente.lancarReceita(NovaReceita(
-                data: Formatos.dia(data), descricao: descricao, categoria: categoria, valor: valor,
-                compartilhado: temCompanhia && compartilhadaEfetiva, recorrente: repetir,
-                segundoDia: dividir ? diaDaSegunda : nil, segundoValor: dividir ? valorDaSegunda : nil))
+            try await sessao.cliente.lancarReceita(pedido)
             let mensagem = !repetir ? String(localized: "Receita lançada.")
                 : dividir ? String(localized: "Receita lançada. Ela entra sozinha todo dia \(dia) e a 2ª parcela todo dia \(diaDaSegunda ?? 0).")
                 : String(localized: "Receita lançada. Ela entra sozinha todo dia \(dia).")
             aoLancar(mensagem, data)
             fechar()
+        } catch ErroDaAPI.semConexao {
+            // A receita nao vai para a fila (so o gasto vai): o texto diz o que fazer.
+            erro = String(localized: "Sem internet: a receita não foi lançada. Quando a conexão voltar, toque em Lançar receita de novo; ela não vai duplicar.")
         } catch {
             self.erro = error.localizedDescription
         }
@@ -163,7 +180,7 @@ struct NovoAReceberView: View {
                         CampoDeValor(rotulo: "Valor", texto: $valor).multilineTextAlignment(.trailing)
                     }
                     .listRowBackground(faltou == "valor" ? paleta.perigoSuave : paleta.superficie)
-                    DatePicker("Combinado para", selection: $data, displayedComponents: .date)
+                    DatePicker("Combinado para", selection: $data, in: Limites.datas(), displayedComponents: .date)
                 }
                 .listRowBackground(paleta.superficie)
                 if let erro {
@@ -174,7 +191,7 @@ struct NovoAReceberView: View {
             .scrollContentBackground(.hidden)
             .background(paleta.fundo)
             .navigationTitle("A receber")
-            .navigationBarTitleDisplayMode(.inline)
+            .tituloDaFolha()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { fechar() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -192,11 +209,13 @@ struct NovoAReceberView: View {
             erro = String(localized: "Diga quem está te devendo.")
             return
         }
-        guard let valor = Formatos.lerValor(valor), valor > 0 else {
+        let valor = Formatos.lerValor(valor)
+        if let problema = Limites.problema(valor, maximo: Limites.receita) {
             faltou = "valor"
-            erro = String(localized: "Digite quanto vão te pagar.")
+            erro = problema
             return
         }
+        guard let valor else { return }
         salvando = true
         defer { salvando = false }
         do {

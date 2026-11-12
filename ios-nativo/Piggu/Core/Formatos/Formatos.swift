@@ -96,9 +96,10 @@ enum Formatos {
         return Decimal(string: normalizado, locale: Locale(identifier: "en_US_POSIX"))
     }
 
-    /// 12.5 vira "12,50", para pre-preencher o campo de valor.
+    /// 12.5 vira "12,50" e 4200 vira "4.200,00" (BUG-025), para pre-preencher o campo de valor;
+    /// o `lerValor` entende o ponto de milhar.
     static func valorParaDigitar(_ valor: Decimal) -> String {
-        valor.formatted(.number.grouping(.never).precision(.fractionLength(2)).locale(localidade))
+        valor.formatted(.number.grouping(.automatic).precision(.fractionLength(2)).locale(localidade))
     }
 
     /// aaaa-mm, o formato do parametro `mes` da API.

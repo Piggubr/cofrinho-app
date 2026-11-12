@@ -22,7 +22,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
-- iOS nativo: liberar o 2.0.0 (build 6), enviado em 10/11 com a data na edição do gasto (D-185), para o grupo de testes no TestFlight (com o Dudu). O próximo envio sobe `CURRENT_PROJECT_VERSION` para 7 e só sai quando o Dudu pedir ([ios-nativo/README](../ios-nativo/README.md)).
+- iOS nativo: liberar o 2.0.0 (build 6), enviado em 10/11 com a data na edição do gasto (D-185), para o grupo de testes no TestFlight (com o Dudu). O build 7 (correções da auditoria, D-195) está no repositório e ainda não foi enviado; sai quando o Dudu pedir, e o envio seguinte sobe `CURRENT_PROJECT_VERSION` para 8 ([ios-nativo/README](../ios-nativo/README.md)).
 - iOS nativo: foto do recibo no +, num PR à parte (D-098).
 - Medir a abertura do 2.0.0 num iPhone de verdade (Instruments, App Launch): a meta é menos de 1 segundo até o Painel com cache (D-095).
 - Abrir o acesso fechado (Cloudflare Access) antes de mandar o app para a revisão da Apple.
@@ -48,6 +48,8 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 - 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).
 - 11/11/2026: site com os achados da auditoria corrigidos: data do gasto volta para hoje, limites de valor e data do contrato, rascunho do gasto, receita com `idDoEnvio`, Perfil e Contas do mês no celular, "+" sem cobrir o fim das páginas, "Ainda dá" sem número inflado, projeção até o mesmo dia e tour só no Painel (D-194).
+- 11/11/2026: iOS nativo, correções da auditoria: um só "Ainda dá para gastar" no Painel, na Siri e nos widgets, sem número inflado enquanto as contas carregam; gasto recusado na fila visível; mínimo, tetos e datas do contrato; receita sem duplicar; texto grande, contraste e o + sem cobrir conteúdo; nomes iguais ao site; build 7 (D-195).
+
 - 11/11/2026: Android: correções da auditoria (D-196): valor mínimo e tetos com texto próprio, confirmação de data, rascunho que sobrevive à morte do processo e pergunta antes de descartar, link guardado até o login, gasto recusado da fila visível até dispensar, "Ainda dá" com carregando e erro (o mesmo cálculo no widget), fuso de Brasília, contraste e textos do Material em pt-BR, `versionCode` 205.
 - 04/11/2026: Android: push no app nativo pelo Firebase Messaging, com o registro do aparelho ao entrar, ao ligar o aviso e ao trocar o token, e a saída ao deslogar (D-166).
 - 03/11/2026: começo do mês no Painel, no Android, no iOS e no site: enquanto o mês não tem gasto, o cartão "Como foi outubro" mostra as categorias e os últimos gastos do mês anterior, com atalho para o ano em Relatórios (D-165).
