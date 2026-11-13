@@ -1,112 +1,166 @@
 {
-  "appPolicies" : {
-    "eula" : "",
-    "policies" : [
+  "appPolicies": {
+    "eula": "",
+    "policies": [
       {
-        "locale" : "pt_BR",
-        "policyText" : "",
-        "policyURL" : "https://piggu.com.br/privacidade"
+        "locale": "pt_BR",
+        "policyText": "",
+        "policyURL": "https://piggu.com.br/privacidade"
       }
     ]
   },
-  "identifier" : "5F1C2A9E",
-  "nonRenewingSubscriptions" : [
-
-  ],
-  "products" : [
-
-  ],
-  "settings" : {
-    "_failTransactionsEnabled" : false,
-    "_locale" : "pt_BR",
-    "_storefront" : "BRA",
-    "_storeKitErrors" : [
-
-    ]
+  "identifier": "5F1C2A9E",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "pt_BR",
+    "_storefront": "BRA",
+    "_storeKitErrors": []
   },
-  "subscriptionGroups" : [
+  "subscriptionGroups": [
     {
-      "id" : "21500001",
-      "localizations" : [
+      "id": "21500001",
+      "localizations": [
         {
-          "description" : "",
-          "displayName" : "Piggu Premium",
-          "locale" : "pt_BR"
+          "description": "",
+          "displayName": "Piggu Premium",
+          "locale": "pt_BR"
         }
       ],
-      "name" : "Piggu Premium",
-      "subscriptions" : [
+      "name": "Piggu Premium",
+      "subscriptions": [
         {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "22.89",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "6740000101",
-          "introductoryOffer" : {
-            "internalID" : "6740000111",
-            "numberOfPeriods" : 1,
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P1W"
-          },
-          "localizations" : [
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "49.90",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "6740000101",
+          "localizations": [
             {
-              "description" : "Orçamento, relatório do ano, fotos e mais.",
-              "displayName" : "Premium mensal",
-              "locale" : "pt_BR"
+              "description": "Premium para até 5 pessoas da família. Só o titular assina.",
+              "displayName": "Família Mensal",
+              "locale": "pt_BR"
             }
           ],
-          "productID" : "br.com.piggu.premium.mensal",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Premium mensal",
-          "subscriptionGroupID" : "21500001",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "productID": "br.com.piggu.premium.familia.mensal",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Família Mensal",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         },
         {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "228.85",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "6740000102",
-          "introductoryOffer" : {
-            "internalID" : "6740000112",
-            "numberOfPeriods" : 1,
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P1W"
-          },
-          "localizations" : [
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "499.00",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "6740000102",
+          "localizations": [
             {
-              "description" : "Um ano de Premium com dois meses grátis.",
-              "displayName" : "Premium anual",
-              "locale" : "pt_BR"
+              "description": "Premium para até 5 pessoas da família. Só o titular assina.",
+              "displayName": "Família Anual",
+              "locale": "pt_BR"
             }
           ],
-          "productID" : "br.com.piggu.premium.anual",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Premium anual",
-          "subscriptionGroupID" : "21500001",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "productID": "br.com.piggu.premium.familia.anual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Família Anual",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "34.90",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "6740000103",
+          "localizations": [
+            {
+              "description": "Premium para você e seu par.",
+              "displayName": "Casal Mensal",
+              "locale": "pt_BR"
+            }
+          ],
+          "productID": "br.com.piggu.premium.casal.mensal",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Casal Mensal",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "349.00",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "6740000104",
+          "localizations": [
+            {
+              "description": "Premium para você e seu par.",
+              "displayName": "Casal Anual",
+              "locale": "pt_BR"
+            }
+          ],
+          "productID": "br.com.piggu.premium.casal.anual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Casal Anual",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "24.90",
+          "familyShareable": false,
+          "groupNumber": 3,
+          "internalID": "6740000105",
+          "localizations": [
+            {
+              "description": "Premium só para você.",
+              "displayName": "Individual Mensal",
+              "locale": "pt_BR"
+            }
+          ],
+          "productID": "br.com.piggu.premium.mensal",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Individual Mensal",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "249.00",
+          "familyShareable": false,
+          "groupNumber": 3,
+          "internalID": "6740000106",
+          "localizations": [
+            {
+              "description": "Premium só para você.",
+              "displayName": "Individual Anual",
+              "locale": "pt_BR"
+            }
+          ],
+          "productID": "br.com.piggu.premium.anual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Individual Anual",
+          "subscriptionGroupID": "21500001",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         }
       ]
     }
   ],
-  "version" : {
-    "major" : 4,
-    "minor" : 0
+  "version": {
+    "major": 4,
+    "minor": 0
   }
 }

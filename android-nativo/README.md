@@ -66,6 +66,9 @@ plataforma que faltar.
   `piggu://<rota do site>` funcionam; os App Links de `https://piggu.com.br` só cobrem as
   telas nativas.
 - Variante `demo`: a `ApiDaDemo` responde tudo, com qualquer e-mail e senha (a conta da Ana).
+- Prints do Google Play (D-197): `./gradlew installDemoDebug -Ppiggu.prints=true` (sem a faixa
+  da demonstração), entrar no app e rodar `scripts/prints-das-lojas.sh`, que grava 1080 × 1920 em
+  `~/Desktop/prints-das-lojas/android`.
 
 ## Entrada
 

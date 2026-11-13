@@ -209,11 +209,15 @@ private fun Titulo(texto: String, modifier: Modifier = Modifier) =
 /** Rótulo à esquerda, valor à direita, lidos juntos (LabeledContent do iOS). */
 @Composable
 private fun Numero(rotulo: String, valor: String, detalhe: String? = null, corDoValor: Color = Color.Unspecified) {
-    Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.Top) {
-        Text(rotulo, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Column(horizontalAlignment = Alignment.End) {
+    // O detalhe vai embaixo, na largura toda: ao lado do valor, um texto longo espremia o rótulo letra a letra.
+    Column(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
+        Row(verticalAlignment = Alignment.Top) {
+            Text(rotulo, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(valor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = corDoValor)
-            detalhe?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+        detalhe?.let {
+            Text(it, Modifier.fillMaxWidth(), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
         }
     }
 }

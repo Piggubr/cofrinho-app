@@ -5,8 +5,13 @@ import StoreKit
 /// mesmo plano que a Stripe atualiza no site. Renovacao, cancelamento e reembolso chegam ao
 /// backend pelos avisos da App Store, sem depender do app aberto.
 enum LojaDaApple {
-    /// Os produtos do grupo "Piggu Premium" no App Store Connect (e no Piggu.storekit).
-    static let produtos = ["br.com.piggu.premium.mensal", "br.com.piggu.premium.anual"]
+    /// Os produtos do grupo "Piggu Premium" no App Store Connect (e no Piggu.storekit). O backend
+    /// tira o plano do id: "casal" e "familia" no nome, senao individual (TipoDePlano.doProduto).
+    static let produtos = [
+        "br.com.piggu.premium.mensal", "br.com.piggu.premium.anual",
+        "br.com.piggu.premium.casal.mensal", "br.com.piggu.premium.casal.anual",
+        "br.com.piggu.premium.familia.mensal", "br.com.piggu.premium.familia.anual",
+    ]
 
     /// So finaliza depois que o backend aceitou: se a rede cair, a Apple entrega de novo em
     /// `Transaction.updates`. Recusa definitiva (outra conta, nao e do Piggu) tambem finaliza,
