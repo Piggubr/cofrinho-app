@@ -45,8 +45,8 @@ struct DadosDaDemonstracao {
         ["id": "m3", "titulo": "Ler um livro", "alvo": 1, "atual": 0],
     ]
     var girlsMath: [[String: Any]] = [
-        ["id": "gm1", "produto": "Bolsa de couro", "loja": "Arezzo", "valor": 389.9, "temFoto": false],
-        ["id": "gm2", "produto": "Tênis de corrida", "loja": "Centauro", "valor": 499.0, "temFoto": false],
+        ["id": "gm1", "produto": "Bolsa de couro", "loja": "Loja de bolsas", "valor": 389.9, "temFoto": false],
+        ["id": "gm2", "produto": "Tênis de corrida", "loja": "Loja de esportes", "valor": 499.0, "temFoto": false],
     ]
     var moedas = 120
     var movimentos: [[String: Any]] = [

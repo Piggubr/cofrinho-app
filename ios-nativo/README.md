@@ -371,7 +371,9 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
 - **Leitura da nota pela IA** (a foto inteira com os itens, no site): por enquanto só no site; o
   app lê o total e a data do cupom pela câmera.
 - **Trazer do banco** na importação (os débitos do Open Finance, Premium): por enquanto só no site.
-- Prints para a App Store: `scripts/prints-das-lojas.sh` grava os do iPhone 6,9" e do iPad 13"
-  pela demonstração em `~/Desktop/prints-das-lojas/ios`; falta escolher e subir.
+- Prints para a App Store: `scripts/prints-das-lojas.sh` captura pela demonstração no iPhone 18 Pro
+  (Dynamic Island médio, obrigatório), 18 Pro Max, iPhone Duo (por fora) e iPad 13", e o
+  `scripts/montar-prints.swift` põe a frase e o fundo (D-197). Saem em `~/Desktop/prints-das-lojas/ios`.
+  Falta a tela de dentro do Duo (2007 × 2853), que o simulador não abre, e subir.
 - Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
   antes do `init` não vale como medida.
