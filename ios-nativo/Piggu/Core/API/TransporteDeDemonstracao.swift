@@ -122,9 +122,9 @@ actor TransporteDeDemonstracao: Transporte {
     nonisolated(unsafe) private static let usuarioPadrao: [String: Any] = [
         "id": "8a5c2f0e-0000-4000-8000-000000000001",
         "email": "demo@piggu.app",
-        "nome": "Pessoa de Demonstração",
-        "primeiroNome": "Pessoa",
-        "apelido": "Pessoa",
+        "nome": "Ana Lima",
+        "primeiroNome": "Ana",
+        "apelido": "Ana",
         "foto": NSNull(),
         "role": "TITULAR",
         "ativo": true,

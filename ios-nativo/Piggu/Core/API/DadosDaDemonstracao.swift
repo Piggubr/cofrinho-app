@@ -34,8 +34,8 @@ struct DadosDaDemonstracao {
         ["id": "o-lazer", "categoria": "Lazer", "limite": 250.0],
     ]
     var contas: [[String: Any]] = [
-        ["id": cartao, "nome": "Nubank roxinho", "tipo": "CARTAO", "fechamento": 3, "vencimento": 10, "compartilhado": false],
-        ["id": banco, "nome": "Conta do Itaú", "tipo": "CONTA", "compartilhado": true],
+        ["id": cartao, "nome": "Cartão principal", "tipo": "CARTAO", "fechamento": 3, "vencimento": 10, "compartilhado": false],
+        ["id": banco, "nome": "Conta da casa", "tipo": "CONTA", "compartilhado": true],
     ]
     /// "id/aaaa-mm" das faturas marcadas como pagas.
     var faturasPagas: Set<String> = []
@@ -61,7 +61,7 @@ struct DadosDaDemonstracao {
     var convites: [[String: Any]] = [
         ["id": "cv1", "email": "joao@exemplo.com", "venceEm": "2026-11-03"],
     ]
-    var nomeDaFamilia = "Casa da Pessoa"
+    var nomeDaFamilia = "Casa da Ana"
     var compras: [[String: Any]] = [
         ["id": "c1", "item": "Ovos", "quantidade": "12", "lista": "Compras", "comprado": false, "marca": "", "imagem": "", "codigo": ""],
         ["id": "c2", "item": "Leite integral", "quantidade": "2 L", "lista": "Compras", "comprado": false, "marca": "Piracanjuba", "imagem": "", "codigo": "789"],
@@ -86,9 +86,9 @@ struct DadosDaDemonstracao {
         ["id": "ft2", "assetId": "demo-foto-2", "legenda": ""],
     ]
     var contasBancarias: [[String: Any]] = [
-        ["id": novoId(), "conexaoId": "cx1", "instituicao": "Nubank", "nome": "Conta corrente", "tipo": "BANK",
+        ["id": novoId(), "conexaoId": "cx1", "instituicao": "Banco Exemplo", "nome": "Conta corrente", "tipo": "BANK",
          "numero": "0001-9", "saldo": 4210.55, "moeda": "BRL", "status": "UPDATED"],
-        ["id": novoId(), "conexaoId": "cx1", "instituicao": "Nubank", "nome": "Caixinha", "tipo": "BANK",
+        ["id": novoId(), "conexaoId": "cx1", "instituicao": "Banco Exemplo", "nome": "Caixinha", "tipo": "BANK",
          "numero": "", "saldo": 1500.0, "moeda": "BRL", "status": "UPDATED"],
     ]
 
@@ -110,7 +110,7 @@ struct DadosDaDemonstracao {
         ]
         aReceber = [
             ["id": Self.novoId(), "quem": "João", "descricao": "Metade da pizza", "valor": 45.0, "data": dia(3)],
-            ["id": Self.novoId(), "quem": "Ana", "descricao": "Ingresso do show", "valor": 180.0, "data": dia(-10)],
+            ["id": Self.novoId(), "quem": "Bia", "descricao": "Ingresso do show", "valor": 180.0, "data": dia(-10)],
         ]
         recorrentes = [
             ["id": Self.novoId(), "descricao": "Salário", "categoria": "Salário", "valor": 5200.0, "dia": 1,
@@ -128,7 +128,7 @@ struct DadosDaDemonstracao {
             ["id": Self.novoId(), "titulo": "Renovar o seguro do carro", "texto": "Pedir 3 cotações",
              "data": NSNull(), "criadoEm": ISO8601DateFormatter().string(from: hoje)],
         ]
-        limites = [mes: 2500]
+        limites = [mes: 4500]
     }
 
     static func novoId() -> String { UUID().uuidString.lowercased() }
@@ -266,7 +266,7 @@ struct DadosDaDemonstracao {
         ["id": "f1", "nome": nomeDaFamilia, "plano": "GRATUITO", "planoFamilia": false, "planoCasal": false,
          "convites": convites,
          "membros": [
-             ["id": eu, "nome": "Pessoa de Demonstração", "email": "demo@piggu.app", "foto": NSNull(), "papel": "TITULAR",
+             ["id": eu, "nome": "Ana Lima", "email": "demo@piggu.app", "foto": NSNull(), "papel": "TITULAR",
               "premium": false],
              ["id": Self.parceira, "nome": "Bia", "email": "bia@piggu.app", "foto": NSNull(), "papel": "PARCEIRO",
               "premium": false],
@@ -597,7 +597,7 @@ struct DadosDaDemonstracao {
                           ["codigo": "USD", "nome": "Dólar americano"], ["codigo": "GBP", "nome": "Libra esterlina"],
                           ["codigo": "ARS", "nome": "Peso argentino"]])
         case ("GET", "me/export"):
-            return (200, Data(#"{"conta":{"nome":"Pessoa de Demonstração"},"gastos":[]}"#.utf8))
+            return (200, Data(#"{"conta":{"nome":"Ana Lima"},"gastos":[]}"#.utf8))
         case ("DELETE", "receipts/consent"):
             return (204, nil)
         case ("DELETE", "assistant/consent"):

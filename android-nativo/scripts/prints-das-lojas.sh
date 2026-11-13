@@ -7,7 +7,7 @@ set -euo pipefail
 PASTA=${1:-$HOME/Desktop/prints-das-lojas/android}
 ADB=${ADB:-$HOME/Library/Android/sdk/platform-tools/adb}
 APP=br.com.piggu.app.demo
-TELAS=(painel gastos relatorios orcamentos metas calendario contas-e-cartoes plano)
+TELAS=(painel gastos receitas relatorios orcamentos metas calendario plano)
 mkdir -p "$PASTA"
 $ADB shell wm size 1080x1920
 $ADB shell wm density 420
@@ -16,7 +16,8 @@ demo() { $ADB shell am broadcast -a com.android.systemui.demo -e command "$@" >/
 demo enter
 demo clock -e hhmm 0941
 demo battery -e level 100 -e plugged false
-demo network -e wifi show -e level 4 -e mobile show -e datatype none -e level 4
+demo network -e wifi show -e level 4 -e mobile hide -e airplane hide
+demo status -e vpn hide -e location hide -e alarm hide -e sync hide -e mute hide -e bluetooth hide
 demo notifications -e visible false
 for tela in $TELAS; do
   $ADB shell am start -W -a android.intent.action.VIEW -d "piggu://$tela" $APP >/dev/null
