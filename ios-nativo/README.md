@@ -375,5 +375,7 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
   (Dynamic Island médio, obrigatório), 18 Pro Max, iPhone Duo (por fora) e iPad 13", e o
   `scripts/montar-prints.swift` põe a frase e o fundo (D-197). Saem em `~/Desktop/prints-das-lojas/ios`.
   Falta a tela de dentro do Duo (2007 × 2853), que o simulador não abre, e subir.
+  O cabeçalho (21:9) e o resultado de busca (3:2) do iOS 27 saem de `scripts/montar-criativos.swift`
+  com as capturas do 18 Pro Max, em `~/Desktop/prints-das-lojas/ios/criativos`.
 - Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
   antes do `init` não vale como medida.
