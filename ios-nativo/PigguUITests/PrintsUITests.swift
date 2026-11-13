@@ -39,6 +39,28 @@ final class PrintsUITests: XCTestCase {
             if tela == "plano" { _ = app.staticTexts["Escolha o plano abaixo."].waitForExistence(timeout: 30); Thread.sleep(forTimeInterval: 2) }
             try XCUIScreen.main.screenshot().pngRepresentation
                 .write(to: pasta.appendingPathComponent("\(tela).png"))
+            // A revisao da Apple pede um print de cada produto: escolhe um por um.
+            if tela == "plano" {
+                for (arquivo, nome) in [("individual-mensal", "Individual Mensal"), ("individual-anual", "Individual Anual"),
+                                        ("casal-mensal", "Casal Mensal"), ("casal-anual", "Casal Anual"),
+                                        ("familia-mensal", "Família Mensal"), ("familia-anual", "Família Anual")] {
+                    let cartao = app.staticTexts[nome]
+                    let janela = app.windows.firstMatch
+                    // O fim da lista fica sob o botao de assinar: traz o cartao para o meio da tela.
+                    for _ in 0..<6 where cartao.exists {
+                        let meio = cartao.frame.midY / janela.frame.height
+                        if (0.3...0.62).contains(meio) { break }
+                        let fim = min(max(0.5 - (meio - 0.45), 0.1), 0.9)
+                        janela.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                            .press(forDuration: 0.1, thenDragTo: janela.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fim)))
+                        Thread.sleep(forTimeInterval: 0.8)
+                    }
+                    cartao.tap()
+                    Thread.sleep(forTimeInterval: 1.5)
+                    try XCUIScreen.main.screenshot().pngRepresentation
+                        .write(to: pasta.appendingPathComponent("plano-\(arquivo).png"))
+                }
+            }
         }
     }
 }
