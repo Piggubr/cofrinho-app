@@ -294,7 +294,7 @@ fun AppLogado(
         buscar = { buscando = true },
         perguntar = { perguntando = true },
         abaAtual = topo,
-        demo = BuildConfig.FLAVOR == "demo",
+        demo = BuildConfig.FLAVOR == "demo" && !BuildConfig.PRINTS,
         abrir = ::abrir,
         lancarGasto = { lancarGasto(null) },
         lancarReceita = { lancando = Lancamento.Receita },

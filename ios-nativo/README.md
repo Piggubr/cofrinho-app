@@ -368,13 +368,10 @@ plano ativo. Com `-PigguDemo`, a compra vira Premium pela App Store na API falsa
 
 ## O que falta
 
-- **Revogar o token da Apple ao excluir a conta**, que a App Store exige: falta no backend
-  (`docs/API_SPEC.md`).
-- **Ligar o Keychain**: trocar `PIGGU_REFRESH_NO_CORPO` para `YES` quando a etapa 1 do backend
-  estiver em produção.
 - **Leitura da nota pela IA** (a foto inteira com os itens, no site): por enquanto só no site; o
   app lê o total e a data do cupom pela câmera.
 - **Trazer do banco** na importação (os débitos do Open Finance, Premium): por enquanto só no site.
-- Prints para a App Store.
+- Prints para a App Store: `scripts/prints-das-lojas.sh` grava os do iPhone 6,9" e do iPad 13"
+  pela demonstração em `~/Desktop/prints-das-lojas/ios`; falta escolher e subir.
 - Medir a abertura num iPhone de verdade (Instruments, App Launch); no simulador o carregamento
   antes do `init` não vale como medida.

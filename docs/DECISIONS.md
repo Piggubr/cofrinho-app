@@ -2072,3 +2072,19 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: guardar o rascunho só no `rememberSaveable` (não sobrevive com o ViewModel recriado vazio); apagar o recusado da fila e só avisar (a pessoa não sabe qual gasto refazer); manter o "Ainda dá" sem as contas enquanto carrega (o número inflado da auditoria).
 - Consequências: o `docs/api` só muda com o PR do backend (D-190, D-192), que regrava o contrato; até lá, o `ContratoTest` do Android aceita `IncomeRequest.idDoEnvio` e os três campos novos do `ResumoDoMes` como "ainda não no contrato" (opcionais: o backend antigo ignora e não manda), e a lista sai quando o contrato regravado chegar à develop. O banco local vai para a versão 3 por migração automática, sem perder a fila. O widget passa a pedir as contas fixas e o resumo do mês; sem eles, fica com o último resumo.
 - Onde ver: `android-nativo/core/ui/.../formatos/Limites.kt`, `CampoDeData.kt`, `core/data/.../AindaDaParaGastar.kt`, `FilaNoRoom.kt`, `core/database/.../BancoDoPiggu.kt`, `feature/gastos/.../formulario/FormularioDeGastoViewModel.kt`, `feature/receitas/.../FormularioDeReceitaViewModel.kt`, `app/.../PigguApp.kt` (`FolhaDeLancar`, `LinkPendente`), `app/.../MainActivity.kt`
+
+## D-197: Exigências das lojas: manifesto de privacidade do iOS e página pública de excluir a conta
+- Data: 13/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, que levantou os ajustes no guia de lançamento; os detalhes técnicos, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: a Apple exige o `PrivacyInfo.xcprivacy` de quem usa APIs com motivo obrigatório (o app e o widget usam `UserDefaults`) e o Google Play pede um link que funcione sem instalar o app, dizendo como excluir a conta e o que acontece com os dados.
+- Decisão:
+  - `ios-nativo/Piggu/PrivacyInfo.xcprivacy`: sem rastreamento, `UserDefaults` com os motivos CA92.1 (do próprio app) e 1C8F.1 (o grupo com o widget), e os dados coletados para o app funcionar (nome, e-mail, celular, id da conta, informações financeiras, fotos, compras, conteúdo lançado; diagnóstico sem identificar). `PigguWidgets/PrivacyInfo.xcprivacy`: só o `UserDefaults` do grupo (1C8F.1). Os SDKs de terceiros (Google, AdMob) trazem os deles. Nenhum uso de data de arquivo, tempo desde o boot ou espaço em disco no código do app.
+  - Página aberta `/excluir-conta` no site: o caminho no app e no site (Perfil → Excluir minha conta, digitando EXCLUIR), o pedido por e-mail para quem perdeu o acesso, o que é apagado, o que fica (a marca do CPF do teste grátis, 5 anos, e as cópias de segurança cifradas, até 5 semanas) e o aviso de cancelar na loja a assinatura feita pelo app.
+  - O Keychain no iOS (D-187) e a revogação da Apple (D-142) já estavam feitos; o README do iOS deixa de listá-los como pendentes.
+  - `ios-nativo/scripts/prints-das-lojas.sh` grava os prints da App Store pela demonstração (iPhone 6,9" e iPad 13"), com a barra de status limpa.
+  - `android-nativo/scripts/prints-das-lojas.sh` grava os do Google Play em 1080 × 1920 (9:16). O build `-Ppiggu.prints=true` da variante demo esconde a faixa "Demonstração" (`BuildConfig.PRINTS`); o APK normal da demonstração continua com ela.
+- Alternativas: um manifesto só, compartilhado pelos dois alvos (o widget declararia dados que não coleta); explicar a exclusão só no Aviso de Privacidade (o Google pede uma página própria).
+- Consequências: as respostas de privacidade no App Store Connect e a Segurança dos dados no Google Play precisam bater com o manifesto e com a página. O pedido por e-mail para quem não tem acesso é atendido à mão, confirmando pelo e-mail da conta.
+- Onde ver: `ios-nativo/Piggu/PrivacyInfo.xcprivacy`, `ios-nativo/PigguWidgets/PrivacyInfo.xcprivacy`, `frontend/src/app/features/legal/excluir-conta.html`, `ios-nativo/scripts/prints-das-lojas.sh`, `android-nativo/scripts/prints-das-lojas.sh`, `android-nativo/app/build.gradle.kts`
