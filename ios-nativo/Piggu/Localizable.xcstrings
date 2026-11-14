@@ -348,6 +348,24 @@
     "Apagar só esta" : {
 
     },
+    "Apagar gasto" : {
+
+    },
+    "Era uma receita" : {
+
+    },
+    "Transformar \"%@\" em receita?" : {
+
+    },
+    "Transformar em receita" : {
+
+    },
+    "O gasto sai da lista e entra nas receitas com a mesma data e o mesmo valor." : {
+
+    },
+    "\"%@\" agora está nas receitas." : {
+
+    },
     "Aparência" : {
 
     },

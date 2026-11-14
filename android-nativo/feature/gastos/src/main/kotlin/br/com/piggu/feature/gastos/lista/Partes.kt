@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -473,8 +474,30 @@ internal fun EditarGasto(
                 TextButton(acoes::fecharEdicao) { Text(stringResource(R.string.gastos_cancelar)) }
                 Button(acoes::salvarEdicao, enabled = !edicao.salvando) { Text(stringResource(R.string.gastos_salvar)) }
             }
+            if (edicao.podeApagar) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                    // Parcelado não vira receita: o backend recusa (D-199).
+                    if (edicao.gasto.parcelas == null) {
+                        TextButton(acoes::pedirReceita, enabled = !edicao.salvando) { Text(stringResource(R.string.gastos_era_receita)) }
+                    }
+                    TextButton(
+                        acoes::apagarDaEdicao,
+                        enabled = !edicao.salvando,
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) { Text(stringResource(R.string.gastos_apagar_gasto)) }
+                }
+            }
         }
         ConfirmarData(edicao.data.takeIf { edicao.confirmarData }, acoes::salvarEdicaoMesmoAssim, acoes::corrigirDataDaEdicao)
+        if (edicao.confirmarReceita) {
+            AlertDialog(
+                onDismissRequest = acoes::cancelarReceita,
+                title = { Text(stringResource(R.string.gastos_virar_receita_pergunta, edicao.gasto.item)) },
+                text = { Text(stringResource(R.string.gastos_virar_receita_explicacao)) },
+                confirmButton = { TextButton(acoes::virarReceita) { Text(stringResource(R.string.gastos_virar_receita)) } },
+                dismissButton = { TextButton(acoes::cancelarReceita) { Text(stringResource(R.string.gastos_cancelar)) } },
+            )
+        }
     }
 }
 

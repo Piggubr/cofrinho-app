@@ -30,6 +30,12 @@
     <string name="gastos_apagado">"%1$s" apagado.</string>
     <string name="gastos_desfazer">Desfazer</string>
     <string name="gastos_apagar_pergunta">Apagar "%1$s"?</string>
+    <string name="gastos_apagar_gasto">Apagar gasto</string>
+    <string name="gastos_era_receita">Era uma receita</string>
+    <string name="gastos_virar_receita">Transformar em receita</string>
+    <string name="gastos_virar_receita_pergunta">Transformar "%1$s" em receita?</string>
+    <string name="gastos_virar_receita_explicacao">O gasto sai da lista e entra nas receitas com a mesma data e o mesmo valor.</string>
+    <string name="gastos_virou_receita">"%1$s" agora está nas receitas.</string>
     <string name="gastos_parcela_de">Esta é a parcela %1$d de %2$d.</string>
     <string name="gastos_apagar_so_esta">Apagar só esta</string>
     <plurals name="gastos_apagar_e_as_proximas">

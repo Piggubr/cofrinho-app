@@ -46,6 +46,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 14/11/2026: "Apagar gasto" e "Era uma receita" na edição do gasto no iOS e no Android (o apagar só existia deslizando), "Era uma receita" no site e `POST /api/expenses/{id}/virar-receita` no backend (D-199).
 - 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).
 - 11/11/2026: site com os achados da auditoria corrigidos: data do gasto volta para hoje, limites de valor e data do contrato, rascunho do gasto, receita com `idDoEnvio`, Perfil e Contas do mês no celular, "+" sem cobrir o fim das páginas, "Ainda dá" sem número inflado, projeção até o mesmo dia e tour só no Painel (D-194).
 - 11/11/2026: iOS nativo, correções da auditoria: um só "Ainda dá para gastar" no Painel, na Siri e nos widgets, sem número inflado enquanto as contas carregam; gasto recusado na fila visível; mínimo, tetos e datas do contrato; receita sem duplicar; texto grande, contraste e o + sem cobrir conteúdo; nomes iguais ao site; build 7 (D-195).

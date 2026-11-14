@@ -126,6 +126,11 @@
             <button i18n type="button" class="botao contorno pequeno" (click)="cancelarEdicao()">
               Cancelar
             </button>
+            @if (!gasto.parcelas && (!gasto.compartilhado || ehMeu(gasto))) {
+              <button i18n type="button" class="botao fantasma pequeno" (click)="virarReceita(gasto)">
+                Era uma receita
+              </button>
+            }
           </div>
         </div>
       } @else {

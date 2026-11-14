@@ -6,7 +6,12 @@ struct EditarGastoView: View {
     @Binding var categorias: [String]
     /// So quem lancou volta o compartilhado para "só meu", e so faz sentido com mais gente na casa.
     let podeCompartilhar: Bool
+    /// Do compartilhado, so quem lancou apaga ou transforma em receita.
+    var podeApagar = false
     let aoSalvar: (Gasto) -> Void
+    /// Fecha a folha e pede a confirmacao de apagar na lista (que sabe das parcelas).
+    var aoApagar: () -> Void = {}
+    var aoVirarReceita: () -> Void = {}
 
     @Environment(Sessao.self) private var sessao
     @Environment(\.dismiss) private var fechar
@@ -19,6 +24,7 @@ struct EditarGastoView: View {
     @State private var salvando = false
     @State private var erro: String?
     @State private var confirmandoData = false
+    @State private var confirmandoReceita = false
 
     var body: some View {
         NavigationStack {
@@ -36,6 +42,21 @@ struct EditarGastoView: View {
                     }
                 }
                 .listRowBackground(paleta.superficie)
+                if podeApagar {
+                    Section {
+                        // Parcelado nao vira receita: o backend recusa (D-199).
+                        if gasto.parcelas == nil {
+                            Button("Era uma receita", systemImage: "arrow.left.arrow.right") { confirmandoReceita = true }
+                                .disabled(salvando)
+                        }
+                        Button("Apagar gasto", systemImage: "trash", role: .destructive) {
+                            fechar()
+                            aoApagar()
+                        }
+                        .disabled(salvando)
+                    }
+                    .listRowBackground(paleta.superficie)
+                }
                 if let erro {
                     Section { Text(erro).foregroundStyle(paleta.perigo) }
                         .listRowBackground(paleta.perigoSuave)
@@ -52,6 +73,12 @@ struct EditarGastoView: View {
                 }
             }
             .confirmacaoDeData(data, mostrando: $confirmandoData) { Task { await salvar(dataConfirmada: true) } }
+            .confirmationDialog("Transformar \"\(gasto.item)\" em receita?", isPresented: $confirmandoReceita,
+                                titleVisibility: .visible) {
+                Button("Transformar em receita") { Task { await virarReceita() } }
+            } message: {
+                Text("O gasto sai da lista e entra nas receitas com a mesma data e o mesmo valor.")
+            }
             .onAppear {
                 item = gasto.item
                 categoria = gasto.categoria
@@ -59,6 +86,18 @@ struct EditarGastoView: View {
                 compartilhado = gasto.compartilhado ?? false
                 data = Formatos.data(deDia: gasto.data) ?? Date()
             }
+        }
+    }
+
+    private func virarReceita() async {
+        salvando = true
+        defer { salvando = false }
+        do {
+            try await sessao.cliente.virarReceita(gasto.id)
+            aoVirarReceita()
+            fechar()
+        } catch {
+            self.erro = error.localizedDescription
         }
     }
 

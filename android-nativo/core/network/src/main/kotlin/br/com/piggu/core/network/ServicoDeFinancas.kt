@@ -80,6 +80,10 @@ interface ServicoDeFinancas {
     @DELETE("expenses/{id}")
     suspend fun excluirGasto(@Path("id") id: String, @Query("proximas") proximas: Boolean? = null)
 
+    /** Gasto lançado por engano: vira receita com a mesma data, descrição e valor (D-199). */
+    @POST("expenses/{id}/virar-receita")
+    suspend fun virarReceita(@Path("id") id: String, @Body vazio: JsonObject = JsonObject(emptyMap())): Receita
+
     /** Busca global: até 20 gastos pelo item ou estabelecimento. */
     @GET("expenses/search")
     suspend fun buscarGastos(@Query("q") q: String): List<Gasto>

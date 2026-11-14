@@ -48,6 +48,10 @@ data class EdicaoDoGasto(
     val erro: MensagemDeErro? = null,
     /** A data trocada é futura ou de mais de um ano: o "Lançar mesmo assim?" fica aberto. */
     val confirmarData: Boolean = false,
+    /** Do compartilhado, só quem lançou apaga ou transforma em receita. */
+    val podeApagar: Boolean = false,
+    /** O "Transformar em receita?" está aberto. */
+    val confirmarReceita: Boolean = false,
 )
 
 /** Apagado na tela, esperando o "Desfazer" da Snackbar acabar para ir ao servidor. */

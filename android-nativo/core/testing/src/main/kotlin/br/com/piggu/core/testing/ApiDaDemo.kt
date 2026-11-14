@@ -861,6 +861,16 @@ class ApiDaDemo(
                 estado.partes.remove(it.texto("id"))
             }
         }
+        rota("POST", "/expenses/{id}/virar-receita") { p ->
+            val gasto = exigir(estado.gastos.achar(p.id), "Gasto não encontrado.")
+            if (gasto.numero("parcelas") != null) throw ErroDaDemo(422, "Gasto parcelado não vira receita. Apague as parcelas e lance a receita.")
+            remover(estado.gastos, p.id)
+            estado.partes.remove(p.id)
+            registro(
+                "id" to novoId("receita"), "data" to gasto["data"], "descricao" to gasto.texto("item"), "categoria" to "Outros",
+                "valor" to gasto["valor"], "usuario" to titularId(), "compartilhado" to (gasto["compartilhado"] ?: false),
+            ).also { estado.receitas += it }
+        }
 
         // Categorias e regras
         rota("GET", "/categories") { mapOf("categorias" to categorias()) }

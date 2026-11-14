@@ -77,6 +77,10 @@ interface AcoesDosGastos {
     fun salvarEdicaoMesmoAssim() {}
     fun corrigirDataDaEdicao() {}
     fun fecharEdicao() {}
+    fun apagarDaEdicao() {}
+    fun pedirReceita() {}
+    fun cancelarReceita() {}
+    fun virarReceita() {}
 
     /** Deslizou: a parcela com próximas pergunta antes; o resto some e espera o "Desfazer". */
     fun excluir(gasto: Gasto) {}
@@ -236,6 +240,7 @@ class GastosViewModel internal constructor(
             edicao = EdicaoDoGasto(
                 gasto, gasto.item, gasto.categoria, gasto.valor, gasto.compartilhado == true,
                 podeCompartilhar = it.ehMeu(gasto) && it.comCompanhia,
+                podeApagar = it.podeApagar(gasto),
             ),
         )
     }
@@ -253,6 +258,32 @@ class GastosViewModel internal constructor(
     override fun fecharEdicao() = estadoAtual.update { it.copy(edicao = null) }
 
     override fun salvarEdicao() = salvar(dataConfirmada = false)
+
+    // Apagar e "Era uma receita" de dentro da edição: tocar no gasto é o caminho natural (D-199).
+
+    override fun apagarDaEdicao() {
+        val gasto = estadoAtual.value.edicao?.gasto ?: return
+        fecharEdicao()
+        excluir(gasto)
+    }
+
+    override fun pedirReceita() = editar { it.copy(confirmarReceita = true) }
+    override fun cancelarReceita() = editar { it.copy(confirmarReceita = false) }
+
+    override fun virarReceita() {
+        val edicao = estadoAtual.value.edicao?.copy(confirmarReceita = false) ?: return
+        if (edicao.salvando) return
+        estadoAtual.update { it.copy(edicao = edicao.copy(salvando = true, erro = null)) }
+        viewModelScope.launch {
+            try {
+                financas.virarReceita(edicao.gasto.id)
+                estadoAtual.update { it.copy(edicao = null, aviso = Mensagem(R.string.gastos_virou_receita, listOf(edicao.gasto.item))) }
+                lancamentos.avisar()
+            } catch (falha: ErroDaApi) {
+                estadoAtual.update { it.copy(edicao = it.edicao?.copy(salvando = false, erro = mensagemDeErro(falha))) }
+            }
+        }
+    }
 
     private fun salvar(dataConfirmada: Boolean) {
         val edicao = estadoAtual.value.edicao?.copy(confirmarData = false) ?: return

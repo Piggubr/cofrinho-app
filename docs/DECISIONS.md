@@ -2072,3 +2072,17 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: guardar o rascunho só no `rememberSaveable` (não sobrevive com o ViewModel recriado vazio); apagar o recusado da fila e só avisar (a pessoa não sabe qual gasto refazer); manter o "Ainda dá" sem as contas enquanto carrega (o número inflado da auditoria).
 - Consequências: o `docs/api` só muda com o PR do backend (D-190, D-192), que regrava o contrato; até lá, o `ContratoTest` do Android aceita `IncomeRequest.idDoEnvio` e os três campos novos do `ResumoDoMes` como "ainda não no contrato" (opcionais: o backend antigo ignora e não manda), e a lista sai quando o contrato regravado chegar à develop. O banco local vai para a versão 3 por migração automática, sem perder a fila. O widget passa a pedir as contas fixas e o resumo do mês; sem eles, fica com o último resumo.
 - Onde ver: `android-nativo/core/ui/.../formatos/Limites.kt`, `CampoDeData.kt`, `core/data/.../AindaDaParaGastar.kt`, `FilaNoRoom.kt`, `core/database/.../BancoDoPiggu.kt`, `feature/gastos/.../formulario/FormularioDeGastoViewModel.kt`, `feature/receitas/.../FormularioDeReceitaViewModel.kt`, `app/.../PigguApp.kt` (`FolhaDeLancar`, `LinkPendente`), `app/.../MainActivity.kt`
+
+## D-199: Apagar e "Era uma receita" dentro da edição do gasto
+- Data: 14/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu (seguir com a proposta, 14/11/2026); os detalhes técnicos, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: uma usuária lançou um gasto no lugar de uma receita e não conseguiu apagar. Nos apps nativos o apagar só existia deslizando a linha; tocar no gasto abre a edição, que não tinha "Apagar". Também não havia como trocar gasto por receita.
+- Decisão:
+  - iOS e Android: a folha "Editar gasto" ganha "Apagar gasto" (fecha a folha e faz a mesma pergunta do deslize, com "só esta" ou "esta e as próximas" na parcela) e "Era uma receita". Os dois só aparecem para quem pode apagar (do compartilhado, quem lançou). O deslize continua.
+  - Site: a lixeira já ficava visível na linha; a edição ganha só "Era uma receita".
+  - Backend: `POST /api/expenses/{id}/virar-receita` cria a receita e apaga o gasto numa transação (mesma data, descrição, valor e compartilhamento; categoria de receita com o mesmo nome ou `Outros`). O histórico registra o gasto apagado e a receita criada. Parcela é recusada com `422`.
+- Alternativas: o app lançar a receita e apagar o gasto em duas chamadas (uma falha no meio duplica ou some com o lançamento); deixar trocar também a parcela (a receita não tem parcelas; cada parcela viraria uma receita solta).
+- Consequências: o gasto recorrente (que liga uma conta fixa automática) vira receita só no mês dele; a conta fixa continua e é apagada em Contas do mês. O gasto vindo do banco (Open Finance) que vira receita pode voltar na próxima sincronização, como já acontece ao apagar.
+- Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`virarReceita`), `GastoViraReceitaTest`, `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`) e `GastosViewModel.kt`, `frontend/src/app/features/expenses/expenses.ts`
