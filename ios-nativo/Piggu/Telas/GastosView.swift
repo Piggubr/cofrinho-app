@@ -32,6 +32,7 @@ struct GastosView: View {
     @State private var acerto: [AcertoDeDivisao] = []
     @State private var transferencias: [TransferenciaDoAcerto] = []
     @State private var editando: Gasto?
+    @State private var apagarAoFechar: Gasto?
     @State private var apagando: Gasto?
     @State private var importando = false
     @State private var sugestao: RegraSugerida?
@@ -74,14 +75,22 @@ struct GastosView: View {
                 if let novo { mes = novo; abrirNoMes = nil }
             }
             .onChange(of: carga.valor) { _, _ in mostrarGastoPedido() }
-            .sheet(item: $editando) { gasto in
+            // Apagar pela folha so pergunta depois dela fechar: duas apresentacoes juntas se perdem.
+            .sheet(item: $editando, onDismiss: { apagando = apagarAoFechar; apagarAoFechar = nil }) { gasto in
                 EditarGastoView(gasto: gasto, categorias: $categorias,
-                                podeCompartilhar: ehMeu(gasto) && membros.count > 1) { salvo in
-                    if salvo.categoria != gasto.categoria {
-                        sugestao = RegraSugerida(termo: salvo.item, categoria: salvo.categoria)
-                    }
-                    aoMudar()
-                }
+                                podeCompartilhar: ehMeu(gasto) && membros.count > 1,
+                                podeApagar: gasto.compartilhado != true || ehMeu(gasto),
+                                aoSalvar: { salvo in
+                                    if salvo.categoria != gasto.categoria {
+                                        sugestao = RegraSugerida(termo: salvo.item, categoria: salvo.categoria)
+                                    }
+                                    aoMudar()
+                                },
+                                aoApagar: { apagarAoFechar = gasto },
+                                aoVirarReceita: {
+                                    aviso = String(localized: "\"\(gasto.item)\" agora está nas receitas.")
+                                    aoMudar()
+                                })
             }
             .sheet(isPresented: $importando) { ImportarExtratoView(aoImportar: aoMudar) }
             .confirmationDialog(apagando.map { String(localized: "Apagar \"\($0.item)\"?") } ?? "",

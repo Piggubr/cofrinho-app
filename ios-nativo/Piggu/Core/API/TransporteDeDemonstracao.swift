@@ -330,6 +330,16 @@ actor TransporteDeDemonstracao: Transporte {
                 }
                 return responder(url, 200, gastos[indice])
             }
+            if metodo == "POST", partes.count == 3, partes[0] == "expenses", partes[2] == "virar-receita",
+               let gasto = gastos.first(where: { $0["id"] as? String == partes[1] }) {
+                let receita: [String: Any] = ["id": DadosDaDemonstracao.novoId(), "data": gasto["data"] ?? "",
+                                              "descricao": gasto["item"] ?? "", "categoria": "Outros",
+                                              "valor": gasto["valor"] ?? 0, "usuario": usuario["id"] ?? "",
+                                              "compartilhado": gasto["compartilhado"] ?? false]
+                dados.receitas.append(receita)
+                gastos.removeAll { $0["id"] as? String == partes[1] }
+                return responder(url, 201, receita)
+            }
             if metodo == "DELETE", partes.count == 2, partes[0] == "expenses" {
                 gastos.removeAll { $0["id"] as? String == partes[1] }
                 return responder(url, 204, nil)
