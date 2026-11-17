@@ -191,6 +191,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-190](#d-190-projeção-do-mês-com-os-fixos-uma-vez-e-comparação-até-o-mesmo-dia) | Projeção do mês com os fixos uma vez e comparação até o mesmo dia | Valendo |
 | [D-191](#d-191-gateway-responde-503-ou-504-com-servico_indisponivel-com-prazo-por-rota-e-o-status-do-banking-desligado-sai-dele) | Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele | Valendo |
 | [D-192](#d-192-receita-com-iddoenvio-mês-validado-dividir-só-com-a-família-fotos-com-dono-certo-e-mensagens-com-acento) | Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento | Valendo |
+| [D-200](#d-200-leitor-de-nota-do-ios-remonta-as-linhas-e-separa-os-itens) | Leitor de nota do iOS remonta as linhas e separa os itens | Valendo |
 
 ---
 
@@ -2072,3 +2073,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: guardar o rascunho só no `rememberSaveable` (não sobrevive com o ViewModel recriado vazio); apagar o recusado da fila e só avisar (a pessoa não sabe qual gasto refazer); manter o "Ainda dá" sem as contas enquanto carrega (o número inflado da auditoria).
 - Consequências: o `docs/api` só muda com o PR do backend (D-190, D-192), que regrava o contrato; até lá, o `ContratoTest` do Android aceita `IncomeRequest.idDoEnvio` e os três campos novos do `ResumoDoMes` como "ainda não no contrato" (opcionais: o backend antigo ignora e não manda), e a lista sai quando o contrato regravado chegar à develop. O banco local vai para a versão 3 por migração automática, sem perder a fila. O widget passa a pedir as contas fixas e o resumo do mês; sem eles, fica com o último resumo.
 - Onde ver: `android-nativo/core/ui/.../formatos/Limites.kt`, `CampoDeData.kt`, `core/data/.../AindaDaParaGastar.kt`, `FilaNoRoom.kt`, `core/database/.../BancoDoPiggu.kt`, `feature/gastos/.../formulario/FormularioDeGastoViewModel.kt`, `feature/receitas/.../FormularioDeReceitaViewModel.kt`, `app/.../PigguApp.kt` (`FolhaDeLancar`, `LinkPendente`), `app/.../MainActivity.kt`
+
+## D-200: Leitor de nota do iOS remonta as linhas e separa os itens
+- Data: 17/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu pediu a opção de pegar cada item da nota; o como, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: uma usuária leu um cupom português do Lidl de € 17,72 e o leitor da câmera (D-093) mostrou € 7,32 e € 3,59. A câmera entrega a coluna dos nomes e a dos preços em blocos separados, e o leitor juntava tudo como linhas soltas: o "Val.Total" da tabela do IVA casava com "TOTAL" e o valor de baixo virava o total. Ela também queria lançar cada item da nota, não só o total.
+- Decisão: o leitor remonta as linhas do cupom pela posição de cada linha (a caixa que o Vision dá para cada linha do bloco), seguindo a inclinação do papel, antes de procurar o total. "Val.Total" não conta como total, e o valor na linha de baixo só vale se ela não tiver letras. Das linhas com descrição e valor no fim, até o total, saem os itens; a linha negativa ou de desconto ("Poupança Lidl Plus -0,80") tira do item de cima, e o código do começo e a quantidade do fim saem da descrição. Na câmera, "Usar o total" preenche o valor como antes e "Separar os itens" leva a lista ao formulário, onde dá para corrigir descrição e valor, apagar com o gesto e voltar a um valor só. Tudo sai num POST só, um item por linha da nota, com a categoria escolhida para todos ou automática por item.
+- Alternativas: tirar uma foto e ler com o Vision à parte (mais um passo para a pessoa, e o mesmo problema das colunas); mandar a foto para o leitor do backend (D-171), que depende do Premium e do consentimento do Gemini.
+- Consequências: a câmera só vê a parte do cupom que está na tela; a lista fica com a leitura de mais itens, então cupom comprido pede afastar o aparelho. A API não muda.
+- Onde ver: `ios-nativo/Piggu/Core/Formatos/LeitorDeCupom.swift`, `ios-nativo/Piggu/Telas/Gastos/LeitorDeNota.swift`, `ios-nativo/Piggu/Telas/LancarGastoView.swift`, `ios-nativo/PigguTests/SistemaTests.swift`

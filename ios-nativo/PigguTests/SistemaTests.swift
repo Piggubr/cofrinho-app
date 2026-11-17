@@ -37,6 +37,47 @@ struct SistemaTests {
         #expect(LeitorDeCupom.valores("TOTAL 12.50") == [Decimal(string: "12.5")!])
     }
 
+    /// O cupom do Lidl que veio errado: o "Val.Total" da tabela do IVA (7,32) passava pelo total.
+    @Test func cupomDePortugalSeparaOsItensEIgnoraATabelaDoIva() {
+        let linhas = ["Lidl & Companhia", "NIF 503 340 855", "Descrição EUR",
+                      "Pão de forma 1,29 B", "Iogurte grego x 8 6,32 B", "Poupança Lidl Plus -0,80",
+                      "Banana 1,49 A", "Leite meio gordo 2,49 A", "Poupança Lidl Plus -0,60",
+                      "Azeite de oliva 2,99 A", "Descafeinado 3,59 B", "Cebola 0,95 A",
+                      "Total 17,72", "Multibanco 17,72", "Taxa IVA Val.Total Val.IVA", "A 6% 7,32 0,41", "B 23% 10,40 1,37"]
+        let leitura = LeitorDeCupom.ler(linhas, hoje: hoje)
+        #expect(leitura.total == Decimal(string: "17.72"))
+        #expect(leitura.itens.map(\.descricao) == ["Pão de forma", "Iogurte grego", "Banana", "Leite meio gordo",
+                                                   "Azeite de oliva", "Descafeinado", "Cebola"])
+        #expect(leitura.itens.map(\.valor) == ["1.29", "5.52", "1.49", "1.89", "2.99", "3.59", "0.95"].map { Decimal(string: $0)! })
+        #expect(leitura.itens.reduce(Decimal(0)) { $0 + $1.valor } == Decimal(string: "17.72"))
+    }
+
+    @Test func itensDoCupomBrasileiroTiramCodigoEQuantidade() {
+        let leitura = LeitorDeCupom.ler(["001 7891234 ARROZ 5KG 1 UN X 24,90 24,90", "002 FEIJAO 1KG 2 UN X 8,90 17,80",
+                                         "SUBTOTAL 42,70", "TOTAL R$ 42,70"], hoje: hoje)
+        #expect(leitura.itens == [.init(descricao: "Arroz 5kg", valor: Decimal(string: "24.9")!),
+                                  .init(descricao: "Feijao 1kg", valor: Decimal(string: "17.8")!)])
+    }
+
+    /// A camera le a coluna dos nomes e a dos precos em blocos separados, com o papel torto.
+    @Test func remontaAsLinhasPelaPosicaoComOPapelInclinado() {
+        // Inclinacao de 0,1 para baixo a cada unidade para a direita; cada linha tem 10 de altura.
+        func caixa(_ x: CGFloat, _ y: CGFloat, largura: CGFloat, linhas: CGFloat = 1) -> [CGPoint] {
+            let altura = 10 * linhas
+            return [CGPoint(x: x, y: y + 0.1 * x), CGPoint(x: x + largura, y: y + 0.1 * (x + largura)),
+                    CGPoint(x: x + largura, y: y + altura + 0.1 * (x + largura)), CGPoint(x: x, y: y + altura + 0.1 * x)]
+        }
+        let trechos: [LeitorDeCupom.Trecho] = [
+            .init(texto: "1,49 A\n2,49 A", cantos: caixa(200, 0, largura: 40, linhas: 2)),
+            .init(texto: "Total", cantos: caixa(0, 20, largura: 40)),
+            .init(texto: "Banana", cantos: caixa(0, 0, largura: 50)),
+            .init(texto: "17,72", cantos: caixa(200, 20, largura: 40)),
+            .init(texto: "Leite", cantos: caixa(0, 10, largura: 40)),
+        ]
+        #expect(LeitorDeCupom.linhas(trechos) == ["Banana 1,49 A", "Leite 2,49 A", "Total 17,72"])
+        #expect(LeitorDeCupom.ler(trechos, hoje: hoje).total == Decimal(string: "17.72"))
+    }
+
     @MainActor
     @Test func resumoDoWidgetSemTokenComAMetaAberta() throws {
         Formatos.codigoDaMoeda = "BRL"

@@ -108,6 +108,9 @@
     "%lld gastos esperando conexão" : {
 
     },
+    "%lld itens, somando %@" : {
+
+    },
     "%lld%%" : {
 
     },
@@ -475,6 +478,9 @@
 
     },
     "Busque um filme e guarde para a próxima noite de sofá." : {
+
+    },
+    "Cada item vira um gasto. Sem categoria, o Piggu escolhe pela descrição de cada um." : {
 
     },
     "CPF" : {
@@ -1464,6 +1470,9 @@
     "Lançar um gasto" : {
 
     },
+    "Lançar um valor só" : {
+
+    },
     "Lançar uma receita" : {
 
     },
@@ -2421,6 +2430,9 @@
     "Senha trocada. Os outros aparelhos vão pedir para entrar de novo." : {
 
     },
+    "Separar os itens" : {
+
+    },
     "Seu documento" : {
 
     },
@@ -2547,6 +2559,9 @@
     "Toque para marcar ou desmarcar" : {
 
     },
+    "Total" : {
+
+    },
     "Total %@%@" : {
 
     },
@@ -2586,10 +2601,10 @@
     "Usar esta" : {
 
     },
-    "Usar este valor" : {
+    "Usar foto do Google" : {
 
     },
-    "Usar foto do Google" : {
+    "Usar o total" : {
 
     },
     "Use letras e números na senha." : {
@@ -2614,6 +2629,9 @@
 
     },
     "Valor da 2ª parcela" : {
+
+    },
+    "Valor de %@" : {
 
     },
     "Valor do evento" : {
