@@ -1,0 +1,70 @@
+/* Página do Kit Finanças (D-184). Arquivo estático, fora do Angular: as cores repetem os
+ * tokens do tema Chiclete do styles.scss, e a fonte é a mesma Sora servida daqui. */
+@font-face {
+  font-family: 'Sora';
+  src: url('/kit/sora.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --ink: #2b1e32; --ink-soft: #5c4c58; --muted: #94808a;
+  --primaria: #d1006b; --primaria-hover: #b0005a; --rose: #ff4fa3; --rose-soft: #ffe0ef;
+  --site-bg: #fff4f9; --border: #ffd9ea; --border-strong: #ffbfdc;
+  --ouro-soft: #fbf1de; --ouro-ink: #82601a;
+  --raio: 20px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Sora', system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--site-bg); line-height: 1.55; }
+img { max-width: 100%; display: block; }
+a { color: var(--primaria); }
+.miolo { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.topo { display: flex; align-items: center; justify-content: space-between; padding-block: 18px; }
+.marca { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; color: var(--primaria); text-decoration: none; letter-spacing: -.02em; }
+.marca img { width: 36px; height: 36px; border-radius: 10px; }
+
+.hero { display: grid; gap: 32px; align-items: center; padding-block: 24px 56px; }
+@media (min-width: 860px) { .hero { grid-template-columns: 1.1fr .9fr; padding-block-start: 40px; } }
+.selo { display: inline-block; background: var(--rose-soft); color: var(--primaria); font-weight: 700; font-size: .85rem; padding: 6px 14px; border-radius: 99px; }
+h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.08; letter-spacing: -.03em; margin: 16px 0; }
+h1 em { font-style: normal; color: var(--primaria); }
+.sub { font-size: 1.1rem; color: var(--ink-soft); margin: 0 0 24px; max-width: 34em; }
+.botao { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 28px; border-radius: 99px;
+         background: var(--primaria); color: #fff; font-weight: 700; font-size: 1.05rem; text-decoration: none;
+         box-shadow: 0 10px 30px rgba(209, 0, 107, .25); }
+.botao:hover { background: var(--primaria-hover); }
+.botao:focus-visible { outline: 3px solid var(--rose); outline-offset: 3px; }
+.nota { font-size: .85rem; color: var(--muted); margin-top: 12px; }
+.ganhos { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 10px; }
+.ganhos li { display: flex; gap: 10px; align-items: flex-start; }
+.ganhos li::before { content: "✓"; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primaria); color: #fff;
+                     font-size: .8rem; font-weight: 800; display: grid; place-items: center; margin-top: 2px; }
+
+.paginas { display: flex; justify-content: center; align-items: flex-start; padding: 12px 0 24px; min-width: 0; }
+.paginas img { width: 42%; height: auto; border-radius: 8px; box-shadow: 0 18px 50px rgba(43, 30, 50, .18); background: #fff; }
+.paginas img:nth-child(1) { transform: rotate(-6deg) translate(12%, 18px); }
+.paginas img:nth-child(2) { order: 3; transform: rotate(6deg) translate(-12%, 18px); }
+.paginas img:nth-child(3) { order: 2; position: relative; z-index: 1; }
+.hero > * { min-width: 0; }
+
+section { padding: 48px 0; }
+section.branca { background: #fff; }
+h2 { font-size: clamp(1.5rem, 4vw, 2rem); letter-spacing: -.02em; margin: 0 0 24px; }
+.grade { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.cartao { background: #fff; border: 1.5px solid var(--border); border-radius: var(--raio); padding: 20px; }
+section.branca .cartao { background: var(--site-bg); }
+.cartao b { display: block; margin-bottom: 4px; }
+.cartao p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+.final { text-align: center; }
+.final p { color: var(--ink-soft); max-width: 36em; margin: 0 auto 24px; }
+details { background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; }
+summary { font-weight: 700; cursor: pointer; }
+details p { color: var(--ink-soft); margin: 10px 0 0; }
+.dados { background: var(--ouro-soft); color: var(--ouro-ink); border-radius: var(--raio); padding: 20px; font-size: .9rem; }
+.dados h3 { margin: 0 0 8px; font-size: 1rem; }
+.dados ul { margin: 0; padding-left: 18px; }
+.dados a { color: var(--ouro-ink); }
+footer { padding: 32px 0 48px; font-size: .85rem; color: var(--muted); text-align: center; }
+
+/* As paginas inclinadas do kit passam um pouco da borda: sem rolagem para o lado no celular. */
+main { overflow-x: clip; }

@@ -72,8 +72,9 @@
 		@aasa path /.well-known/apple-app-site-association
 		header @aasa Content-Type application/json
 
-		# Rota do Angular (/painel) nao e arquivo: devolve o index.html.
-		try_files {path} /index.html
+		# Rota do Angular (/painel) nao e arquivo: devolve o index.html. Pasta com index.html
+		# proprio (a pagina estatica /kit, D-184) devolve o dela.
+		try_files {path} {path}/index.html /index.html
 		file_server
 	}
 }

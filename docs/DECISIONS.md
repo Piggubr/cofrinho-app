@@ -1857,3 +1857,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: publicar a imagem do banking no CI, que custa um build a mais em todo merge enquanto o Open Finance está desligado.
 - Consequências: com o Open Finance ligado, cada deploy leva o tempo de compilar o banking no servidor. Se o CI passar a publicar a imagem dele, ela entra em `SERVICOS_DO_APP` e o build no servidor sai.
 - Onde ver: `backend/docker-compose.yml`, `deploy/atualizar.sh` (`publicar`, `esperar_saude`)
+
+## D-184: Página estática do Kit Finanças em /kit, com a lista de e-mails no Brevo
+- Data: 08/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu, que escolheu o Brevo para guardar os leads e mandar os e-mails (08/11/2026); o formato da página, pelo Claude.
+- Registrado por: Claude
+- Contexto: o Kit Finanças (PDF grátis com orçamento, contas, cofrinhos e o Desafio das 52 Semanas) é a isca para trazer gente ao Piggu. Precisa de uma página que capte nome e e-mail e de uma sequência de três e-mails, e o backend não tem nada de lista de marketing.
+- Decisão: a página fica em `frontend/public/kit/` (HTML e CSS estáticos, sem script, fora do Angular), servida em `piggu.com.br/kit`. O botão leva ao formulário hospedado do Brevo, que pede o consentimento, faz a dupla confirmação, volta para `/kit/obrigado.html` e dispara os e-mails. O Caddy passa a tentar `{path}/index.html` antes do `index.html` do Angular, e o service worker deixa `/kit` fora das navegações do app. A CSP não muda, porque nenhum formulário do site envia para fora.
+- Alternativas: formulário próprio postando no Brevo (exigiria abrir o `form-action` da CSP e script inline); tabela de leads no backend com envio pelo Resend (vira feature com consentimento, descadastro e testes); produto de R$ 0 na Kiwify ou Hotmart (sequência de e-mails limitada); MailerLite (o plano grátis caiu para 250 contatos em 2026).
+- Consequências: o PDF fica público em `/kit/kit-financas-piggu.pdf`, então quem tiver o link baixa sem cadastro, o que é aceitável para uma isca grátis. A página tem o próprio aviso de dados (controlador, operador Brevo, prazo e direitos); a política de privacidade do app ainda não cita o Brevo e deve ganhar a linha na próxima versão do aviso. Trocar o PDF é só substituir o arquivo.
+- Onde ver: `frontend/public/kit/`, `deploy/Caddyfile` (`try_files`), `frontend/ngsw-config.json` (`navigationUrls`)
