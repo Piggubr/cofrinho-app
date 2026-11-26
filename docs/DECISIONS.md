@@ -2103,3 +2103,17 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: manter Casal e Família só no site (a Apple recusa produto enviado à revisão que não aparece no app).
 - Consequências: os ids de Casal e Família precisam bater com os do App Store Connect antes do próximo build; se forem outros, só muda a lista e o `.storekit`. Se houver teste grátis no App Store Connect, ele volta ao `.storekit`.
 - Onde ver: `ios-nativo/Piggu/Core/Loja/LojaDaApple.swift`, `ios-nativo/PigguTests/Piggu.storekit`, `ios-nativo/PigguUITests/PrintsUITests.swift`, `backend/piggu-identity/src/main/java/com/piggu/identity/billing/TipoDePlano.java`
+
+## D-199: Apagar e "Era uma receita" dentro da edição do gasto
+- Data: 14/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu (seguir com a proposta, 14/11/2026); os detalhes técnicos, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: uma usuária lançou um gasto no lugar de uma receita e não conseguiu apagar. Nos apps nativos o apagar só existia deslizando a linha; tocar no gasto abre a edição, que não tinha "Apagar". Também não havia como trocar gasto por receita.
+- Decisão:
+  - iOS e Android: a folha "Editar gasto" ganha "Apagar gasto" (fecha a folha e faz a mesma pergunta do deslize, com "só esta" ou "esta e as próximas" na parcela) e "Era uma receita". Os dois só aparecem para quem pode apagar (do compartilhado, quem lançou). O deslize continua.
+  - Site: a lixeira já ficava visível na linha; a edição ganha só "Era uma receita".
+  - Backend: `POST /api/expenses/{id}/virar-receita` cria a receita e apaga o gasto numa transação (mesma data, descrição, valor e compartilhamento; categoria de receita com o mesmo nome ou `Outros`). O histórico registra o gasto apagado e a receita criada. Parcela é recusada com `422`.
+- Alternativas: o app lançar a receita e apagar o gasto em duas chamadas (uma falha no meio duplica ou some com o lançamento); deixar trocar também a parcela (a receita não tem parcelas; cada parcela viraria uma receita solta).
+- Consequências: o gasto recorrente (que liga uma conta fixa automática) vira receita só no mês dele; a conta fixa continua e é apagada em Contas do mês. O gasto vindo do banco (Open Finance) que vira receita pode voltar na próxima sincronização, como já acontece ao apagar.
+- Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`virarReceita`), `GastoViraReceitaTest`, `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`) e `GastosViewModel.kt`, `frontend/src/app/features/expenses/expenses.ts`
