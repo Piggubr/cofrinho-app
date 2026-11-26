@@ -110,6 +110,16 @@ struct ClienteDaAPITests {
         #expect(await transporte.recebidos.first?.url?.absoluteString == "https://piggu.com.br/api/expenses?mes=2026-10")
     }
 
+    @Test func gastoViraReceitaPeloPost() async throws {
+        let receita = #"{"id":"r1","data":"2026-10-05","descricao":"Pix","categoria":"Outros","valor":50,"usuario":"u1","compartilhado":false}"#
+        let transporte = TransporteRoteirizado([(201, receita)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
+        try await cliente.virarReceita("g1")
+        let pedido = try #require(await transporte.recebidos.first)
+        #expect(pedido.httpMethod == "POST")
+        #expect(pedido.url?.absoluteString == "https://piggu.com.br/api/expenses/g1/virar-receita")
+    }
+
     // MARK: - Refresh no corpo (D-072)
 
     @Test func semCofreRenovaPeloCookieComCorpoVazio() async throws {

@@ -66,6 +66,11 @@ export class FinanceService extends ApiBase {
     });
   }
 
+  /** Gasto lancado por engano: vira receita com a mesma data, descricao e valor (D-199). */
+  virarReceita(id: string): Observable<Receita> {
+    return this.http.post<Receita>(this.url(`/expenses/${id}/virar-receita`), {});
+  }
+
   /** @returns mapa de AAAA-MM para o limite daquele mes */
   listarMetas(): Observable<Record<string, number>> {
     return this.http.get<Record<string, number>>(this.url('/monthly-goals'));

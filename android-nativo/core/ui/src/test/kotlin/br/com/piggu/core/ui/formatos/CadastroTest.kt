@@ -28,6 +28,21 @@ class CadastroTest {
     }
 
     @Test
+    fun `mascara do CPF deixa o cursor depois do ultimo digito digitado`() {
+        for (n in 0..11) {
+            val digitos = "52998224725".take(n)
+            val mascara = MascaraDoCpf.filter(androidx.compose.ui.text.AnnotatedString(digitos))
+            assertEquals(formatarCpf(digitos), mascara.text.text)
+            val fim = mascara.offsetMapping.originalToTransformed(n)
+            assertEquals("cursor no fim com $n dígitos", mascara.text.length, fim)
+            assertEquals(n, mascara.offsetMapping.transformedToOriginal(fim))
+            for (i in 0..n) {
+                assertEquals(i, mascara.offsetMapping.transformedToOriginal(mascara.offsetMapping.originalToTransformed(i)))
+            }
+        }
+    }
+
+    @Test
     fun `e-mail aceita o formato nome@dominio_algo`() {
         assertTrue(pareceEmail("ana@piggu.com.br"))
         assertTrue(pareceEmail("a@b.c"))

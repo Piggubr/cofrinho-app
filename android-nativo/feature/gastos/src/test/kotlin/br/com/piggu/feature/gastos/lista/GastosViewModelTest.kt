@@ -185,6 +185,28 @@ class GastosViewModelTest {
     }
 
     @Test
+    fun `da edicao, apagar fecha a folha e Era uma receita troca de lista`() = runTest {
+        val fixas = RespostasFixas()
+        val viewModel = tela(fixas)
+        val padaria = viewModel.gasto("Padaria")
+
+        viewModel.abrirEdicao(padaria)
+        assertTrue(viewModel.estado.value.edicao!!.podeApagar)
+        viewModel.apagarDaEdicao()
+        assertNull(viewModel.estado.value.edicao)
+        assertEquals(ExclusaoPendente(padaria, eAsProximas = false), viewModel.estado.value.exclusao)
+        viewModel.desfazer()
+
+        viewModel.abrirEdicao(padaria)
+        viewModel.pedirReceita()
+        assertTrue(viewModel.estado.value.edicao!!.confirmarReceita)
+        viewModel.virarReceita()
+        viewModel.estado.esperar { it.edicao == null && it.aviso != null }
+        assertTrue(fixas.pedidos.any { it.startsWith("POST /api/expenses/${padaria.id}/virar-receita") })
+        ate { rede.financas.listarGastos("2026-10").none { it.id == padaria.id } }
+    }
+
+    @Test
     fun `parcela pergunta e apaga tambem as proximas`() = runTest {
         val viewModel = tela()
         viewModel.mudarMes("2026-09")
