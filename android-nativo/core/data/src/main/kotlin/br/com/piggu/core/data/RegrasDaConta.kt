@@ -4,6 +4,7 @@ import br.com.piggu.core.model.ModuloDeEstiloDeVida
 import br.com.piggu.core.model.PigguRole
 import br.com.piggu.core.model.Plano
 import br.com.piggu.core.model.Usuario
+import java.time.LocalDate
 
 /** A versão dos Termos e do Aviso em vigor (VERSAO_DO_AVISO de aviso.ts e do backend). */
 const val VERSAO_DOS_TERMOS = "2026-11-08"
@@ -42,3 +43,17 @@ val Usuario.pendencia: Pendencia?
         sobreVocePendente -> Pendencia.SobreVoce
         else -> null
     }
+
+/**
+ * O banner do plano gratuito (D-180): só com conta gratuita (nem Premium nem ADMIN), fora da
+ * demonstração e com 18 anos ou mais pelo `nascimento`, contados no fuso de Brasília. Sessão
+ * abrindo, plano desconhecido e nascimento ausente ou ilegível não mostram. Derivada do estado
+ * da sessão: assinou o Premium ou trocou de conta, o banner segue na hora.
+ */
+fun Usuario?.deveMostrarAnuncios(demo: Boolean, hoje: LocalDate = LocalDate.now(FUSO_DA_CONTA)): Boolean =
+    this != null && !demo && !ehPremium && plano == Plano.GRATUITO && maiorDeIdade(hoje)
+
+private fun Usuario.maiorDeIdade(hoje: LocalDate): Boolean {
+    val nasceu = nascimento?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return false
+    return !nasceu.plusYears(18).isAfter(hoje)
+}

@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 13/11/2026.
+Última atualização: 26/11/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -18,7 +18,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Depois (próximos 1 a 2 meses)
 
-- Anúncios no plano gratuito (D-180): textos e transição da versão do aviso feitos; faltam o Android (Tarefas 2 e 3 do plano), o iOS (Tarefas 4 e 5) e, com o Dudu, a conta AdMob, os ids, o bloqueio de categorias, o `app-ads.txt` e os formulários das lojas (Tarefa 6). A versão `2026-10-16` do aviso deixa de valer em 07/01/2027: até lá, os apps nas lojas precisam estar atualizados.
+- Anúncios no plano gratuito (D-180): textos, transição da versão do aviso e o Android (D-202) feitos; faltam o iOS (Tarefas 4 e 5) e, com o Dudu, a conta AdMob, os ids, o bloqueio de categorias, o `app-ads.txt` e os formulários das lojas (Tarefa 6). A versão `2026-10-16` do aviso deixa de valer em 07/01/2027: até lá, os apps nas lojas precisam estar atualizados.
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).
@@ -46,6 +46,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Feito recentemente
 
+- 26/11/2026: Android: banner não personalizado da AdMob no Painel e nos Lançamentos para conta gratuita e adulta, com os ids de teste no debug e os reais do release por `ADMOB_APP_ID` e `ADMOB_BANNER_ID` (D-202, Tarefas 2 e 3 do plano de anúncios).
 - 14/11/2026: "Apagar gasto" e "Era uma receita" na edição do gasto no iOS e no Android (o apagar só existia deslizando), "Era uma receita" no site e `POST /api/expenses/{id}/virar-receita` no backend (D-199).
 - 13/11/2026: exigências das lojas (D-197): manifesto de privacidade no iOS e no widget, página pública `/excluir-conta` para o Google Play e prints pela demonstração.
 - 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).

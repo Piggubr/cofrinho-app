@@ -39,6 +39,8 @@ glance = "1.2.0"
 biometric = "1.1.0"
 codeScanner = "16.1.0"
 firebaseMessaging = "26.0.1"
+# Banner do plano gratuito (D-180). A 25.5.0 pede minSdk 24.
+playServicesAds = "25.5.0"
 documentScanner = "16.0.0"
 # A8 (conferida em 28/10/2026).
 billing = "9.1.0"
@@ -107,6 +109,7 @@ androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", versi
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutines" }
 play-services-code-scanner = { module = "com.google.android.gms:play-services-code-scanner", version.ref = "codeScanner" }
 billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billing" }

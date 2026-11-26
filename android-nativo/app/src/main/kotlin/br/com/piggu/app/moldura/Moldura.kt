@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -86,6 +87,8 @@ data class PerfilDaMoldura(
     val cpfInformado: Boolean = true,
     /** A arte do ícone escolhido no Perfil, para a marca do topo; nulo é o padrão. */
     @param:DrawableRes val marca: Int? = null,
+    /** O banner do plano gratuito no Painel e nos Lançamentos (D-180, `deveMostrarAnuncios`). */
+    val mostraAnuncios: Boolean = false,
 )
 
 /** Como o menu aparece pela largura da janela (WindowSizeClass). */
@@ -148,7 +151,17 @@ fun Moldura(
                 }
             },
             bottomBar = {
-                if (forma == FormaDoMenu.Barra) BarraDeAbas(abaAtual, abrir, tourNaTela)
+                // O banner do plano gratuito (D-180): acima da barra de abas ou, com o trilho e a
+                // gaveta, no pé do conteúdo. Só no Painel e nos Lançamentos.
+                val anuncio = perfil.mostraAnuncios && abaAtual in ABAS_COM_ANUNCIO
+                if (forma == FormaDoMenu.Barra) {
+                    Column {
+                        if (anuncio) BannerDeAnuncio()
+                        BarraDeAbas(abaAtual, abrir, tourNaTela)
+                    }
+                } else if (anuncio) {
+                    BannerDeAnuncio(Modifier.navigationBarsPadding())
+                }
             },
             floatingActionButton = {
                 AncoraDoTour(AlvoDoTour.Lancar, tourNaTela, TooltipAnchorPosition.Above) {
@@ -305,6 +318,9 @@ private fun TrilhoDeAbas(abaAtual: Tela?, abrir: (Tela) -> Unit, tour: TourAbert
 private data class Aba(val tela: Tela, val rotulo: Int, val icone: Int, val marcadaEm: Set<Tela> = setOf(tela))
 
 /** Painel, Lançamentos (gastos e receitas), Planejar (com os relatórios) e Mais: a opção A do redesenho (D-164). */
+/** As abas onde o banner do plano gratuito pode aparecer (D-180). */
+internal val ABAS_COM_ANUNCIO: Set<Tela> = setOf(Tela.Painel, Tela.Gastos, Tela.Receitas)
+
 private val Abas: List<Aba> = listOf(
     Aba(Tela.Painel, R.string.tela_painel, Icones.drawable.ic_painel),
     Aba(Tela.Gastos, R.string.tela_lancamentos, Icones.drawable.ic_gastos, setOf(Tela.Gastos, Tela.Receitas)),

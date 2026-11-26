@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import br.com.piggu.core.data.EstadoDaSessao
 import br.com.piggu.core.data.Sessao
+import br.com.piggu.core.data.deveMostrarAnuncios
 import br.com.piggu.core.data.ehPremium
 import br.com.piggu.core.data.ehTitular
 import br.com.piggu.core.data.modulosLigados
@@ -142,7 +143,8 @@ class AppViewModel @Inject constructor(
     private data class Aparencia(val cor: String?, val modo: String?, val coresDoCelular: Boolean, val fundoPreto: Boolean, val voltou: Boolean)
 }
 
-private fun Usuario.paraAMoldura(cotacao: Cotacao?) = PerfilDaMoldura(
+/** A moldura da conta. O banner (D-180) é refeito a cada mudança da sessão: assinou, some na hora. */
+internal fun Usuario.paraAMoldura(cotacao: Cotacao?, demo: Boolean = BuildConfig.FLAVOR == "demo") = PerfilDaMoldura(
     nome = nome,
     email = email,
     ehTitular = ehTitular,
@@ -152,4 +154,5 @@ private fun Usuario.paraAMoldura(cotacao: Cotacao?) = PerfilDaMoldura(
     cotacaoDesatualizada = cotacao?.desatualizada == true,
     emailConfirmado = emailConfirmado != false,
     cpfInformado = cpfInformado != false,
+    mostraAnuncios = deveMostrarAnuncios(demo),
 )

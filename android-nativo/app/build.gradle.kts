@@ -8,6 +8,20 @@ plugins {
     alias(libs.plugins.roborazzi)
 }
 
+// Ids de teste do Google para banner adaptativo (developers.google.com/admob/android/test-ads).
+val ADMOB_APP_DE_TESTE = "ca-app-pub-3940256099942544~3347511713"
+val ADMOB_BANNER_DE_TESTE = "ca-app-pub-3940256099942544/9214589741"
+
+fun configuracao(nome: String): String? =
+    (findProperty(nome) as String?)?.takeIf { it.isNotBlank() } ?: System.getenv(nome)?.takeIf { it.isNotBlank() }
+
+val admobAppId = configuracao("ADMOB_APP_ID")
+val admobBannerId = configuracao("ADMOB_BANNER_ID")
+// Os dois andam juntos: um banner real com o app de teste (ou o contrário) não entrega anúncio.
+require((admobAppId == null) == (admobBannerId == null)) {
+    "Informe ADMOB_APP_ID e ADMOB_BANNER_ID juntos (ou nenhum dos dois)."
+}
+
 android {
     namespace = "br.com.piggu.app"
     // 37 porque o Compose e o Navigation 3 estáveis pedem; o comportamento segue o targetSdk 36.
@@ -20,6 +34,9 @@ android {
         // O nativo entra como 2.0.0 do mesmo app das lojas (D-057).
         versionCode = 206
         versionName = "2.0.0"
+        // Anúncios do plano gratuito (D-180): os ids de teste do Google, que mostram "Test Ad".
+        manifestPlaceholders["admobAppId"] = ADMOB_APP_DE_TESTE
+        buildConfigField("String", "ADMOB_BANNER", "\"$ADMOB_BANNER_DE_TESTE\"")
     }
 
     // demo: dados de exemplo da API falsa de :core:testing, sem backend. producao: a API de verdade.
@@ -67,6 +84,11 @@ android {
 
     buildTypes {
         release {
+            // O release de produção usa os ids reais de ADMOB_APP_ID e ADMOB_BANNER_ID (propriedade
+            // do Gradle ou variável de ambiente; não são segredo). Sem eles, sai sem banner: o id do
+            // app fica o de teste (o SDK exige um) e nenhum anúncio é pedido. A demo nunca mostra.
+            if (admobAppId != null) manifestPlaceholders["admobAppId"] = admobAppId
+            buildConfigField("String", "ADMOB_BANNER", "\"${admobBannerId ?: ""}\"")
             signingConfigs.findByName("upload")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
@@ -92,6 +114,8 @@ dependencies {
     implementation(projects.core.data)
     // Só o token e a notificação com o app aberto; o envio é do backend pela API HTTP v1 (D-139).
     implementation(libs.firebase.messaging)
+    // Banner não personalizado do plano gratuito (D-180).
+    implementation(libs.play.services.ads)
     implementation(libs.kotlinx.coroutines.play.services)
     // O carregador de imagens do Coil usa o OkHttp da sessão; o SVG é o das fotos da demonstração.
     implementation(libs.coil.network.okhttp)
