@@ -134,3 +134,8 @@ piggu:
   limite:
     # Chamadas por minuto, por IP, para a API inteira (LimitePorIpGlobalFilter). 0 desliga.
     gateway-por-minuto: ${PIGGU_LIMITE_GATEWAY:600}
+  # Versao minima de cada app (VersaoMinimaGlobalFilter, D-201). Vazio (padrao) desliga.
+  # Abaixo dela o app recebe 426 ATUALIZE_O_APP e mostra a tela de atualizar.
+  versao-minima:
+    android: ${PIGGU_VERSAO_MINIMA_ANDROID:}
+    ios: ${PIGGU_VERSAO_MINIMA_IOS:}

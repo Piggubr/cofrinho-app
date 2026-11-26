@@ -194,6 +194,11 @@ compila e roda os testes num simulador de iPhone (`.github/workflows/ios-nativo.
   (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, só com "Continuar conectado"), e
   `/auth/refresh` e `/auth/logout` o recebem no corpo (D-072). O backend já atende, como no
   Android. Quem vinha da sessão no cookie entra de novo uma vez.
+- **Versão mínima (D-201)**: todo pedido leva `User-Agent: Piggu-iOS/<MARKETING_VERSION>`. Se o
+  gateway responder `426` com `ATUALIZE_O_APP`, a tela "Atualize o Piggu" cobre o app. O botão
+  abre a ficha na App Store com `PIGGU_APP_STORE_ID` (Apple ID do app, em `Config/Piggu.xcconfig`);
+  vazio, abre a busca da loja. Para forçar uma atualização, a versão nova precisa subir a
+  `MARKETING_VERSION` (2.0.1), não só o build.
 - **Painel** (`features/dashboard`): no topo, fixo, o "Ainda dá para gastar" (D-164); depois os cartões do site na ordem e com a visibilidade escolhidas em
   "Personalizar o Painel" (mesma chave e JSON do site, `piggu_painel_<id>`): sobra do mês,
   Para ficar de olho (orçamentos, fatura, contas do mês, quem está devendo), gasto e limite,

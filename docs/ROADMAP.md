@@ -1,6 +1,6 @@
 # Roadmap do Piggu
 
-Última atualização: 13/11/2026.
+Última atualização: 26/11/2026.
 
 **Regra:** concluiu um item? Atualize este arquivo no mesmo PR que o conclui.
 
@@ -39,13 +39,13 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 - Importar o histórico da planilha antiga, porque o banco sobe vazio ([backend/README](../backend/README.md#o-que-ainda-falta)).
 - Academia, que só existia no app antigo e ficou de fora ([frontend/README](../frontend/README.md#o-que-ainda-falta)).
 - Premium vencido: desconectar o banco sozinho 30 dias depois, com aviso ([planos Premium](planos-premium.md#falta-antes-de-cobrar-de-verdade)).
-- Aviso de "atualize o app" quando a versão instalada for velha demais ([plano iOS](https://claude.ai/artifact/EsG2Vns9DSeAbHqWJTDD3Y)).
 - Congelar features novas no site enquanto a migração para o nativo anda ([plano iOS](https://claude.ai/artifact/EsG2Vns9DSeAbHqWJTDD3Y)).
 - Dividir código entre iOS e Android com Kotlin Multiplatform, se manter duas camadas de rede virar problema ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 - Oferecer o Stripe também dentro do app Android, se as regras do Google Play no Brasil deixarem ([plano Android](https://claude.ai/artifact/K5Cy7Xw1w3L71bEGpGzR9G)).
 
 ## Feito recentemente
 
+- 26/11/2026: aviso de "atualize o app": o gateway responde `426 ATUALIZE_O_APP` ao app abaixo da versão mínima (`PIGGU_VERSAO_MINIMA_ANDROID` e `_IOS`, desligadas por padrão), e o iOS manda a versão no `User-Agent` e mostra a tela de atualizar, como o Android já fazia (D-201).
 - 14/11/2026: "Apagar gasto" e "Era uma receita" na edição do gasto no iOS e no Android (o apagar só existia deslizando), "Era uma receita" no site e `POST /api/expenses/{id}/virar-receita` no backend (D-199).
 - 13/11/2026: exigências das lojas (D-197): manifesto de privacidade no iOS e no widget, página pública `/excluir-conta` para o Google Play e prints pela demonstração.
 - 11/11/2026: correções do backend da auditoria: gateway com 503/504 e prazos (D-191), valor a partir de R$ 0,01 e faixa de datas (D-189), projeção do mês com os fixos uma vez (D-190), receita com `idDoEnvio`, mês validado, dividir só com a família, fotos numa instalação nova e mensagens com acento (D-192).

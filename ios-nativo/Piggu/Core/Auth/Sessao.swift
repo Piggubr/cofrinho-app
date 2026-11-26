@@ -20,6 +20,8 @@ final class Sessao {
     }
 
     private(set) var estado: Estado = .verificando
+    /// O gateway recusou esta versao (426 ATUALIZE_O_APP, D-201): a tela de atualizar cobre o app.
+    private(set) var precisaAtualizar = false
     let cliente: ClienteDaAPI
     let cache: Cache
     let fila: FilaDeGastos
@@ -47,6 +49,9 @@ final class Sessao {
                 },
                 aoPerderSessao: {
                     await MainActor.run { self?.saiu() }
+                },
+                aoPrecisarAtualizar: {
+                    await MainActor.run { self?.precisaAtualizar = true }
                 })
         }
     }
