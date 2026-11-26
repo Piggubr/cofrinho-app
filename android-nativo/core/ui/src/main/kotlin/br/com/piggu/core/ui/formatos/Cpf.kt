@@ -1,5 +1,10 @@
 package br.com.piggu.core.ui.formatos
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+
 // CPF no app: máscara enquanto digita e os dígitos verificadores antes de mandar (cpf.ts).
 // Quem decide de verdade é o backend (mesma conta, e CPF único entre contas).
 
@@ -14,6 +19,25 @@ fun formatarCpf(texto: String): String {
         d.length <= 6 -> "${d.take(3)}.${d.drop(3)}"
         d.length <= 9 -> "${d.take(3)}.${d.substring(3, 6)}.${d.drop(6)}"
         else -> "${d.take(3)}.${d.substring(3, 6)}.${d.substring(6, 9)}-${d.drop(9)}"
+    }
+}
+
+/**
+ * Mostra os dígitos com pontos e traço sem mudar o texto do campo. Formatar o próprio texto deixava o
+ * cursor atrás do ponto novo, e os dígitos seguintes entravam ao contrário.
+ */
+object MascaraDoCpf : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val digitos = text.text
+        val formatado = formatarCpf(digitos)
+        return TransformedText(AnnotatedString(formatado), object : OffsetMapping {
+            // Um separador antes do 4º dígito, outro antes do 7º e o traço antes do 10º.
+            override fun originalToTransformed(offset: Int) =
+                offset + listOf(3, 6, 9).count { offset > it && digitos.length > it }
+
+            override fun transformedToOriginal(offset: Int) =
+                (offset - formatado.take(offset).count { it !in '0'..'9' }).coerceIn(0, digitos.length)
+        })
     }
 }
 
