@@ -191,6 +191,7 @@ no fim, em vez de ganhar um motivo inventado.
 | [D-190](#d-190-projeção-do-mês-com-os-fixos-uma-vez-e-comparação-até-o-mesmo-dia) | Projeção do mês com os fixos uma vez e comparação até o mesmo dia | Valendo |
 | [D-191](#d-191-gateway-responde-503-ou-504-com-servico_indisponivel-com-prazo-por-rota-e-o-status-do-banking-desligado-sai-dele) | Gateway responde 503 ou 504 com SERVICO_INDISPONIVEL, com prazo por rota, e o status do banking desligado sai dele | Valendo |
 | [D-192](#d-192-receita-com-iddoenvio-mês-validado-dividir-só-com-a-família-fotos-com-dono-certo-e-mensagens-com-acento) | Receita com idDoEnvio, mês validado, dividir só com a família, fotos com dono certo e mensagens com acento | Valendo |
+| [D-200](#d-200-leitor-de-nota-do-ios-remonta-as-linhas-e-separa-os-itens) | Leitor de nota do iOS remonta as linhas e separa os itens | Valendo |
 
 ---
 
@@ -2117,3 +2118,14 @@ D-008, D-045, D-047, D-049, D-069, D-070 e D-071.
 - Alternativas: o app lançar a receita e apagar o gasto em duas chamadas (uma falha no meio duplica ou some com o lançamento); deixar trocar também a parcela (a receita não tem parcelas; cada parcela viraria uma receita solta).
 - Consequências: o gasto recorrente (que liga uma conta fixa automática) vira receita só no mês dele; a conta fixa continua e é apagada em Contas do mês. O gasto vindo do banco (Open Finance) que vira receita pode voltar na próxima sincronização, como já acontece ao apagar.
 - Onde ver: `backend/piggu-finance/.../domain/ExpenseService.java` (`virarReceita`), `GastoViraReceitaTest`, `ios-nativo/Piggu/Telas/Gastos/EditarGastoView.swift`, `android-nativo/feature/gastos/.../lista/Partes.kt` (`EditarGasto`) e `GastosViewModel.kt`, `frontend/src/app/features/expenses/expenses.ts`
+
+## D-200: Leitor de nota do iOS remonta as linhas e separa os itens
+- Data: 17/11/2026
+- Situação: Valendo
+- Decidido por: o Dudu pediu a opção de pegar cada item da nota; o como, o assistente, dentro da autonomia recebida
+- Registrado por: Claude
+- Contexto: uma usuária leu um cupom português do Lidl de € 17,72 e o leitor da câmera (D-093) mostrou € 7,32 e € 3,59. A câmera entrega a coluna dos nomes e a dos preços em blocos separados, e o leitor juntava tudo como linhas soltas: o "Val.Total" da tabela do IVA casava com "TOTAL" e o valor de baixo virava o total. Ela também queria lançar cada item da nota, não só o total.
+- Decisão: o leitor remonta as linhas do cupom pela posição de cada linha (a caixa que o Vision dá para cada linha do bloco), seguindo a inclinação do papel, antes de procurar o total. "Val.Total" não conta como total, e o valor na linha de baixo só vale se ela não tiver letras. Das linhas com descrição e valor no fim, até o total, saem os itens; a linha negativa ou de desconto ("Poupança Lidl Plus -0,80") tira do item de cima, e o código do começo e a quantidade do fim saem da descrição. Na câmera, "Usar o total" preenche o valor como antes e "Separar os itens" leva a lista ao formulário, onde dá para corrigir descrição e valor, apagar com o gesto e voltar a um valor só. Tudo sai num POST só, um item por linha da nota, com a categoria escolhida para todos ou automática por item.
+- Alternativas: tirar uma foto e ler com o Vision à parte (mais um passo para a pessoa, e o mesmo problema das colunas); mandar a foto para o leitor do backend (D-171), que depende do Premium e do consentimento do Gemini.
+- Consequências: a câmera só vê a parte do cupom que está na tela; a lista fica com a leitura de mais itens, então cupom comprido pede afastar o aparelho. A API não muda.
+- Onde ver: `ios-nativo/Piggu/Core/Formatos/LeitorDeCupom.swift`, `ios-nativo/Piggu/Telas/Gastos/LeitorDeNota.swift`, `ios-nativo/Piggu/Telas/LancarGastoView.swift`, `ios-nativo/PigguTests/SistemaTests.swift`
