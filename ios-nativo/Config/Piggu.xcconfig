@@ -5,3 +5,10 @@
 GOOGLE_IOS_CLIENT_ID = 80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360.apps.googleusercontent.com
 GOOGLE_IOS_URL_SCHEME = com.googleusercontent.apps.80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360
 GOOGLE_SERVER_CLIENT_ID = 80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com
+
+// Anúncios do plano gratuito (D-180 e D-203). Debug: os ids de teste do Google ("Test Ad").
+// Release: os ids reais da AdMob (não são segredo). Sem o do banner, o app sai sem anúncio; o do
+// app fica o de teste, porque o SDK exige um. Os dois mudam juntos.
+ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+ADMOB_BANNER_ID[config=Debug] = ca-app-pub-3940256099942544/2435281174
+ADMOB_BANNER_ID[config=Release] =
