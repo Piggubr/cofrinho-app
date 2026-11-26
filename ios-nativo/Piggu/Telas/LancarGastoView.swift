@@ -41,6 +41,8 @@ struct LancarGastoView: View {
     @State private var precoAcima: ConferenciaDePreco?
     @State private var maisOpcoes = false
     @State private var lendoNota = false
+    /// Itens separados da nota: cada um vira um item do mesmo lancamento.
+    @State private var itensDaNota: [LeitorDeCupom.Item] = []
     @State private var salvando = false
     /// O ultimo pedido enviado: tocar "Lançar" de novo sem mudar nada repete o idDoEnvio.
     @State private var ultimoEnvio: NovoLancamento?
@@ -58,6 +60,10 @@ struct LancarGastoView: View {
 
     private var convertido: Decimal? {
         guard let cotacao, let valor else { return nil }
+        return Self.converter(valor, cotacao)
+    }
+
+    private static func converter(_ valor: Decimal, _ cotacao: Decimal) -> Decimal {
         var resultado = valor * cotacao
         var arredondado = Decimal()
         NSDecimalRound(&arredondado, &resultado, 2, .plain)
@@ -122,7 +128,8 @@ struct LancarGastoView: View {
             .comTelasDoMais()
             .fullScreenCover(isPresented: $lendoNota) {
                 LeitorDeNota { leitura in
-                    if let total = leitura.total { valorDigitado = Formatos.valorParaDigitar(total) }
+                    itensDaNota = leitura.itens
+                    if leitura.itens.isEmpty, let total = leitura.total { valorDigitado = Formatos.valorParaDigitar(total) }
                     if let dia = leitura.data.flatMap(Formatos.data(deDia:)) { data = dia }
                     if leitura.data != nil { maisOpcoes = true }
                 }
@@ -144,6 +151,10 @@ struct LancarGastoView: View {
                     Task { await conferirPreco() }
                 }
             }
+            // O valor vira a soma dos itens: parcela, conversao e limites seguem valendo.
+            .onChange(of: itensDaNota) { _, itens in
+                if !itens.isEmpty { valorDigitado = Formatos.valorParaDigitar(itens.reduce(Decimal(0)) { $0 + $1.valor }) }
+            }
             .onChange(of: moedaDaCompra) { _, _ in Task { await buscarCotacao() } }
         }
     }
@@ -152,6 +163,49 @@ struct LancarGastoView: View {
 
     private var principal: some View {
         Section {
+            if itensDaNota.isEmpty { valorEDescricao } else { listaDaNota }
+        } footer: {
+            if !itensDaNota.isEmpty {
+                Text("Cada item vira um gasto. Sem categoria, o Piggu escolhe pela descrição de cada um.")
+            } else if !valorDigitado.isEmpty, valor == nil {
+                Text("Valor inválido. Use, por exemplo, 12,50.").foregroundStyle(paleta.perigo)
+            } else if let precoAcima {
+                Label("\(Formatos.porcentagem(precoAcima.percentual)) acima da média deste item (\(Formatos.moeda(precoAcima.media)))",
+                      systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(paleta.alerta)
+            }
+        }
+        .listRowBackground(paleta.superficie)
+    }
+
+    private var listaDaNota: some View {
+        Group {
+            ForEach($itensDaNota) { $linha in
+                HStack {
+                    TextField("Descrição", text: $linha.descricao)
+                        .textInputAutocapitalization(.sentences)
+                    TextField("Valor", value: $linha.valor, format: .number.precision(.fractionLength(2)).locale(Formatos.localidade))
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .monospacedDigit()
+                        .frame(maxWidth: 110)
+                        .accessibilityLabel("Valor de \(linha.descricao)")
+                }
+            }
+            .onDelete { itensDaNota.remove(atOffsets: $0) }
+            LabeledContent("Total") {
+                Text(Formatos.moeda(itensDaNota.reduce(Decimal(0)) { $0 + $1.valor })).monospacedDigit()
+            }
+            .font(.sora(.headline, peso: .semibold))
+            CampoDeCategoria(categoria: $categoria, categorias: $categorias)
+            Button("Lançar um valor só") {
+                itensDaNota = []
+            }
+        }
+    }
+
+    private var valorEDescricao: some View {
+        Group {
             LabeledContent("Valor (\(Formatos.simboloDaMoeda))") {
                 TextField("Valor", text: $valorDigitado, prompt: Text(verbatim: "0,00"))
                     .keyboardType(.decimalPad)
@@ -171,16 +225,7 @@ struct LancarGastoView: View {
                     .textInputAutocapitalization(.sentences)
                     .onChange(of: item) { _, novo in if novo.count > 200 { item = String(novo.prefix(200)) } }
             }
-        } footer: {
-            if !valorDigitado.isEmpty, valor == nil {
-                Text("Valor inválido. Use, por exemplo, 12,50.").foregroundStyle(paleta.perigo)
-            } else if let precoAcima {
-                Label("\(Formatos.porcentagem(precoAcima.percentual)) acima da média deste item (\(Formatos.moeda(precoAcima.media)))",
-                      systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(paleta.alerta)
-            }
         }
-        .listRowBackground(paleta.superficie)
     }
 
     private var comoPagou: some View {
@@ -367,8 +412,12 @@ struct LancarGastoView: View {
     private func lancar(dataConfirmada: Bool = false) async {
         let item = item.trimmingCharacters(in: .whitespaces)
         faltou = nil
-        guard !item.isEmpty else {
+        guard itensDaNota.isEmpty ? !item.isEmpty : itensDaNota.allSatisfy({ !$0.descricao.trimmingCharacters(in: .whitespaces).isEmpty }) else {
             erro = String(localized: "Digite a descrição.")
+            return
+        }
+        if let problema = itensDaNota.lazy.compactMap({ Limites.problema($0.valor) }).first {
+            erro = problema
             return
         }
         if let problema = Limites.problema(valor) ?? (outraMoeda ? convertido.flatMap { Limites.problema($0) } : nil) {
@@ -409,14 +458,17 @@ struct LancarGastoView: View {
         let pedido = NovoLancamento(
             data: Formatos.dia(data),
             origem: "Manual",
-            itens: [ItemDeGasto(
-                item: item,
-                categoria: categoria.isEmpty ? nil : categoria,
-                valor: outraMoeda ? convertido! : valor,
-                // Sem o campo Tipo na tela: o recorrente vira conta fixa, o resto e variavel.
-                tipo: modo == .recorrente ? "Fixo" : "Variavel",
-                moedaOriginal: outraMoeda ? moedaDaCompra : nil,
-                valorOriginal: outraMoeda ? valor : nil)],
+            itens: (itensDaNota.isEmpty ? [(item, valor)] : itensDaNota.map { ($0.descricao.trimmingCharacters(in: .whitespaces), $0.valor) })
+                .map { descricao, valor in
+                    ItemDeGasto(
+                        item: descricao,
+                        categoria: categoria.isEmpty ? nil : categoria,
+                        valor: outraMoeda ? Self.converter(valor, cotacao!) : valor,
+                        // Sem o campo Tipo na tela: o recorrente vira conta fixa, o resto e variavel.
+                        tipo: modo == .recorrente ? "Fixo" : "Variavel",
+                        moedaOriginal: outraMoeda ? moedaDaCompra : nil,
+                        valorOriginal: outraMoeda ? valor : nil)
+                },
             contaId: contaId.isEmpty ? nil : contaId,
             parcelas: quantas > 1 ? quantas : nil,
             dividirCom: dividirCom.isEmpty ? nil : dividirCom,

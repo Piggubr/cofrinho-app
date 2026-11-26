@@ -24,6 +24,11 @@ extension ClienteDaAPI {
         try await delete("/expenses/\(id)", query: ["proximas": eAsProximas ? "true" : nil])
     }
 
+    /// Gasto lancado por engano: vira receita com a mesma data, descricao e valor (D-199).
+    func virarReceita(_ id: String) async throws {
+        let _: Receita = try await post("/expenses/\(id)/virar-receita", corpo: [String: String]())
+    }
+
     /// Busca em todos os meses: ate 20 gastos pelo item ou estabelecimento.
     func buscarGastos(_ termo: String) async throws -> [Gasto] {
         try await get("/expenses/search", query: ["q": termo])

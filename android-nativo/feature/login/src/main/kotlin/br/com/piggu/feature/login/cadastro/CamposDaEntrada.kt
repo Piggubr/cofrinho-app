@@ -60,7 +60,9 @@ import br.com.piggu.core.network.MensagemDeErro
 import br.com.piggu.core.ui.R as Comum
 import br.com.piggu.core.ui.formatos.EXEMPLO_DO_CELULAR
 import br.com.piggu.core.ui.formatos.EXEMPLO_DO_CPF
+import br.com.piggu.core.ui.formatos.MascaraDoCpf
 import br.com.piggu.core.ui.formatos.dataCurta
+import br.com.piggu.core.ui.formatos.digitosDoCpf
 import br.com.piggu.core.ui.formatos.ddiDoPais
 import br.com.piggu.core.ui.formatos.nomeDoPais
 import br.com.piggu.core.ui.formatos.paises
@@ -208,11 +210,13 @@ internal fun CampoDeCpf(
     foco: FocusRequester,
     dica: String? = null,
 ) {
+    // O campo guarda só os dígitos; a máscara é só de exibição, para o cursor não pular.
     OutlinedTextField(
-        documento,
+        digitosDoCpf(documento),
         aoDigitar,
         Modifier.fillMaxWidth().focusRequester(foco),
         label = { Text(stringResource(R.string.cadastro_cpf)) },
+        visualTransformation = MascaraDoCpf,
         placeholder = { Text(EXEMPLO_DO_CPF) },
         singleLine = true,
         isError = erro != null,
