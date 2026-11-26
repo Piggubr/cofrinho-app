@@ -115,6 +115,7 @@ Play services. Na A8, conferida em 28/10/2026: Google Play Billing Library 9.1.0
   o mapa no app: ative o Maps SDK for Android no Google Cloud, crie uma chave restrita ao pacote
   `br.com.piggu.app` (SHA-1 da chave de assinatura do Play e a de debug) e só a essa API.
 - Push pelo Firebase (D-166): o build lê o `google-services.json` de `PIGGU_GOOGLE_SERVICES` (no CI, o secret `PIGGU_GOOGLE_SERVICES_BASE64`); sem ele, e na demo, o app sai sem push.
+- Anúncios no plano gratuito (D-180 e D-202): banner adaptativo da AdMob (`play-services-ads`), sempre não personalizado (`npa=1`), só no Painel e nos Lançamentos, para conta gratuita, adulta, fora da demo (`deveMostrarAnuncios` em `core:data`). O debug usa os ids de teste do Google ("Test Ad"). O release lê `ADMOB_APP_ID` e `ADMOB_BANNER_ID` (propriedade do Gradle, `-PADMOB_APP_ID=...`, ou variável de ambiente), sempre os dois juntos; sem eles, sai sem banner. A permissão `AD_ID` sai do manifesto.
 - Premium pelo Google Play (D-132): assinaturas `premium_mensal` e `premium_anual` no Play Console,
   cada uma com um plano básico (e, se quiser, uma oferta de teste grátis). A compra leva o id da
   conta Piggu em `obfuscatedAccountId` e vai a `POST /api/billing/google-play/purchases`, que faz o

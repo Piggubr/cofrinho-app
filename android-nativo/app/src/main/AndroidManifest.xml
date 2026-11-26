@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Anúncio só não personalizado (D-180): o app não lê o id de publicidade do aparelho. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <!-- Custom Tabs: as telas que ainda abrem no site precisam achar um navegador (Android 11+). -->
     <queries>
@@ -22,6 +24,11 @@
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.Piggu">
+
+        <!-- O id do app na AdMob (D-180), do app/build.gradle.kts: o de teste, ou o real no release. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".MainActivity"

@@ -116,7 +116,7 @@ Hilt e Compose no Android, SwiftUI e Observation no iOS.
 
 ## PR 2 — Android
 
-### Tarefa 2: regra `deveMostrarAnuncios` e estado na moldura
+### Tarefa 2: regra `deveMostrarAnuncios` e estado na moldura (feita em 26/11/2026, D-202)
 
 **Arquivos:**
 - Modificar: `android-nativo/core/data/src/main/kotlin/br/com/piggu/core/data/RegrasDaConta.kt`
@@ -158,7 +158,7 @@ Os testes que não falam de idade usam um adulto (`nascimento = "1990-01-01"`).
   gratuita para Premium também (pontos 1 e 5).
 - [ ] **Passo 6:** `./gradlew :app:testDemoDebugUnitTest :app:testProducaoDebugUnitTest` → passa. Commit.
 
-### Tarefa 3: SDK, banner e benefício no Plano
+### Tarefa 3: SDK, banner e benefício no Plano (feita em 26/11/2026, D-202; release sem ids sai sem banner, em vez de falhar)
 
 **Arquivos:**
 - Modificar: `android-nativo/gradle/libs.versions.toml` (`playServicesAds` = última estável, conferida no Maven do Google)
