@@ -1016,6 +1016,36 @@ paths:
       summary: Alterar gasto
       tags:
       - Gastos
+  /api/expenses/{id}/virar-receita:
+    post:
+      description: "Para o gasto lançado por engano: cria a receita com a mesma data,\
+        \ descrição, valor e compartilhamento e apaga o gasto, de uma vez. Parcelado\
+        \ não vira receita."
+      operationId: expenseVirarReceita
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeResponse"
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: "Erro: corpo ApiError, com a mensagem pronta para a tela e\
+            \ um código estável."
+      summary: Transformar gasto em receita
+      tags:
+      - Gastos
   /api/history:
     get:
       operationId: historicoRecentes

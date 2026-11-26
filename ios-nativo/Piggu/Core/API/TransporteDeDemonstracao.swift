@@ -68,17 +68,17 @@ actor TransporteDeDemonstracao: Transporte {
         func noMes(_ antes: Int) -> String { dia(min(antes, diaDoMes - 1)) }
 
         gastos = [
-            Self.gasto("Mercado da semana", "Mercado", 312.47, noMes(0), "Pão de Açúcar", conta: DadosDaDemonstracao.cartao),
-            Self.gasto("Uber para o trabalho", "Transporte", 23.90, noMes(1), "Uber", conta: DadosDaDemonstracao.banco),
+            Self.gasto("Mercado da semana", "Mercado", 312.47, noMes(0), "Mercado do bairro", conta: DadosDaDemonstracao.cartao),
+            Self.gasto("Corrida para o trabalho", "Transporte", 23.90, noMes(1), "Corrida por app", conta: DadosDaDemonstracao.banco),
             Self.gasto("Almoço", "Alimentação", 42.00, noMes(1), "Restaurante da esquina", conta: DadosDaDemonstracao.banco),
-            Self.gasto("Conta de luz", "Casa", 189.32, noMes(3), "Enel", conta: DadosDaDemonstracao.banco,
+            Self.gasto("Conta de luz", "Casa", 189.32, noMes(3), "Companhia de luz", conta: DadosDaDemonstracao.banco,
                        compartilhado: true),
-            Self.gasto("Cinema", "Lazer", 64.00, noMes(5), "Cinemark", conta: DadosDaDemonstracao.cartao,
+            Self.gasto("Cinema", "Lazer", 64.00, noMes(5), "Cinema do shopping", conta: DadosDaDemonstracao.cartao,
                        usuario: DadosDaDemonstracao.parceira, compartilhado: true),
-            Self.gasto("Farmácia", "Saúde", 37.80, noMes(6), "Drogasil"),
-            Self.gasto("Fone de ouvido", "Lazer", 149.90, noMes(7), "Fnac", conta: DadosDaDemonstracao.cartao,
+            Self.gasto("Farmácia", "Saúde", 37.80, noMes(6), "Farmácia da praça"),
+            Self.gasto("Fone de ouvido", "Lazer", 149.90, noMes(7), "Loja de eletrônicos", conta: DadosDaDemonstracao.cartao,
                        parcela: (2, 6)),
-            Self.gasto("Gasolina", "Transporte", 220.00, noMes(8), "Posto Shell", conta: DadosDaDemonstracao.cartao),
+            Self.gasto("Gasolina", "Transporte", 220.00, noMes(8), "Posto da avenida", conta: DadosDaDemonstracao.cartao),
         ]
     }
 
@@ -122,9 +122,9 @@ actor TransporteDeDemonstracao: Transporte {
     nonisolated(unsafe) private static let usuarioPadrao: [String: Any] = [
         "id": "8a5c2f0e-0000-4000-8000-000000000001",
         "email": "demo@piggu.app",
-        "nome": "Pessoa de Demonstração",
-        "primeiroNome": "Pessoa",
-        "apelido": "Pessoa",
+        "nome": "Ana Lima",
+        "primeiroNome": "Ana",
+        "apelido": "Ana",
         "foto": NSNull(),
         "role": "TITULAR",
         "ativo": true,
@@ -329,6 +329,16 @@ actor TransporteDeDemonstracao: Transporte {
                     gastos[indice][chave] = corpo[chave]
                 }
                 return responder(url, 200, gastos[indice])
+            }
+            if metodo == "POST", partes.count == 3, partes[0] == "expenses", partes[2] == "virar-receita",
+               let gasto = gastos.first(where: { $0["id"] as? String == partes[1] }) {
+                let receita: [String: Any] = ["id": DadosDaDemonstracao.novoId(), "data": gasto["data"] ?? "",
+                                              "descricao": gasto["item"] ?? "", "categoria": "Outros",
+                                              "valor": gasto["valor"] ?? 0, "usuario": usuario["id"] ?? "",
+                                              "compartilhado": gasto["compartilhado"] ?? false]
+                dados.receitas.append(receita)
+                gastos.removeAll { $0["id"] as? String == partes[1] }
+                return responder(url, 201, receita)
             }
             if metodo == "DELETE", partes.count == 2, partes[0] == "expenses" {
                 gastos.removeAll { $0["id"] as? String == partes[1] }

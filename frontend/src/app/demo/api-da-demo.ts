@@ -756,6 +756,15 @@ const ROTAS: Rota[] = [
       : [gasto];
     apagar.forEach((g) => { remover(estado.gastos, g.id); delete estado.partes[g.id]; });
   }],
+  ['POST', new RegExp(`^/expenses/${ID}/virar-receita$`), (_p, [id]) => {
+    const gasto = exigir(estado.gastos.find((g) => g.id === id), 'Gasto não encontrado.');
+    if (gasto.parcelas) throw new ErroDaDemo(422, 'Gasto parcelado não vira receita. Apague as parcelas e lance a receita.', 'BusinessException');
+    const receita = { id: novoId('receita'), data: gasto.data, descricao: gasto.item, categoria: 'Outros', valor: gasto.valor, usuario: estado.titular.id };
+    estado.receitas.push(receita);
+    remover(estado.gastos, gasto.id);
+    delete estado.partes[gasto.id];
+    return receita;
+  }],
 
   // Categorias e regras
   ['GET', /^\/categories$/, () => ({ categorias: categorias() })],

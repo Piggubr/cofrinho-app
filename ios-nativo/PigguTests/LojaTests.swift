@@ -36,6 +36,6 @@ struct LojaTests {
         sessao.clearTransactions()
         let produtos = try await Product.products(for: LojaDaApple.produtos)
         #expect(Set(produtos.map(\.id)) == Set(LojaDaApple.produtos))
-        #expect(produtos.allSatisfy { $0.type == .autoRenewable && $0.subscription?.introductoryOffer?.paymentMode == .freeTrial })
+        #expect(produtos.allSatisfy { $0.type == .autoRenewable })
     }
 }

@@ -268,6 +268,21 @@ export class Expenses {
     });
   }
 
+  /** Lancou gasto no lugar de receita: troca sem apagar e lancar de novo (D-199). */
+  protected virarReceita(gasto: Gasto): void {
+    if (!confirm($localize`Transformar "${gasto.item}" em receita?`)) {
+      return;
+    }
+    this.finance.virarReceita(gasto.id).subscribe({
+      next: () => {
+        this.emEdicao.set(null);
+        this.aviso.set($localize`"${gasto.item}" agora está nas receitas.`);
+        this.carregarGastos();
+      },
+      error: (falha) => this.erro.set(mensagemDeErro(falha)),
+    });
+  }
+
   protected carregarGastos(): void {
     this.finance.listarGastos(this.mesAtual()).subscribe({
       next: (gastos) => this.gastos.set(gastos),

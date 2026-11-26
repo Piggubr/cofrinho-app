@@ -177,6 +177,15 @@ public class ExpenseController {
         return servico.atualizar(id, pedido, usuario);
     }
 
+    @Operation(summary = "Transformar gasto em receita",
+            description = "Para o gasto lançado por engano: cria a receita com a mesma data, descrição, valor e "
+                    + "compartilhamento e apaga o gasto, de uma vez. Parcelado não vira receita.")
+    @PostMapping("/{id}/virar-receita")
+    @ResponseStatus(HttpStatus.CREATED)
+    public IncomeController.IncomeResponse virarReceita(@PathVariable UUID id, @AuthUser CurrentUser usuario) {
+        return IncomeController.IncomeResponse.de(servico.virarReceita(id, usuario));
+    }
+
     @Operation(summary = "Excluir gasto")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id, @AuthUser CurrentUser usuario,

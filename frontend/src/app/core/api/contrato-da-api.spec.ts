@@ -73,6 +73,7 @@ const CASOS: Caso[] = [
     { item: 'Pão', categoria: 'Mercado', valor: 5 },
   ],
   ['apagar gasto', (s) => s.finance.excluirGasto('g1'), 'DELETE', '/expenses/g1'],
+  ['gasto vira receita', (s) => s.finance.virarReceita('g1'), 'POST', '/expenses/g1/virar-receita'],
   ['buscar gastos', (s) => s.finance.buscarGastos('pão'), 'GET', '/expenses/search', { q: 'pão' }],
   [
     'previa do extrato',

@@ -128,6 +128,18 @@ class ApiDaDemoTest {
     }
 
     @Test
+    fun `gasto vira receita sai dos gastos e entra nas receitas`() {
+        val gasto = get("/api/expenses?mes=$mes").jsonArray.first { it.jsonObject["parcelas"] == null || it.jsonObject["parcelas"] is kotlinx.serialization.json.JsonNull }
+        val alvo = gasto["id"].texto
+        val receitas = get("/api/incomes?mes=$mes").jsonArray.size
+        val resposta = chamar("POST", "/api/expenses/$alvo/virar-receita")
+        assertTrue(resposta.status in 200..201)
+        assertEquals(gasto["item"].texto, resposta.corpo["descricao"].texto)
+        assertTrue(get("/api/expenses?mes=$mes").jsonArray.none { it["id"].texto == alvo })
+        assertEquals(receitas + 1, get("/api/incomes?mes=$mes").jsonArray.size)
+    }
+
+    @Test
     fun `apagar um gasto tira da lista e o segundo apagar responde 404`() {
         val alvo = get("/api/expenses?mes=$mes").jsonArray.first()["id"].texto
         assertEquals(204, chamar("DELETE", "/api/expenses/$alvo").status)
