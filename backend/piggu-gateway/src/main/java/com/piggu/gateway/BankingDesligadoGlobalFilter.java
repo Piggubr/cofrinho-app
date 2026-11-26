@@ -40,9 +40,9 @@ public class BankingDesligadoGlobalFilter implements GlobalFilter, Ordered {
         return resposta.writeWith(Mono.just(corpo));
     }
 
-    /** Depois da correlacao e do limite por IP: a resposta leva X-Request-Id e conta no teto. */
+    /** Depois da correlacao, do limite por IP e da versao minima: a resposta leva X-Request-Id e conta no teto. */
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 2;
+        return Ordered.HIGHEST_PRECEDENCE + 3;
     }
 }

@@ -25,6 +25,24 @@ enum ConfiguracaoDaAPI {
         }
         return (Bundle.main.object(forInfoDictionaryKey: "PigguRefreshNoCorpo") as? String) == "YES"
     }
+
+    /// Vai em todo pedido. O gateway compara a versao com a minima do iOS e, abaixo dela,
+    /// responde 426 ATUALIZE_O_APP (D-201). E a MARKETING_VERSION do projeto (ex.: 2.0.0).
+    static let agente: String = {
+        let versao = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        return "Piggu-iOS/\(versao ?? "0")"
+    }()
+
+    /// Abre a ficha do Piggu na App Store. Com o numero do app (`PIGGU_APP_STORE_ID`, o Apple ID
+    /// do App Store Connect) vai direto a ficha; sem ele, a busca da loja.
+    static var linkDaLoja: URL {
+        if let id = Bundle.main.object(forInfoDictionaryKey: "PigguAppStoreID") as? String,
+           !id.isEmpty, !id.hasPrefix("$("), id.allSatisfy(\.isNumber),
+           let url = URL(string: "itms-apps://apps.apple.com/app/id\(id)") {
+            return url
+        }
+        return URL(string: "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=Piggu")!
+    }
 }
 
 enum ErroDaAPI: LocalizedError, Equatable {
@@ -128,6 +146,7 @@ actor ClienteDaAPI {
     private var geracao = 0
     private var aoRenovar: (@Sendable (Usuario) async -> Void)?
     private var aoPerderSessao: (@Sendable () async -> Void)?
+    private var aoPrecisarAtualizar: (@Sendable () async -> Void)?
 
     private let decodificador = JSONDecoder()
     private let codificador = JSONEncoder()
@@ -147,12 +166,15 @@ actor ClienteDaAPI {
     /// O login pede o refresh no corpo (`refreshNoCorpo`) so quando ha onde guarda-lo.
     nonisolated var pedeRefreshNoCorpo: Bool { cofre != nil }
 
+    /// - Parameter aoPrecisarAtualizar: o gateway recusou esta versao do app (426 ATUALIZE_O_APP).
     func configurar(
         aoRenovar: @escaping @Sendable (Usuario) async -> Void,
-        aoPerderSessao: @escaping @Sendable () async -> Void
+        aoPerderSessao: @escaping @Sendable () async -> Void,
+        aoPrecisarAtualizar: (@Sendable () async -> Void)? = nil
     ) {
         self.aoRenovar = aoRenovar
         self.aoPerderSessao = aoPerderSessao
+        self.aoPrecisarAtualizar = aoPrecisarAtualizar
     }
 
     func guardar(_ tokens: ParDeTokens, lembrar: Bool = true) {
@@ -381,6 +403,7 @@ actor ClienteDaAPI {
         var pedido = URLRequest(url: url)
         pedido.httpMethod = metodo
         pedido.setValue("application/json", forHTTPHeaderField: "Accept")
+        pedido.setValue(ConfiguracaoDaAPI.agente, forHTTPHeaderField: "User-Agent")
         // Mesmo site que a API: o cookie SameSite=Strict do refresh pode ir junto.
         pedido.mainDocumentURL = urlBase
         if let corpo {
@@ -405,6 +428,12 @@ actor ClienteDaAPI {
         // O URLSession segue redirects: se o Access desviou, a resposta final e a tela dele.
         if let host = resultado.1.url?.host, host.hasSuffix("cloudflareaccess.com") {
             throw ErroDaAPI.bloqueadoPeloAccess
+        }
+        // Versao abaixo da minima (D-201): qualquer chamada, ate o refresh, leva a tela de atualizar.
+        // O erro segue para quem chamou, como os outros (validar).
+        if resultado.1.statusCode == 426,
+           (try? decodificador.decode(CorpoDeErro.self, from: resultado.0))?.codigo == "ATUALIZE_O_APP" {
+            await aoPrecisarAtualizar?()
         }
         return resultado
     }

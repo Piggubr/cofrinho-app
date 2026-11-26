@@ -35,6 +35,8 @@
 	<string>$(GOOGLE_SERVER_CLIENT_ID)</string>
 	<key>PigguAPIURL</key>
 	<string>$(PIGGU_API_URL)</string>
+	<key>PigguAppStoreID</key>
+	<string>$(PIGGU_APP_STORE_ID)</string>
 	<key>PigguRefreshNoCorpo</key>
 	<string>$(PIGGU_REFRESH_NO_CORPO)</string>
 	<key>CFBundleURLTypes</key>

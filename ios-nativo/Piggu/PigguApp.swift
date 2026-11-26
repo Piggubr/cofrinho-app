@@ -75,27 +75,32 @@ struct RaizView: View {
 
     var body: some View {
         Group {
-            switch sessao.estado {
-            case .verificando:
-                VStack(spacing: 16) {
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 96, height: 96)
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .accessibilityLabel("Piggu")
-                    ProgressView()
+            if sessao.precisaAtualizar {
+                // Versao abaixo da minima (D-201): nada mais funciona ate atualizar.
+                AtualizeView()
+            } else {
+                switch sessao.estado {
+                case .verificando:
+                    VStack(spacing: 16) {
+                        Image("Logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 96, height: 96)
+                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                            .accessibilityLabel("Piggu")
+                        ProgressView()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(paleta.fundo)
+                case .deslogado:
+                    LoginView()
+                case let .logado(usuario) where usuario.termosPendentes:
+                    AceiteView()
+                case let .logado(usuario) where usuario.sobreVocePendente:
+                    SobreVoceView()
+                case .logado:
+                    PrincipalView(rota: $rota)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(paleta.fundo)
-            case .deslogado:
-                LoginView()
-            case let .logado(usuario) where usuario.termosPendentes:
-                AceiteView()
-            case let .logado(usuario) where usuario.sobreVocePendente:
-                SobreVoceView()
-            case .logado:
-                PrincipalView(rota: $rota)
             }
         }
         .background {

@@ -277,3 +277,63 @@ private actor Sinal {
     private(set) var marcado = false
     func marcar() { marcado = true }
 }
+
+/// Aviso de "atualize o app" (D-201): o gateway le o User-Agent e recusa a versao velha com 426.
+struct AvisoDeVersaoTests {
+    private let base = URL(string: "https://piggu.com.br/api")!
+
+    @Test func todoPedidoLevaAPlataformaEAVersaoNoUserAgent() async throws {
+        let transporte = TransporteRoteirizado([(200, #"{"categorias":[]}"#), (200, tokensNovos)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
+
+        _ = try await cliente.listarCategorias()
+        try await cliente.renovar()
+
+        let agentes = await transporte.recebidos.map { $0.value(forHTTPHeaderField: "User-Agent") }
+        #expect(agentes.count == 2)
+        for agente in agentes {
+            #expect(agente == ConfiguracaoDaAPI.agente)
+        }
+        #expect(ConfiguracaoDaAPI.agente.hasPrefix("Piggu-iOS/"))
+        // So numeros e pontos depois da barra, que e o que o gateway compara.
+        let versao = ConfiguracaoDaAPI.agente.dropFirst("Piggu-iOS/".count)
+        #expect(!versao.isEmpty && versao.allSatisfy { $0.isNumber || $0 == "." })
+    }
+
+    @Test func versaoRecusadaAvisaEDevolveOErro() async throws {
+        let corpo = #"{"erro":"Esta versão do Piggu não funciona mais.","codigo":"ATUALIZE_O_APP","campos":[]}"#
+        let transporte = TransporteRoteirizado([(426, corpo)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
+        let avisou = Sinal()
+        let perdeu = Sinal()
+        await cliente.configurar(aoRenovar: { _ in }, aoPerderSessao: { await perdeu.marcar() },
+                                 aoPrecisarAtualizar: { await avisou.marcar() })
+
+        await #expect(throws: ErroDaAPI.servidor(status: 426, mensagem: "Esta versão do Piggu não funciona mais.",
+                                                 codigo: "ATUALIZE_O_APP")) {
+            _ = try await cliente.listarCategorias()
+        }
+        #expect(await avisou.marcado)
+        #expect(await !perdeu.marcado)
+    }
+
+    @Test func versaoRecusadaNoRefreshTambemAvisa() async throws {
+        let transporte = TransporteRoteirizado([(426, #"{"erro":"x","codigo":"ATUALIZE_O_APP"}"#)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
+        let avisou = Sinal()
+        await cliente.configurar(aoRenovar: { _ in }, aoPerderSessao: {}, aoPrecisarAtualizar: { await avisou.marcar() })
+
+        await #expect(throws: ErroDaAPI.self) { try await cliente.renovar() }
+        #expect(await avisou.marcado)
+    }
+
+    @Test func outro426NaoPedeParaAtualizar() async throws {
+        let transporte = TransporteRoteirizado([(426, #"{"erro":"outra coisa","codigo":"OUTRO"}"#)])
+        let cliente = ClienteDaAPI(urlBase: base, transporte: transporte)
+        let avisou = Sinal()
+        await cliente.configurar(aoRenovar: { _ in }, aoPerderSessao: {}, aoPrecisarAtualizar: { await avisou.marcar() })
+
+        await #expect(throws: ErroDaAPI.self) { _ = try await cliente.listarCategorias() }
+        #expect(await !avisou.marcado)
+    }
+}

@@ -251,9 +251,11 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
    `ignoreUnknownKeys = true`).
 3. Quando precisar quebrar, cria-se uma rota nova (ex.: `/api/expenses/v2`) e a antiga
    continua respondendo enquanto houver versão do app que a use.
-4. **Aviso de "atualize o app"** (planejado, ainda não existe no código): a proposta é o app
-   mandar a versão no `User-Agent` e, abaixo da versão mínima, a API responder `426` com o
-   `codigo` `ATUALIZE_O_APP`. O app já pode tratar esse status com a tela de atualizar.
+4. **Aviso de "atualize o app"** (D-201): os apps mandam `User-Agent: Piggu-Android/<versão>`
+   ou `Piggu-iOS/<versão>` (a versão de marketing, ex.: `2.0.1`). Abaixo da mínima da
+   plataforma (`PIGGU_VERSAO_MINIMA_ANDROID` e `PIGGU_VERSAO_MINIMA_IOS` no gateway, vazias
+   por padrão), qualquer rota responde `426` com o `codigo` `ATUALIZE_O_APP`, e o app cobre
+   tudo com a tela de atualizar. O site e outros clientes nunca recebem esse código.
 
 ## Regravar o contrato
 

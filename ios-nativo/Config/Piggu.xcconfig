@@ -5,3 +5,7 @@
 GOOGLE_IOS_CLIENT_ID = 80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360.apps.googleusercontent.com
 GOOGLE_IOS_URL_SCHEME = com.googleusercontent.apps.80166136253-1q8bc11ukmail1pr6bg0iq67btb9a360
 GOOGLE_SERVER_CLIENT_ID = 80166136253-iun0d3ano0st9kdfvl94e803dbjloa6t.apps.googleusercontent.com
+
+// Apple ID do app (App Store Connect > App Information, numero publico). Com ele, a tela de
+// atualizar (D-201) abre a ficha do Piggu na App Store; vazio, abre a busca da loja.
+PIGGU_APP_STORE_ID =

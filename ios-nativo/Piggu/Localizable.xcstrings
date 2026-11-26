@@ -222,6 +222,9 @@
     "Abrir %@" : {
 
     },
+    "Abrir a App Store" : {
+
+    },
     "Abrir no Mapas" : {
 
     },
@@ -354,7 +357,13 @@
     "Apagar gasto" : {
 
     },
+    "Atualize o Piggu" : {
+
+    },
     "Era uma receita" : {
+
+    },
+    "Esta versão do app não funciona mais. Instale a versão nova na App Store para continuar." : {
 
     },
     "Transformar \"%@\" em receita?" : {

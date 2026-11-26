@@ -326,6 +326,9 @@ services:
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ${PIGGU_LOG_FORMATO:-ecs}
       # Chamadas por minuto, por IP, na API inteira. 0 desliga.
       PIGGU_LIMITE_GATEWAY: ${PIGGU_LIMITE_GATEWAY:-600}
+      # Versao minima de cada app (ex.: 2.0.1). Vazio desliga. Abaixo dela: 426 ATUALIZE_O_APP.
+      PIGGU_VERSAO_MINIMA_ANDROID: ${PIGGU_VERSAO_MINIMA_ANDROID:-}
+      PIGGU_VERSAO_MINIMA_IOS: ${PIGGU_VERSAO_MINIMA_IOS:-}
       IDENTITY_URL: http://identity:8081
       FINANCE_URL: http://finance:8082
       REWARDS_URL: http://rewards:8083
