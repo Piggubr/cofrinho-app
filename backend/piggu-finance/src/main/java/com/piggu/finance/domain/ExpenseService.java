@@ -59,6 +59,7 @@ public class ExpenseService {
     private final TrilhaDeAuditoria trilha;
     private final PessoasDaFamilia pessoas;
     private final JdbcTemplate jdbc;
+    private final IncomeService receitas;
 
     public ExpenseService(ExpenseRepository repositorio,
                           CategoryService categorias,
@@ -68,7 +69,8 @@ public class ExpenseService {
                           DivisaoDeGastos divisao,
                           TrilhaDeAuditoria trilha,
                           JdbcTemplate jdbc,
-                          PessoasDaFamilia pessoas) {
+                          PessoasDaFamilia pessoas,
+                          IncomeService receitas) {
         this.repositorio = repositorio;
         this.categorias = categorias;
         this.memoriaDeProdutos = memoriaDeProdutos;
@@ -78,6 +80,7 @@ public class ExpenseService {
         this.trilha = trilha;
         this.jdbc = jdbc;
         this.pessoas = pessoas;
+        this.receitas = receitas;
     }
 
     @Transactional(readOnly = true)
@@ -343,6 +346,25 @@ public class ExpenseService {
         repositorio.deleteAll(apagar);
         apagar.forEach(p -> trilha.apagou("gasto", p.getId(), Resumos.gasto(p)));
         log.info("Gasto apagado: id={} parcelas={}", id, apagar.size());
+    }
+
+    /**
+     * Gasto lancado por engano no lugar de receita: vira receita com a mesma data, descricao,
+     * valor e compartilhamento, tudo numa transacao so (D-199). Parcelado nao vira: cada
+     * parcela e um gasto, e a receita nao tem parcelas.
+     */
+    @Transactional
+    public Income virarReceita(UUID id, CurrentUser usuario) {
+        Expense gasto = paraMudar(id, usuario);
+        if (gasto.getInstallmentCount() != null) {
+            throw new BusinessException("Gasto parcelado não vira receita. Apague as parcelas e lance a receita.");
+        }
+        Income receita = receitas.criar(gasto.getExpenseDate(), gasto.getItem(), gasto.getCategory(),
+                gasto.getAmount(), gasto.getUserId(), gasto.isShared());
+        repositorio.delete(gasto);
+        trilha.apagou("gasto", id, Resumos.gasto(gasto));
+        log.info("Gasto virou receita: gasto={} receita={}", id, receita.getId());
+        return receita;
     }
 
     /** Remocao silenciosa, usada quando uma nota vinculada e apagada. */

@@ -117,6 +117,7 @@ class RotasTest {
             financas.editarGasto("g1", EdicaoDeGasto("Pão", "Mercado", BigDecimal("5")))
         },
         Caso("DELETE", "/api/expenses/g1") { financas.excluirGasto("g1") },
+        Caso("POST", "/api/expenses/g1/virar-receita", corpo = "{}") { financas.virarReceita("g1") },
         Caso("DELETE", "/api/expenses/g1", mapOf("proximas" to "true")) { financas.excluirGasto("g1", proximas = true) },
         Caso(
             "POST", "/api/expenses/import",

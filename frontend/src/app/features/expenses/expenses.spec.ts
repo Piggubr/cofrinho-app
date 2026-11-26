@@ -296,6 +296,89 @@ describe('Expenses', () => {
     localStorage.removeItem('piggu_fila_de_gastos');
   });
 
+  describe('Era uma receita (D-199)', () => {
+    const gasto = {
+      id: 'g1',
+      data: '2026-09-10',
+      reciboId: null,
+      estabelecimento: '',
+      item: 'Pix do freela',
+      categoria: 'Outros',
+      valor: 350,
+      tipo: 'Variavel',
+      origem: 'Manual',
+      usuario: 'a',
+      registradoEm: '',
+    };
+
+    interface TelaDeEdicao {
+      emEdicao(): string | null;
+      abrirEdicao(g: typeof gasto): void;
+      virarReceita(g: typeof gasto): void;
+    }
+
+    function abrirEditando(): { tela: ComponentFixture<Expenses>; t: TelaDeEdicao } {
+      const tela = TestBed.createComponent(Expenses);
+      tela.detectChanges();
+      responder({ gastos: [gasto] });
+      const t = tela.componentInstance as unknown as TelaDeEdicao;
+      t.abrirEdicao(gasto);
+      return { tela, t };
+    }
+
+    it('sem confirmar não pede nada ao servidor', () => {
+      const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      const { t } = abrirEditando();
+
+      t.virarReceita(gasto);
+
+      expect(confirmar).toHaveBeenCalledWith('Transformar "Pix do freela" em receita?');
+      expect(t.emEdicao()).toBe('g1');
+      confirmar.mockRestore();
+    });
+
+    it('confirmando vira receita, fecha a edição, avisa e recarrega os gastos', () => {
+      const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const { tela, t } = abrirEditando();
+
+      t.virarReceita(gasto);
+      const pedido = http.expectOne('/api/expenses/g1/virar-receita');
+      expect(pedido.request.method).toBe('POST');
+      pedido.flush({
+        id: 'r1',
+        data: '2026-09-10',
+        descricao: 'Pix do freela',
+        categoria: 'Outros',
+        valor: 350,
+      });
+      http.expectOne((r) => r.url === '/api/expenses').flush([]);
+      http.expectOne((r) => r.url === '/api/expenses/splits').flush([]);
+      tela.detectChanges();
+
+      expect(t.emEdicao()).toBeNull();
+      expect(tela.nativeElement.textContent).toContain('"Pix do freela" agora está nas receitas.');
+      confirmar.mockRestore();
+    });
+
+    it('recusado pelo servidor mostra o motivo e continua editando', () => {
+      const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const { tela, t } = abrirEditando();
+
+      t.virarReceita(gasto);
+      http
+        .expectOne('/api/expenses/g1/virar-receita')
+        .flush(
+          { erro: 'Gasto parcelado não vira receita. Apague as parcelas e lance a receita.' },
+          { status: 422, statusText: 'Unprocessable Entity' },
+        );
+      tela.detectChanges();
+
+      expect(tela.nativeElement.textContent).toContain('Gasto parcelado não vira receita.');
+      expect(t.emEdicao()).toBe('g1');
+      confirmar.mockRestore();
+    });
+  });
+
   interface Tela {
     novoItem: { set(v: string): void };
     novoValor: { set(v: number): void };

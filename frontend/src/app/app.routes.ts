@@ -26,6 +26,11 @@ export const routes: Routes = [
     path: 'termos',
     loadComponent: () => import('./features/legal/termos').then((m) => m.Termos),
   },
+  // Aberta: o Google Play pede um link que funcione sem o app (D-197).
+  {
+    path: 'excluir-conta',
+    loadComponent: () => import('./features/legal/excluir-conta').then((m) => m.ExcluirConta),
+  },
   // Termos novos ainda nao aceitos param aqui antes de qualquer outra tela.
   // Aberta: o link do e-mail pode ser aberto sem sessao, em outro aparelho.
   {
