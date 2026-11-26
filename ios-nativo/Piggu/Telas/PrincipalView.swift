@@ -34,6 +34,9 @@ struct PrincipalView: View {
     /// Os Relatórios abrem dentro do Planejar.
     @State private var relatoriosAbertos = false
 
+    /// O banner do plano gratuito (D-180), so no Painel e nos Lançamentos; segue a sessao na hora.
+    private var mostraAnuncios: Bool { Conta.deveMostrarAnuncios(sessao.usuario, demo: Anuncios.demo) }
+
     /// Ajuste do Perfil: a barra de abas encolhe ao rolar a lista. Desligado, ela fica sempre inteira.
     static let chaveEsconderAbas = "piggu_esconder_abas"
 
@@ -139,6 +142,7 @@ struct PrincipalView: View {
             selecionar(destino)
         }
             .comBotaoDeLancar(gasto: lancar, receita: lancarReceita)
+            .comBannerDoGratuito(mostraAnuncios)
     }
 
     private var gastos: some View {
@@ -154,6 +158,7 @@ struct PrincipalView: View {
     /// Gastos e Receitas, cada uma com a sua tela, trocadas pelo seletor no topo (D-164).
     private var abaDeLancamentos: some View {
         Group { if lancamentos == .receitas { receitas } else { gastos } }
+            .comBannerDoGratuito(mostraAnuncios)
     }
 
     /// Planejar, com os Relatórios dentro (D-164).

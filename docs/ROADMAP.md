@@ -18,7 +18,7 @@ Este arquivo é o resumo. Os detalhes, as etapas e os prompts ficam nos planos:
 
 ## Depois (próximos 1 a 2 meses)
 
-- Anúncios no plano gratuito (D-180): textos e transição da versão do aviso feitos; faltam o Android (Tarefas 2 e 3 do plano), o iOS (Tarefas 4 e 5) e, com o Dudu, a conta AdMob, os ids, o bloqueio de categorias, o `app-ads.txt` e os formulários das lojas (Tarefa 6). A versão `2026-10-16` do aviso deixa de valer em 07/01/2027: até lá, os apps nas lojas precisam estar atualizados.
+- Anúncios no plano gratuito (D-180): textos, transição da versão do aviso e o iOS (D-203) feitos; falta o Android (Tarefas 2 e 3 do plano, PR à parte) e, com o Dudu, a conta AdMob, os ids, o bloqueio de categorias, o `app-ads.txt` e os formulários das lojas (Tarefa 6). A versão `2026-10-16` do aviso deixa de valer em 07/01/2027: até lá, os apps nas lojas precisam estar atualizados.
 - Entrar com Apple: pôr no servidor o Bundle ID em `APPLE_CLIENT_IDS` e a chave `.p8` com o Entrar com Apple em `APPLE_TEAM_ID`, `APPLE_KEY_ID` e `APPLE_CHAVE`, sem a qual excluir a conta não revoga na Apple (D-072 e D-142).
 - Abrir um grupo "Nativo" no TestFlight, agora que a etapa 4 do iOS está pronta.
 - App Store Connect: grupo "Piggu Premium" com os produtos `br.com.piggu.premium.mensal` e `.anual`, preços, notificações V2 em `/api/billing/webhooks/app-store` e `APP_STORE_APP_APPLE_ID` no servidor (D-094).

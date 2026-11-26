@@ -112,7 +112,9 @@ Só os SDKs da Apple (SwiftUI, Observation, Foundation, SwiftData, Network, Secu
 AuthenticationServices, CryptoKit, Charts, PhotosUI, UIKit para a câmera, MapKit, WidgetKit, AppIntents,
 LocalAuthentication, UserNotifications, TipKit, VisionKit, CoreSpotlight, Swift Testing) e o Google Sign-In (D-055), pelo Swift Package
 Manager: `GoogleSignIn-iOS` 10 (`https://github.com/google/GoogleSignIn-iOS`), que traz AppAuth,
-GTMAppAuth, GTMSessionFetcher, AppCheckCore e GoogleUtilities. As versões ficam presas em
+GTMAppAuth, GTMSessionFetcher, AppCheckCore e GoogleUtilities, e o Google Mobile Ads (D-180 e D-203):
+`swift-package-manager-google-mobile-ads` 13 (`https://github.com/googleads/swift-package-manager-google-mobile-ads`),
+que traz o User Messaging Platform, só para o banner do plano gratuito. As versões ficam presas em
 `Piggu.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. Nada além disso sem
 uma decisão nova.
 

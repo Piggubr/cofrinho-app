@@ -190,7 +190,7 @@ Os testes que não falam de idade usam um adulto (`nascimento = "1990-01-01"`).
 
 ## PR 3 — iOS
 
-### Tarefa 4: regra `deveMostrarAnuncios` no iOS
+### Tarefa 4: regra `deveMostrarAnuncios` no iOS (feita em 26/11/2026, D-203)
 
 **Arquivos:**
 - Modificar: `ios-nativo/Piggu/Core/Auth/Conta.swift` (extensão de `Usuario`)
@@ -207,7 +207,7 @@ Os testes que não falam de idade usam um adulto (`nascimento = "1990-01-01"`).
   Trocar o `ehPremium` duplicado de `AssistenteView.swift:42` por uma propriedade única em `Usuario` se ficar natural.
 - [ ] **Passo 4:** rodar → passa. Commit.
 
-### Tarefa 5: SDK, banner e benefício no Premium
+### Tarefa 5: SDK, banner e benefício no Premium (feita em 26/11/2026, D-203; Release sem id do banner sai sem banner, em vez de falhar)
 
 **Arquivos:**
 - Modificar: `ios-nativo/Piggu.xcodeproj/project.pbxproj` (pacote `swift-package-manager-google-mobile-ads`, última versão estável, travada no `Package.resolved`)

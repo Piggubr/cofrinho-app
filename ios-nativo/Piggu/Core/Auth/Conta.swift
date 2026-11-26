@@ -39,6 +39,27 @@ enum Conta {
         return nil
     }
 
+    /// O banner do plano gratuito (D-180): so com conta gratuita (nem Premium nem ADMIN), fora da
+    /// demonstracao e com 18 anos ou mais pelo `nascimento`, contados no fuso de Brasilia. Sem
+    /// usuario e com nascimento ausente ou ilegivel, nao mostra. Lida a cada desenho da tela:
+    /// assinou o Premium ou trocou de conta, o banner segue na hora.
+    static func deveMostrarAnuncios(_ usuario: Usuario?, demo: Bool, hoje: Date = .now) -> Bool {
+        guard let usuario, !demo else { return false }
+        return usuario.role != .admin && usuario.plano == .gratuito && maiorDeIdade(usuario.nascimento, hoje: hoje)
+    }
+
+    /// 18 anos completos no dia de hoje em Brasilia. Quem nasceu em 29/02 faz 18 em 28/02, como no Android.
+    static func maiorDeIdade(_ nascimento: String?, hoje: Date) -> Bool {
+        var calendario = Calendar(identifier: .gregorian)
+        calendario.timeZone = TimeZone(identifier: "America/Sao_Paulo")!
+        let partes = (nascimento ?? "").split(separator: "-").compactMap { Int($0) }
+        guard partes.count == 3 else { return false }
+        let dia = DateComponents(calendar: calendario, year: partes[0], month: partes[1], day: partes[2])
+        guard dia.isValidDate, let nasceu = calendario.date(from: dia),
+              let fez18 = calendario.date(byAdding: .year, value: 18, to: nasceu) else { return false }
+        return fez18 <= calendario.startOfDay(for: hoje)
+    }
+
     /// Conferencia rapida: um "@" so, sem espaco, e um ponto no meio do dominio.
     static func pareceEmail(_ texto: String) -> Bool {
         let partes = texto.split(separator: "@", omittingEmptySubsequences: false)
