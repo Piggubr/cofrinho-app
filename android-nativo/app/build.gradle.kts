@@ -18,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 36
         // O nativo entra como 2.0.0 do mesmo app das lojas (D-057).
-        versionCode = 205
+        versionCode = 206
         versionName = "2.0.0"
     }
 
@@ -32,6 +32,8 @@ android {
             // A demonstração não tem servidor: sem push.
             listOf("FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_PROJETO", "FIREBASE_REMETENTE")
                 .forEach { buildConfigField("String", it, "\"\"") }
+            // -Ppiggu.prints=true: sem a faixa da demonstração, para os prints das lojas (D-197).
+            buildConfigField("boolean", "PRINTS", "${project.hasProperty("piggu.prints")}")
         }
         create("producao") {
             dimension = "ambiente"
@@ -47,6 +49,7 @@ android {
             buildConfigField("String", "FIREBASE_API_KEY", "\"${chave ?: ""}\"")
             buildConfigField("String", "FIREBASE_PROJETO", "\"${projeto?.get("project_id") ?: ""}\"")
             buildConfigField("String", "FIREBASE_REMETENTE", "\"${projeto?.get("project_number") ?: ""}\"")
+            buildConfigField("boolean", "PRINTS", "false")
         }
     }
 

@@ -226,6 +226,11 @@ Código novo pode aparecer a qualquer momento: o app trata pelo status o que nã
   id é `400` `VALIDACAO`. Quem o finance ainda não viu é conferido no identity na hora; se ele
   estiver fora do ar, o lançamento dá `503` `SERVICO_INDISPONIVEL` e nada é gravado: tente de novo
   com o mesmo `idDoEnvio` (D-192).
+- **Gasto que era receita** (`POST /api/expenses/{id}/virar-receita`, sem corpo): apaga o gasto e
+  cria a receita com a mesma data, descrição (o `item`), valor e `compartilhado`, de uma vez; a
+  categoria vira a de receita com o mesmo nome ou `Outros`. Responde `201` com a receita (o mesmo
+  formato de `POST /api/incomes`). Só quem lançou: de outro, `403`. Parcela é `422` (apague as
+  parcelas e lance a receita); gasto que não existe, `404` (D-199).
 - **Relatório do mês** (`GET /api/reports/month`): no mês corrente, `projecaoDeGastos` conta os
   gastos `Fixo` uma vez e leva os outros pelo ritmo (até hoje ÷ dia de hoje × dias do mês);
   `gastosAteMesmoDiaAnterior` e `variacaoAteMesmoDia` comparam com o mês anterior até o mesmo dia.

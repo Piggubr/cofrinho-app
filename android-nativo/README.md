@@ -66,6 +66,9 @@ plataforma que faltar.
   `piggu://<rota do site>` funcionam; os App Links de `https://piggu.com.br` só cobrem as
   telas nativas.
 - Variante `demo`: a `ApiDaDemo` responde tudo, com qualquer e-mail e senha (a conta da Ana).
+- Prints do Google Play (D-197): `./gradlew installDemoDebug -Ppiggu.prints=true` (sem a faixa
+  da demonstração), entrar no app e rodar `scripts/prints-das-lojas.sh`, que grava 1080 × 1920 em
+  `~/Desktop/prints-das-lojas/android`.
 
 ## Entrada
 
@@ -124,7 +127,7 @@ compilar com o SDK 37, e o comportamento continua o do targetSdk 36 (D-136).
 
 ## Lançamento (A9)
 
-- **Versão:** 2.0.0, `versionCode` 205, com as correções da auditoria de 11/11 (D-196); o próximo AAB depois dele é o 206 (o 200 foi gasto num envio descartado, o 201 saiu em 31/10, o 202 em 04/11, o 203 em 06/11 e o 204 foi gerado em 10/11), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
+- **Versão:** 2.0.0, `versionCode` 206, com a develop de 26/11 (D-197 a D-199 e o CPF que entrava ao contrário, #198); o próximo AAB depois dele é o 207 (o 200 foi gasto num envio descartado, o 201 saiu em 31/10, o 202 em 04/11, o 203 em 06/11, o 204 foi gerado em 10/11 e o 205 em 12/11), acima do 1 do app Capacitor (o único APK já distribuído), como o mesmo app `br.com.piggu.app` das lojas (D-057).
 - **Assinatura:** a chave de upload vem de `PIGGU_UPLOAD_KEYSTORE` (caminho do .jks), `PIGGU_UPLOAD_KEYSTORE_SENHA`, `PIGGU_UPLOAD_KEY_ALIAS` e `PIGGU_UPLOAD_KEY_SENHA`. Nunca entra no repositório (`*.jks` e `*.keystore` no .gitignore). No CI, os secrets de mesmo nome (o .jks em base64 em `PIGGU_UPLOAD_KEYSTORE_BASE64`), guardados no ambiente `assinatura-android`, que só libera para a `main` (D-153); sem eles, o AAB sai sem assinatura.
 - **AAB:** o job "AAB de produção" do workflow `android-nativo.yml` só roda à mão ("Run workflow") na `main` e guarda o `app-producao-release.aab` como artefato; os PRs não usam a chave. O envio ao Play Console é manual, com a confirmação do Dudu.
 - **R8 e Baseline Profile:** a release usa R8 e o perfil de `app/src/main/generated/baselineProfiles`, gerado por `./gradlew :app:generateBaselineProfile` com um emulador do Android 13 ou mais novo (entra na demo, abre o Painel e as abas).
